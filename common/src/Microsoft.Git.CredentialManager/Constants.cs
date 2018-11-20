@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
-using Header = System.Collections.Generic.KeyValuePair<string, System.Collections.Generic.IEnumerable<string>>;
 
 namespace Microsoft.Git.CredentialManager
 {
@@ -36,7 +35,7 @@ namespace Microsoft.Git.CredentialManager
         {
             PlatformInformation info = PlatformUtils.GetPlatformInformation();
 
-            return $"Git Credential Manager (version {GcmVersion}, {info.OperatingSystemType})";
+            return $"Git Credential Manager version {GcmVersion} ({info.OperatingSystemType}, {info.ClrVersion})";
         }
 
         /// <summary>

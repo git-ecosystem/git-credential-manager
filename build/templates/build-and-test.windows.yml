@@ -1,0 +1,44 @@
+steps:
+- task: DotNetCoreInstaller@0
+  displayName: Install .NET Core SDK 2.2.100
+  inputs:
+    packageType: sdk
+    version: '2.2.100'
+
+- task: NuGetToolInstaller@0
+  displayName: Install NuGet tool >=4.3.0
+  inputs:
+    versionSpec: '>=4.3.0'
+
+- task: NuGetCommand@2
+  displayName: Restore packages
+  inputs:
+    command: restore
+    restoreSolution: 'Git-Credential-Manager.sln'
+    configuration: 'Windows$(configuration)'
+
+- task: MSBuild@1
+  displayName: Compile common code and Windows helpers
+  inputs:
+    solution: 'Git-Credential-Manager.sln'
+    configuration: 'Windows$(configuration)'
+
+- task: VSTest@2
+  displayName: Run common unit tests
+  inputs:
+    testAssemblyVer2: |
+      common\tests\**\*.Tests.dll
+      !**\obj\**
+    configuration: 'Windows$(configuration)'
+    testRunTitle: 'Common unit tests (Windows)'
+    continueOnError: true
+
+- task: VSTest@2
+  displayName: Run Windows helpers unit tests
+  inputs:
+    testAssemblyVer2: |
+      windows\tests\**\*.Tests.dll
+      !**\obj\**
+    configuration: 'Windows$(configuration)'
+    testRunTitle: 'Windows helpers unit tests'
+    continueOnError: true
