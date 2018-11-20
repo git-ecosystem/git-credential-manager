@@ -24,5 +24,10 @@ namespace Microsoft.Git.CredentialManager
 
             return string.Format(GcmProgramNameFormat, GcmVersion, os);
         }
+
+        public static string GetHttpUserAgent()
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }
