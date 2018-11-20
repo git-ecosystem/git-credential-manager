@@ -1,0 +1,139 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Git.CredentialManager.Commands;
+
+namespace Microsoft.Git.CredentialManager
+{
+    public static class Application
+    {
+        private static readonly string ExecutableName =
+            Path.GetFileName(typeof(Application).Assembly.CodeBase);
+
+        private static readonly string ApplicationHeader =
+            Constants.GetProgramHeader();
+
+        private static readonly IHostProviderRegistry HostProviderRegistry = new HostProviderRegistry();
+
+        private static readonly ICollection<CommandBase> Commands = new CommandBase[]
+        {
+            new EraseCommand(HostProviderRegistry),
+            new GetCommand(HostProviderRegistry),
+            new StoreCommand(HostProviderRegistry),
+            new HelpCommand(ExecutableName),
+            new VersionCommand(ApplicationHeader),
+        };
+
+        public static async Task<int> RunAsync(string[] args)
+        {
+            var context = new CommandContext();
+
+            // Launch debugger
+            if (context.IsEnvironmentVariableTruthy(Constants.EnvironmentVariables.GcmDebug, false))
+            {
+                context.StdError.WriteLine("Attempting to launch debugger...");
+                Debugger.Launch();
+            }
+
+            // Enable tracing
+            if (context.TryGetEnvironmentVariable(Constants.EnvironmentVariables.GcmTrace, out string traceEnvar))
+            {
+                if (traceEnvar.IsTruthy()) // Trace to stderr
+                {
+                    context.Trace.AddListener(context.StdError);
+                }
+                else if (Path.IsPathRooted(traceEnvar) && // Trace to a file
+                         TryCreateTextWriter(context, traceEnvar, out var fileWriter))
+                {
+                    context.Trace.AddListener(fileWriter);
+                }
+                else
+                {
+                    context.StdError.WriteLine($"warning: cannot write trace output to {traceEnvar}");
+                }
+            }
+
+            // Enable sensitive tracing and show warning
+            if (context.IsEnvironmentVariableTruthy(Constants.EnvironmentVariables.GcmTraceSecrets, false))
+            {
+                context.Trace.EnableSensitiveTracing = true;
+                context.StdError.WriteLine("Secret tracing is enabled. Trace output may contain sensitive information.");
+            }
+
+            // Register all supported host providers
+            HostProviderRegistry.Register(
+                // TODO
+            );
+
+            // Trace the current version and program arguments
+            context.Trace.WriteLine($"{ApplicationHeader} '{string.Join(" ", args)}'");
+
+            if (args.Length == 0)
+            {
+                context.StdError.WriteLine("Missing command. Try --help for usage information.");
+                return -1;
+            }
+
+            foreach (var cmd in Commands)
+            {
+                if (cmd.CanExecute(args))
+                {
+                    try
+                    {
+                        await cmd.ExecuteAsync(context, args);
+                        return 0;
+                    }
+                    catch (Exception e)
+                    {
+                        if (e is AggregateException ae)
+                        {
+                            ae.Handle(x => WriteException(context, x));
+                        }
+                        else
+                        {
+                            WriteException(context, e);
+                        }
+
+                        return -1;
+                    }
+                }
+            }
+
+            context.StdError.WriteLine("Unrecognized command '{0}'. Try --help for usage information.", args[0]);
+
+            return -1;
+        }
+
+        private static bool WriteException(ICommandContext context, Exception e)
+        {
+            context.StdError.WriteLine("fatal: {0}", e.Message);
+            if (e.InnerException != null)
+            {
+                context.StdError.WriteLine("fatal: {0}", e.InnerException.Message);
+            }
+
+            return true;
+        }
+
+        private static bool TryCreateTextWriter(ICommandContext context, string path, out TextWriter writer)
+        {
+            writer = null;
+
+            try
+            {
+                var stream = context.FileSystem.OpenFileStream(path, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
+                writer = new StreamWriter(stream, Encoding.UTF8, 4096, leaveOpen: false);
+            }
+            catch
+            {
+                // Swallow all exceptions
+            }
+
+            return writer != null;
+        }
+    }
+}
