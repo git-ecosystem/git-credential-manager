@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Microsoft.Git.CredentialManager.SecureStorage;
 
 namespace Microsoft.Git.CredentialManager
 {
@@ -36,6 +37,11 @@ namespace Microsoft.Git.CredentialManager
         /// File system abstraction (exists mainly for testing).
         /// </summary>
         IFileSystem FileSystem { get; }
+
+        /// <summary>
+        /// Secure credential storage.
+        /// </summary>
+        ICredentialStore CredentialStore { get; }
 
         /// <summary>
         /// Access the environment variables for the current GCM process.
@@ -110,6 +116,8 @@ namespace Microsoft.Git.CredentialManager
 
         public IFileSystem FileSystem { get; } = new FileSystem();
 
+        public ICredentialStore CredentialStore { get; } = GetDefaultCredentialStore();
+
         public IReadOnlyDictionary<string, string> GetEnvironmentVariables()
         {
             IDictionary variables = Environment.GetEnvironmentVariables();
@@ -140,6 +148,26 @@ namespace Microsoft.Git.CredentialManager
         }
 
         #endregion
+
+        private static ICredentialStore GetDefaultCredentialStore()
+        {
+            if (PlatformUtils.IsMacOS())
+            {
+                return MacOSKeychain.OpenDefault();
+            }
+
+            if (PlatformUtils.IsWindows())
+            {
+                return WindowsCredentialManager.OpenDefault();
+            }
+
+            if (PlatformUtils.IsLinux())
+            {
+                throw new NotImplementedException();
+            }
+
+            throw new PlatformNotSupportedException();
+        }
     }
 
     public static class CommandContextExtensions
