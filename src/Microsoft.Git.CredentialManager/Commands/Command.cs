@@ -33,7 +33,8 @@ namespace Microsoft.Git.CredentialManager.Commands
         public override async Task ExecuteAsync(ICommandContext context, string[] args)
         {
             // Parse standard input arguments
-            IDictionary<string, string> inputDict = await context.StdIn.ReadDictionaryAsync(StringComparer.OrdinalIgnoreCase);
+            // git-credential treats the keys as case-sensitive; so should we.
+            IDictionary<string, string> inputDict = await context.StdIn.ReadDictionaryAsync(StringComparer.Ordinal);
             var input = new InputArguments(inputDict);
 
             // Determine the host provider

@@ -41,5 +41,37 @@ namespace Microsoft.Git.CredentialManager
                 throw new ArgumentException("Argument must be an absolute URI.", name);
             }
         }
+
+        public static void PositiveOrZero(int arg, string name)
+        {
+            if (arg < 0)
+            {
+                throw new ArgumentOutOfRangeException(name, "Argument must be positive or zero (non-negative).");
+            }
+        }
+
+        public static void Positive(int arg, string name)
+        {
+            if (arg <= 0)
+            {
+                throw new ArgumentOutOfRangeException(name, "Argument must be positive.");
+            }
+        }
+
+        public static void NegativeOrZero(int arg, string name)
+        {
+            if (arg > 0)
+            {
+                throw new ArgumentOutOfRangeException(name, "Argument must be negative or zero (non-positive).");
+            }
+        }
+
+        public static void Negative(int arg, string name)
+        {
+            if (arg >= 0)
+            {
+                throw new ArgumentOutOfRangeException(name, "Argument must be negative.");
+            }
+        }
     }
 }

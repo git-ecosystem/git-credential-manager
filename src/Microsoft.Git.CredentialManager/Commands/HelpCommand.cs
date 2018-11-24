@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -24,19 +25,25 @@ namespace Microsoft.Git.CredentialManager.Commands
         public override Task ExecuteAsync(ICommandContext context, string[] args)
         {
             context.StdOut.WriteLine(Constants.GcmProgramNameFormat, Constants.GcmVersion, PlatformUtils.GetOSInfo());
-            context.StdOut.WriteLine();
-            context.StdOut.WriteLine("usage: {0} <command>", _appName);
-            context.StdOut.WriteLine();
-            context.StdOut.WriteLine("  Available commands:");
-            context.StdOut.WriteLine("    erase");
-            context.StdOut.WriteLine("    get");
-            context.StdOut.WriteLine("    store");
-            context.StdOut.WriteLine();
-            context.StdOut.WriteLine("    --version, version");
-            context.StdOut.WriteLine("    --help, -h, -?");
-            context.StdOut.WriteLine();
+
+            PrintUsage(context.StdOut);
 
             return Task.CompletedTask;
+        }
+
+        public void PrintUsage(TextWriter writer)
+        {
+            writer.WriteLine();
+            writer.WriteLine("usage: {0} <command>", _appName);
+            writer.WriteLine();
+            writer.WriteLine("  Available commands:");
+            writer.WriteLine("    erase");
+            writer.WriteLine("    get");
+            writer.WriteLine("    store");
+            writer.WriteLine();
+            writer.WriteLine("    --version, version");
+            writer.WriteLine("    --help, -h, -?");
+            writer.WriteLine();
         }
     }
 }

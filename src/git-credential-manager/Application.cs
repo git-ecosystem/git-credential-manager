@@ -19,13 +19,15 @@ namespace Microsoft.Git.CredentialManager
 
         private static readonly IHostProviderRegistry HostProviderRegistry = new HostProviderRegistry();
 
+        private static readonly HelpCommand HelpCommand = new HelpCommand(ExecutableName);
+
         private static readonly ICollection<CommandBase> Commands = new CommandBase[]
         {
             new EraseCommand(HostProviderRegistry),
             new GetCommand(HostProviderRegistry),
             new StoreCommand(HostProviderRegistry),
-            new HelpCommand(ExecutableName),
             new VersionCommand(ApplicationHeader),
+            HelpCommand,
         };
 
         public static async Task<int> RunAsync(string[] args)
@@ -60,7 +62,7 @@ namespace Microsoft.Git.CredentialManager
             // Enable sensitive tracing and show warning
             if (context.IsEnvironmentVariableTruthy(Constants.EnvironmentVariables.GcmTraceSecrets, false))
             {
-                context.Trace.EnableSensitiveTracing = true;
+                context.Trace.EnableSecretTracing = true;
                 context.StdError.WriteLine("Secret tracing is enabled. Trace output may contain sensitive information.");
             }
 
@@ -74,7 +76,8 @@ namespace Microsoft.Git.CredentialManager
 
             if (args.Length == 0)
             {
-                context.StdError.WriteLine("Missing command. Try --help for usage information.");
+                context.StdError.WriteLine("Missing command.");
+                HelpCommand.PrintUsage(context.StdError);
                 return -1;
             }
 
@@ -103,8 +106,8 @@ namespace Microsoft.Git.CredentialManager
                 }
             }
 
-            context.StdError.WriteLine("Unrecognized command '{0}'. Try --help for usage information.", args[0]);
-
+            context.StdError.WriteLine("Unrecognized command '{0}'.", args[0]);
+            HelpCommand.PrintUsage(context.StdError);
             return -1;
         }
 
@@ -125,8 +128,10 @@ namespace Microsoft.Git.CredentialManager
 
             try
             {
+                var utf8NoBomEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+
                 var stream = context.FileSystem.OpenFileStream(path, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
-                writer = new StreamWriter(stream, Encoding.UTF8, 4096, leaveOpen: false);
+                writer = new StreamWriter(stream, utf8NoBomEncoding, 4096, leaveOpen: false);
             }
             catch
             {

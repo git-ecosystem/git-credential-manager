@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace Microsoft.Git.CredentialManager
 {
@@ -10,7 +11,7 @@ namespace Microsoft.Git.CredentialManager
         /// Get or set whether or not sensitive information such as secrets and credentials should be
         //  output to attached trace listeners.
         /// </summary>
-        bool EnableSensitiveTracing { get; set; }
+        bool EnableSecretTracing { get; set; }
 
         /// <summary>
         /// Add a listener to the trace writer.
@@ -71,15 +72,18 @@ namespace Microsoft.Git.CredentialManager
         /// <summary>
         /// Writes a message containing sensitive information to the trace writer followed by a line terminator.
         /// <para/>
-        /// Attached listeners will only receive these messages if <see cref="EnableSensitiveTracing"/> is set to true.
+        /// Attached listeners will only receive the fully formatted message if <see cref="EnableSecretTracing"/> is set
+        /// to true, otherwise the secret arguments will be masked.
         /// </summary>
-        /// <param name="message">The message to write.</param>
+        /// <param name="message">The format string to write.</param>
+        /// <param name="secrets">Sensitive/secret arguments for the format string.</param>
         /// <param name="filePath">Path of the file this method is called from.</param>
         /// <param name="lineNumber">Line number of file this method is called from.</param>
         /// <param name="memberName">Name of the member in which this method is called.</param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
-        void WriteLineSensitive(
-            string message,
+        void WriteLineSecrets(
+            string format,
+            object[] secrets,
             [System.Runtime.CompilerServices.CallerFilePath] string filePath = "",
             [System.Runtime.CompilerServices.CallerLineNumber] int lineNumber = 0,
             [System.Runtime.CompilerServices.CallerMemberName] string memberName = "");
@@ -90,7 +94,7 @@ namespace Microsoft.Git.CredentialManager
         private readonly object _writersLock = new object();
         private readonly List<TextWriter> _writers = new List<TextWriter>();
 
-        public bool EnableSensitiveTracing { get; set; }
+        public bool EnableSecretTracing { get; set; }
 
         public void AddListener(TextWriter listener)
         {
@@ -192,16 +196,18 @@ namespace Microsoft.Git.CredentialManager
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
-        public void WriteLineSensitive(
-            string message,
+        public void WriteLineSecrets(
+            string format,
+            object[] secrets,
             [System.Runtime.CompilerServices.CallerFilePath] string filePath = "",
             [System.Runtime.CompilerServices.CallerLineNumber] int lineNumber = 0,
             [System.Runtime.CompilerServices.CallerMemberName] string memberName = "")
         {
-            if (this.EnableSensitiveTracing)
-            {
-                WriteLine(message, filePath, lineNumber, memberName);
-            }
+            string message = this.EnableSecretTracing
+                           ? string.Format(format, secrets)
+                           : string.Format(format, secrets.Select(x => "********"));
+
+            WriteLine(message, filePath, lineNumber, memberName);
         }
 
         private void Dispose(bool finalizing)
@@ -230,14 +236,10 @@ namespace Microsoft.Git.CredentialManager
         {
             const int sourceColumnMaxWidth = 23;
 
-            if (message is null)
-                throw new ArgumentNullException(nameof(message));
-            if (filePath is null)
-                throw new ArgumentNullException(nameof(filePath));
-            if (lineNumber < 0)
-                throw new ArgumentOutOfRangeException(nameof(lineNumber));
-            if (memberName is null)
-                throw new ArgumentNullException(nameof(memberName));
+            EnsureArgument.NotNull(message, nameof(message));
+            EnsureArgument.NotNull(filePath, nameof(filePath));
+            EnsureArgument.PositiveOrZero(lineNumber, nameof(lineNumber));
+            EnsureArgument.NotNull(memberName, nameof(memberName));
 
             // Source column format is file:line
             string source = $"{filePath}:{lineNumber}";
