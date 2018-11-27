@@ -37,8 +37,11 @@ namespace Microsoft.Git.CredentialManager
             // Launch debugger
             if (context.IsEnvironmentVariableTruthy(Constants.EnvironmentVariables.GcmDebug, false))
             {
-                context.StdError.WriteLine("Attempting to launch debugger...");
-                Debugger.Launch();
+                context.StdError.WriteLine("Waiting for debugger to be attached...");
+                PlatformUtils.WaitForDebuggerAttached();
+
+                // Now the debugger is attached, break!
+                Debugger.Break();
             }
 
             // Enable tracing

@@ -28,7 +28,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Commands
             mockProvider.Setup(x => x.GetCredentialKey(It.IsAny<InputArguments>()))
                 .Returns(testProviderCredKey);
 
-            string standardIn = "protocol=test\nhost=example.com\n\n";
+            string standardIn = "protocol=test\nhost=example.com\npath=a/b/c\n\n";
             TextReader standardInReader = new StringReader(standardIn);
 
             mockContext.Setup(x => x.StdIn).Returns(standardInReader);
@@ -43,6 +43,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Commands
                     Assert.Equal(testFinalCredKey, credentialKey);
                     Assert.Equal("test", input.Protocol);
                     Assert.Equal("example.com", input.Host);
+                    Assert.Equal("a/b/c", input.Path);
                 }
             };
 
