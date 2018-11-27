@@ -3,6 +3,9 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Git.CredentialManager.Commands
 {
+    /// <summary>
+    /// Acquire a new <see cref="GitCredential"/> from a <see cref="IHostProvider"/>.
+    /// </summary>
     public class GetCommand : HostProviderCommandBase
     {
         public GetCommand(IHostProviderRegistry hostProviderRegistry)

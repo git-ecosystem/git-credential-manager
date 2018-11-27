@@ -9,6 +9,10 @@ namespace Microsoft.Git.CredentialManager
 {
     public static class PlatformUtils
     {
+        /// <summary>
+        /// Get information about the Operating System.
+        /// </summary>
+        /// <returns></returns>
         public static string GetOSInfo()
         {
             if (IsWindows())
@@ -29,21 +33,37 @@ namespace Microsoft.Git.CredentialManager
             return "Unknown";
         }
 
+        /// <summary>
+        /// Check if the current Operating System is macOS.
+        /// </summary>
+        /// <returns>True if running on macOS, false otherwise.</returns>
         public static bool IsMacOS()
         {
             return RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
         }
 
+        /// <summary>
+        /// Check if the current Operating System is Windows.
+        /// </summary>
+        /// <returns>True if running on Windows, false otherwise.</returns>
         public static bool IsWindows()
         {
             return RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
         }
 
+        /// <summary>
+        /// Check if the current Operating System is Linux-based.
+        /// </summary>
+        /// <returns>True if running on a Linux distribution, false otherwise.</returns>
         public static bool IsLinux()
         {
             return RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
         }
 
+        /// <summary>
+        /// Ensure the current Operating System is macOS, fail otherwise.
+        /// </summary>
+        /// <exception cref="PlatformNotSupportedException">Thrown if the current OS is not macOS.</exception>
         public static void EnsureMacOS()
         {
             if (!IsMacOS())
@@ -52,6 +72,10 @@ namespace Microsoft.Git.CredentialManager
             }
         }
 
+        /// <summary>
+        /// Ensure the current Operating System is Windows, fail otherwise.
+        /// </summary>
+        /// <exception cref="PlatformNotSupportedException">Thrown if the current OS is not Windows.</exception>
         public static void EnsureWindows()
         {
             if (!IsWindows())
@@ -60,6 +84,10 @@ namespace Microsoft.Git.CredentialManager
             }
         }
 
+        /// <summary>
+        /// Ensure the current Operating System is Linux-based, fail otherwise.
+        /// </summary>
+        /// <exception cref="PlatformNotSupportedException">Thrown if the current OS is not Linux-based.</exception>
         public static void EnsureLinux()
         {
             if (!IsLinux())
@@ -68,6 +96,9 @@ namespace Microsoft.Git.CredentialManager
             }
         }
 
+        /// <summary>
+        /// Wait until a debugger has attached to the currently executing process.
+        /// </summary>
         public static void WaitForDebuggerAttached()
         {
             // Attempt to launch the debugger if the OS supports the explicit launching

@@ -8,9 +8,22 @@ namespace Microsoft.Git.CredentialManager
 {
     public static class StreamExtensions
     {
+        /// <summary>
+        /// Read a dictionary in the form `key1=value\nkey2=value\n\n` from the specified <see cref="TextReader"/>.
+        /// </summary>
+        /// <remarks>Uses the <see cref="StringComparer.Ordinal"/> comparer for dictionary keys.</remarks>
+        /// <param name="reader">Text reader to read a dictionary from.</param>
+        /// <returns>Dictionary read from the text reader.</returns>
         public static IDictionary<string, string> ReadDictionary(this TextReader reader) =>
             ReadDictionary(reader, StringComparer.Ordinal);
 
+        /// <summary>
+        /// Read a dictionary in the form `key1=value\nkey2=value\n\n` from the specified <see cref="TextReader"/>,
+        /// with the specified <see cref="StringComparer"/> used to compare dictionary keys.
+        /// </summary>
+        /// <param name="reader">Text reader to read a dictionary from.</param>
+        /// <param name="comparer">Comparer to use when comparing dictionary keys.</param>
+        /// <returns>Dictionary read from the text reader.</returns>
         public static IDictionary<string, string> ReadDictionary(this TextReader reader, StringComparer comparer)
         {
             var dict = new Dictionary<string, string>(comparer);
@@ -24,9 +37,22 @@ namespace Microsoft.Git.CredentialManager
             return dict;
         }
 
+        /// <summary>
+        /// Asynchronously read a dictionary in the form `key1=value\nkey2=value\n\n` from the specified <see cref="TextReader"/>.
+        /// </summary>
+        /// <remarks>Uses the <see cref="StringComparer.Ordinal"/> comparer for dictionary keys.</remarks>
+        /// <param name="reader">Text reader to read a dictionary from.</param>
+        /// <returns>Dictionary read from the text reader.</returns>
         public static Task<IDictionary<string, string>> ReadDictionaryAsync(this TextReader reader) =>
             ReadDictionaryAsync(reader, StringComparer.Ordinal);
 
+        /// <summary>
+        /// Asynchronously read a dictionary in the form `key1=value\nkey2=value\n\n` from the specified <see cref="TextReader"/>,
+        /// with the specified <see cref="StringComparer"/> used to compare dictionary keys.
+        /// </summary>
+        /// <param name="reader">Text reader to read a dictionary from.</param>
+        /// <param name="comparer">Comparer to use when comparing dictionary keys.</param>
+        /// <returns>Dictionary read from the text reader.</returns>
         public static async Task<IDictionary<string, string>> ReadDictionaryAsync(this TextReader reader, StringComparer comparer)
         {
             var dict = new Dictionary<string, string>(comparer);
@@ -40,6 +66,11 @@ namespace Microsoft.Git.CredentialManager
             return dict;
         }
 
+        /// <summary>
+        /// Write a dictionary in the form `key1=value\nkey2=value\n\n` to the specified <see cref="TextWriter"/>.
+        /// </summary>
+        /// <param name="reader">Text writer to write a dictionary to.</param>
+        /// <param name="dict">Dictionary to write to the text writer.</param>
         public static void WriteDictionary(this TextWriter writer, IDictionary<string, string> dict)
         {
             foreach (var kvp in dict)
@@ -51,6 +82,11 @@ namespace Microsoft.Git.CredentialManager
             writer.WriteLine();
         }
 
+        /// <summary>
+        /// Asynchronously write a dictionary in the form `key1=value\nkey2=value\n\n` to the specified <see cref="TextWriter"/>.
+        /// </summary>
+        /// <param name="reader">Text writer to write a dictionary to.</param>
+        /// <param name="dict">Dictionary to write to the text writer.</param>
         public static async Task WriteDictionaryAsync(this TextWriter writer, IDictionary<string, string> dict)
         {
             foreach (var kvp in dict)

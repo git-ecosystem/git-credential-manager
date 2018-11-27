@@ -4,6 +4,9 @@ using System.Text;
 
 namespace Microsoft.Git.CredentialManager
 {
+    /// <summary>
+    /// Represents a credential (username/password pair) that Git can use to authenticate to a remote repository.
+    /// </summary>
     public class GitCredential
     {
         public GitCredential(string userName, string password)
@@ -12,8 +15,14 @@ namespace Microsoft.Git.CredentialManager
             Password = password;
         }
 
+        /// <summary>
+        /// User name.
+        /// </summary>
         public string UserName { get; }
 
+        /// <summary>
+        /// Password.
+        /// </summary>
         public string Password { get; }
 
         /// <summary>

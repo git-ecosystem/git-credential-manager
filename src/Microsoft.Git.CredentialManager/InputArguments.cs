@@ -4,6 +4,14 @@ using System.Collections.ObjectModel;
 
 namespace Microsoft.Git.CredentialManager
 {
+    /// <summary>
+    /// Represents the input for a Git credential query such as get, erase, or store.
+    /// </summary>
+    /// <remarks>
+    /// This class surfaces the input that is streamed over standard in from Git which provides
+    /// the credential helper the remote repository information, including the protocol, host,
+    /// and remote repository path.
+    /// </remarks>
     public class InputArguments
     {
         private readonly IReadOnlyDictionary<string, string> _dict;

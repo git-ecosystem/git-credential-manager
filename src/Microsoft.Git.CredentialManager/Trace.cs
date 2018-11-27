@@ -5,11 +5,14 @@ using System.Linq;
 
 namespace Microsoft.Git.CredentialManager
 {
+    /// <summary>
+    /// Represents the application's tracing system.
+    /// </summary>
     public interface ITrace
     {
         /// <summary>
         /// Get or set whether or not sensitive information such as secrets and credentials should be
-        //  output to attached trace listeners.
+        /// output to attached trace listeners.
         /// </summary>
         bool EnableSecretTracing { get; set; }
 
@@ -75,7 +78,7 @@ namespace Microsoft.Git.CredentialManager
         /// Attached listeners will only receive the fully formatted message if <see cref="EnableSecretTracing"/> is set
         /// to true, otherwise the secret arguments will be masked.
         /// </summary>
-        /// <param name="message">The format string to write.</param>
+        /// <param name="format">The format string to write.</param>
         /// <param name="secrets">Sensitive/secret arguments for the format string.</param>
         /// <param name="filePath">Path of the file this method is called from.</param>
         /// <param name="lineNumber">Line number of file this method is called from.</param>

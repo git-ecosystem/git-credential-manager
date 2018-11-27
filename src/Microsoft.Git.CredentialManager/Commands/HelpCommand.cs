@@ -5,6 +5,9 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Git.CredentialManager.Commands
 {
+    /// <summary>
+    /// Print usage information and basic help for Git Credential Manager.
+    /// </summary>
     public class HelpCommand : CommandBase
     {
         private readonly string _appName;
@@ -31,6 +34,10 @@ namespace Microsoft.Git.CredentialManager.Commands
             return Task.CompletedTask;
         }
 
+        /// <summary>
+        /// Print the standard usage documentation for Git Credential Manager to the given <see cref="TextWriter"/>.
+        /// </summary>
+        /// <param name="writer">Text writer to write usage information to.</param>
         public void PrintUsage(TextWriter writer)
         {
             writer.WriteLine();

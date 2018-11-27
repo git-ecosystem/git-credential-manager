@@ -4,6 +4,9 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Git.CredentialManager.Commands
 {
+    /// <summary>
+    /// Print version information for Git Credential Manager.
+    /// </summary>
     public class VersionCommand : CommandBase
     {
         private readonly string _header;
