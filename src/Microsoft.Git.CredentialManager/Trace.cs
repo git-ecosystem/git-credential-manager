@@ -142,6 +142,7 @@ namespace Microsoft.Git.CredentialManager
             [System.Runtime.CompilerServices.CallerLineNumber] int lineNumber = 0,
             [System.Runtime.CompilerServices.CallerMemberName] string memberName = "")
         {
+            // Exception being null probably won't happen, but we shouldn't die because we failed to trace it.
             if (exception is null)
                 return;
 
