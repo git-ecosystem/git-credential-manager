@@ -22,7 +22,7 @@ namespace Microsoft.Git.CredentialManager.Commands
             return args.Any(x => StringComparer.OrdinalIgnoreCase.Equals(x, "--help") ||
                                  StringComparer.OrdinalIgnoreCase.Equals(x, "-h") ||
                                  StringComparer.OrdinalIgnoreCase.Equals(x, "help") ||
-                                 x != null && x.Contains('?'));
+                                 (x != null && x.Contains('?')));
         }
 
         public override Task ExecuteAsync(ICommandContext context, string[] args)
