@@ -11,23 +11,15 @@ namespace Microsoft.Git.CredentialManager
 {
     public static class Application
     {
-        private static readonly string ExecutableName =
-            Path.GetFileName(typeof(Application).Assembly.CodeBase);
-
-        private static readonly string ApplicationHeader =
-            Constants.GetProgramHeader();
-
         private static readonly IHostProviderRegistry HostProviderRegistry = new HostProviderRegistry();
-
-        private static readonly HelpCommand HelpCommand = new HelpCommand(ExecutableName);
 
         private static readonly ICollection<CommandBase> Commands = new CommandBase[]
         {
             new EraseCommand(HostProviderRegistry),
             new GetCommand(HostProviderRegistry),
             new StoreCommand(HostProviderRegistry),
-            new VersionCommand(ApplicationHeader),
-            HelpCommand,
+            new VersionCommand(),
+            new HelpCommand(),
         };
 
         public static async Task<int> RunAsync(string[] args)
@@ -75,7 +67,7 @@ namespace Microsoft.Git.CredentialManager
             );
 
             // Trace the current version and program arguments
-            context.Trace.WriteLine($"{ApplicationHeader} '{string.Join(" ", args)}'");
+            context.Trace.WriteLine($"{Constants.GetProgramHeader()} '{string.Join(" ", args)}'");
 
             if (args.Length == 0)
             {

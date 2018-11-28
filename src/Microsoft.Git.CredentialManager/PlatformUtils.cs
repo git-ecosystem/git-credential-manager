@@ -10,27 +10,16 @@ namespace Microsoft.Git.CredentialManager
     public static class PlatformUtils
     {
         /// <summary>
-        /// Get information about the Operating System.
+        /// Get information about the current platform (OS and CLR details).
         /// </summary>
-        /// <returns></returns>
-        public static string GetOSInfo()
+        /// <returns>Platform information.</returns>
+        public static PlatformInformation GetPlatformInformation()
         {
-            if (IsWindows())
-            {
-                return "Windows";
-            }
+            string osType = GetOSType();
+            string cpuArch = GetCpuArchitecture();
+            string clrVersion = GetClrVersion();
 
-            if (IsMacOS())
-            {
-                return "macOS";
-            }
-
-            if (IsLinux())
-            {
-                return "Linux";
-            }
-
-            return "Unknown";
+            return new PlatformInformation(osType, cpuArch, clrVersion);
         }
 
         /// <summary>
@@ -114,5 +103,65 @@ namespace Microsoft.Git.CredentialManager
                 Thread.Sleep(TimeSpan.FromSeconds(1));
             }
         }
+
+        #region Platform information helper methods
+
+        private static string GetOSType()
+        {
+            if (IsWindows())
+            {
+                return "Windows";
+            }
+
+            if (IsMacOS())
+            {
+                return "macOS";
+            }
+
+            if (IsLinux())
+            {
+                return "Linux";
+            }
+
+            return "Unknown";
+        }
+
+        private static string GetCpuArchitecture()
+        {
+            switch (RuntimeInformation.OSArchitecture)
+            {
+                case Architecture.Arm:
+                    return "ARM32";
+                case Architecture.Arm64:
+                    return "ARM64";
+                case Architecture.X64:
+                    return "x86-64";
+                case Architecture.X86:
+                    return "x86";
+                default:
+                    return RuntimeInformation.OSArchitecture.ToString();
+            }
+        }
+
+        private static string GetClrVersion()
+        {
+            return RuntimeInformation.FrameworkDescription;
+        }
+
+        #endregion
+    }
+
+    public struct PlatformInformation
+    {
+        public PlatformInformation(string osType, string cpuArch, string clrVersion)
+        {
+            OperatingSystemType = osType;
+            CpuArchitecture = cpuArch;
+            ClrVersion = clrVersion;
+        }
+
+        public readonly string OperatingSystemType;
+        public readonly string CpuArchitecture;
+        public readonly string ClrVersion;
     }
 }

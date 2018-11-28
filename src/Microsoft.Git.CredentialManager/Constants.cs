@@ -1,3 +1,5 @@
+using System.Text;
+
 namespace Microsoft.Git.CredentialManager
 {
     public static class Constants
@@ -12,22 +14,29 @@ namespace Microsoft.Git.CredentialManager
             public const string GcmDebug        = "GCM_DEBUG";
         }
 
-        public static readonly string GcmProgramNameFormat = "Git Credential Manager Core (version {0}, {1})";
-
         /// <summary>
         /// Get standard program header title for Git Credential Manager, including the current version and OS information.
         /// </summary>
         /// <returns>Standard program header.</returns>
         public static string GetProgramHeader()
         {
-            string os = PlatformUtils.GetOSInfo();
+            PlatformInformation info = PlatformUtils.GetPlatformInformation();
 
-            return string.Format(GcmProgramNameFormat, GcmVersion, os);
+            return $"Git Credential Manager Core (version {GcmVersion}, {info.OperatingSystemType})";
         }
 
+        /// <summary>
+        /// Get the HTTP user-agent for Git Credential Manager.
+        /// </summary>
+        /// <returns>User-agent string for HTTP requests.</returns>
         public static string GetHttpUserAgent()
         {
-            throw new System.NotImplementedException();
+            PlatformInformation info = PlatformUtils.GetPlatformInformation();
+            string osType     = info.OperatingSystemType;
+            string cpuArch    = info.CpuArchitecture;
+            string clrVersion = info.ClrVersion;
+
+            return string.Format($"Git-Credential-Manager/{GcmVersion} ({osType}; {cpuArch}) CLR/{clrVersion}");
         }
     }
 }
