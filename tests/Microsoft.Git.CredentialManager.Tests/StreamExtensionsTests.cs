@@ -8,6 +8,9 @@ namespace Microsoft.Git.CredentialManager.Tests
 {
     public class StreamExtensionsTests
     {
+        private const string LF   = "\n";
+        private const string CRLF = "\r\n";
+
         [Fact]
         public void StreamExtensions_ReadDictionary_EmptyString_ReturnsEmptyDictionary()
         {
@@ -101,17 +104,27 @@ namespace Microsoft.Git.CredentialManager.Tests
         }
 
         [Fact]
-        public void StreamExtensions_WriteDictionary_EmptyDictionary_WritesLineTerminator()
+        public void StreamExtensions_WriteDictionary_TextWriterLF_EmptyDictionary_WritesLineLF()
         {
             var input = new Dictionary<string, string>();
 
-            string output = WriteStringStream(input, StreamExtensions.WriteDictionary);
+            string output = WriteStringStream(input, StreamExtensions.WriteDictionary, newLine: LF);
 
-            Assert.Equal(Environment.NewLine, output);
+            Assert.Equal(LF, output);
         }
 
         [Fact]
-        public void StreamExtensions_WriteDictionary_Entries_WritesKVPsAndLineTerminator()
+        public void StreamExtensions_WriteDictionary_TextWriterCRLF_EmptyDictionary_WritesLineCRLF()
+        {
+            var input = new Dictionary<string, string>();
+
+            string output = WriteStringStream(input, StreamExtensions.WriteDictionary, newLine: CRLF);
+
+            Assert.Equal(CRLF, output);
+        }
+
+        [Fact]
+        public void StreamExtensions_WriteDictionary_TextWriterLF_Entries_WritesKVPsAndLF()
         {
             var input = new Dictionary<string, string>
             {
@@ -120,13 +133,28 @@ namespace Microsoft.Git.CredentialManager.Tests
                 ["c"] = "3"
             };
 
-            string output = WriteStringStream(input, StreamExtensions.WriteDictionary);
+            string output = WriteStringStream(input, StreamExtensions.WriteDictionary, newLine: LF);
 
             Assert.Equal("a=1\nb=2\nc=3\n\n", output);
         }
 
         [Fact]
-        public void StreamExtensions_WriteDictionary_EntriesWithSpaces_WritesKVPsAndLineTerminator()
+        public void StreamExtensions_WriteDictionary_TextWriterCRLF_Entries_WritesKVPsAndCRLF()
+        {
+            var input = new Dictionary<string, string>
+            {
+                ["a"] = "1",
+                ["b"] = "2",
+                ["c"] = "3"
+            };
+
+            string output = WriteStringStream(input, StreamExtensions.WriteDictionary, newLine: CRLF);
+
+            Assert.Equal("a=1\r\nb=2\r\nc=3\r\n\r\n", output);
+        }
+
+        [Fact]
+        public void StreamExtensions_WriteDictionary_TextWriterLF_EntriesWithSpaces_WritesKVPsAndLF()
         {
             var input = new Dictionary<string, string>
             {
@@ -135,9 +163,24 @@ namespace Microsoft.Git.CredentialManager.Tests
                 ["\tvalue\tc\t"] = "\t3\t"
             };
 
-            string output = WriteStringStream(input, StreamExtensions.WriteDictionary);
+            string output = WriteStringStream(input, StreamExtensions.WriteDictionary, newLine: LF);
 
             Assert.Equal("key a=value 1\n  key b  = value 2 \n\tvalue\tc\t=\t3\t\n\n", output);
+        }
+
+        [Fact]
+        public void StreamExtensions_WriteDictionary_TextWriterCRLF_EntriesWithSpaces_WritesKVPsAndCRLF()
+        {
+            var input = new Dictionary<string, string>
+            {
+                ["key a"] = "value 1",
+                ["  key b  "] = " value 2 ",
+                ["\tvalue\tc\t"] = "\t3\t"
+            };
+
+            string output = WriteStringStream(input, StreamExtensions.WriteDictionary, newLine: CRLF);
+
+            Assert.Equal("key a=value 1\r\n  key b  = value 2 \r\n\tvalue\tc\t=\t3\t\r\n\r\n", output);
         }
 
         #region Helpers
@@ -153,10 +196,10 @@ namespace Microsoft.Git.CredentialManager.Tests
             return output;
         }
 
-        private static string WriteStringStream(IDictionary<string, string> input, Action<TextWriter, IDictionary<string, string>> action)
+        private static string WriteStringStream(IDictionary<string, string> input, Action<TextWriter, IDictionary<string, string>> action, string newLine)
         {
             var output = new StringBuilder();
-            using (var writer = new StringWriter(output))
+            using (var writer = new StringWriter(output){NewLine = newLine})
             {
                 action(writer, input);
             }
