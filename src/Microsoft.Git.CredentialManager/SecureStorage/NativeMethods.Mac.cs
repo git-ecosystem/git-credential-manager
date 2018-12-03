@@ -12,6 +12,7 @@ namespace Microsoft.Git.CredentialManager.SecureStorage
             private const string CoreFoundationFrameworkLib = "/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation";
             private const string SecurityFrameworkLib = "/System/Library/Frameworks/Security.framework/Security";
 
+            // https://developer.apple.com/documentation/security/1542001-security_framework_result_codes
             private const int OK = 0;
             private const int ErrorSecNoSuchKeychain = -25294;
             private const int ErrorSecInvalidKeychain = -25295;
@@ -87,6 +88,7 @@ namespace Microsoft.Git.CredentialManager.SecureStorage
 
             public enum SecKeychainAttrType : uint
             {
+                // https://developer.apple.com/documentation/security/secitemattr/accountitemattr
                 AccountItem = 1633903476,
             }
 

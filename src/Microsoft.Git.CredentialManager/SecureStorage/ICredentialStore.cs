@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Microsoft.Git.CredentialManager.SecureStorage
+﻿namespace Microsoft.Git.CredentialManager.SecureStorage
 {
     /// <summary>
     /// Represents a secure storage location for <see cref="ICredential"/>s.
@@ -11,8 +9,7 @@ namespace Microsoft.Git.CredentialManager.SecureStorage
         /// Get credential from the store with the specified key.
         /// </summary>
         /// <param name="key">Key for credential to retrieve.</param>
-        /// <returns>Stored credential.</returns>
-        /// <exception cref="KeyNotFoundException">Thrown if no credential exists in the store with the specified key.</exception>
+        /// <returns>Stored credential or null if not found.</returns>
         ICredential Get(string key);
 
         /// <summary>
