@@ -1,4 +1,6 @@
-﻿namespace Microsoft.Git.CredentialManager.SecureStorage
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT license.
+namespace Microsoft.Git.CredentialManager.SecureStorage
 {
     /// <summary>
     /// Represents a simple credential; user name and password pair.
