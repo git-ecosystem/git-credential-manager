@@ -1,5 +1,8 @@
+# Git Credential Manager (.NET Core)
 
-# Contributing
+[![Build Status](https://mseng.visualstudio.com/AzureDevOps/_apis/build/status/Git-Credential-Manager-Core/GCM-CI?branchName=master)](https://mseng.visualstudio.com/AzureDevOps/_build/latest?definitionId=7861?branchName=master)
+
+## Contributing
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a
 Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
