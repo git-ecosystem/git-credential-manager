@@ -11,7 +11,11 @@ namespace Microsoft.Git.CredentialManager
         /// <summary>
         /// Read a dictionary in the form `key1=value\nkey2=value\n\n` from the specified <see cref="TextReader"/>.
         /// </summary>
-        /// <remarks>Uses the <see cref="StringComparer.Ordinal"/> comparer for dictionary keys.</remarks>
+        /// <remarks>
+        /// Uses the <see cref="StringComparer.Ordinal"/> comparer for dictionary keys.
+        /// <para/>
+        /// Also accepts dictionary lines terminated using \r\n (CR LF) as well as \n (LF).
+        /// </remarks>
         /// <param name="reader">Text reader to read a dictionary from.</param>
         /// <returns>Dictionary read from the text reader.</returns>
         public static IDictionary<string, string> ReadDictionary(this TextReader reader) =>
@@ -21,6 +25,7 @@ namespace Microsoft.Git.CredentialManager
         /// Read a dictionary in the form `key1=value\nkey2=value\n\n` from the specified <see cref="TextReader"/>,
         /// with the specified <see cref="StringComparer"/> used to compare dictionary keys.
         /// </summary>
+        /// <remarks>Also accepts dictionary lines terminated using \r\n (CR LF) as well as \n (LF).</remarks>
         /// <param name="reader">Text reader to read a dictionary from.</param>
         /// <param name="comparer">Comparer to use when comparing dictionary keys.</param>
         /// <returns>Dictionary read from the text reader.</returns>
@@ -40,7 +45,11 @@ namespace Microsoft.Git.CredentialManager
         /// <summary>
         /// Asynchronously read a dictionary in the form `key1=value\nkey2=value\n\n` from the specified <see cref="TextReader"/>.
         /// </summary>
-        /// <remarks>Uses the <see cref="StringComparer.Ordinal"/> comparer for dictionary keys.</remarks>
+        /// <remarks>
+        /// Uses the <see cref="StringComparer.Ordinal"/> comparer for dictionary keys.
+        /// <para/>
+        /// Also accepts dictionary lines terminated using \r\n (CR LF) as well as \n (LF).
+        /// </remarks>
         /// <param name="reader">Text reader to read a dictionary from.</param>
         /// <returns>Dictionary read from the text reader.</returns>
         public static Task<IDictionary<string, string>> ReadDictionaryAsync(this TextReader reader) =>
@@ -50,6 +59,7 @@ namespace Microsoft.Git.CredentialManager
         /// Asynchronously read a dictionary in the form `key1=value\nkey2=value\n\n` from the specified <see cref="TextReader"/>,
         /// with the specified <see cref="StringComparer"/> used to compare dictionary keys.
         /// </summary>
+        /// <remarks>Also accepts dictionary lines terminated using \r\n (CR LF) as well as \n (LF).</remarks>
         /// <param name="reader">Text reader to read a dictionary from.</param>
         /// <param name="comparer">Comparer to use when comparing dictionary keys.</param>
         /// <returns>Dictionary read from the text reader.</returns>
@@ -67,8 +77,10 @@ namespace Microsoft.Git.CredentialManager
         }
 
         /// <summary>
-        /// Write a dictionary in the form `key1=value\nkey2=value\n\n` to the specified <see cref="TextWriter"/>.
+        /// Write a dictionary in the form `key1=value\nkey2=value\n\n` to the specified <see cref="TextWriter"/>,
+        /// where \n is the configured new-line (see <see cref="TextWriter.NewLine"/>).
         /// </summary>
+        /// <remarks>The output dictionary new-lines are determined by the <see cref="TextWriter.NewLine"/> property.</remarks>
         /// <param name="reader">Text writer to write a dictionary to.</param>
         /// <param name="dict">Dictionary to write to the text writer.</param>
         public static void WriteDictionary(this TextWriter writer, IDictionary<string, string> dict)
@@ -83,8 +95,10 @@ namespace Microsoft.Git.CredentialManager
         }
 
         /// <summary>
-        /// Asynchronously write a dictionary in the form `key1=value\nkey2=value\n\n` to the specified <see cref="TextWriter"/>.
+        /// Asynchronously write a dictionary in the form `key1=value\nkey2=value\n\n` to the specified <see cref="TextWriter"/>,
+        /// where \n is the configured new-line (see <see cref="TextWriter.NewLine"/>).
         /// </summary>
+        /// <remarks>The output dictionary new-lines are determined by the <see cref="TextWriter.NewLine"/> property.</remarks>
         /// <param name="reader">Text writer to write a dictionary to.</param>
         /// <param name="dict">Dictionary to write to the text writer.</param>
         public static async Task WriteDictionaryAsync(this TextWriter writer, IDictionary<string, string> dict)
@@ -103,7 +117,7 @@ namespace Microsoft.Git.CredentialManager
 
         private static void WriteKeyValuePair(this TextWriter writer, string key, string value)
         {
-            writer.WriteLine("{0}={1}", key, value);
+            writer.WriteLine($"{key}={value}");
         }
 
         private static Task WriteKeyValuePairAsync(this TextWriter writer, KeyValuePair<string, string> kvp)

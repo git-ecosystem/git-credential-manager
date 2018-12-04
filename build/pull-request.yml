@@ -1,0 +1,15 @@
+trigger: none
+
+variables:
+  configuration: release
+
+jobs:
+- template: templates/build-and-test.yml
+  parameters:
+    name: Windows
+    vmImage: vs2017-win2016
+
+- template: templates/build-and-test.yml
+  parameters:
+    name: macOS
+    vmImage: macOS 10.13
