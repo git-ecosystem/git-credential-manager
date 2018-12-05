@@ -22,7 +22,7 @@ namespace Microsoft.Git.CredentialManager
         {
             PlatformInformation info = PlatformUtils.GetPlatformInformation();
 
-            return $"Git Credential Manager Core (version {GcmVersion}, {info.OperatingSystemType})";
+            return $"Git Credential Manager (version {GcmVersion}, {info.OperatingSystemType})";
         }
 
         /// <summary>
