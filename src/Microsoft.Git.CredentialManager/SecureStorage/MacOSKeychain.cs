@@ -188,13 +188,13 @@ namespace Microsoft.Git.CredentialManager.SecureStorage
                 );
 
                 SecKeychainAttributeList attrList = Marshal.PtrToStructure<SecKeychainAttributeList>(attrListPtr);
-                Debug.Assert(attrList.Count == 1);
+                Debug.Assert(attrList.Count == 1, "Only expecting a list structure containing one attribute to be returned");
 
                 byte[] attrListArrayBytes = NativeMethods.ToByteArray(
                     attrList.Attributes, Marshal.SizeOf<SecKeychainAttribute>() * attrList.Count);
 
                 SecKeychainAttribute[] attributes = NativeMethods.ToStructArray<SecKeychainAttribute>(attrListArrayBytes);
-                Debug.Assert(attributes.Length == 1);
+                Debug.Assert(attributes.Length == 1, "Only expecting one attribute structure to returned from raw byte conversion");
 
                 return NativeMethods.ToByteArray(attributes[0].Data, attributes[0].Length);
             }

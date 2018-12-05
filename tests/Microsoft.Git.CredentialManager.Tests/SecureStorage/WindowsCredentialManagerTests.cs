@@ -11,23 +11,29 @@ namespace Microsoft.Git.CredentialManager.Tests.SecureStorage
         {
             WindowsCredentialManager credManager = WindowsCredentialManager.OpenDefault();
 
-            const string key = "secretkey";
+            // Create a key that is guarenteed to be unique
+            string key = $"secretkey-{Guid.NewGuid():N}";
             const string userName = "john.doe";
             const string password = "letmein123";
             var credential = new GitCredential(userName, password);
 
-            // Write
-            credManager.AddOrUpdate(key, credential);
+            try
+            {
+                // Write
+                credManager.AddOrUpdate(key, credential);
 
-            // Read
-            ICredential outCredential = credManager.Get(key);
+                // Read
+                ICredential outCredential = credManager.Get(key);
 
-            Assert.NotNull(outCredential);
-            Assert.Equal(credential.UserName, outCredential.UserName);
-            Assert.Equal(credential.Password, outCredential.Password);
-
-            // Delete
-            credManager.Remove(key);
+                Assert.NotNull(outCredential);
+                Assert.Equal(credential.UserName, outCredential.UserName);
+                Assert.Equal(credential.Password, outCredential.Password);
+            }
+            finally
+            {
+                // Ensure we clean up after ourselves even in case of 'get' failures
+                credManager.Remove(key);
+            }
         }
 
         [PlatformFact(Platform.Windows)]

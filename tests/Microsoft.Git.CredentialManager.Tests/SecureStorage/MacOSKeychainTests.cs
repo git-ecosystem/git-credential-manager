@@ -11,23 +11,29 @@ namespace Microsoft.Git.CredentialManager.Tests.SecureStorage
         {
             MacOSKeychain keychain = MacOSKeychain.OpenDefault();
 
-            const string key = "secretkey";
+            // Create a key that is guarenteed to be unique
+            string key = $"secretkey-{Guid.NewGuid():N}";
             const string userName = "john.doe";
             const string password = "letmein123";
             var credential = new GitCredential(userName, password);
 
-            // Write
-            keychain.AddOrUpdate(key, credential);
+            try
+            {
+                // Write
+                keychain.AddOrUpdate(key, credential);
 
-            // Read
-            ICredential outCredential = keychain.Get(key);
+                // Read
+                ICredential outCredential = keychain.Get(key);
 
-            Assert.NotNull(outCredential);
-            Assert.Equal(credential.UserName, outCredential.UserName);
-            Assert.Equal(credential.Password, outCredential.Password);
-
-            // Delete
-            keychain.Remove(key);
+                Assert.NotNull(outCredential);
+                Assert.Equal(credential.UserName, outCredential.UserName);
+                Assert.Equal(credential.Password, outCredential.Password);
+            }
+            finally
+            {
+                // Ensure we clean up after ourselves even in case of 'get' failures
+                keychain.Remove(key);
+            }
         }
 
         [PlatformFact(Platform.MacOS)]

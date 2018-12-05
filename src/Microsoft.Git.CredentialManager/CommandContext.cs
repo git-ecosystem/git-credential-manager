@@ -116,7 +116,7 @@ namespace Microsoft.Git.CredentialManager
 
         public IFileSystem FileSystem { get; } = new FileSystem();
 
-        public ICredentialStore CredentialStore { get; } = GetDefaultCredentialStore();
+        public ICredentialStore CredentialStore { get; } = CreateCredentialStore();
 
         public IReadOnlyDictionary<string, string> GetEnvironmentVariables()
         {
@@ -149,7 +149,7 @@ namespace Microsoft.Git.CredentialManager
 
         #endregion
 
-        private static ICredentialStore GetDefaultCredentialStore()
+        private static ICredentialStore CreateCredentialStore()
         {
             if (PlatformUtils.IsMacOS())
             {
