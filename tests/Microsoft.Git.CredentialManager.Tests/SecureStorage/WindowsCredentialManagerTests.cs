@@ -9,7 +9,7 @@ namespace Microsoft.Git.CredentialManager.Tests.SecureStorage
         [PlatformFact(Platform.Windows)]
         public void WindowsCredentialManager_ReadWriteDelete()
         {
-            WindowsCredentialManager credManager = WindowsCredentialManager.OpenDefault();
+            WindowsCredentialManager credManager = WindowsCredentialManager.Open();
 
             // Create a key that is guarenteed to be unique
             string key = $"secretkey-{Guid.NewGuid():N}";
@@ -39,7 +39,7 @@ namespace Microsoft.Git.CredentialManager.Tests.SecureStorage
         [PlatformFact(Platform.Windows)]
         public void WindowsCredentialManager_Get_KeyNotFound_ReturnsNull()
         {
-            WindowsCredentialManager credManager = WindowsCredentialManager.OpenDefault();
+            WindowsCredentialManager credManager = WindowsCredentialManager.Open();
 
             // Unique key; guaranteed not to exist!
             string key = Guid.NewGuid().ToString("N");
@@ -51,7 +51,7 @@ namespace Microsoft.Git.CredentialManager.Tests.SecureStorage
         [PlatformFact(Platform.Windows)]
         public void WindowsCredentialManager_Remove_KeyNotFound_ReturnsFalse()
         {
-            WindowsCredentialManager credManager = WindowsCredentialManager.OpenDefault();
+            WindowsCredentialManager credManager = WindowsCredentialManager.Open();
 
             // Unique key; guaranteed not to exist!
             string key = Guid.NewGuid().ToString("N");

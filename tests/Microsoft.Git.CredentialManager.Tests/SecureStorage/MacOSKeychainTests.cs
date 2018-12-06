@@ -9,7 +9,7 @@ namespace Microsoft.Git.CredentialManager.Tests.SecureStorage
         [PlatformFact(Platform.MacOS)]
         public void MacOSKeychain_ReadWriteDelete()
         {
-            MacOSKeychain keychain = MacOSKeychain.OpenDefault();
+            MacOSKeychain keychain = MacOSKeychain.Open();
 
             // Create a key that is guarenteed to be unique
             string key = $"secretkey-{Guid.NewGuid():N}";
@@ -39,7 +39,7 @@ namespace Microsoft.Git.CredentialManager.Tests.SecureStorage
         [PlatformFact(Platform.MacOS)]
         public void MacOSKeychain_Get_KeyNotFound_ReturnsNull()
         {
-            MacOSKeychain keychain = MacOSKeychain.OpenDefault();
+            MacOSKeychain keychain = MacOSKeychain.Open();
 
             // Unique key; guaranteed not to exist!
             string key = Guid.NewGuid().ToString("N");
@@ -51,7 +51,7 @@ namespace Microsoft.Git.CredentialManager.Tests.SecureStorage
         [PlatformFact(Platform.MacOS)]
         public void MacOSKeychain_Remove_KeyNotFound_ReturnsFalse()
         {
-            MacOSKeychain keychain = MacOSKeychain.OpenDefault();
+            MacOSKeychain keychain = MacOSKeychain.Open();
 
             // Unique key; guaranteed not to exist!
             string key = Guid.NewGuid().ToString("N");

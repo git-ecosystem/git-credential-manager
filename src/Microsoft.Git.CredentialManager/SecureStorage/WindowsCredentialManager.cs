@@ -14,7 +14,7 @@ namespace Microsoft.Git.CredentialManager.SecureStorage
         /// Open the Windows Credential Manager vault for the current user.
         /// </summary>
         /// <returns>Current user's Credential Manager vault.</returns>
-        public static WindowsCredentialManager OpenDefault()
+        public static WindowsCredentialManager Open()
         {
             return new WindowsCredentialManager();
         }

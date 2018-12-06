@@ -15,7 +15,7 @@ namespace Microsoft.Git.CredentialManager.SecureStorage
         /// Open the default keychain (current user's login keychain).
         /// </summary>
         /// <returns>Default keychain.</returns>
-        public static MacOSKeychain OpenDefault()
+        public static MacOSKeychain Open()
         {
             return new MacOSKeychain();
         }

@@ -153,12 +153,12 @@ namespace Microsoft.Git.CredentialManager
         {
             if (PlatformUtils.IsMacOS())
             {
-                return MacOSKeychain.OpenDefault();
+                return MacOSKeychain.Open();
             }
 
             if (PlatformUtils.IsWindows())
             {
-                return WindowsCredentialManager.OpenDefault();
+                return WindowsCredentialManager.Open();
             }
 
             if (PlatformUtils.IsLinux())
