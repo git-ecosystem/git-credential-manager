@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -37,25 +36,30 @@ namespace Microsoft.Git.CredentialManager.SecureStorage
             try
             {
                 // Find the item (itemRef) and password (passwordData) in the keychain
-                ThrowOnError(
-                    SecKeychainFindGenericPassword(
-                        IntPtr.Zero, (uint) key.Length, key, 0, null,
-                        out uint passwordLength, out passwordData, out itemRef)
-                );
+                int findResult = SecKeychainFindGenericPassword(
+                    IntPtr.Zero, (uint) key.Length, key, 0, null,
+                    out uint passwordLength, out passwordData, out itemRef);
 
-                // Get and decode the user name from the 'account name' attribute
-                byte[] userNameBytes = GetAccountNameAttributeData(itemRef);
-                string userName = Encoding.UTF8.GetString(userNameBytes);
+                switch (findResult)
+                {
+                    case OK:
+                        // Get and decode the user name from the 'account name' attribute
+                        byte[] userNameBytes = GetAccountNameAttributeData(itemRef);
+                        string userName = Encoding.UTF8.GetString(userNameBytes);
 
-                // Decode the password from the raw data
-                byte[] passwordBytes = NativeMethods.ToByteArray(passwordData, passwordLength);
-                string password = Encoding.UTF8.GetString(passwordBytes);
+                        // Decode the password from the raw data
+                        byte[] passwordBytes = NativeMethods.ToByteArray(passwordData, passwordLength);
+                        string password = Encoding.UTF8.GetString(passwordBytes);
 
-                return new Credential(userName, password);
-            }
-            catch (KeyNotFoundException)
-            {
-                return null;
+                        return new Credential(userName, password);
+
+                    case ErrorSecItemNotFound:
+                        return null;
+
+                    default:
+                        ThrowIfError(findResult);
+                        return null;
+                }
             }
             finally
             {
@@ -81,24 +85,32 @@ namespace Microsoft.Git.CredentialManager.SecureStorage
             try
             {
                 // Check if an entry already exists in the keychain
-                SecKeychainFindGenericPassword(
+                int findResult = SecKeychainFindGenericPassword(
                     IntPtr.Zero, (uint) key.Length, key, (uint) credential.UserName.Length, credential.UserName,
                     out uint _, out passwordData, out itemRef);
 
-                if (itemRef != IntPtr.Zero) // Update existing entry
+                switch (findResult)
                 {
-                    ThrowOnError(
-                        SecKeychainItemModifyAttributesAndData(itemRef, IntPtr.Zero, (uint) passwordBytes.Length, passwordBytes),
-                        "Could not update existing item"
-                    );
-                }
-                else // Create new entry
-                {
-                    ThrowOnError(
-                        SecKeychainAddGenericPassword(IntPtr.Zero, (uint) key.Length, key, (uint) credential.UserName.Length,
-                            credential.UserName, (uint) passwordBytes.Length, passwordBytes, out itemRef),
-                        "Could not create new item"
-                    );
+                    // Create new entry
+                    case OK:
+                        ThrowIfError(
+                            SecKeychainItemModifyAttributesAndData(itemRef, IntPtr.Zero, (uint) passwordBytes.Length, passwordBytes),
+                            "Could not update existing item"
+                        );
+                        break;
+
+                    // Update existing entry
+                    case ErrorSecItemNotFound:
+                        ThrowIfError(
+                            SecKeychainAddGenericPassword(IntPtr.Zero, (uint) key.Length, key, (uint) credential.UserName.Length,
+                                credential.UserName, (uint) passwordBytes.Length, passwordBytes, out itemRef),
+                            "Could not create new item"
+                        );
+                        break;
+
+                    default:
+                        ThrowIfError(findResult);
+                        break;
                 }
             }
             finally
@@ -122,24 +134,25 @@ namespace Microsoft.Git.CredentialManager.SecureStorage
 
             try
             {
-                SecKeychainFindGenericPassword(
+                int findResult = SecKeychainFindGenericPassword(
                     IntPtr.Zero, (uint) key.Length, key, 0, null,
                     out _, out passwordData, out itemRef);
 
-                if (itemRef != IntPtr.Zero)
+                switch (findResult)
                 {
-                    ThrowOnError(
-                        SecKeychainItemDelete(itemRef)
-                    );
+                    case OK:
+                        ThrowIfError(
+                            SecKeychainItemDelete(itemRef)
+                        );
+                        return true;
 
-                    return true;
+                    case ErrorSecItemNotFound:
+                        return false;
+
+                    default:
+                        ThrowIfError(findResult);
+                        return false;
                 }
-
-                return false;
-            }
-            catch (KeyNotFoundException)
-            {
-                return false;
             }
             finally
             {
@@ -181,7 +194,7 @@ namespace Microsoft.Git.CredentialManager.SecureStorage
                     Format = formatArrayPtr,
                 };
 
-                ThrowOnError(
+                ThrowIfError(
                     SecKeychainItemCopyAttributesAndData(
                         itemRef, ref attributeInfo,
                         IntPtr.Zero, out attrListPtr, out _, IntPtr.Zero)

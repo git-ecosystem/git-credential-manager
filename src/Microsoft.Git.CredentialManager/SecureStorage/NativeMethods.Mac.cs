@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
 namespace Microsoft.Git.CredentialManager.SecureStorage
@@ -13,17 +12,17 @@ namespace Microsoft.Git.CredentialManager.SecureStorage
             private const string SecurityFrameworkLib = "/System/Library/Frameworks/Security.framework/Security";
 
             // https://developer.apple.com/documentation/security/1542001-security_framework_result_codes
-            private const int OK = 0;
-            private const int ErrorSecNoSuchKeychain = -25294;
-            private const int ErrorSecInvalidKeychain = -25295;
-            private const int ErrorSecAuthFailed = -25293;
-            private const int ErrorSecDuplicateItem = -25299;
-            private const int ErrorSecItemNotFound = -25300;
-            private const int ErrorSecInteractionNotAllowed = -25308;
-            private const int ErrorSecInteractionRequired = -25315;
-            private const int ErrorSecNoSuchAttr = -25303;
+            public const int OK = 0;
+            public const int ErrorSecNoSuchKeychain = -25294;
+            public const int ErrorSecInvalidKeychain = -25295;
+            public const int ErrorSecAuthFailed = -25293;
+            public const int ErrorSecDuplicateItem = -25299;
+            public const int ErrorSecItemNotFound = -25300;
+            public const int ErrorSecInteractionNotAllowed = -25308;
+            public const int ErrorSecInteractionRequired = -25315;
+            public const int ErrorSecNoSuchAttr = -25303;
 
-            public static void ThrowOnError(int error, string defaultErrorMessage = "Unknown error.")
+            public static void ThrowIfError(int error, string defaultErrorMessage = "Unknown error.")
             {
                 switch (error)
                 {
@@ -36,9 +35,9 @@ namespace Microsoft.Git.CredentialManager.SecureStorage
                     case ErrorSecAuthFailed:
                         throw new InvalidOperationException($"Authorization/Authentication failed. ({ErrorSecAuthFailed})");
                     case ErrorSecDuplicateItem:
-                        throw new ArgumentException($"The item already exists. ({ErrorSecDuplicateItem})");
+                        throw new InvalidOperationException($"The item already exists. ({ErrorSecDuplicateItem})");
                     case ErrorSecItemNotFound:
-                        throw new KeyNotFoundException($"The item cannot be found. ({ErrorSecItemNotFound})");
+                        throw new InvalidOperationException($"The item cannot be found. ({ErrorSecItemNotFound})");
                     case ErrorSecInteractionNotAllowed:
                         throw new InvalidOperationException($"Interaction with the Security Server is not allowed. ({ErrorSecInteractionNotAllowed})");
                     case ErrorSecInteractionRequired:

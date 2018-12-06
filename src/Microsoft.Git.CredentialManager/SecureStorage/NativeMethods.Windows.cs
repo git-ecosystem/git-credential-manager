@@ -1,8 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.ComTypes;
 using FILETIME = System.Runtime.InteropServices.ComTypes.FILETIME;
 
 namespace Microsoft.Git.CredentialManager.SecureStorage
@@ -14,26 +12,34 @@ namespace Microsoft.Git.CredentialManager.SecureStorage
         {
             private const string Advapi32 = "advapi32.dll";
 
-            private const int ERROR_NO_SUCH_LOGON_SESSION = 0;
-            private const int ERROR_NOT_FOUND = 0x490;
+            // https://docs.microsoft.com/en-gb/windows/desktop/Debug/system-error-codes
+            public const int OK = 0;
+            public const int ERROR_NO_SUCH_LOGON_SESSION = 0x520;
+            public const int ERROR_NOT_FOUND = 0x490;
+            public const int ERROR_BAD_USERNAME = 0x89A;
+            public const int ERROR_INVALID_FLAGS = 0x3EC;
+            public const int ERROR_INVALID_PARAMETER = 0x57;
 
-            public static void ThrowOnError(bool success, string defaultErrorMessage = null)
+            public static int GetLastError(bool success)
             {
-                int error = Marshal.GetLastWin32Error();
-                if (!success)
+                if (success)
                 {
-                    switch (error)
-                    {
-                        case ERROR_NO_SUCH_LOGON_SESSION:
-                            throw new InvalidOperationException(
-                                "The logon session does not exist or there is no credential set associated with this logon session.",
-                                new Win32Exception(error)
-                            );
-                        case ERROR_NOT_FOUND:
-                            throw new KeyNotFoundException("The item cannot be found.", new Win32Exception(error));
-                        default:
-                            throw new Win32Exception(error, defaultErrorMessage);
-                    }
+                    return OK;
+                }
+
+                return Marshal.GetLastWin32Error();
+            }
+
+            public static void ThrowIfError(int error, string defaultErrorMessage = null)
+            {
+                switch (error)
+                {
+                    case OK:
+                        return;
+                    default:
+                        // The Win32Exception constructor will automatically get the human-readable
+                        // message for the error code.
+                        throw new Win32Exception(error, defaultErrorMessage);
                 }
             }
 
