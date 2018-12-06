@@ -169,10 +169,10 @@ namespace Microsoft.Git.CredentialManager.SecureStorage
             {
                 // Extract the user name by querying for the item's 'account' attribute
                 tagArrayPtr = Marshal.AllocHGlobal(sizeof(SecKeychainAttrType));
-                Marshal.Copy(new[] {(int) SecKeychainAttrType.AccountItem}, 0, tagArrayPtr, 1);
+                Marshal.WriteInt32(tagArrayPtr, (int) SecKeychainAttrType.AccountItem);
 
                 formatArrayPtr = Marshal.AllocHGlobal(sizeof(CssmDbAttributeFormat));
-                Marshal.Copy(new[] {(int) CssmDbAttributeFormat.String}, 0, formatArrayPtr, 1);
+                Marshal.WriteInt32(formatArrayPtr, (int) CssmDbAttributeFormat.String);
 
                 var attributeInfo = new SecKeychainAttributeInfo
                 {
@@ -184,19 +184,15 @@ namespace Microsoft.Git.CredentialManager.SecureStorage
                 ThrowOnError(
                     SecKeychainItemCopyAttributesAndData(
                         itemRef, ref attributeInfo,
-                        IntPtr.Zero, out attrListPtr, out var _, IntPtr.Zero)
+                        IntPtr.Zero, out attrListPtr, out _, IntPtr.Zero)
                 );
 
                 SecKeychainAttributeList attrList = Marshal.PtrToStructure<SecKeychainAttributeList>(attrListPtr);
                 Debug.Assert(attrList.Count == 1, "Only expecting a list structure containing one attribute to be returned");
 
-                byte[] attrListArrayBytes = NativeMethods.ToByteArray(
-                    attrList.Attributes, Marshal.SizeOf<SecKeychainAttribute>() * attrList.Count);
+                SecKeychainAttribute attribute = Marshal.PtrToStructure<SecKeychainAttribute>(attrList.Attributes);
 
-                SecKeychainAttribute[] attributes = NativeMethods.ToStructArray<SecKeychainAttribute>(attrListArrayBytes);
-                Debug.Assert(attributes.Length == 1, "Only expecting one attribute structure to returned from raw byte conversion");
-
-                return NativeMethods.ToByteArray(attributes[0].Data, attributes[0].Length);
+                return NativeMethods.ToByteArray(attribute.Data, attribute.Length);
             }
             finally
             {
