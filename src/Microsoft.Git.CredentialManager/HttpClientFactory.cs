@@ -24,6 +24,10 @@ namespace Microsoft.Git.CredentialManager
 
             // Add default headers
             client.DefaultRequestHeaders.UserAgent.ParseAdd(Constants.GetHttpUserAgent());
+            client.DefaultRequestHeaders.CacheControl = new CacheControlHeaderValue
+            {
+                NoCache = true
+            };
 
             return client;
         }
