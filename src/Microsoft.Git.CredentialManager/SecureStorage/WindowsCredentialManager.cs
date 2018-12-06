@@ -69,7 +69,7 @@ namespace Microsoft.Git.CredentialManager.SecureStorage
             {
                 Type = CredentialType.Generic,
                 TargetName = key,
-                CredentialBlob = Marshal.AllocCoTaskMem(passwordBytes.Length),
+                CredentialBlob = Marshal.AllocHGlobal(passwordBytes.Length),
                 CredentialBlobSize = passwordBytes.Length,
                 Persist = CredentialPersist.LocalMachine,
                 AttributeCount = 0,
@@ -89,7 +89,7 @@ namespace Microsoft.Git.CredentialManager.SecureStorage
             {
                 if (w32Credential.CredentialBlob != IntPtr.Zero)
                 {
-                    Marshal.FreeCoTaskMem(w32Credential.CredentialBlob);
+                    Marshal.FreeHGlobal(w32Credential.CredentialBlob);
                 }
             }
         }

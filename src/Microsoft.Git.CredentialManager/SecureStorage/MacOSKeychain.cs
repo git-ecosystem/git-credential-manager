@@ -168,10 +168,10 @@ namespace Microsoft.Git.CredentialManager.SecureStorage
             try
             {
                 // Extract the user name by querying for the item's 'account' attribute
-                tagArrayPtr = Marshal.AllocCoTaskMem(sizeof(SecKeychainAttrType));
+                tagArrayPtr = Marshal.AllocHGlobal(sizeof(SecKeychainAttrType));
                 Marshal.Copy(new[] {(int) SecKeychainAttrType.AccountItem}, 0, tagArrayPtr, 1);
 
-                formatArrayPtr = Marshal.AllocCoTaskMem(sizeof(CssmDbAttributeFormat));
+                formatArrayPtr = Marshal.AllocHGlobal(sizeof(CssmDbAttributeFormat));
                 Marshal.Copy(new[] {(int) CssmDbAttributeFormat.String}, 0, formatArrayPtr, 1);
 
                 var attributeInfo = new SecKeychainAttributeInfo
@@ -202,12 +202,12 @@ namespace Microsoft.Git.CredentialManager.SecureStorage
             {
                 if (tagArrayPtr != IntPtr.Zero)
                 {
-                    Marshal.FreeCoTaskMem(tagArrayPtr);
+                    Marshal.FreeHGlobal(tagArrayPtr);
                 }
 
                 if (formatArrayPtr != IntPtr.Zero)
                 {
-                    Marshal.FreeCoTaskMem(formatArrayPtr);
+                    Marshal.FreeHGlobal(formatArrayPtr);
                 }
 
                 if (attrListPtr != IntPtr.Zero)
