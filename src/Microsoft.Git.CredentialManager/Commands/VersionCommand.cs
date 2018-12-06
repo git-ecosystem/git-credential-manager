@@ -9,13 +9,6 @@ namespace Microsoft.Git.CredentialManager.Commands
     /// </summary>
     public class VersionCommand : CommandBase
     {
-        private readonly string _header;
-
-        public VersionCommand(string header)
-        {
-            _header = header;
-        }
-
         public override bool CanExecute(string[] args)
         {
             return args.Any(x => StringComparer.OrdinalIgnoreCase.Equals(x, "--version"))
@@ -24,7 +17,9 @@ namespace Microsoft.Git.CredentialManager.Commands
 
         public override Task ExecuteAsync(ICommandContext context, string[] args)
         {
-            context.StdOut.WriteLine(_header);
+            string appHeader = Constants.GetProgramHeader();
+
+            context.StdOut.WriteLine(appHeader);
 
             return Task.CompletedTask;
         }

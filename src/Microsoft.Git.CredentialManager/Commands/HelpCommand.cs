@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace Microsoft.Git.CredentialManager.Commands
@@ -10,13 +11,6 @@ namespace Microsoft.Git.CredentialManager.Commands
     /// </summary>
     public class HelpCommand : CommandBase
     {
-        private readonly string _appName;
-
-        public HelpCommand(string appName)
-        {
-            _appName = appName ?? throw new ArgumentNullException(nameof(appName));
-        }
-
         public override bool CanExecute(string[] args)
         {
             return args.Any(x => StringComparer.OrdinalIgnoreCase.Equals(x, "--help") ||
@@ -27,7 +21,7 @@ namespace Microsoft.Git.CredentialManager.Commands
 
         public override Task ExecuteAsync(ICommandContext context, string[] args)
         {
-            context.StdOut.WriteLine(Constants.GcmProgramNameFormat, Constants.GcmVersion, PlatformUtils.GetOSInfo());
+            context.StdOut.WriteLine(Constants.GetProgramHeader());
 
             PrintUsage(context.StdOut);
 
@@ -38,10 +32,12 @@ namespace Microsoft.Git.CredentialManager.Commands
         /// Print the standard usage documentation for Git Credential Manager to the given <see cref="TextWriter"/>.
         /// </summary>
         /// <param name="writer">Text writer to write usage information to.</param>
-        public void PrintUsage(TextWriter writer)
+        public static void PrintUsage(TextWriter writer)
         {
+            string appName = Path.GetFileName(Assembly.GetEntryAssembly().CodeBase);
+
             writer.WriteLine();
-            writer.WriteLine("usage: {0} <command>", _appName);
+            writer.WriteLine("usage: {0} <command>", appName);
             writer.WriteLine();
             writer.WriteLine("  Available commands:");
             writer.WriteLine("    erase");
