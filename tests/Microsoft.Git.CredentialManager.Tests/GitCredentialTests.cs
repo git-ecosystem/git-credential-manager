@@ -1,3 +1,5 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT license.
 using Xunit;
 
 namespace Microsoft.Git.CredentialManager.Tests
