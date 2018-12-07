@@ -34,7 +34,7 @@ namespace Microsoft.Git.CredentialManager.Commands
             }
             else
             {
-                context.Trace.WriteLine("Skipping 'store' because provider stores credentials on 'get'.");
+                context.Trace.WriteLine("Not storing credentials because provider stores them on creation.");
             }
 
             return Task.CompletedTask;

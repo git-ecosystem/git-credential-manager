@@ -19,11 +19,12 @@ namespace Microsoft.Git.CredentialManager.Tests.Commands
         [InlineData("store", false)]
         [InlineData("foobar", false)]
         [InlineData("", false)]
+        [InlineData(null, false)]
         public void EraseCommand_CanExecuteAsync(string argString, bool expected)
         {
             var command = new EraseCommand(Mock.Of<IHostProviderRegistry>());
 
-            bool result = command.CanExecute(argString.Split(null));
+            bool result = command.CanExecute(argString?.Split(null));
 
             if (expected)
             {
