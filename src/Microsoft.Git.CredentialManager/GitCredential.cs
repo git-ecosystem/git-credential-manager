@@ -7,7 +7,7 @@ namespace Microsoft.Git.CredentialManager
     /// <summary>
     /// Represents a credential (username/password pair) that Git can use to authenticate to a remote repository.
     /// </summary>
-    public class GitCredential
+    public class GitCredential : SecureStorage.ICredential
     {
         public GitCredential(string userName, string password)
         {
