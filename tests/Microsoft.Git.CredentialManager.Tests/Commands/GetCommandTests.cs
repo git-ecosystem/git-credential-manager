@@ -1,8 +1,11 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
+
+using System.Collections.Generic;
+using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Git.CredentialManager.Commands;
-using Microsoft.Git.CredentialManager.SecureStorage;
 using Microsoft.Git.CredentialManager.Tests.Objects;
 using Moq;
 using Xunit;
@@ -42,7 +45,11 @@ namespace Microsoft.Git.CredentialManager.Tests.Commands
             const string testUserName = "john.doe";
             const string testPassword = "letmein123";
             const string testCredentialKey = "test-cred-key";
-            string expectedStdOut = $"username={testUserName}\npassword={testPassword}\n\n";
+            var expectedStdOutDict = new Dictionary<string, string>
+            {
+                ["username"] = testUserName,
+                ["password"] = testPassword
+            };
 
             var provider = new TestHostProvider {CredentialKey = testCredentialKey};
             var providerRegistry = new TestHostProviderRegistry {Provider = provider};
@@ -56,7 +63,9 @@ namespace Microsoft.Git.CredentialManager.Tests.Commands
 
             await command.ExecuteAsync(context, cmdArgs);
 
-            Assert.Equal(expectedStdOut, context.StdOut.ToString());
+            IDictionary<string, string> actualStdOutDict = ParseDictionary(context.StdOut);
+
+            Assert.Equal(expectedStdOutDict, actualStdOutDict);
         }
 
         [Fact]
@@ -65,7 +74,11 @@ namespace Microsoft.Git.CredentialManager.Tests.Commands
             const string testUserName = "john.doe";
             const string testPassword = "letmein123";
             const string testCredentialKey = "test-cred-key";
-            string expectedStdOut = $"username={testUserName}\npassword={testPassword}\n\n";
+            var expectedStdOutDict = new Dictionary<string, string>
+            {
+                ["username"] = testUserName,
+                ["password"] = testPassword
+            };
 
             var provider = new TestHostProvider
             {
@@ -80,7 +93,17 @@ namespace Microsoft.Git.CredentialManager.Tests.Commands
 
             await command.ExecuteAsync(context, cmdArgs);
 
-            Assert.Equal(expectedStdOut, context.StdOut.ToString());
+            IDictionary<string, string> actualStdOutDict = ParseDictionary(context.StdOut);
+
+            Assert.Equal(expectedStdOutDict, actualStdOutDict);
         }
+
+        #region Helpers
+
+        private static IDictionary<string, string> ParseDictionary(StringBuilder sb) => ParseDictionary(sb.ToString());
+
+        private static IDictionary<string, string> ParseDictionary(string str) => new StringReader(str).ReadDictionary();
+
+        #endregion
     }
 }
