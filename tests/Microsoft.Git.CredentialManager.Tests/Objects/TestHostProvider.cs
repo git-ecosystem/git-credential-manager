@@ -14,8 +14,6 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
 
         public GitCredential Credential { get; set; }
 
-        public bool IsCredentialStoredOnCreation { get; set; }
-
         #region IHostProvider
 
         string IHostProvider.Name => Name;
@@ -25,8 +23,6 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
         string IHostProvider.GetCredentialKey(InputArguments input) => CredentialKey;
 
         Task<GitCredential> IHostProvider.CreateCredentialAsync(InputArguments input) => Task.FromResult(Credential);
-
-        bool IHostProvider.IsCredentialStoredOnCreation => IsCredentialStoredOnCreation;
 
         #endregion
     }

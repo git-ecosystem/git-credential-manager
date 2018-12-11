@@ -37,7 +37,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Commands
         }
 
         [Fact]
-        public async Task StoreCommand_ExecuteAsync_ProviderStoresOnCreate_DoesNotStoreCredential()
+        public async Task StoreCommand_ExecuteAsync_StoresCredential()
         {
             const string testUserName = "john.doe";
             const string testPassword = "letmein123";
@@ -46,31 +46,6 @@ namespace Microsoft.Git.CredentialManager.Tests.Commands
 
             var provider = new TestHostProvider
             {
-                IsCredentialStoredOnCreation = true,
-                CredentialKey = testCredentialKey
-            };
-            var providerRegistry = new TestHostProviderRegistry {Provider = provider};
-            var context = new TestCommandContext {StdIn = stdIn};
-
-            string[] cmdArgs = {"store"};
-            var command = new StoreCommand(providerRegistry);
-
-            await command.ExecuteAsync(context, cmdArgs);
-
-            Assert.Empty(context.CredentialStore);
-        }
-
-        [Fact]
-        public async Task StoreCommand_ExecuteAsync_ProviderDoesNotStoreOnCreate_StoresCredential()
-        {
-            const string testUserName = "john.doe";
-            const string testPassword = "letmein123";
-            const string testCredentialKey = "test-cred-key";
-            string stdIn = $"username={testUserName}\npassword={testPassword}\n\n";
-
-            var provider = new TestHostProvider
-            {
-                IsCredentialStoredOnCreation = false,
                 CredentialKey = testCredentialKey
             };
             var providerRegistry = new TestHostProviderRegistry {Provider = provider};
@@ -88,7 +63,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Commands
         }
 
         [Fact]
-        public async Task StoreCommand_ExecuteAsync_ProviderDoesNotStoreOnCreate_ExistingCredential_UpdatesCredential()
+        public async Task StoreCommand_ExecuteAsync_ExistingCredential_UpdatesCredential()
         {
             const string testUserName = "john.doe";
             const string testPasswordOld = "letmein123-old";
@@ -98,7 +73,6 @@ namespace Microsoft.Git.CredentialManager.Tests.Commands
 
             var provider = new TestHostProvider
             {
-                IsCredentialStoredOnCreation = false,
                 CredentialKey = testCredentialKey
             };
             var providerRegistry = new TestHostProviderRegistry {Provider = provider};

@@ -31,13 +31,6 @@ namespace Microsoft.Git.CredentialManager.Commands
                 context.Trace.WriteLine("Creating new credential...");
                 credential = await provider.CreateCredentialAsync(input);
                 context.Trace.WriteLine("Credential created.");
-
-                if (provider.IsCredentialStoredOnCreation)
-                {
-                    context.Trace.WriteLine("Storing credential...");
-                    context.CredentialStore.AddOrUpdate(credentialKey, credential);
-                    context.Trace.WriteLine("Credential stored.");
-                }
             }
             else
             {
