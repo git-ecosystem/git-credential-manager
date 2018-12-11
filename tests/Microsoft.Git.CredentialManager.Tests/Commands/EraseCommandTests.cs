@@ -26,18 +26,11 @@ namespace Microsoft.Git.CredentialManager.Tests.Commands
 
             bool result = command.CanExecute(argString?.Split(null));
 
-            if (expected)
-            {
-                Assert.True(result);
-            }
-            else
-            {
-                Assert.False(result);
-            }
+            Assert.Equal(expected, result);
         }
 
         [Fact]
-        public async Task EraseCommand_ExecuteAsync_ErasesCredential()
+        public async Task EraseCommand_ExecuteAsync_CredentialExists_ErasesCredential()
         {
             const string testCredentialKey = "test-cred-key";
 
@@ -60,6 +53,32 @@ namespace Microsoft.Git.CredentialManager.Tests.Commands
 
             Assert.Equal(2, context.CredentialStore.Count);
             Assert.False(context.CredentialStore.ContainsKey($"git:{testCredentialKey}"));
+            Assert.True(context.CredentialStore.ContainsKey("git:credential1"));
+            Assert.True(context.CredentialStore.ContainsKey("git:credential2"));
+        }
+
+        [Fact]
+        public async Task EraseCommand_ExecuteAsync_NoCredential_DoesNothing()
+        {
+            const string testCredentialKey = "test-cred-key";
+
+            var provider = new TestHostProvider {CredentialKey = testCredentialKey};
+            var providerRegistry = new TestHostProviderRegistry {Provider = provider};
+            var context = new TestCommandContext
+            {
+                CredentialStore =
+                {
+                    ["git:credential1"] = new GitCredential("this.should-1", "not.be.erased-1"),
+                    ["git:credential2"] = new GitCredential("this.should-2", "not.be.erased-2")
+                }
+            };
+
+            string[] cmdArgs = {"erase"};
+            var command = new EraseCommand(providerRegistry);
+
+            await command.ExecuteAsync(context, cmdArgs);
+
+            Assert.Equal(2, context.CredentialStore.Count);
             Assert.True(context.CredentialStore.ContainsKey("git:credential1"));
             Assert.True(context.CredentialStore.ContainsKey("git:credential2"));
         }
