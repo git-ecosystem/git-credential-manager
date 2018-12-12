@@ -65,7 +65,7 @@ namespace Microsoft.Git.CredentialManager
 
             // Register all supported host providers
             HostProviderRegistry.Register(
-                // TODO
+                new GenericHostProvider(context)
             );
 
             // Trace the current version and program arguments

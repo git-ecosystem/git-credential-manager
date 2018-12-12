@@ -19,12 +19,23 @@ namespace Microsoft.Git.CredentialManager.Commands
             // Create the credential based on Git's input
             string userName = input.UserName;
             string password = input.Password;
-            var credential = new GitCredential(userName, password);
 
-            // Add or update the credential in the store.
-            context.Trace.WriteLine("Storing credential...");
-            context.CredentialStore.AddOrUpdate(credentialKey, credential);
-            context.Trace.WriteLine("Credential was successfully stored.");
+            // NTLM-authentication is signaled to Git as an empty username/password pair
+            // and we will get called to 'store' these NTLM credentials.
+            // We avoid storing empty credentials.
+            if (string.IsNullOrWhiteSpace(userName) && string.IsNullOrWhiteSpace(password))
+            {
+                context.Trace.WriteLine("Not storing empty credential.");
+            }
+            else
+            {
+                var credential = new GitCredential(userName, password);
+
+                // Add or update the credential in the store.
+                context.Trace.WriteLine("Storing credential...");
+                context.CredentialStore.AddOrUpdate(credentialKey, credential);
+                context.Trace.WriteLine("Credential was successfully stored.");
+            }
 
             return Task.CompletedTask;
         }

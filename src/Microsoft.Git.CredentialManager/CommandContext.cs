@@ -31,6 +31,30 @@ namespace Microsoft.Git.CredentialManager
         TextWriter StdError { get; }
 
         /// <summary>
+        /// Shows a prompt and reads input.
+        /// </summary>
+        /// <param name="prompt">The prompt text to show over <paramref name="outStream"/>.</param>
+        /// <param name="echo">
+        /// Determines whether to display the pressed keys in the console window. True to display the pressed keys,
+        /// false otherwise.
+        /// </param>
+        /// <param name="inStream">
+        /// The <see cref="TextReader"/> stream to read input from. Default is <see cref="StdIn"/>.
+        /// <para/>
+        /// Note: when <paramref name="echo"/> is false, this parameter is ignored and input will always be
+        /// from <see cref="System.Console.In"/> (the actual console).
+        /// </param>
+        /// <param name="outStream">
+        /// The <see cref="TextWriter"/> stream that the prompt text will be written to. Default is <see cref="StdOut"/>.
+        /// </param>
+        /// <returns>The result from the prompt.</returns>
+        /// <exception cref="T:System.InvalidOperationException">
+        /// If <see cref="echo"/> is false, and the <see cref="System.Console.In"/> property is redirected from some
+        /// stream other than the console.
+        /// </exception>
+        string Prompt(string prompt, bool echo = true, TextReader inStream = null, TextWriter outStream = null);
+
+        /// <summary>
         /// Application tracing system.
         /// </summary>
         ITrace Trace { get; }
@@ -112,6 +136,48 @@ namespace Microsoft.Git.CredentialManager
 
                 return _stdErr;
             }
+        }
+
+        public string Prompt(string prompt, bool echo, TextReader inStream = null, TextWriter outStream = null)
+        {
+            // Use default stdin/stdout streams if not specified
+            inStream  = inStream ?? StdIn;
+            outStream = outStream ?? StdOut;
+
+            outStream.Write($"{prompt}: ");
+
+            if (echo)
+            {
+                return inStream.ReadLine();
+            }
+
+            var value = new StringBuilder();
+            bool done = false;
+
+            do
+            {
+                // TODO: Can & should we directly disable 'stdin echo' and then just use a
+                // inStream/StdIn.ReadLine() call rather than needing to use Console.ReadKey?
+                ConsoleKeyInfo keyInfo = Console.ReadKey(intercept: true);
+                switch (keyInfo.Key)
+                {
+                    case ConsoleKey.Enter:
+                        done = true;
+                        outStream.WriteLine();
+                        break;
+                    case ConsoleKey.Backspace:
+                        if (value.Length > 0)
+                        {
+                            value.Remove(value.Length - 1, 1);
+                        }
+                        break;
+                    default:
+                        value.Append(keyInfo.KeyChar);
+                        break;
+                }
+            } while (!done);
+
+            return value.ToString();
         }
 
         public ITrace Trace { get; } = new Trace();
