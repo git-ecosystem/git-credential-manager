@@ -59,7 +59,7 @@ namespace Microsoft.Git.CredentialManager
             {
                 Context.Trace.WriteLine("Prompting for basic credentials...");
 
-                credential = _basicAuth.GetCredentials(uri);
+                credential = _basicAuth.GetCredentials(uri.AbsoluteUri, uri.UserInfo);
             }
 
             Context.Trace.WriteLine("Credentials created.");

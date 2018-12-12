@@ -7,7 +7,15 @@ namespace Microsoft.Git.CredentialManager.Authentication
 {
     public interface IBasicAuthentication
     {
-        GitCredential GetCredentials(Uri uri);
+        GitCredential GetCredentials(string resource, string userName);
+    }
+
+    public static class BasicAuthenticationExtensions
+    {
+        public static GitCredential GetCredentials(this IBasicAuthentication basicAuth, string resource)
+        {
+            return basicAuth.GetCredentials(resource, null);
+        }
     }
 
     public class TtyPromptBasicAuthentication : IBasicAuthentication
@@ -21,9 +29,9 @@ namespace Microsoft.Git.CredentialManager.Authentication
             _context = context;
         }
 
-        public GitCredential GetCredentials(Uri uri)
+        public GitCredential GetCredentials(string resource, string userName)
         {
-            EnsureArgument.AbsoluteUri(uri, nameof(uri));
+            EnsureArgument.NotNullOrWhiteSpace(resource, nameof(resource));
 
             // Are terminal prompt disabled?
             if (_context.TryGetEnvironmentVariable(
@@ -35,23 +43,21 @@ namespace Microsoft.Git.CredentialManager.Authentication
                 throw new InvalidOperationException("Cannot show basic credential prompt because terminal prompts have been disabled.");
             }
 
-            _context.StdError.WriteLine("Enter credentials for '{0}':", uri.AbsoluteUri);
+            _context.StdError.WriteLine("Enter credentials for '{0}':", resource);
 
-            string userName;
-            if (!string.IsNullOrWhiteSpace(uri.UserInfo))
+            if (!string.IsNullOrWhiteSpace(userName))
             {
-                // Don't need to prompt for the username if it has been specified in the URL
-                userName = uri.UserInfo;
+                // Don't need to prompt for the username if it has been specified already
                 _context.StdError.WriteLine("Username: {0}", userName);
             }
             else
             {
                 // Prompt for username
-                userName = _context.Prompt("Username", outStream: _context.StdError);
+                userName = _context.Prompt("Username");
             }
 
             // Prompt for password
-            string password = _context.Prompt("Password", echo: false, outStream: _context.StdError);
+            string password = _context.PromptSecret("Password");
 
             return new GitCredential(userName, password);
         }

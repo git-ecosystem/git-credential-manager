@@ -13,7 +13,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Authentication
     public class TtyPromptBasicAuthenticationTests
     {
         [Fact]
-        public void TtyPromptBasicAuthentication_GetCredentials_NullUri_ThrowsException()
+        public void TtyPromptBasicAuthentication_GetCredentials_NullResource_ThrowsException()
         {
             var context = new TestCommandContext();
             var basicAuth = new TtyPromptBasicAuthentication(context);
@@ -22,44 +22,41 @@ namespace Microsoft.Git.CredentialManager.Tests.Authentication
         }
 
         [Fact]
-        public void TtyPromptBasicAuthentication_GetCredentials_UriWithUserInfo_PasswordPromptReturnsCredentials()
+        public void TtyPromptBasicAuthentication_GetCredentials_ResourceAndUserName_PasswordPromptReturnsCredentials()
         {
+            const string testResource = "https://example.com";
             const string testUserName = "john.doe";
             const string testPassword = "letmein123";
 
             var context = new TestCommandContext
             {
-                Prompts = {["Password"] = testPassword}
+                SecretPrompts = {["Password"] = testPassword}
             };
 
             var basicAuth = new TtyPromptBasicAuthentication(context);
-            var uri = new Uri($"https://{testUserName}@example.com");
 
-            GitCredential credential = basicAuth.GetCredentials(uri);
+            GitCredential credential = basicAuth.GetCredentials(testResource, testUserName);
 
             Assert.Equal(testUserName, credential.UserName);
             Assert.Equal(testPassword, credential.Password);
         }
 
         [Fact]
-        public void TtyPromptBasicAuthentication_GetCredentials_Uri_UserPassPromptReturnsCredentials()
+        public void TtyPromptBasicAuthentication_GetCredentials_Resource_UserPassPromptReturnsCredentials()
         {
+            const string testResource = "https://example.com";
             const string testUserName = "john.doe";
             const string testPassword = "letmein123";
 
             var context = new TestCommandContext
             {
-                Prompts =
-                {
-                    ["Username"] = testUserName,
-                    ["Password"] = testPassword
-                }
+                Prompts       = {["Username"] = testUserName},
+                SecretPrompts = {["Password"] = testPassword}
             };
 
             var basicAuth = new TtyPromptBasicAuthentication(context);
-            var uri = new Uri("https://example.com");
 
-            GitCredential credential = basicAuth.GetCredentials(uri);
+            GitCredential credential = basicAuth.GetCredentials(testResource);
 
             Assert.Equal(testUserName, credential.UserName);
             Assert.Equal(testPassword, credential.Password);
@@ -68,15 +65,16 @@ namespace Microsoft.Git.CredentialManager.Tests.Authentication
         [Fact]
         public void TtyPromptBasicAuthentication_GetCredentials_NoTerminalPrompts_ThrowsException()
         {
+            const string testResource = "https://example.com";
+
             var context = new TestCommandContext
             {
                 EnvironmentVariables = {[Constants.EnvironmentVariables.GitTerminalPrompts] = "0"}
             };
 
             var basicAuth = new TtyPromptBasicAuthentication(context);
-            var uri = new Uri("https://example.com");
 
-            Assert.Throws<InvalidOperationException>(() => basicAuth.GetCredentials(uri));
+            Assert.Throws<InvalidOperationException>(() => basicAuth.GetCredentials(testResource));
         }
     }
 }

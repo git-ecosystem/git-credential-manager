@@ -88,7 +88,7 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             var context = new TestCommandContext();
             var basicAuthMock = new Mock<IBasicAuthentication>();
-            basicAuthMock.Setup(x => x.GetCredentials(It.IsAny<Uri>()))
+            basicAuthMock.Setup(x => x.GetCredentials(It.IsAny<string>(), It.IsAny<string>()))
                          .Verifiable();
             var ntlmAuthMock = new Mock<INtlmAuthentication>();
             ntlmAuthMock.Setup(x => x.IsNtlmSupportedAsync(It.IsAny<Uri>()))
@@ -101,7 +101,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             Assert.NotNull(credential);
             Assert.Equal(string.Empty, credential.UserName);
             Assert.Equal(string.Empty, credential.Password);
-            basicAuthMock.Verify(x => x.GetCredentials(It.IsAny<Uri>()), Times.Never);
+            basicAuthMock.Verify(x => x.GetCredentials(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
 
         [Fact]
@@ -119,7 +119,7 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             var context = new TestCommandContext();
             var basicAuthMock = new Mock<IBasicAuthentication>();
-            basicAuthMock.Setup(x => x.GetCredentials(It.IsAny<Uri>()))
+            basicAuthMock.Setup(x => x.GetCredentials(It.IsAny<string>(), It.IsAny<string>()))
                          .Returns(basicCredential)
                          .Verifiable();
             var ntlmAuthMock = new Mock<INtlmAuthentication>();
@@ -133,7 +133,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             Assert.NotNull(credential);
             Assert.Equal(testUserName, credential.UserName);
             Assert.Equal(testPassword, credential.Password);
-            basicAuthMock.Verify(x => x.GetCredentials(It.IsAny<Uri>()), Times.Once);
+            basicAuthMock.Verify(x => x.GetCredentials(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
         }
     }
 }

@@ -4,7 +4,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 using Microsoft.Git.CredentialManager.SecureStorage;
 
@@ -33,26 +32,21 @@ namespace Microsoft.Git.CredentialManager
         /// <summary>
         /// Shows a prompt and reads input.
         /// </summary>
-        /// <param name="prompt">The prompt text to show over <paramref name="outStream"/>.</param>
-        /// <param name="echo">
-        /// Determines whether to display the pressed keys in the console window. True to display the pressed keys,
-        /// false otherwise.
-        /// </param>
-        /// <param name="inStream">
-        /// The <see cref="TextReader"/> stream to read input from. Default is <see cref="StdIn"/>.
-        /// <para/>
-        /// Note: when <paramref name="echo"/> is false, this parameter is ignored and input will always be
-        /// from <see cref="System.Console.In"/> (the actual console).
-        /// </param>
-        /// <param name="outStream">
-        /// The <see cref="TextWriter"/> stream that the prompt text will be written to. Default is <see cref="StdOut"/>.
-        /// </param>
+        /// <param name="prompt">The prompt text to show.</param>
+        /// <returns>The result from the prompt.</returns>
+        string Prompt(string prompt);
+
+        /// <summary>
+        /// Shows a prompt for capturing secret/sensitive information such as passwords, suppresses key echo,
+        /// and reads the input.
+        /// </summary>
+        /// <param name="prompt">The prompt text to show.</param>
         /// <returns>The result from the prompt.</returns>
         /// <exception cref="T:System.InvalidOperationException">
         /// If <see cref="echo"/> is false, and the <see cref="System.Console.In"/> property is redirected from some
         /// stream other than the console.
         /// </exception>
-        string Prompt(string prompt, bool echo = true, TextReader inStream = null, TextWriter outStream = null);
+        string PromptSecret(string prompt);
 
         /// <summary>
         /// Application tracing system.
@@ -138,18 +132,16 @@ namespace Microsoft.Git.CredentialManager
             }
         }
 
-        public string Prompt(string prompt, bool echo, TextReader inStream = null, TextWriter outStream = null)
+        public string Prompt(string prompt)
         {
-            // Use default stdin/stdout streams if not specified
-            inStream  = inStream ?? StdIn;
-            outStream = outStream ?? StdOut;
+            StdError.Write($"{prompt}: ");
 
-            outStream.Write($"{prompt}: ");
+            return StdIn.ReadLine();
+        }
 
-            if (echo)
-            {
-                return inStream.ReadLine();
-            }
+        public string PromptSecret(string prompt)
+        {
+            StdError.Write($"{prompt}: ");
 
             var value = new StringBuilder();
             bool done = false;
@@ -163,7 +155,7 @@ namespace Microsoft.Git.CredentialManager
                 {
                     case ConsoleKey.Enter:
                         done = true;
-                        outStream.WriteLine();
+                        StdError.WriteLine();
                         break;
                     case ConsoleKey.Backspace:
                         if (value.Length > 0)

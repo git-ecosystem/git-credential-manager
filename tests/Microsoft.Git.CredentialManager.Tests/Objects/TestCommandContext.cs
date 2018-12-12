@@ -15,6 +15,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
         public StringBuilder StdOut { get; set; } = new StringBuilder();
         public StringBuilder StdError { get; set; } = new StringBuilder();
         public IDictionary<string, string> Prompts = new Dictionary<string, string>();
+        public IDictionary<string, string> SecretPrompts = new Dictionary<string, string>();
         public ITrace Trace { get; set; } = new NullTrace();
         public TestFileSystem FileSystem { get; set; } = new TestFileSystem();
         public TestCredentialStore CredentialStore { get; set; } = new TestCredentialStore();
@@ -29,25 +30,21 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
 
         TextWriter ICommandContext.StdError => new StringWriter(StdError){NewLine = NewLine};
 
-        string ICommandContext.Prompt(string prompt, bool echo, TextReader inStream, TextWriter outStream)
+        string ICommandContext.Prompt(string prompt)
         {
-            // Default streams
-            inStream  = inStream  ?? ((ICommandContext)this).StdIn;
-            outStream = outStream ?? ((ICommandContext)this).StdOut;
-
-            if (echo)
-            {
-                outStream.Write($"{prompt}: ");
-            }
-
             if (!Prompts.TryGetValue(prompt, out string result))
             {
                 throw new Exception($"No result has been configured for prompt text '{prompt}'");
             }
 
-            if (echo)
+            return result;
+        }
+
+        string ICommandContext.PromptSecret(string prompt)
+        {
+            if (!SecretPrompts.TryGetValue(prompt, out string result))
             {
-                outStream.WriteLine();
+                throw new Exception($"No result has been configured for secret prompt text '{prompt}'");
             }
 
             return result;
