@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
-using System;
 using System.Threading.Tasks;
 
 namespace Microsoft.Git.CredentialManager.Commands
@@ -17,7 +16,17 @@ namespace Microsoft.Git.CredentialManager.Commands
 
         protected override Task ExecuteInternalAsync(ICommandContext context, InputArguments input, IHostProvider provider, string credentialKey)
         {
-            throw new NotImplementedException();
+            // Create the credential based on Git's input
+            string userName = input.UserName;
+            string password = input.Password;
+            var credential = new GitCredential(userName, password);
+
+            // Add or update the credential in the store.
+            context.Trace.WriteLine("Storing credential...");
+            context.CredentialStore.AddOrUpdate(credentialKey, credential);
+            context.Trace.WriteLine("Credential was successfully stored.");
+
+            return Task.CompletedTask;
         }
     }
 }

@@ -39,23 +39,6 @@ namespace Microsoft.Git.CredentialManager
         /// <param name="input">Input arguments of a Git credential query.</param>
         /// <returns>A new credential Git can use to authenticate to the remote repository.</returns>
         Task<GitCredential> CreateCredentialAsync(InputArguments input);
-
-        /// <summary>
-        /// Whether or not <see cref="GitCredential"/>s created by this provider should be stored in the
-        /// secure credential storage system when the call to <see cref="CreateCredentialAsync"/> is made.
-        /// </summary>
-        /// <remarks>
-        /// Some host providers may wish to or need to store <see cref="GitCredential"/>s created by them
-        /// immediately after they are created, rather than at a later time when requested to do so by Git.
-        /// One example reason for this is that the provider is unable to create the same credential key
-        /// due to missing information in the <see cref="InputArguments"/> on subsequent calls to
-        /// <see cref="GetCredentialKey"/>.
-        /// <para/>
-        /// If this property returns true, Git Credential Manager will store any credential created by this
-        /// provider during the `git credential-helper get` call, rather than in a `store` call (which will
-        /// now be a no-op).
-        /// </remarks>
-        bool IsCredentialStoredOnCreation { get; }
     }
 
     public abstract class HostProvider : IHostProvider
@@ -77,7 +60,5 @@ namespace Microsoft.Git.CredentialManager
         public abstract string GetCredentialKey(InputArguments input);
 
         public abstract Task<GitCredential> CreateCredentialAsync(InputArguments input);
-
-        public abstract bool IsCredentialStoredOnCreation { get; }
     }
 }

@@ -39,7 +39,7 @@ namespace Microsoft.Git.CredentialManager.Commands
 
         public override bool CanExecute(string[] args)
         {
-            return args.Length != 0 && StringComparer.OrdinalIgnoreCase.Equals(args[0], Name);
+            return args != null && args.Length != 0 && StringComparer.OrdinalIgnoreCase.Equals(args[0], Name);
         }
     }
 
