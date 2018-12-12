@@ -7,34 +7,30 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Git.CredentialManager.Authentication
 {
-    public interface INtlmAuthentication
+    public interface IWindowsIntegratedAuthentication
     {
-        Task<bool> IsNtlmSupportedAsync(Uri uri);
+        Task<bool> GetIsSupportedAsync(Uri uri);
     }
 
-    public class NtlmAuthentication : INtlmAuthentication
+    public class WindowsIntegratedAuthentication : IWindowsIntegratedAuthentication
     {
         private readonly ICommandContext _context;
         private readonly IHttpClientFactory _httpFactory;
 
-        public NtlmAuthentication(ICommandContext context)
+        public WindowsIntegratedAuthentication(ICommandContext context)
             : this(context, new HttpClientFactory()) { }
 
-        public NtlmAuthentication(ICommandContext context, IHttpClientFactory httpFactory)
+        public WindowsIntegratedAuthentication(ICommandContext context, IHttpClientFactory httpFactory)
         {
             _context = context;
             _httpFactory = httpFactory;
         }
 
-        public async Task<bool> IsNtlmSupportedAsync(Uri uri)
+        public async Task<bool> GetIsSupportedAsync(Uri uri)
         {
             EnsureArgument.AbsoluteUri(uri, nameof(uri));
 
-            if (!PlatformUtils.IsWindows())
-            {
-                _context.Trace.WriteLine("NTLM is only supported on Windows");
-                return false;
-            }
+            bool supported = false;
 
             _context.Trace.WriteLine($"HTTP HEAD {uri}");
             using (HttpClient client = _httpFactory.GetClient())
@@ -45,16 +41,20 @@ namespace Microsoft.Git.CredentialManager.Authentication
                 _context.Trace.WriteLine("Inspecting WWW-Authenticate headers...");
                 foreach (AuthenticationHeaderValue wwwHeader in response.Headers.WwwAuthenticate)
                 {
-                    if (StringComparer.OrdinalIgnoreCase.Equals(wwwHeader.Scheme, Constants.WwwAuthenticateNtlmScheme))
+                    if (StringComparer.OrdinalIgnoreCase.Equals(wwwHeader.Scheme, Constants.WwwAuthenticateNegotiateScheme))
+                    {
+                        _context.Trace.WriteLine("Found WWW-Authenticate header for Negotiate");
+                        supported = true;
+                    }
+                    else if (StringComparer.OrdinalIgnoreCase.Equals(wwwHeader.Scheme, Constants.WwwAuthenticateNtlmScheme))
                     {
                         _context.Trace.WriteLine("Found WWW-Authenticate header for NTLM");
-                        return true;
+                        supported = true;
                     }
                 }
             }
 
-            _context.Trace.WriteLine("No WWW-Authenticate header for NTLM was found");
-            return false;
+            return supported;
         }
     }
 }

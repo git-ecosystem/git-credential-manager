@@ -12,49 +12,30 @@ namespace Microsoft.Git.CredentialManager.Tests
 {
     public class GenericProviderTests
     {
-        [Fact]
-        public void GenericProvider_IsSupported_Http_ReturnsTrue()
+        [Theory]
+        [InlineData("http", true)]
+        [InlineData("HTTP", true)]
+        [InlineData("hTtP", true)]
+        [InlineData("https", true)]
+        [InlineData("HTTPS", true)]
+        [InlineData("hTtPs", true)]
+        [InlineData("ssh", false)]
+        [InlineData("SSH", false)]
+        [InlineData("sSh", false)]
+        [InlineData("", false)]
+        [InlineData(null, false)]
+        public void GenericProvider_IsSupported(string protocol, bool expected)
         {
             var input = new InputArguments(new Dictionary<string, string>
             {
-                ["protocol"] = "http",
+                ["protocol"] = protocol,
                 ["host"]     = "example.com",
                 ["path"]     = "foo/bar",
             });
 
             var provider = new GenericHostProvider(new TestCommandContext());
 
-            Assert.True(provider.IsSupported(input));
-        }
-
-        [Fact]
-        public void GenericProvider_IsSupported_Https_ReturnsTrue()
-        {
-            var input = new InputArguments(new Dictionary<string, string>
-            {
-                ["protocol"] = "https",
-                ["host"]     = "example.com",
-                ["path"]     = "foo/bar",
-            });
-
-            var provider = new GenericHostProvider(new TestCommandContext());
-
-            Assert.True(provider.IsSupported(input));
-        }
-
-        [Fact]
-        public void GenericProvider_IsSupported_NonHttp_ReturnsFalse()
-        {
-            var input = new InputArguments(new Dictionary<string, string>
-            {
-                ["protocol"] = "ssh",
-                ["host"]     = "example.com",
-                ["path"]     = "foo/bar",
-            });
-
-            var provider = new GenericHostProvider(new TestCommandContext());
-
-            Assert.False(provider.IsSupported(input));
+            Assert.Equal(expected, provider.IsSupported(input));
         }
 
         [Fact]
@@ -77,8 +58,27 @@ namespace Microsoft.Git.CredentialManager.Tests
             Assert.Equal(expectedKey, actualKey);
         }
 
+        [PlatformFact(Platform.MacOS, Platform.Linux)]
+        public async Task GenericProvider_CreateCredentialAsync_NonWindows_WiaSupported_ReturnsBasicCredential()
+        {
+            await TestCreateCredentialAsync_ReturnsBasicCredential(wiaSupported: true);
+        }
+
+        [PlatformFact(Platform.Windows)]
+        public async Task GenericProvider_CreateCredentialAsync_Windows_WiaSupported_ReturnsEmptyCredential()
+        {
+            await TestCreateCredentialAsync_ReturnsEmptyCredential(wiaSupported: true);
+        }
+
         [Fact]
-        public async Task GenericProvider_CreateCredentialAsync_Ntlm_ReturnsEmptyCredential()
+        public async Task GenericProvider_CreateCredentialAsync_WiaNotSupported_ReturnsBasicCredential()
+        {
+            await TestCreateCredentialAsync_ReturnsBasicCredential(wiaSupported: false);
+        }
+
+        #region Helpers
+
+        private static async Task TestCreateCredentialAsync_ReturnsEmptyCredential(bool wiaSupported)
         {
             var input = new InputArguments(new Dictionary<string, string>
             {
@@ -90,11 +90,11 @@ namespace Microsoft.Git.CredentialManager.Tests
             var basicAuthMock = new Mock<IBasicAuthentication>();
             basicAuthMock.Setup(x => x.GetCredentials(It.IsAny<string>(), It.IsAny<string>()))
                          .Verifiable();
-            var ntlmAuthMock = new Mock<INtlmAuthentication>();
-            ntlmAuthMock.Setup(x => x.IsNtlmSupportedAsync(It.IsAny<Uri>()))
-                        .ReturnsAsync(true);
+            var wiaAuthMock = new Mock<IWindowsIntegratedAuthentication>();
+            wiaAuthMock.Setup(x => x.GetIsSupportedAsync(It.IsAny<Uri>()))
+                       .ReturnsAsync(wiaSupported);
 
-            var provider = new GenericHostProvider(context, basicAuthMock.Object, ntlmAuthMock.Object);
+            var provider = new GenericHostProvider(context, basicAuthMock.Object, wiaAuthMock.Object);
 
             GitCredential credential = await provider.CreateCredentialAsync(input);
 
@@ -104,8 +104,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             basicAuthMock.Verify(x => x.GetCredentials(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
 
-        [Fact]
-        public async Task GenericProvider_CreateCredentialAsync_NonNtlm_ReturnsBasicCredential()
+        private static async Task TestCreateCredentialAsync_ReturnsBasicCredential(bool wiaSupported)
         {
             var input = new InputArguments(new Dictionary<string, string>
             {
@@ -122,11 +121,11 @@ namespace Microsoft.Git.CredentialManager.Tests
             basicAuthMock.Setup(x => x.GetCredentials(It.IsAny<string>(), It.IsAny<string>()))
                          .Returns(basicCredential)
                          .Verifiable();
-            var ntlmAuthMock = new Mock<INtlmAuthentication>();
-            ntlmAuthMock.Setup(x => x.IsNtlmSupportedAsync(It.IsAny<Uri>()))
-                        .ReturnsAsync(false);
+            var wiaAuthMock = new Mock<IWindowsIntegratedAuthentication>();
+            wiaAuthMock.Setup(x => x.GetIsSupportedAsync(It.IsAny<Uri>()))
+                       .ReturnsAsync(wiaSupported);
 
-            var provider = new GenericHostProvider(context, basicAuthMock.Object, ntlmAuthMock.Object);
+            var provider = new GenericHostProvider(context, basicAuthMock.Object, wiaAuthMock.Object);
 
             GitCredential credential = await provider.CreateCredentialAsync(input);
 
@@ -135,5 +134,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             Assert.Equal(testPassword, credential.Password);
             basicAuthMock.Verify(x => x.GetCredentials(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
         }
+
+        #endregion
     }
 }

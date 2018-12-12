@@ -9,7 +9,8 @@ namespace Microsoft.Git.CredentialManager
         public const string GcmVersion = "1.0";
         public const string PersonalAccessTokenUserName = "PersonalAccessToken";
 
-        public const string WwwAuthenticateNtlmScheme = "NTLM";
+        public const string WwwAuthenticateNegotiateScheme = "Negotiate";
+        public const string WwwAuthenticateNtlmScheme      = "NTLM";
 
         public static class EnvironmentVariables
         {

@@ -7,21 +7,21 @@ namespace Microsoft.Git.CredentialManager
     public class GenericHostProvider : HostProvider
     {
         private readonly IBasicAuthentication _basicAuth;
-        private readonly INtlmAuthentication _ntlmAuth;
+        private readonly IWindowsIntegratedAuthentication _winAuth;
 
         public GenericHostProvider(ICommandContext context)
-            : this(context, new TtyPromptBasicAuthentication(context), new NtlmAuthentication(context)) { }
+            : this(context, new TtyPromptBasicAuthentication(context), new WindowsIntegratedAuthentication(context)) { }
 
         public GenericHostProvider(ICommandContext context,
                                    IBasicAuthentication basicAuth,
-                                   INtlmAuthentication ntlmAuth)
+                                   IWindowsIntegratedAuthentication winAuth)
             : base(context)
         {
             EnsureArgument.NotNull(basicAuth, nameof(basicAuth));
-            EnsureArgument.NotNull(ntlmAuth, nameof(ntlmAuth));
+            EnsureArgument.NotNull(winAuth, nameof(winAuth));
 
             _basicAuth = basicAuth;
-            _ntlmAuth = ntlmAuth;
+            _winAuth = winAuth;
         }
 
         #region HostProvider
@@ -43,27 +43,32 @@ namespace Microsoft.Git.CredentialManager
         {
             Uri uri = GetUriFromInput(input);
 
-            // Determine the if the host supports NTLM
-            Context.Trace.WriteLine($"Checking host '{uri.AbsoluteUri}' for NTLM support...");
-            bool supportsNtlm = await _ntlmAuth.IsNtlmSupportedAsync(uri);
-
-            GitCredential credential;
-            if (supportsNtlm)
+            // Determine the if the host supports Windows Integration Authentication (WIA)
+            if (PlatformUtils.IsWindows())
             {
-                Context.Trace.WriteLine("Host supports NTLM - generating empty credential...");
+                Context.Trace.WriteLine($"Checking host '{uri.AbsoluteUri}' for Windows Integrated Authentication...");
+                bool isWiaSupported = await _winAuth.GetIsSupportedAsync(uri);
 
-                // NTLM is signaled to Git using an empty username/password
-                credential = new GitCredential(string.Empty, string.Empty);
+                if (!isWiaSupported)
+                {
+                    Context.Trace.WriteLine("Host does not support WIA.");
+                }
+                else
+                {
+                    Context.Trace.WriteLine($"Host supports WIA - generating empty credential...");
+
+                    // WIA is signaled to Git using an empty username/password
+                    return new GitCredential(string.Empty, string.Empty);
+                }
             }
             else
             {
-                Context.Trace.WriteLine("Prompting for basic credentials...");
-
-                credential = _basicAuth.GetCredentials(uri.AbsoluteUri, uri.UserInfo);
+                string osType = PlatformUtils.GetPlatformInformation().OperatingSystemType;
+                Context.Trace.WriteLine($"Skipping check for Windows Integrated Authentication on {osType}.");
             }
 
-            Context.Trace.WriteLine("Credentials created.");
-            return credential;
+            Context.Trace.WriteLine("Prompting for basic credentials...");
+            return _basicAuth.GetCredentials(uri.AbsoluteUri, uri.UserInfo);
         }
 
         #endregion
