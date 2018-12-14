@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
+using Header = System.Collections.Generic.KeyValuePair<string, System.Collections.Generic.IEnumerable<string>>;
 
 namespace Microsoft.Git.CredentialManager
 {
@@ -7,6 +8,7 @@ namespace Microsoft.Git.CredentialManager
     {
         public const string GcmVersion = "1.0";
         public const string PersonalAccessTokenUserName = "PersonalAccessToken";
+        public const string MicrosoftAuthHelperName = "Microsoft.Authentication.Helper";
 
         public static class EnvironmentVariables
         {
@@ -18,8 +20,21 @@ namespace Microsoft.Git.CredentialManager
 
         public static class Http
         {
+            public const string WwwAuthenticateBearerScheme    = "Bearer";
             public const string WwwAuthenticateNegotiateScheme = "Negotiate";
             public const string WwwAuthenticateNtlmScheme      = "NTLM";
+
+            public const string MimeTypeJson = "application/json";
+
+            public static Header AcceptHeader(string value)
+            {
+                return new Header("Accept", new[] {value});
+            }
+
+            public static Header AuthorizationBearerHeader(string bearerToken)
+            {
+                return new Header("Authorization", new[] {$"{WwwAuthenticateBearerScheme} {bearerToken}"});
+            }
         }
 
         /// <summary>
