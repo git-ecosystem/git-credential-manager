@@ -4,7 +4,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 using Microsoft.Git.CredentialManager.SecureStorage;
 
@@ -29,6 +28,25 @@ namespace Microsoft.Git.CredentialManager
         /// The standard error text stream connected back to the calling process, typically Git.
         /// </summary>
         TextWriter StdError { get; }
+
+        /// <summary>
+        /// Shows a prompt and reads input.
+        /// </summary>
+        /// <param name="prompt">The prompt text to show.</param>
+        /// <returns>The result from the prompt.</returns>
+        string Prompt(string prompt);
+
+        /// <summary>
+        /// Shows a prompt for capturing secret/sensitive information such as passwords, suppresses key echo,
+        /// and reads the input.
+        /// </summary>
+        /// <param name="prompt">The prompt text to show.</param>
+        /// <returns>The result from the prompt.</returns>
+        /// <exception cref="T:System.InvalidOperationException">
+        /// If <see cref="echo"/> is false, and the <see cref="System.Console.In"/> property is redirected from some
+        /// stream other than the console.
+        /// </exception>
+        string PromptSecret(string prompt);
 
         /// <summary>
         /// Application tracing system.
@@ -112,6 +130,46 @@ namespace Microsoft.Git.CredentialManager
 
                 return _stdErr;
             }
+        }
+
+        public string Prompt(string prompt)
+        {
+            StdError.Write($"{prompt}: ");
+
+            return StdIn.ReadLine();
+        }
+
+        public string PromptSecret(string prompt)
+        {
+            StdError.Write($"{prompt}: ");
+
+            var value = new StringBuilder();
+            bool done = false;
+
+            do
+            {
+                // TODO: Can & should we directly disable 'stdin echo' and then just use a
+                // inStream/StdIn.ReadLine() call rather than needing to use Console.ReadKey?
+                ConsoleKeyInfo keyInfo = Console.ReadKey(intercept: true);
+                switch (keyInfo.Key)
+                {
+                    case ConsoleKey.Enter:
+                        done = true;
+                        StdError.WriteLine();
+                        break;
+                    case ConsoleKey.Backspace:
+                        if (value.Length > 0)
+                        {
+                            value.Remove(value.Length - 1, 1);
+                        }
+                        break;
+                    default:
+                        value.Append(keyInfo.KeyChar);
+                        break;
+                }
+            } while (!done);
+
+            return value.ToString();
         }
 
         public ITrace Trace { get; } = new Trace();

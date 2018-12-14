@@ -37,7 +37,28 @@ namespace Microsoft.Git.CredentialManager.Tests.Commands
         }
 
         [Fact]
-        public async Task StoreCommand_ExecuteAsync_StoresCredential()
+        public async Task StoreCommand_ExecuteAsync_EmptyCredential_DoesNotStoreCredential()
+        {
+            const string testCredentialKey = "test-cred-key";
+            string stdIn = $"username=\npassword=\n\n";
+
+            var provider = new TestHostProvider
+            {
+                CredentialKey = testCredentialKey
+            };
+            var providerRegistry = new TestHostProviderRegistry {Provider = provider};
+            var context = new TestCommandContext {StdIn = stdIn};
+
+            string[] cmdArgs = {"store"};
+            var command = new StoreCommand(providerRegistry);
+
+            await command.ExecuteAsync(context, cmdArgs);
+
+            Assert.Empty(context.CredentialStore);
+        }
+
+        [Fact]
+        public async Task StoreCommand_ExecuteAsync_NonEmptyCredential_StoresCredential()
         {
             const string testUserName = "john.doe";
             const string testPassword = "letmein123";
@@ -63,7 +84,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Commands
         }
 
         [Fact]
-        public async Task StoreCommand_ExecuteAsync_ExistingCredential_UpdatesCredential()
+        public async Task StoreCommand_ExecuteAsync_NonEmptyCredential_ExistingCredential_UpdatesCredential()
         {
             const string testUserName = "john.doe";
             const string testPasswordOld = "letmein123-old";
