@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -49,6 +50,32 @@ namespace Microsoft.Git.CredentialManager
         public static Task<HttpResponseMessage> HeadAsync(this HttpClient client, Uri requestUri, HttpCompletionOption completionOption, CancellationToken cancellationToken)
         {
             return client.SendAsync(new HttpRequestMessage(HttpMethod.Head, requestUri), completionOption, cancellationToken);
+        }
+
+        #endregion
+
+        #region SendAsync with content and headers
+
+        public static Task<HttpResponseMessage> SendAsync(this HttpClient client,
+            HttpMethod method,
+            Uri requestUri,
+            IEnumerable<KeyValuePair<string, IEnumerable<string>>> headers = null,
+            HttpContent content = null)
+        {
+            var request = new HttpRequestMessage(method, requestUri)
+            {
+                Content = content
+            };
+
+            if (!(headers is null))
+            {
+                foreach (var kvp in headers)
+                {
+                    request.Headers.Add(kvp.Key, kvp.Value);
+                }
+            }
+
+            return client.SendAsync(request);
         }
 
         #endregion

@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
-using System.Text;
 
 namespace Microsoft.Git.CredentialManager
 {
@@ -9,15 +8,18 @@ namespace Microsoft.Git.CredentialManager
         public const string GcmVersion = "1.0";
         public const string PersonalAccessTokenUserName = "PersonalAccessToken";
 
-        public const string WwwAuthenticateNegotiateScheme = "Negotiate";
-        public const string WwwAuthenticateNtlmScheme      = "NTLM";
-
         public static class EnvironmentVariables
         {
             public const string GcmTrace           = "GCM_TRACE";
             public const string GcmTraceSecrets    = "GCM_TRACE_SECRETS";
             public const string GcmDebug           = "GCM_DEBUG";
             public const string GitTerminalPrompts = "GIT_TERMINAL_PROMPT";
+        }
+
+        public static class Http
+        {
+            public const string WwwAuthenticateNegotiateScheme = "Negotiate";
+            public const string WwwAuthenticateNtlmScheme      = "NTLM";
         }
 
         /// <summary>
