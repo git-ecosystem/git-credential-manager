@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
 using System;
+using GitHub;
 using Microsoft.AzureRepos;
 
 namespace Microsoft.Git.CredentialManager
@@ -15,6 +16,7 @@ namespace Microsoft.Git.CredentialManager
                 // Register all supported host providers
                 app.ProviderRegistry.Register(
                     new AzureReposHostProvider(context),
+                    new GitHubHostProvider(context),
                     new GenericHostProvider(context)
                 );
 
