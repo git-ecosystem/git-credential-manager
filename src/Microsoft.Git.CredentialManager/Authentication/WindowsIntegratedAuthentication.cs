@@ -34,7 +34,7 @@ namespace Microsoft.Git.CredentialManager.Authentication
 
             _context.Trace.WriteLine($"HTTP: HEAD {uri}");
             using (HttpClient client = _httpFactory.GetClient())
-            using (HttpResponseMessage response = await client.SendAsync(HttpMethod.Head, uri))
+            using (HttpResponseMessage response = await client.HeadAsync(uri))
             {
                 _context.Trace.WriteLine("HTTP: Response code ignored.");
 

@@ -295,7 +295,7 @@ namespace Microsoft.AzureRepos.Tests
             var httpHandler = new TestHttpMessageHandler {ThrowOnUnexpectedRequest = true};
             httpHandler.Setup(HttpMethod.Get,  locSvcRequestUri,   x =>
             {
-                AssertHeader(x, Constants.Http.AcceptHeader(Constants.Http.MimeTypeJson));
+                AssertAcceptJson(x);
                 AssertBearerToken(x, accessToken);
                 return locSvcResponse;
             });

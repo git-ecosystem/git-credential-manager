@@ -20,14 +20,14 @@ namespace Microsoft.Git.CredentialManager.Tests
         }
 
         [Fact]
-        public void HttpClientFactory_GetClient_MultipleCalls_ReturnsSameInstance()
+        public void HttpClientFactory_GetClient_MultipleCalls_ReturnsNewInstance()
         {
             var factory = new HttpClientFactory();
 
             HttpClient client1 = factory.GetClient();
             HttpClient client2 = factory.GetClient();
 
-            Assert.Same(client1, client2);
+            Assert.NotSame(client1, client2);
         }
     }
 }

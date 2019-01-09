@@ -44,11 +44,12 @@ namespace Microsoft.AzureRepos
             const string commonAuthority = authorityBase + "common";
             const string msaAuthority = authorityBase + "live.com";
 
-            var headers = new[] {Constants.Http.AcceptHeader(Constants.Http.MimeTypeJson)};
+            HttpClient client = _httpFactory.GetClient();
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(Constants.Http.MimeTypeJson));
 
             _context.Trace.WriteLine($"HTTP: HEAD {organizationUri}");
-            using (var client = _httpFactory.GetClient())
-            using (var response = await client.SendAsync(HttpMethod.Head, organizationUri, headers))
+            using (client)
+            using (var response = await client.HeadAsync(organizationUri))
             {
                 _context.Trace.WriteLine("HTTP: Response code ignored.");
                 _context.Trace.WriteLine("Inspecting headers...");
@@ -112,16 +113,14 @@ namespace Microsoft.AzureRepos
 
             Uri requestUri = new Uri(identityServiceUri, sessionTokenUrl);
 
-            var headers = new[]
-            {
-                Constants.Http.AcceptHeader(Constants.Http.MimeTypeJson),
-                Constants.Http.AuthorizationBearerHeader(accessToken)
-            };
+            HttpClient client = _httpFactory.GetClient();
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(Constants.Http.MimeTypeJson));
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(Constants.Http.WwwAuthenticateBearerScheme, accessToken);
 
             _context.Trace.WriteLine($"HTTP: POST {requestUri}");
+            using (client)
             using (StringContent content = CreateAccessTokenRequestJson(organizationUri, scopes))
-            using (var client = _httpFactory.GetClient())
-            using (var response = await client.SendAsync(HttpMethod.Post, requestUri, headers, content))
+            using (var response = await client.PostAsync(requestUri, content))
             {
                 _context.Trace.WriteLine($"HTTP: Response {(int)response.StatusCode} [{response.StatusCode}]");
 
@@ -162,15 +161,13 @@ namespace Microsoft.AzureRepos
                 Query = locationServiceQuery,
             }.Uri;
 
-            var headers = new[]
-            {
-                Constants.Http.AcceptHeader(Constants.Http.MimeTypeJson),
-                Constants.Http.AuthorizationBearerHeader(accessToken)
-            };
+            HttpClient client = _httpFactory.GetClient();
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(Constants.Http.MimeTypeJson));
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(Constants.Http.WwwAuthenticateBearerScheme, accessToken);
 
             _context.Trace.WriteLine($"HTTP: GET {requestUri}");
-            using (var client = _httpFactory.GetClient())
-            using (var response = await client.SendAsync(HttpMethod.Get, requestUri, headers))
+            using (client)
+            using (var response = await client.GetAsync(requestUri))
             {
                 _context.Trace.WriteLine($"HTTP: Response {(int)response.StatusCode} [{response.StatusCode}]");
                 if (response.IsSuccessStatusCode)

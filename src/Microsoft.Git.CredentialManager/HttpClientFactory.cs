@@ -19,24 +19,19 @@ namespace Microsoft.Git.CredentialManager
 
     public class HttpClientFactory : IHttpClientFactory
     {
-        private HttpClient _client;
-
         public HttpClient GetClient()
         {
-            if (_client is null)
+            // Initialize a new HttpClient
+            var client = new HttpClient();
+
+            // Add default headers
+            client.DefaultRequestHeaders.UserAgent.ParseAdd(Constants.GetHttpUserAgent());
+            client.DefaultRequestHeaders.CacheControl = new CacheControlHeaderValue
             {
-                // Initialize a new HttpClient
-                _client = new HttpClient();
+                NoCache = true
+            };
 
-                // Add default headers
-                _client.DefaultRequestHeaders.UserAgent.ParseAdd(Constants.GetHttpUserAgent());
-                _client.DefaultRequestHeaders.CacheControl = new CacheControlHeaderValue
-                {
-                    NoCache = true
-                };
-            }
-
-            return _client;
+            return client;
         }
     }
 }
