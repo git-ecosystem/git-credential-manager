@@ -32,21 +32,21 @@ namespace Microsoft.Git.CredentialManager.Authentication
 
             bool supported = false;
 
-            _context.Trace.WriteLine($"HTTP HEAD {uri}");
+            _context.Trace.WriteLine($"HTTP: HEAD {uri}");
             using (HttpClient client = _httpFactory.GetClient())
-            using (HttpResponseMessage response = await client.HeadAsync(uri))
+            using (HttpResponseMessage response = await client.SendAsync(HttpMethod.Head, uri))
             {
-                _context.Trace.WriteLine("HTTP Response - Ignoring response code");
+                _context.Trace.WriteLine("HTTP: Response code ignored.");
 
                 _context.Trace.WriteLine("Inspecting WWW-Authenticate headers...");
                 foreach (AuthenticationHeaderValue wwwHeader in response.Headers.WwwAuthenticate)
                 {
-                    if (StringComparer.OrdinalIgnoreCase.Equals(wwwHeader.Scheme, Constants.WwwAuthenticateNegotiateScheme))
+                    if (StringComparer.OrdinalIgnoreCase.Equals(wwwHeader.Scheme, Constants.Http.WwwAuthenticateNegotiateScheme))
                     {
                         _context.Trace.WriteLine("Found WWW-Authenticate header for Negotiate");
                         supported = true;
                     }
-                    else if (StringComparer.OrdinalIgnoreCase.Equals(wwwHeader.Scheme, Constants.WwwAuthenticateNtlmScheme))
+                    else if (StringComparer.OrdinalIgnoreCase.Equals(wwwHeader.Scheme, Constants.Http.WwwAuthenticateNtlmScheme))
                     {
                         _context.Trace.WriteLine("Found WWW-Authenticate header for NTLM");
                         supported = true;

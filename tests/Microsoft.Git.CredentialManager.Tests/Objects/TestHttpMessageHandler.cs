@@ -6,28 +6,42 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Git.CredentialManager.Authentication;
 using Xunit;
 
 namespace Microsoft.Git.CredentialManager.Tests.Objects
 {
     public class TestHttpMessageHandler : HttpMessageHandler
     {
-        private readonly IDictionary<(HttpMethod method, Uri uri), HttpResponseMessage> _handlers =
-                      new Dictionary<(HttpMethod, Uri), HttpResponseMessage>();
+        public delegate HttpResponseMessage RequestHandler(HttpRequestMessage request);
+
+        private readonly IDictionary<(HttpMethod method, Uri uri), RequestHandler> _handlers =
+                      new Dictionary<(HttpMethod, Uri), RequestHandler>();
 
         private readonly IDictionary<(HttpMethod method, Uri uri), int> _requestCounts =
-                      new Dictionary<(HttpMethod method, Uri uri), int>();
+                      new Dictionary<(HttpMethod, Uri), int>();
 
         public bool ThrowOnUnexpectedRequest { get; set; }
+        public bool SimulateNoNetwork { get; set; }
+
+        public void Setup(HttpMethod method, Uri uri, RequestHandler handler)
+        {
+            _handlers[(method, uri)] = handler;
+        }
 
         public void Setup(HttpMethod method, Uri uri, HttpResponseMessage responseMessage)
         {
-            _handlers[(method, uri)] = responseMessage;
+            _handlers[(method, uri)] = _ => responseMessage;
         }
 
         public void Setup(HttpMethod method, Uri uri, HttpStatusCode responseCode)
         {
-            Setup(method, uri, new HttpResponseMessage(responseCode));
+            Setup(method, uri, responseCode, string.Empty);
+        }
+
+        public void Setup(HttpMethod method, Uri uri, HttpStatusCode responseCode, string content)
+        {
+            Setup(method, uri, new HttpResponseMessage(responseCode){Content = new StringContent(content)});
         }
 
         public void AssertRequest(HttpMethod method, Uri uri, int expectedNumberOfCalls)
@@ -49,12 +63,16 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
 
             IncrementRequestCount(requestKey);
 
+            if (SimulateNoNetwork)
+            {
+                throw new HttpRequestException("Simulated no network");
+            }
+
             foreach (var kvp in _handlers)
             {
                 if (kvp.Key == requestKey)
                 {
-                    HttpResponseMessage response = kvp.Value;
-                    return Task.FromResult(response);
+                    return Task.FromResult(kvp.Value(request));
                 }
             }
 

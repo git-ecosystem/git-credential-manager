@@ -7,6 +7,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AzureRepos;
 using Microsoft.Git.CredentialManager.Commands;
 
 namespace Microsoft.Git.CredentialManager
@@ -65,6 +66,7 @@ namespace Microsoft.Git.CredentialManager
 
             // Register all supported host providers
             HostProviderRegistry.Register(
+                new AzureReposHostProvider(context),
                 new GenericHostProvider(context)
             );
 
