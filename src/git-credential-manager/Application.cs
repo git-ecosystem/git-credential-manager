@@ -61,7 +61,8 @@ namespace Microsoft.Git.CredentialManager
             if (context.IsEnvironmentVariableTruthy(Constants.EnvironmentVariables.GcmTraceSecrets, false))
             {
                 context.Trace.EnableSecretTracing = true;
-                context.StdError.WriteLine("Secret tracing is enabled. Trace output may contain sensitive information.");
+                context.StdError.WriteLine(
+                    "warning: Secret tracing is enabled. Trace output may contain sensitive information.");
             }
 
             // Register all supported host providers
