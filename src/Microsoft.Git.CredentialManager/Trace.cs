@@ -94,7 +94,7 @@ namespace Microsoft.Git.CredentialManager
             [System.Runtime.CompilerServices.CallerMemberName] string memberName = "");
     }
 
-    internal class Trace : ITrace, IDisposable
+    public class Trace : ITrace, IDisposable
     {
         private readonly object _writersLock = new object();
         private readonly List<TextWriter> _writers = new List<TextWriter>();
@@ -211,7 +211,7 @@ namespace Microsoft.Git.CredentialManager
         {
             string message = this.EnableSecretTracing
                            ? string.Format(format, secrets)
-                           : string.Format(format, secrets.Select(x => "********"));
+                           : string.Format(format, secrets.Select(_ => (object)"********").ToArray());
 
             WriteLine(message, filePath, lineNumber, memberName);
         }
