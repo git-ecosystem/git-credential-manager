@@ -33,8 +33,7 @@ namespace Microsoft.Git.CredentialManager.Authentication
             bool supported = false;
 
             _context.Trace.WriteLine($"HTTP: HEAD {uri}");
-            using (HttpClient client = _httpFactory.GetClient())
-            using (HttpResponseMessage response = await client.HeadAsync(uri))
+            using (HttpResponseMessage response = await HttpClient.HeadAsync(uri))
             {
                 _context.Trace.WriteLine("HTTP: Response code ignored.");
 
@@ -56,5 +55,8 @@ namespace Microsoft.Git.CredentialManager.Authentication
 
             return supported;
         }
+
+        private HttpClient _httpClient;
+        private HttpClient HttpClient => _httpClient ?? (_httpClient = _httpFactory.CreateClient());
     }
 }

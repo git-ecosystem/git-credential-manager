@@ -20,7 +20,6 @@ namespace Microsoft.AzureRepos
 
     public class AzureDevOpsRestApi : IAzureDevOpsRestApi
     {
-
         private readonly ICommandContext _context;
         private readonly IHttpClientFactory _httpFactory;
 
@@ -44,12 +43,8 @@ namespace Microsoft.AzureRepos
             const string commonAuthority = authorityBase + "common";
             const string msaAuthority = authorityBase + "live.com";
 
-            HttpClient client = _httpFactory.GetClient();
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(Constants.Http.MimeTypeJson));
-
             _context.Trace.WriteLine($"HTTP: HEAD {organizationUri}");
-            using (client)
-            using (var response = await client.HeadAsync(organizationUri))
+            using (HttpResponseMessage response = await HttpClient.HeadAsync(organizationUri))
             {
                 _context.Trace.WriteLine("HTTP: Response code ignored.");
                 _context.Trace.WriteLine("Inspecting headers...");
@@ -113,14 +108,10 @@ namespace Microsoft.AzureRepos
 
             Uri requestUri = new Uri(identityServiceUri, sessionTokenUrl);
 
-            HttpClient client = _httpFactory.GetClient();
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(Constants.Http.MimeTypeJson));
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(Constants.Http.WwwAuthenticateBearerScheme, accessToken);
-
             _context.Trace.WriteLine($"HTTP: POST {requestUri}");
-            using (client)
             using (StringContent content = CreateAccessTokenRequestJson(organizationUri, scopes))
-            using (var response = await client.PostAsync(requestUri, content))
+            using (HttpRequestMessage request = CreateRequestMessage(HttpMethod.Post, requestUri, content, accessToken))
+            using (HttpResponseMessage response = await HttpClient.SendAsync(request))
             {
                 _context.Trace.WriteLine($"HTTP: Response {(int)response.StatusCode} [{response.StatusCode}]");
 
@@ -161,13 +152,9 @@ namespace Microsoft.AzureRepos
                 Query = locationServiceQuery,
             }.Uri;
 
-            HttpClient client = _httpFactory.GetClient();
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(Constants.Http.MimeTypeJson));
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(Constants.Http.WwwAuthenticateBearerScheme, accessToken);
-
             _context.Trace.WriteLine($"HTTP: GET {requestUri}");
-            using (client)
-            using (var response = await client.GetAsync(requestUri))
+            using (HttpRequestMessage request = CreateRequestMessage(HttpMethod.Get, requestUri, bearerToken: accessToken))
+            using (HttpResponseMessage response = await HttpClient.SendAsync(request))
             {
                 _context.Trace.WriteLine($"HTTP: Response {(int)response.StatusCode} [{response.StatusCode}]");
                 if (response.IsSuccessStatusCode)
@@ -190,6 +177,24 @@ namespace Microsoft.AzureRepos
         #region Request and Response Helpers
 
         private const RegexOptions CommonRegexOptions = RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase;
+
+        private HttpClient _httpClient;
+
+        private HttpClient HttpClient
+        {
+            get
+            {
+                if (_httpClient is null)
+                {
+                    _httpClient = _httpFactory.CreateClient();
+
+                    // Configure the HTTP client with standard headers for Azure Repos API calls
+                    _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(Constants.Http.MimeTypeJson));
+                }
+
+                return _httpClient;
+            }
+        }
 
         /// <summary>
         /// Attempt to extract the authority from a Authorization Bearer header.
@@ -265,6 +270,31 @@ namespace Microsoft.AzureRepos
             var content = new StringContent(jsonContent, Encoding.UTF8, Constants.Http.MimeTypeJson);
 
             return content;
+        }
+
+        /// <summary>
+        /// Create an <see cref="HttpRequestMessage"/> with optional content and bearer-token authorization header.
+        /// </summary>
+        /// <param name="method">HTTP request method type.</param>
+        /// <param name="uri">Request URI.</param>
+        /// <param name="content">Optional request content.</param>
+        /// <param name="bearerToken">Optional bearer token for authorization.</param>
+        /// <returns>HTTP request message.</returns>
+        private static HttpRequestMessage CreateRequestMessage(HttpMethod method, Uri uri, HttpContent content = null, string bearerToken = null)
+        {
+            var request = new HttpRequestMessage(method, uri);
+
+            if (!(content is null))
+            {
+                request.Content = content;
+            }
+
+            if (!(bearerToken is null))
+            {
+                request.Headers.Authorization = new AuthenticationHeaderValue(Constants.Http.WwwAuthenticateBearerScheme, bearerToken);
+            }
+
+            return request;
         }
 
         #endregion

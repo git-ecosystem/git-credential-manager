@@ -6,20 +6,28 @@ using System.Net.Http.Headers;
 namespace Microsoft.Git.CredentialManager
 {
     /// <summary>
-    /// Acquires <see cref="HttpClient"/>s that have been configured for use in Git Credential Manager.
+    /// Constructs <see cref="HttpClient"/>s that have been configured for use in Git Credential Manager.
     /// </summary>
     public interface IHttpClientFactory
     {
         /// <summary>
-        /// Get an instance of <see cref="HttpClient"/> with default request headers set.
+        /// Get a new instance of <see cref="HttpClient"/> with default request headers set.
         /// </summary>
-        /// <returns>Client with default headers.</returns>
-        HttpClient GetClient();
+        /// <remarks>
+        /// Callers should reuse instances of <see cref="HttpClient"/> returned from this method as long
+        /// as they are needed, rather than repeatably call this method to create new ones.
+        /// <para/>
+        /// Creating a new <see cref="HttpClient"/> consumes one free socket which may not be released
+        /// by the Operating System until sometime after the client is disposed, leading to possible free
+        /// socket exhaustion.
+        /// </remarks>
+        /// <returns>New client instance with default headers.</returns>
+        HttpClient CreateClient();
     }
 
     public class HttpClientFactory : IHttpClientFactory
     {
-        public HttpClient GetClient()
+        public HttpClient CreateClient()
         {
             // Initialize a new HttpClient
             var client = new HttpClient();
