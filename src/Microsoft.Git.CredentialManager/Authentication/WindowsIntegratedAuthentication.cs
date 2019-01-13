@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Git.CredentialManager.Authentication
 {
-    public interface IWindowsIntegratedAuthentication
+    public interface IWindowsIntegratedAuthentication : IDisposable
     {
         Task<bool> GetIsSupportedAsync(Uri uri);
     }
@@ -58,5 +58,14 @@ namespace Microsoft.Git.CredentialManager.Authentication
 
         private HttpClient _httpClient;
         private HttpClient HttpClient => _httpClient ?? (_httpClient = _httpFactory.CreateClient());
+
+        #region IDisposable
+
+        public void Dispose()
+        {
+            _httpClient?.Dispose();
+        }
+
+        #endregion
     }
 }

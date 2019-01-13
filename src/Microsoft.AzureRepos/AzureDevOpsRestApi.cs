@@ -12,7 +12,7 @@ using Microsoft.Git.CredentialManager;
 
 namespace Microsoft.AzureRepos
 {
-    public interface IAzureDevOpsRestApi
+    public interface IAzureDevOpsRestApi : IDisposable
     {
         Task<string> GetAuthorityAsync(Uri organizationUri);
         Task<string> CreatePersonalAccessTokenAsync(Uri organizationUri, string accessToken, IEnumerable<string> scopes);
@@ -289,12 +289,21 @@ namespace Microsoft.AzureRepos
                 request.Content = content;
             }
 
-            if (!(bearerToken is null))
+            if (!string.IsNullOrWhiteSpace(bearerToken))
             {
                 request.Headers.Authorization = new AuthenticationHeaderValue(Constants.Http.WwwAuthenticateBearerScheme, bearerToken);
             }
 
             return request;
+        }
+
+        #endregion
+
+        #region IDisposable
+
+        public void Dispose()
+        {
+            _httpClient?.Dispose();
         }
 
         #endregion

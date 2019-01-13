@@ -71,6 +71,12 @@ namespace Microsoft.Git.CredentialManager
             return _basicAuth.GetCredentials(uri.AbsoluteUri, uri.UserInfo);
         }
 
+        protected override void Dispose(bool disposing)
+        {
+            _winAuth.Dispose();
+            base.Dispose(disposing);
+        }
+
         #endregion
 
         #region Helpers

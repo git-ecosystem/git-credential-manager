@@ -18,5 +18,10 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
         }
 
         #endregion
+
+        public void Dispose()
+        {
+            Provider?.Dispose();
+        }
     }
 }

@@ -8,8 +8,11 @@ namespace Microsoft.Git.CredentialManager
     {
         public static void Main(string[] args)
         {
-            int exitCode = Application.RunAsync(args).ConfigureAwait(false).GetAwaiter().GetResult();
-            Environment.Exit(exitCode);
+            using (var app = new Application(new CommandContext()))
+            {
+                int exitCode = app.RunAsync(args).ConfigureAwait(false).GetAwaiter().GetResult();
+               Environment.Exit(exitCode);
+            }
         }
     }
 }
