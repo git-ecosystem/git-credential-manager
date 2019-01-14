@@ -12,27 +12,26 @@ using Microsoft.Git.CredentialManager.Commands;
 
 namespace Microsoft.Git.CredentialManager
 {
-    public static class Application
+    public class Application : IDisposable
     {
-        private static readonly IHostProviderRegistry HostProviderRegistry = new HostProviderRegistry();
+        private readonly ICommandContext _context;
+        private readonly IHostProviderRegistry _providerRegistry = new HostProviderRegistry();
 
-        private static readonly ICollection<CommandBase> Commands = new CommandBase[]
+        private TextWriter _traceFileWriter;
+
+        public Application(ICommandContext context)
         {
-            new EraseCommand(HostProviderRegistry),
-            new GetCommand(HostProviderRegistry),
-            new StoreCommand(HostProviderRegistry),
-            new VersionCommand(),
-            new HelpCommand(),
-        };
+            EnsureArgument.NotNull(context, nameof(context));
 
-        public static async Task<int> RunAsync(string[] args)
+            _context = context;
+        }
+
+        public async Task<int> RunAsync(string[] args)
         {
-            var context = new CommandContext();
-
             // Launch debugger
-            if (context.IsEnvironmentVariableTruthy(Constants.EnvironmentVariables.GcmDebug, false))
+            if (_context.IsEnvironmentVariableTruthy(Constants.EnvironmentVariables.GcmDebug, false))
             {
-                context.StdError.WriteLine("Waiting for debugger to be attached...");
+                _context.StdError.WriteLine("Waiting for debugger to be attached...");
                 PlatformUtils.WaitForDebuggerAttached();
 
                 // Now the debugger is attached, break!
@@ -40,65 +39,75 @@ namespace Microsoft.Git.CredentialManager
             }
 
             // Enable tracing
-            if (context.TryGetEnvironmentVariable(Constants.EnvironmentVariables.GcmTrace, out string traceEnvar))
+            if (_context.TryGetEnvironmentVariable(Constants.EnvironmentVariables.GcmTrace, out string traceEnvar))
             {
                 if (traceEnvar.IsTruthy()) // Trace to stderr
                 {
-                    context.Trace.AddListener(context.StdError);
+                    _context.Trace.AddListener(_context.StdError);
                 }
                 else if (Path.IsPathRooted(traceEnvar) && // Trace to a file
-                         TryCreateTextWriter(context, traceEnvar, out var fileWriter))
+                         TryCreateTextWriter(_context, traceEnvar, out var fileWriter))
                 {
-                    context.Trace.AddListener(fileWriter);
+                    _traceFileWriter = fileWriter;
+                    _context.Trace.AddListener(fileWriter);
                 }
                 else
                 {
-                    context.StdError.WriteLine($"warning: cannot write trace output to {traceEnvar}");
+                    _context.StdError.WriteLine($"warning: cannot write trace output to {traceEnvar}");
                 }
             }
 
             // Enable sensitive tracing and show warning
-            if (context.IsEnvironmentVariableTruthy(Constants.EnvironmentVariables.GcmTraceSecrets, false))
+            if (_context.IsEnvironmentVariableTruthy(Constants.EnvironmentVariables.GcmTraceSecrets, false))
             {
-                context.Trace.EnableSecretTracing = true;
-                context.StdError.WriteLine(
-                    "warning: Secret tracing is enabled. Trace output may contain sensitive information.");
+                _context.Trace.EnableSecretTracing = true;
+                _context.StdError.WriteLine("Secret tracing is enabled. Trace output may contain sensitive information.");
             }
 
             // Register all supported host providers
-            HostProviderRegistry.Register(
-                new AzureReposHostProvider(context),
-                new GenericHostProvider(context)
+            _providerRegistry.Register(
+                new AzureReposHostProvider(_context),
+                new GenericHostProvider(_context)
             );
 
+            // Construct all supported commands
+            var commands = new CommandBase[]
+            {
+                new EraseCommand(_providerRegistry),
+                new GetCommand(_providerRegistry),
+                new StoreCommand(_providerRegistry),
+                new VersionCommand(),
+                new HelpCommand(),
+            };
+
             // Trace the current version and program arguments
-            context.Trace.WriteLine($"{Constants.GetProgramHeader()} '{string.Join(" ", args)}'");
+            _context.Trace.WriteLine($"{Constants.GetProgramHeader()} '{string.Join(" ", args)}'");
 
             if (args.Length == 0)
             {
-                context.StdError.WriteLine("Missing command.");
-                HelpCommand.PrintUsage(context.StdError);
+                _context.StdError.WriteLine("Missing command.");
+                HelpCommand.PrintUsage(_context.StdError);
                 return -1;
             }
 
-            foreach (var cmd in Commands)
+            foreach (var cmd in commands)
             {
                 if (cmd.CanExecute(args))
                 {
                     try
                     {
-                        await cmd.ExecuteAsync(context, args);
+                        await cmd.ExecuteAsync(_context, args);
                         return 0;
                     }
                     catch (Exception e)
                     {
                         if (e is AggregateException ae)
                         {
-                            ae.Handle(x => WriteException(context, x));
+                            ae.Handle(x => WriteException(_context, x));
                         }
                         else
                         {
-                            WriteException(context, e);
+                            WriteException(_context, e);
                         }
 
                         return -1;
@@ -106,10 +115,12 @@ namespace Microsoft.Git.CredentialManager
                 }
             }
 
-            context.StdError.WriteLine("Unrecognized command '{0}'.", args[0]);
-            HelpCommand.PrintUsage(context.StdError);
+            _context.StdError.WriteLine("Unrecognized command '{0}'.", args[0]);
+            HelpCommand.PrintUsage(_context.StdError);
             return -1;
         }
+
+        #region Helpers
 
         private static bool WriteException(ICommandContext context, Exception e)
         {
@@ -140,5 +151,17 @@ namespace Microsoft.Git.CredentialManager
 
             return writer != null;
         }
+
+        #endregion
+
+        #region IDisposable
+
+        public void Dispose()
+        {
+            _providerRegistry.Dispose();
+            _traceFileWriter?.Dispose();
+        }
+
+        #endregion
     }
 }

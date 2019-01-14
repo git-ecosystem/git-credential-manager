@@ -10,12 +10,16 @@ namespace Microsoft.Git.CredentialManager
     /// Represents a collection of <see cref="IHostProvider"/>s which are selected based on Git credential query
     /// <see cref="InputArguments"/>.
     /// </summary>
-    public interface IHostProviderRegistry
+    /// <remarks>
+    /// All registered <see cref="IHostProvider"/>s will be disposed when this <see cref="IHostProviderRegistry"/> is disposed.
+    /// </remarks>
+    public interface IHostProviderRegistry : IDisposable
     {
         /// <summary>
         /// Add the given <see cref="IHostProvider"/>(s) to this registry.
         /// </summary>
         /// <param name="hostProviders">A collection of providers to register.</param>
+        /// <remarks>Providers will be disposed of when this registry instance is disposed itself.</remarks>
         void Register(params IHostProvider[] hostProviders);
 
         /// <summary>
@@ -55,6 +59,15 @@ namespace Microsoft.Git.CredentialManager
             }
 
             return provider;
+        }
+
+        public void Dispose()
+        {
+            // Dispose of all registered providers to give them a chance to clean up and release any resources
+            foreach (IHostProvider provider in _hostProviders)
+            {
+                provider.Dispose();
+            }
         }
     }
 }

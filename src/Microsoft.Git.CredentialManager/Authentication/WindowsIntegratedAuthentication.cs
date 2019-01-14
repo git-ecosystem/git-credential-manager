@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Git.CredentialManager.Authentication
 {
-    public interface IWindowsIntegratedAuthentication
+    public interface IWindowsIntegratedAuthentication : IDisposable
     {
         Task<bool> GetIsSupportedAsync(Uri uri);
     }
@@ -33,8 +33,7 @@ namespace Microsoft.Git.CredentialManager.Authentication
             bool supported = false;
 
             _context.Trace.WriteLine($"HTTP: HEAD {uri}");
-            using (HttpClient client = _httpFactory.GetClient())
-            using (HttpResponseMessage response = await client.SendAsync(HttpMethod.Head, uri))
+            using (HttpResponseMessage response = await HttpClient.HeadAsync(uri))
             {
                 _context.Trace.WriteLine("HTTP: Response code ignored.");
 
@@ -56,5 +55,17 @@ namespace Microsoft.Git.CredentialManager.Authentication
 
             return supported;
         }
+
+        private HttpClient _httpClient;
+        private HttpClient HttpClient => _httpClient ?? (_httpClient = _httpFactory.CreateClient());
+
+        #region IDisposable
+
+        public void Dispose()
+        {
+            _httpClient?.Dispose();
+        }
+
+        #endregion
     }
 }

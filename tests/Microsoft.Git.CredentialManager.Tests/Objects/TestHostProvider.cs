@@ -25,5 +25,11 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
         Task<GitCredential> IHostProvider.CreateCredentialAsync(InputArguments input) => Task.FromResult(Credential);
 
         #endregion
+
+        #region IDisposable
+
+        public void Dispose() { }
+
+        #endregion
     }
 }

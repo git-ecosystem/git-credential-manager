@@ -1,5 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
+
+using System;
 using System.Threading.Tasks;
 
 namespace Microsoft.Git.CredentialManager
@@ -7,7 +9,7 @@ namespace Microsoft.Git.CredentialManager
     /// <summary>
     /// Represents a particular Git hosting service and provides for the creation of credentials to access the remote.
     /// </summary>
-    public interface IHostProvider
+    public interface IHostProvider : IDisposable
     {
         /// <summary>
         /// Name of the hosting provider.
@@ -60,5 +62,22 @@ namespace Microsoft.Git.CredentialManager
         public abstract string GetCredentialKey(InputArguments input);
 
         public abstract Task<GitCredential> CreateCredentialAsync(InputArguments input);
+
+        /// <summary>
+        /// Called when the application is being terminated. Clean up and release any resources.
+        /// </summary>
+        /// <param name="disposing">True if the instance is being disposed, false if being finalized.</param>
+        protected virtual void Dispose(bool disposing) { }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        ~HostProvider()
+        {
+            Dispose(false);
+        }
     }
 }

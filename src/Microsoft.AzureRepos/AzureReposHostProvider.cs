@@ -85,6 +85,16 @@ namespace Microsoft.AzureRepos
             return new GitCredential(Constants.PersonalAccessTokenUserName, pat);
         }
 
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _azDevOps.Dispose();
+            }
+
+            base.Dispose(disposing);
+        }
+
         #endregion
     }
 }

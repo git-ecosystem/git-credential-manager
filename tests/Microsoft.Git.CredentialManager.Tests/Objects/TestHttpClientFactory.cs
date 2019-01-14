@@ -10,7 +10,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
 
         #region IHttpClientFactory
 
-        HttpClient IHttpClientFactory.GetClient()
+        HttpClient IHttpClientFactory.CreateClient()
         {
             return new HttpClient(MessageHandler);
         }

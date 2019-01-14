@@ -12,7 +12,7 @@ namespace Microsoft.Git.CredentialManager.Tests
         {
             var factory = new HttpClientFactory();
 
-            HttpClient client = factory.GetClient();
+            HttpClient client = factory.CreateClient();
 
             Assert.NotNull(client);
             Assert.Equal(Constants.GetHttpUserAgent(), client.DefaultRequestHeaders.UserAgent.ToString());
@@ -20,14 +20,14 @@ namespace Microsoft.Git.CredentialManager.Tests
         }
 
         [Fact]
-        public void HttpClientFactory_GetClient_MultipleCalls_ReturnsSameInstance()
+        public void HttpClientFactory_GetClient_MultipleCalls_ReturnsNewInstance()
         {
             var factory = new HttpClientFactory();
 
-            HttpClient client1 = factory.GetClient();
-            HttpClient client2 = factory.GetClient();
+            HttpClient client1 = factory.CreateClient();
+            HttpClient client2 = factory.CreateClient();
 
-            Assert.Same(client1, client2);
+            Assert.NotSame(client1, client2);
         }
     }
 }

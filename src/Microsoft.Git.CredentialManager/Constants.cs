@@ -20,21 +20,12 @@ namespace Microsoft.Git.CredentialManager
 
         public static class Http
         {
+            public const string WwwAuthenticateBasicScheme     = "Basic";
             public const string WwwAuthenticateBearerScheme    = "Bearer";
             public const string WwwAuthenticateNegotiateScheme = "Negotiate";
             public const string WwwAuthenticateNtlmScheme      = "NTLM";
 
             public const string MimeTypeJson = "application/json";
-
-            public static Header AcceptHeader(string value)
-            {
-                return new Header("Accept", new[] {value});
-            }
-
-            public static Header AuthorizationBearerHeader(string bearerToken)
-            {
-                return new Header("Authorization", new[] {$"{WwwAuthenticateBearerScheme} {bearerToken}"});
-            }
         }
 
         /// <summary>
