@@ -12,7 +12,12 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
     {
         #region ITrace
 
-        bool ITrace.EnableSecretTracing
+        bool ITrace.HasListeners
+        {
+            get => false;
+        }
+
+        bool ITrace.IsSecretTracingEnabled
         {
             get => false;
             set {}

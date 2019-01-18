@@ -22,7 +22,7 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             var trace = new Trace();
             trace.AddListener(listener);
-            trace.EnableSecretTracing = true;
+            trace.IsSecretTracingEnabled = true;
 
             trace.WriteLineSecrets("Secrets: {0} {1} {2}", new object[]{ secret1, secret2, secret3 });
 
@@ -45,7 +45,7 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             var trace = new Trace();
             trace.AddListener(listener);
-            trace.EnableSecretTracing = false;
+            trace.IsSecretTracingEnabled = false;
 
             trace.WriteLineSecrets("Secrets: {0} {1} {2}", new object[]{ secret1, secret2, secret3 });
 
