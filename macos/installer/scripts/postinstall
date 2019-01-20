@@ -1,0 +1,17 @@
+#!/bin/bash
+set -e
+
+# Make symlink to GCM in /usr/local/bin
+if [ ! -e /usr/local/bin/git-credential-manager ]
+then
+    /bin/ln -s /usr/local/share/gcm-core/git-credential-manager /usr/local/bin/git-credential-manager
+fi
+
+# Set system gitconfig for the current user
+USER_ID=`id -u "${USER}"`
+if [ "${COMMAND_LINE_INSTALL}" = "" ]
+then
+    /bin/launchctl asuser "${USER_ID}" "${PWD}/configure-git.sh"
+fi
+
+exit 0
