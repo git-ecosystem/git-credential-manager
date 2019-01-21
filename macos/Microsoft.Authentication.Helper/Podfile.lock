@@ -1,0 +1,19 @@
+PODS:
+  - ADAL (2.5.4):
+    - ADAL/app-lib (= 2.5.4)
+  - ADAL/app-lib (2.5.4):
+    - ADAL/tokencacheheader
+
+DEPENDENCIES:
+  - ADAL (~> 2.5.1)
+
+SPEC REPOS:
+  https://github.com/cocoapods/specs.git:
+    - ADAL
+
+SPEC CHECKSUMS:
+  ADAL: e7e5aca957d6c67e88cdd68ee3d0c4c4af55e874
+
+PODFILE CHECKSUM: aea86594216c71aff5d22f8947aea9501e7ece3f
+
+COCOAPODS: 1.5.3

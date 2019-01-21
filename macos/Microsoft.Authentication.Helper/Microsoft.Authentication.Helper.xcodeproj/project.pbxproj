@@ -1,0 +1,408 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 50;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		9315261E21F5E543003884FA /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 9315261D21F5E543003884FA /* main.m */; };
+		9323B4B321F5E8D4002102DB /* AHLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = 9323B4A521F5E8D4002102DB /* AHLogger.m */; };
+		9323B4B521F5E8D4002102DB /* AHStdErrorLogWriter.m in Sources */ = {isa = PBXBuildFile; fileRef = 9323B4A821F5E8D4002102DB /* AHStdErrorLogWriter.m */; };
+		9323B4B621F5E8D4002102DB /* AHFileLogWriter.m in Sources */ = {isa = PBXBuildFile; fileRef = 9323B4AA21F5E8D4002102DB /* AHFileLogWriter.m */; };
+		9323B4B821F5E8D4002102DB /* AHGenerateAccessToken.m in Sources */ = {isa = PBXBuildFile; fileRef = 9323B4AE21F5E8D4002102DB /* AHGenerateAccessToken.m */; };
+		9323B4B921F5E8D4002102DB /* AHAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 9323B4B221F5E8D4002102DB /* AHAppDelegate.m */; };
+		9323B4BD21F5E8ED002102DB /* NSMutableDictionary+DictionaryFromConfig.m in Sources */ = {isa = PBXBuildFile; fileRef = 9323B4BB21F5E8ED002102DB /* NSMutableDictionary+DictionaryFromConfig.m */; };
+		E38CAF14F85C0CAF3E84E187 /* libPods-Microsoft.Authentication.Helper.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 26BCF90960B20E4D202A9F1E /* libPods-Microsoft.Authentication.Helper.a */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		9315261821F5E543003884FA /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		2617F1D56611A7524A6B795A /* Pods-Microsoft.Authentication.Helper.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Microsoft.Authentication.Helper.release.xcconfig"; path = "Pods/Target Support Files/Pods-Microsoft.Authentication.Helper/Pods-Microsoft.Authentication.Helper.release.xcconfig"; sourceTree = "<group>"; };
+		26BCF90960B20E4D202A9F1E /* libPods-Microsoft.Authentication.Helper.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Microsoft.Authentication.Helper.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		9315261A21F5E543003884FA /* Microsoft.Authentication.Helper */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Microsoft.Authentication.Helper; sourceTree = BUILT_PRODUCTS_DIR; };
+		9315261D21F5E543003884FA /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		9323B4A521F5E8D4002102DB /* AHLogger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AHLogger.m; sourceTree = "<group>"; };
+		9323B4A621F5E8D4002102DB /* AHLogger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AHLogger.h; sourceTree = "<group>"; };
+		9323B4A821F5E8D4002102DB /* AHStdErrorLogWriter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AHStdErrorLogWriter.m; sourceTree = "<group>"; };
+		9323B4AA21F5E8D4002102DB /* AHFileLogWriter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AHFileLogWriter.m; sourceTree = "<group>"; };
+		9323B4AB21F5E8D4002102DB /* AHGenerateAccessToken.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AHGenerateAccessToken.h; sourceTree = "<group>"; };
+		9323B4AE21F5E8D4002102DB /* AHGenerateAccessToken.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AHGenerateAccessToken.m; sourceTree = "<group>"; };
+		9323B4AF21F5E8D4002102DB /* AHFileLogWriter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AHFileLogWriter.h; sourceTree = "<group>"; };
+		9323B4B021F5E8D4002102DB /* AHAppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AHAppDelegate.h; sourceTree = "<group>"; };
+		9323B4B121F5E8D4002102DB /* AHStdErrorLogWriter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AHStdErrorLogWriter.h; sourceTree = "<group>"; };
+		9323B4B221F5E8D4002102DB /* AHAppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AHAppDelegate.m; sourceTree = "<group>"; };
+		9323B4BB21F5E8ED002102DB /* NSMutableDictionary+DictionaryFromConfig.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSMutableDictionary+DictionaryFromConfig.m"; sourceTree = "<group>"; };
+		9323B4BC21F5E8ED002102DB /* NSMutableDictionary+DictionaryFromConfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSMutableDictionary+DictionaryFromConfig.h"; sourceTree = "<group>"; };
+		93F2D53221F5F9AA000A78D7 /* AHLogWriter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AHLogWriter.h; sourceTree = "<group>"; };
+		D575DD7FD75AFA3F9B59DF88 /* Pods-Microsoft.Authentication.Helper.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Microsoft.Authentication.Helper.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Microsoft.Authentication.Helper/Pods-Microsoft.Authentication.Helper.debug.xcconfig"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		9315261721F5E543003884FA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E38CAF14F85C0CAF3E84E187 /* libPods-Microsoft.Authentication.Helper.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		54DB05986D68A5DBDEB4CC75 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				26BCF90960B20E4D202A9F1E /* libPods-Microsoft.Authentication.Helper.a */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		8932BDD857A62376A3A397B5 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				D575DD7FD75AFA3F9B59DF88 /* Pods-Microsoft.Authentication.Helper.debug.xcconfig */,
+				2617F1D56611A7524A6B795A /* Pods-Microsoft.Authentication.Helper.release.xcconfig */,
+			);
+			name = Pods;
+			sourceTree = "<group>";
+		};
+		9315261121F5E543003884FA = {
+			isa = PBXGroup;
+			children = (
+				9315261C21F5E543003884FA /* Source */,
+				9315261B21F5E543003884FA /* Products */,
+				8932BDD857A62376A3A397B5 /* Pods */,
+				54DB05986D68A5DBDEB4CC75 /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		9315261B21F5E543003884FA /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				9315261A21F5E543003884FA /* Microsoft.Authentication.Helper */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		9315261C21F5E543003884FA /* Source */ = {
+			isa = PBXGroup;
+			children = (
+				9323B4A421F5E8B3002102DB /* Core */,
+				9315261D21F5E543003884FA /* main.m */,
+			);
+			path = Source;
+			sourceTree = "<group>";
+		};
+		9323B4A421F5E8B3002102DB /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				9323B4BA21F5E8DC002102DB /* Extensions */,
+				9323B4B021F5E8D4002102DB /* AHAppDelegate.h */,
+				9323B4B221F5E8D4002102DB /* AHAppDelegate.m */,
+				9323B4AB21F5E8D4002102DB /* AHGenerateAccessToken.h */,
+				9323B4AE21F5E8D4002102DB /* AHGenerateAccessToken.m */,
+				93F2D53221F5F9AA000A78D7 /* AHLogWriter.h */,
+				9323B4AF21F5E8D4002102DB /* AHFileLogWriter.h */,
+				9323B4AA21F5E8D4002102DB /* AHFileLogWriter.m */,
+				9323B4A621F5E8D4002102DB /* AHLogger.h */,
+				9323B4A521F5E8D4002102DB /* AHLogger.m */,
+				9323B4B121F5E8D4002102DB /* AHStdErrorLogWriter.h */,
+				9323B4A821F5E8D4002102DB /* AHStdErrorLogWriter.m */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		9323B4BA21F5E8DC002102DB /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				9323B4BC21F5E8ED002102DB /* NSMutableDictionary+DictionaryFromConfig.h */,
+				9323B4BB21F5E8ED002102DB /* NSMutableDictionary+DictionaryFromConfig.m */,
+			);
+			path = Extensions;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		9315261921F5E543003884FA /* Microsoft.Authentication.Helper */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9315262121F5E543003884FA /* Build configuration list for PBXNativeTarget "Microsoft.Authentication.Helper" */;
+			buildPhases = (
+				35129F1E43ABFEB35A8F5D24 /* [CP] Check Pods Manifest.lock */,
+				9315261621F5E543003884FA /* Sources */,
+				9315261721F5E543003884FA /* Frameworks */,
+				9315261821F5E543003884FA /* CopyFiles */,
+				6AF6FA04E460ADF17B547253 /* [CP] Copy Pods Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Microsoft.Authentication.Helper;
+			productName = Microsoft.Authentication.Helper;
+			productReference = 9315261A21F5E543003884FA /* Microsoft.Authentication.Helper */;
+			productType = "com.apple.product-type.tool";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		9315261221F5E543003884FA /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 1010;
+				ORGANIZATIONNAME = "Microsoft Corporation";
+				TargetAttributes = {
+					9315261921F5E543003884FA = {
+						CreatedOnToolsVersion = 10.1;
+					};
+				};
+			};
+			buildConfigurationList = 9315261521F5E543003884FA /* Build configuration list for PBXProject "Microsoft.Authentication.Helper" */;
+			compatibilityVersion = "Xcode 9.3";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 9315261121F5E543003884FA;
+			productRefGroup = 9315261B21F5E543003884FA /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				9315261921F5E543003884FA /* Microsoft.Authentication.Helper */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		35129F1E43ABFEB35A8F5D24 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-Microsoft.Authentication.Helper-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		6AF6FA04E460ADF17B547253 /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${SRCROOT}/Pods/Target Support Files/Pods-Microsoft.Authentication.Helper/Pods-Microsoft.Authentication.Helper-resources.sh",
+				"${PODS_ROOT}/ADAL/ADAL/resources/mac/ADCredentialViewController.xib",
+			);
+			name = "[CP] Copy Pods Resources";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ADCredentialViewController.nib",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-Microsoft.Authentication.Helper/Pods-Microsoft.Authentication.Helper-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		9315261621F5E543003884FA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9323B4B621F5E8D4002102DB /* AHFileLogWriter.m in Sources */,
+				9315261E21F5E543003884FA /* main.m in Sources */,
+				9323B4B521F5E8D4002102DB /* AHStdErrorLogWriter.m in Sources */,
+				9323B4B321F5E8D4002102DB /* AHLogger.m in Sources */,
+				9323B4BD21F5E8ED002102DB /* NSMutableDictionary+DictionaryFromConfig.m in Sources */,
+				9323B4B821F5E8D4002102DB /* AHGenerateAccessToken.m in Sources */,
+				9323B4B921F5E8D4002102DB /* AHAppDelegate.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		9315261F21F5E543003884FA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		9315262021F5E543003884FA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		9315262221F5E543003884FA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = D575DD7FD75AFA3F9B59DF88 /* Pods-Microsoft.Authentication.Helper.debug.xcconfig */;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		9315262321F5E543003884FA /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 2617F1D56611A7524A6B795A /* Pods-Microsoft.Authentication.Helper.release.xcconfig */;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		9315261521F5E543003884FA /* Build configuration list for PBXProject "Microsoft.Authentication.Helper" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9315261F21F5E543003884FA /* Debug */,
+				9315262021F5E543003884FA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		9315262121F5E543003884FA /* Build configuration list for PBXNativeTarget "Microsoft.Authentication.Helper" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9315262221F5E543003884FA /* Debug */,
+				9315262321F5E543003884FA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 9315261221F5E543003884FA /* Project object */;
+}
