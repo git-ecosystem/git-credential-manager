@@ -66,6 +66,25 @@ namespace Microsoft.Git.CredentialManager
             [System.Runtime.CompilerServices.CallerMemberName] string memberName = "");
 
         /// <summary>
+        /// Write the contents of a dictionary that contains sensitive information to the trace writer.
+        /// <para/>
+        /// Calls <see cref="object.ToString"/> on all keys and values, except keys specified as secret.
+        /// </summary>
+        /// <param name="dictionary">The dictionary to write.</param>
+        /// <param name="secretKeys">Dictionary keys that contain secrets/sensitive information.</param>
+        /// <param name="keyComparer">Comparer to use for <paramref name="secretKeys"/>.</param>
+        /// <param name="filePath">Path of the file this method is called from.</param>
+        /// <param name="lineNumber">Line number of file this method is called from.</param>
+        /// <param name="memberName">Name of the member in which this method is called.</param>
+        void WriteDictionarySecrets<TKey, TValue>(
+            IDictionary<TKey, TValue> dictionary,
+            TKey[] secretKeys,
+            IEqualityComparer<TKey> keyComparer = null,
+            [System.Runtime.CompilerServices.CallerFilePath] string filePath = "",
+            [System.Runtime.CompilerServices.CallerLineNumber] int lineNumber = 0,
+            [System.Runtime.CompilerServices.CallerMemberName] string memberName = "");
+
+        /// <summary>
         /// Writes a message to the trace writer followed by a line terminator.
         /// </summary>
         /// <param name="message">The message to write.</param>
@@ -101,6 +120,8 @@ namespace Microsoft.Git.CredentialManager
 
     public class Trace : ITrace, IDisposable
     {
+        private const string SecretMask = "********";
+
         private readonly object _writersLock = new object();
         private readonly List<TextWriter> _writers = new List<TextWriter>();
 
@@ -189,6 +210,30 @@ namespace Microsoft.Git.CredentialManager
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
+        public void WriteDictionarySecrets<TKey, TValue>(
+            IDictionary<TKey, TValue> dictionary,
+            TKey[] secretKeys,
+            IEqualityComparer<TKey> keyComparer = null,
+            [System.Runtime.CompilerServices.CallerFilePath] string filePath = "",
+            [System.Runtime.CompilerServices.CallerLineNumber] int lineNumber = 0,
+            [System.Runtime.CompilerServices.CallerMemberName] string memberName = "")
+        {
+            foreach (KeyValuePair<TKey, TValue> entry in dictionary)
+            {
+                bool isSecretEntry = !(secretKeys is null) &&
+                                     secretKeys.Contains(entry.Key, keyComparer ?? EqualityComparer<TKey>.Default);
+                if (isSecretEntry && !this.IsSecretTracingEnabled)
+                {
+                    WriteLine($"\t{entry.Key}={SecretMask}", filePath, lineNumber, memberName);
+                }
+                else
+                {
+                    WriteLine($"\t{entry.Key}={entry.Value}", filePath, lineNumber, memberName);
+                }
+            }
+        }
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public void WriteLine(
             string message,
             [System.Runtime.CompilerServices.CallerFilePath] string filePath = "",
@@ -227,7 +272,7 @@ namespace Microsoft.Git.CredentialManager
         {
             string message = this.IsSecretTracingEnabled
                            ? string.Format(format, secrets)
-                           : string.Format(format, secrets.Select(_ => (object)"********").ToArray());
+                           : string.Format(format, secrets.Select(_ => (object)SecretMask).ToArray());
 
             WriteLine(message, filePath, lineNumber, memberName);
         }

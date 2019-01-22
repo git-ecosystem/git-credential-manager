@@ -32,6 +32,10 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
         void ITrace.WriteDictionary<TKey, TValue>(
             IDictionary<TKey, TValue> dictionary, string filePath, int lineNumber, string memberName) { }
 
+        public void WriteDictionarySecrets<TKey, TValue>(IDictionary<TKey, TValue> dictionary, TKey[] secretKeys,
+            IEqualityComparer<TKey> keyComparer = null, string filePath = "", int lineNumber = 0,
+            string memberName = "") { }
+
         void ITrace.WriteLine(string message, string filePath, int lineNumber, string memberName) { }
 
         void ITrace.WriteLineSecrets(
