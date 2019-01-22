@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <IsTestProject>false</IsTestProject>
+        <LangVersion>latest</LangVersion>
+        <RootNamespace>Microsoft.AzureRepos</RootNamespace>
+        <AssemblyName>Microsoft.AzureRepos</AssemblyName>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Microsoft.Git.CredentialManager\Microsoft.Git.CredentialManager.csproj" />
+    </ItemGroup>
+
+</Project>

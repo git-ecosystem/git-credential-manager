@@ -1,13 +1,10 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AzureRepos;
 using Microsoft.Git.CredentialManager.Commands;
 
 namespace Microsoft.Git.CredentialManager
@@ -15,9 +12,10 @@ namespace Microsoft.Git.CredentialManager
     public class Application : IDisposable
     {
         private readonly ICommandContext _context;
-        private readonly IHostProviderRegistry _providerRegistry = new HostProviderRegistry();
 
         private TextWriter _traceFileWriter;
+
+        public IHostProviderRegistry ProviderRegistry { get; } = new HostProviderRegistry();
 
         public Application(ICommandContext context)
         {
@@ -64,18 +62,12 @@ namespace Microsoft.Git.CredentialManager
                 _context.StdError.WriteLine("Secret tracing is enabled. Trace output may contain sensitive information.");
             }
 
-            // Register all supported host providers
-            _providerRegistry.Register(
-                new AzureReposHostProvider(_context),
-                new GenericHostProvider(_context)
-            );
-
             // Construct all supported commands
             var commands = new CommandBase[]
             {
-                new EraseCommand(_providerRegistry),
-                new GetCommand(_providerRegistry),
-                new StoreCommand(_providerRegistry),
+                new EraseCommand(ProviderRegistry),
+                new GetCommand(ProviderRegistry),
+                new StoreCommand(ProviderRegistry),
                 new VersionCommand(),
                 new HelpCommand(),
             };
@@ -158,7 +150,7 @@ namespace Microsoft.Git.CredentialManager
 
         public void Dispose()
         {
-            _providerRegistry.Dispose();
+            ProviderRegistry.Dispose();
             _traceFileWriter?.Dispose();
         }
 

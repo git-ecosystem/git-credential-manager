@@ -2,15 +2,17 @@ trigger:
   - master
 
 variables:
-  configuration: release
+  configuration: Release
 
 jobs:
-- template: templates/build-and-test.yml
-  parameters:
-    name: Windows
+- job: Windows
+  pool:
     vmImage: vs2017-win2016
+  steps:
+  - template: templates/build-and-test.windows.yml
 
-- template: templates/build-and-test.yml
-  parameters:
-    name: macOS
+- job: macOS
+  pool:
     vmImage: macOS 10.13
+  steps:
+  - template: templates/build-and-test.macos.yml
