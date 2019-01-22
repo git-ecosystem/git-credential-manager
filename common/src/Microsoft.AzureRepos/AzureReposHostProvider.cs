@@ -50,7 +50,7 @@ namespace Microsoft.AzureRepos
             // We should not allow unencrypted communication and should inform the user
             if (StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "http"))
             {
-                throw new Exception("Unencrypted HTTP is not supported for Azure Repos - ensure you are using HTTPS.");
+                throw new Exception("Unencrypted HTTP is not supported for Azure Repos. Ensure the repository remote URL is using HTTPS.");
             }
 
             Uri orgUri = UriHelpers.CreateOrganizationUri(input);
