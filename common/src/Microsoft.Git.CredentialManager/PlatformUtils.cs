@@ -1,9 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
 using System;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Threading;
 
 namespace Microsoft.Git.CredentialManager
 {
@@ -28,7 +26,11 @@ namespace Microsoft.Git.CredentialManager
         /// <returns>True if running on macOS, false otherwise.</returns>
         public static bool IsMacOS()
         {
+#if NETFRAMEWORK
+            return Environment.OSVersion.Platform == PlatformID.MacOSX;
+#elif NETSTANDARD
             return RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
+#endif
         }
 
         /// <summary>
@@ -37,7 +39,11 @@ namespace Microsoft.Git.CredentialManager
         /// <returns>True if running on Windows, false otherwise.</returns>
         public static bool IsWindows()
         {
+#if NETFRAMEWORK
+            return Environment.OSVersion.Platform == PlatformID.Win32NT;
+#elif NETSTANDARD
             return RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+#endif
         }
 
         /// <summary>
@@ -46,7 +52,11 @@ namespace Microsoft.Git.CredentialManager
         /// <returns>True if running on a Linux distribution, false otherwise.</returns>
         public static bool IsLinux()
         {
+#if NETFRAMEWORK
+            return Environment.OSVersion.Platform == PlatformID.Unix;
+#elif NETSTANDARD
             return RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
+#endif
         }
 
         /// <summary>
@@ -85,25 +95,6 @@ namespace Microsoft.Git.CredentialManager
             }
         }
 
-        /// <summary>
-        /// Wait until a debugger has attached to the currently executing process.
-        /// </summary>
-        public static void WaitForDebuggerAttached()
-        {
-            // Attempt to launch the debugger if the OS supports the explicit launching
-            if (!Debugger.Launch())
-            {
-                // The prompt to debug was declined
-                return;
-            }
-
-            // Wait for the debugger to attach and poll & sleep until then
-            while (!Debugger.IsAttached)
-            {
-                Thread.Sleep(TimeSpan.FromSeconds(1));
-            }
-        }
-
         #region Platform information helper methods
 
         private static string GetOSType()
@@ -128,6 +119,9 @@ namespace Microsoft.Git.CredentialManager
 
         private static string GetCpuArchitecture()
         {
+#if NETFRAMEWORK
+            return Environment.Is64BitOperatingSystem ? "x86-64" : "x86";
+#elif NETSTANDARD
             switch (RuntimeInformation.OSArchitecture)
             {
                 case Architecture.Arm:
@@ -141,11 +135,16 @@ namespace Microsoft.Git.CredentialManager
                 default:
                     return RuntimeInformation.OSArchitecture.ToString();
             }
+#endif
         }
 
         private static string GetClrVersion()
         {
+#if NETFRAMEWORK
+            return $".NET Framework {Environment.Version}";
+#elif NETSTANDARD
             return RuntimeInformation.FrameworkDescription;
+#endif
         }
 
         #endregion

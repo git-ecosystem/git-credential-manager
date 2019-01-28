@@ -13,10 +13,15 @@ namespace Microsoft.Git.CredentialManager
     public interface ITrace
     {
         /// <summary>
+        /// True if any listeners have been added to the tracing system.
+        /// </summary>
+        bool HasListeners { get; }
+
+        /// <summary>
         /// Get or set whether or not sensitive information such as secrets and credentials should be
         /// output to attached trace listeners.
         /// </summary>
-        bool EnableSecretTracing { get; set; }
+        bool IsSecretTracingEnabled { get; set; }
 
         /// <summary>
         /// Add a listener to the trace writer.
@@ -77,7 +82,7 @@ namespace Microsoft.Git.CredentialManager
         /// <summary>
         /// Writes a message containing sensitive information to the trace writer followed by a line terminator.
         /// <para/>
-        /// Attached listeners will only receive the fully formatted message if <see cref="EnableSecretTracing"/> is set
+        /// Attached listeners will only receive the fully formatted message if <see cref="IsSecretTracingEnabled"/> is set
         /// to true, otherwise the secret arguments will be masked.
         /// </summary>
         /// <param name="format">The format string to write.</param>
@@ -99,7 +104,18 @@ namespace Microsoft.Git.CredentialManager
         private readonly object _writersLock = new object();
         private readonly List<TextWriter> _writers = new List<TextWriter>();
 
-        public bool EnableSecretTracing { get; set; }
+        public bool HasListeners
+        {
+            get
+            {
+                lock (_writersLock)
+                {
+                    return _writers.Any();
+                }
+            }
+        }
+
+        public bool IsSecretTracingEnabled { get; set; }
 
         public void AddListener(TextWriter listener)
         {
@@ -209,7 +225,7 @@ namespace Microsoft.Git.CredentialManager
             [System.Runtime.CompilerServices.CallerLineNumber] int lineNumber = 0,
             [System.Runtime.CompilerServices.CallerMemberName] string memberName = "")
         {
-            string message = this.EnableSecretTracing
+            string message = this.IsSecretTracingEnabled
                            ? string.Format(format, secrets)
                            : string.Format(format, secrets.Select(_ => (object)"********").ToArray());
 

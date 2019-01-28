@@ -1,7 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>netstandard2.0</TargetFramework>
+        <TargetFrameworks>netstandard2.0</TargetFrameworks>
+        <TargetFrameworks Condition="'$(OS)'!='Unix'">netstandard2.0;net461</TargetFrameworks>
         <IsTestProject>false</IsTestProject>
         <LangVersion>latest</LangVersion>
         <RootNamespace>Microsoft.AzureRepos</RootNamespace>
@@ -10,6 +11,10 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Microsoft.Git.CredentialManager\Microsoft.Git.CredentialManager.csproj" />
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(TargetFramework)' == 'net461'">
+        <Reference Include="System.Net.Http" />
     </ItemGroup>
 
 </Project>
