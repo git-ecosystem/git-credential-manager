@@ -21,3 +21,26 @@ steps:
     publishTestResults: true
     #testRunTitle: 'Common unit tests (macOS)' # option not yet available
     continueOnError: true
+
+- task: CocoaPods@0
+  displayName: Install CocoaPods for Microsoft Authentication helper
+  inputs:
+    projectDirectory: 'macos/Microsoft.Authentication.Helper'
+
+- task: Xcode@5
+  displayName: Compile Microsoft Authentication helper
+  inputs:
+    xcWorkspacePath: 'macos/Microsoft.Authentication.Helper/Microsoft.Authentication.Helper.xcworkspace'
+    configuration: $(configuration)
+    scheme: 'Microsoft.Authentication.Helper'
+    sdk: macosx
+
+- script: 'macos/installer/build-installer.sh --configuration=$(configuration) --version=1.0'
+  displayName: Build installer package
+  failOnStderr: true
+
+- task: PublishPipelineArtifact@0
+  displayName: Publish installer package
+  inputs:
+    artifactName: 'macOS Installer'
+    targetPath: 'out/macos/installer/'
