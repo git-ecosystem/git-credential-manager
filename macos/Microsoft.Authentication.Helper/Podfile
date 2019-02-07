@@ -1,5 +1,5 @@
 platform :osx, '10.11'
 
 target 'Microsoft.Authentication.Helper' do
-  pod 'ADAL', '~> 2.5.1'
+  pod 'ADAL', '~> 4.0.0'
 end

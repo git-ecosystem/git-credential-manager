@@ -28,7 +28,15 @@
 
         ADAuthenticationCallback completionBlock = ^(ADAuthenticationResult *result)
         {
-            accessToken = result.accessToken;
+            if (result.status == AD_SUCCEEDED)
+            {
+                accessToken = result.accessToken;
+            }
+            else // AD_FAILED or AD_USER_CANCELLED
+            {
+                [appDelegate setError:result.error];
+            }
+
             [appDelegate stop];
         };
 

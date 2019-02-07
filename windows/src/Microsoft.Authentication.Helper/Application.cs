@@ -17,9 +17,10 @@ namespace Microsoft.Authentication.Helper
         {
             try
             {
-                // Listen to ADAL logs if GCM tracing is enabled
-                if (Context.Trace.HasListeners)
+                // Listen to ADAL logs if GCM_TRACE_MSAUTH is set
+                if (Context.IsEnvironmentVariableTruthy(Constants.EnvironmentVariables.GcmTraceMsAuth, false))
                 {
+                    LoggerCallbackHandler.UseDefaultLogging = false;
                     LoggerCallbackHandler.LogCallback = OnAdalLogMessage;
                 }
 

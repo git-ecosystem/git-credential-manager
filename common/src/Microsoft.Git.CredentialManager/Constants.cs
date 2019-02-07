@@ -13,6 +13,7 @@ namespace Microsoft.Git.CredentialManager
         {
             public const string GcmTrace           = "GCM_TRACE";
             public const string GcmTraceSecrets    = "GCM_TRACE_SECRETS";
+            public const string GcmTraceMsAuth     = "GCM_TRACE_MSAUTH";
             public const string GcmDebug           = "GCM_DEBUG";
             public const string GitTerminalPrompts = "GIT_TERMINAL_PROMPT";
         }

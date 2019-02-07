@@ -26,10 +26,7 @@ extern const NSString* kErrorDomain;
     [application setDelegate:self];
     [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
 
-    if ([self userLoggingAllowed])
-    {
-        [_logger log:@"Creating application context for authentication prompt"];
-    }
+    AHLOG(_logger, @"Creating application context for authentication prompt");
 
     [NSApp run];
 }
