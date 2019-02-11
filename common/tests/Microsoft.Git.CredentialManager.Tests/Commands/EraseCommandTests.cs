@@ -30,7 +30,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Commands
         }
 
         [Fact]
-        public async Task EraseCommand_ExecuteAsync_CredentialExists_ErasesCredential()
+        public async Task EraseCommand_ExecuteAsync_NoInputUserPass_CredentialExists_ErasesCredential()
         {
             const string testCredentialKey = "test-cred-key";
 
@@ -55,6 +55,90 @@ namespace Microsoft.Git.CredentialManager.Tests.Commands
             Assert.False(context.CredentialStore.ContainsKey($"git:{testCredentialKey}"));
             Assert.True(context.CredentialStore.ContainsKey("git:credential1"));
             Assert.True(context.CredentialStore.ContainsKey("git:credential2"));
+        }
+
+        [Fact]
+        public async Task EraseCommand_ExecuteAsync_InputUserPass_CredentialExists_UserNotMatch_DoesNothing()
+        {
+            const string testUserName = "john.doe";
+            const string testPassword = "letmein123";
+            const string testCredentialKey = "test-cred-key";
+            string stdIn = $"username={testUserName}\npassword={testPassword}\n\n";
+
+            var provider = new TestHostProvider {CredentialKey = testCredentialKey};
+            var providerRegistry = new TestHostProviderRegistry {Provider = provider};
+            var context = new TestCommandContext
+            {
+                StdIn = stdIn,
+                CredentialStore =
+                {
+                    [$"git:{testCredentialKey}"] = new GitCredential("different-username", testPassword),
+                }
+            };
+
+            string[] cmdArgs = {"erase"};
+            var command = new EraseCommand(providerRegistry);
+
+            await command.ExecuteAsync(context, cmdArgs);
+
+            Assert.Equal(1, context.CredentialStore.Count);
+            Assert.True(context.CredentialStore.ContainsKey($"git:{testCredentialKey}"));
+        }
+
+        [Fact]
+        public async Task EraseCommand_ExecuteAsync_InputUserPass_CredentialExists_PassNotMatch_DoesNothing()
+        {
+            const string testUserName = "john.doe";
+            const string testPassword = "letmein123";
+            const string testCredentialKey = "test-cred-key";
+            string stdIn = $"username={testUserName}\npassword={testPassword}\n\n";
+
+            var provider = new TestHostProvider {CredentialKey = testCredentialKey};
+            var providerRegistry = new TestHostProviderRegistry {Provider = provider};
+            var context = new TestCommandContext
+            {
+                StdIn = stdIn,
+                CredentialStore =
+                {
+                    [$"git:{testCredentialKey}"] = new GitCredential(testUserName, "different-password"),
+                }
+            };
+
+            string[] cmdArgs = {"erase"};
+            var command = new EraseCommand(providerRegistry);
+
+            await command.ExecuteAsync(context, cmdArgs);
+
+            Assert.Equal(1, context.CredentialStore.Count);
+            Assert.True(context.CredentialStore.ContainsKey($"git:{testCredentialKey}"));
+        }
+
+        [Fact]
+        public async Task EraseCommand_ExecuteAsync_InputUserPass_CredentialExists_UserPassMatch_ErasesCredential()
+        {
+            const string testUserName = "john.doe";
+            const string testPassword = "letmein123";
+            const string testCredentialKey = "test-cred-key";
+            string stdIn = $"username={testUserName}\npassword={testPassword}\n\n";
+
+            var provider = new TestHostProvider {CredentialKey = testCredentialKey};
+            var providerRegistry = new TestHostProviderRegistry {Provider = provider};
+            var context = new TestCommandContext
+            {
+                StdIn = stdIn,
+                CredentialStore =
+                {
+                    [$"git:{testCredentialKey}"] = new GitCredential(testUserName, testPassword),
+                }
+            };
+
+            string[] cmdArgs = {"erase"};
+            var command = new EraseCommand(providerRegistry);
+
+            await command.ExecuteAsync(context, cmdArgs);
+
+            Assert.Equal(0, context.CredentialStore.Count);
+            Assert.False(context.CredentialStore.ContainsKey($"git:{testCredentialKey}"));
         }
 
         [Fact]
