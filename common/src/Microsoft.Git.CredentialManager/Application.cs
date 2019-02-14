@@ -1,8 +1,10 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
 using System;
+using System.ComponentModel;
 using System.Threading.Tasks;
 using Microsoft.Git.CredentialManager.Commands;
+using Microsoft.Git.CredentialManager.SecureStorage;
 
 namespace Microsoft.Git.CredentialManager
 {
@@ -75,12 +77,23 @@ namespace Microsoft.Git.CredentialManager
             base.Dispose(disposing);
         }
 
-        protected bool WriteException(Exception e)
+        protected bool WriteException(Exception ex)
         {
-            Context.StdError.WriteLine("fatal: {0}", e.Message);
-            if (e.InnerException != null)
+            // Try and use a nicer format for some well-known exception types
+            switch (ex)
             {
-                Context.StdError.WriteLine("fatal: {0}", e.InnerException.Message);
+                case Win32Exception w32Ex:
+                    Context.StdError.WriteLine("fatal: {0} [0x{1:x}]", w32Ex.Message, w32Ex.NativeErrorCode);
+                    break;
+                default:
+                    Context.StdError.WriteLine("fatal: {0}", ex.Message);
+                    break;
+            }
+
+            // Recurse to print all inner exceptions
+            if (!(ex.InnerException is null))
+            {
+                WriteException(ex.InnerException);
             }
 
             return true;

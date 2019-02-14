@@ -41,7 +41,7 @@ namespace Microsoft.Git.CredentialManager.SecureStorage
                     default:
                         // The Win32Exception constructor will automatically get the human-readable
                         // message for the error code.
-                        throw new Win32Exception(error, defaultErrorMessage);
+                        throw new Exception(defaultErrorMessage, new Win32Exception(error));
                 }
             }
 
