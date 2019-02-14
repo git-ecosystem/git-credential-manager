@@ -14,7 +14,6 @@ typedef void(^AHAppWorkBlock) (void);
 
 @property (retain, nonatomic) NSApplication* application;
 @property (retain, nonatomic) NSError* error;
-@property (assign, nonatomic) BOOL userLoggingAllowed;
 
 -(id)initWithBlock:(AHAppWorkBlock)block logger:(AHLogger*)logger;
 

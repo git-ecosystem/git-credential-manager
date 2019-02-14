@@ -12,7 +12,12 @@
     {
         self->writers = [[NSMutableArray<AHLogWriter> alloc] init];
         self->dateFormatter = [[NSDateFormatter alloc] init];
-        [self->dateFormatter setDateFormat:@"yyyy/MM/dd HH:mm:ss:SSS"];
+
+        // Configure the date formatter based on the POSIX locale as "HH" can still return
+        // a 12-hour style time if the user's locale has disabled the 24-hour style.
+        NSLocale *enUSPOSIXLocale = [[NSLocale alloc] initWithLocaleIdentifier:@"en_US_POSIX"];
+        [self->dateFormatter setLocale:enUSPOSIXLocale];
+        [self->dateFormatter setDateFormat:@"HH:mm:ss:SSSSSS"];
     }
 
     return self;
@@ -24,15 +29,49 @@
 }
 
 -(void)log:(NSString*)message
+  fileName:(NSString*)fileName
+   lineNum:(int)lineNum
 {
-    NSString* logMessage = [NSString stringWithFormat:@"%@: %@\n",
-                            [dateFormatter stringFromDate:[NSDate date]],
+    // To be consistent with Git and GCM's main trace output format we want the source (file:line)
+    // column to be 23 characters wide, truncating the start with "..." if required.
+    NSString* source = [[NSString alloc] initWithFormat:@"%@:%d", fileName, lineNum];
+    if ([source length] > 23)
+    {
+        NSInteger extra = [source length] - 23 + 3;
+        source = [[NSString alloc] initWithFormat:@"...%@", [source substringFromIndex:extra]];
+    }
+
+    NSString* logMessage = [NSString stringWithFormat:@"%@ %23s trace: %@\n",
+                      [dateFormatter stringFromDate:[NSDate date]],
+                            [source UTF8String],
                             message];
 
     for (NSObject<AHLogWriter> *writer in self->writers)
     {
         [writer writeMessage:logMessage];
     }
+}
+
+-(void)log:(NSString*)message
+ secretMsg:(NSString*)secretMsg
+  fileName:(NSString*)fileName
+   lineNum:(int)lineNum;
+{
+    NSString* combinedMessage;
+    if ([self enableSecretTracing])
+    {
+        combinedMessage = [[NSString alloc] initWithFormat:@"%@ PII: %@",
+                           message, secretMsg];
+    }
+    else
+    {
+        combinedMessage = [[NSString alloc] initWithFormat:@"%@ PII: ********",
+                           message];
+    }
+    
+    [self log:combinedMessage
+     fileName:fileName
+      lineNum:lineNum];
 }
 
 @end

@@ -53,9 +53,13 @@ namespace Microsoft.Git.CredentialManager.Authentication
             {
                 RedirectStandardInput = true,
                 RedirectStandardOutput = true,
-                RedirectStandardError = true,
+                RedirectStandardError = false, // Do not redirect stderr as tracing might be enabled
                 UseShellExecute = false
             };
+
+            // We flush the trace writers here so that the we don't stomp over the
+            // authentication helper's messages.
+            _context.Trace.Flush();
 
             var process = Process.Start(procStartInfo);
 
