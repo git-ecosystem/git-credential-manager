@@ -26,6 +26,7 @@ steps:
   displayName: Install CocoaPods for Microsoft Authentication helper
   inputs:
     projectDirectory: 'macos/Microsoft.Authentication.Helper'
+    forceRepoUpdate: true
 
 - task: Xcode@5
   displayName: Compile Microsoft Authentication helper
