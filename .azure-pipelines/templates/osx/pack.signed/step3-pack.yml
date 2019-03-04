@@ -1,0 +1,28 @@
+steps:
+  - task: DownloadPipelineArtifact@1
+    displayName: Download signed payload
+    inputs:
+      buildType: 'current'
+      artifactName: 'tmp.macpayload_signed'
+      downloadPath: '$(Build.StagingDirectory)/payload'
+
+  - task: DotNetCoreInstaller@0
+    displayName: Install .NET Core SDK 2.2.100
+    inputs:
+      packageType: sdk
+      version: '2.2.100'
+
+  - script: dotnet tool install --tool-path './.tmp' nbgv
+    displayName: Install Nerdbank.GitVersioning tool
+
+  - script: ./.tmp/nbgv cloud --common-vars
+    displayName: Set version variables
+
+  - script: src/osx/Installer.Mac/pack.sh --payload='$(Build.StagingDirectory)/payload' --version='$(GitBuildVersion)' --output='$(Build.StagingDirectory)/pkg/gcmcore-osx-$(GitBuildVersion).pkg'
+    displayName: Pack installer payload
+
+  - task: PublishPipelineArtifact@0
+    displayName: Upload unsigned package
+    inputs:
+      artifactName: 'tmp.macpkg_unsigned'
+      targetPath: '$(Build.StagingDirectory)/pkg/gcmcore-osx-$(GitBuildVersion).pkg'

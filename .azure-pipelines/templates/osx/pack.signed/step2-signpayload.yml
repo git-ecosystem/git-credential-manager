@@ -1,0 +1,32 @@
+steps:
+  - task: ms-vseng.MicroBuildTasks.30666190-6959-11e5-9f96-f56098202fef.MicroBuildSigningPlugin@2
+    displayName: Install signing plugin
+    inputs:
+      signType: '$(SignType)'
+
+  - task: DownloadPipelineArtifact@1
+    displayName: Download unsigned payload
+    inputs:
+      buildType: 'current'
+      artifactName: 'tmp.macpayload_unsigned'
+      downloadPath: '$(Build.StagingDirectory)\payload'
+
+  # Must use the NuGet & MSBuild toolchain here rather than `dotnet`
+  # because the signing tasks target the netfx MSBuild runtime only.
+  - task: NuGetCommand@2
+    displayName: Restore MicroBuild packages
+    inputs:
+      command: restore
+      restoreSolution: 'src\osx\SignFiles.Mac\SignFiles.Mac.csproj'
+
+  - task: MSBuild@1
+    displayName: Sign payload
+    inputs:
+      solution: 'src\osx\SignFiles.Mac\SignFiles.Mac.csproj'
+      msbuildArguments: '/p:RootDir="$(Build.StagingDirectory)\payload"'
+
+  - task: PublishPipelineArtifact@0
+    displayName: Upload signed payload
+    inputs:
+      artifactName: 'tmp.macpayload_signed'
+      targetPath: '$(Build.StagingDirectory)\payload'

@@ -10,9 +10,9 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/common/src/Git-Credential-Manager/bin/Debug/netcoreapp2.1/git-credential-manager.dll",
+            "program": "${workspaceFolder}/out/shared/Git-Credential-Manager/bin/Debug/netcoreapp2.1/git-credential-manager.dll",
             "args": ["get"],
-            "cwd": "${workspaceFolder}/common/src/Git-Credential-Manager",
+            "cwd": "${workspaceFolder}/out/shared/Git-Credential-Manager",
             "console": "integratedTerminal",
             "stopAtEntry": false,
         },

@@ -1,0 +1,22 @@
+steps:
+- task: DotNetCoreInstaller@0
+  displayName: Install .NET Core SDK 2.2.100
+  inputs:
+    packageType: sdk
+    version: '2.2.100'
+
+- task: DotNetCoreCLI@2
+  displayName: Compile common code and macOS Helpers
+  inputs:
+    command: build
+    projects: 'Git-Credential-Manager.sln'
+    arguments: '--configuration=Mac$(configuration)'
+
+- task: DotNetCoreCLI@2
+  displayName: Run common unit tests
+  inputs:
+    command: test
+    projects: 'Git-Credential-Manager.sln'
+    arguments: '--configuration=Mac$(configuration)'
+    publishTestResults: true
+    #testRunTitle: 'Unit tests - common (macOS)' # option not yet available

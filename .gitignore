@@ -335,3 +335,5 @@ ASALocalRun/
 # GCM build output
 out/
 
+# Temporary build directory
+.tmp/

@@ -1,0 +1,6 @@
+steps:
+  - task: PublishPipelineArtifact@0
+    displayName: Publish unsigned installer artifacts
+    inputs:
+        artifactName: 'Installer.Mac.Unsigned'
+        targetPath: 'out/osx/Installer.Mac/pkg/$(configuration)'

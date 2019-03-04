@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- This is the root Directory.Build.props file -->
+
+  <PropertyGroup>
+     <!--
+        Set helpful property for detecting the current OS platform.
+        We can't use the build-in $(OS) because it returns 'Unix' on macOS when run under Mono.
+      -->
+    <OSPlatform Condition="$([MSBuild]::IsOsPlatform('windows'))">windows</OSPlatform>
+    <OSPlatform Condition="$([MSBuild]::IsOsPlatform('osx'))">osx</OSPlatform>
+    <OSPlatform Condition="$([MSBuild]::IsOsPlatform('linux'))">linux</OSPlatform>
+    <IsUnixLike>true</IsUnixLike>
+    <IsUnixLike Condition="'$(OSPlatform)'=='windows'">false</IsUnixLike>
+
+    <!-- Define the root of the repository as a property - it's very useful! -->
+    <RepoPath>$(MSBuildThisFileDirectory)</RepoPath>
+    <RepoSrcPath>$(RepoPath)src\</RepoSrcPath>
+    <RepoOutPath>$(RepoPath)out\</RepoOutPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- All projects should use Nerdbank.GitVersioning for consistent version numbers -->
+    <PackageReference Include="Nerdbank.GitVersioning">
+      <Version>2.3.38</Version>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+</Project>
