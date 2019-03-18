@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Text;
-using Microsoft.Git.CredentialManager.SecureStorage;
 
 namespace Microsoft.Git.CredentialManager.Tests.Objects
 {

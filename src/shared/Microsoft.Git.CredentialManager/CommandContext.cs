@@ -5,7 +5,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using Microsoft.Git.CredentialManager.SecureStorage;
+using Microsoft.Git.CredentialManager.Interop.MacOS;
+using Microsoft.Git.CredentialManager.Interop.Windows;
 
 namespace Microsoft.Git.CredentialManager
 {

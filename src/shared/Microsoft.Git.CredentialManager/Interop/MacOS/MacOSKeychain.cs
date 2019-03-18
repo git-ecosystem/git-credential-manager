@@ -4,9 +4,10 @@ using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
-using static Microsoft.Git.CredentialManager.SecureStorage.NativeMethods.MacOS;
+using Microsoft.Git.CredentialManager.Interop.MacOS.Native;
+using static Microsoft.Git.CredentialManager.Interop.MacOS.Native.SecurityFramework;
 
-namespace Microsoft.Git.CredentialManager.SecureStorage
+namespace Microsoft.Git.CredentialManager.Interop.MacOS
 {
     public class MacOSKeychain : ICredentialStore
     {
@@ -50,10 +51,10 @@ namespace Microsoft.Git.CredentialManager.SecureStorage
                         string userName = Encoding.UTF8.GetString(userNameBytes);
 
                         // Decode the password from the raw data
-                        byte[] passwordBytes = NativeMethods.ToByteArray(passwordData, passwordLength);
+                        byte[] passwordBytes = InteropUtils.ToByteArray(passwordData, passwordLength);
                         string password = Encoding.UTF8.GetString(passwordBytes);
 
-                        return new Credential(userName, password);
+                        return new GitCredential(userName, password);
 
                     case ErrorSecItemNotFound:
                         return null;
@@ -72,7 +73,7 @@ namespace Microsoft.Git.CredentialManager.SecureStorage
 
                 if (itemRef != IntPtr.Zero)
                 {
-                    CFRelease(itemRef);
+                    CoreFoundation.CFRelease(itemRef);
                 }
             }
         }
@@ -124,7 +125,7 @@ namespace Microsoft.Git.CredentialManager.SecureStorage
 
                 if (itemRef != IntPtr.Zero)
                 {
-                    CFRelease(itemRef);
+                    CoreFoundation.CFRelease(itemRef);
                 }
             }
         }
@@ -165,7 +166,7 @@ namespace Microsoft.Git.CredentialManager.SecureStorage
 
                 if (itemRef != IntPtr.Zero)
                 {
-                    CFRelease(itemRef);
+                    CoreFoundation.CFRelease(itemRef);
                 }
             }
         }
@@ -207,7 +208,7 @@ namespace Microsoft.Git.CredentialManager.SecureStorage
 
                 SecKeychainAttribute attribute = Marshal.PtrToStructure<SecKeychainAttribute>(attrList.Attributes);
 
-                return NativeMethods.ToByteArray(attribute.Data, attribute.Length);
+                return InteropUtils.ToByteArray(attribute.Data, attribute.Length);
             }
             finally
             {
