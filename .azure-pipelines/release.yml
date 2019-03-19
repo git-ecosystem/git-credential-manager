@@ -1,0 +1,48 @@
+trigger:
+  - release
+
+variables:
+  configuration: Release
+
+jobs:
+- job: windows
+  displayName: Windows
+  pool:
+    name: VSEng-MicroBuildVS2017
+  steps:
+  - template: templates/windows/compile.yml
+
+- job: osx_step1
+  displayName: macOS (Build & Layout)
+  pool:
+    vmImage: macOS 10.13
+  steps:
+  - template: templates/osx/compile.yml
+  - template: templates/osx/pack.signed/step1-layout.yml
+
+- job: osx_step2
+  displayName: macOS (Sign payload)
+  dependsOn: osx_step1
+  condition: succeeded()
+  pool:
+    name: VSEng-MicroBuildVS2017
+  steps:
+  - template: templates/osx/pack.signed/step2-signpayload.yml
+
+- job: osx_step3
+  displayName: macOS (Pack)
+  dependsOn: osx_step2
+  condition: succeeded()
+  pool:
+    vmImage: macOS 10.13
+  steps:
+  - template: templates/osx/pack.signed/step3-pack.yml
+
+- job: osx_step4
+  displayName: macOS (Sign package)
+  dependsOn: osx_step3
+  condition: succeeded()
+  pool:
+    name: VSEng-MicroBuildVS2017
+  steps:
+  - template: templates/osx/pack.signed/step4-signpack.yml

@@ -1,0 +1,32 @@
+﻿<Project>
+  <!-- Implicit SDK props import -->
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <IsTestProject>false</IsTestProject>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateAssemblyVersionInfo>false</GenerateAssemblyVersionInfo>
+    <DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences>
+    <EnableDefaultItems>false</EnableDefaultItems>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="build.sh" />
+  </ItemGroup>
+
+  <!-- Implicit SDK targets import (so we can override the default targets below) -->
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+
+  <Target Name="CoreCompile">
+    <Message Text="$(MSBuildProjectDirectory)\build.sh --configuration='$(Configuration)'" Importance="High" />
+    <Exec Command="$(MSBuildProjectDirectory)\build.sh --configuration='$(Configuration)'" />
+  </Target>
+
+  <Target Name="CoreClean">
+    <RemoveDir Directories="$(ProjectOutPath)" />
+  </Target>
+
+  <Target Name="PrepareForRun" />
+
+</Project>

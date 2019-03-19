@@ -1,0 +1,21 @@
+trigger:
+  - master
+
+variables:
+  configuration: Release
+
+jobs:
+- job: windows
+  displayName: Windows
+  pool:
+    vmImage: vs2017-win2016
+  steps:
+  - template: templates/windows/compile.yml
+
+- job: osx
+  displayName: macOS
+  pool:
+    vmImage: macOS 10.13
+  steps:
+  - template: templates/osx/compile.yml
+  - template: templates/osx/pack.unsigned.yml

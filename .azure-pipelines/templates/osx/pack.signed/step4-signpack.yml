@@ -1,0 +1,37 @@
+steps:
+  - task: ms-vseng.MicroBuildTasks.30666190-6959-11e5-9f96-f56098202fef.MicroBuildSigningPlugin@2
+    displayName: Install signing plugin
+    inputs:
+      signType: '$(SignType)'
+
+  - task: DownloadPipelineArtifact@1
+    displayName: Download unsigned package
+    inputs:
+      buildType: 'current'
+      artifactName: 'tmp.macpkg_unsigned'
+      downloadPath: '$(Build.StagingDirectory)\pkg'
+
+  - task: ms-vseng.MicroBuildTasks.7973a23b-33e3-4b00-a7d9-c06d90f8297f.MicroBuildSignMacFiles@1
+    displayName: Sign package
+    inputs:
+      SigningTarget: '$(Build.StagingDirectory)\pkg'
+      SigningCert: 8003
+    condition: and(succeeded(), ne(variables['SignType'], 'test'))
+
+  - task: DownloadPipelineArtifact@1
+    displayName: Download signed payload
+    inputs:
+      buildType: 'current'
+      artifactName: 'tmp.macpayload_signed'
+      downloadPath: '$(Build.StagingDirectory)\payload'
+
+  - script: |
+      xcopy "$(Build.StagingDirectory)\pkg\*.pkg" "$(Build.StagingDirectory)\publish\"
+      xcopy "$(Build.StagingDirectory)\payload"   "$(Build.StagingDirectory)\publish\payload\"
+    displayName: Prepare final build artifact
+
+  - task: PublishPipelineArtifact@0
+    displayName: Upload signed package and payload
+    inputs:
+      artifactName: 'Installer.Mac.Signed'
+      targetPath: '$(Build.StagingDirectory)\publish'
