@@ -1,6 +1,8 @@
 # Git Credential Manager (.NET Core)
 
-[![Build Status](https://mseng.visualstudio.com/AzureDevOps/_apis/build/status/Git-Credential-Manager-Core/GCM-CI?branchName=master)](https://mseng.visualstudio.com/AzureDevOps/_build/latest?definitionId=7861?branchName=master)
+Branch|Status
+-|-
+master|[![Build Status](https://mseng.visualstudio.com/AzureDevOps/_apis/build/status/Teams/VCDesktop/Git-Credential-Manager-Core/GCM-CI?branchName=master)](https://mseng.visualstudio.com/AzureDevOps/_build/latest?definitionId=7861&branchName=master)
 
 ## Contributing
 
