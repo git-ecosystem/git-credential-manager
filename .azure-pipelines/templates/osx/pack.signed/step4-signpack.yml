@@ -11,12 +11,24 @@ steps:
       artifactName: 'tmp.macpkg_unsigned'
       downloadPath: '$(Build.StagingDirectory)\pkg'
 
+  - powershell: |
+      $dir="$(Build.StagingDirectory)\pkg"
+      Compress-Archive -Path $dir\*.pkg $dir\gcmcorepkg.zip
+      Remove-Item $dir\*.pkg
+    displayName: 'Zip package file for signing'
+
   - task: ms-vseng.MicroBuildTasks.7973a23b-33e3-4b00-a7d9-c06d90f8297f.MicroBuildSignMacFiles@1
     displayName: Sign package
     inputs:
-      SigningTarget: '$(Build.StagingDirectory)\pkg'
+      SigningTarget: '$(Build.StagingDirectory)\pkg\gcmcorepkg.zip'
       SigningCert: 8003
     condition: and(succeeded(), ne(variables['SignType'], 'test'))
+
+  - powershell: |
+      $dir="$(Build.StagingDirectory)\pkg"
+      Expand-Archive -LiteralPath $dir\gcmcorepkg.zip -DestinationPath $dir -Force
+      Remove-Item $dir\gcmcorepkg.zip -Force
+    displayName: 'Unzip signed package file'
 
   - task: DownloadPipelineArtifact@1
     displayName: Download signed payload
