@@ -172,7 +172,7 @@ namespace Microsoft.Git.CredentialManager
 
             if (PlatformUtils.IsWindows())
             {
-                throw new NotImplementedException();
+                return new WindowsTerminal(Trace);
             }
 
             throw new PlatformNotSupportedException();
