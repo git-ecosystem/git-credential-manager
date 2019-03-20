@@ -27,10 +27,10 @@ namespace GitHub
         {
             EnsureTerminalPromptsEnabled();
 
-            _context.StdError.WriteLine("Enter credentials for '{0}'...", targetUri);
+            _context.Terminal.WriteLine("Enter credentials for '{0}'...", targetUri);
 
-            userName = _context.Prompt("Username");
-            password = _context.PromptSecret("Password");
+            userName = _context.Terminal.Prompt("Username");
+            password = _context.Terminal.PromptSecret("Password");
 
             return !string.IsNullOrWhiteSpace(userName) && !string.IsNullOrWhiteSpace(password);
         }
@@ -39,18 +39,18 @@ namespace GitHub
         {
             EnsureTerminalPromptsEnabled();
 
-            _context.StdError.WriteLine("Two-factor authentication is enabled and an authentication code is required.");
+            _context.Terminal.WriteLine("Two-factor authentication is enabled and an authentication code is required.");
 
             if (isSms)
             {
-                _context.StdError.WriteLine("An SMS containing the authentication code has been sent to your registered device.");
+                _context.Terminal.WriteLine("An SMS containing the authentication code has been sent to your registered device.");
             }
             else
             {
-                _context.StdError.WriteLine("Use your registered authentication app to generate an authentication code.");
+                _context.Terminal.WriteLine("Use your registered authentication app to generate an authentication code.");
             }
 
-            authenticationCode = _context.Prompt("Authentication code");
+            authenticationCode = _context.Terminal.Prompt("Authentication code");
             return !string.IsNullOrWhiteSpace(authenticationCode);
         }
 
