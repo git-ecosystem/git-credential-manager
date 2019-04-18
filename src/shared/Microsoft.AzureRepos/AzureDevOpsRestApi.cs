@@ -41,7 +41,6 @@ namespace Microsoft.AzureRepos
 
             const string authorityBase = "https://login.microsoftonline.com/";
             const string commonAuthority = authorityBase + "common";
-            const string msaAuthority = authorityBase + "live.com";
 
             _context.Trace.WriteLine($"HTTP: HEAD {organizationUri}");
             using (HttpResponseMessage response = await HttpClient.HeadAsync(organizationUri))
@@ -80,7 +79,7 @@ namespace Microsoft.AzureRepos
                         if (tenantIds.Length == 1 && Guid.TryParse(tenantIds[0], out guid) && guid == Guid.Empty)
                         {
                             _context.Trace.WriteLine($"Found {AzureDevOpsConstants.VssResourceTenantHeader} header with MSA tenant ID (empty GUID).");
-                            return msaAuthority;
+                            return commonAuthority;
                         }
                     }
                 }
