@@ -1,5 +1,5 @@
 steps:
-  - script: src/osx/Installer.Mac/layout.sh --configuration='$(configuration)' --output='$(Build.StagingDirectory)/payload'
+  - script: src/osx/Installer.Mac/layout.sh --configuration='$(configuration)' --output='$(Build.StagingDirectory)/payload' --symbol-output='$(Build.StagingDirectory)/symbols'
     displayName: Layout installer payload
 
   - task: PublishPipelineArtifact@0
@@ -7,3 +7,9 @@ steps:
     inputs:
       artifactName: 'tmp.macpayload_unsigned' 
       targetPath: '$(Build.StagingDirectory)/payload'
+
+  - task: PublishPipelineArtifact@0
+    displayName: Upload symbols
+    inputs:
+      artifactName: 'Symbols.Mac'
+      targetPath: '$(Build.StagingDirectory)/symbols'
