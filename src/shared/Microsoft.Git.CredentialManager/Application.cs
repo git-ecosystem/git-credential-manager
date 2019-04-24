@@ -4,7 +4,6 @@ using System;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using Microsoft.Git.CredentialManager.Commands;
-using Microsoft.Git.CredentialManager.SecureStorage;
 
 namespace Microsoft.Git.CredentialManager
 {

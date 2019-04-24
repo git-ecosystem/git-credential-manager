@@ -2,16 +2,16 @@
 // Licensed under the MIT license.
 using System;
 using Xunit;
-using Microsoft.Git.CredentialManager.SecureStorage;
+using Microsoft.Git.CredentialManager.Interop.Windows;
 
-namespace Microsoft.Git.CredentialManager.Tests.SecureStorage
+namespace Microsoft.Git.CredentialManager.Tests.Interop.Windows
 {
-    public class MacOSKeychainTests
+    public class WindowsCredentialManagerTests
     {
-        [PlatformFact(Platform.MacOS)]
-        public void MacOSKeychain_ReadWriteDelete()
+        [PlatformFact(Platform.Windows)]
+        public void WindowsCredentialManager_ReadWriteDelete()
         {
-            MacOSKeychain keychain = MacOSKeychain.Open();
+            WindowsCredentialManager credManager = WindowsCredentialManager.Open();
 
             // Create a key that is guarenteed to be unique
             string key = $"secretkey-{Guid.NewGuid():N}";
@@ -22,10 +22,10 @@ namespace Microsoft.Git.CredentialManager.Tests.SecureStorage
             try
             {
                 // Write
-                keychain.AddOrUpdate(key, credential);
+                credManager.AddOrUpdate(key, credential);
 
                 // Read
-                ICredential outCredential = keychain.Get(key);
+                ICredential outCredential = credManager.Get(key);
 
                 Assert.NotNull(outCredential);
                 Assert.Equal(credential.UserName, outCredential.UserName);
@@ -34,31 +34,31 @@ namespace Microsoft.Git.CredentialManager.Tests.SecureStorage
             finally
             {
                 // Ensure we clean up after ourselves even in case of 'get' failures
-                keychain.Remove(key);
+                credManager.Remove(key);
             }
         }
 
-        [PlatformFact(Platform.MacOS)]
-        public void MacOSKeychain_Get_KeyNotFound_ReturnsNull()
+        [PlatformFact(Platform.Windows)]
+        public void WindowsCredentialManager_Get_KeyNotFound_ReturnsNull()
         {
-            MacOSKeychain keychain = MacOSKeychain.Open();
+            WindowsCredentialManager credManager = WindowsCredentialManager.Open();
 
             // Unique key; guaranteed not to exist!
             string key = Guid.NewGuid().ToString("N");
 
-            ICredential credential = keychain.Get(key);
+            ICredential credential = credManager.Get(key);
             Assert.Null(credential);
         }
 
-        [PlatformFact(Platform.MacOS)]
-        public void MacOSKeychain_Remove_KeyNotFound_ReturnsFalse()
+        [PlatformFact(Platform.Windows)]
+        public void WindowsCredentialManager_Remove_KeyNotFound_ReturnsFalse()
         {
-            MacOSKeychain keychain = MacOSKeychain.Open();
+            WindowsCredentialManager credManager = WindowsCredentialManager.Open();
 
             // Unique key; guaranteed not to exist!
             string key = Guid.NewGuid().ToString("N");
 
-            bool result = keychain.Remove(key);
+            bool result = credManager.Remove(key);
             Assert.False(result);
         }
     }

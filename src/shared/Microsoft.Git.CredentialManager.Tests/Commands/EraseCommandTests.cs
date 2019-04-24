@@ -2,7 +2,6 @@
 // Licensed under the MIT license.
 using System.Threading.Tasks;
 using Microsoft.Git.CredentialManager.Commands;
-using Microsoft.Git.CredentialManager.SecureStorage;
 using Microsoft.Git.CredentialManager.Tests.Objects;
 using Moq;
 using Xunit;

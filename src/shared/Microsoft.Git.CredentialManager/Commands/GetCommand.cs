@@ -2,7 +2,6 @@
 // Licensed under the MIT license.
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.Git.CredentialManager.SecureStorage;
 
 namespace Microsoft.Git.CredentialManager.Commands
 {

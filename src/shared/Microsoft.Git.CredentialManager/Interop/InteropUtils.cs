@@ -3,9 +3,9 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace Microsoft.Git.CredentialManager.SecureStorage
+namespace Microsoft.Git.CredentialManager.Interop
 {
-    internal static partial class NativeMethods
+    internal static class InteropUtils
     {
         public static byte[] ToByteArray(IntPtr ptr, long count)
         {
