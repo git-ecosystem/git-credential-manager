@@ -17,6 +17,7 @@
     <RepoPath>$(MSBuildThisFileDirectory)</RepoPath>
     <RepoSrcPath>$(RepoPath)src\</RepoSrcPath>
     <RepoOutPath>$(RepoPath)out\</RepoOutPath>
+    <RepoAssetsPath>$(RepoPath)assets\</RepoAssetsPath>
   </PropertyGroup>
 
   <ItemGroup>

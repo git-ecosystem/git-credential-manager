@@ -11,6 +11,7 @@ jobs:
     vmImage: vs2017-win2016
   steps:
   - template: templates/windows/compile.yml
+  - template: templates/windows/pack.yml
 
 - job: osx
   displayName: macOS

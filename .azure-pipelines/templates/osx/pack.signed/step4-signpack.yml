@@ -37,13 +37,21 @@ steps:
       artifactName: 'tmp.macpayload_signed'
       downloadPath: '$(Build.StagingDirectory)\payload'
 
+  - task: DownloadPipelineArtifact@1
+    displayName: Download symbols
+    inputs:
+      buildType: 'current'
+      artifactName: 'tmp.macsymbols'
+      downloadPath: '$(Build.StagingDirectory)\symbols'
+
   - script: |
       xcopy "$(Build.StagingDirectory)\pkg\*.pkg" "$(Build.StagingDirectory)\publish\"
       xcopy "$(Build.StagingDirectory)\payload"   "$(Build.StagingDirectory)\publish\payload\"
+      xcopy "$(Build.StagingDirectory)\symbols"   "$(Build.StagingDirectory)\publish\payload.sym\"
     displayName: Prepare final build artifact
 
   - task: PublishPipelineArtifact@0
-    displayName: Upload signed package and payload
+    displayName: Publish signed installer artifacts
     inputs:
       artifactName: 'Installer.Mac.Signed'
       targetPath: '$(Build.StagingDirectory)\publish'
