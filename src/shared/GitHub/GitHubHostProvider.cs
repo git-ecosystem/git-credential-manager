@@ -18,7 +18,7 @@ namespace GitHub
         private readonly IGitHubAuthentication _gitHubAuth;
 
         public GitHubHostProvider(ICommandContext context)
-            : this(context, new GitHubRestApi(context), new TtyGitHubPromptAuthentication(context)) { }
+            : this(context, new GitHubRestApi(context), new GitHubAuthentication(context)) { }
 
         public GitHubHostProvider(ICommandContext context, IGitHubRestApi gitHubApi, IGitHubAuthentication gitHubAuth)
             : base(context)

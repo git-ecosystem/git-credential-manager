@@ -1,0 +1,89 @@
+﻿<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:sharedConverters="clr-namespace:GitHub.UI.Converters;assembly=GitHub.UI"
+    xmlns:text="clr-namespace:GitHub.Authentication.Helper.Controls.Text"
+    xmlns:octicons="clr-namespace:GitHub.Authentication.Helper.Controls.Octicons">
+
+    <Style TargetType="{x:Type text:ValidationMessage}">
+        <Setter Property="Padding" Value="2,6" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type text:ValidationMessage}">
+
+                    <Grid x:Name="grid" Visibility="Collapsed" Opacity="0" Margin="{TemplateBinding Padding}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Viewbox Width="16" Height="16" Grid.Column="0"
+                                 Visibility="{TemplateBinding ShowError, Converter={sharedConverters:BooleanToVisibilityConverter}}">
+                            <octicons:OcticonPath x:Name="icon" Icon="{TemplateBinding Icon}" Height="16" Fill="{TemplateBinding Fill}" />
+                        </Viewbox>
+
+                        <ContentPresenter x:Name="massageContentPresenter" ContentSource="Content"
+                                        Margin="3,0,0,2"
+                                        Grid.Column="1" />
+
+                        <TextBlock x:Name="defaultMessage"
+                                   Text="{TemplateBinding Text}"
+                                   Margin="3,0,0,2"
+                                   Grid.Column="1"
+                                   Foreground="{DynamicResource GitHubTextSecondaryBrush}"
+                                   VerticalAlignment="Center" />
+                        <Grid.RenderTransform>
+                            <ScaleTransform x:Name="HeightScaleTransform" ScaleY="0" />
+                        </Grid.RenderTransform>
+                    </Grid>
+
+                    <ControlTemplate.Resources>
+                        <Storyboard x:Key="Show" Storyboard.TargetName="grid">
+                            <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Visibility)">
+                                <DiscreteObjectKeyFrame KeyTime="0:0:0.0" Value="{x:Static Visibility.Visible}" />
+                            </ObjectAnimationUsingKeyFrames>
+                            <DoubleAnimationUsingKeyFrames
+                                Storyboard.TargetName="HeightScaleTransform"
+                                Storyboard.TargetProperty="(ScaleTransform.ScaleY)">
+                                <EasingDoubleKeyFrame KeyTime="0" Value="0" />
+                                <EasingDoubleKeyFrame KeyTime="0:0:0.2" Value="1.0" />
+                            </DoubleAnimationUsingKeyFrames>
+                            <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Opacity)">
+                                <EasingDoubleKeyFrame KeyTime="0:0:0.2" Value="0" />
+                                <EasingDoubleKeyFrame KeyTime="0:0:0.4" Value="1" />
+                            </DoubleAnimationUsingKeyFrames>
+                        </Storyboard>
+                        <Storyboard x:Key="Hide" Storyboard.TargetName="grid">
+                            <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Visibility)">
+                                <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Collapsed}" />
+                            </ObjectAnimationUsingKeyFrames>
+                        </Storyboard>
+                    </ControlTemplate.Resources>
+
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="HasContent" Value="True">
+                            <Setter TargetName="defaultMessage" Property="Visibility" Value="Collapsed" />
+                        </Trigger>
+
+                        <Trigger Property="ShowError" Value="True">
+                            <Trigger.EnterActions>
+                                <BeginStoryboard x:Name="Show_BeginStoryboard" Storyboard="{StaticResource Show}" />
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="Show_BeginStoryboard" />
+                            </Trigger.ExitActions>
+                        </Trigger>
+
+                        <Trigger Property="ShowError" Value="False">
+                            <Trigger.EnterActions>
+                                <BeginStoryboard x:Name="Hide_BeginStoryboard" Storyboard="{StaticResource Hide}" />
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="Hide_BeginStoryboard" />
+                            </Trigger.ExitActions>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>

@@ -1,0 +1,207 @@
+﻿<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:presentationOptions="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:sharedHelpers="clr-namespace:GitHub.UI.Helpers;assembly=GitHub.UI"
+    mc:Ignorable="presentationOptions">
+
+    <!-- The blue accent color used through-out the app -->
+    <Color x:Key="GitHubAccentColor">#4ea6ea</Color>
+    <SolidColorBrush x:Key="GitHubAccentBrush" Color="{StaticResource GitHubAccentColor}"
+                     presentationOptions:Freeze="true" />
+
+    <!-- Default text colors -->
+    <Color x:Key="GitHubTextColor">#333</Color>
+    <SolidColorBrush x:Key="GitHubTextBrush" Color="{StaticResource GitHubTextColor}" presentationOptions:Freeze="true" />
+
+    <Color x:Key="GitHubTextSecondaryColor">#666</Color>
+    <SolidColorBrush x:Key="GitHubTextSecondaryBrush"
+                     Color="{StaticResource GitHubTextSecondaryColor}"
+                     presentationOptions:Freeze="true" />
+
+    <!-- Link Button colors -->
+    <Color x:Key="GHLinkButtonTextColor">#333</Color>
+    <SolidColorBrush x:Key="GHLinkButtonTextBrush" Color="{StaticResource GHLinkButtonTextColor}"
+                     presentationOptions:Freeze="true" />
+
+    <Color x:Key="GHLinkButtonHoverColor">#222</Color>
+    <SolidColorBrush x:Key="GHLinkButtonHoverBrush" Color="{StaticResource GHLinkButtonHoverColor}"
+                     presentationOptions:Freeze="true" />
+
+    <Color x:Key="GHLinkButtonPressedColor">#121212</Color>
+    <SolidColorBrush x:Key="GHLinkButtonPressedBrush" Color="{StaticResource GHLinkButtonPressedColor}"
+                     presentationOptions:Freeze="true" />
+
+    <!-- Blue Link Button colors -->
+    <Color x:Key="GHBlueLinkButtonTextColor">#4D89C1</Color>
+    <SolidColorBrush x:Key="GHBlueLinkButtonTextBrush" Color="{StaticResource GHBlueLinkButtonTextColor}"
+                     presentationOptions:Freeze="true" />
+
+    <Color x:Key="GHBlueLinkButtonDisabledTextColor">#4D89C1</Color>
+    <SolidColorBrush x:Key="GHBlueLinkButtonDisabledTextBrush" Color="{StaticResource GHBlueLinkButtonDisabledTextColor}"
+                     presentationOptions:Freeze="true" />
+
+    <Color x:Key="GHBlueLinkButtonIconColor">#4D89C1</Color>
+    <SolidColorBrush x:Key="GHBlueLinkButtonIconBrush" Color="{StaticResource GHBlueLinkButtonIconColor}"
+                     presentationOptions:Freeze="true" />
+
+    <Color x:Key="GHBlueLinkButtonHoverColor">#2061A1</Color>
+    <SolidColorBrush x:Key="GHBlueLinkButtonHoverBrush" Color="{StaticResource GHBlueLinkButtonHoverColor}"
+                     presentationOptions:Freeze="true" />
+
+    <Color x:Key="GHBlueLinkButtonHoverIconColor">#2061A1</Color>
+    <SolidColorBrush x:Key="GHBlueLinkButtonHoverIconBrush" Color="{StaticResource GHBlueLinkButtonHoverIconColor}"
+                     presentationOptions:Freeze="true" />
+
+    <Color x:Key="GHBlueLinkButtonPressedColor">#0B4680</Color>
+    <SolidColorBrush x:Key="GHBlueLinkButtonPressedBrush" Color="{StaticResource GHBlueLinkButtonPressedColor}"
+                     presentationOptions:Freeze="true" />
+
+    <Color x:Key="GHBlueLinkButtonPressedIconColor">#0B4680</Color>
+    <SolidColorBrush x:Key="GHBlueLinkButtonPressedIconBrush" Color="{StaticResource GHBlueLinkButtonPressedIconColor}"
+                     presentationOptions:Freeze="true" />
+
+    <Color x:Key="GHBlueLinkButtonDisabledColor">#6B97BF</Color>
+    <SolidColorBrush x:Key="GHBlueLinkButtonDisabledBrush" Color="{StaticResource GHBlueLinkButtonDisabledColor}"
+                     presentationOptions:Freeze="true" />
+
+    <Color x:Key="GHBlueLinkButtonDisabledIconColor">#6B97BF</Color>
+    <SolidColorBrush x:Key="GHBlueLinkButtonDisabledIconBrush" Color="{StaticResource GHBlueLinkButtonDisabledIconColor}"
+                     presentationOptions:Freeze="true" />
+
+    <!-- Table and list colors -->
+    <Color x:Key="GHBoxDividerColor">#f1f1f1</Color>
+    <SolidColorBrush x:Key="GHBoxDividerBrush" Color="{StaticResource GHBoxDividerColor}"
+                     presentationOptions:Freeze="true" />
+
+    <Color x:Key="GHBoxHoverBackgroundColor">#f1f1f1</Color>
+    <SolidColorBrush x:Key="GHBoxHoverBackgroundBrush" Color="{StaticResource GHBoxHoverBackgroundColor}"
+                     presentationOptions:Freeze="true" />
+
+    <Color x:Key="GHBoxPressedBackgroundColor">#e7e7e7</Color>
+    <SolidColorBrush x:Key="GHBoxPressedBackgroundBrush" Color="{StaticResource GHBoxPressedBackgroundColor}"
+                     presentationOptions:Freeze="true" />
+
+    <Color x:Key="GHBoxSelectedBackgroundColor">#4ea6ea</Color>
+    <SolidColorBrush x:Key="GHBoxSelectedBackgroundBrush" Color="{StaticResource GHBoxSelectedBackgroundColor}"
+                     presentationOptions:Freeze="true" />
+
+    <Color x:Key="GHBoxSelectedPressedBackgroundColor">#439bde</Color>
+    <SolidColorBrush x:Key="GHBoxSelectedPressedBackgroundBrush" Color="{StaticResource GHBoxSelectedPressedBackgroundColor}"
+                     presentationOptions:Freeze="true" />
+
+    <Color x:Key="GHBoxSelectedColor">#ffffff</Color>
+    <SolidColorBrush x:Key="GHBoxSelectedBrush" Color="{StaticResource GHBoxSelectedColor}"
+                     presentationOptions:Freeze="true" />
+
+    <Color x:Key="GHBoxSelectedSecondaryColor">#c5e6ff</Color>
+    <SolidColorBrush x:Key="GHBoxSelectedSecondaryBrush" Color="{StaticResource GHBoxSelectedSecondaryColor}"
+                     presentationOptions:Freeze="true" />
+
+    <!-- Red color used for errors -->
+    <SolidColorBrush x:Key="GitHubWarningBrush" Color="#ea2828"
+                     presentationOptions:Freeze="true" />
+
+    <!-- black color used for assorted UI elements -->
+    <SolidColorBrush x:Key="GitHubForegroundBrush"
+                     Color="{StaticResource GHTextColor}"
+                     presentationOptions:Freeze="true" />
+
+    <!-- light grey used for borders and gradients -->
+    <Color x:Key="GitHubBorderColor">#E5E5E5</Color>
+    <SolidColorBrush x:Key="GitHubBorderBrush" Color="{StaticResource GitHubBorderColor}"
+                     presentationOptions:Freeze="true" />
+
+    <!-- dark red used for file diff exceptions -->
+    <Color x:Key="GitHubErrorColor">#E74C3C</Color>
+    <SolidColorBrush x:Key="GitHubErrorBrush" Color="{StaticResource GitHubErrorColor}"
+                     presentationOptions:Freeze="true" />
+
+    <!-- TextBox -->
+    <SolidColorBrush x:Key="GitHubTextBoxForegroundBrush" Color="#FF333333"
+                     presentationOptions:Freeze="true" />
+    <SolidColorBrush x:Key="GitHubTextBoxBorderBrush" Color="#FFCACACA"
+                     presentationOptions:Freeze="true" />
+    <SolidColorBrush x:Key="GitHubTextBoxMouseOverBorderBrush" Color="#FFA9A9A9"
+                     presentationOptions:Freeze="true" />
+    <SolidColorBrush x:Key="GitHubDarkTextBoxMouseOverBorderBrush" Color="#FF545454"
+                     presentationOptions:Freeze="true" />
+
+    <!-- horizontal divider brushes -->
+    <SolidColorBrush x:Key="HorizontalDividerBorderBrush" Color="#19000000"
+                     presentationOptions:Freeze="true" />
+    <RadialGradientBrush x:Key="HorizontalDividerShadowBrush"
+                         presentationOptions:Freeze="true">
+        <GradientStop Color="Black" />
+        <GradientStop Offset="1" Color="#00000000" />
+    </RadialGradientBrush>
+
+    <!-- Primary fonts -->
+    <FontFamily x:Key="GitHubFontFamilyNormal">Segoe UI</FontFamily>
+    <FontFamily x:Key="GitHubFontFamilyLight">Segoe UI Light, Segoe UI, Global User Interface</FontFamily>
+
+    <!-- Modal dialogs all leave this much of the underlying view showing -->
+    <GridLength x:Key="ModalViewLeftOffsetColumnWidth">160</GridLength>
+
+    <!-- Use this focus visual when the control is stretched vertically-->
+    <Style x:Key="VerticalMarginFocusVisual" TargetType="Control">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate>
+                    <Rectangle Margin="-2,2" SnapsToDevicePixels="true" Stroke="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" StrokeThickness="1" StrokeDashArray="1 2" />
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="NoMarginFocusVisual" TargetType="Control">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate>
+                    <Rectangle Margin="0" SnapsToDevicePixels="true" Stroke="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" StrokeThickness="1" StrokeDashArray="1 2" />
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!--
+        This focus rectangle will extend 2px outside of the control boundary.
+        Looks way nicer and happens to be the recommended practice. Not suitable for list
+        items or elements in constrained places (close to window frame borders etc).
+
+        "...this means that the visual feedback should appear outside the control margins,
+         or as temporary or unobtrusive effects that will not block the hit testing on the
+         control where the focus visual style is applied."
+
+        http://msdn.microsoft.com/en-us/library/bb613567(v=vs.110).aspx
+    -->
+    <Style x:Key="NegativeMarginFocusVisual" TargetType="Control">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate>
+                    <Rectangle Margin="-5" SnapsToDevicePixels="true" Stroke="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" StrokeThickness="1" StrokeDashArray="1 2" />
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="DialogUserControl" TargetType="UserControl">
+        <Setter Property="Margin" Value="30,30,30,0" />
+    </Style>
+
+    <Style x:Key="DialogContainerStackPanel" TargetType="StackPanel">
+        <Setter Property="Margin" Value="0" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="FocusManager.IsFocusScope" Value="True" />
+        <Setter Property="sharedHelpers:AccessKeysManagerScoping.IsEnabled" Value="True" />
+    </Style>
+
+    <Style x:Key="DialogContainerDockPanel" TargetType="DockPanel">
+        <Setter Property="LastChildFill" Value="True" />
+        <Setter Property="Margin" Value="0,0,0,30" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="FocusManager.IsFocusScope" Value="True" />
+        <Setter Property="sharedHelpers:AccessKeysManagerScoping.IsEnabled" Value="True" />
+    </Style>
+</ResourceDictionary>
