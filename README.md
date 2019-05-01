@@ -20,13 +20,13 @@ GCM Core is currently in preview for the macOS platform only, with a Windows and
 
 Feature|Windows|macOS|Linux
 -|-|-|-
-Installer/uninstaller||[x]|
-Secure platform credential storage|[x]<br/>Windows Credential Store|[x]<br/>macOS Keychain|
-Multi-factor authentication support for Azure DevOps|[x]|[x]|
-Two-factor authentication support for GitHub|[x]\*|[x]\*|[x]\*
+Installer/uninstaller||&#10003;|
+Secure platform credential storage|&#10003;<br/>Windows Credential Manager|&#10003;<br/>macOS Keychain|
+Multi-factor authentication support for Azure DevOps|&#10003;|&#10003;|
+Two-factor authentication support for GitHub|&#10003;\*|&#10003;\*|&#10003;\*
 Two-factor authentication support for BitBucket|||
-Windows Integrated Authentication (NTLM/Kerberos) support|[x]|_N/A_|_N/A_
-Basic HTTP authentication support|[x]|[x]|[x]
+Windows Integrated Authentication (NTLM/Kerberos) support|&#10003;|_N/A_|_N/A_
+Basic HTTP authentication support|&#10003;|&#10003;|&#10003;
 
 **Notes:**
 
