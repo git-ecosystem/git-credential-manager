@@ -13,7 +13,7 @@ namespace GitHub.Tests
     public class GitHubHostProviderTests
     {
         [Fact]
-        public void GitHubProvider_IsSupported_GitHubHost_UnencryptedHttp_ReturnsTrue()
+        public void GitHubHostProvider_IsSupported_GitHubHost_UnencryptedHttp_ReturnsTrue()
         {
             var input = new InputArguments(new Dictionary<string, string>
             {
@@ -29,7 +29,7 @@ namespace GitHub.Tests
         }
 
         [Fact]
-        public void GitHubProvider_IsSupported_GistHost_UnencryptedHttp_ReturnsTrue()
+        public void GitHubHostProvider_IsSupported_GistHost_UnencryptedHttp_ReturnsTrue()
         {
             var input = new InputArguments(new Dictionary<string, string>
             {
@@ -45,7 +45,7 @@ namespace GitHub.Tests
         }
 
         [Fact]
-        public void GitHubProvider_IsSupported_GitHubHost_Https_ReturnsTrue()
+        public void GitHubHostProvider_IsSupported_GitHubHost_Https_ReturnsTrue()
         {
             var input = new InputArguments(new Dictionary<string, string>
             {
@@ -59,7 +59,7 @@ namespace GitHub.Tests
         }
 
         [Fact]
-        public void GitHubProvider_IsSupported_GistHost_Https_ReturnsTrue()
+        public void GitHubHostProvider_IsSupported_GistHost_Https_ReturnsTrue()
         {
             var input = new InputArguments(new Dictionary<string, string>
             {
@@ -73,7 +73,7 @@ namespace GitHub.Tests
         }
 
         [Fact]
-        public void GitHubProvider_IsSupported_NonHttpHttps_ReturnsTrue()
+        public void GitHubHostProvider_IsSupported_NonHttpHttps_ReturnsTrue()
         {
             var input = new InputArguments(new Dictionary<string, string>
             {
@@ -87,7 +87,7 @@ namespace GitHub.Tests
         }
 
         [Fact]
-        public void GitHubProvider_IsSupported_NonGitHub_ReturnsFalse()
+        public void GitHubHostProvider_IsSupported_NonGitHub_ReturnsFalse()
         {
             var input = new InputArguments(new Dictionary<string, string>
             {
@@ -100,7 +100,7 @@ namespace GitHub.Tests
         }
 
         [Fact]
-        public void GitHubProvider_GetCredentialKey_GitHubHost_ReturnsCorrectKey()
+        public void GitHubHostProvider_GetCredentialKey_GitHubHost_ReturnsCorrectKey()
         {
             const string expectedKey = "https://github.com";
             var input = new InputArguments(new Dictionary<string, string>
@@ -115,7 +115,7 @@ namespace GitHub.Tests
         }
 
         [Fact]
-        public void GitHubProvider_GetCredentialKey_GistHost_ReturnsCorrectKey()
+        public void GitHubHostProvider_GetCredentialKey_GistHost_ReturnsCorrectKey()
         {
             const string expectedKey = "https://github.com";
             var input = new InputArguments(new Dictionary<string, string>
@@ -130,7 +130,7 @@ namespace GitHub.Tests
         }
 
         [Fact]
-        public async Task GitHubProvider_CreateCredentialAsync_UnencryptedHttp_ThrowsException()
+        public async Task GitHubHostProvider_CreateCredentialAsync_UnencryptedHttp_ThrowsException()
         {
             var input = new InputArguments(new Dictionary<string, string>
             {
@@ -148,7 +148,7 @@ namespace GitHub.Tests
         }
 
         [Fact]
-        public async Task GitHubProvider_CreateCredentialAsync_1FAOnly_ReturnsCredential()
+        public async Task GitHubHostProvider_CreateCredentialAsync_1FAOnly_ReturnsCredential()
         {
             var input = new InputArguments(new Dictionary<string, string>
             {
@@ -172,8 +172,8 @@ namespace GitHub.Tests
             var context = new TestCommandContext();
 
             var ghAuthMock = new Mock<IGitHubAuthentication>(MockBehavior.Strict);
-            ghAuthMock.Setup(x => x.TryGetCredentials(expectedTargetUri, out expectedUserName, out expectedPassword))
-                      .Returns(true);
+            ghAuthMock.Setup(x => x.GetCredentialsAsync(expectedTargetUri))
+                      .ReturnsAsync(new GitCredential(expectedUserName, expectedPassword));
 
             var ghApiMock = new Mock<IGitHubRestApi>(MockBehavior.Strict);
             ghApiMock.Setup(x => x.AcquireTokenAsync(expectedTargetUri, expectedUserName, expectedPassword, null, It.IsAny<IEnumerable<string>>()))
@@ -189,7 +189,7 @@ namespace GitHub.Tests
         }
 
         [Fact]
-        public async Task GitHubProvider_CreateCredentialAsync_2FARequired_ReturnsCredential()
+        public async Task GitHubHostProvider_CreateCredentialAsync_2FARequired_ReturnsCredential()
         {
             var input = new InputArguments(new Dictionary<string, string>
             {
@@ -215,10 +215,10 @@ namespace GitHub.Tests
             var context = new TestCommandContext();
 
             var ghAuthMock = new Mock<IGitHubAuthentication>(MockBehavior.Strict);
-            ghAuthMock.Setup(x => x.TryGetCredentials(expectedTargetUri, out expectedUserName, out expectedPassword))
-                      .Returns(true);
-            ghAuthMock.Setup(x => x.TryGetAuthenticationCode(expectedTargetUri, false, out expectedAuthCode))
-                      .Returns(true);
+            ghAuthMock.Setup(x => x.GetCredentialsAsync(expectedTargetUri))
+                      .ReturnsAsync(new GitCredential(expectedUserName, expectedPassword));
+            ghAuthMock.Setup(x => x.GetAuthenticationCodeAsync(expectedTargetUri, false))
+                      .ReturnsAsync(expectedAuthCode);
 
             var ghApiMock = new Mock<IGitHubRestApi>(MockBehavior.Strict);
             ghApiMock.Setup(x => x.AcquireTokenAsync(expectedTargetUri, expectedUserName, expectedPassword, null, It.IsAny<IEnumerable<string>>()))

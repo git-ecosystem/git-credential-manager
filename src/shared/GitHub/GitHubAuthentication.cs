@@ -1,15 +1,16 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
 using System;
+using System.Threading.Tasks;
 using Microsoft.Git.CredentialManager;
 
 namespace GitHub
 {
     public interface IGitHubAuthentication
     {
-        bool TryGetCredentials(Uri targetUri, out string userName, out string password);
+        Task<ICredential> GetCredentialsAsync(Uri targetUri);
 
-        bool TryGetAuthenticationCode(Uri targetUri, bool isSms, out string authenticationCode);
+        Task<string> GetAuthenticationCodeAsync(Uri targetUri, bool isSms);
     }
 
     public class TtyGitHubPromptAuthentication : IGitHubAuthentication
@@ -23,19 +24,19 @@ namespace GitHub
             _context = context;
         }
 
-        public bool TryGetCredentials(Uri targetUri, out string userName, out string password)
+        public Task<ICredential> GetCredentialsAsync(Uri targetUri)
         {
             EnsureTerminalPromptsEnabled();
 
             _context.Terminal.WriteLine("Enter credentials for '{0}'...", targetUri);
 
-            userName = _context.Terminal.Prompt("Username");
-            password = _context.Terminal.PromptSecret("Password");
+            string userName = _context.Terminal.Prompt("Username");
+            string password = _context.Terminal.PromptSecret("Password");
 
-            return !string.IsNullOrWhiteSpace(userName) && !string.IsNullOrWhiteSpace(password);
+            return Task.FromResult<ICredential>(new GitCredential(userName, password));
         }
 
-        public bool TryGetAuthenticationCode(Uri targetUri, bool isSms, out string authenticationCode)
+        public Task<string> GetAuthenticationCodeAsync(Uri targetUri, bool isSms)
         {
             EnsureTerminalPromptsEnabled();
 
@@ -50,14 +51,14 @@ namespace GitHub
                 _context.Terminal.WriteLine("Use your registered authentication app to generate an authentication code.");
             }
 
-            authenticationCode = _context.Terminal.Prompt("Authentication code");
-            return !string.IsNullOrWhiteSpace(authenticationCode);
+            string authCode = _context.Terminal.Prompt("Authentication code");
+
+            return Task.FromResult(authCode);
         }
 
         private void EnsureTerminalPromptsEnabled()
         {
-            if (_context.TryGetEnvironmentVariable(
-                    Constants.EnvironmentVariables.GitTerminalPrompts, out string envarPrompts)
+            if (_context.TryGetEnvironmentVariable(Constants.EnvironmentVariables.GitTerminalPrompts, out string envarPrompts)
                 && envarPrompts == "0")
             {
                 _context.Trace.WriteLine($"{Constants.EnvironmentVariables.GitTerminalPrompts} is 0; terminal prompts have been disabled.");
