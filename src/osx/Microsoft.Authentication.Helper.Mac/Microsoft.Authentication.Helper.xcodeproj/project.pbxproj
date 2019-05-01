@@ -368,6 +368,7 @@
 			baseConfigurationReference = D575DD7FD75AFA3F9B59DF88 /* Pods-Microsoft.Authentication.Helper.debug.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -377,6 +378,7 @@
 			baseConfigurationReference = 2617F1D56611A7524A6B795A /* Pods-Microsoft.Authentication.Helper.release.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;

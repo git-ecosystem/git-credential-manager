@@ -32,6 +32,7 @@ done
 CONFIGURATION=${CONFIGURATION:=Debug}
 
 MSAUTH_BINOUT=$MSAUTH_OUT/bin/$CONFIGURATION/native
+MSAUTH_SYMOUT=$MSAUTH_OUT/bin/$CONFIGURATION/native.sym
 MSAUTH_OBJOUT=$MSAUTH_OUT/xcodebuild
 
 # Ensure output directories exist
@@ -53,10 +54,16 @@ xcodebuild \
     -configuration $CONFIGURATION \
     -derivedDataPath $MSAUTH_OBJOUT || exit 1
 
+MSAUTH_EXEC=$MSAUTH_OBJOUT/Build/Products/$CONFIGURATION/Microsoft.Authentication.Helper
+
 # Copy binaries
 echo "Copying binaries..."
-MSAUTH_EXEC=$MSAUTH_OBJOUT/Build/Products/$CONFIGURATION/Microsoft.Authentication.Helper
 mkdir -p $MSAUTH_BINOUT || exit 1
 cp $MSAUTH_EXEC $MSAUTH_BINOUT || exit 1
+
+# Copy dSYM symbol files
+echo "Copying symbols..."
+mkdir -p $MSAUTH_SYMOUT || exit 1
+cp -R $MSAUTH_EXEC.dSYM $MSAUTH_SYMOUT || exit 1
 
 echo "Build of Microsoft.Authentication.Helper.Mac complete."

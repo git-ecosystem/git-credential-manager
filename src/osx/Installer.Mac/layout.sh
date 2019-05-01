@@ -39,6 +39,9 @@ case $i in
     PAYLOAD="${i#*=}"
     shift # past argument=value
     ;;
+    --symbol-output=*)
+    SYMBOLOUT="${i#*=}"
+    ;;
     *)
           # unknown option
     ;;
@@ -50,7 +53,12 @@ CONFIGURATION=${CONFIGURATION:=Debug}
 if [ -z "$PAYLOAD" ]; then
 	die "--output was not set"
 fi
+if [ -z "$SYMBOLOUT" ]; then
+    SYMBOLOUT="$PAYLOAD.sym"
+fi
+
 MSAUTH_BIN=$MSAUTH_OUT/bin/$CONFIGURATION/native
+MSAUTH_SYM=$MSAUTH_OUT/bin/$CONFIGURATION/native.sym
 if [ ! -d $MSAUTH_BIN ]; then
 	die "No native helper binaries found. Did you build?"
 fi
@@ -61,8 +69,8 @@ if [ -d $PAYLOAD ]; then
     rm -rf $PAYLOAD
 fi
 
-# Ensure payload directory exists
-mkdir -p $PAYLOAD
+# Ensure payload and symbol directories exists
+mkdir -p $PAYLOAD $SYMBOLOUT
 
 # Copy uninstaller script
 echo "Copying uninstall script..."
@@ -79,6 +87,12 @@ dotnet publish $GCM_SRC \
 	--framework=$FRAMEWORK \
 	--runtime=$RUNTIME \
 	--output=$(make_absolute $PAYLOAD) || exit 1
+
+# Collect symbols
+echo "Collecting managed symbols..."
+mv $PAYLOAD/*.pdb $SYMBOLOUT || exit 1
+echo "Collecting native symbols..."
+cp -R $MSAUTH_SYM/ $SYMBOLOUT || exit 1
 
 # Remove any unwanted .DS_Store files
 echo "Removing unnecessary files..."
