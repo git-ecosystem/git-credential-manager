@@ -4,6 +4,7 @@ using System;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using Microsoft.Git.CredentialManager.Commands;
+using Microsoft.Git.CredentialManager.Interop;
 
 namespace Microsoft.Git.CredentialManager
 {
@@ -81,8 +82,8 @@ namespace Microsoft.Git.CredentialManager
             // Try and use a nicer format for some well-known exception types
             switch (ex)
             {
-                case Win32Exception w32Ex:
-                    Context.StdError.WriteLine("fatal: {0} [0x{1:x}]", w32Ex.Message, w32Ex.NativeErrorCode);
+                case InteropException interopEx:
+                    Context.StdError.WriteLine("fatal: {0} [0x{1:x}]", interopEx.Message, interopEx.ErrorCode);
                     break;
                 default:
                     Context.StdError.WriteLine("fatal: {0}", ex.Message);
