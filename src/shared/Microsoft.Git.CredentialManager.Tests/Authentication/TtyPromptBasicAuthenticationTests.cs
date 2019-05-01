@@ -28,10 +28,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Authentication
             const string testUserName = "john.doe";
             const string testPassword = "letmein123";
 
-            var context = new TestCommandContext
-            {
-                SecretPrompts = {["Password"] = testPassword}
-            };
+            var context = new TestCommandContext();
+            context.Terminal.SecretPrompts["Password"] = testPassword;
 
             var basicAuth = new TtyPromptBasicAuthentication(context);
 
@@ -48,11 +46,9 @@ namespace Microsoft.Git.CredentialManager.Tests.Authentication
             const string testUserName = "john.doe";
             const string testPassword = "letmein123";
 
-            var context = new TestCommandContext
-            {
-                Prompts       = {["Username"] = testUserName},
-                SecretPrompts = {["Password"] = testPassword}
-            };
+            var context = new TestCommandContext();
+            context.Terminal.Prompts["Username"] = testUserName;
+            context.Terminal.SecretPrompts["Password"] = testPassword;
 
             var basicAuth = new TtyPromptBasicAuthentication(context);
 

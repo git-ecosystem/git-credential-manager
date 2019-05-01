@@ -11,25 +11,27 @@ namespace Microsoft.Git.CredentialManager.Interop.Windows.Native
     // https://docs.microsoft.com/en-us/windows/desktop/api/wincred/
     public static class Advapi32
     {
-        [DllImport("advapi32.dll", EntryPoint = "CredReadW", CharSet = CharSet.Unicode, SetLastError = true)]
+        private const string LibraryName = "advapi32.dll";
+
+        [DllImport(LibraryName, EntryPoint = "CredReadW", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode, SetLastError = true)]
         public static extern bool CredRead(
             string target,
             CredentialType type,
             int reserved,
             out IntPtr credential);
 
-        [DllImport("advapi32.dll", EntryPoint = "CredWriteW", CharSet = CharSet.Unicode, SetLastError = true)]
+        [DllImport(LibraryName, EntryPoint = "CredWriteW", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode, SetLastError = true)]
         public static extern bool CredWrite(
             ref Win32Credential credential,
             int flags);
 
-        [DllImport("advapi32.dll", EntryPoint = "CredDeleteW", CharSet = CharSet.Unicode, SetLastError = true)]
+        [DllImport(LibraryName, EntryPoint = "CredDeleteW", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode, SetLastError = true)]
         public static extern bool CredDelete(
             string target,
             CredentialType type,
             int flags);
 
-        [DllImport("advapi32.dll", EntryPoint = "CredFree", CharSet = CharSet.Unicode, SetLastError = true)]
+        [DllImport(LibraryName, EntryPoint = "CredFree", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode, SetLastError = true)]
         internal static extern void CredFree(
             IntPtr credential);
     }

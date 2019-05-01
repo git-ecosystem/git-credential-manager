@@ -60,6 +60,15 @@ namespace Microsoft.Git.CredentialManager
         }
 
         /// <summary>
+        /// Check if the current Operating System is POSIX-compliant.
+        /// </summary>
+        /// <returns>True if running on a POSIX-compliant Operating System, false otherwise.</returns>
+        public static bool IsPosix()
+        {
+            return IsMacOS() || IsLinux();
+        }
+
+        /// <summary>
         /// Ensure the current Operating System is macOS, fail otherwise.
         /// </summary>
         /// <exception cref="PlatformNotSupportedException">Thrown if the current OS is not macOS.</exception>
@@ -90,6 +99,18 @@ namespace Microsoft.Git.CredentialManager
         public static void EnsureLinux()
         {
             if (!IsLinux())
+            {
+                throw new PlatformNotSupportedException();
+            }
+        }
+
+        /// <summary>
+        /// Ensure the current Operating System is POSIX-compliant, fail otherwise.
+        /// </summary>
+        /// <exception cref="PlatformNotSupportedException">Thrown if the current OS is not POSIX-compliant.</exception>
+        public static void EnsurePosix()
+        {
+            if (!IsPosix())
             {
                 throw new PlatformNotSupportedException();
             }

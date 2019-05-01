@@ -225,4 +225,22 @@ namespace GitHub
 
         #endregion
     }
+
+    public static class GitHubRestApiExtensions
+    {
+        public static Task<AuthenticationResult> AcquireTokenAsync(
+            this IGitHubRestApi api,
+            Uri targetUri,
+            ICredential credentials,
+            string authenticationCode,
+            IEnumerable<string> scopes)
+        {
+            return api.AcquireTokenAsync(
+                targetUri,
+                credentials?.UserName,
+                credentials?.Password,
+                authenticationCode,
+                scopes);
+        }
+    }
 }

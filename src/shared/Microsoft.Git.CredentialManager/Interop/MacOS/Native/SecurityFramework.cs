@@ -80,23 +80,23 @@ namespace Microsoft.Git.CredentialManager.Interop.MacOS.Native
                 case OK:
                     return;
                 case ErrorSecNoSuchKeychain:
-                    throw new InvalidOperationException($"The keychain does not exist. ({ErrorSecNoSuchKeychain})");
+                    throw new InteropException("The keychain does not exist.", error);
                 case ErrorSecInvalidKeychain:
-                    throw new InvalidOperationException($"The keychain is not valid. ({ErrorSecInvalidKeychain})");
+                    throw new InteropException("The keychain is not valid.", error);
                 case ErrorSecAuthFailed:
-                    throw new InvalidOperationException($"Authorization/Authentication failed. ({ErrorSecAuthFailed})");
+                    throw new InteropException("Authorization/Authentication failed.", error);
                 case ErrorSecDuplicateItem:
-                    throw new InvalidOperationException($"The item already exists. ({ErrorSecDuplicateItem})");
+                    throw new InteropException("The item already exists.", error);
                 case ErrorSecItemNotFound:
-                    throw new InvalidOperationException($"The item cannot be found. ({ErrorSecItemNotFound})");
+                    throw new InteropException("The item cannot be found.", error);
                 case ErrorSecInteractionNotAllowed:
-                    throw new InvalidOperationException($"Interaction with the Security Server is not allowed. ({ErrorSecInteractionNotAllowed})");
+                    throw new InteropException("Interaction with the Security Server is not allowed.", error);
                 case ErrorSecInteractionRequired:
-                    throw new InvalidOperationException($"User interaction is required. ({ErrorSecInteractionRequired})");
+                    throw new InteropException("User interaction is required.", error);
                 case ErrorSecNoSuchAttr:
-                    throw new InvalidOperationException($"The attribute does not exist. ({ErrorSecNoSuchAttr})");
+                    throw new InteropException("The attribute does not exist.", error);
                 default:
-                    throw new Exception($"{defaultErrorMessage} ({error})");
+                    throw new InteropException(defaultErrorMessage, error);
             }
         }
     }

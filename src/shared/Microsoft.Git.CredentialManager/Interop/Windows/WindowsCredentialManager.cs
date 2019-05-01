@@ -35,13 +35,13 @@ namespace Microsoft.Git.CredentialManager.Interop.Windows
 
             try
             {
-                int result = Common.GetLastError(
+                int result = Win32Error.GetLastError(
                     Advapi32.CredRead(key, CredentialType.Generic, 0, out credPtr)
                 );
 
                 switch (result)
                 {
-                    case Common.OK:
+                    case Win32Error.Success:
                         Win32Credential credential = Marshal.PtrToStructure<Win32Credential>(credPtr);
 
                         var userName = credential.UserName;
@@ -51,11 +51,11 @@ namespace Microsoft.Git.CredentialManager.Interop.Windows
 
                         return new GitCredential(userName, password);
 
-                    case Common.ERROR_NOT_FOUND:
+                    case Win32Error.NotFound:
                         return null;
 
                     default:
-                        Common.ThrowIfError(result, "Failed to read item from store.");
+                        Win32Error.ThrowIfError(result, "Failed to read item from store.");
                         return null;
                 }
             }
@@ -87,11 +87,11 @@ namespace Microsoft.Git.CredentialManager.Interop.Windows
             {
                 Marshal.Copy(passwordBytes, 0, w32Credential.CredentialBlob, passwordBytes.Length);
 
-                int result = Common.GetLastError(
+                int result = Win32Error.GetLastError(
                     Advapi32.CredWrite(ref w32Credential, 0)
                 );
 
-                Common.ThrowIfError(result, "Failed to write item to store.");
+                Win32Error.ThrowIfError(result, "Failed to write item to store.");
             }
             finally
             {
@@ -104,20 +104,20 @@ namespace Microsoft.Git.CredentialManager.Interop.Windows
 
         public bool Remove(string key)
         {
-            int result = Common.GetLastError(
+            int result = Win32Error.GetLastError(
                 Advapi32.CredDelete(key, CredentialType.Generic, 0)
             );
 
             switch (result)
             {
-                case Common.OK:
+                case Win32Error.Success:
                     return true;
 
-                case Common.ERROR_NOT_FOUND:
+                case Win32Error.NotFound:
                     return false;
 
                 default:
-                    Common.ThrowIfError(result);
+                    Win32Error.ThrowIfError(result);
                     return false;
             }
         }
