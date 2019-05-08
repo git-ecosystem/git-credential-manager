@@ -1,14 +1,65 @@
-# Git Credential Manager (.NET Core)
+# Git Credential Manager Core
 
 Branch|Status
 -|-
 master|[![Build Status](https://mseng.visualstudio.com/AzureDevOps/_apis/build/status/Teams/VCDesktop/Git-Credential-Manager-Core/GCM-CI?branchName=master)](https://mseng.visualstudio.com/AzureDevOps/_build/latest?definitionId=7861&branchName=master)
 
+---
+
+[Git Credential Manager Core](https://github.com/Microsoft/Git-Credential-Manager-Core) (GCM Core) is a secure Git credential helper built on [.NET Core](https://microsoft.com/dotnet) that runs on Windows, macOS and Linux.
+
+Compared to Git's [built-in credential helpers]((https://git-scm.com/book/en/v2/Git-Tools-Credential-Storage)) (Windows: wincred, macOS: osxkeychain, Linux: gnome-keyring) which provides single-factor authentication support working on any HTTP-enabled Git repository, GCM Core provides multi-factor authentication support for [Azure DevOps](https://dev.azure.com/), Azure DevOps Server (formerly Team Foundation Server), and GitHub.
+
+## Public preview for macOS
+
+The long-term goal of GCM Core is to converge the .NET Framework-based [Git Credential Manager for Windows](https://github.com/Microsoft/Git-Credential-Manager-for-Windows) (GCM Windows), and the Java-based [Git Credential Manager for Mac and Linux](https://github.com/Microsoft/Git-Credential-Manager-for-Mac-and-Linux) (Java GCM), providing a consistent authentication experience across all platforms.
+
+### Current status
+
+GCM Core is currently in preview for the macOS platform only, with a Windows and Linux preview following in due course. Until that time we recommend Windows users to continue to use GCM Windows, and Linux users to use preferably SSH or Java GCM.
+
+Feature|Windows|macOS|Linux
+-|-|-|-
+Installer/uninstaller||&#10003;|
+Secure platform credential storage|&#10003;<br/>Windows Credential Manager|&#10003;<br/>macOS Keychain|
+Multi-factor authentication support for Azure DevOps|&#10003;|&#10003;|
+Two-factor authentication support for GitHub|&#10003;\*|&#10003;\*|&#10003;\*
+Two-factor authentication support for BitBucket|||
+Windows Integrated Authentication (NTLM/Kerberos) support|&#10003;|_N/A_|_N/A_
+Basic HTTP authentication support|&#10003;|&#10003;|&#10003;
+
+**Notes:**
+
+(\*) Currently only supported when using Git from the terminal or command line. A platform-native UI experience for GitHub is not yet available on macOS, but planned.
+
+### Planned features
+
+- [ ] Windows and Linux installers
+- [ ] Improved GitHub support (platform-native UI)
+- [ ] BitBucket
+- [ ] Proxy support
+
+## Download and Install
+
+To use GCM Core, you can download the [latest installer](https://github.com/Microsoft/Git-Credential-Manager-Core/releases/latest) for your platform. To install, double-click installation package and follow the instructions presented.
+
+## How to use
+
+You don't! GCM gets called when Git needs credentials for an operation. For example, when pushing (`git push`) to [Azure DevOps](https://dev.azure.com), it automatically opens a window and initializes an OAuth2 flow to get your personal access token.
+
+## Additional Resources
+
+- [Frequently asked questions](docs/faq.md)
+- [Development and debugging](docs/development.md)
+- [Command-line usage](docs/usage.md)
+- [Configuration options](docs/configuration.md)
+- [Environment variables](docs/environment.md)
+
 ## Contributing
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a
 Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
-the rights to use your contribution. For details, visit https://cla.microsoft.com.
+the rights to use your contribution. For details, visit <https://cla.microsoft.com.>
 
 When you submit a pull request, a CLA-bot will automatically determine whether you need to provide
 a CLA and decorate the PR appropriately (e.g., label, comment). Simply follow the instructions

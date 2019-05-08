@@ -43,21 +43,21 @@ namespace Microsoft.Git.CredentialManager.Authentication
                 throw new InvalidOperationException("Cannot show basic credential prompt because terminal prompts have been disabled.");
             }
 
-            _context.StdError.WriteLine("Enter credentials for '{0}':", resource);
+            _context.Terminal.WriteLine("Enter credentials for '{0}':", resource);
 
             if (!string.IsNullOrWhiteSpace(userName))
             {
                 // Don't need to prompt for the username if it has been specified already
-                _context.StdError.WriteLine("Username: {0}", userName);
+                _context.Terminal.WriteLine("Username: {0}", userName);
             }
             else
             {
                 // Prompt for username
-                userName = _context.Prompt("Username");
+                userName = _context.Terminal.Prompt("Username");
             }
 
             // Prompt for password
-            string password = _context.PromptSecret("Password");
+            string password = _context.Terminal.PromptSecret("Password");
 
             return new GitCredential(userName, password);
         }

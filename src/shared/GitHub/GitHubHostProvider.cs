@@ -67,35 +67,33 @@ namespace GitHub
 
             Uri targetUri = GetTargetUri(input);
 
-            if (_gitHubAuth.TryGetCredentials(targetUri, out string username, out string password))
+            ICredential credentials = await _gitHubAuth.GetCredentialsAsync(targetUri);
+
+            AuthenticationResult result = await _gitHubApi.AcquireTokenAsync(
+                targetUri, credentials, null, GitHubCredentialScopes);
+
+            if (result.Type == GitHubAuthenticationResultType.Success)
             {
-                AuthenticationResult result = await _gitHubApi.AcquireTokenAsync(
-                    targetUri, username, password, null, GitHubCredentialScopes);
+                Context.Trace.WriteLine($"Token acquisition for '{targetUri}' succeeded");
+
+                return result.Token;
+            }
+
+            if (result.Type == GitHubAuthenticationResultType.TwoFactorApp ||
+                result.Type == GitHubAuthenticationResultType.TwoFactorSms)
+            {
+                bool isSms = result.Type == GitHubAuthenticationResultType.TwoFactorSms;
+
+                string authCode = await _gitHubAuth.GetAuthenticationCodeAsync(targetUri, isSms);
+
+                result = await _gitHubApi.AcquireTokenAsync(
+                    targetUri, credentials, authCode, GitHubCredentialScopes);
 
                 if (result.Type == GitHubAuthenticationResultType.Success)
                 {
-                    Context.Trace.WriteLine($"Token acquisition for '{targetUri}' succeeded");
+                    Context.Trace.WriteLine($"Token acquisition for '{targetUri}' succeeded.");
 
                     return result.Token;
-                }
-
-                if (result.Type == GitHubAuthenticationResultType.TwoFactorApp ||
-                    result.Type == GitHubAuthenticationResultType.TwoFactorSms)
-                {
-                    bool isSms = result.Type == GitHubAuthenticationResultType.TwoFactorSms;
-
-                    if (_gitHubAuth.TryGetAuthenticationCode(targetUri, isSms, out string authenticationCode))
-                    {
-                        result = await _gitHubApi.AcquireTokenAsync(
-                            targetUri, username, password, authenticationCode, GitHubCredentialScopes);
-
-                        if (result.Type == GitHubAuthenticationResultType.Success)
-                        {
-                            Context.Trace.WriteLine($"Token acquisition for '{targetUri}' succeeded.");
-
-                            return result.Token;
-                        }
-                    }
                 }
             }
 

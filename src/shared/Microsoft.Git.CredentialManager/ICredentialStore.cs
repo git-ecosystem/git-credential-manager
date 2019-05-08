@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
-namespace Microsoft.Git.CredentialManager.SecureStorage
+
+namespace Microsoft.Git.CredentialManager
 {
     /// <summary>
     /// Represents a secure storage location for <see cref="ICredential"/>s.
