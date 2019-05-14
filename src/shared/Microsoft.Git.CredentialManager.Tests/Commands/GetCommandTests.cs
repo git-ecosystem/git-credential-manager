@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
-
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -40,52 +39,21 @@ namespace Microsoft.Git.CredentialManager.Tests.Commands
         }
 
         [Fact]
-        public async Task GetCommand_ExecuteAsync_CredentialExists_WritesExistingCredential()
+        public async Task GetCommand_ExecuteAsync_CallsHostProviderAndWritesCredential()
         {
             const string testUserName = "john.doe";
             const string testPassword = "letmein123";
-            const string testCredentialKey = "test-cred-key";
+            ICredential testCredential = new GitCredential(testUserName, testPassword);
             var expectedStdOutDict = new Dictionary<string, string>
             {
                 ["username"] = testUserName,
                 ["password"] = testPassword
             };
 
-            var provider = new TestHostProvider {CredentialKey = testCredentialKey};
-            var providerRegistry = new TestHostProviderRegistry {Provider = provider};
-            var context = new TestCommandContext
-            {
-                CredentialStore = {[$"git:{testCredentialKey}"] = new GitCredential(testUserName, testPassword)}
-            };
-
-            string[] cmdArgs = {"get"};
-            var command = new GetCommand(providerRegistry);
-
-            await command.ExecuteAsync(context, cmdArgs);
-
-            IDictionary<string, string> actualStdOutDict = ParseDictionary(context.StdOut);
-
-            Assert.Equal(expectedStdOutDict, actualStdOutDict);
-        }
-
-        [Fact]
-        public async Task GetCommand_ExecuteAsync_CredentialNotExists_CreatesAndWritesNewCredential()
-        {
-            const string testUserName = "john.doe";
-            const string testPassword = "letmein123";
-            const string testCredentialKey = "test-cred-key";
-            var expectedStdOutDict = new Dictionary<string, string>
-            {
-                ["username"] = testUserName,
-                ["password"] = testPassword
-            };
-
-            var provider = new TestHostProvider
-            {
-                CredentialKey = testCredentialKey,
-                Credential = new GitCredential(testUserName, testPassword)
-            };
-            var providerRegistry = new TestHostProviderRegistry {Provider = provider};
+            var providerMock = new Mock<IHostProvider>();
+            providerMock.Setup(x => x.GetCredentialAsync(It.IsAny<InputArguments>()))
+                        .ReturnsAsync(testCredential);
+            var providerRegistry = new TestHostProviderRegistry {Provider = providerMock.Object};
             var context = new TestCommandContext();
 
             string[] cmdArgs = {"get"};
@@ -95,6 +63,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Commands
 
             IDictionary<string, string> actualStdOutDict = ParseDictionary(context.StdOut);
 
+            providerMock.Verify(x => x.GetCredentialAsync(It.IsAny<InputArguments>()), Times.Once);
             Assert.Equal(expectedStdOutDict, actualStdOutDict);
         }
 

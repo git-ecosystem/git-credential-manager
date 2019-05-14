@@ -14,30 +14,9 @@ namespace Microsoft.Git.CredentialManager.Commands
 
         protected override string Name => "store";
 
-        protected override Task ExecuteInternalAsync(ICommandContext context, InputArguments input, IHostProvider provider, string credentialKey)
+        protected override Task ExecuteInternalAsync(ICommandContext context, InputArguments input, IHostProvider provider)
         {
-            // Create the credential based on Git's input
-            string userName = input.UserName;
-            string password = input.Password;
-
-            // NTLM-authentication is signaled to Git as an empty username/password pair
-            // and we will get called to 'store' these NTLM credentials.
-            // We avoid storing empty credentials.
-            if (string.IsNullOrWhiteSpace(userName) && string.IsNullOrWhiteSpace(password))
-            {
-                context.Trace.WriteLine("Not storing empty credential.");
-            }
-            else
-            {
-                var credential = new GitCredential(userName, password);
-
-                // Add or update the credential in the store.
-                context.Trace.WriteLine("Storing credential...");
-                context.CredentialStore.AddOrUpdate(credentialKey, credential);
-                context.Trace.WriteLine("Credential was successfully stored.");
-            }
-
-            return Task.CompletedTask;
+            return provider.StoreCredentialAsync(input);
         }
     }
 }
