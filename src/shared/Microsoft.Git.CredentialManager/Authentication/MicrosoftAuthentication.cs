@@ -2,11 +2,9 @@
 // Licensed under the MIT license.
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
-using Microsoft.Git.CredentialManager;
 
 namespace Microsoft.Git.CredentialManager.Authentication
 {
@@ -15,19 +13,15 @@ namespace Microsoft.Git.CredentialManager.Authentication
         Task<string> GetAccessTokenAsync(string authority, string clientId, Uri redirectUri, string resource);
     }
 
-    public class OutOfProcHelperMicrosoftAuthentication : IMicrosoftAuthentication
+    public class MicrosoftAuthentication : AuthenticationBase, IMicrosoftAuthentication
     {
-        private readonly ICommandContext _context;
-
-        public OutOfProcHelperMicrosoftAuthentication(ICommandContext context)
-        {
-            EnsureArgument.NotNull(context, nameof(context));
-
-            _context = context;
-        }
+        public MicrosoftAuthentication(ICommandContext context)
+            : base(context) {}
 
         public async Task<string> GetAccessTokenAsync(string authority, string clientId, Uri redirectUri, string resource)
         {
+            string helperPath = FindHelperExecutablePath();
+
             var inputDict = new Dictionary<string, string>
             {
                 ["authority"]   = authority,
@@ -36,7 +30,7 @@ namespace Microsoft.Git.CredentialManager.Authentication
                 ["resource"]    = resource,
             };
 
-            IDictionary<string, string> resultDict = await InvokeHelperAsync(inputDict);
+            IDictionary<string, string> resultDict = await InvokeHelperAsync(helperPath, null, inputDict);
 
             if (!resultDict.TryGetValue("accessToken", out string accessToken))
             {
@@ -44,44 +38,6 @@ namespace Microsoft.Git.CredentialManager.Authentication
             }
 
             return accessToken;
-        }
-
-        public async Task<IDictionary<string, string>> InvokeHelperAsync(IDictionary<string, string> input)
-        {
-            string helperExecutablePath = FindHelperExecutablePath();
-            var procStartInfo = new ProcessStartInfo(helperExecutablePath)
-            {
-                RedirectStandardInput = true,
-                RedirectStandardOutput = true,
-                RedirectStandardError = false, // Do not redirect stderr as tracing might be enabled
-                UseShellExecute = false
-            };
-
-            // We flush the trace writers here so that the we don't stomp over the
-            // authentication helper's messages.
-            _context.Trace.Flush();
-
-            var process = Process.Start(procStartInfo);
-
-            await process.StandardInput.WriteDictionaryAsync(input);
-
-            IDictionary<string, string> resultDict = await process.StandardOutput.ReadDictionaryAsync(StringComparer.OrdinalIgnoreCase);
-
-            await Task.Run(() => process.WaitForExit());
-            int exitCode = process.ExitCode;
-
-            if (exitCode != 0)
-            {
-                string errorMessage;
-                if (!resultDict.TryGetValue("error", out errorMessage))
-                {
-                    errorMessage = "Unknown";
-                }
-
-                throw new Exception($"helper error ({exitCode}): {errorMessage}");
-            }
-
-            return resultDict;
         }
 
         private string FindHelperExecutablePath()
@@ -95,9 +51,10 @@ namespace Microsoft.Git.CredentialManager.Authentication
 
             string executableDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             string path = Path.Combine(executableDirectory, helperName);
-            if (!_context.FileSystem.FileExists(path))
+            if (!Context.FileSystem.FileExists(path))
             {
-                throw new Exception($"Cannot find helper '{helperName}' in '{executableDirectory}'");
+                // We expect to have a helper on Windows and Mac
+                throw new Exception($"Cannot find required helper '{helperName}' in '{executableDirectory}'");
             }
 
             return path;

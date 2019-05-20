@@ -14,7 +14,7 @@ namespace Microsoft.AzureRepos
         private readonly IMicrosoftAuthentication _msAuth;
 
         public AzureReposHostProvider(ICommandContext context)
-            : this(context, new AzureDevOpsRestApi(context), new OutOfProcHelperMicrosoftAuthentication(context)) { }
+            : this(context, new AzureDevOpsRestApi(context), new MicrosoftAuthentication(context)) { }
 
         public AzureReposHostProvider(ICommandContext context, IAzureDevOpsRestApi azDevOps, IMicrosoftAuthentication msAuth)
             : base (context)
