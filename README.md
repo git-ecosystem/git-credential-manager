@@ -19,11 +19,11 @@ The long-term goal of GCM Core is to converge the .NET Framework-based [Git Cred
 GCM Core is currently in preview for the macOS platform only, with a Windows and Linux preview following in due course. Until that time we recommend Windows users to continue to use GCM Windows, and Linux users to use preferably SSH or Java GCM.
 
 Feature|Windows|macOS|Linux
--|-|-|-
+-|:-:|:-:|:-:
 Installer/uninstaller||&#10003;|
 Secure platform credential storage|&#10003;<br/>Windows Credential Manager|&#10003;<br/>macOS Keychain|
 Multi-factor authentication support for Azure DevOps|&#10003;|&#10003;|
-Two-factor authentication support for GitHub|&#10003;\*|&#10003;\*|&#10003;\*
+Two-factor authentication support for GitHub|&#10003;|&#10003;\*|&#10003;\*
 Two-factor authentication support for BitBucket|||
 Windows Integrated Authentication (NTLM/Kerberos) support|&#10003;|_N/A_|_N/A_
 Basic HTTP authentication support|&#10003;|&#10003;|&#10003;
