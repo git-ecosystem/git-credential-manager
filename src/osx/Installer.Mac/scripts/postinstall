@@ -1,11 +1,30 @@
 #!/bin/bash
 set -e
 
-# Make symlink to GCM in /usr/local/bin
-if [ ! -e /usr/local/bin/git-credential-manager ]
+function IsBrewPkgInstalled
+{
+    # Check if Homebrew is installed
+    /usr/bin/which brew > /dev/null
+    if [ $? -eq 0 ]
+    then
+        # Check if the package has been installed
+        brew ls --versions $1 > /dev/null
+        if [ $? -eq 0 ]
+        then
+            return 0
+        fi
+    fi
+    return 1
+}
+
+# Check if Java GCM is present on this system and unlink it should it exist
+if [ -L /usr/local/bin/git-credential-manager && IsBrewPkgInstalled "git-credential-manager" ]
 then
-    /bin/ln -s /usr/local/share/gcm-core/git-credential-manager /usr/local/bin/git-credential-manager
+    brew unlink git-credential-manager
 fi
+
+# Create symlink to GCM in /usr/local/bin
+/bin/ln -Fs /usr/local/share/gcm-core/git-credential-manager /usr/local/bin/git-credential-manager
 
 # Set system gitconfig for the current user
 USER_ID=`id -u "${USER}"`
