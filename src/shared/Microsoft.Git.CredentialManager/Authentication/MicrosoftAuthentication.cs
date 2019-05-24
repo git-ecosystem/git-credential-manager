@@ -129,7 +129,7 @@ namespace Microsoft.Git.CredentialManager.Authentication
                 }
 #elif NETSTANDARD
                 // MSAL requires the application redirect URI is a loopback address to use the System WebView
-                if (PlatformUtils.IsDesktopSession() && app.IsSystemWebViewAvailable && redirectUri.IsLoopback)
+                if (Context.IsDesktopSession && app.IsSystemWebViewAvailable && redirectUri.IsLoopback)
                 {
                     result = await app.AcquireTokenInteractive(scopes)
                         .WithPrompt(Prompt.SelectAccount)

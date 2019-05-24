@@ -3,6 +3,7 @@
 using System;
 using Microsoft.Git.CredentialManager.Authentication;
 using Microsoft.Git.CredentialManager.Tests.Objects;
+using Moq;
 using Xunit;
 
 namespace Microsoft.Git.CredentialManager.Tests.Authentication
@@ -19,49 +20,50 @@ namespace Microsoft.Git.CredentialManager.Tests.Authentication
         }
 
         [Fact]
-        public void BasicAuthentication_GetCredentials_ResourceAndUserName_PasswordPromptReturnsCredentials()
+        public void BasicAuthentication_GetCredentials_NonDesktopSession_ResourceAndUserName_PasswordPromptReturnsCredentials()
         {
             const string testResource = "https://example.com";
             const string testUserName = "john.doe";
             const string testPassword = "letmein123";
 
-            var context = new TestCommandContext();
+            var context = new TestCommandContext {IsDesktopSession = false};
             context.Terminal.SecretPrompts["Password"] = testPassword;
 
             var basicAuth = new BasicAuthentication(context);
 
-            GitCredential credential = basicAuth.GetCredentials(testResource, testUserName);
+            ICredential credential = basicAuth.GetCredentials(testResource, testUserName);
 
             Assert.Equal(testUserName, credential.UserName);
             Assert.Equal(testPassword, credential.Password);
         }
 
         [Fact]
-        public void BasicAuthentication_GetCredentials_Resource_UserPassPromptReturnsCredentials()
+        public void BasicAuthentication_GetCredentials_NonDesktopSession_Resource_UserPassPromptReturnsCredentials()
         {
             const string testResource = "https://example.com";
             const string testUserName = "john.doe";
             const string testPassword = "letmein123";
 
-            var context = new TestCommandContext();
+            var context = new TestCommandContext {IsDesktopSession = false};
             context.Terminal.Prompts["Username"] = testUserName;
             context.Terminal.SecretPrompts["Password"] = testPassword;
 
             var basicAuth = new BasicAuthentication(context);
 
-            GitCredential credential = basicAuth.GetCredentials(testResource);
+            ICredential credential = basicAuth.GetCredentials(testResource);
 
             Assert.Equal(testUserName, credential.UserName);
             Assert.Equal(testPassword, credential.Password);
         }
 
         [Fact]
-        public void BasicAuthentication_GetCredentials_NoInteraction_ThrowsException()
+        public void BasicAuthentication_GetCredentials_NonDesktopSession_NoTerminalPrompts_ThrowsException()
         {
             const string testResource = "https://example.com";
 
             var context = new TestCommandContext
             {
+                IsDesktopSession = false,
                 Settings = {IsInteractionAllowed = false},
             };
 
@@ -70,19 +72,98 @@ namespace Microsoft.Git.CredentialManager.Tests.Authentication
             Assert.Throws<InvalidOperationException>(() => basicAuth.GetCredentials(testResource));
         }
 
-        [Fact]
-        public void BasicAuthentication_GetCredentials_NoTerminalPrompts_ThrowsException()
+        [PlatformFact(Platform.Windows)]
+        public void BasicAuthentication_GetCredentials_DesktopSession_Resource_UserPassPromptReturnsCredentials()
         {
             const string testResource = "https://example.com";
+            const string testUserName = "john.doe";
+            const string testPassword = "letmein123";
 
             var context = new TestCommandContext
             {
-                Settings = {IsTerminalPromptsEnabled = false},
+                IsDesktopSession = true,
+                SystemPrompts =
+                {
+                    CredentialPrompt = (resource, userName) =>
+                    {
+                        Assert.Equal(testResource, resource);
+                        Assert.Null(userName);
+
+                        return new GitCredential(testUserName, testPassword);
+                    }
+                }
             };
 
             var basicAuth = new BasicAuthentication(context);
 
-            Assert.Throws<InvalidOperationException>(() => basicAuth.GetCredentials(testResource));
+            ICredential credential = basicAuth.GetCredentials(testResource);
+
+            Assert.NotNull(credential);
+            Assert.Equal(testUserName, credential.UserName);
+            Assert.Equal(testPassword, credential.Password);
+        }
+
+        [PlatformFact(Platform.Windows)]
+        public void BasicAuthentication_GetCredentials_DesktopSession_ResourceAndUser_PassPromptReturnsCredentials()
+        {
+            const string testResource = "https://example.com";
+            const string testUserName = "john.doe";
+            const string testPassword = "letmein123";
+
+            var context = new TestCommandContext
+            {
+                IsDesktopSession = true,
+                SystemPrompts =
+                {
+                    CredentialPrompt = (resource, userName) =>
+                    {
+                        Assert.Equal(testResource, resource);
+                        Assert.Equal(testUserName, userName);
+
+                        return new GitCredential(testUserName, testPassword);
+                    }
+                }
+            };
+
+            var basicAuth = new BasicAuthentication(context);
+
+            ICredential credential = basicAuth.GetCredentials(testResource, testUserName);
+
+            Assert.NotNull(credential);
+            Assert.Equal(testUserName, credential.UserName);
+            Assert.Equal(testPassword, credential.Password);
+        }
+
+        [PlatformFact(Platform.Windows)]
+        public void BasicAuthentication_GetCredentials_DesktopSession_ResourceAndUser_PassPromptDiffUserReturnsCredentials()
+        {
+            const string testResource = "https://example.com";
+            const string testUserName = "john.doe";
+            const string newUserName  = "jane.doe";
+            const string testPassword = "letmein123";
+
+            var context = new TestCommandContext
+            {
+                IsDesktopSession = true,
+                SystemPrompts =
+                {
+                    CredentialPrompt = (resource, userName) =>
+                    {
+                        Assert.Equal(testResource, resource);
+                        Assert.Equal(testUserName, userName);
+
+                        return new GitCredential(newUserName, testPassword);
+                    }
+                }
+            };
+
+            var basicAuth = new BasicAuthentication(context);
+
+            ICredential credential = basicAuth.GetCredentials(testResource, testUserName);
+
+            Assert.NotNull(credential);
+            Assert.Equal(newUserName, credential.UserName);
+            Assert.Equal(testPassword, credential.Password);
         }
     }
 }

@@ -29,6 +29,11 @@ namespace Microsoft.Git.CredentialManager
         ITerminal Terminal { get; }
 
         /// <summary>
+        /// Returns true if in a GUI session/desktop is available, false otherwise.
+        /// </summary>
+        bool IsDesktopSession { get; }
+
+        /// <summary>
         /// Application tracing system.
         /// </summary>
         ITrace Trace { get; }
@@ -57,6 +62,11 @@ namespace Microsoft.Git.CredentialManager
         /// The current process environment.
         /// </summary>
         IEnvironment Environment { get; }
+
+        /// <summary>
+        /// Native UI prompts.
+        /// </summary>
+        ISystemPrompts SystemPrompts { get; }
     }
 
     /// <summary>
@@ -76,6 +86,7 @@ namespace Microsoft.Git.CredentialManager
                 Environment     = new WindowsEnvironment(FileSystem);
                 Terminal        = new WindowsTerminal(Trace);
                 CredentialStore = WindowsCredentialManager.Open();
+                SystemPrompts   = new WindowsSystemPrompts();
             }
             else if (PlatformUtils.IsPosix())
             {
@@ -83,6 +94,7 @@ namespace Microsoft.Git.CredentialManager
                 {
                     FileSystem      = new MacOSFileSystem();
                     CredentialStore = MacOSKeychain.Open();
+                    SystemPrompts   = new MacOSSystemPrompts();
                 }
                 else if (PlatformUtils.IsLinux())
                 {
@@ -96,6 +108,7 @@ namespace Microsoft.Git.CredentialManager
             string repoPath   = Git.GetRepositoryPath(FileSystem.GetCurrentDirectory());
             Settings          = new Settings(Environment, Git, repoPath);
             HttpClientFactory = new HttpClientFactory(Trace, Settings, Streams);
+            IsDesktopSession  = PlatformUtils.IsDesktopSession();
         }
 
         #region ICommandContext
@@ -105,6 +118,8 @@ namespace Microsoft.Git.CredentialManager
         public IStandardStreams Streams { get; }
 
         public ITerminal Terminal { get; }
+
+        public bool IsDesktopSession { get; }
 
         public ITrace Trace { get; }
 
@@ -117,6 +132,8 @@ namespace Microsoft.Git.CredentialManager
         public IGit Git { get; }
 
         public IEnvironment Environment { get; }
+
+        public ISystemPrompts SystemPrompts { get; }
 
         #endregion
 
