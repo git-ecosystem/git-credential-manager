@@ -11,6 +11,7 @@ jobs:
     name: VSEng-MicroBuildVS2017
   steps:
   - template: templates/windows/compile.yml
+  - template: templates/windows/pack.yml
 
 - job: osx_step1
   displayName: macOS (Build & Layout)
