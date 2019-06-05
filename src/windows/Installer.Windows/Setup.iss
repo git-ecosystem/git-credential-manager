@@ -80,4 +80,5 @@ Source: "{#PayloadDir}\Microsoft.Authentication.Helper.exe"; DestDir: "{app}"; F
 Source: "{#PayloadDir}\Microsoft.Authentication.Helper.exe.config"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PayloadDir}\Microsoft.AzureRepos.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PayloadDir}\Microsoft.Git.CredentialManager.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#PayloadDir}\Microsoft.IdentityModel.Clients.ActiveDirectory.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#PayloadDir}\Microsoft.Identity.Client.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#PayloadDir}\Microsoft.Identity.Client.Extensions.Msal.dll"; DestDir: "{app}"; Flags: ignoreversion

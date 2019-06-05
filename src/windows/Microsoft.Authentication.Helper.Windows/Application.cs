@@ -2,9 +2,11 @@
 // Licensed under the MIT license.
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using Microsoft.Git.CredentialManager;
-using Microsoft.IdentityModel.Clients.ActiveDirectory;
+using Microsoft.Identity.Client;
+using Microsoft.Identity.Client.Extensions.Msal;
 
 namespace Microsoft.Authentication.Helper
 {
@@ -17,19 +19,6 @@ namespace Microsoft.Authentication.Helper
         {
             try
             {
-                // Listen to ADAL logs if GCM_TRACE_MSAUTH is set
-                if (Context.IsEnvironmentVariableTruthy(Constants.EnvironmentVariables.GcmTraceMsAuth, false))
-                {
-                    LoggerCallbackHandler.UseDefaultLogging = false;
-                    LoggerCallbackHandler.LogCallback = OnAdalLogMessage;
-                }
-
-                // If GCM secret tracing is enabled also enable "PII" logging in ADAL
-                if (Context.Trace.IsSecretTracingEnabled)
-                {
-                    LoggerCallbackHandler.PiiLoggingEnabled = true;
-                }
-
                 IDictionary<string, string> inputDict = await Context.StdIn.ReadDictionaryAsync(StringComparer.OrdinalIgnoreCase);
 
                 string authority   = GetArgument(inputDict, "authority");
@@ -55,9 +44,9 @@ namespace Microsoft.Authentication.Helper
             }
         }
 
-        private void OnAdalLogMessage(LogLevel level, string message, bool containspii)
+        private void OnMsalLogMessage(LogLevel level, string message, bool containspii)
         {
-            Context.Trace.WriteLine($"[{level.ToString()}] {message}", memberName: "ADAL");
+            Context.Trace.WriteLine($"[{level.ToString()}] {message}", memberName: "MSAL");
         }
 
         private static string GetArgument(IDictionary<string, string> inputDict, string name)
@@ -72,18 +61,49 @@ namespace Microsoft.Authentication.Helper
 
         protected virtual async Task<string> GetAccessTokenAsync(string authority, string clientId, Uri redirectUri, string resource)
         {
-            var cache = new VisualStudioTokenCache(Context);
-            var authContext = new AuthenticationContext(authority, cache);
+            string[] scopes = { $"{resource}/.default" };
 
-            IPlatformParameters parameters = new PlatformParameters(PromptBehavior.SelectAccount);
-            AuthenticationResult result = await authContext.AcquireTokenAsync(
-                resource,
-                clientId,
-                redirectUri,
-                parameters,
-                UserIdentifier.AnyUser);
+            var appBuilder = PublicClientApplicationBuilder.Create(clientId)
+                                                           .WithAuthority(authority)
+                                                           .WithRedirectUri(redirectUri.ToString());
+
+            // Listen to MSAL logs if GCM_TRACE_MSAUTH is set
+            if (Context.IsEnvironmentVariableTruthy(Constants.EnvironmentVariables.GcmTraceMsAuth, false))
+            {
+                // If GCM secret tracing is enabled also enable "PII" logging in MSAL
+                bool enablePiiLogging = Context.Trace.IsSecretTracingEnabled;
+
+                appBuilder.WithLogging(OnMsalLogMessage, LogLevel.Verbose, enablePiiLogging, false);
+            }
+
+            IPublicClientApplication app = appBuilder.Build();
+
+            await RegisterVSTokenCacheAsync(app);
+
+            AuthenticationResult result = await app.AcquireTokenInteractive(scopes)
+                                                   .WithPrompt(Prompt.SelectAccount)
+                                                   .ExecuteAsync();
 
             return result.AccessToken;
+        }
+
+        private async Task RegisterVSTokenCacheAsync(IPublicClientApplication app)
+        {
+            Context.Trace.WriteLine("Configuring Visual Studio token cache...");
+
+            // The Visual Studio MSAL cache is located at "%LocalAppData%\.IdentityService\msal.cache" on Windows.
+            // We use the MSAL extension library to provide us consistent cache file access semantics (synchronisation, etc)
+            // as Visual Studio itself follows, as well as other Microsoft developer tools such as the Azure PowerShell CLI.
+            const string cacheFileName = "msal.cache";
+            string appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            string cacheDirectory = Path.Combine(appData, ".IdentityService");
+
+            var storageProps = new StorageCreationPropertiesBuilder(cacheFileName, cacheDirectory, app.AppConfig.ClientId).Build();
+
+            var helper = await MsalCacheHelper.CreateAsync(storageProps);
+            helper.RegisterCache(app.UserTokenCache);
+
+            Context.Trace.WriteLine("Visual Studio token cache configured.");
         }
     }
 }
