@@ -6,7 +6,7 @@ master|[![Build Status](https://mseng.visualstudio.com/AzureDevOps/_apis/build/s
 
 ---
 
-[Git Credential Manager Core](https://github.com/Microsoft/Git-Credential-Manager-Core) (GCM Core) is a secure Git credential helper built on [.NET Core](https://microsoft.com/dotnet) that runs on Windows, macOS and Linux.
+[Git Credential Manager Core](https://github.com/Microsoft/Git-Credential-Manager-Core) (GCM Core) is a secure Git credential helper built on [.NET Core](https://microsoft.com/dotnet) that runs on Windows and macOS. Linux support is planned, but not yet scheduled.
 
 Compared to Git's [built-in credential helpers]((https://git-scm.com/book/en/v2/Git-Tools-Credential-Storage)) (Windows: wincred, macOS: osxkeychain, Linux: gnome-keyring) which provides single-factor authentication support working on any HTTP-enabled Git repository, GCM Core provides multi-factor authentication support for [Azure DevOps](https://dev.azure.com/), Azure DevOps Server (formerly Team Foundation Server), and GitHub.
 
@@ -16,7 +16,7 @@ The long-term goal of GCM Core is to converge the .NET Framework-based [Git Cred
 
 ### Current status
 
-GCM Core is currently in preview for the macOS platform only, with a Windows and Linux preview following in due course. Until that time we recommend Windows users to continue to use GCM Windows, and Linux users to use preferably SSH or Java GCM.
+GCM Core is currently in preview only for macOS, with a Windows preview following soon. Until that time we recommend Windows users to continue to use GCM Windows. Linux support is planned, but not yet scheduled. For now, we recommend [SSH for authentication to Azure DevOps](https://docs.microsoft.com/en-us/azure/devops/repos/git/use-ssh-keys-to-authenticate?view=azure-devops).
 
 Feature|Windows|macOS|Linux
 -|:-:|:-:|:-:
@@ -34,10 +34,11 @@ Basic HTTP authentication support|&#10003;|&#10003;|&#10003;
 
 ### Planned features
 
-- [ ] Windows and Linux installers
+- [ ] Proxy support
+- [ ] Windows installer
 - [ ] Improved GitHub support (platform-native UI)
 - [ ] BitBucket
-- [ ] Proxy support
+- [ ] Linux installer
 
 ## Download and Install
 
