@@ -31,7 +31,6 @@ steps:
     configuration: 'Windows$(configuration)'
     otherConsoleOptions: '/Framework:.NETCoreApp,Version=2.1'
     testRunTitle: 'Unit tests - common (Windows)'
-  continueOnError: true
 
 - task: VSTest@2
   displayName: Run helpers unit tests

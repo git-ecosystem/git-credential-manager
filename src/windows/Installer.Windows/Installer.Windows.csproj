@@ -5,7 +5,7 @@
   <PropertyGroup>
     <TargetFramework>net461</TargetFramework>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <PayloadPath>$(PlatformOutPath)Payload.Windows\bin\$(Configuration)\$(TargetFramework)\</PayloadPath>
+    <PayloadPath>$(PlatformOutPath)Payload.Windows\bin\$(Configuration)\net461\win-x64</PayloadPath>
     <EnableDefaultItems>false</EnableDefaultItems>
   </PropertyGroup>
 
