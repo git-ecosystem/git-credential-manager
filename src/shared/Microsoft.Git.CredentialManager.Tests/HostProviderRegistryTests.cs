@@ -2,7 +2,6 @@
 // Licensed under the MIT license.
 using System;
 using System.Collections.Generic;
-using Microsoft.Git.CredentialManager.Tests.Objects;
 using Moq;
 using Xunit;
 
@@ -25,15 +24,18 @@ namespace Microsoft.Git.CredentialManager.Tests
             var registry = new HostProviderRegistry();
             var input = new InputArguments(new Dictionary<string, string>());
 
-            var provider1 = new TestHostProvider {IsSupported = false};
-            var provider2 = new TestHostProvider {IsSupported = true};
-            var provider3 = new TestHostProvider {IsSupported = false};
+            var provider1Mock = new Mock<IHostProvider>();
+            var provider2Mock = new Mock<IHostProvider>();
+            var provider3Mock = new Mock<IHostProvider>();
+            provider1Mock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(false);
+            provider2Mock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(true);
+            provider3Mock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(false);
 
-            registry.Register(provider1, provider2, provider3);
+            registry.Register(provider1Mock.Object, provider2Mock.Object, provider3Mock.Object);
 
             IHostProvider result = registry.GetProvider(input);
 
-            Assert.Same(provider2, result);
+            Assert.Same(provider2Mock.Object, result);
         }
 
         [Fact]
@@ -42,15 +44,18 @@ namespace Microsoft.Git.CredentialManager.Tests
             var registry = new HostProviderRegistry();
             var input = new InputArguments(new Dictionary<string, string>());
 
-            var provider1 = new TestHostProvider {IsSupported = true};
-            var provider2 = new TestHostProvider {IsSupported = true};
-            var provider3 = new TestHostProvider {IsSupported = true};
+            var provider1Mock = new Mock<IHostProvider>();
+            var provider2Mock = new Mock<IHostProvider>();
+            var provider3Mock = new Mock<IHostProvider>();
+            provider1Mock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(true);
+            provider2Mock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(true);
+            provider3Mock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(true);
 
-            registry.Register(provider1, provider2, provider3);
+            registry.Register(provider1Mock.Object, provider2Mock.Object, provider3Mock.Object);
 
             IHostProvider result = registry.GetProvider(input);
 
-            Assert.Same(provider1, result);
+            Assert.Same(provider1Mock.Object, result);
         }
     }
 }

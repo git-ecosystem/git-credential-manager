@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Git.CredentialManager;
 using Microsoft.Git.CredentialManager.Authentication;
@@ -17,7 +16,7 @@ namespace Microsoft.AzureRepos
             : this(context, new AzureDevOpsRestApi(context), new MicrosoftAuthentication(context)) { }
 
         public AzureReposHostProvider(ICommandContext context, IAzureDevOpsRestApi azDevOps, IMicrosoftAuthentication msAuth)
-            : base (context)
+            : base(context)
         {
             EnsureArgument.NotNull(azDevOps, nameof(azDevOps));
             EnsureArgument.NotNull(msAuth, nameof(msAuth));
@@ -42,10 +41,10 @@ namespace Microsoft.AzureRepos
 
         public override string GetCredentialKey(InputArguments input)
         {
-            return UriHelpers.CreateOrganizationUri(input).AbsoluteUri;
+            return $"git:{UriHelpers.CreateOrganizationUri(input).AbsoluteUri}";
         }
 
-        public override async Task<GitCredential> CreateCredentialAsync(InputArguments input)
+        public override async Task<ICredential> GenerateCredentialAsync(InputArguments input)
         {
             // We should not allow unencrypted communication and should inform the user
             if (StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "http"))

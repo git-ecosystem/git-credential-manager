@@ -51,13 +51,13 @@ namespace GitHub
             // Trim trailing slash
             if (url.EndsWith("/"))
             {
-                return url.Substring(0, url.Length - 1);
+                url = url.Substring(0, url.Length - 1);
             }
 
-            return url;
+            return $"git:{url}";
         }
 
-        public override async Task<GitCredential> CreateCredentialAsync(InputArguments input)
+        public override async Task<ICredential> GenerateCredentialAsync(InputArguments input)
         {
             // We should not allow unencrypted communication and should inform the user
             if (StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "http"))

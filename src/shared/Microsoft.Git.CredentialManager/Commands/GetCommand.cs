@@ -15,26 +15,9 @@ namespace Microsoft.Git.CredentialManager.Commands
 
         protected override string Name => "get";
 
-        protected override async Task ExecuteInternalAsync(ICommandContext context, InputArguments input, IHostProvider provider, string credentialKey)
+        protected override async Task ExecuteInternalAsync(ICommandContext context, InputArguments input, IHostProvider provider)
         {
-            // Try and locate an existing PAT in the OS credential store
-            context.Trace.WriteLine("Looking for existing credential in store...");
-            ICredential credential = context.CredentialStore.Get(credentialKey);
-
-            if (credential == null)
-            {
-                context.Trace.WriteLine("No existing credential found.");
-
-                // No existing PAT was found.
-                // Create a new one and add this to the store.
-                context.Trace.WriteLine("Creating new credential...");
-                credential = await provider.CreateCredentialAsync(input);
-                context.Trace.WriteLine("Credential created.");
-            }
-            else
-            {
-                context.Trace.WriteLine("Existing credential found.");
-            }
+            ICredential credential = await provider.GetCredentialAsync(input);
 
             var output = new Dictionary<string, string>();
 

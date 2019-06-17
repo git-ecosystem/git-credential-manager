@@ -24,7 +24,7 @@ namespace GitHub.Tests
             var provider = new GitHubHostProvider(new TestCommandContext());
 
             // We report that we support unencrypted HTTP here so that we can fail and
-            // show a helpful error message in the call to `CreateCredentialAsync` instead.
+            // show a helpful error message in the call to `GenerateCredentialAsync` instead.
             Assert.True(provider.IsSupported(input));
         }
 
@@ -40,7 +40,7 @@ namespace GitHub.Tests
             var provider = new GitHubHostProvider(new TestCommandContext());
 
             // We report that we support unencrypted HTTP here so that we can fail and
-            // show a helpful error message in the call to `CreateCredentialAsync` instead.
+            // show a helpful error message in the call to `GenerateCredentialAsync` instead.
             Assert.True(provider.IsSupported(input));
         }
 
@@ -102,7 +102,7 @@ namespace GitHub.Tests
         [Fact]
         public void GitHubHostProvider_GetCredentialKey_GitHubHost_ReturnsCorrectKey()
         {
-            const string expectedKey = "https://github.com";
+            const string expectedKey = "git:https://github.com";
             var input = new InputArguments(new Dictionary<string, string>
             {
                 ["protocol"] = "https",
@@ -117,7 +117,7 @@ namespace GitHub.Tests
         [Fact]
         public void GitHubHostProvider_GetCredentialKey_GistHost_ReturnsCorrectKey()
         {
-            const string expectedKey = "https://github.com";
+            const string expectedKey = "git:https://github.com";
             var input = new InputArguments(new Dictionary<string, string>
             {
                 ["protocol"] = "https",
@@ -130,7 +130,7 @@ namespace GitHub.Tests
         }
 
         [Fact]
-        public async Task GitHubHostProvider_CreateCredentialAsync_UnencryptedHttp_ThrowsException()
+        public async Task GitHubHostProvider_GenerateCredentialAsync_UnencryptedHttp_ThrowsException()
         {
             var input = new InputArguments(new Dictionary<string, string>
             {
@@ -144,11 +144,11 @@ namespace GitHub.Tests
 
             var provider = new GitHubHostProvider(context, ghApi, ghAuth);
 
-            await Assert.ThrowsAsync<Exception>(() => provider.CreateCredentialAsync(input));
+            await Assert.ThrowsAsync<Exception>(() => provider.GenerateCredentialAsync(input));
         }
 
         [Fact]
-        public async Task GitHubHostProvider_CreateCredentialAsync_1FAOnly_ReturnsCredential()
+        public async Task GitHubHostProvider_GenerateCredentialAsync_1FAOnly_ReturnsCredential()
         {
             var input = new InputArguments(new Dictionary<string, string>
             {
@@ -181,7 +181,7 @@ namespace GitHub.Tests
 
             var provider = new GitHubHostProvider(context, ghApiMock.Object, ghAuthMock.Object);
 
-            GitCredential credential = await provider.CreateCredentialAsync(input);
+            ICredential credential = await provider.GenerateCredentialAsync(input);
 
             Assert.NotNull(credential);
             Assert.Equal(Constants.PersonalAccessTokenUserName, credential.UserName);
@@ -189,7 +189,7 @@ namespace GitHub.Tests
         }
 
         [Fact]
-        public async Task GitHubHostProvider_CreateCredentialAsync_2FARequired_ReturnsCredential()
+        public async Task GitHubHostProvider_GenerateCredentialAsync_2FARequired_ReturnsCredential()
         {
             var input = new InputArguments(new Dictionary<string, string>
             {
@@ -228,7 +228,7 @@ namespace GitHub.Tests
 
             var provider = new GitHubHostProvider(context, ghApiMock.Object, ghAuthMock.Object);
 
-            GitCredential credential = await provider.CreateCredentialAsync(input);
+            ICredential credential = await provider.GenerateCredentialAsync(input);
 
             Assert.NotNull(credential);
             Assert.Equal(Constants.PersonalAccessTokenUserName, credential.UserName);

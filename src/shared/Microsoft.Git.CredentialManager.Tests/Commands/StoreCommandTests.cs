@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Git.CredentialManager.Commands;
 using Microsoft.Git.CredentialManager.Tests.Objects;
@@ -36,81 +37,40 @@ namespace Microsoft.Git.CredentialManager.Tests.Commands
         }
 
         [Fact]
-        public async Task StoreCommand_ExecuteAsync_EmptyCredential_DoesNotStoreCredential()
-        {
-            const string testCredentialKey = "test-cred-key";
-            string stdIn = $"username=\npassword=\n\n";
-
-            var provider = new TestHostProvider
-            {
-                CredentialKey = testCredentialKey
-            };
-            var providerRegistry = new TestHostProviderRegistry {Provider = provider};
-            var context = new TestCommandContext {StdIn = stdIn};
-
-            string[] cmdArgs = {"store"};
-            var command = new StoreCommand(providerRegistry);
-
-            await command.ExecuteAsync(context, cmdArgs);
-
-            Assert.Empty(context.CredentialStore);
-        }
-
-        [Fact]
-        public async Task StoreCommand_ExecuteAsync_NonEmptyCredential_StoresCredential()
+        public async Task StoreCommand_ExecuteAsync_CallsHostProvider()
         {
             const string testUserName = "john.doe";
             const string testPassword = "letmein123";
-            const string testCredentialKey = "test-cred-key";
-            string stdIn = $"username={testUserName}\npassword={testPassword}\n\n";
-
-            var provider = new TestHostProvider
+            var stdin = $"username={testUserName}\npassword={testPassword}\n\n";
+            var expectedInput = new InputArguments(new Dictionary<string, string>
             {
-                CredentialKey = testCredentialKey
-            };
-            var providerRegistry = new TestHostProviderRegistry {Provider = provider};
-            var context = new TestCommandContext {StdIn = stdIn};
+                ["username"] = testUserName,
+                ["password"] = testPassword
+            });
+
+            var providerMock = new Mock<IHostProvider>();
+            providerMock.Setup(x => x.StoreCredentialAsync(It.IsAny<InputArguments>()))
+                        .Returns(Task.CompletedTask);
+            var providerRegistry = new TestHostProviderRegistry {Provider = providerMock.Object};
+            var context = new TestCommandContext {StdIn = stdin};
 
             string[] cmdArgs = {"store"};
             var command = new StoreCommand(providerRegistry);
 
             await command.ExecuteAsync(context, cmdArgs);
 
-            Assert.Single(context.CredentialStore);
-            Assert.True(context.CredentialStore.TryGetValue($"git:{testCredentialKey}", out ICredential storedCredential));
-            Assert.Equal(testUserName, storedCredential.UserName);
-            Assert.Equal(testPassword, storedCredential.Password);
+            providerMock.Verify(
+                x => x.StoreCredentialAsync(It.Is<InputArguments>(y => AreInputArgumentsEquivalent(expectedInput, y))),
+                Times.Once);
         }
 
-        [Fact]
-        public async Task StoreCommand_ExecuteAsync_NonEmptyCredential_ExistingCredential_UpdatesCredential()
+        bool AreInputArgumentsEquivalent(InputArguments a, InputArguments b)
         {
-            const string testUserName = "john.doe";
-            const string testPasswordOld = "letmein123-old";
-            const string testPasswordNew = "letmein123-new";
-            const string testCredentialKey = "test-cred-key";
-            string stdIn = $"username={testUserName}\npassword={testPasswordNew}\n\n";
-
-            var provider = new TestHostProvider
-            {
-                CredentialKey = testCredentialKey
-            };
-            var providerRegistry = new TestHostProviderRegistry {Provider = provider};
-            var context = new TestCommandContext
-            {
-                StdIn = stdIn,
-                CredentialStore = {[$"git:{testCredentialKey}"] = new GitCredential(testUserName, testPasswordOld)}
-            };
-
-            string[] cmdArgs = {"store"};
-            var command = new StoreCommand(providerRegistry);
-
-            await command.ExecuteAsync(context, cmdArgs);
-
-            Assert.Single(context.CredentialStore);
-            Assert.True(context.CredentialStore.TryGetValue($"git:{testCredentialKey}", out ICredential storedCredential));
-            Assert.Equal(testUserName, storedCredential.UserName);
-            Assert.Equal(testPasswordNew, storedCredential.Password);
+            return a.Protocol == b.Protocol &&
+                   a.Host     == b.Host &&
+                   a.Path     == b.Path &&
+                   a.UserName == b.UserName &&
+                   a.Password == b.Password;
         }
     }
 }

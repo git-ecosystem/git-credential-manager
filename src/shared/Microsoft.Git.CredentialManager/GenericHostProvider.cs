@@ -36,10 +36,10 @@ namespace Microsoft.Git.CredentialManager
 
         public override string GetCredentialKey(InputArguments input)
         {
-            return GetUriFromInput(input).AbsoluteUri;
+            return $"git:{GetUriFromInput(input).AbsoluteUri}";
         }
 
-        public override async Task<GitCredential> CreateCredentialAsync(InputArguments input)
+        public override async Task<ICredential> GenerateCredentialAsync(InputArguments input)
         {
             Uri uri = GetUriFromInput(input);
 
