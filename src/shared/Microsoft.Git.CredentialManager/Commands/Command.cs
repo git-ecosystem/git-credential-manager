@@ -53,6 +53,8 @@ namespace Microsoft.Git.CredentialManager.Commands
 
         protected HostProviderCommandBase(IHostProviderRegistry hostProviderRegistry)
         {
+            EnsureArgument.NotNull(hostProviderRegistry, nameof(hostProviderRegistry));
+
             _hostProviderRegistry = hostProviderRegistry;
         }
 

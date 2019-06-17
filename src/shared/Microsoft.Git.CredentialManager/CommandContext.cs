@@ -69,7 +69,7 @@ namespace Microsoft.Git.CredentialManager
                 RepositoryPath = git.GetRepositoryPath(FileSystem.GetCurrentDirectory())
             };
 
-            HttpClientFactory = new HttpClientFactory();
+            HttpClientFactory = new HttpClientFactory(Trace, Settings, Streams);
 
             if (PlatformUtils.IsWindows())
             {

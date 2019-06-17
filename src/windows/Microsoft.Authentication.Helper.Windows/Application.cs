@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Git.CredentialManager;
 using Microsoft.Identity.Client;
@@ -69,7 +71,8 @@ namespace Microsoft.Authentication.Helper
 
             var appBuilder = PublicClientApplicationBuilder.Create(clientId)
                                                            .WithAuthority(authority)
-                                                           .WithRedirectUri(redirectUri.ToString());
+                                                           .WithRedirectUri(redirectUri.ToString())
+                                                           .WithHttpClientFactory(new MsalHttpClientFactoryAdaptor(Context.HttpClientFactory));
 
             // Listen to MSAL logs if GCM_TRACE_MSAUTH is set
             if (Context.Settings.IsMsalTracingEnabled)
@@ -108,6 +111,27 @@ namespace Microsoft.Authentication.Helper
             helper.RegisterCache(app.UserTokenCache);
 
             Context.Trace.WriteLine("Visual Studio token cache configured.");
+        }
+    }
+
+    internal class MsalHttpClientFactoryAdaptor : IMsalHttpClientFactory
+    {
+        private readonly IHttpClientFactory _httpFactory;
+
+        private HttpClient _clientInstance;
+
+        public MsalHttpClientFactoryAdaptor(IHttpClientFactory httpFactory)
+        {
+            EnsureArgument.NotNull(httpFactory, nameof(httpFactory));
+
+            _httpFactory = httpFactory;
+        }
+
+        public HttpClient GetHttpClient()
+        {
+            // MSAL calls this method each time it needs to make an HTTP request so we should
+            // make a singleton HttpClient to avoid socket exhaustion.
+            return _clientInstance ?? (_clientInstance = _httpFactory.CreateClient());
         }
     }
 }

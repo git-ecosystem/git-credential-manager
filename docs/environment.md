@@ -120,6 +120,7 @@ Defaults to disabled.
 _No configuration equivalent._
 
 ---
+
 ### GCM_PROVIDER
 
 Define the host provider to use when authenticating.
@@ -214,3 +215,29 @@ export GCM_ALLOW_WINDOWSAUTH=0
 ```
 
 **Also see: [credential.allowWindowsAuth](environment.md#credentialallowWindowsAuth)**
+
+---
+
+### GCM_HTTP_PROXY _(deprecated)_
+
+> This setting is deprecated and should be replaced by the [standard `http.proxy` Git configuration option](https://git-scm.com/docs/git-config#Documentation/git-config.txt-httpproxy).
+>
+> Click [here](https://aka.ms/gcmcore-httpproxy) for more information.
+
+Configure GCM Core to use the a proxy for network operations.
+
+**Note:** Git itself does _not_ respect this setting; this affects GCM _only_.
+
+##### Windows
+
+```batch
+SET GCM_HTTP_PROXY=http://john.doe:password@proxy.contoso.com
+```
+
+##### macOS/Linux
+
+```bash
+export GCM_HTTP_PROXY=http://john.doe:password@proxy.contoso.com
+```
+
+**Also see: [credential.httpProxy](configuration.md#credentialhttpProxy-deprecated)**
