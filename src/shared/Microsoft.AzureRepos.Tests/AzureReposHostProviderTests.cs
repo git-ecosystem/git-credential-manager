@@ -114,67 +114,7 @@ namespace Microsoft.AzureRepos.Tests
         }
 
         [Fact]
-        public void AzureReposProvider_GetCredentialKey_AzureHost_ReturnsCorrectKey()
-        {
-            const string expectedKey = "https://dev.azure.com/org";
-            var input = new InputArguments(new Dictionary<string, string>
-            {
-                ["protocol"] = "https",
-                ["host"] = "dev.azure.com",
-                ["path"] = "org/proj/_git/repo",
-            });
-
-            var provider = new AzureReposHostProvider(new TestCommandContext());
-            string actualKey = provider.GetCredentialKey(input);
-            Assert.Equal(expectedKey, actualKey);
-        }
-
-        [Fact]
-        public void AzureReposProvider_GetCredentialKey_AzureHost_MissingPath_UseUserAsOrg()
-        {
-            const string expectedKey = "https://dev.azure.com/userorg";
-            var input = new InputArguments(new Dictionary<string, string>
-            {
-                ["protocol"] = "https",
-                ["host"] = "dev.azure.com",
-                ["username"] = "userorg",
-            });
-
-            var provider = new AzureReposHostProvider(new TestCommandContext());
-            string actualKey = provider.GetCredentialKey(input);
-            Assert.Equal(expectedKey, actualKey);
-        }
-
-        [Fact]
-        public void AzureReposProvider_GetCredentialKey_AzureHost_MissingPathAndUser_ThrowsException()
-        {
-            var input = new InputArguments(new Dictionary<string, string>
-            {
-                ["protocol"] = "https",
-                ["host"] = "dev.azure.com",
-            });
-
-            var provider = new AzureReposHostProvider(new TestCommandContext());
-            Assert.Throws<InvalidOperationException>(() => provider.GetCredentialKey(input));
-        }
-
-        [Fact]
-        public void AzureReposProvider_GetCredentialKey_VisualStudioHost_ReturnsCorrectKey()
-        {
-            const string expectedKey = "https://org.visualstudio.com/";
-            var input = new InputArguments(new Dictionary<string, string>
-            {
-                ["protocol"] = "https",
-                ["host"] = "org.visualstudio.com",
-            });
-
-            var provider = new AzureReposHostProvider(new TestCommandContext());
-            string actualKey = provider.GetCredentialKey(input);
-            Assert.Equal(expectedKey, actualKey);
-        }
-
-        [Fact]
-        public async Task AzureReposProvider_CreateCredentialAsync_UnencryptedHttp_ThrowsException()
+        public async Task AzureReposProvider_GetCredentialAsync_UnencryptedHttp_ThrowsException()
         {
             var input = new InputArguments(new Dictionary<string, string>
             {
@@ -189,11 +129,11 @@ namespace Microsoft.AzureRepos.Tests
 
             var provider = new AzureReposHostProvider(context, azDevOps, msAuth);
 
-            await Assert.ThrowsAsync<Exception>(() => provider.CreateCredentialAsync(input));
+            await Assert.ThrowsAsync<Exception>(() => provider.GetCredentialAsync(input));
         }
 
         [Fact]
-        public async Task AzureReposProvider_CreateCredentialAsync_ReturnsCredential()
+        public async Task AzureReposProvider_GetCredentialAsync_ReturnsCredential()
         {
             var input = new InputArguments(new Dictionary<string, string>
             {
@@ -208,20 +148,15 @@ namespace Microsoft.AzureRepos.Tests
             var expectedRedirectUri = AzureDevOpsConstants.AadRedirectUri;
             var expectedResource = AzureDevOpsConstants.AadResourceId;
             var accessToken = "ACCESS-TOKEN";
-            var pat = "PERSONAL-ACCESS-TOKEN";
-            IEnumerable<string> expectedPatScopes = new[]
-            {
-                AzureDevOpsConstants.PersonalAccessTokenScopes.ReposWrite,
-                AzureDevOpsConstants.PersonalAccessTokenScopes.ArtifactsRead
-            };
+            var personalAccessToken = "PERSONAL-ACCESS-TOKEN";
 
             var context = new TestCommandContext();
 
             var azDevOpsMock = new Mock<IAzureDevOpsRestApi>();
             azDevOpsMock.Setup(x => x.GetAuthorityAsync(expectedOrgUri))
                         .ReturnsAsync(authorityUrl);
-            azDevOpsMock.Setup(x => x.CreatePersonalAccessTokenAsync(expectedOrgUri, accessToken, expectedPatScopes))
-                        .ReturnsAsync(pat);
+            azDevOpsMock.Setup(x => x.CreatePersonalAccessTokenAsync(expectedOrgUri, accessToken, It.IsAny<IEnumerable<string>>()))
+                        .ReturnsAsync(personalAccessToken);
 
             var msAuthMock = new Mock<IMicrosoftAuthentication>();
             msAuthMock.Setup(x => x.GetAccessTokenAsync(authorityUrl, expectedClientId, expectedRedirectUri, expectedResource))
@@ -229,11 +164,11 @@ namespace Microsoft.AzureRepos.Tests
 
             var provider = new AzureReposHostProvider(context, azDevOpsMock.Object, msAuthMock.Object);
 
-            GitCredential credential = await provider.CreateCredentialAsync(input);
+            ICredential credential = await provider.GetCredentialAsync(input);
 
             Assert.NotNull(credential);
-            Assert.Equal(Constants.PersonalAccessTokenUserName, credential.UserName);
-            Assert.Equal(pat, credential.Password);
+            Assert.Equal(personalAccessToken, credential.Password);
+            // We don't care about the username value
         }
     }
 }

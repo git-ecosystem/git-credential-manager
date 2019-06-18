@@ -1,34 +1,36 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
+using System;
 using System.Threading.Tasks;
 
 namespace Microsoft.Git.CredentialManager.Tests.Objects
 {
-    public class TestHostProvider : IHostProvider
+    public class TestHostProvider : HostProvider
     {
-        public string Name { get; set; } = "TestProvider";
+        public TestHostProvider(ICommandContext context)
+            : base(context) { }
 
-        public bool IsSupported { get; set; } = true;
+        public Func<InputArguments, bool> IsSupportedFunc { get; set; }
 
         public string CredentialKey { get; set; }
 
-        public GitCredential Credential { get; set; }
+        public Func<InputArguments, ICredential> GenerateCredentialFunc { get; set; }
 
-        #region IHostProvider
+        #region HostProvider
 
-        string IHostProvider.Name => Name;
+        public override string Name { get; } = "TestHostProvider";
 
-        bool IHostProvider.IsSupported(InputArguments input) => IsSupported;
+        public override bool IsSupported(InputArguments input) => IsSupportedFunc(input);
 
-        string IHostProvider.GetCredentialKey(InputArguments input) => CredentialKey;
+        public override string GetCredentialKey(InputArguments input)
+        {
+            return CredentialKey;
+        }
 
-        Task<GitCredential> IHostProvider.CreateCredentialAsync(InputArguments input) => Task.FromResult(Credential);
-
-        #endregion
-
-        #region IDisposable
-
-        public void Dispose() { }
+        public override Task<ICredential> GenerateCredentialAsync(InputArguments input)
+        {
+            return Task.FromResult(GenerateCredentialFunc(input));
+        }
 
         #endregion
     }
