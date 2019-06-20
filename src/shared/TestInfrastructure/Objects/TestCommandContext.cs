@@ -17,6 +17,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
         public TestFileSystem FileSystem { get; set; } = new TestFileSystem();
         public TestCredentialStore CredentialStore { get; set; } = new TestCredentialStore();
         public TestGit Git { get; set; } = new TestGit();
+        public TestHttpClientFactory HttpClientFactory { get; set; } = new TestHttpClientFactory();
         public IDictionary<string, string> EnvironmentVariables { get; set; } = new Dictionary<string, string>();
         public string NewLine { get; set; } = "\n";
 
@@ -37,6 +38,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
         ICredentialStore ICommandContext.CredentialStore => CredentialStore;
 
         IGit ICommandContext.Git => Git;
+
+        IHttpClientFactory ICommandContext.HttpClientFactory => HttpClientFactory;
 
         IReadOnlyDictionary<string, string> ICommandContext.EnvironmentVariables
             => new ReadOnlyDictionary<string, string>(EnvironmentVariables);

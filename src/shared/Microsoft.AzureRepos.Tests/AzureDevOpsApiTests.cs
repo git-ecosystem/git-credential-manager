@@ -36,8 +36,8 @@ namespace Microsoft.AzureRepos.Tests
 
             var httpHandler = new TestHttpMessageHandler {SimulateNoNetwork = true};
 
-            var httpFactory = new TestHttpClientFactory {MessageHandler = httpHandler};
-            var api = new AzureDevOpsRestApi(context, httpFactory);
+            context.HttpClientFactory.MessageHandler = httpHandler;
+            var api = new AzureDevOpsRestApi(context);
 
             await Assert.ThrowsAsync<HttpRequestException>(() => api.GetAuthorityAsync(uri));
         }
@@ -55,8 +55,8 @@ namespace Microsoft.AzureRepos.Tests
             var httpHandler = new TestHttpMessageHandler {ThrowOnUnexpectedRequest = true};
             httpHandler.Setup(HttpMethod.Head, uri, httpResponse);
 
-            var httpFactory = new TestHttpClientFactory {MessageHandler = httpHandler};
-            var api = new AzureDevOpsRestApi(context, httpFactory);
+            context.HttpClientFactory.MessageHandler = httpHandler;
+            var api = new AzureDevOpsRestApi(context);
 
             string actualAuthority = await api.GetAuthorityAsync(uri);
 
@@ -77,8 +77,8 @@ namespace Microsoft.AzureRepos.Tests
             var httpHandler = new TestHttpMessageHandler {ThrowOnUnexpectedRequest = true};
             httpHandler.Setup(HttpMethod.Head, uri, httpResponse);
 
-            var httpFactory = new TestHttpClientFactory {MessageHandler = httpHandler};
-            var api = new AzureDevOpsRestApi(context, httpFactory);
+            context.HttpClientFactory.MessageHandler = httpHandler;
+            var api = new AzureDevOpsRestApi(context);
 
             string actualAuthority = await api.GetAuthorityAsync(uri);
 
@@ -101,8 +101,8 @@ namespace Microsoft.AzureRepos.Tests
             var httpHandler = new TestHttpMessageHandler {ThrowOnUnexpectedRequest = true};
             httpHandler.Setup(HttpMethod.Head, uri, httpResponse);
 
-            var httpFactory = new TestHttpClientFactory {MessageHandler = httpHandler};
-            var api = new AzureDevOpsRestApi(context, httpFactory);
+            context.HttpClientFactory.MessageHandler = httpHandler;
+            var api = new AzureDevOpsRestApi(context);
 
             string actualAuthority = await api.GetAuthorityAsync(uri);
 
@@ -126,8 +126,8 @@ namespace Microsoft.AzureRepos.Tests
             var httpHandler = new TestHttpMessageHandler {ThrowOnUnexpectedRequest = true};
             httpHandler.Setup(HttpMethod.Head, uri, httpResponse);
 
-            var httpFactory = new TestHttpClientFactory {MessageHandler = httpHandler};
-            var api = new AzureDevOpsRestApi(context, httpFactory);
+            context.HttpClientFactory.MessageHandler = httpHandler;
+            var api = new AzureDevOpsRestApi(context);
 
             string actualAuthority = await api.GetAuthorityAsync(uri);
 
@@ -158,8 +158,8 @@ namespace Microsoft.AzureRepos.Tests
             var httpHandler = new TestHttpMessageHandler {ThrowOnUnexpectedRequest = true};
             httpHandler.Setup(HttpMethod.Head, uri, httpResponse);
 
-            var httpFactory = new TestHttpClientFactory {MessageHandler = httpHandler};
-            var api = new AzureDevOpsRestApi(context, httpFactory);
+            context.HttpClientFactory.MessageHandler = httpHandler;
+            var api = new AzureDevOpsRestApi(context);
 
             string actualAuthority = await api.GetAuthorityAsync(uri);
 
@@ -183,8 +183,8 @@ namespace Microsoft.AzureRepos.Tests
             var httpHandler = new TestHttpMessageHandler {ThrowOnUnexpectedRequest = true};
             httpHandler.Setup(HttpMethod.Head, uri, httpResponse);
 
-            var httpFactory = new TestHttpClientFactory {MessageHandler = httpHandler};
-            var api = new AzureDevOpsRestApi(context, httpFactory);
+            context.HttpClientFactory.MessageHandler = httpHandler;
+            var api = new AzureDevOpsRestApi(context);
 
             string actualAuthority = await api.GetAuthorityAsync(uri);
 
@@ -208,8 +208,8 @@ namespace Microsoft.AzureRepos.Tests
             var httpHandler = new TestHttpMessageHandler {ThrowOnUnexpectedRequest = true};
             httpHandler.Setup(HttpMethod.Head, uri, httpResponse);
 
-            var httpFactory = new TestHttpClientFactory {MessageHandler = httpHandler};
-            var api = new AzureDevOpsRestApi(context, httpFactory);
+            context.HttpClientFactory.MessageHandler = httpHandler;
+            var api = new AzureDevOpsRestApi(context);
 
             string actualAuthority = await api.GetAuthorityAsync(uri);
 
@@ -248,8 +248,8 @@ namespace Microsoft.AzureRepos.Tests
                 return identSvcResponse;
             });
 
-            var httpFactory = new TestHttpClientFactory {MessageHandler = httpHandler};
-            var api = new AzureDevOpsRestApi(context, httpFactory);
+            context.HttpClientFactory.MessageHandler = httpHandler;
+            var api = new AzureDevOpsRestApi(context);
 
             string actualPat = await api.CreatePersonalAccessTokenAsync(orgUri, accessToken, scopes);
 
@@ -270,8 +270,8 @@ namespace Microsoft.AzureRepos.Tests
             var httpHandler = new TestHttpMessageHandler {ThrowOnUnexpectedRequest = true};
             httpHandler.Setup(HttpMethod.Get, locSvcRequestUri, HttpStatusCode.InternalServerError);
 
-            var httpFactory = new TestHttpClientFactory {MessageHandler = httpHandler};
-            var api = new AzureDevOpsRestApi(context, httpFactory);
+            context.HttpClientFactory.MessageHandler = httpHandler;
+            var api = new AzureDevOpsRestApi(context);
 
             await Assert.ThrowsAsync<Exception>(() => api.CreatePersonalAccessTokenAsync(orgUri, accessToken, scopes));
         }
@@ -301,8 +301,8 @@ namespace Microsoft.AzureRepos.Tests
             });
             httpHandler.Setup(HttpMethod.Post, identSvcRequestUri, HttpStatusCode.InternalServerError);
 
-            var httpFactory = new TestHttpClientFactory {MessageHandler = httpHandler};
-            var api = new AzureDevOpsRestApi(context, httpFactory);
+            context.HttpClientFactory.MessageHandler = httpHandler;
+            var api = new AzureDevOpsRestApi(context);
 
             await Assert.ThrowsAsync<Exception>(() => api.CreatePersonalAccessTokenAsync(orgUri, accessToken, scopes));
         }
@@ -335,8 +335,8 @@ namespace Microsoft.AzureRepos.Tests
             });
             httpHandler.Setup(HttpMethod.Post, identSvcRequestUri, _ => identSvcError);
 
-            var httpFactory = new TestHttpClientFactory {MessageHandler = httpHandler};
-            var api = new AzureDevOpsRestApi(context, httpFactory);
+            context.HttpClientFactory.MessageHandler = httpHandler;
+            var api = new AzureDevOpsRestApi(context);
 
             Exception exception = await Assert.ThrowsAsync<Exception>(
                 () => api.CreatePersonalAccessTokenAsync(orgUri, accessToken, scopes));

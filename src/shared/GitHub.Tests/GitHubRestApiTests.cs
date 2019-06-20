@@ -44,8 +44,8 @@ namespace GitHub.Tests
 
             var httpHandler = new TestHttpMessageHandler {SimulateNoNetwork = true};
 
-            var httpFactory = new TestHttpClientFactory {MessageHandler = httpHandler};
-            var api = new GitHubRestApi(context, httpFactory);
+            context.HttpClientFactory.MessageHandler = httpHandler;
+            var api = new GitHubRestApi(context);
 
             await Assert.ThrowsAsync<HttpRequestException>(
                 () => api.AcquireTokenAsync(uri, testUserName, testPassword, testAuthCode, testScopes)
@@ -81,8 +81,8 @@ namespace GitHub.Tests
                 return httpResponse;
             });
 
-            var httpFactory = new TestHttpClientFactory {MessageHandler = httpHandler};
-            var api = new GitHubRestApi(context, httpFactory);
+            context.HttpClientFactory.MessageHandler = httpHandler;
+            var api = new GitHubRestApi(context);
 
             AuthenticationResult authResult = await api.AcquireTokenAsync(
                 uri, testUserName, testPassword, testAuthCode, testScopes);
@@ -120,8 +120,8 @@ namespace GitHub.Tests
                 return httpResponse;
             });
 
-            var httpFactory = new TestHttpClientFactory {MessageHandler = httpHandler};
-            var api = new GitHubRestApi(context, httpFactory);
+            context.HttpClientFactory.MessageHandler = httpHandler;
+            var api = new GitHubRestApi(context);
 
             AuthenticationResult authResult = await api.AcquireTokenAsync(
                 uri, testUserName, testPassword, testAuthCode, testScopes);
@@ -158,8 +158,8 @@ namespace GitHub.Tests
                 return httpResponse;
             });
 
-            var httpFactory = new TestHttpClientFactory {MessageHandler = httpHandler};
-            var api = new GitHubRestApi(context, httpFactory);
+            context.HttpClientFactory.MessageHandler = httpHandler;
+            var api = new GitHubRestApi(context);
 
             AuthenticationResult authResult = await api.AcquireTokenAsync(
                 uri, testUserName, testPassword, testAuthCode, testScopes);
@@ -192,8 +192,8 @@ namespace GitHub.Tests
                 return httpResponse;
             });
 
-            var httpFactory = new TestHttpClientFactory {MessageHandler = httpHandler};
-            var api = new GitHubRestApi(context, httpFactory);
+            context.HttpClientFactory.MessageHandler = httpHandler;
+            var api = new GitHubRestApi(context);
 
             AuthenticationResult authResult = await api.AcquireTokenAsync(
                 uri, testUserName, testPassword, null, testScopes);
@@ -224,8 +224,8 @@ namespace GitHub.Tests
                 return httpResponse;
             });
 
-            var httpFactory = new TestHttpClientFactory {MessageHandler = httpHandler};
-            var api = new GitHubRestApi(context, httpFactory);
+            context.HttpClientFactory.MessageHandler = httpHandler;
+            var api = new GitHubRestApi(context);
 
             AuthenticationResult authResult = await api.AcquireTokenAsync(
                 uri, testUserName, testPassword, null, testScopes);
@@ -258,8 +258,8 @@ namespace GitHub.Tests
                 return httpResponse;
             });
 
-            var httpFactory = new TestHttpClientFactory {MessageHandler = httpHandler};
-            var api = new GitHubRestApi(context, httpFactory);
+            context.HttpClientFactory.MessageHandler = httpHandler;
+            var api = new GitHubRestApi(context);
 
             AuthenticationResult authResult = await api.AcquireTokenAsync(
                 uri, testUserName, testOAuthToken, null, testScopes);
@@ -295,8 +295,8 @@ namespace GitHub.Tests
                 return httpResponse;
             });
 
-            var httpFactory = new TestHttpClientFactory {MessageHandler = httpHandler};
-            var api = new GitHubRestApi(context, httpFactory);
+            context.HttpClientFactory.MessageHandler = httpHandler;
+            var api = new GitHubRestApi(context);
 
             AuthenticationResult authResult = await api.AcquireTokenAsync(
                 uri, testUserName, testPassword, testAuthCode, testScopes);
@@ -330,8 +330,8 @@ namespace GitHub.Tests
                 return httpResponse;
             });
 
-            var httpFactory = new TestHttpClientFactory {MessageHandler = httpHandler};
-            var api = new GitHubRestApi(context, httpFactory);
+            context.HttpClientFactory.MessageHandler = httpHandler;
+            var api = new GitHubRestApi(context);
 
             AuthenticationResult authResult = await api.AcquireTokenAsync(
                 uri, testUserName, testPassword, testAuthCode, testScopes);
@@ -367,8 +367,8 @@ namespace GitHub.Tests
                 return httpResponse;
             });
 
-            var httpFactory = new TestHttpClientFactory {MessageHandler = httpHandler};
-            var api = new GitHubRestApi(context, httpFactory);
+            context.HttpClientFactory.MessageHandler = httpHandler;
+            var api = new GitHubRestApi(context);
 
             AuthenticationResult authResult = await api.AcquireTokenAsync(
                 uri, testUserName, testPassword, testAuthCode, testScopes);
