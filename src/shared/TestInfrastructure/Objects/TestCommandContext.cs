@@ -36,7 +36,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
 
         ICredentialStore ICommandContext.CredentialStore => CredentialStore;
 
-        IReadOnlyDictionary<string, string> ICommandContext.GetEnvironmentVariables()
+        IReadOnlyDictionary<string, string> ICommandContext.EnvironmentVariables
             => new ReadOnlyDictionary<string, string>(EnvironmentVariables);
 
         #endregion

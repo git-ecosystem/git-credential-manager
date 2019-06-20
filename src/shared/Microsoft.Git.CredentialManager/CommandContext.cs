@@ -3,6 +3,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Text;
 using Microsoft.Git.CredentialManager.Interop.MacOS;
@@ -55,7 +56,7 @@ namespace Microsoft.Git.CredentialManager
         /// Access the environment variables for the current GCM process.
         /// </summary>
         /// <returns>Set of all current environment variables.</returns>
-        IReadOnlyDictionary<string, string> GetEnvironmentVariables();
+        IReadOnlyDictionary<string, string> EnvironmentVariables { get; }
     }
 
     /// <summary>
@@ -71,6 +72,7 @@ namespace Microsoft.Git.CredentialManager
         private TextWriter _stdOut;
         private TextWriter _stdErr;
         private ITerminal _terminal;
+        private IReadOnlyDictionary<string, string> _envars;
 
         #region ICommandContext
 
@@ -132,33 +134,41 @@ namespace Microsoft.Git.CredentialManager
 
         public ICredentialStore CredentialStore { get; } = CreateCredentialStore();
 
-        public IReadOnlyDictionary<string, string> GetEnvironmentVariables()
+        public IReadOnlyDictionary<string, string> EnvironmentVariables
         {
-            IDictionary variables = Environment.GetEnvironmentVariables();
-
-            // On Windows it is technically possible to get env vars which differ only by case
-            // even though the general assumption is that they are case insensitive on Windows.
-            // For example, some of the standard .NET types like System.Diagnostics.Process
-            // will fail to start a process on Windows if given duplicate environment variables.
-            // See this issue for more information: https://github.com/dotnet/corefx/issues/13146
-
-            // If we're on the Windows platform we should de-duplicate by setting the string
-            // comparer to OrdinalIgnoreCase.
-            var comparer = PlatformUtils.IsWindows()
-                         ? StringComparer.OrdinalIgnoreCase
-                         : StringComparer.Ordinal;
-
-            var result = new Dictionary<string, string>(comparer);
-
-            foreach (var key in variables.Keys)
+            get
             {
-                if (key is string name && variables[key] is string value)
+                if (_envars is null)
                 {
-                    result[name] = value;
-                }
-            }
+                    IDictionary variables = Environment.GetEnvironmentVariables();
 
-            return result;
+                    // On Windows it is technically possible to get env vars which differ only by case
+                    // even though the general assumption is that they are case insensitive on Windows.
+                    // For example, some of the standard .NET types like System.Diagnostics.Process
+                    // will fail to start a process on Windows if given duplicate environment variables.
+                    // See this issue for more information: https://github.com/dotnet/corefx/issues/13146
+
+                    // If we're on the Windows platform we should de-duplicate by setting the string
+                    // comparer to OrdinalIgnoreCase.
+                    var comparer = PlatformUtils.IsWindows()
+                        ? StringComparer.OrdinalIgnoreCase
+                        : StringComparer.Ordinal;
+
+                    var dict = new Dictionary<string, string>(comparer);
+
+                    foreach (var key in variables.Keys)
+                    {
+                        if (key is string name && variables[key] is string value)
+                        {
+                            dict[name] = value;
+                        }
+                    }
+
+                    _envars = new ReadOnlyDictionary<string, string>(dict);
+                }
+
+                return _envars;
+            }
         }
 
         #endregion
@@ -210,7 +220,7 @@ namespace Microsoft.Git.CredentialManager
         /// <returns>True if the environment variable was set and has a value, false otherwise.</returns>
         public static bool TryGetEnvironmentVariable(this ICommandContext context, string key, out string value)
         {
-            return context.GetEnvironmentVariables().TryGetValue(key, out value);
+            return context.EnvironmentVariables.TryGetValue(key, out value);
         }
 
         /// <summary>
