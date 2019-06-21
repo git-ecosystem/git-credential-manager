@@ -58,6 +58,8 @@ namespace Microsoft.Git.CredentialManager.Commands
 
         public override async Task ExecuteAsync(ICommandContext context, string[] args)
         {
+            context.Trace.WriteLine($"Start '{Name}' command...");
+
             // Parse standard input arguments
             // git-credential treats the keys as case-sensitive; so should we.
             IDictionary<string, string> inputDict = await context.StdIn.ReadDictionaryAsync(StringComparer.Ordinal);
@@ -69,22 +71,18 @@ namespace Microsoft.Git.CredentialManager.Commands
             IHostProvider provider = _hostProviderRegistry.GetProvider(input);
             context.Trace.WriteLine($"Host provider '{provider.Name}' was selected.");
 
-            // Build the credential identifier
-            string hostProviderKey = provider.GetCredentialKey(input);
-            string credentialKey = $"git:{hostProviderKey}";
-            context.Trace.WriteLine($"Credential key is '{credentialKey}'.");
+            await ExecuteInternalAsync(context, input, provider);
 
-            await ExecuteInternalAsync(context, input, provider, credentialKey);
+            context.Trace.WriteLine($"End '{Name}' command...");
         }
 
         /// <summary>
-        /// Execute the command using the given <see cref="InputArguments"/>, <see cref="IHostProvider"/>, and <see cref="GitCredential"/> key.
+        /// Execute the command using the given <see cref="InputArguments"/> and <see cref="IHostProvider"/>.
         /// </summary>
         /// <param name="context">The current command execution context.</param>
         /// <param name="input">Input arguments of the current Git credential query.</param>
         /// <param name="provider">Host provider for the current <see cref="InputArguments"/>.</param>
-        /// <param name="credentialKey">Unique identifier in the OS secure storage system for a <see cref="GitCredential"/>.</param>
         /// <returns>Awaitable task for the command execution.</returns>
-        protected abstract Task ExecuteInternalAsync(ICommandContext context, InputArguments input, IHostProvider provider, string credentialKey);
+        protected abstract Task ExecuteInternalAsync(ICommandContext context, InputArguments input, IHostProvider provider);
     }
 }

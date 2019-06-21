@@ -1,0 +1,21 @@
+steps:
+  - script: |
+      xcopy "out\windows\Installer.Windows\bin\$(configuration)\net461" "$(Build.StagingDirectory)\publish\"
+      xcopy "out\windows\Payload.Windows\bin\$(configuration)\net461"   "$(Build.StagingDirectory)\publish\payload\"
+      mkdir "$(Build.StagingDirectory)\publish\payload.sym\"
+      move  "$(Build.StagingDirectory)\publish\payload\*.pdb"           "$(Build.StagingDirectory)\publish\payload.sym\"
+    displayName: Prepare final build artifact
+
+  - task: PublishPipelineArtifact@0
+    displayName: Publish unsigned installer artifacts
+    condition: and(succeeded(), ne(variables['SignType'], 'real'))
+    inputs:
+        artifactName: 'Installer.Windows.Unsigned'
+        targetPath: '$(Build.StagingDirectory)\publish'
+
+  - task: PublishPipelineArtifact@0
+    displayName: Publish signed installer artifacts
+    condition: and(succeeded(), eq(variables['SignType'], 'real'))
+    inputs:
+        artifactName: 'Installer.Windows.Signed'
+        targetPath: '$(Build.StagingDirectory)\publish'

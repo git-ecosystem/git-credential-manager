@@ -18,7 +18,7 @@
   <!-- Implicit SDK targets import (so we can override the default targets below) -->
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 
-  <Target Name="CoreCompile">
+  <Target Name="CoreCompile" Condition="'$(OSPlatform)'=='osx'">
     <Message Text="$(MSBuildProjectDirectory)\build.sh --configuration='$(Configuration)'" Importance="High" />
     <Exec Command="$(MSBuildProjectDirectory)\build.sh --configuration='$(Configuration)'" />
   </Target>

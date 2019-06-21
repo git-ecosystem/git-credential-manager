@@ -12,11 +12,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Commands
     public class HostProviderCommandBaseTests
     {
         [Fact]
-        public async Task HostProviderCommandBase_ExecuteAsync_CallsExecuteInternalAyncWithCorrectArgs()
+        public async Task HostProviderCommandBase_ExecuteAsync_CallsExecuteInternalAsyncWithCorrectArgs()
         {
-            const string testProviderCredKey = "test-cred-key";
-            const string testFinalCredKey = "git:test-cred-key";
-
             var mockContext = new Mock<ICommandContext>();
             var mockProvider = new Mock<IHostProvider>();
             var mockHostRegistry = new Mock<IHostProviderRegistry>();
@@ -27,8 +24,6 @@ namespace Microsoft.Git.CredentialManager.Tests.Commands
 
             mockProvider.Setup(x => x.IsSupported(It.IsAny<InputArguments>()))
                 .Returns(true);
-            mockProvider.Setup(x => x.GetCredentialKey(It.IsAny<InputArguments>()))
-                .Returns(testProviderCredKey);
 
             string standardIn = "protocol=test\nhost=example.com\npath=a/b/c\n\n";
             TextReader standardInReader = new StringReader(standardIn);
@@ -38,11 +33,10 @@ namespace Microsoft.Git.CredentialManager.Tests.Commands
 
             HostProviderCommandBase testCommand = new TestCommand(mockHostRegistry.Object)
             {
-                VerifyExecuteInternalAsync = (context, input, provider, credentialKey) =>
+                VerifyExecuteInternalAsync = (context, input, provider) =>
                 {
                     Assert.Same(mockContext.Object, context);
                     Assert.Same(mockProvider.Object, provider);
-                    Assert.Equal(testFinalCredKey, credentialKey);
                     Assert.Equal("test", input.Protocol);
                     Assert.Equal("example.com", input.Host);
                     Assert.Equal("a/b/c", input.Path);
@@ -61,14 +55,13 @@ namespace Microsoft.Git.CredentialManager.Tests.Commands
 
             protected override string Name { get; }
 
-            protected override Task ExecuteInternalAsync(ICommandContext context, InputArguments input,
-                IHostProvider provider, string credentialKey)
+            protected override Task ExecuteInternalAsync(ICommandContext context, InputArguments input, IHostProvider provider)
             {
-                VerifyExecuteInternalAsync(context, input, provider, credentialKey);
+                VerifyExecuteInternalAsync(context, input, provider);
                 return Task.CompletedTask;
             }
 
-            public Action<ICommandContext, InputArguments, IHostProvider, string> VerifyExecuteInternalAsync { get; set; }
+            public Action<ICommandContext, InputArguments, IHostProvider> VerifyExecuteInternalAsync { get; set; }
         }
     }
 }

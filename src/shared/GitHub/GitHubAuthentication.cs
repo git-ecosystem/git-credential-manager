@@ -2,7 +2,11 @@
 // Licensed under the MIT license.
 using System;
 using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
 using Microsoft.Git.CredentialManager;
+using Microsoft.Git.CredentialManager.Authentication;
 
 namespace GitHub
 {
@@ -13,58 +17,98 @@ namespace GitHub
         Task<string> GetAuthenticationCodeAsync(Uri targetUri, bool isSms);
     }
 
-    public class TtyGitHubPromptAuthentication : IGitHubAuthentication
+    public class GitHubAuthentication : AuthenticationBase, IGitHubAuthentication
     {
-        private readonly ICommandContext _context;
+        public GitHubAuthentication(ICommandContext context)
+            : base(context) {}
 
-        public TtyGitHubPromptAuthentication(ICommandContext context)
+        public async Task<ICredential> GetCredentialsAsync(Uri targetUri)
         {
-            EnsureArgument.NotNull(context, nameof(context));
+            string userName, password;
 
-            _context = context;
-        }
-
-        public Task<ICredential> GetCredentialsAsync(Uri targetUri)
-        {
-            EnsureTerminalPromptsEnabled();
-
-            _context.Terminal.WriteLine("Enter credentials for '{0}'...", targetUri);
-
-            string userName = _context.Terminal.Prompt("Username");
-            string password = _context.Terminal.PromptSecret("Password");
-
-            return Task.FromResult<ICredential>(new GitCredential(userName, password));
-        }
-
-        public Task<string> GetAuthenticationCodeAsync(Uri targetUri, bool isSms)
-        {
-            EnsureTerminalPromptsEnabled();
-
-            _context.Terminal.WriteLine("Two-factor authentication is enabled and an authentication code is required.");
-
-            if (isSms)
+            if (TryFindHelperExecutablePath(out string helperPath))
             {
-                _context.Terminal.WriteLine("An SMS containing the authentication code has been sent to your registered device.");
+                IDictionary<string, string> resultDict = await InvokeHelperAsync(helperPath, "--prompt userpass", null);
+
+                if (!resultDict.TryGetValue("username", out userName))
+                {
+                    throw new Exception("Missing username in response");
+                }
+
+                if (!resultDict.TryGetValue("password", out password))
+                {
+                    throw new Exception("Missing password in response");
+                }
             }
             else
             {
-                _context.Terminal.WriteLine("Use your registered authentication app to generate an authentication code.");
+                EnsureTerminalPromptsEnabled();
+
+                Context.Terminal.WriteLine("Enter credentials for '{0}'...", targetUri);
+
+                userName = Context.Terminal.Prompt("Username");
+                password = Context.Terminal.PromptSecret("Password");
             }
 
-            string authCode = _context.Terminal.Prompt("Authentication code");
+            return new GitCredential(userName, password);
+        }
+        public async Task<string> GetAuthenticationCodeAsync(Uri targetUri, bool isSms)
+        {
+            if (TryFindHelperExecutablePath(out string helperPath))
+            {
+                IDictionary<string, string> resultDict = await InvokeHelperAsync(helperPath, "--prompt authcode", null);
 
-            return Task.FromResult(authCode);
+                if (!resultDict.TryGetValue("authcode", out string authCode))
+                {
+                    throw new Exception("Missing authentication code in response");
+                }
+
+                return authCode;
+            }
+            else
+            {
+                EnsureTerminalPromptsEnabled();
+
+                Context.Terminal.WriteLine("Two-factor authentication is enabled and an authentication code is required.");
+
+                if (isSms)
+                {
+                    Context.Terminal.WriteLine("An SMS containing the authentication code has been sent to your registered device.");
+                }
+                else
+                {
+                    Context.Terminal.WriteLine("Use your registered authentication app to generate an authentication code.");
+                }
+
+                return Context.Terminal.Prompt("Authentication code");
+            }
         }
 
-        private void EnsureTerminalPromptsEnabled()
+        private bool TryFindHelperExecutablePath(out string path)
         {
-            if (_context.TryGetEnvironmentVariable(Constants.EnvironmentVariables.GitTerminalPrompts, out string envarPrompts)
-                && envarPrompts == "0")
-            {
-                _context.Trace.WriteLine($"{Constants.EnvironmentVariables.GitTerminalPrompts} is 0; terminal prompts have been disabled.");
+            string helperName = GitHubConstants.AuthHelperName;
 
-                throw new InvalidOperationException("Cannot show GitHub credential prompt because terminal prompts have been disabled.");
+            if (PlatformUtils.IsWindows())
+            {
+                helperName += ".exe";
             }
+
+            string executableDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            path = Path.Combine(executableDirectory, helperName);
+            if (!Context.FileSystem.FileExists(path))
+            {
+                Context.Trace.WriteLine($"Did not find helper '{helperName}' in '{executableDirectory}'");
+
+                // We currently only have a helper on Windows. If we failed to find the helper we should warn the user.
+                if (PlatformUtils.IsWindows())
+                {
+                    Context.StdError.WriteLine($"warning: missing '{helperName}' from installation.");
+                }
+
+                return false;
+            }
+
+            return true;
         }
     }
 }

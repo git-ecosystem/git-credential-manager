@@ -1,4 +1,4 @@
-<Project>
+﻿<Project>
   <!-- Implicit SDK props import -->
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
 
@@ -19,7 +19,7 @@
   <!-- Implicit SDK targets import (so we can override the default targets below) -->
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 
-  <Target Name="CoreCompile" DependsOnTargets="GetBuildVersion">
+  <Target Name="CoreCompile" DependsOnTargets="GetBuildVersion" Condition="'$(OSPlatform)'=='osx'">
     <Message Text="$(MSBuildProjectDirectory)\build.sh --configuration='$(Configuration)' --version='$(BuildVersion)'" Importance="High" />
     <Exec Command="$(MSBuildProjectDirectory)\build.sh --configuration='$(Configuration)' --version='$(BuildVersion)'" />
   </Target>

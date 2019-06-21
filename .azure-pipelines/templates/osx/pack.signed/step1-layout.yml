@@ -11,5 +11,5 @@ steps:
   - task: PublishPipelineArtifact@0
     displayName: Upload symbols
     inputs:
-      artifactName: 'Symbols.Mac'
+      artifactName: 'tmp.macsymbols'
       targetPath: '$(Build.StagingDirectory)/symbols'

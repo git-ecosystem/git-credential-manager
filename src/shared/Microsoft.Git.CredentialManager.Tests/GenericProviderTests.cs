@@ -41,7 +41,7 @@ namespace Microsoft.Git.CredentialManager.Tests
         [Fact]
         public void GenericProvider_GetCredentialKey_ReturnsCorrectKey()
         {
-            const string expectedKey = "https://john.doe@example.com/foo/bar";
+            const string expectedKey = "git:https://john.doe@example.com/foo/bar";
 
             var input = new InputArguments(new Dictionary<string, string>
             {
@@ -96,7 +96,7 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             var provider = new GenericHostProvider(context, basicAuthMock.Object, wiaAuthMock.Object);
 
-            GitCredential credential = await provider.CreateCredentialAsync(input);
+            ICredential credential = await provider.GenerateCredentialAsync(input);
 
             Assert.NotNull(credential);
             Assert.Equal(string.Empty, credential.UserName);
@@ -127,7 +127,7 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             var provider = new GenericHostProvider(context, basicAuthMock.Object, wiaAuthMock.Object);
 
-            GitCredential credential = await provider.CreateCredentialAsync(input);
+            ICredential credential = await provider.GenerateCredentialAsync(input);
 
             Assert.NotNull(credential);
             Assert.Equal(testUserName, credential.UserName);

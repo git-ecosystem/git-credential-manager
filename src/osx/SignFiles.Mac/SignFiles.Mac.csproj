@@ -61,7 +61,9 @@
            Condition="!Exists('%(FilesToSign.Identity)')" />
     <Error Text="File to sign not found: %(MacFilesToSign.Identity)"
            Condition="!Exists('%(MacFilesToSign.Identity)')" />
-    <Touch Files="$(OutDir)\validatesign.timestamp" AlwaysCreate="true" />
+    <WriteLinesToFile File="$(OutDir)validatesign.timestamp"
+                      Lines="@(FilesToSign);@(MacFilesToSign)"
+                      Overwrite="true" />
   </Target>
 
   <!-- Check the RootDir property has been set -->

@@ -8,7 +8,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
     public class TestFileSystem : IFileSystem
     {
         public IDictionary<string, Stream> Files { get; set; }
-        public IList<string> Directories { get; set; }
+        public ISet<string> Directories { get; set; }
         public string CurrentDirectory { get; set; }
 
         #region IFileSystem
@@ -31,6 +31,11 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
         Stream IFileSystem.OpenFileStream(string path, FileMode fileMode, FileAccess fileAccess, FileShare fileShare)
         {
             return Files[path];
+        }
+
+        public void CreateDirectory(string path)
+        {
+            Directories.Add(path);
         }
 
         #endregion
