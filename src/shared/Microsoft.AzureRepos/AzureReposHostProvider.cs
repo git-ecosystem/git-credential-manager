@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Git.CredentialManager;
 using Microsoft.Git.CredentialManager.Authentication;
@@ -13,9 +14,12 @@ namespace Microsoft.AzureRepos
         private readonly IMicrosoftAuthentication _msAuth;
 
         public AzureReposHostProvider(ICommandContext context)
-            : this(context, new AzureDevOpsRestApi(context), new MicrosoftAuthentication(context)) { }
+            : this(context, new AzureDevOpsRestApi(context), new MicrosoftAuthentication(context))
+        {
+        }
 
-        public AzureReposHostProvider(ICommandContext context, IAzureDevOpsRestApi azDevOps, IMicrosoftAuthentication msAuth)
+        public AzureReposHostProvider(ICommandContext context, IAzureDevOpsRestApi azDevOps,
+            IMicrosoftAuthentication msAuth)
             : base(context)
         {
             EnsureArgument.NotNull(azDevOps, nameof(azDevOps));
@@ -27,7 +31,11 @@ namespace Microsoft.AzureRepos
 
         #region HostProvider
 
+        public override string Id => "azure-repos";
+
         public override string Name => "Azure Repos";
+
+        public override IEnumerable<string> SupportedAuthorityIds => MicrosoftAuthentication.AuthorityIds;
 
         public override bool IsSupported(InputArguments input)
         {

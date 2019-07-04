@@ -16,9 +16,14 @@ namespace Microsoft.Git.CredentialManager.Authentication
         }
     }
 
-    public class TtyPromptBasicAuthentication : AuthenticationBase, IBasicAuthentication
+    public class BasicAuthentication : AuthenticationBase, IBasicAuthentication
     {
-        public TtyPromptBasicAuthentication(ICommandContext context)
+        public static readonly string[] AuthorityIds =
+        {
+            "basic",
+        };
+
+        public BasicAuthentication(ICommandContext context)
             : base (context) { }
 
         public GitCredential GetCredentials(string resource, string userName)
@@ -27,7 +32,7 @@ namespace Microsoft.Git.CredentialManager.Authentication
 
             EnsureTerminalPromptsEnabled();
 
-            Context.Terminal.WriteLine("Enter credentials for '{0}':", resource);
+            Context.Terminal.WriteLine("Enter basic credentials for '{0}':", resource);
 
             if (!string.IsNullOrWhiteSpace(userName))
             {

@@ -37,7 +37,16 @@ namespace Microsoft.Git.CredentialManager
     /// </summary>
     public class HostProviderRegistry : IHostProviderRegistry
     {
-        private readonly List<IHostProvider> _hostProviders = new List<IHostProvider>();
+        private readonly ICommandContext _context;
+        private readonly List<IHostProvider> _hostProviders;
+
+        public HostProviderRegistry(ICommandContext context)
+        {
+            EnsureArgument.NotNull(context, nameof(context));
+
+            _context = context;
+            _hostProviders = new List<IHostProvider>();
+        }
 
         public void Register(params IHostProvider[] hostProviders)
         {
@@ -46,14 +55,81 @@ namespace Microsoft.Git.CredentialManager
                 throw new ArgumentNullException(nameof(hostProviders));
             }
 
+            if (hostProviders.Any(x => StringComparer.OrdinalIgnoreCase.Equals(x.Id, Constants.ProviderIdAuto)))
+            {
+                throw new ArgumentException(
+                    $"A host provider cannot be registered with the ID '{Constants.ProviderIdAuto}'",
+                    nameof(hostProviders));
+            }
+
+            if (hostProviders.SelectMany(x => x.SupportedAuthorityIds).Any(y => StringComparer.OrdinalIgnoreCase.Equals(y, Constants.AuthorityIdAuto)))
+            {
+                throw new ArgumentException(
+                    $"A host provider cannot be registered with the legacy authority ID '{Constants.AuthorityIdAuto}'",
+                    nameof(hostProviders));
+            }
+
             _hostProviders.AddRange(hostProviders);
         }
 
         public IHostProvider GetProvider(InputArguments input)
         {
-            var provider = _hostProviders.FirstOrDefault(x => x.IsSupported(input));
+            IHostProvider provider;
 
-            if (provider == null)
+            //
+            // Try and locate a specified provider
+            //
+            if (_context.Settings.ProviderOverride is string providerId)
+            {
+                _context.Trace.WriteLine($"Host provider override was set id='{providerId}'");
+
+                if (!StringComparer.OrdinalIgnoreCase.Equals(Constants.ProviderIdAuto, providerId))
+                {
+                    provider = _hostProviders.FirstOrDefault(x => StringComparer.OrdinalIgnoreCase.Equals(x.Id, providerId));
+
+                    if (provider is null)
+                    {
+                        _context.Trace.WriteLine($"No host provider was found with ID '{providerId}'.. falling back to auto-detection.");
+                        _context.StdError.WriteLine($"warning: a host provider override was set but no such provider '{providerId}' was found. Falling back to auto-detection.");
+                    }
+                    else
+                    {
+                        return provider;
+                    }
+                }
+            }
+            //
+            // Try and locate a provider by supported authorities
+            //
+            else if (_context.Settings.LegacyAuthorityOverride is string authority)
+            {
+                _context.Trace.WriteLine($"Host provider authority override was set authority='{authority}'");
+                _context.StdError.WriteLine("warning: the `credential.authority` and `GCM_AUTHORITY` settings are deprecated.");
+                _context.StdError.WriteLine($"warning: see {Constants.HelpUrls.GcmAuthorityDeprecated} for more information.");
+
+                if (!StringComparer.OrdinalIgnoreCase.Equals(Constants.AuthorityIdAuto, authority))
+                {
+                    provider = _hostProviders.FirstOrDefault(x => x.SupportedAuthorityIds.Contains(authority, StringComparer.OrdinalIgnoreCase));
+
+                    if (provider is null)
+                    {
+                        _context.Trace.WriteLine($"No host provider was found with authority '{authority}'.. falling back to auto-detection.");
+                        _context.StdError.WriteLine($"warning: a supported authority override was set but no such provider supporting authority '{authority}' was found. Falling back to auto-detection.");
+                    }
+                    else
+                    {
+                        return provider;
+                    }
+                }
+            }
+
+            //
+            // Auto-detection
+            //
+            _context.Trace.WriteLine("Performing auto-detection of host provider.");
+            provider = _hostProviders.FirstOrDefault(x => x.IsSupported(input));
+
+            if (provider is null)
             {
                 throw new Exception("No host provider available to service this request.");
             }

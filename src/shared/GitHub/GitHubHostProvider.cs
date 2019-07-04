@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Git.CredentialManager;
 
@@ -30,7 +31,11 @@ namespace GitHub
             _gitHubAuth = gitHubAuth;
         }
 
+        public override string Id => "github";
+
         public override string Name => "GitHub";
+
+        public override IEnumerable<string> SupportedAuthorityIds => GitHubAuthentication.AuthorityIds;
 
         public override bool IsSupported(InputArguments input)
         {

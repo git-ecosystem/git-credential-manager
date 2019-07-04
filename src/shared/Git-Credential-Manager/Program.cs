@@ -14,7 +14,7 @@ namespace Microsoft.Git.CredentialManager
             using (var app = new Application(context))
             {
                 // Register all supported host providers
-                app.ProviderRegistry.Register(
+                app.RegisterProviders(
                     new AzureReposHostProvider(context),
                     new GitHubHostProvider(context),
                     new GenericHostProvider(context)

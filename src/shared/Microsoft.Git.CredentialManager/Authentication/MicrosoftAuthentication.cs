@@ -15,6 +15,13 @@ namespace Microsoft.Git.CredentialManager.Authentication
 
     public class MicrosoftAuthentication : AuthenticationBase, IMicrosoftAuthentication
     {
+        public static readonly string[] AuthorityIds =
+        {
+            "msa",  "microsoft",   "microsoftaccount",
+            "aad",  "azure",       "azuredirectory",
+            "live", "liveconnect", "liveid",
+        };
+
         public MicrosoftAuthentication(ICommandContext context)
             : base(context) {}
 

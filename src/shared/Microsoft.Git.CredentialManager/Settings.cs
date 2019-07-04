@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using KnownEnvars = Microsoft.Git.CredentialManager.Constants.EnvironmentVariables;
 using KnownGitCfg = Microsoft.Git.CredentialManager.Constants.GitConfiguration;
+using GitCredCfg  = Microsoft.Git.CredentialManager.Constants.GitConfiguration.Credential;
 
 namespace Microsoft.Git.CredentialManager
 {
@@ -49,6 +50,21 @@ namespace Microsoft.Git.CredentialManager
         /// True if MSAL tracing is enabled, false otherwise.
         /// </summary>
         bool IsMsalTracingEnabled { get; }
+
+        /// <summary>
+        /// Get the host provider configured to override auto-detection if set, null otherwise.
+        /// </summary>
+        string ProviderOverride { get; }
+
+        /// <summary>
+        /// Get the authority name configured to override host provider auto-detection if set, null otherwise.
+        /// </summary>
+        string LegacyAuthorityOverride { get; }
+
+        /// <summary>
+        /// True if Windows Integrated Authentication (NTLM, Kerberos) should be detected and used if available, false otherwise.
+        /// </summary>
+        bool IsWindowsIntegratedAuthenticationEnabled { get; }
     }
 
     public class Settings : ISettings
@@ -78,6 +94,15 @@ namespace Microsoft.Git.CredentialManager
         public bool IsSecretTracingEnabled => _environment.GetBooleanyOrDefault(KnownEnvars.GcmTraceSecrets, false);
 
         public bool IsMsalTracingEnabled => _environment.GetBooleanyOrDefault(Constants.EnvironmentVariables.GcmTraceMsAuth, false);
+
+        public string ProviderOverride =>
+            TryGetSetting(KnownEnvars.GcmProvider, GitCredCfg.SectionName, GitCredCfg.Provider, out string providerId) ? providerId : null;
+
+        public string LegacyAuthorityOverride =>
+            TryGetSetting(KnownEnvars.GcmAuthority, GitCredCfg.SectionName, GitCredCfg.Authority, out string authority) ? authority : null;
+
+        public bool IsWindowsIntegratedAuthenticationEnabled =>
+            TryGetSetting(KnownEnvars.GcmAllowWia, GitCredCfg.SectionName, GitCredCfg.AllowWia, out string value) && value.ToBooleanyOrDefault(true);
 
         /// <summary>
         /// Try and get the value of a specified setting as specified in the environment and Git configuration,

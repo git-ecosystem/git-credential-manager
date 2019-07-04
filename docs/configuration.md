@@ -22,4 +22,73 @@ For the complete list of settings GCM Core understands, see the list below.
 
 ## Available settings
 
-_Currently there are no available settings. This is a placeholder for the settings on the backlog._
+### credential.provider
+
+Define the host provider to use when authenticating.
+
+ID|Provider
+-|-
+`auto` _(default)_|_\[automatic\]_
+`azure-repos`|Azure Repos
+`github`|GitHub
+`generic`|Generic (any other provider not listed above)
+
+Automatic provider selection is based on the remote URL.
+
+This setting is typically used with a scoped URL to map a particular set of remote URLs to providers, for example to mark a host as a GitHub Enterprise instance.
+
+#### Example
+
+```shell
+git config --global credential.ghe.contoso.com.provider github
+```
+
+**Also see: [GCM_PROVIDER](environment.md#GCM_PROVIDER)**
+
+---
+
+### credential.authority _(deprecated)_
+
+> This setting is deprecated and should be replaced by `credential.provider` with the corresponding provider ID value.
+>
+> Click [here](https://aka.ms/gcmcore-authority) for more information.
+
+Select the host provider to use when authenticating by which authority is supported by the providers.
+
+Authority|Provider(s)
+-|-
+`auto` _(default)_|_\[automatic\]_
+`msa`, `microsoft`, `microsoftaccount`,<br/>`aad`, `azure`, `azuredirectory`,</br>`live`, `liveconnect`, `liveid`|Azure Repos<br/>_(supports Microsoft Authentication)_
+`github`|GitHub<br/>_(supports GitHub Authentication)_
+`basic`, `integrated`, `windows`, `kerberos`, `ntlm`,<br/>`tfs`, `sso`|Generic<br/>_(supports Basic and Windows Integrated Authentication)_
+
+#### Example
+
+```shell
+git config --global credential.ghe.contoso.com.authority github
+```
+
+**Also see: [GCM_AUTHORITY](environment.md#GCM_AUTHORITY-deprecated)**
+
+---
+
+### credential.allowWindowsAuth
+
+Allow detection of Windows Integrated Authentication (WIA) support for generic host providers. Setting this value to `false` will prevent the use of WIA and force a basic authentication prompt when using the Generic host provider.
+
+**Note:** WIA is only supported on Windows.
+
+**Note:** WIA is an umbrella term for NTLM and Kerberos (and Negotiate).
+
+Value|WIA detection
+-|-
+`true` _(default)_|Permitted
+`false`|Not permitted
+
+#### Example
+
+```shell
+git config --global credential.tfsonprem123.allowWindowsAuth false
+```
+
+**Also see: [GCM_ALLOW_WINDOWSAUTH](environment.md#GCM_ALLOW_WINDOWSAUTH)**

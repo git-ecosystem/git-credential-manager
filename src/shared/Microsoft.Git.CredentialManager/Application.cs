@@ -10,19 +10,27 @@ namespace Microsoft.Git.CredentialManager
 {
     public class Application : ApplicationBase
     {
-        public IHostProviderRegistry ProviderRegistry { get; } = new HostProviderRegistry();
+        private readonly IHostProviderRegistry _providerRegistry;
 
         public Application(ICommandContext context)
-            : base(context) { }
+            : base(context)
+        {
+            _providerRegistry = new HostProviderRegistry(context);
+        }
+
+        public void RegisterProviders(params IHostProvider[] providers)
+        {
+            _providerRegistry.Register(providers);
+        }
 
         protected override async Task<int> RunInternalAsync(string[] args)
         {
             // Construct all supported commands
             var commands = new CommandBase[]
             {
-                new EraseCommand(ProviderRegistry),
-                new GetCommand(ProviderRegistry),
-                new StoreCommand(ProviderRegistry),
+                new EraseCommand(_providerRegistry),
+                new GetCommand(_providerRegistry),
+                new StoreCommand(_providerRegistry),
                 new VersionCommand(),
                 new HelpCommand(),
             };
@@ -71,7 +79,7 @@ namespace Microsoft.Git.CredentialManager
         {
             if (disposing)
             {
-                ProviderRegistry.Dispose();
+                _providerRegistry?.Dispose();
             }
 
             base.Dispose(disposing);
