@@ -9,7 +9,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
     {
         public IDictionary<string, Stream> Files { get; set; }
         public ISet<string> Directories { get; set; }
-        public string CurrentDirectory { get; set; }
+        public string CurrentDirectory { get; set; } = Path.GetTempPath();
 
         #region IFileSystem
 

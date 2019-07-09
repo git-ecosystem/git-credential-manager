@@ -76,6 +76,7 @@ Source: "{#PayloadDir}\git-credential-manager.exe"; DestDir: "{app}"; Flags: ign
 Source: "{#PayloadDir}\GitHub.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PayloadDir}\GitHub.UI.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PayloadDir}\GitHub.Authentication.Helper.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#PayloadDir}\git2-572e4d8.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PayloadDir}\Microsoft.Authentication.Helper.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PayloadDir}\Microsoft.Authentication.Helper.exe.config"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PayloadDir}\Microsoft.AzureRepos.dll"; DestDir: "{app}"; Flags: ignoreversion
