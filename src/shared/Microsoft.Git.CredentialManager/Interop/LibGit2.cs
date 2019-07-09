@@ -106,7 +106,7 @@ namespace Microsoft.Git.CredentialManager.Interop
 
         public string RepositoryPath { get; }
 
-        public unsafe bool TryGetString(string name, out string value)
+        public unsafe bool TryGetValue(string name, out string value)
         {
             int result = git_config_get_string(out value, _snapshot, name);
 

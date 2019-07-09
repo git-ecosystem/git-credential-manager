@@ -8,22 +8,24 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
 {
     public class TestGit : IGit
     {
-        public TestGitConfiguration NoRepoConfiguration { get; } = new TestGitConfiguration();
-
-        public IDictionary<string, TestGitConfiguration> Repositories { get; } =
-            new Dictionary<string, TestGitConfiguration>();
-
-        public TestGitConfiguration AddRepository(string repoPath, IDictionary<string, string> config = null)
+        public TestGit(IDictionary<string, string> globalConfig = null)
         {
-            var repoConfig = new TestGitConfiguration
-            {
-                RepositoryPath = repoPath,
-                Values = config ?? new Dictionary<string, string>()
-            };
+            GlobalConfiguration = new TestGitConfiguration(globalConfig);
+        }
 
-            Repositories.Add(repoPath, repoConfig);
+        public TestGitConfiguration GlobalConfiguration { get; }
 
-            return repoConfig;
+        public IDictionary<string, TestGitRepository> Repositories { get; } =
+            new Dictionary<string, TestGitRepository>();
+
+        public TestGitRepository AddRepository(string repoPath, IDictionary<string, string> config = null)
+        {
+            var repoConfig = new TestGitConfiguration(repoPath, config);
+            var repo = new TestGitRepository(repoPath, repoConfig);
+
+            Repositories.Add(repoPath, repo);
+
+            return repo;
         }
 
         #region IGit
@@ -31,13 +33,48 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
         void IDisposable.Dispose() { }
 
         IGitConfiguration IGit.GetConfiguration(string repositoryPath)
-            => string.IsNullOrWhiteSpace(repositoryPath)
-            ? NoRepoConfiguration
-            : Repositories[repositoryPath];
+        {
+            if (string.IsNullOrWhiteSpace(repositoryPath) || !Repositories.TryGetValue(repositoryPath, out TestGitRepository repo))
+            {
+                return GlobalConfiguration;
+            }
+
+            IDictionary<string, string> mergedConfigDict = MergeDictionaries(GlobalConfiguration.Dictionary, repo.Configuration.Dictionary);
+
+            return new TestGitConfiguration(repositoryPath, mergedConfigDict);
+        }
 
         string IGit.GetRepositoryPath(string path) =>
             Repositories.Keys.FirstOrDefault(path.StartsWith);
 
         #endregion
+
+        private static IDictionary<string, string> MergeDictionaries(params IDictionary<string, string>[] dictionaries)
+        {
+            var result = new Dictionary<string, string>();
+
+            foreach (var dict in dictionaries)
+            {
+                foreach (var kvp in dict)
+                {
+                    result[kvp.Key] = kvp.Value;
+                }
+            }
+
+            return result;
+        }
+
+        public class TestGitRepository
+        {
+            internal TestGitRepository(string path, TestGitConfiguration configuration)
+            {
+                Path = path;
+                Configuration = configuration ?? new TestGitConfiguration();
+            }
+
+            public string Path { get; }
+
+            public TestGitConfiguration Configuration { get; }
+        }
     }
 }

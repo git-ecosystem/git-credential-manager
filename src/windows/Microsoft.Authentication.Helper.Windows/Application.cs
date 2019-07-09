@@ -68,7 +68,7 @@ namespace Microsoft.Authentication.Helper
                                                            .WithRedirectUri(redirectUri.ToString());
 
             // Listen to MSAL logs if GCM_TRACE_MSAUTH is set
-            if (Context.IsEnvironmentVariableTruthy(Constants.EnvironmentVariables.GcmTraceMsAuth, false))
+            if (Context.EnvironmentVariables.GetBooleanyOrDefault(Constants.EnvironmentVariables.GcmTraceMsAuth, false))
             {
                 // If GCM secret tracing is enabled also enable "PII" logging in MSAL
                 bool enablePiiLogging = Context.Trace.IsSecretTracingEnabled;
