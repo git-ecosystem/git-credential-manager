@@ -21,18 +21,12 @@ namespace Microsoft.AzureRepos
     public class AzureDevOpsRestApi : IAzureDevOpsRestApi
     {
         private readonly ICommandContext _context;
-        private readonly IHttpClientFactory _httpFactory;
 
         public AzureDevOpsRestApi(ICommandContext context)
-            : this(context, new HttpClientFactory()) { }
-
-        public AzureDevOpsRestApi(ICommandContext context, IHttpClientFactory httpFactory)
         {
             EnsureArgument.NotNull(context, nameof(context));
-            EnsureArgument.NotNull(httpFactory, nameof(httpFactory));
 
             _context = context;
-            _httpFactory = httpFactory;
         }
 
         public async Task<string> GetAuthorityAsync(Uri organizationUri)
@@ -185,7 +179,7 @@ namespace Microsoft.AzureRepos
             {
                 if (_httpClient is null)
                 {
-                    _httpClient = _httpFactory.CreateClient();
+                    _httpClient = _context.HttpClientFactory.CreateClient();
 
                     // Configure the HTTP client with standard headers for Azure Repos API calls
                     _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(Constants.Http.MimeTypeJson));

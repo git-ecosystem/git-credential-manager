@@ -15,15 +15,10 @@ namespace Microsoft.Git.CredentialManager.Authentication
     public class WindowsIntegratedAuthentication : IWindowsIntegratedAuthentication
     {
         private readonly ICommandContext _context;
-        private readonly IHttpClientFactory _httpFactory;
 
         public WindowsIntegratedAuthentication(ICommandContext context)
-            : this(context, new HttpClientFactory()) { }
-
-        public WindowsIntegratedAuthentication(ICommandContext context, IHttpClientFactory httpFactory)
         {
             _context = context;
-            _httpFactory = httpFactory;
         }
 
         public async Task<bool> GetIsSupportedAsync(Uri uri)
@@ -57,7 +52,7 @@ namespace Microsoft.Git.CredentialManager.Authentication
         }
 
         private HttpClient _httpClient;
-        private HttpClient HttpClient => _httpClient ?? (_httpClient = _httpFactory.CreateClient());
+        private HttpClient HttpClient => _httpClient ?? (_httpClient = _context.HttpClientFactory.CreateClient());
 
         #region IDisposable
 

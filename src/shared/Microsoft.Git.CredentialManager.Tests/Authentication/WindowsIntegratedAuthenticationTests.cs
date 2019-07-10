@@ -82,8 +82,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Authentication
             var httpHandler = new TestHttpMessageHandler {ThrowOnUnexpectedRequest = true};
             httpHandler.Setup(HttpMethod.Head, uri, wiaResponse);
 
-            var httpFactory = new TestHttpClientFactory {MessageHandler = httpHandler};
-            var wiaAuth = new WindowsIntegratedAuthentication(context, httpFactory);
+            context.HttpClientFactory.MessageHandler = httpHandler;
+            var wiaAuth = new WindowsIntegratedAuthentication(context);
 
             bool actual = await wiaAuth.GetIsSupportedAsync(uri);
 

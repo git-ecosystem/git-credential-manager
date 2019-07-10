@@ -58,6 +58,10 @@ namespace Microsoft.Git.CredentialManager
         /// </summary>
         IGit Git { get; }
 
+        /// Factory for creating new <see cref="System.Net.Http.HttpClient"/> instances.
+        /// </summary>
+        IHttpClientFactory HttpClientFactory { get; }
+
         /// <summary>
         /// Access the environment variables for the current GCM process.
         /// </summary>
@@ -77,8 +81,34 @@ namespace Microsoft.Git.CredentialManager
         private TextReader _stdIn;
         private TextWriter _stdOut;
         private TextWriter _stdErr;
-        private ITerminal _terminal;
         private IReadOnlyDictionary<string, string> _envars;
+
+        public CommandContext()
+        {
+            Trace = new Trace();
+            FileSystem = new FileSystem();
+            Git = new LibGit2();
+            HttpClientFactory = new HttpClientFactory();
+
+            if (PlatformUtils.IsWindows())
+            {
+                Terminal = new WindowsTerminal(Trace);
+                CredentialStore = WindowsCredentialManager.Open();
+            }
+            else if (PlatformUtils.IsPosix())
+            {
+                Terminal = new PosixTerminal(Trace);
+
+                if (PlatformUtils.IsMacOS())
+                {
+                    CredentialStore = MacOSKeychain.Open();
+                }
+                else if (PlatformUtils.IsLinux())
+                {
+                    throw new NotImplementedException();
+                }
+            }
+        }
 
         #region ICommandContext
 
@@ -129,18 +159,17 @@ namespace Microsoft.Git.CredentialManager
             }
         }
 
-        public ITerminal Terminal
-        {
-            get { return _terminal ?? (_terminal = CreateTerminal()); }
-        }
+        public ITerminal Terminal { get; }
 
-        public ITrace Trace { get; } = new Trace();
+        public ITrace Trace { get; }
 
-        public IFileSystem FileSystem { get; } = new FileSystem();
+        public IFileSystem FileSystem { get; }
 
-        public ICredentialStore CredentialStore { get; } = CreateCredentialStore();
+        public ICredentialStore CredentialStore { get; }
 
-        public IGit Git { get; } = new LibGit2();
+        public IGit Git { get; }
+
+        public IHttpClientFactory HttpClientFactory { get; }
 
         public IReadOnlyDictionary<string, string> EnvironmentVariables
         {
@@ -180,41 +209,6 @@ namespace Microsoft.Git.CredentialManager
         }
 
         #endregion
-
-        private ITerminal CreateTerminal()
-        {
-            if (PlatformUtils.IsPosix())
-            {
-                return new PosixTerminal(Trace);
-            }
-
-            if (PlatformUtils.IsWindows())
-            {
-                return new WindowsTerminal(Trace);
-            }
-
-            throw new PlatformNotSupportedException();
-        }
-
-        private static ICredentialStore CreateCredentialStore()
-        {
-            if (PlatformUtils.IsMacOS())
-            {
-                return MacOSKeychain.Open();
-            }
-
-            if (PlatformUtils.IsWindows())
-            {
-                return WindowsCredentialManager.Open();
-            }
-
-            if (PlatformUtils.IsLinux())
-            {
-                throw new NotImplementedException();
-            }
-
-            throw new PlatformNotSupportedException();
-        }
     }
 
     public static class CommandContextExtensions

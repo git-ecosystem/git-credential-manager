@@ -31,18 +31,12 @@ namespace GitHub
         private const int RequestTimeout = 15 * 1000; // 15 second limit
 
         private readonly ICommandContext _context;
-        private readonly IHttpClientFactory _httpFactory;
 
         public GitHubRestApi(ICommandContext context)
-            : this(context, new HttpClientFactory()) { }
-
-        public GitHubRestApi(ICommandContext context, IHttpClientFactory httpFactory)
         {
             EnsureArgument.NotNull(context, nameof(context));
-            EnsureArgument.NotNull(httpFactory, nameof(httpFactory));
 
             _context = context;
-            _httpFactory = httpFactory;
         }
 
         #region IGitHubApi
@@ -203,7 +197,7 @@ namespace GitHub
             {
                 if (_httpClient is null)
                 {
-                    _httpClient = _httpFactory.CreateClient();
+                    _httpClient = _context.HttpClientFactory.CreateClient();
 
                     // Set the common headers and timeout
                     _httpClient.Timeout = TimeSpan.FromMilliseconds(RequestTimeout);
