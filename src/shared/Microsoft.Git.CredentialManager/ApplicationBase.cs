@@ -1,3 +1,5 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT license.
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -10,7 +12,7 @@ namespace Microsoft.Git.CredentialManager
     public abstract class ApplicationBase : IDisposable
     {
         private static readonly Encoding Utf8NoBomEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
-        
+
         private TextWriter _traceFileWriter;
 
         protected ICommandContext Context { get; }
@@ -25,7 +27,7 @@ namespace Microsoft.Git.CredentialManager
         public Task<int> RunAsync(string[] args)
         {
             // Launch debugger
-            if (Context.IsEnvironmentVariableTruthy(Constants.EnvironmentVariables.GcmDebug, false))
+            if (Context.Settings.IsDebuggingEnabled)
             {
                 Context.StdError.WriteLine("Waiting for debugger to be attached...");
                 WaitForDebuggerAttached();
@@ -35,34 +37,34 @@ namespace Microsoft.Git.CredentialManager
             }
 
             // Enable tracing
-            if (Context.TryGetEnvironmentVariable(Constants.EnvironmentVariables.GcmTrace, out string traceEnvar))
+            if (Context.Settings.GetTracingEnabled(out string traceValue))
             {
-                if (traceEnvar.IsTruthy()) // Trace to stderr
+                if (traceValue.IsTruthy()) // Trace to stderr
                 {
                     Context.Trace.AddListener(Context.StdError);
                 }
-                else if (Path.IsPathRooted(traceEnvar)) // Trace to a file
+                else if (Path.IsPathRooted(traceValue)) // Trace to a file
                 {
                     try
                     {
-                        Stream stream = Context.FileSystem.OpenFileStream(traceEnvar, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
+                        Stream stream = Context.FileSystem.OpenFileStream(traceValue, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
                         _traceFileWriter = new StreamWriter(stream, Utf8NoBomEncoding, 4096, leaveOpen: false);
 
                         Context.Trace.AddListener(_traceFileWriter);
                     }
                     catch (Exception ex)
                     {
-                        Context.StdError.WriteLine($"warning: unable to trace to file '{traceEnvar}': {ex.Message}");
+                        Context.StdError.WriteLine($"warning: unable to trace to file '{traceValue}': {ex.Message}");
                     }
                 }
                 else
                 {
-                    Context.StdError.WriteLine($"warning: unknown value for {Constants.EnvironmentVariables.GcmTrace} '{traceEnvar}'");
+                    Context.StdError.WriteLine($"warning: unknown value for {Constants.EnvironmentVariables.GcmTrace} '{traceValue}'");
                 }
             }
 
             // Enable sensitive tracing and show warning
-            if (Context.IsEnvironmentVariableTruthy(Constants.EnvironmentVariables.GcmTraceSecrets, false))
+            if (Context.Settings.IsSecretTracingEnabled)
             {
                 Context.Trace.IsSecretTracingEnabled = true;
                 Context.Trace.WriteLine("Tracing of secrets is enabled. Trace output may contain sensitive information.");

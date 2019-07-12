@@ -29,6 +29,23 @@ namespace Microsoft.Git.CredentialManager
             public const string MimeTypeJson = "application/json";
         }
 
+        public static class GitConfiguration
+        {
+            public static class Credential
+            {
+                public const string SectionName = "credential";
+                public const string Helper      = "helper";
+                public const string Provider    = "provider";
+                public const string Authority   = "authority";
+            }
+
+            public static class Http
+            {
+                public const string SectionName = "http";
+                public const string Proxy = "proxy";
+            }
+        }
+
         private static string _gcmVersion;
 
         /// <summary>

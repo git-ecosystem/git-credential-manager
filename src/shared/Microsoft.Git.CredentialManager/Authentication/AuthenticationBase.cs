@@ -1,3 +1,5 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT license.
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -62,8 +64,7 @@ namespace Microsoft.Git.CredentialManager.Authentication
 
         protected void EnsureTerminalPromptsEnabled()
         {
-            if (Context.TryGetEnvironmentVariable(Constants.EnvironmentVariables.GitTerminalPrompts, out string envarPrompts)
-                && envarPrompts == "0")
+            if (!Context.Settings.IsTerminalPromptsEnabled)
             {
                 Context.Trace.WriteLine($"{Constants.EnvironmentVariables.GitTerminalPrompts} is 0; terminal prompts have been disabled.");
 

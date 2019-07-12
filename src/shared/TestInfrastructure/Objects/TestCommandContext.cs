@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.IO;
 using System.Text;
 
@@ -9,6 +8,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
 {
     public class TestCommandContext : ICommandContext
     {
+        public TestSettings Settings { get; set; } = new TestSettings();
         public string StdIn { get; set; } = string.Empty;
         public StringBuilder StdOut { get; set; } = new StringBuilder();
         public StringBuilder StdError { get; set; } = new StringBuilder();
@@ -18,10 +18,12 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
         public TestCredentialStore CredentialStore { get; set; } = new TestCredentialStore();
         public TestGit Git { get; set; } = new TestGit();
         public TestHttpClientFactory HttpClientFactory { get; set; } = new TestHttpClientFactory();
-        public IDictionary<string, string> EnvironmentVariables { get; set; } = new Dictionary<string, string>();
+        public Dictionary<string, string> EnvironmentVariables { get; set; } = new Dictionary<string, string>();
         public string NewLine { get; set; } = "\n";
 
         #region ICommandContext
+
+        ISettings ICommandContext.Settings => Settings;
 
         TextReader ICommandContext.StdIn => new StringReader(StdIn);
 
@@ -41,8 +43,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
 
         IHttpClientFactory ICommandContext.HttpClientFactory => HttpClientFactory;
 
-        IReadOnlyDictionary<string, string> ICommandContext.EnvironmentVariables
-            => new ReadOnlyDictionary<string, string>(EnvironmentVariables);
+        IEnvironmentVariables ICommandContext.EnvironmentVariables
+            => new EnvironmentVariables(EnvironmentVariables);
 
         #endregion
     }

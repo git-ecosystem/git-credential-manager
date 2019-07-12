@@ -1,11 +1,8 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
 using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Microsoft.Git.CredentialManager.Authentication;
 using Microsoft.Git.CredentialManager.Tests.Objects;
-using Moq;
 using Xunit;
 
 namespace Microsoft.Git.CredentialManager.Tests.Authentication
@@ -65,7 +62,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Authentication
 
             var context = new TestCommandContext
             {
-                EnvironmentVariables = {[Constants.EnvironmentVariables.GitTerminalPrompts] = "0"}
+                Settings = {IsTerminalPromptsEnabled = false},
             };
 
             var basicAuth = new TtyPromptBasicAuthentication(context);

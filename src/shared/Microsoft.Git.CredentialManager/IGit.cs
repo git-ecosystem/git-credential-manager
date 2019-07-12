@@ -18,7 +18,7 @@ namespace Microsoft.Git.CredentialManager
         /// <param name="name">Configuration entry name.</param>
         /// <param name="value">Configuration entry value.</param>
         /// <returns>True if the value was found, false otherwise.</returns>
-        bool TryGetString(string name, out string value);
+        bool TryGetValue(string name, out string value);
     }
 
     public interface IGit : IDisposable
@@ -54,9 +54,9 @@ namespace Microsoft.Git.CredentialManager
         /// <param name="config">Configuration object.</param>
         /// <param name="name">Configuration entry name.</param>
         /// <returns>Configuration entry value.</returns>
-        public static string GetString(this IGitConfiguration config, string name)
+        public static string GetValue(this IGitConfiguration config, string name)
         {
-            if (!config.TryGetString(name, out string value))
+            if (!config.TryGetValue(name, out string value))
             {
                 throw new KeyNotFoundException($"Git configuration entry with the name '{name}' was not found.");
             }
@@ -72,9 +72,9 @@ namespace Microsoft.Git.CredentialManager
         /// <param name="property">Configuration property name.</param>
         /// <exception cref="System.Collections.Generic.KeyNotFoundException">A configuration entry with the specified key was not found.</exception>
         /// <returns>Configuration entry value.</returns>
-        public static string GetString(this IGitConfiguration config, string section, string property)
+        public static string GetValue(this IGitConfiguration config, string section, string property)
         {
-            return GetString(config, $"{section}.{property}");
+            return GetValue(config, $"{section}.{property}");
         }
 
         /// <summary>
@@ -86,14 +86,14 @@ namespace Microsoft.Git.CredentialManager
         /// <param name="property">Configuration property name.</param>
         /// <exception cref="System.Collections.Generic.KeyNotFoundException">A configuration entry with the specified key was not found.</exception>
         /// <returns>Configuration entry value.</returns>
-        public static string GetString(this IGitConfiguration config, string section, string scope, string property)
+        public static string GetValue(this IGitConfiguration config, string section, string scope, string property)
         {
             if (scope is null)
             {
-                return GetString(config, section, property);
+                return GetValue(config, section, property);
             }
 
-            return GetString(config, $"{section}.{scope}.{property}");
+            return GetValue(config, $"{section}.{scope}.{property}");
         }
 
         /// <summary>
@@ -104,9 +104,9 @@ namespace Microsoft.Git.CredentialManager
         /// <param name="property">Configuration property name.</param>
         /// <param name="value">Configuration entry value.</param>
         /// <returns>True if the value was found, false otherwise.</returns>
-        public static bool TryGetString(this IGitConfiguration config, string section, string property, out string value)
+        public static bool TryGetValue(this IGitConfiguration config, string section, string property, out string value)
         {
-            return config.TryGetString($"{section}.{property}", out value);
+            return config.TryGetValue($"{section}.{property}", out value);
         }
 
         /// <summary>
@@ -118,14 +118,14 @@ namespace Microsoft.Git.CredentialManager
         /// <param name="property">Configuration property name.</param>
         /// <param name="value">Configuration entry value.</param>
         /// <returns>True if the value was found, false otherwise.</returns>
-        public static bool TryGetString(this IGitConfiguration config, string section, string scope, string property, out string value)
+        public static bool TryGetValue(this IGitConfiguration config, string section, string scope, string property, out string value)
         {
             if (scope is null)
             {
-                return TryGetString(config, section, property, out value);
+                return TryGetValue(config, section, property, out value);
             }
 
-            return config.TryGetString($"{section}.{scope}.{property}", out value);
+            return config.TryGetValue($"{section}.{scope}.{property}", out value);
         }
     }
 }
