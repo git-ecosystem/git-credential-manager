@@ -14,6 +14,16 @@ namespace Microsoft.Git.CredentialManager
     public interface ISettings
     {
         /// <summary>
+        /// Git repository that local configuration lookup is scoped to, or null if no repository has been discovered.
+        /// </summary>
+        string RepositoryPath { get; set; }
+
+        /// <summary>
+        /// Git remote address that setting lookup is scoped to, or null if no remote URL has been discovered.
+        /// </summary>
+        Uri RemoteUri { get; set; }
+
+        /// <summary>
         /// True if debugging is enabled, false otherwise.
         /// </summary>
         bool IsDebuggingEnabled { get; }
@@ -34,6 +44,11 @@ namespace Microsoft.Git.CredentialManager
         /// True if tracing of secrets and sensitive information is enabled, false otherwise.
         /// </summary>
         bool IsSecretTracingEnabled { get; }
+
+        /// <summary>
+        /// True if MSAL tracing is enabled, false otherwise.
+        /// </summary>
+        bool IsMsalTracingEnabled { get; }
     }
 
     public class Settings : ISettings
@@ -43,9 +58,16 @@ namespace Microsoft.Git.CredentialManager
 
         public Settings(IEnvironmentVariables environmentVariables, IGit git)
         {
+            EnsureArgument.NotNull(environmentVariables, nameof(environmentVariables));
+            EnsureArgument.NotNull(git, nameof(git));
+
             _environment = environmentVariables;
             _git = git;
         }
+
+        public string RepositoryPath { get; set; }
+
+        public Uri RemoteUri { get; set; }
 
         public bool IsDebuggingEnabled => _environment.GetBooleanyOrDefault(KnownEnvars.GcmDebug, false);
 
@@ -55,20 +77,20 @@ namespace Microsoft.Git.CredentialManager
 
         public bool IsSecretTracingEnabled => _environment.GetBooleanyOrDefault(KnownEnvars.GcmTraceSecrets, false);
 
+        public bool IsMsalTracingEnabled => _environment.GetBooleanyOrDefault(Constants.EnvironmentVariables.GcmTraceMsAuth, false);
+
         /// <summary>
         /// Try and get the value of a specified setting as specified in the environment and Git configuration,
         /// with the environment taking precedence over Git.
         /// </summary>
-        /// <param name="repositoryPath">Optional path of a repository to lookup local configuration from.</param>
-        /// <param name="remoteUri">Optional git remote address that settings should be scoped to.</param>
         /// <param name="envarName">Optional environment variable name.</param>
         /// <param name="section">Optional Git configuration section name.</param>
         /// <param name="property">Git configuration property name. Required if <paramref name="section"/> is set, optional otherwise.</param>
         /// <param name="value">Value of the requested setting.</param>
         /// <returns>True if a setting value was found, false otherwise.</returns>
-        public bool TryGetSetting(string repositoryPath, Uri remoteUri, string envarName, string section, string property, out string value)
+        public bool TryGetSetting(string envarName, string section, string property, out string value)
         {
-            IEnumerable<string> allValues = GetSettingValues(repositoryPath, remoteUri, envarName, section, property);
+            IEnumerable<string> allValues = GetSettingValues(envarName, section, property);
 
             value = allValues.FirstOrDefault();
 
@@ -79,13 +101,11 @@ namespace Microsoft.Git.CredentialManager
         /// Try and get the all values of a specified setting as specified in the environment and Git configuration,
         /// in the correct order or precedence.
         /// </summary>
-        /// <param name="repositoryPath">Optional path of a repository to lookup local configuration from.</param>
-        /// <param name="remoteUri">Optional git remote address that settings should be scoped to.</param>
         /// <param name="envarName">Optional environment variable name.</param>
         /// <param name="section">Optional Git configuration section name.</param>
         /// <param name="property">Git configuration property name. Required if <paramref name="section"/> is set, optional otherwise.</param>
         /// <returns>All values for the specified setting, in order of precedence, or an empty collection if no such values are set.</returns>
-        public IEnumerable<string> GetSettingValues(string repositoryPath, Uri remoteUri, string envarName, string section, string property)
+        public IEnumerable<string> GetSettingValues(string envarName, string section, string property)
         {
             string value;
 
@@ -99,9 +119,9 @@ namespace Microsoft.Git.CredentialManager
 
             if (section != null && property != null)
             {
-                using (var config = _git.GetConfiguration(repositoryPath))
+                using (var config = _git.GetConfiguration(RepositoryPath))
                 {
-                    if (remoteUri != null)
+                    if (RemoteUri != null)
                     {
                         /*
                          * Look for URL scoped "section" configuration entries, starting from the most specific
@@ -141,7 +161,7 @@ namespace Microsoft.Git.CredentialManager
                          *          property = value
                          *
                          */
-                        foreach (string scope in remoteUri.GetGitConfigurationScopes())
+                        foreach (string scope in RemoteUri.GetGitConfigurationScopes())
                         {
                             // Look for a scoped entry that includes the scheme "protocol://example.com" first as this is more specific
                             if (config.TryGetValue(section, scope, property, out value))

@@ -65,6 +65,9 @@ namespace Microsoft.Git.CredentialManager.Commands
             IDictionary<string, string> inputDict = await context.StdIn.ReadDictionaryAsync(StringComparer.Ordinal);
             var input = new InputArguments(inputDict);
 
+            // Set the remote URI to scope settings to throughout the process from now on
+            context.Settings.RemoteUri = input.GetRemoteUri();
+
             // Determine the host provider
             context.Trace.WriteLine("Detecting host provider for input:");
             context.Trace.WriteDictionarySecrets(inputDict, new []{ "password" }, StringComparer.OrdinalIgnoreCase);

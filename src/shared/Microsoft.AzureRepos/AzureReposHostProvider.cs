@@ -53,6 +53,7 @@ namespace Microsoft.AzureRepos
             }
 
             Uri orgUri = UriHelpers.CreateOrganizationUri(input);
+            Uri remoteUri = input.GetRemoteUri();
 
             // Determine the MS authentication authority for this organization
             Context.Trace.WriteLine("Determining Microsoft Authentication Authority...");
@@ -65,7 +66,8 @@ namespace Microsoft.AzureRepos
                 authAuthority,
                 AzureDevOpsConstants.AadClientId,
                 AzureDevOpsConstants.AadRedirectUri,
-                AzureDevOpsConstants.AadResourceId);
+                AzureDevOpsConstants.AadResourceId,
+                remoteUri);
             Context.Trace.WriteLineSecrets("Acquired access token. Token='{0}'", new object[] {accessToken});
 
             // Ask the Azure DevOps instance to create a new PAT

@@ -209,8 +209,12 @@ namespace Microsoft.Git.CredentialManager.Tests
             });
             var git = new TestGit();
 
-            var settings = new Settings(envars, git);
-            var result = settings.TryGetSetting(repositoryPath, remoteUri, envarName, section, property, out string actualValue);
+            var settings = new Settings(envars, git)
+            {
+                RepositoryPath = repositoryPath,
+                RemoteUri = remoteUri
+            };
+            var result = settings.TryGetSetting(envarName, section, property, out string actualValue);
 
             Assert.True(result);
             Assert.Equal(expectedValue, actualValue);
@@ -229,8 +233,12 @@ namespace Microsoft.Git.CredentialManager.Tests
             var envars = new EnvironmentVariables(new Dictionary<string, string>());
             var git = new TestGit();
 
-            var settings = new Settings(envars, git);
-            var result = settings.TryGetSetting(repositoryPath, remoteUri, envarName, section, property, out string actualValue);
+            var settings = new Settings(envars, git)
+            {
+                RepositoryPath = repositoryPath,
+                RemoteUri = remoteUri
+            };
+            var result = settings.TryGetSetting(envarName, section, property, out string actualValue);
 
             Assert.False(result);
             Assert.Null(actualValue);
@@ -254,8 +262,12 @@ namespace Microsoft.Git.CredentialManager.Tests
                 [$"{section}.{property}"] = expectedValue
             });
 
-            var settings = new Settings(envars, git);
-            var result = settings.TryGetSetting(repositoryPath, remoteUri, envarName, section, property, out string actualValue);
+            var settings = new Settings(envars, git)
+            {
+                RepositoryPath = repositoryPath,
+                RemoteUri = remoteUri
+            };
+            var result = settings.TryGetSetting( envarName, section, property, out string actualValue);
 
             Assert.True(result);
             Assert.Equal(expectedValue, actualValue);
@@ -280,8 +292,12 @@ namespace Microsoft.Git.CredentialManager.Tests
                 [$"{section}.{property}"] = expectedValue
             });
 
-            var settings = new Settings(envars, git);
-            var result = settings.TryGetSetting(repositoryPath, remoteUri, envarName, section, property, out string actualValue);
+            var settings = new Settings(envars, git)
+            {
+                RepositoryPath = repositoryPath,
+                RemoteUri = remoteUri
+            };
+            var result = settings.TryGetSetting(envarName, section, property, out string actualValue);
 
             Assert.True(result);
             Assert.Equal(expectedValue, actualValue);
@@ -310,8 +326,12 @@ namespace Microsoft.Git.CredentialManager.Tests
                 [$"{section}.{scope2}.{property}"] = expectedValue,
             });
 
-            var settings = new Settings(envars, git);
-            var result = settings.TryGetSetting(repositoryPath, remoteUri, envarName, section, property, out string actualValue);
+            var settings = new Settings(envars, git)
+            {
+                RepositoryPath = repositoryPath,
+                RemoteUri = remoteUri
+            };
+            var result = settings.TryGetSetting(envarName, section, property, out string actualValue);
 
             Assert.True(result);
             Assert.Equal(expectedValue, actualValue);
@@ -340,8 +360,12 @@ namespace Microsoft.Git.CredentialManager.Tests
                 [$"{section}.{property}"] = otherValue
             });
 
-            var settings = new Settings(envars, git);
-            var result = settings.TryGetSetting(repositoryPath, remoteUri, envarName, section, property, out string actualValue);
+            var settings = new Settings(envars, git)
+            {
+                RepositoryPath = repositoryPath,
+                RemoteUri = remoteUri
+            };
+            var result = settings.TryGetSetting(envarName, section, property, out string actualValue);
 
             Assert.True(result);
             Assert.Equal(expectedValue, actualValue);
@@ -378,8 +402,12 @@ namespace Microsoft.Git.CredentialManager.Tests
                 [$"{section}.{property}"]          = value4
             });
 
-            var settings = new Settings(envars, git);
-            string[] actualValues = settings.GetSettingValues(repositoryPath, remoteUri, envarName, section, property).ToArray();
+            var settings = new Settings(envars, git)
+            {
+                RepositoryPath = repositoryPath,
+                RemoteUri = remoteUri
+            };
+            string[] actualValues = settings.GetSettingValues(envarName, section, property).ToArray();
 
             Assert.Equal(expectedValues, actualValues);
         }

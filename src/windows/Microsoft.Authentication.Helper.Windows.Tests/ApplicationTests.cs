@@ -101,6 +101,7 @@ namespace Microsoft.Authentication.Helper.Tests
             const string expectedClientId    = "test-clientid";
             const string expectedRedirectUri = "https://test-redirecturi/";
             const string expectedResource    = "test-resource";
+            const string expectedRemoteUrl   = "test://remote";
 
             var inputDict = new Dictionary<string, string>
             {
@@ -108,6 +109,7 @@ namespace Microsoft.Authentication.Helper.Tests
                 ["clientId"]    = expectedClientId,
                 ["redirectUri"] = expectedRedirectUri,
                 ["resource"]    = expectedResource,
+                ["remoteUrl"]   = expectedRemoteUrl,
             };
             var context = new TestCommandContext {StdIn = DictionaryToString(inputDict)};
             var app = new TestApplication(context)

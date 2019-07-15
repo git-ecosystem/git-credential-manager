@@ -10,7 +10,7 @@ namespace Microsoft.Git.CredentialManager.Authentication
 {
     public interface IMicrosoftAuthentication
     {
-        Task<string> GetAccessTokenAsync(string authority, string clientId, Uri redirectUri, string resource);
+        Task<string> GetAccessTokenAsync(string authority, string clientId, Uri redirectUri, string resource, Uri remoteUri);
     }
 
     public class MicrosoftAuthentication : AuthenticationBase, IMicrosoftAuthentication
@@ -18,7 +18,7 @@ namespace Microsoft.Git.CredentialManager.Authentication
         public MicrosoftAuthentication(ICommandContext context)
             : base(context) {}
 
-        public async Task<string> GetAccessTokenAsync(string authority, string clientId, Uri redirectUri, string resource)
+        public async Task<string> GetAccessTokenAsync(string authority, string clientId, Uri redirectUri, string resource, Uri remoteUri)
         {
             string helperPath = FindHelperExecutablePath();
 
@@ -28,6 +28,7 @@ namespace Microsoft.Git.CredentialManager.Authentication
                 ["clientId"]    = clientId,
                 ["redirectUri"] = redirectUri.AbsoluteUri,
                 ["resource"]    = resource,
+                ["remoteUrl"]   = remoteUri.ToString(),
             };
 
             IDictionary<string, string> resultDict = await InvokeHelperAsync(helperPath, null, inputDict);

@@ -56,19 +56,9 @@ namespace Microsoft.Git.CredentialManager
         ICredentialStore CredentialStore { get; }
 
         /// <summary>
-        /// Git functions and information.
-        /// </summary>
-        IGit Git { get; }
-
         /// Factory for creating new <see cref="System.Net.Http.HttpClient"/> instances.
         /// </summary>
         IHttpClientFactory HttpClientFactory { get; }
-
-        /// <summary>
-        /// Access the environment variables for the current GCM process.
-        /// </summary>
-        /// <returns>Set of all current environment variables.</returns>
-        IEnvironmentVariables EnvironmentVariables { get; }
     }
 
     /// <summary>
@@ -86,12 +76,17 @@ namespace Microsoft.Git.CredentialManager
 
         public CommandContext()
         {
-            EnvironmentVariables = new EnvironmentVariables(Environment.GetEnvironmentVariables());
             Trace = new Trace();
             FileSystem = new FileSystem();
-            Git = new LibGit2();
+
+            var git = new LibGit2();
+            var envars = new EnvironmentVariables(Environment.GetEnvironmentVariables());
+            Settings = new Settings(envars, git)
+            {
+                RepositoryPath = git.GetRepositoryPath(FileSystem.GetCurrentDirectory())
+            };
+
             HttpClientFactory = new HttpClientFactory();
-            Settings = new Settings(EnvironmentVariables, Git);
 
             if (PlatformUtils.IsWindows())
             {
@@ -172,11 +167,7 @@ namespace Microsoft.Git.CredentialManager
 
         public ICredentialStore CredentialStore { get; }
 
-        public IGit Git { get; }
-
         public IHttpClientFactory HttpClientFactory { get; }
-
-        public IEnvironmentVariables EnvironmentVariables { get; }
 
         #endregion
     }
