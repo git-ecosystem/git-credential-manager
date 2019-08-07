@@ -90,7 +90,7 @@ namespace Microsoft.Git.CredentialManager
                     if (provider is null)
                     {
                         _context.Trace.WriteLine($"No host provider was found with ID '{providerId}'.. falling back to auto-detection.");
-                        _context.StdError.WriteLine($"warning: a host provider override was set but no such provider '{providerId}' was found. Falling back to auto-detection.");
+                        _context.Streams.Error.WriteLine($"warning: a host provider override was set but no such provider '{providerId}' was found. Falling back to auto-detection.");
                     }
                     else
                     {
@@ -104,8 +104,8 @@ namespace Microsoft.Git.CredentialManager
             else if (_context.Settings.LegacyAuthorityOverride is string authority)
             {
                 _context.Trace.WriteLine($"Host provider authority override was set authority='{authority}'");
-                _context.StdError.WriteLine("warning: the `credential.authority` and `GCM_AUTHORITY` settings are deprecated.");
-                _context.StdError.WriteLine($"warning: see {Constants.HelpUrls.GcmAuthorityDeprecated} for more information.");
+                _context.Streams.Error.WriteLine("warning: the `credential.authority` and `GCM_AUTHORITY` settings are deprecated.");
+                _context.Streams.Error.WriteLine($"warning: see {Constants.HelpUrls.GcmAuthorityDeprecated} for more information.");
 
                 if (!StringComparer.OrdinalIgnoreCase.Equals(Constants.AuthorityIdAuto, authority))
                 {
@@ -114,7 +114,7 @@ namespace Microsoft.Git.CredentialManager
                     if (provider is null)
                     {
                         _context.Trace.WriteLine($"No host provider was found with authority '{authority}'.. falling back to auto-detection.");
-                        _context.StdError.WriteLine($"warning: a supported authority override was set but no such provider supporting authority '{authority}' was found. Falling back to auto-detection.");
+                        _context.Streams.Error.WriteLine($"warning: a supported authority override was set but no such provider supporting authority '{authority}' was found. Falling back to auto-detection.");
                     }
                     else
                     {

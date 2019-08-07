@@ -61,7 +61,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Commands
 
             await command.ExecuteAsync(context, cmdArgs);
 
-            IDictionary<string, string> actualStdOutDict = ParseDictionary(context.StdOut);
+            IDictionary<string, string> actualStdOutDict = ParseDictionary(context.Streams.Out);
 
             providerMock.Verify(x => x.GetCredentialAsync(It.IsAny<InputArguments>()), Times.Once);
             Assert.Equal(expectedStdOutDict, actualStdOutDict);

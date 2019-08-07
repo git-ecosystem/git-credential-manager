@@ -29,7 +29,7 @@ namespace Microsoft.Git.CredentialManager
             // Launch debugger
             if (Context.Settings.IsDebuggingEnabled)
             {
-                Context.StdError.WriteLine("Waiting for debugger to be attached...");
+                Context.Streams.Error.WriteLine("Waiting for debugger to be attached...");
                 WaitForDebuggerAttached();
 
                 // Now the debugger is attached, break!
@@ -41,7 +41,7 @@ namespace Microsoft.Git.CredentialManager
             {
                 if (traceValue.IsTruthy()) // Trace to stderr
                 {
-                    Context.Trace.AddListener(Context.StdError);
+                    Context.Trace.AddListener(Context.Streams.Error);
                 }
                 else if (Path.IsPathRooted(traceValue)) // Trace to a file
                 {
@@ -54,12 +54,12 @@ namespace Microsoft.Git.CredentialManager
                     }
                     catch (Exception ex)
                     {
-                        Context.StdError.WriteLine($"warning: unable to trace to file '{traceValue}': {ex.Message}");
+                        Context.Streams.Error.WriteLine($"warning: unable to trace to file '{traceValue}': {ex.Message}");
                     }
                 }
                 else
                 {
-                    Context.StdError.WriteLine($"warning: unknown value for {Constants.EnvironmentVariables.GcmTrace} '{traceValue}'");
+                    Context.Streams.Error.WriteLine($"warning: unknown value for {Constants.EnvironmentVariables.GcmTrace} '{traceValue}'");
                 }
             }
 

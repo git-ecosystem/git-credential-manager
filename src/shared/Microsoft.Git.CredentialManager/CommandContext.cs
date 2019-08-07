@@ -21,19 +21,9 @@ namespace Microsoft.Git.CredentialManager
         ISettings Settings { get; }
 
         /// <summary>
-        /// The standard input text stream from the calling process, typically Git.
+        /// Standard I/O text streams, typically connected to the parent Git process.
         /// </summary>
-        TextReader StdIn { get; }
-
-        /// <summary>
-        /// The standard output text stream connected back to the calling process, typically Git.
-        /// </summary>
-        TextWriter StdOut { get; }
-
-        /// <summary>
-        /// The standard error text stream connected back to the calling process, typically Git.
-        /// </summary>
-        TextWriter StdError { get; }
+        IStandardStreams Streams { get; }
 
         /// <summary>
         /// The attached terminal (TTY) to this process tree.
@@ -66,16 +56,9 @@ namespace Microsoft.Git.CredentialManager
     /// </summary>
     public class CommandContext : ICommandContext
     {
-        private const string LineFeed  = "\n";
-
-        private static readonly Encoding Utf8NoBomEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
-
-        private TextReader _stdIn;
-        private TextWriter _stdOut;
-        private TextWriter _stdErr;
-
         public CommandContext()
         {
+            Streams = new StandardStreams();
             Trace = new Trace();
             FileSystem = new FileSystem();
 
@@ -112,52 +95,7 @@ namespace Microsoft.Git.CredentialManager
 
         public ISettings Settings { get; }
 
-        public TextReader StdIn
-        {
-            get
-            {
-                if (_stdIn == null)
-                {
-                    _stdIn = new StreamReader(Console.OpenStandardInput(), Utf8NoBomEncoding);
-                }
-
-                return _stdIn;
-            }
-        }
-
-        public TextWriter StdOut
-        {
-            get
-            {
-                if (_stdOut == null)
-                {
-                    _stdOut = new StreamWriter(Console.OpenStandardOutput(), Utf8NoBomEncoding)
-                    {
-                        AutoFlush = true,
-                        NewLine = LineFeed,
-                    };
-                }
-
-                return _stdOut;
-            }
-        }
-
-        public TextWriter StdError
-        {
-            get
-            {
-                if (_stdErr == null)
-                {
-                    _stdErr = new StreamWriter(Console.OpenStandardError(), Utf8NoBomEncoding)
-                    {
-                        AutoFlush = true,
-                        NewLine = LineFeed,
-                    };
-                }
-
-                return _stdErr;
-            }
-        }
+        public IStandardStreams Streams { get; }
 
         public ITerminal Terminal { get; }
 

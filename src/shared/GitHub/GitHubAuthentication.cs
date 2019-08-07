@@ -107,7 +107,7 @@ namespace GitHub
                 // We currently only have a helper on Windows. If we failed to find the helper we should warn the user.
                 if (PlatformUtils.IsWindows())
                 {
-                    Context.StdError.WriteLine($"warning: missing '{helperName}' from installation.");
+                    Context.Streams.Error.WriteLine($"warning: missing '{helperName}' from installation.");
                 }
 
                 return false;

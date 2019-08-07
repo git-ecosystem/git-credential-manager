@@ -19,7 +19,7 @@ namespace Microsoft.Authentication.Helper
         {
             try
             {
-                IDictionary<string, string> inputDict = await Context.StdIn.ReadDictionaryAsync(StringComparer.OrdinalIgnoreCase);
+                IDictionary<string, string> inputDict = await Context.Streams.In.ReadDictionaryAsync(StringComparer.OrdinalIgnoreCase);
 
                 string authority   = GetArgument(inputDict, "authority");
                 string clientId    = GetArgument(inputDict, "clientId");
@@ -34,7 +34,7 @@ namespace Microsoft.Authentication.Helper
 
                 var resultDict = new Dictionary<string, string> {["accessToken"] = accessToken};
 
-                Context.StdOut.WriteDictionary(resultDict);
+                Context.Streams.Out.WriteDictionary(resultDict);
 
                 return 0;
             }
@@ -42,7 +42,7 @@ namespace Microsoft.Authentication.Helper
             {
                 var resultDict = new Dictionary<string, string> {["error"] = e.ToString()};
 
-                Context.StdOut.WriteDictionary(resultDict);
+                Context.Streams.Out.WriteDictionary(resultDict);
 
                 return -1;
             }

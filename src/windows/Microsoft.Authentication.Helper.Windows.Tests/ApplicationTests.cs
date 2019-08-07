@@ -23,11 +23,11 @@ namespace Microsoft.Authentication.Helper.Tests
                 ["resource"]    = "test-resource",
             };
 
-            var context = new TestCommandContext {StdIn = DictionaryToString(inputDict)};
+            var context = new TestCommandContext {Streams = {In = DictionaryToString(inputDict)}};
             var app = new TestApplication(context);
 
             int exitCode = await app.RunAsync(new string[0]);
-            IDictionary<string, string> outputDict = ParseDictionary(context.StdOut);
+            IDictionary<string, string> outputDict = ParseDictionary(context.Streams.Out);
 
             Assert.Equal(-1, exitCode);
             Assert.True(outputDict.ContainsKey("error"));
@@ -43,11 +43,11 @@ namespace Microsoft.Authentication.Helper.Tests
                 ["resource"]    = "test-resource",
             };
 
-            var context = new TestCommandContext {StdIn = DictionaryToString(inputDict)};
+            var context = new TestCommandContext {Streams = {In = DictionaryToString(inputDict)}};
             var app = new TestApplication(context);
 
             int exitCode = await app.RunAsync(new string[0]);
-            IDictionary<string, string> outputDict = ParseDictionary(context.StdOut);
+            IDictionary<string, string> outputDict = ParseDictionary(context.Streams.Out);
 
             Assert.Equal(-1, exitCode);
             Assert.True(outputDict.ContainsKey("error"));
@@ -63,11 +63,11 @@ namespace Microsoft.Authentication.Helper.Tests
                 ["resource"]    = "test-resource",
             };
 
-            var context = new TestCommandContext {StdIn = DictionaryToString(inputDict)};
+            var context = new TestCommandContext {Streams = {In = DictionaryToString(inputDict)}};
             var app = new TestApplication(context);
 
             int exitCode = await app.RunAsync(new string[0]);
-            IDictionary<string, string> outputDict = ParseDictionary(context.StdOut);
+            IDictionary<string, string> outputDict = ParseDictionary(context.Streams.Out);
 
             Assert.Equal(-1, exitCode);
             Assert.True(outputDict.ContainsKey("error"));
@@ -83,11 +83,11 @@ namespace Microsoft.Authentication.Helper.Tests
                 ["redirectUri"] = "https://test-redirecturi/",
             };
 
-            var context = new TestCommandContext {StdIn = DictionaryToString(inputDict)};
+            var context = new TestCommandContext {Streams = {In = DictionaryToString(inputDict)}};
             var app = new TestApplication(context);
 
             int exitCode = await app.RunAsync(new string[0]);
-            IDictionary<string, string> outputDict = ParseDictionary(context.StdOut);
+            IDictionary<string, string> outputDict = ParseDictionary(context.Streams.Out);
 
             Assert.Equal(-1, exitCode);
             Assert.True(outputDict.ContainsKey("error"));
@@ -111,7 +111,7 @@ namespace Microsoft.Authentication.Helper.Tests
                 ["resource"]    = expectedResource,
                 ["remoteUrl"]   = expectedRemoteUrl,
             };
-            var context = new TestCommandContext {StdIn = DictionaryToString(inputDict)};
+            var context = new TestCommandContext {Streams = {In = DictionaryToString(inputDict)}};
             var app = new TestApplication(context)
             {
                 GetAccessTokenCallback = (authority, clientId, redirectUri, resource) =>
@@ -125,7 +125,7 @@ namespace Microsoft.Authentication.Helper.Tests
             };
 
             int exitCode = await app.RunAsync(new string[0]);
-            IDictionary<string, string> outputDict = ParseDictionary(context.StdOut);
+            IDictionary<string, string> outputDict = ParseDictionary(context.Streams.Out);
 
             Assert.Equal(0, exitCode);
             Assert.True(outputDict.ContainsKey("accessToken"));

@@ -23,9 +23,9 @@ namespace Microsoft.Git.CredentialManager.Commands
 
         public override Task ExecuteAsync(ICommandContext context, string[] args)
         {
-            context.StdOut.WriteLine(Constants.GetProgramHeader());
+            context.Streams.Out.WriteLine(Constants.GetProgramHeader());
 
-            PrintUsage(context.StdOut);
+            PrintUsage(context.Streams.Out);
 
             return Task.CompletedTask;
         }
