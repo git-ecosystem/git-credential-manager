@@ -14,6 +14,12 @@ namespace Microsoft.Git.CredentialManager.Authentication
 
     public class WindowsIntegratedAuthentication : IWindowsIntegratedAuthentication
     {
+        public static readonly string[] AuthorityIds =
+        {
+            "integrated", "windows", "kerberos", "ntlm",
+            "tfs", "sso",
+        };
+
         private readonly ICommandContext _context;
 
         public WindowsIntegratedAuthentication(ICommandContext context)

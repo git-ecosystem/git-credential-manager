@@ -10,13 +10,19 @@ namespace Microsoft.Git.CredentialManager
         public const string PersonalAccessTokenUserName = "PersonalAccessToken";
         public const string MicrosoftAuthHelperName = "Microsoft.Authentication.Helper";
 
+        public const string ProviderIdAuto  = "auto";
+        public const string AuthorityIdAuto = "auto";
+
         public static class EnvironmentVariables
         {
             public const string GcmTrace           = "GCM_TRACE";
             public const string GcmTraceSecrets    = "GCM_TRACE_SECRETS";
             public const string GcmTraceMsAuth     = "GCM_TRACE_MSAUTH";
             public const string GcmDebug           = "GCM_DEBUG";
+            public const string GcmProvider        = "GCM_PROVIDER";
+            public const string GcmAuthority       = "GCM_AUTHORITY";
             public const string GitTerminalPrompts = "GIT_TERMINAL_PROMPT";
+            public const string GcmAllowWia        = "GCM_ALLOW_WINDOWSAUTH";
         }
 
         public static class Http
@@ -37,6 +43,7 @@ namespace Microsoft.Git.CredentialManager
                 public const string Helper      = "helper";
                 public const string Provider    = "provider";
                 public const string Authority   = "authority";
+                public const string AllowWia    = "allowWindowsAuth";
             }
 
             public static class Http
@@ -44,6 +51,12 @@ namespace Microsoft.Git.CredentialManager
                 public const string SectionName = "http";
                 public const string Proxy = "proxy";
             }
+        }
+
+        public static class HelpUrls
+        {
+            public const string GcmProjectUrl = "https://aka.ms/gcmcore";
+            public const string GcmAuthorityDeprecated = "https://aka.ms/gcmcore-authority";
         }
 
         private static string _gcmVersion;

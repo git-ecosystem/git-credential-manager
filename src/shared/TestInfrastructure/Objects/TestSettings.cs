@@ -14,7 +14,19 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
 
         public bool IsSecretTracingEnabled { get; set; }
 
+        public bool IsMsalTracingEnabled { get; set; }
+
+        public string ProviderOverride { get; set; }
+
+        public string LegacyAuthorityOverride { get; set; }
+
+        public bool IsWindowsIntegratedAuthenticationEnabled { get; set; } = true;
+
         #region ISettings
+
+        public string RepositoryPath { get; set; }
+
+        public Uri RemoteUri { get; set; }
 
         bool ISettings.IsDebuggingEnabled => IsDebuggingEnabled;
 
@@ -27,6 +39,14 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
         }
 
         bool ISettings.IsSecretTracingEnabled => IsSecretTracingEnabled;
+
+        bool ISettings.IsMsalTracingEnabled => IsMsalTracingEnabled;
+
+        string ISettings.ProviderOverride => ProviderOverride;
+
+        string ISettings.LegacyAuthorityOverride => LegacyAuthorityOverride;
+
+        bool ISettings.IsWindowsIntegratedAuthenticationEnabled => IsWindowsIntegratedAuthenticationEnabled;
 
         #endregion
     }

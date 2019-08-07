@@ -192,6 +192,212 @@ namespace Microsoft.Git.CredentialManager.Tests
         }
 
         [Fact]
+        public void Settings_ProviderOverride_Unset_ReturnsNull()
+        {
+            const string repositoryPath = "/tmp/repos/foo/.git";
+            const string remoteUrl = "http://example.com/foo.git";
+            var remoteUri = new Uri(remoteUrl);
+
+            var envars = new EnvironmentVariables(new Dictionary<string, string>());
+            var git = new TestGit();
+
+            var settings = new Settings(envars, git)
+            {
+                RepositoryPath = repositoryPath,
+                RemoteUri = remoteUri
+            };
+            string value = settings.ProviderOverride;
+
+            Assert.Null(value);
+        }
+
+        [Fact]
+        public void Settings_ProviderOverride_EnvarSet_ReturnsValue()
+        {
+            const string repositoryPath = "/tmp/repos/foo/.git";
+            const string remoteUrl = "http://example.com/foo.git";
+            var remoteUri = new Uri(remoteUrl);
+
+            const string expectedValue = "provider1";
+
+            var envars = new EnvironmentVariables(new Dictionary<string, string>
+            {
+                [Constants.EnvironmentVariables.GcmProvider] = expectedValue
+            });
+            var git = new TestGit();
+
+            var settings = new Settings(envars, git)
+            {
+                RepositoryPath = repositoryPath,
+                RemoteUri = remoteUri
+            };
+            string actualValue = settings.ProviderOverride;
+
+            Assert.Equal(expectedValue, actualValue);
+        }
+
+        [Fact]
+        public void Settings_ProviderOverride_ConfigSet_ReturnsValue()
+        {
+            const string repositoryPath = "/tmp/repos/foo/.git";
+            const string remoteUrl = "http://example.com/foo.git";
+            const string section = Constants.GitConfiguration.Credential.SectionName;
+            const string property = Constants.GitConfiguration.Credential.Provider;
+            var remoteUri = new Uri(remoteUrl);
+
+            const string expectedValue = "provider1";
+
+            var envars = new EnvironmentVariables(new Dictionary<string, string>());
+            var git = new TestGit(new Dictionary<string, string>
+            {
+                [$"{section}.{property}"] = expectedValue
+            });
+
+            var settings = new Settings(envars, git)
+            {
+                RepositoryPath = repositoryPath,
+                RemoteUri = remoteUri
+            };
+            string actualValue = settings.ProviderOverride;
+
+            Assert.Equal(expectedValue, actualValue);
+        }
+
+        [Fact]
+        public void Settings_ProviderOverride_EnvarAndConfigSet_ReturnsEnvarValue()
+        {
+            const string repositoryPath = "/tmp/repos/foo/.git";
+            const string remoteUrl = "http://example.com/foo.git";
+            const string section = Constants.GitConfiguration.Credential.SectionName;
+            const string property = Constants.GitConfiguration.Credential.Provider;
+            var remoteUri = new Uri(remoteUrl);
+
+            const string expectedValue = "provider1";
+            const string otherValue = "provider2";
+
+            var envars = new EnvironmentVariables(new Dictionary<string, string>
+            {
+                [Constants.EnvironmentVariables.GcmProvider] = expectedValue
+            });
+            var git = new TestGit(new Dictionary<string, string>
+            {
+                [$"{section}.{property}"] = otherValue
+            });
+
+            var settings = new Settings(envars, git)
+            {
+                RepositoryPath = repositoryPath,
+                RemoteUri = remoteUri
+            };
+            string actualValue = settings.ProviderOverride;
+
+            Assert.Equal(expectedValue, actualValue);
+        }
+
+        [Fact]
+        public void Settings_LegacyAuthorityOverride_Unset_ReturnsNull()
+        {
+            const string repositoryPath = "/tmp/repos/foo/.git";
+            const string remoteUrl = "http://example.com/foo.git";
+            var remoteUri = new Uri(remoteUrl);
+
+            var envars = new EnvironmentVariables(new Dictionary<string, string>());
+            var git = new TestGit();
+
+            var settings = new Settings(envars, git)
+            {
+                RepositoryPath = repositoryPath,
+                RemoteUri = remoteUri
+            };
+            string value = settings.LegacyAuthorityOverride;
+
+            Assert.Null(value);
+        }
+
+        [Fact]
+        public void Settings_LegacyAuthorityOverride_EnvarSet_ReturnsValue()
+        {
+            const string repositoryPath = "/tmp/repos/foo/.git";
+            const string remoteUrl = "http://example.com/foo.git";
+            var remoteUri = new Uri(remoteUrl);
+
+            const string expectedValue = "provider1";
+
+            var envars = new EnvironmentVariables(new Dictionary<string, string>
+            {
+                [Constants.EnvironmentVariables.GcmAuthority] = expectedValue
+            });
+            var git = new TestGit();
+
+            var settings = new Settings(envars, git)
+            {
+                RepositoryPath = repositoryPath,
+                RemoteUri = remoteUri
+            };
+            string actualValue = settings.LegacyAuthorityOverride;
+
+            Assert.Equal(expectedValue, actualValue);
+        }
+
+        [Fact]
+        public void Settings_LegacyAuthorityOverride_ConfigSet_ReturnsTrueOutValue()
+        {
+            const string repositoryPath = "/tmp/repos/foo/.git";
+            const string remoteUrl = "http://example.com/foo.git";
+            const string section = Constants.GitConfiguration.Credential.SectionName;
+            const string property = Constants.GitConfiguration.Credential.Authority;
+            var remoteUri = new Uri(remoteUrl);
+
+            const string expectedValue = "provider1";
+
+            var envars = new EnvironmentVariables(new Dictionary<string, string>());
+            var git = new TestGit(new Dictionary<string, string>
+            {
+                [$"{section}.{property}"] = expectedValue
+            });
+
+            var settings = new Settings(envars, git)
+            {
+                RepositoryPath = repositoryPath,
+                RemoteUri = remoteUri
+            };
+            var actualValue = settings.LegacyAuthorityOverride;
+
+            Assert.Equal(expectedValue, actualValue);
+        }
+
+        [Fact]
+        public void Settings_LegacyAuthorityOverride_EnvarAndConfigSet_ReturnsEnvarValue()
+        {
+            const string repositoryPath = "/tmp/repos/foo/.git";
+            const string remoteUrl = "http://example.com/foo.git";
+            const string section = Constants.GitConfiguration.Credential.SectionName;
+            const string property = Constants.GitConfiguration.Credential.Authority;
+            var remoteUri = new Uri(remoteUrl);
+
+            const string expectedValue = "provider1";
+            const string otherValue = "provider2";
+
+            var envars = new EnvironmentVariables(new Dictionary<string, string>
+            {
+                [Constants.EnvironmentVariables.GcmAuthority] = expectedValue
+            });
+            var git = new TestGit(new Dictionary<string, string>
+            {
+                [$"{section}.{property}"] = otherValue
+            });
+
+            var settings = new Settings(envars, git)
+            {
+                RepositoryPath = repositoryPath,
+                RemoteUri = remoteUri
+            };
+            var actualValue = settings.LegacyAuthorityOverride;
+
+            Assert.Equal(expectedValue, actualValue);
+        }
+
+        [Fact]
         public void Settings_TryGetSetting_EnvarSet_ReturnsTrueOutValue()
         {
             const string repositoryPath = "/tmp/repos/foo/.git";
@@ -209,8 +415,12 @@ namespace Microsoft.Git.CredentialManager.Tests
             });
             var git = new TestGit();
 
-            var settings = new Settings(envars, git);
-            var result = settings.TryGetSetting(repositoryPath, remoteUri, envarName, section, property, out string actualValue);
+            var settings = new Settings(envars, git)
+            {
+                RepositoryPath = repositoryPath,
+                RemoteUri = remoteUri
+            };
+            var result = settings.TryGetSetting(envarName, section, property, out string actualValue);
 
             Assert.True(result);
             Assert.Equal(expectedValue, actualValue);
@@ -229,8 +439,12 @@ namespace Microsoft.Git.CredentialManager.Tests
             var envars = new EnvironmentVariables(new Dictionary<string, string>());
             var git = new TestGit();
 
-            var settings = new Settings(envars, git);
-            var result = settings.TryGetSetting(repositoryPath, remoteUri, envarName, section, property, out string actualValue);
+            var settings = new Settings(envars, git)
+            {
+                RepositoryPath = repositoryPath,
+                RemoteUri = remoteUri
+            };
+            var result = settings.TryGetSetting(envarName, section, property, out string actualValue);
 
             Assert.False(result);
             Assert.Null(actualValue);
@@ -254,8 +468,12 @@ namespace Microsoft.Git.CredentialManager.Tests
                 [$"{section}.{property}"] = expectedValue
             });
 
-            var settings = new Settings(envars, git);
-            var result = settings.TryGetSetting(repositoryPath, remoteUri, envarName, section, property, out string actualValue);
+            var settings = new Settings(envars, git)
+            {
+                RepositoryPath = repositoryPath,
+                RemoteUri = remoteUri
+            };
+            var result = settings.TryGetSetting( envarName, section, property, out string actualValue);
 
             Assert.True(result);
             Assert.Equal(expectedValue, actualValue);
@@ -280,8 +498,12 @@ namespace Microsoft.Git.CredentialManager.Tests
                 [$"{section}.{property}"] = expectedValue
             });
 
-            var settings = new Settings(envars, git);
-            var result = settings.TryGetSetting(repositoryPath, remoteUri, envarName, section, property, out string actualValue);
+            var settings = new Settings(envars, git)
+            {
+                RepositoryPath = repositoryPath,
+                RemoteUri = remoteUri
+            };
+            var result = settings.TryGetSetting(envarName, section, property, out string actualValue);
 
             Assert.True(result);
             Assert.Equal(expectedValue, actualValue);
@@ -310,8 +532,12 @@ namespace Microsoft.Git.CredentialManager.Tests
                 [$"{section}.{scope2}.{property}"] = expectedValue,
             });
 
-            var settings = new Settings(envars, git);
-            var result = settings.TryGetSetting(repositoryPath, remoteUri, envarName, section, property, out string actualValue);
+            var settings = new Settings(envars, git)
+            {
+                RepositoryPath = repositoryPath,
+                RemoteUri = remoteUri
+            };
+            var result = settings.TryGetSetting(envarName, section, property, out string actualValue);
 
             Assert.True(result);
             Assert.Equal(expectedValue, actualValue);
@@ -340,8 +566,12 @@ namespace Microsoft.Git.CredentialManager.Tests
                 [$"{section}.{property}"] = otherValue
             });
 
-            var settings = new Settings(envars, git);
-            var result = settings.TryGetSetting(repositoryPath, remoteUri, envarName, section, property, out string actualValue);
+            var settings = new Settings(envars, git)
+            {
+                RepositoryPath = repositoryPath,
+                RemoteUri = remoteUri
+            };
+            var result = settings.TryGetSetting(envarName, section, property, out string actualValue);
 
             Assert.True(result);
             Assert.Equal(expectedValue, actualValue);
@@ -378,8 +608,12 @@ namespace Microsoft.Git.CredentialManager.Tests
                 [$"{section}.{property}"]          = value4
             });
 
-            var settings = new Settings(envars, git);
-            string[] actualValues = settings.GetSettingValues(repositoryPath, remoteUri, envarName, section, property).ToArray();
+            var settings = new Settings(envars, git)
+            {
+                RepositoryPath = repositoryPath,
+                RemoteUri = remoteUri
+            };
+            string[] actualValues = settings.GetSettingValues(envarName, section, property).ToArray();
 
             Assert.Equal(expectedValues, actualValues);
         }

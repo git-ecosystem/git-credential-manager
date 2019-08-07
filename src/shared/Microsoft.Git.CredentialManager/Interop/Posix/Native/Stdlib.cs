@@ -1,4 +1,5 @@
-using System;
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT license.
 using System.Runtime.InteropServices;
 
 namespace Microsoft.Git.CredentialManager.Interop.Posix.Native

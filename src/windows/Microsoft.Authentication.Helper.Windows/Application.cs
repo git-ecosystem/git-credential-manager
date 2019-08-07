@@ -25,6 +25,10 @@ namespace Microsoft.Authentication.Helper
                 string clientId    = GetArgument(inputDict, "clientId");
                 string redirectUri = GetArgument(inputDict, "redirectUri");
                 string resource    = GetArgument(inputDict, "resource");
+                string remoteUrl   = GetArgument(inputDict, "remoteUrl");
+
+                // Set the remote URI to scope settings to throughout the process from now on
+                Context.Settings.RemoteUri = new Uri(remoteUrl);
 
                 string accessToken = await GetAccessTokenAsync(authority, clientId, new Uri(redirectUri), resource);
 
@@ -68,7 +72,7 @@ namespace Microsoft.Authentication.Helper
                                                            .WithRedirectUri(redirectUri.ToString());
 
             // Listen to MSAL logs if GCM_TRACE_MSAUTH is set
-            if (Context.EnvironmentVariables.GetBooleanyOrDefault(Constants.EnvironmentVariables.GcmTraceMsAuth, false))
+            if (Context.Settings.IsMsalTracingEnabled)
             {
                 // If GCM secret tracing is enabled also enable "PII" logging in MSAL
                 bool enablePiiLogging = Context.Trace.IsSecretTracingEnabled;

@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
@@ -16,9 +15,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
         public ITrace Trace { get; set; } = new NullTrace();
         public TestFileSystem FileSystem { get; set; } = new TestFileSystem();
         public TestCredentialStore CredentialStore { get; set; } = new TestCredentialStore();
-        public TestGit Git { get; set; } = new TestGit();
         public TestHttpClientFactory HttpClientFactory { get; set; } = new TestHttpClientFactory();
-        public Dictionary<string, string> EnvironmentVariables { get; set; } = new Dictionary<string, string>();
         public string NewLine { get; set; } = "\n";
 
         #region ICommandContext
@@ -39,12 +36,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
 
         ICredentialStore ICommandContext.CredentialStore => CredentialStore;
 
-        IGit ICommandContext.Git => Git;
-
         IHttpClientFactory ICommandContext.HttpClientFactory => HttpClientFactory;
-
-        IEnvironmentVariables ICommandContext.EnvironmentVariables
-            => new EnvironmentVariables(EnvironmentVariables);
 
         #endregion
     }

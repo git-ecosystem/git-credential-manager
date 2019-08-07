@@ -14,11 +14,17 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
 
         public string CredentialKey { get; set; }
 
+        public string LegacyAuthorityIdValue { get; set; }
+
         public Func<InputArguments, ICredential> GenerateCredentialFunc { get; set; }
 
         #region HostProvider
 
+        public override string Id { get; } = "test-provider";
+
         public override string Name { get; } = "TestHostProvider";
+
+        public string LegacyAuthorityId => LegacyAuthorityIdValue;
 
         public override bool IsSupported(InputArguments input) => IsSupportedFunc(input);
 

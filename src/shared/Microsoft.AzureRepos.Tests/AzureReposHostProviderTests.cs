@@ -143,6 +143,7 @@ namespace Microsoft.AzureRepos.Tests
             });
 
             var expectedOrgUri = new Uri("https://dev.azure.com/org");
+            var remoteUri = new Uri("https://dev.azure.com/org/proj/_git/repo");
             var authorityUrl = "https://login.microsoftonline.com/common";
             var expectedClientId = AzureDevOpsConstants.AadClientId;
             var expectedRedirectUri = AzureDevOpsConstants.AadRedirectUri;
@@ -159,7 +160,7 @@ namespace Microsoft.AzureRepos.Tests
                         .ReturnsAsync(personalAccessToken);
 
             var msAuthMock = new Mock<IMicrosoftAuthentication>();
-            msAuthMock.Setup(x => x.GetAccessTokenAsync(authorityUrl, expectedClientId, expectedRedirectUri, expectedResource))
+            msAuthMock.Setup(x => x.GetAccessTokenAsync(authorityUrl, expectedClientId, expectedRedirectUri, expectedResource, remoteUri))
                       .ReturnsAsync(accessToken);
 
             var provider = new AzureReposHostProvider(context, azDevOpsMock.Object, msAuthMock.Object);
