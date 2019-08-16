@@ -92,3 +92,21 @@ git config --global credential.tfsonprem123.allowWindowsAuth false
 ```
 
 **Also see: [GCM_ALLOW_WINDOWSAUTH](environment.md#GCM_ALLOW_WINDOWSAUTH)**
+
+---
+
+### credential.httpProxy _(deprecated)_
+
+> This setting is deprecated and should be replaced by the [standard `http.proxy` Git configuration option](https://git-scm.com/docs/git-config#Documentation/git-config.txt-httpproxy).
+>
+> Click [here](https://aka.ms/gcmcore-httpproxy) for more information.
+
+Configure GCM Core to use the a proxy for network operations.
+
+**Note:** Git itself does _not_ respect this setting; this affects GCM _only_.
+
+```shell
+git config --global credential.httpsProxy http://john.doe:password@proxy.contoso.com
+```
+
+**Also see: [GCM_HTTP_PROXY](environment.md#GCM_HTTP_PROXY-deprecated)**

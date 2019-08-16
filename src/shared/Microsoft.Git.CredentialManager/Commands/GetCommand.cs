@@ -40,7 +40,7 @@ namespace Microsoft.Git.CredentialManager.Commands
             output["password"] = credential.Password;
 
             // Write the values to standard out
-            context.StdOut.WriteDictionary(output);
+            context.Streams.Out.WriteDictionary(output);
         }
     }
 }

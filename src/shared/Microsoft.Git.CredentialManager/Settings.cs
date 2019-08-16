@@ -6,6 +6,7 @@ using System.Linq;
 using KnownEnvars = Microsoft.Git.CredentialManager.Constants.EnvironmentVariables;
 using KnownGitCfg = Microsoft.Git.CredentialManager.Constants.GitConfiguration;
 using GitCredCfg  = Microsoft.Git.CredentialManager.Constants.GitConfiguration.Credential;
+using GitHttpCfg  = Microsoft.Git.CredentialManager.Constants.GitConfiguration.Http;
 
 namespace Microsoft.Git.CredentialManager
 {
@@ -65,6 +66,18 @@ namespace Microsoft.Git.CredentialManager
         /// True if Windows Integrated Authentication (NTLM, Kerberos) should be detected and used if available, false otherwise.
         /// </summary>
         bool IsWindowsIntegratedAuthenticationEnabled { get; }
+
+        /// <summary>
+        /// True if certificate verification should occur, false otherwise.
+        /// </summary>
+        bool IsCertificateVerificationEnabled { get; }
+
+        /// <summary>
+        /// Get the proxy setting if configured, or null otherwise.
+        /// </summary>
+        /// <param name="isDeprecatedConfiguration">True if the proxy configuration method is deprecated, false otherwise.</param>
+        /// <returns>Proxy setting, or null if not configured.</returns>
+        Uri GetProxyConfiguration(out bool isDeprecatedConfiguration);
     }
 
     public class Settings : ISettings
@@ -103,6 +116,110 @@ namespace Microsoft.Git.CredentialManager
 
         public bool IsWindowsIntegratedAuthenticationEnabled =>
             TryGetSetting(KnownEnvars.GcmAllowWia, GitCredCfg.SectionName, GitCredCfg.AllowWia, out string value) && value.ToBooleanyOrDefault(true);
+
+        public bool IsCertificateVerificationEnabled
+        {
+            get
+            {
+                // Prefer environment variable
+                if (_environment.TryGetValue(KnownEnvars.GitSslNoVerify, out string envarValue))
+                {
+                    return !envarValue.ToBooleanyOrDefault(false);
+                }
+
+                // Next try the equivalent Git configuration option
+                if (TryGetSetting(null, KnownGitCfg.Http.SectionName, KnownGitCfg.Http.SslVerify, out string cfgValue))
+                {
+                    return cfgValue.ToBooleanyOrDefault(true);
+                }
+
+                // Safe default
+                return true;
+            }
+        }
+
+        public Uri GetProxyConfiguration(out bool isDeprecatedConfiguration)
+        {
+            isDeprecatedConfiguration = false;
+
+            bool TryGetUriSetting(string envarName, string section, string property, out Uri uri)
+            {
+                IEnumerable<string> allValues = GetSettingValues(envarName, section, property);
+
+                foreach (var value in allValues)
+                {
+                    if (Uri.TryCreate(value, UriKind.Absolute, out uri))
+                    {
+                        return true;
+                    }
+                }
+
+                uri = null;
+                return false;
+            }
+
+            /*
+             * There are several different ways we support the configuration of a proxy.
+             *
+             * In order of preference:
+             *
+             *   1. GCM proxy Git configuration (deprecated)
+             *        credential.httpsProxy
+             *        credential.httpProxy
+             *
+             *   2. Standard Git configuration
+             *        http.proxy
+             *
+             *   3. cURL environment variables
+             *        HTTPS_PROXY
+             *        HTTP_PROXY
+             *        ALL_PROXY
+             *
+             *   4. GCM proxy environment variable (deprecated)
+             *        GCM_HTTP_PROXY
+             *
+             * If the remote URI is HTTPS we check the HTTPS variants first, and fallback to the
+             * non-secure HTTP options if not found.
+             *
+             * For HTTP URIs we only check the HTTP variants.
+             *
+             */
+
+            bool isHttps = StringComparer.OrdinalIgnoreCase.Equals(Uri.UriSchemeHttps, RemoteUri?.Scheme);
+
+            Uri proxyConfig;
+
+            // 1. GCM proxy Git configuration (deprecated)
+            if (isHttps && TryGetUriSetting(null, GitCredCfg.SectionName, GitCredCfg.HttpsProxy, out proxyConfig) ||
+                TryGetUriSetting(null, GitCredCfg.SectionName, GitCredCfg.HttpProxy, out proxyConfig))
+            {
+                isDeprecatedConfiguration = true;
+                return proxyConfig;
+            }
+
+            // 2. Standard Git configuration
+            if (TryGetUriSetting(null, GitHttpCfg.SectionName, GitHttpCfg.Proxy, out proxyConfig))
+            {
+                return proxyConfig;
+            }
+
+            // 3. cURL environment variables
+            if (isHttps && TryGetUriSetting(KnownEnvars.CurlHttpsProxy, null, null, out proxyConfig) ||
+                TryGetUriSetting(KnownEnvars.CurlHttpProxy, null, null, out proxyConfig) ||
+                TryGetUriSetting(KnownEnvars.CurlAllProxy, null, null, out proxyConfig))
+            {
+                return proxyConfig;
+            }
+
+            // 4. GCM proxy environment variable (deprecated)
+            if (TryGetUriSetting(KnownEnvars.GcmHttpProxy, null, null, out proxyConfig))
+            {
+                isDeprecatedConfiguration = true;
+                return proxyConfig;
+            }
+
+            return null;
+        }
 
         /// <summary>
         /// Try and get the value of a specified setting as specified in the environment and Git configuration,

@@ -45,7 +45,10 @@ namespace Microsoft.Git.CredentialManager.Tests.Commands
             providerMock.Setup(x => x.EraseCredentialAsync(It.IsAny<InputArguments>()))
                         .Returns(Task.CompletedTask);
             var providerRegistry = new TestHostProviderRegistry {Provider = providerMock.Object};
-            var context = new TestCommandContext {StdIn = stdin};
+            var context = new TestCommandContext
+            {
+                Streams = {In = stdin}
+            };
 
             string[] cmdArgs = {"erase"};
             var command = new EraseCommand(providerRegistry);

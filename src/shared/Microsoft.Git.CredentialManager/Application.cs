@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
 using System;
-using System.ComponentModel;
 using System.Threading.Tasks;
 using Microsoft.Git.CredentialManager.Commands;
 using Microsoft.Git.CredentialManager.Interop;
@@ -40,8 +39,8 @@ namespace Microsoft.Git.CredentialManager
 
             if (args.Length == 0)
             {
-                Context.StdError.WriteLine("Missing command.");
-                HelpCommand.PrintUsage(Context.StdError);
+                Context.Streams.Error.WriteLine("Missing command.");
+                HelpCommand.PrintUsage(Context.Streams.Error);
                 return -1;
             }
 
@@ -70,8 +69,8 @@ namespace Microsoft.Git.CredentialManager
                 }
             }
 
-            Context.StdError.WriteLine("Unrecognized command '{0}'.", args[0]);
-            HelpCommand.PrintUsage(Context.StdError);
+            Context.Streams.Error.WriteLine("Unrecognized command '{0}'.", args[0]);
+            HelpCommand.PrintUsage(Context.Streams.Error);
             return -1;
         }
 
@@ -91,10 +90,10 @@ namespace Microsoft.Git.CredentialManager
             switch (ex)
             {
                 case InteropException interopEx:
-                    Context.StdError.WriteLine("fatal: {0} [0x{1:x}]", interopEx.Message, interopEx.ErrorCode);
+                    Context.Streams.Error.WriteLine("fatal: {0} [0x{1:x}]", interopEx.Message, interopEx.ErrorCode);
                     break;
                 default:
-                    Context.StdError.WriteLine("fatal: {0}", ex.Message);
+                    Context.Streams.Error.WriteLine("fatal: {0}", ex.Message);
                     break;
             }
 

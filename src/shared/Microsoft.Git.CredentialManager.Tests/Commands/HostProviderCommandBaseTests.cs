@@ -15,6 +15,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Commands
         public async Task HostProviderCommandBase_ExecuteAsync_CallsExecuteInternalAsyncWithCorrectArgs()
         {
             var mockContext = new Mock<ICommandContext>();
+            var mockStreams = new Mock<IStandardStreams>();
             var mockProvider = new Mock<IHostProvider>();
             var mockHostRegistry = new Mock<IHostProviderRegistry>();
 
@@ -28,7 +29,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Commands
             string standardIn = "protocol=test\nhost=example.com\npath=a/b/c\n\n";
             TextReader standardInReader = new StringReader(standardIn);
 
-            mockContext.Setup(x => x.StdIn).Returns(standardInReader);
+            mockStreams.Setup(x => x.In).Returns(standardInReader);
+            mockContext.Setup(x => x.Streams).Returns(mockStreams.Object);
             mockContext.Setup(x => x.Trace).Returns(Mock.Of<ITrace>());
             mockContext.Setup(x => x.Settings).Returns(Mock.Of<ISettings>());
 
@@ -51,6 +53,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Commands
         public async Task HostProviderCommandBase_ExecuteAsync_ConfiguresSettingsRemoteUri()
         {
             var mockContext = new Mock<ICommandContext>();
+            var mockStreams = new Mock<IStandardStreams>();
             var mockProvider = new Mock<IHostProvider>();
             var mockSettings = new Mock<ISettings>();
             var mockHostRegistry = new Mock<IHostProviderRegistry>();
@@ -65,7 +68,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Commands
 
             mockSettings.SetupProperty(x => x.RemoteUri);
 
-            mockContext.Setup(x => x.StdIn).Returns(standardInReader);
+            mockStreams.Setup(x => x.In).Returns(standardInReader);
+            mockContext.Setup(x => x.Streams).Returns(mockStreams.Object);
             mockContext.Setup(x => x.Trace).Returns(Mock.Of<ITrace>());
             mockContext.Setup(x => x.Settings).Returns(mockSettings.Object);
 

@@ -22,6 +22,12 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
 
         public bool IsWindowsIntegratedAuthenticationEnabled { get; set; } = true;
 
+        public bool IsCertificateVerificationEnabled { get; set; } = true;
+
+        public Uri ProxyConfiguration { get; set; }
+
+        public bool IsDeprecatedProxyConfiguration { get; set; }
+
         #region ISettings
 
         public string RepositoryPath { get; set; }
@@ -47,6 +53,14 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
         string ISettings.LegacyAuthorityOverride => LegacyAuthorityOverride;
 
         bool ISettings.IsWindowsIntegratedAuthenticationEnabled => IsWindowsIntegratedAuthenticationEnabled;
+
+        bool ISettings.IsCertificateVerificationEnabled => IsCertificateVerificationEnabled;
+
+        Uri ISettings.GetProxyConfiguration(out bool isDeprecatedConfiguration)
+        {
+            isDeprecatedConfiguration = IsDeprecatedProxyConfiguration;
+            return ProxyConfiguration;
+        }
 
         #endregion
     }
