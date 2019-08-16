@@ -47,60 +47,82 @@ namespace Microsoft.AzureRepos
         }
 
         /// <summary>
-        /// Create a URI for the Azure DevOps organization from the give Git input query arguments.
+        /// Extract the Azure DevOps organization name from the given remote URI.
         /// </summary>
-        /// <param name="input">Git query arguments.</param>
+        /// <param name="remoteUri">Remote URL.</param>
         /// <returns>Azure DevOps organization URI</returns>
         /// <exception cref="InvalidOperationException">
-        /// Thrown if <see cref="InputArguments.Protocol"/> is null or white space.
-        /// <para/>
-        /// Thrown if <see cref="InputArguments.Host"/> is null or white space.
-        /// <para/>
         /// Thrown if <see cref="InputArguments.Host"/> is not an Azure DevOps hostname.
         /// <para/>
-        /// Thrown if both of <see cref="InputArguments.UserName"/> or <see cref="InputArguments.Path"/>
-        /// are null or white space when <see cref="InputArguments.Host"/> is an Azure-style URL
+        /// Thrown if both of <see cref="Uri.UserInfo"/> or <see cref="Uri.AbsolutePath"/>
+        /// are null or white space when <see cref="Uri.Host"/> is an Azure-style URL
         /// ('dev.azure.com' rather than '*.visualstudio.com').
         /// </exception>
-        public static Uri CreateOrganizationUri(InputArguments input)
+        public static string GetOrganizationName(Uri remoteUri)
         {
-            EnsureArgument.NotNull(input, nameof(input));
+            CreateOrganizationUri(remoteUri, out string orgName);
+            return orgName;
+        }
 
-            if (string.IsNullOrWhiteSpace(input.Protocol))
-            {
-                throw new InvalidOperationException("Input arguments must include protocol");
-            }
+        /// <summary>
+        /// Create a URI for the Azure DevOps organization from the given remote URI.
+        /// </summary>
+        /// <param name="remoteUri">Remote URL.</param>
+        /// <returns>Azure DevOps organization URI</returns>
+        /// <exception cref="InvalidOperationException">
+        /// Thrown if <see cref="InputArguments.Host"/> is not an Azure DevOps hostname.
+        /// <para/>
+        /// Thrown if both of <see cref="Uri.UserInfo"/> or <see cref="Uri.AbsolutePath"/>
+        /// are null or white space when <see cref="Uri.Host"/> is an Azure-style URL
+        /// ('dev.azure.com' rather than '*.visualstudio.com').
+        /// </exception>
+        public static Uri CreateOrganizationUri(Uri remoteUri) => CreateOrganizationUri(remoteUri, out _);
 
-            if (string.IsNullOrWhiteSpace(input.Host))
-            {
-                throw new InvalidOperationException("Input arguments must include host");
-            }
+        /// <summary>
+        /// Create a URI for the Azure DevOps organization from the given remote URI, also returning the
+        /// organization name.
+        /// </summary>
+        /// <param name="remoteUri">Remote URL.</param>
+        /// <param name="orgName">Azure DevOps organization name.</param>
+        /// <returns>Azure DevOps organization URI</returns>
+        /// <exception cref="InvalidOperationException">
+        /// Thrown if <see cref="InputArguments.Host"/> is not an Azure DevOps hostname.
+        /// <para/>
+        /// Thrown if both of <see cref="Uri.UserInfo"/> or <see cref="Uri.AbsolutePath"/>
+        /// are null or white space when <see cref="Uri.Host"/> is an Azure-style URL
+        /// ('dev.azure.com' rather than '*.visualstudio.com').
+        /// </exception>
+        public static Uri CreateOrganizationUri(Uri remoteUri, out string orgName)
+        {
+            EnsureArgument.NotNull(remoteUri, nameof(remoteUri));
 
-            if (!IsAzureDevOpsHost(input.Host))
+            if (!IsAzureDevOpsHost(remoteUri.Host))
             {
                 throw new InvalidOperationException("Host is not Azure DevOps");
             }
 
             var ub = new UriBuilder
             {
-                Scheme = input.Protocol,
-                Host = input.Host,
+                Scheme = remoteUri.Scheme,
+                Host = remoteUri.Host,
             };
 
             // Extract the organization name for Azure ('dev.azure.com') style URLs.
             // The older *.visualstudio.com URLs contained the organization name in the host already.
-            if (StringComparer.OrdinalIgnoreCase.Equals(input.Host, AzureDevOpsConstants.AzureDevOpsHost))
+            if (StringComparer.OrdinalIgnoreCase.Equals(remoteUri.Host, AzureDevOpsConstants.AzureDevOpsHost))
             {
+                string[] pathParts = remoteUri.AbsolutePath.Split(new[] {'/'}, StringSplitOptions.RemoveEmptyEntries);
+                string userName = remoteUri.UserInfo.Split(':')[0];
+
                 // dev.azure.com/{org}
-                string[] pathParts = input.Path?.Split(new[] {'/'}, StringSplitOptions.RemoveEmptyEntries);
-                if (pathParts?.Length > 0)
+                if (pathParts.Length > 0)
                 {
-                    ub.Path = pathParts[0];
+                    orgName = pathParts[0];
                 }
                 // {org}@dev.azure.com
-                else if (!string.IsNullOrWhiteSpace(input.UserName))
+                else if (!string.IsNullOrWhiteSpace(userName))
                 {
-                    ub.Path = input.UserName;
+                    orgName = userName;
                 }
                 else
                 {
@@ -110,6 +132,17 @@ namespace Microsoft.AzureRepos
                         "name as the user in the remote URL '{org}@dev.azure.com'."
                     );
                 }
+
+                ub.Path = orgName;
+            }
+            // visualstudio.com URLs have the organization name is the sub-domain
+            else if (remoteUri.Host.EndsWith(AzureDevOpsConstants.VstsHostSuffix, StringComparison.OrdinalIgnoreCase))
+            {
+                orgName = remoteUri.Host.Substring(0, remoteUri.Host.Length - AzureDevOpsConstants.VstsHostSuffix.Length);
+            }
+            else
+            {
+                throw new InvalidOperationException("Unknown Azure DevOps URL");
             }
 
             return ub.Uri;
