@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Unconfigure GCM
-HELPER=`git config --system credential.helper`
-if [ $HELPER = "/usr/local/share/gcm-core/git-credential-manager" ]
+HELPER="$(git config --system credential.helper)"
+if [ "$HELPER" = "/usr/local/share/gcm-core/git-credential-manager" ]
 then
 	echo "Resetting credential helper to 'osxkeychain'..."
 	sudo git config --system credential.helper osxkeychain
