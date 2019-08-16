@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
+using System;
 using System.IO;
 
 namespace Microsoft.Git.CredentialManager
@@ -9,6 +10,16 @@ namespace Microsoft.Git.CredentialManager
     /// </summary>
     public interface IFileSystem
     {
+        /// <summary>
+        /// Get the path to the user's home profile directory ($HOME, %USERPROFILE%).
+        /// </summary>
+        string UserHomePath { get; }
+
+        /// <summary>
+        /// Get the path the the user's Git Credential Manager data directory.
+        /// </summary>
+        string UserDataDirectoryPath { get; }
+
         /// <summary>
         /// Check if a file exists at the specified path.
         /// </summary>
@@ -38,6 +49,33 @@ namespace Microsoft.Git.CredentialManager
         /// <param name="fileShare">File share settings.</param>
         /// <returns></returns>
         Stream OpenFileStream(string path, FileMode fileMode, FileAccess fileAccess, FileShare fileShare);
+
+        /// <summary>
+        /// Opens a text file, reads all lines of the file, and then closes the file.
+        /// </summary>
+        /// <param name="path">The file to open for reading.</param>
+        /// <returns>A string containing all lines of the file.</returns>
+        string ReadAllText(string path);
+
+        /// <summary>
+        /// Creates a new file, writes the specified string to the file, and then closes the file.
+        /// If the target file already exists, it is overwritten.
+        /// </summary>
+        /// <param name="path">The file to write to.</param>
+        /// <param name="contents">The string to write to the file</param>
+        void WriteAllText(string path, string contents);
+
+        /// <summary>
+        /// Creates directories and subdirectories in the specified path unless they already exist.
+        /// </summary>
+        /// <param name="path">The directory to create.</param>
+        void CreateDirectory(string path);
+
+        /// <summary>
+        /// Deletes the specified file.
+        /// </summary>
+        /// <param name="path">The file to delete.</param>
+        void DeleteFile(string path);
     }
 
     /// <summary>
@@ -45,6 +83,10 @@ namespace Microsoft.Git.CredentialManager
     /// </summary>
     public class FileSystem : IFileSystem
     {
+        public string UserHomePath => Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+
+        public string UserDataDirectoryPath => Path.Combine(UserHomePath, ".gcm");
+
         public bool FileExists(string path) => File.Exists(path);
 
         public bool DirectoryExists(string path) => Directory.Exists(path);
@@ -53,5 +95,13 @@ namespace Microsoft.Git.CredentialManager
 
         public Stream OpenFileStream(string path, FileMode fileMode, FileAccess fileAccess, FileShare fileShare)
             => File.Open(path, fileMode, fileAccess, fileShare);
+
+        public string ReadAllText(string path) => File.ReadAllText(path);
+
+        public void WriteAllText(string path, string contents) => File.WriteAllText(path, contents);
+
+        public void CreateDirectory(string path) => Directory.CreateDirectory(path);
+
+        public void DeleteFile(string path) => File.Delete(path);
     }
 }
