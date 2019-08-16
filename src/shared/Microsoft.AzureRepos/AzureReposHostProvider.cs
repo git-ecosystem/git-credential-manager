@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Git.CredentialManager;
 using Microsoft.Git.CredentialManager.Authentication;
+using Microsoft.IdentityModel.JsonWebTokens;
 using KnownGitCfg = Microsoft.Git.CredentialManager.Constants.GitConfiguration;
 
 namespace Microsoft.AzureRepos
@@ -73,13 +74,14 @@ namespace Microsoft.AzureRepos
 
             // Get an AAD access token for the Azure DevOps SPS
             Context.Trace.WriteLine("Getting Azure AD access token...");
-            string accessToken = await _msAuth.GetAccessTokenAsync(
+            JsonWebToken accessToken = await _msAuth.GetAccessTokenAsync(
                 authAuthority,
                 AzureDevOpsConstants.AadClientId,
                 AzureDevOpsConstants.AadRedirectUri,
                 AzureDevOpsConstants.AadResourceId,
                 remoteUri);
-            Context.Trace.WriteLineSecrets("Acquired access token. Token='{0}'", new object[] {accessToken});
+            string atUser = accessToken.GetAzureUserName();
+            Context.Trace.WriteLineSecrets($"Acquired Azure access token. User='{atUser}' Token='{{0}}'", new object[] {accessToken.EncodedToken});
 
             // Ask the Azure DevOps instance to create a new PAT
             var patScopes = new[]

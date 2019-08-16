@@ -5,12 +5,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
+using Microsoft.IdentityModel.JsonWebTokens;
 
 namespace Microsoft.Git.CredentialManager.Authentication
 {
     public interface IMicrosoftAuthentication
     {
-        Task<string> GetAccessTokenAsync(string authority, string clientId, Uri redirectUri, string resource, Uri remoteUri);
+        Task<JsonWebToken> GetAccessTokenAsync(string authority, string clientId, Uri redirectUri, string resource,
+            Uri remoteUri);
     }
 
     public class MicrosoftAuthentication : AuthenticationBase, IMicrosoftAuthentication
@@ -25,7 +27,8 @@ namespace Microsoft.Git.CredentialManager.Authentication
         public MicrosoftAuthentication(ICommandContext context)
             : base(context) {}
 
-        public async Task<string> GetAccessTokenAsync(string authority, string clientId, Uri redirectUri, string resource, Uri remoteUri)
+        public async Task<JsonWebToken> GetAccessTokenAsync(string authority, string clientId, Uri redirectUri,
+            string resource, Uri remoteUri)
         {
             string helperPath = FindHelperExecutablePath();
 
@@ -45,7 +48,7 @@ namespace Microsoft.Git.CredentialManager.Authentication
                 throw new Exception("Missing access token in response");
             }
 
-            return accessToken;
+            return new JsonWebToken(accessToken);
         }
 
         private string FindHelperExecutablePath()

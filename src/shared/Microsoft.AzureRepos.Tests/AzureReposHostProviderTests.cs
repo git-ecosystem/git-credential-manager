@@ -8,6 +8,7 @@ using Microsoft.Git.CredentialManager.Authentication;
 using Microsoft.Git.CredentialManager.Tests.Objects;
 using Moq;
 using Xunit;
+using static Microsoft.Git.CredentialManager.Tests.TestHelpers;
 
 namespace Microsoft.AzureRepos.Tests
 {
@@ -151,7 +152,7 @@ namespace Microsoft.AzureRepos.Tests
             var expectedClientId = AzureDevOpsConstants.AadClientId;
             var expectedRedirectUri = AzureDevOpsConstants.AadRedirectUri;
             var expectedResource = AzureDevOpsConstants.AadResourceId;
-            var accessToken = "ACCESS-TOKEN";
+            var accessToken = CreateJwt("john.doe");
             var personalAccessToken = "PERSONAL-ACCESS-TOKEN";
 
             var context = new TestCommandContext();
