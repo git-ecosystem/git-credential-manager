@@ -11,7 +11,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\shared\Git-Credential-Manager\Git-Credential-Manager.csproj" />
     <ProjectReference Include="..\GitHub.Authentication.Helper.Windows\GitHub.Authentication.Helper.Windows.csproj" />
-    <ProjectReference Include="..\Microsoft.Authentication.Helper.Windows\Microsoft.Authentication.Helper.Windows.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -27,8 +26,7 @@
       $(OutDir)GitHub.UI.dll;
       $(OutDir)GitHub.Authentication.Helper.exe;
       $(OutDir)Microsoft.AzureRepos.dll;
-      $(OutDir)Microsoft.Git.CredentialManager.dll;
-      $(OutDir)Microsoft.Authentication.Helper.exe;">
+      $(OutDir)Microsoft.Git.CredentialManager.dll;">
       <Authenticode>Microsoft400</Authenticode>
       <InProject>false</InProject>
     </FilesToSign>

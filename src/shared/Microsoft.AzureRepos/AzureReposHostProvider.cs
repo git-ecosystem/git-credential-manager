@@ -79,7 +79,8 @@ namespace Microsoft.AzureRepos
                 AzureDevOpsConstants.AadClientId,
                 AzureDevOpsConstants.AadRedirectUri,
                 AzureDevOpsConstants.AadResourceId,
-                remoteUri);
+                remoteUri,
+                null);
             string atUser = accessToken.GetAzureUserName();
             Context.Trace.WriteLineSecrets($"Acquired Azure access token. User='{atUser}' Token='{{0}}'", new object[] {accessToken.EncodedToken});
 

@@ -164,7 +164,7 @@ namespace Microsoft.AzureRepos.Tests
                         .ReturnsAsync(personalAccessToken);
 
             var msAuthMock = new Mock<IMicrosoftAuthentication>();
-            msAuthMock.Setup(x => x.GetAccessTokenAsync(authorityUrl, expectedClientId, expectedRedirectUri, expectedResource, remoteUri))
+            msAuthMock.Setup(x => x.GetAccessTokenAsync(authorityUrl, expectedClientId, expectedRedirectUri, expectedResource, remoteUri, null))
                       .ReturnsAsync(accessToken);
 
             var provider = new AzureReposHostProvider(context, azDevOpsMock.Object, msAuthMock.Object);
