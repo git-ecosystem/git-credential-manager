@@ -6,10 +6,10 @@ die () {
 
 # Directories
 THISDIR="$( cd "$(dirname "$0")" ; pwd -P )"
-ROOT="$( cd $THISDIR/../../.. ; pwd -P )"
-SRC=$ROOT/src
-OUT=$ROOT/out
-INSTALLER_SRC=$SRC/osx/Installer.Mac
+ROOT="$( cd "$THISDIR"/../../.. ; pwd -P )"
+SRC="$ROOT/src"
+OUT="$ROOT/out"
+INSTALLER_SRC="$SRC/osx/Installer.Mac"
 
 # Product information
 IDENTIFIER="com.microsoft.GitCredentialManager"
@@ -18,7 +18,7 @@ INSTALL_LOCATION="/usr/local/share/gcm-core"
 # Parse script arguments
 for i in "$@"
 do
-case $i in
+case "$i" in
     --version=*)
     VERSION="${i#*=}"
     shift # past argument=value
@@ -43,7 +43,7 @@ if [ -z "$VERSION" ]; then
 fi
 if [ -z "$PAYLOAD" ]; then
     die "--payload was not set"
-elif [ ! -d $PAYLOAD ]; then
+elif [ ! -d "$PAYLOAD" ]; then
     die "Could not find '$PAYLOAD'. Did you run layout.sh first?"
 fi
 if [ -z "$PKGOUT" ]; then
@@ -51,21 +51,21 @@ if [ -z "$PKGOUT" ]; then
 fi
 
 # Cleanup any old package file
-if [ -e $PKGOUT ]; then
+if [ -e "$PKGOUT" ]; then
     echo "Deleteing old package '$PKGOUT'..."
-    rm $PKGOUT
+    rm "$PKGOUT"
 fi
 
 # Ensure the parent directory for the package exists
-mkdir -p $(dirname "$PKGOUT")
+mkdir -p "$(dirname "$PKGOUT")"
 
 # Set full read, write, execute permissions for owner and just read and execute permissions for group and other
 echo "Setting file permissions..."
-/bin/chmod -R 755 $PAYLOAD || exit 1
+/bin/chmod -R 755 "$PAYLOAD" || exit 1
 
 # Remove any extended attributes (ACEs)
 echo "Removing extended attributes..."
-/usr/bin/xattr -rc $PAYLOAD || exit 1
+/usr/bin/xattr -rc "$PAYLOAD" || exit 1
 
 # Build installer package
 echo "Building installer package..."

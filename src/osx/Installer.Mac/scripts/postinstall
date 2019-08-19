@@ -8,7 +8,7 @@ function IsBrewPkgInstalled
     if [ $? -eq 0 ]
     then
         # Check if the package has been installed
-        brew ls --versions $1 > /dev/null
+        brew ls --versions "$1" > /dev/null
         if [ $? -eq 0 ]
         then
             return 0
@@ -27,7 +27,7 @@ fi
 /bin/ln -Fs /usr/local/share/gcm-core/git-credential-manager /usr/local/bin/git-credential-manager
 
 # Set system gitconfig for the current user
-USER_ID=`id -u "${USER}"`
+USER_ID="$(id -u "${USER}")"
 if [ "${COMMAND_LINE_INSTALL}" = "" ]
 then
     /bin/launchctl asuser "${USER_ID}" "${PWD}/configure-git.sh"
