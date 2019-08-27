@@ -18,7 +18,7 @@ function IsBrewPkgInstalled
 }
 
 # Check if Java GCM is present on this system and unlink it should it exist
-if [ -L /usr/local/bin/git-credential-manager && IsBrewPkgInstalled "git-credential-manager" ]
+if [ -L /usr/local/bin/git-credential-manager ] && IsBrewPkgInstalled "git-credential-manager";
 then
     brew unlink git-credential-manager
 fi
