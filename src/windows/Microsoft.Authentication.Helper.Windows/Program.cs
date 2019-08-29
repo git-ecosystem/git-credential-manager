@@ -9,7 +9,7 @@ namespace Microsoft.Authentication.Helper
     {
         public static void Main(string[] args)
         {
-            var context = new CommandContext();
+            using (var context = new CommandContext())
             using (var app = new Application(context))
             {
                 int exitCode = app.RunAsync(args)

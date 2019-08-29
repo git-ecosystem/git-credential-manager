@@ -63,5 +63,11 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
         }
 
         #endregion
+
+        #region IDisposable
+
+        void IDisposable.Dispose() { }
+
+        #endregion
     }
 }

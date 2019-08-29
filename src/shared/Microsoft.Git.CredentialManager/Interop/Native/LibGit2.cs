@@ -73,11 +73,17 @@ namespace Microsoft.Git.CredentialManager.Interop.Native
             string name);
 
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+        public static extern unsafe int git_config_foreach(git_config* cfg, git_config_foreach_cb callback, void* payload);
+
+        [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
         public static extern unsafe int git_config_open_default(git_config** @out);
 
         [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
         public static extern unsafe int git_config_snapshot(git_config** @out, git_config* config);
     }
+
+    public unsafe delegate int git_config_foreach_cb(git_config_entry entry, void* payload);
+    public delegate void git_config_entry_free_callback(git_config_entry entry);
 
     [StructLayout(LayoutKind.Sequential)]
     public class git_error
@@ -96,6 +102,27 @@ namespace Microsoft.Git.CredentialManager.Interop.Native
         public override unsafe string ToString()
         {
             return U8StringConverter.ToManaged(ptr);
+        }
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public class git_config_entry
+    {
+        public unsafe byte* name;
+        public unsafe byte* value;
+        public uint include_depth;
+        public git_config_level_t level;
+        public git_config_entry_free_callback free;
+        public unsafe void* payload;
+
+        public unsafe string GetName()
+        {
+            return U8StringConverter.ToManaged(name);
+        }
+
+        public unsafe string GetValue()
+        {
+            return U8StringConverter.ToManaged(value);
         }
     }
 

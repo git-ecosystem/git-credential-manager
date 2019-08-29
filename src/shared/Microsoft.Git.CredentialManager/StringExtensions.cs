@@ -92,6 +92,25 @@ namespace Microsoft.Git.CredentialManager
         }
 
         /// <summary>
+        /// Truncate the string from the first index of the given character, also removing the indexed character.
+        /// </summary>
+        /// <param name="str">String to truncate.</param>
+        /// <param name="c">Character to locate the index of.</param>
+        /// <returns>Truncated string.</returns>
+        public static string TruncateFromIndexOf(this string str, char c)
+        {
+            EnsureArgument.NotNull(str, nameof(str));
+
+            int last = str.IndexOf(c);
+            if (last > -1)
+            {
+                return str.Substring(0, last);
+            }
+
+            return str;
+        }
+
+        /// <summary>
         /// Truncate the string from the last index of the given character, also removing the indexed character.
         /// </summary>
         /// <param name="str">String to truncate.</param>
@@ -143,6 +162,47 @@ namespace Microsoft.Git.CredentialManager
             EnsureArgument.NotNull(str, nameof(str));
 
             int first = str.IndexOf(value, comparisonType);
+            if (first > -1)
+            {
+                return str.Substring(first + value.Length, str.Length - first - value.Length);
+            }
+
+            return str;
+        }
+
+        /// <summary>
+        /// Trim all characters at the start of the string until the last index of the given character,
+        /// also removing the indexed character.
+        /// </summary>
+        /// <param name="str">String to trim.</param>
+        /// <param name="c">Character to locate the index of.</param>
+        /// <returns>Trimmed string.</returns>
+        public static string TrimUntilLastIndexOf(this string str, char c)
+        {
+            EnsureArgument.NotNull(str, nameof(str));
+
+            int first = str.LastIndexOf(c);
+            if (first > -1)
+            {
+                return str.Substring(first + 1, str.Length - first - 1);
+            }
+
+            return str;
+        }
+
+        /// <summary>
+        /// Trim all characters at the start of the string until the last index of the given string,
+        /// also removing the indexed character.
+        /// </summary>
+        /// <param name="str">String to trim.</param>
+        /// <param name="value">String to locate the index of.</param>
+        /// <param name="comparisonType">Comparison rule for locating the string.</param>
+        /// <returns>Trimmed string.</returns>
+        public static string TrimUntilLastIndexOf(this string str, string value, StringComparison comparisonType = StringComparison.Ordinal)
+        {
+            EnsureArgument.NotNull(str, nameof(str));
+
+            int first = str.LastIndexOf(value, comparisonType);
             if (first > -1)
             {
                 return str.Substring(first + value.Length, str.Length - first - value.Length);
