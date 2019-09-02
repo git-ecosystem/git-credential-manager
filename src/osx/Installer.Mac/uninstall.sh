@@ -2,7 +2,7 @@
 
 # Unconfigure GCM
 HELPER="$(git config --system credential.helper)"
-if [ "$HELPER" = "/usr/local/share/gcm-core/git-credential-manager" ]
+if [ "$HELPER" = "/usr/local/share/gcm-core/git-credential-manager-core" ]
 then
 	echo "Resetting credential helper to 'osxkeychain'..."
 	sudo git config --system credential.helper osxkeychain
@@ -11,10 +11,10 @@ else
 fi
 
 # Remove GCM symlink
-if [ -L /usr/local/bin/git-credential-manager ]
+if [ -L /usr/local/bin/git-credential-manager-core ]
 then
 	echo "Deleting GCM symlink..."
-	rm /usr/local/bin/git-credential-manager
+	rm /usr/local/bin/git-credential-manager-core
 else
 	echo "No GCM symlink found."
 fi

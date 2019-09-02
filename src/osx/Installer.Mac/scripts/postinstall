@@ -24,7 +24,7 @@ then
 fi
 
 # Create symlink to GCM in /usr/local/bin
-/bin/ln -Fs /usr/local/share/gcm-core/git-credential-manager /usr/local/bin/git-credential-manager
+/bin/ln -Fs /usr/local/share/gcm-core/git-credential-manager-core /usr/local/bin/git-credential-manager-core
 
 # Set system gitconfig for the current user
 USER_ID="$(id -u "${USER}")"
