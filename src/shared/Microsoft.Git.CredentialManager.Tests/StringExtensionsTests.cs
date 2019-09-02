@@ -203,12 +203,12 @@ namespace Microsoft.Git.CredentialManager.Tests
         }
 
         [Theory]
-        [InlineData("fooTRIMbar", "TRIM", StringComparison.Ordinal, "bar")]
-        [InlineData("fooTRIMbar", "trim", StringComparison.Ordinal, "fooTRIMbar")]
-        [InlineData("fooTRIMbar", "tRiM", StringComparison.Ordinal, "fooTRIMbar")]
-        [InlineData("fooTRIMbar", "TRIM", StringComparison.OrdinalIgnoreCase, "bar")]
-        [InlineData("fooTRIMbar", "trim", StringComparison.OrdinalIgnoreCase, "bar")]
-        [InlineData("fooTRIMbar", "tRiM", StringComparison.OrdinalIgnoreCase, "bar")]
+        [InlineData("fooTRIMbarTRIMsoup", "TRIM", StringComparison.Ordinal, "barTRIMsoup")]
+        [InlineData("fooTRIMbarTRIMsoup", "trim", StringComparison.Ordinal, "fooTRIMbarTRIMsoup")]
+        [InlineData("fooTRIMbarTRIMsoup", "tRiM", StringComparison.Ordinal, "fooTRIMbarTRIMsoup")]
+        [InlineData("fooTRIMbarTRIMsoup", "TRIM", StringComparison.OrdinalIgnoreCase, "barTRIMsoup")]
+        [InlineData("fooTRIMbarTRIMsoup", "trim", StringComparison.OrdinalIgnoreCase, "barTRIMsoup")]
+        [InlineData("fooTRIMbarTRIMsoup", "tRiM", StringComparison.OrdinalIgnoreCase, "barTRIMsoup")]
         public void StringExtensions_TrimUntilIndexOf_String_ComparisonType(string input, string trim, StringComparison comparisonType, string expected)
         {
             string actual = StringExtensions.TrimUntilIndexOf(input, trim, comparisonType);
@@ -254,12 +254,12 @@ namespace Microsoft.Git.CredentialManager.Tests
         }
 
         [Theory]
-        [InlineData("fooTRIMbar", "TRIM", StringComparison.Ordinal, "bar")]
-        [InlineData("fooTRIMbar", "trim", StringComparison.Ordinal, "fooTRIMbar")]
-        [InlineData("fooTRIMbar", "tRiM", StringComparison.Ordinal, "fooTRIMbar")]
-        [InlineData("fooTRIMbar", "TRIM", StringComparison.OrdinalIgnoreCase, "bar")]
-        [InlineData("fooTRIMbar", "trim", StringComparison.OrdinalIgnoreCase, "bar")]
-        [InlineData("fooTRIMbar", "tRiM", StringComparison.OrdinalIgnoreCase, "bar")]
+        [InlineData("fooTRIMbarTRIMsoup", "TRIM", StringComparison.Ordinal, "soup")]
+        [InlineData("fooTRIMbarTRIMsoup", "trim", StringComparison.Ordinal, "fooTRIMbarTRIMsoup")]
+        [InlineData("fooTRIMbarTRIMsoup", "tRiM", StringComparison.Ordinal, "fooTRIMbarTRIMsoup")]
+        [InlineData("fooTRIMbarTRIMsoup", "TRIM", StringComparison.OrdinalIgnoreCase, "soup")]
+        [InlineData("fooTRIMbarTRIMsoup", "trim", StringComparison.OrdinalIgnoreCase, "soup")]
+        [InlineData("fooTRIMbarTRIMsoup", "tRiM", StringComparison.OrdinalIgnoreCase, "soup")]
         public void StringExtensions_TrimUntilLastIndexOf_String_ComparisonType(string input, string trim, StringComparison comparisonType, string expected)
         {
             string actual = StringExtensions.TrimUntilLastIndexOf(input, trim, comparisonType);
@@ -270,6 +270,29 @@ namespace Microsoft.Git.CredentialManager.Tests
         public void StringExtensions_TrimUntilLastIndexOf_String_Null_ThrowsArgumentNullException()
         {
             Assert.Throws<ArgumentNullException>(() => StringExtensions.TrimUntilLastIndexOf(null, "://"));
+        }
+
+        [Theory]
+        [InlineData("fooTRIMbar", "TRIM", "foobar")]
+        [InlineData("fooTRIMbar", "trim", "fooTRIMbar")]
+        [InlineData("fooTRIMbar", "tRiM", "fooTRIMbar")]
+        public void StringExtensions_TrimMiddle_String(string input, string trim, string expected)
+        {
+            string actual = StringExtensions.TrimMiddle(input, trim);
+            Assert.Equal(expected, actual);
+        }
+
+        [Theory]
+        [InlineData("fooTRIMbar", "TRIM", StringComparison.Ordinal, "foobar")]
+        [InlineData("fooTRIMbar", "trim", StringComparison.Ordinal, "fooTRIMbar")]
+        [InlineData("fooTRIMbar", "tRiM", StringComparison.Ordinal, "fooTRIMbar")]
+        [InlineData("fooTRIMbar", "TRIM", StringComparison.OrdinalIgnoreCase, "foobar")]
+        [InlineData("fooTRIMbar", "trim", StringComparison.OrdinalIgnoreCase, "foobar")]
+        [InlineData("fooTRIMbar", "tRiM", StringComparison.OrdinalIgnoreCase, "foobar")]
+        public void StringExtensions_TrimMiddle_String_ComparisonType(string input, string trim, StringComparison comparisonType, string expected)
+        {
+            string actual = StringExtensions.TrimMiddle(input, trim, comparisonType);
+            Assert.Equal(expected, actual);
         }
     }
 }

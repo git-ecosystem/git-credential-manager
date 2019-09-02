@@ -13,6 +13,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
         public TestFileSystem FileSystem { get; set; } = new TestFileSystem();
         public TestCredentialStore CredentialStore { get; set; } = new TestCredentialStore();
         public TestHttpClientFactory HttpClientFactory { get; set; } = new TestHttpClientFactory();
+        public TestGit Git { get; set; } = new TestGit();
+        public TestEnvironment Environment { get; set; } = new TestEnvironment();
 
         #region ICommandContext
 
@@ -29,6 +31,10 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
         ICredentialStore ICommandContext.CredentialStore => CredentialStore;
 
         IHttpClientFactory ICommandContext.HttpClientFactory => HttpClientFactory;
+
+        IGit ICommandContext.Git => Git;
+
+        IEnvironment ICommandContext.Environment => Environment;
 
         #endregion
 

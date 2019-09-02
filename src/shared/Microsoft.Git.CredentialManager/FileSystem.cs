@@ -10,6 +10,14 @@ namespace Microsoft.Git.CredentialManager
     public interface IFileSystem
     {
         /// <summary>
+        /// Check if two paths are the same for the current platform and file system. Symbolic links are not followed.
+        /// </summary>
+        /// <param name="a">File path.</param>
+        /// <param name="b">File path.</param>
+        /// <returns>True if both file paths are the same, false otherwise.</returns>
+        bool IsSamePath(string a, string b);
+
+        /// <summary>
         /// Check if a file exists at the specified path.
         /// </summary>
         /// <param name="path">Full path to file to test.</param>
@@ -43,8 +51,10 @@ namespace Microsoft.Git.CredentialManager
     /// <summary>
     /// The real file system.
     /// </summary>
-    public class FileSystem : IFileSystem
+    public abstract class FileSystem : IFileSystem
     {
+        public abstract bool IsSamePath(string a, string b);
+
         public bool FileExists(string path) => File.Exists(path);
 
         public bool DirectoryExists(string path) => Directory.Exists(path);
