@@ -1,29 +1,52 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
 using System;
+using System.IO;
+using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Git.CredentialManager.Commands;
 using Microsoft.Git.CredentialManager.Interop;
 
 namespace Microsoft.Git.CredentialManager
 {
-    public class Application : ApplicationBase
+    public class Application : ApplicationBase, IConfigurableComponent
     {
         private readonly string _appPath;
         private readonly IHostProviderRegistry _providerRegistry;
+        private readonly IConfigurationService _configurationService;
 
         public Application(ICommandContext context, string appPath)
+            : this(context, new HostProviderRegistry(context), new ConfigurationService(context), appPath)
+        {
+        }
+
+        internal Application(ICommandContext context,
+                             IHostProviderRegistry providerRegistry,
+                             IConfigurationService configurationService,
+                             string appPath)
             : base(context)
         {
+            EnsureArgument.NotNull(providerRegistry, nameof(providerRegistry));
+            EnsureArgument.NotNull(configurationService, nameof(configurationService));
             EnsureArgument.NotNullOrWhiteSpace(appPath, nameof(appPath));
 
             _appPath = appPath;
-            _providerRegistry = new HostProviderRegistry(context);
+            _providerRegistry = providerRegistry;
+            _configurationService = configurationService;
+
+            _configurationService.AddComponent(this);
         }
 
         public void RegisterProviders(params IHostProvider[] providers)
         {
             _providerRegistry.Register(providers);
+
+            // Add any providers that are also configurable components to the configuration service
+            foreach (IConfigurableComponent configurableProvider in providers.OfType<IConfigurableComponent>())
+            {
+                _configurationService.AddComponent(configurableProvider);
+            }
         }
 
         protected override async Task<int> RunInternalAsync(string[] args)
@@ -36,6 +59,8 @@ namespace Microsoft.Git.CredentialManager
                 new GetCommand(_providerRegistry),
                 new StoreCommand(_providerRegistry),
                 new EraseCommand(_providerRegistry),
+                new ConfigureCommand(_configurationService),
+                new UnconfigureCommand(_configurationService),
                 new VersionCommand(),
                 new HelpCommand(appName),
             };
@@ -111,5 +136,114 @@ namespace Microsoft.Git.CredentialManager
 
             return true;
         }
+
+        #region IConfigurableComponent
+
+        string IConfigurableComponent.Name => "Git Credential Manager";
+
+        Task IConfigurableComponent.ConfigureAsync(
+            IEnvironment environment, EnvironmentVariableTarget environmentTarget,
+            IGitConfiguration configuration, GitConfigurationLevel configurationLevel)
+        {
+            // NOTE: We currently only update the PATH in Windows installations and leave putting the GCM executable
+            //       on the PATH on other platform to their installers.
+            if (PlatformUtils.IsWindows())
+            {
+                string directoryPath = Path.GetDirectoryName(_appPath);
+                if (!environment.IsDirectoryOnPath(directoryPath))
+                {
+                    Context.Trace.WriteLine("Adding application to PATH...");
+                    environment.AddDirectoryToPath(directoryPath, environmentTarget);
+                }
+                else
+                {
+                    Context.Trace.WriteLine("Application is already on the PATH.");
+                }
+            }
+
+            string helperKey = $"{Constants.GitConfiguration.Credential.SectionName}.{Constants.GitConfiguration.Credential.Helper}";
+            string gitConfigAppName = GetGitConfigAppName();
+
+            using (IGitConfiguration targetConfig = configuration.GetFilteredConfiguration(configurationLevel))
+            {
+                /*
+                 * We are looking for the following to be considered already set:
+                 *
+                 * [credential]
+                 *     ...                         # any number of helper entries
+                 *     helper =                    # an empty value to reset/clear any previous entries
+                 *     helper = {gitConfigAppName} # the expected executable value in the last position & directly following the empty value
+                 *
+                 */
+
+                string[] currentValues = targetConfig.GetMultivarValue(helperKey, Constants.RegexPatterns.Any).ToArray();
+                if (currentValues.Length < 2 ||
+                    !string.IsNullOrWhiteSpace(currentValues[currentValues.Length - 2]) ||    // second to last entry is empty
+                    currentValues[currentValues.Length - 1] != gitConfigAppName)              // last entry is the expected executable
+                {
+                    Context.Trace.WriteLine("Updating Git credential helper configuration...");
+
+                    // Clear any existing entries in the configuration.
+                    targetConfig.DeleteMultivarEntry(helperKey, Constants.RegexPatterns.Any);
+
+                    // Add an empty value for `credential.helper`, which has the effect of clearing any helper value
+                    // from any lower-level Git configuration, then add a second value which is the actual executable path.
+                    targetConfig.SetValue(helperKey, string.Empty);
+                    targetConfig.SetMultivarValue(helperKey, Constants.RegexPatterns.None, gitConfigAppName);
+                }
+                else
+                {
+                    Context.Trace.WriteLine("Credential helper configuration is already set correctly.");
+                }
+            }
+
+            return Task.CompletedTask;
+        }
+
+        Task IConfigurableComponent.UnconfigureAsync(
+            IEnvironment environment, EnvironmentVariableTarget environmentTarget,
+            IGitConfiguration configuration, GitConfigurationLevel configurationLevel)
+        {
+            string helperKey = $"{Constants.GitConfiguration.Credential.SectionName}.{Constants.GitConfiguration.Credential.Helper}";
+            string gitConfigAppName = GetGitConfigAppName();
+
+            using (IGitConfiguration targetConfig = configuration.GetFilteredConfiguration(configurationLevel))
+            {
+                Context.Trace.WriteLine("Removing Git credential helper configuration...");
+
+                // Clear any blank 'reset' entries
+                targetConfig.DeleteMultivarEntry(helperKey, Constants.RegexPatterns.Empty);
+
+                // Clear GCM executable entries
+                targetConfig.DeleteMultivarEntry(helperKey, Regex.Escape(gitConfigAppName));
+            }
+
+            // NOTE: We currently only update the PATH in Windows installations and leave removing the GCM executable
+            //       on the PATH on other platform to their installers.
+            // Remove GCM executable from the PATH
+            if (PlatformUtils.IsWindows())
+            {
+                Context.Trace.WriteLine("Removing application from the PATH...");
+                string directoryPath = Path.GetDirectoryName(_appPath);
+                environment.RemoveDirectoryFromPath(directoryPath, environmentTarget);
+            }
+
+            return Task.CompletedTask;
+        }
+
+        private string GetGitConfigAppName()
+        {
+            const string gitCredentialPrefix = "git-credential-";
+
+            string appName = Path.GetFileNameWithoutExtension(_appPath);
+            if (appName != null && appName.StartsWith(gitCredentialPrefix, StringComparison.OrdinalIgnoreCase))
+            {
+                return appName.Substring(gitCredentialPrefix.Length);
+            }
+
+            return _appPath;
+        }
+
+        #endregion
     }
 }

@@ -13,6 +13,24 @@ namespace Microsoft.Git.CredentialManager
         public const string ProviderIdAuto  = "auto";
         public const string AuthorityIdAuto = "auto";
 
+        public static class RegexPatterns
+        {
+            /// <summary>
+            /// A regular expression that matches any value.
+            /// </summary>
+            public const string Any = @".*";
+
+            /// <summary>
+            /// A regular expression that matches no value.
+            /// </summary>
+            public const string None = @"$.+";
+
+            /// <summary>
+            /// A regular expression that matches empty strings.
+            /// </summary>
+            public const string Empty = @"^$";
+        }
+
         public static class EnvironmentVariables
         {
             public const string GcmTrace           = "GCM_TRACE";
@@ -51,6 +69,7 @@ namespace Microsoft.Git.CredentialManager
                 public const string AllowWia    = "allowWindowsAuth";
                 public const string HttpProxy   = "httpProxy";
                 public const string HttpsProxy  = "httpsProxy";
+                public const string UseHttpPath = "useHttpPath";
             }
 
             public static class Http
