@@ -157,12 +157,13 @@ namespace Microsoft.Git.CredentialManager.Tests
         [PlatformFact(Platform.Windows)]
         public async Task Application_ConfigureAsync_User_PathSet_DoesNothing()
         {
-            const string executablePath = "/usr/local/share/gcm-core/git-credential-manager-core";
+            const string directoryPath = @"X:\Install Location";
+            const string executablePath = @"X:\Install Location\git-credential-manager-core.exe";
 
             IConfigurableComponent application = new Application(new TestCommandContext(), executablePath);
 
             var environment = new Mock<IEnvironment>();
-            environment.Setup(x => x.IsDirectoryOnPath("/usr/local/share/gcm-core")).Returns(true);
+            environment.Setup(x => x.IsDirectoryOnPath(directoryPath)).Returns(true);
 
             var config = new TestGitConfiguration();
 
@@ -176,12 +177,13 @@ namespace Microsoft.Git.CredentialManager.Tests
         [PlatformFact(Platform.Windows)]
         public async Task Application_ConfigureAsync_User_PathNotSet_SetsUserPath()
         {
-            const string executablePath = "/usr/local/share/gcm-core/git-credential-manager-core";
+            const string directoryPath = @"X:\Install Location";
+            const string executablePath = @"X:\Install Location\git-credential-manager-core.exe";
 
             IConfigurableComponent application = new Application(new TestCommandContext(), executablePath);
 
             var environment = new Mock<IEnvironment>();
-            environment.Setup(x => x.IsDirectoryOnPath("/usr/local/share/gcm-core")).Returns(false);
+            environment.Setup(x => x.IsDirectoryOnPath(directoryPath)).Returns(false);
 
             var config = new TestGitConfiguration();
 
@@ -195,12 +197,13 @@ namespace Microsoft.Git.CredentialManager.Tests
         [PlatformFact(Platform.Windows)]
         public async Task Application_UnconfigureAsync_User_PathSet_RemovesFromUserPath()
         {
-            const string executablePath = "/usr/local/share/gcm-core/git-credential-manager-core";
+            const string directoryPath = @"X:\Install Location";
+            const string executablePath = @"X:\Install Location\git-credential-manager-core.exe";
 
             IConfigurableComponent application = new Application(new TestCommandContext(), executablePath);
 
             var environment = new Mock<IEnvironment>();
-            environment.Setup(x => x.IsDirectoryOnPath("/usr/local/share/gcm-core")).Returns(true);
+            environment.Setup(x => x.IsDirectoryOnPath(directoryPath)).Returns(true);
 
             var config = new TestGitConfiguration();
 
