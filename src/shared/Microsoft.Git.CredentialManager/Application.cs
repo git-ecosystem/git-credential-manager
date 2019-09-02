@@ -9,11 +9,15 @@ namespace Microsoft.Git.CredentialManager
 {
     public class Application : ApplicationBase
     {
+        private readonly string _appPath;
         private readonly IHostProviderRegistry _providerRegistry;
 
-        public Application(ICommandContext context)
+        public Application(ICommandContext context, string appPath)
             : base(context)
         {
+            EnsureArgument.NotNullOrWhiteSpace(appPath, nameof(appPath));
+
+            _appPath = appPath;
             _providerRegistry = new HostProviderRegistry(context);
         }
 
@@ -24,14 +28,16 @@ namespace Microsoft.Git.CredentialManager
 
         protected override async Task<int> RunInternalAsync(string[] args)
         {
+            string appName = Path.GetFileNameWithoutExtension(_appPath);
+
             // Construct all supported commands
             var commands = new CommandBase[]
             {
-                new EraseCommand(_providerRegistry),
                 new GetCommand(_providerRegistry),
                 new StoreCommand(_providerRegistry),
+                new EraseCommand(_providerRegistry),
                 new VersionCommand(),
-                new HelpCommand(),
+                new HelpCommand(appName),
             };
 
             // Trace the current version and program arguments
@@ -40,7 +46,7 @@ namespace Microsoft.Git.CredentialManager
             if (args.Length == 0)
             {
                 Context.Streams.Error.WriteLine("Missing command.");
-                HelpCommand.PrintUsage(Context.Streams.Error);
+                HelpCommand.PrintUsage(Context.Streams.Error, appName);
                 return -1;
             }
 
@@ -70,7 +76,7 @@ namespace Microsoft.Git.CredentialManager
             }
 
             Context.Streams.Error.WriteLine("Unrecognized command '{0}'.", args[0]);
-            HelpCommand.PrintUsage(Context.Streams.Error);
+            HelpCommand.PrintUsage(Context.Streams.Error, appName);
             return -1;
         }
 
