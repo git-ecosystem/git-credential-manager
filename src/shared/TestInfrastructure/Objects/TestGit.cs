@@ -8,25 +8,21 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
 {
     public class TestGit : IGit
     {
-        public TestGit(IDictionary<string, string> globalConfig = null)
+        public TestGitConfiguration GlobalConfiguration { get; } = new TestGitConfiguration();
+
+        public IDictionary<string, TestGitRepository> Repositories { get; } = new Dictionary<string, TestGitRepository>();
+
+        public TestGitRepository AddRepository(TestGitRepository repo)
         {
-            GlobalConfiguration = new TestGitConfiguration(globalConfig);
-        }
-
-        public TestGitConfiguration GlobalConfiguration { get; }
-
-        public IDictionary<string, TestGitRepository> Repositories { get; } =
-            new Dictionary<string, TestGitRepository>();
-
-        public TestGitRepository AddRepository(string repoPath, IDictionary<string, string> config = null)
-        {
-            var repoConfig = new TestGitConfiguration(config);
-            var repo = new TestGitRepository(repoPath, repoConfig);
-
-            Repositories.Add(repoPath, repo);
-
+            Repositories.Add(repo.Path, repo);
             return repo;
         }
+
+        public TestGitRepository AddRepository(string repoPath, TestGitConfiguration repoConfig) =>
+            AddRepository(new TestGitRepository(repoPath, repoConfig));
+
+        public TestGitRepository AddRepository(string repoPath) =>
+            AddRepository(repoPath, new TestGitConfiguration());
 
         #region IGit
 
@@ -39,21 +35,20 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
                 return GlobalConfiguration;
             }
 
-            IDictionary<string, string> mergedConfigDict = MergeDictionaries(GlobalConfiguration.Dictionary, repo.Configuration.Dictionary);
+            IDictionary<string, IList<string>> mergedConfigDict = MergeDictionaries(GlobalConfiguration.Dictionary, repo.Configuration.Dictionary);
 
             return new TestGitConfiguration(mergedConfigDict);
         }
 
-        string IGit.GetRepositoryPath(string path) =>
-            Repositories.Keys.FirstOrDefault(path.StartsWith);
+        string IGit.GetRepositoryPath(string path) => Repositories.Keys.FirstOrDefault(path.StartsWith);
 
         #endregion
 
-        private static IDictionary<string, string> MergeDictionaries(params IDictionary<string, string>[] dictionaries)
+        private static IDictionary<string, IList<string>> MergeDictionaries(params IDictionary<string, IList<string>>[] dictionaries)
         {
-            var result = new Dictionary<string, string>();
+            var result = new Dictionary<string, IList<string>>();
 
-            foreach (var dict in dictionaries)
+            foreach (IDictionary<string, IList<string>> dict in dictionaries)
             {
                 foreach (var kvp in dict)
                 {
