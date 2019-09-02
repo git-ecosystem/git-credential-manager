@@ -64,7 +64,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
             return Path.Any(x => _pathComparer.Equals(x, directoryPath));
         }
 
-        public void AddDirectoryToPath(string directoryPath, bool system)
+        public void AddDirectoryToPath(string directoryPath, EnvironmentVariableTarget target)
         {
             Path.Add(directoryPath);
 
@@ -72,7 +72,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
             Variables["PATH"] = string.Join(_envPathSeparator, Path);
         }
 
-        public void RemoveDirectoryFromPath(string directoryPath, bool system)
+        public void RemoveDirectoryFromPath(string directoryPath, EnvironmentVariableTarget target)
         {
             Path.Remove(directoryPath);
 

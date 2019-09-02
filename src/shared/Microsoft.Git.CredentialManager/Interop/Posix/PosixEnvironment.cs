@@ -14,12 +14,12 @@ namespace Microsoft.Git.CredentialManager.Interop.Posix
 
         #region EnvironmentBase
 
-        public override void AddDirectoryToPath(string directoryPath, bool system)
+        public override void AddDirectoryToPath(string directoryPath, EnvironmentVariableTarget target)
         {
             throw new NotImplementedException();
         }
 
-        public override void RemoveDirectoryFromPath(string directoryPath, bool system)
+        public override void RemoveDirectoryFromPath(string directoryPath, EnvironmentVariableTarget target)
         {
             throw new NotImplementedException();
         }

@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -26,15 +27,15 @@ namespace Microsoft.Git.CredentialManager
         /// Add the directory to the path.
         /// </summary>
         /// <param name="directoryPath">Path to directory to add to the path.</param>
-        /// <param name="system">True to update the path for all users on the system, false to update only the user's path.</param>
-        void AddDirectoryToPath(string directoryPath, bool system);
+        /// <param name="target">The level of the path environment variable that should be modified.</param>
+        void AddDirectoryToPath(string directoryPath, EnvironmentVariableTarget target);
 
         /// <summary>
         /// Remove the directory from the path.
         /// </summary>
         /// <param name="directoryPath">Path to directory to remove from the path.</param>
-        /// <param name="system">True to update the path for all users on the system, false to update only the user's path.</param>
-        void RemoveDirectoryFromPath(string directoryPath, bool system);
+        /// <param name="target">The level of the path environment variable that should be modified.</param>
+        void RemoveDirectoryFromPath(string directoryPath, EnvironmentVariableTarget target);
     }
 
     public abstract class EnvironmentBase : IEnvironment
@@ -61,9 +62,9 @@ namespace Microsoft.Git.CredentialManager
             return false;
         }
 
-        public abstract void AddDirectoryToPath(string directoryPath, bool system);
+        public abstract void AddDirectoryToPath(string directoryPath, EnvironmentVariableTarget target);
 
-        public abstract void RemoveDirectoryFromPath(string directoryPath, bool system);
+        public abstract void RemoveDirectoryFromPath(string directoryPath, EnvironmentVariableTarget target);
 
         protected abstract string[] SplitPathVariable(string value);
     }
