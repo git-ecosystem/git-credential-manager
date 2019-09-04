@@ -8,7 +8,7 @@ set -e
 PATH=""
 eval $(/usr/libexec/path_helper -s)
 
-git config --system credential.helper /usr/local/share/gcm-core/git-credential-manager
+git config --system credential.helper /usr/local/share/gcm-core/git-credential-manager-core
 git config --system credential.https://dev.azure.com.useHttpPath true
 
 exit 0

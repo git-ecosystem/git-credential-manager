@@ -46,7 +46,7 @@ To use GCM Core, you can download the [latest installer](https://github.com/Micr
 
 ### Git Credential Manager for Mac and Linux (Java-based GCM)
 
-If you have an existing installation of the 'Java GCM' on macOS and you have installed this using Homebrew, this installation will be unlinked (`brew unlink git-credential-manager`) when GCM Core is installed. Additionally any symlinks or files previously located at `/usr/local/bin/git-credential-manager` will be replaced with a GCM Core symlink.
+If you have an existing installation of the 'Java GCM' on macOS and you have installed this using Homebrew, this installation will be unlinked (`brew unlink git-credential-manager`) when GCM Core is installed.
 
 ## How to use
 
