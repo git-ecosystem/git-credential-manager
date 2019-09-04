@@ -14,12 +14,56 @@ namespace Microsoft.Git.CredentialManager
         void Enumerate(GitConfigurationEnumerationCallback cb);
 
         /// <summary>
+        /// Get a snapshot of the configuration filtered to the specified level.
+        /// </summary>
+        /// <param name="level">Configuration level filter.</param>
+        /// <returns>Git configuration snapshot.</returns>
+        IGitConfiguration GetFilteredConfiguration(GitConfigurationLevel level);
+
+        /// <summary>
         /// Try and get the value of a configuration entry as a string.
         /// </summary>
         /// <param name="name">Configuration entry name.</param>
         /// <param name="value">Configuration entry value.</param>
         /// <returns>True if the value was found, false otherwise.</returns>
         bool TryGetValue(string name, out string value);
+
+        /// <summary>
+        /// Set the value of a configuration entry.
+        /// </summary>
+        /// <param name="name">Configuration entry name.</param>
+        /// <param name="value">Configuration entry value.</param>
+        void SetValue(string name, string value);
+
+        /// <summary>
+        /// Deletes a configuration entry from the highest level.
+        /// </summary>
+        /// <param name="name">Configuration entry name.</param>
+        void DeleteEntry(string name);
+
+        /// <summary>
+        /// Get all values of a multivar configuration entry.
+        /// </summary>
+        /// <param name="name">Configuration entry name.</param>
+        /// <param name="regexp">Regular expression to filter which variables we're interested in. Use null to indicate all.</param>
+        /// <returns>All values of the multivar configuration entry.</returns>
+        IEnumerable<string> GetMultivarValue(string name, string regexp);
+
+        /// <summary>
+        /// Set a multivar configuration entry value.
+        /// </summary>
+        /// <param name="name">Configuration entry name.</param>
+        /// <param name="regexp">Regular expression to indicate which values to replace.</param>
+        /// <param name="value">Configuration entry value.</param>
+        /// <remarks>If the regular expression does not match any existing entry, a new entry is created.</remarks>
+        void SetMultivarValue(string name, string regexp, string value);
+
+        /// <summary>
+        /// Deletes one or several entries from a multivar.
+        /// </summary>
+        /// <param name="name">Configuration entry name.</param>
+        /// <param name="regexp">Regular expression to indicate which values to delete.</param>
+        void DeleteMultivarEntry(string name, string regexp);
     }
 
     /// <summary>
@@ -45,6 +89,15 @@ namespace Microsoft.Git.CredentialManager
         /// <param name="path">Path to resolve.</param>
         /// <returns>Git repository root path, or null if <paramref name="path"/> is not inside of a Git repository.</returns>
         string GetRepositoryPath(string path);
+    }
+
+    public enum GitConfigurationLevel
+    {
+        ProgramData,
+        System,
+        Xdg,
+        Global,
+        Local,
     }
 
     public static class GitExtensions

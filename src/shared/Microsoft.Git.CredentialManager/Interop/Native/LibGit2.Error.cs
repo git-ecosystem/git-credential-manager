@@ -164,15 +164,20 @@ namespace Microsoft.Git.CredentialManager.Interop.Native
             {
                 unsafe
                 {
-                    git_error error = git_error_last();
-
-                    string errorMessage = U8StringConverter.ToManaged(error.message);
-
                     string mainMessage = functionName is null
                         ? $"libgit2 '{functionName}' returned non-zero value"
                         : "libgit2 returned non-zero value";
 
-                    throw new InteropException(mainMessage, result, new Exception(errorMessage));
+                    git_error* error = git_error_last();
+
+                    if (error != null && error->message != null)
+                    {
+                        string errorMessage = U8StringConverter.ToManaged(error->message);
+
+                        throw new InteropException(mainMessage, result, new Exception(errorMessage));
+                    }
+
+                    throw new InteropException(mainMessage, result);
                 }
             }
         }

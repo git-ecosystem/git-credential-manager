@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Microsoft.Git.CredentialManager.Interop.Native;
 using static Microsoft.Git.CredentialManager.Interop.Native.git_config_level_t;
@@ -63,9 +64,8 @@ namespace Microsoft.Git.CredentialManager.Interop
         {
             ThrowIfDisposed();
 
-            _trace.WriteLine($"Discovering repository from path '{path}'...");
-
             var buf = new git_buf();
+            _trace.WriteLine($"Discovering repository from path '{path}'...");
             int error = git_repository_discover(buf, path, true, null);
 
             try
@@ -91,6 +91,7 @@ namespace Microsoft.Git.CredentialManager.Interop
 
         protected override void ReleaseUnmanagedResources()
         {
+            _trace.WriteLine("Shutting-down libgit2...");
             git_libgit2_shutdown();
             base.ReleaseUnmanagedResources();
         }
@@ -113,6 +114,8 @@ namespace Microsoft.Git.CredentialManager.Interop
             ThrowIfError(git_config_snapshot(&snapshot, config), nameof(git_config_snapshot));
             _snapshot = snapshot;
         }
+
+        #region IGitConfiguration
 
         public unsafe void Enumerate(GitConfigurationEnumerationCallback cb)
         {
@@ -143,6 +146,47 @@ namespace Microsoft.Git.CredentialManager.Interop
             }
         }
 
+        public unsafe IGitConfiguration GetFilteredConfiguration(GitConfigurationLevel level)
+        {
+            git_config* filteredConfig;
+
+            _trace.WriteLine($"Filtering default configuration set to '{level.ToString()}' level...");
+
+            // Filter to the requested level
+            switch (level)
+            {
+                case GitConfigurationLevel.ProgramData:
+                    ThrowIfError(git_config_open_level(&filteredConfig, _config, GIT_CONFIG_LEVEL_PROGRAMDATA),
+                        nameof(git_config_open_default));
+                    break;
+
+                case GitConfigurationLevel.System:
+                    ThrowIfError(git_config_open_level(&filteredConfig, _config, GIT_CONFIG_LEVEL_SYSTEM),
+                        nameof(git_config_open_default));
+                    break;
+
+                case GitConfigurationLevel.Xdg:
+                    ThrowIfError(git_config_open_level(&filteredConfig, _config, GIT_CONFIG_LEVEL_XDG),
+                        nameof(git_config_open_default));
+                    break;
+
+                case GitConfigurationLevel.Global:
+                    ThrowIfError(git_config_open_level(&filteredConfig, _config, GIT_CONFIG_LEVEL_GLOBAL),
+                        nameof(git_config_open_default));
+                    break;
+
+                case GitConfigurationLevel.Local:
+                    ThrowIfError(git_config_open_level(&filteredConfig, _config, GIT_CONFIG_LEVEL_LOCAL),
+                        nameof(git_config_open_default));
+                    break;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(level), level, null);
+            }
+
+            return new LibGit2Configuration(_trace, filteredConfig);
+        }
+
         public unsafe bool TryGetValue(string name, out string value)
         {
             ThrowIfDisposed();
@@ -166,6 +210,84 @@ namespace Microsoft.Git.CredentialManager.Interop
 
             return false;
         }
+
+        public unsafe void SetValue(string name, string value)
+        {
+            _trace.WriteLine($"Setting Git configuration entry '{name}' to '{value}'...");
+            ThrowIfError(git_config_set_string(_config, name, value), nameof(git_config_set_string));
+        }
+
+        public unsafe void DeleteEntry(string name)
+        {
+            _trace.WriteLine($"Deleting Git configuration entry '{name}'...");
+
+            int result = git_config_delete_entry(_config, name);
+            switch (result)
+            {
+                case GIT_ENOTFOUND:
+                    // Do nothing if asked to delete non-existent key
+                    break;
+
+                default:
+                    ThrowIfError(result, nameof(git_config_delete_entry));
+                    break;
+            }
+        }
+
+        public unsafe IEnumerable<string> GetMultivarValue(string name, string regexp)
+        {
+            _trace.WriteLine($"Reading Git configuration multivar '{name}' (regexp: '{regexp}')...");
+
+            var values = new List<string>();
+
+            int value_callback(git_config_entry entry, void* payload)
+            {
+                string value = entry.GetValue();
+                _trace.WriteLine($"Found multivar value '{value}'.");
+                values.Add(value);
+                return 0;
+            }
+
+            int result = git_config_get_multivar_foreach(_config, name, regexp, value_callback, (void*) IntPtr.Zero);
+            switch (result)
+            {
+                case GIT_ENOTFOUND:
+                    // Do nothing if asked to enumerate non-existent multivar key
+                    _trace.WriteLine("No entry found.");
+                    break;
+
+                default:
+                    ThrowIfError(result, nameof(git_config_get_multivar_foreach));
+                    break;
+            }
+
+            return values;
+        }
+
+        public unsafe void SetMultivarValue(string name, string regexp, string value)
+        {
+            _trace.WriteLine($"Setting Git configuration multivar '{name}' (regexp: '{regexp}') to '{value}'...");
+            ThrowIfError(git_config_set_multivar(_config, name, regexp, value), nameof(git_config_set_multivar));
+        }
+
+        public unsafe void DeleteMultivarEntry(string name, string regexp)
+        {
+            _trace.WriteLine($"Deleting Git configuration multivar '{name}' (regexp: '{regexp}')...");
+
+            int result = git_config_delete_multivar(_config, name, regexp);
+            switch (result)
+            {
+                case GIT_ENOTFOUND:
+                    // Do nothing if asked to delete non-existent key
+                    break;
+
+                default:
+                    ThrowIfError(result, nameof(git_config_delete_multivar));
+                    break;
+            }
+        }
+
+        #endregion
 
         protected override void ReleaseUnmanagedResources()
         {
