@@ -210,5 +210,25 @@ namespace Microsoft.Git.CredentialManager
 
             return str;
         }
+
+        /// <summary>
+        /// Trim the matching value from the middle of the string.
+        /// </summary>
+        /// <param name="str">String to trim.</param>
+        /// <param name="value">String to locate and remove.</param>
+        /// <param name="comparisonType">Comparison rule for locating the string.</param>
+        /// <returns>Trimmed string.</returns>
+        public static string TrimMiddle(this string str, string value, StringComparison comparisonType = StringComparison.Ordinal)
+        {
+            int index = str.IndexOf(value, comparisonType);
+
+            if (index > -1)
+            {
+                return str.Substring(0, index) +
+                       str.Substring(index + value.Length);
+            }
+
+            return str;
+        }
     }
 }

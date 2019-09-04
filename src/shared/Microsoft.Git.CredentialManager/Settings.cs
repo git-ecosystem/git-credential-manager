@@ -82,17 +82,17 @@ namespace Microsoft.Git.CredentialManager
 
     public class Settings : ISettings
     {
-        private readonly IEnvironmentVariables _environment;
+        private readonly IEnvironment _environment;
         private readonly IGit _git;
 
         private IGitConfiguration _gitConfig;
 
-        public Settings(IEnvironmentVariables environmentVariables, IGit git, string repositoryPath = null)
+        public Settings(IEnvironment environment, IGit git, string repositoryPath = null)
         {
-            EnsureArgument.NotNull(environmentVariables, nameof(environmentVariables));
+            EnsureArgument.NotNull(environment, nameof(environment));
             EnsureArgument.NotNull(git, nameof(git));
 
-            _environment = environmentVariables;
+            _environment = environment;
             _git = git;
             RepositoryPath = repositoryPath;
         }
@@ -101,15 +101,15 @@ namespace Microsoft.Git.CredentialManager
 
         public Uri RemoteUri { get; set; }
 
-        public bool IsDebuggingEnabled => _environment.GetBooleanyOrDefault(KnownEnvars.GcmDebug, false);
+        public bool IsDebuggingEnabled => _environment.Variables.GetBooleanyOrDefault(KnownEnvars.GcmDebug, false);
 
-        public bool IsTerminalPromptsEnabled => _environment.GetBooleanyOrDefault(KnownEnvars.GitTerminalPrompts, true);
+        public bool IsTerminalPromptsEnabled => _environment.Variables.GetBooleanyOrDefault(KnownEnvars.GitTerminalPrompts, true);
 
-        public bool GetTracingEnabled(out string value) => _environment.TryGetValue(KnownEnvars.GcmTrace, out value) && !value.IsFalsey();
+        public bool GetTracingEnabled(out string value) => _environment.Variables.TryGetValue(KnownEnvars.GcmTrace, out value) && !value.IsFalsey();
 
-        public bool IsSecretTracingEnabled => _environment.GetBooleanyOrDefault(KnownEnvars.GcmTraceSecrets, false);
+        public bool IsSecretTracingEnabled => _environment.Variables.GetBooleanyOrDefault(KnownEnvars.GcmTraceSecrets, false);
 
-        public bool IsMsalTracingEnabled => _environment.GetBooleanyOrDefault(Constants.EnvironmentVariables.GcmTraceMsAuth, false);
+        public bool IsMsalTracingEnabled => _environment.Variables.GetBooleanyOrDefault(Constants.EnvironmentVariables.GcmTraceMsAuth, false);
 
         public string ProviderOverride =>
             TryGetSetting(KnownEnvars.GcmProvider, GitCredCfg.SectionName, GitCredCfg.Provider, out string providerId) ? providerId : null;
@@ -125,7 +125,7 @@ namespace Microsoft.Git.CredentialManager
             get
             {
                 // Prefer environment variable
-                if (_environment.TryGetValue(KnownEnvars.GitSslNoVerify, out string envarValue))
+                if (_environment.Variables.TryGetValue(KnownEnvars.GitSslNoVerify, out string envarValue))
                 {
                     return !envarValue.ToBooleanyOrDefault(false);
                 }
@@ -256,7 +256,7 @@ namespace Microsoft.Git.CredentialManager
 
             if (envarName != null)
             {
-                if (_environment.TryGetValue(envarName, out value))
+                if (_environment.Variables.TryGetValue(envarName, out value))
                 {
                     yield return value;
                 }

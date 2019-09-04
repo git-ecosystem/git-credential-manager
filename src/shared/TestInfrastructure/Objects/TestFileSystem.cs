@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
+using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -10,8 +11,14 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
         public IDictionary<string, Stream> Files { get; set; }
         public ISet<string> Directories { get; set; }
         public string CurrentDirectory { get; set; } = Path.GetTempPath();
+        public IEqualityComparer<string> PathComparer { get; set; }= StringComparer.OrdinalIgnoreCase;
 
         #region IFileSystem
+
+        bool IFileSystem.IsSamePath(string a, string b)
+        {
+            return PathComparer.Equals(a, b);
+        }
 
         bool IFileSystem.FileExists(string path)
         {

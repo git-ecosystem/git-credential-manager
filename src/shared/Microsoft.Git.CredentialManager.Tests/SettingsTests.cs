@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Git.CredentialManager.Tests.Objects;
 using Xunit;
@@ -13,7 +12,7 @@ namespace Microsoft.Git.CredentialManager.Tests
         [Fact]
         public void Settings_IsDebuggingEnabled_EnvarUnset_ReturnsFalse()
         {
-            var envars = new EnvironmentVariables(new Dictionary<string, string>());
+            var envars = new TestEnvironment();
             var git = new TestGit();
 
             var settings = new Settings(envars, git);
@@ -24,10 +23,10 @@ namespace Microsoft.Git.CredentialManager.Tests
         [Fact]
         public void Settings_IsDebuggingEnabled_EnvarTruthy_ReturnsTrue()
         {
-            var envars = new EnvironmentVariables(new Dictionary<string, string>
+            var envars = new TestEnvironment
             {
-                [Constants.EnvironmentVariables.GcmDebug] = "1"
-            });
+                Variables = {[Constants.EnvironmentVariables.GcmDebug] = "1"}
+            };
             var git = new TestGit();
 
             var settings = new Settings(envars, git);
@@ -38,10 +37,10 @@ namespace Microsoft.Git.CredentialManager.Tests
         [Fact]
         public void Settings_IsDebuggingEnabled_EnvarFalsey_ReturnsFalse()
         {
-            var envars = new EnvironmentVariables(new Dictionary<string, string>
+            var envars = new TestEnvironment
             {
-                [Constants.EnvironmentVariables.GcmDebug] = "0"
-            });
+                Variables = {[Constants.EnvironmentVariables.GcmDebug] = "0"}
+            };
             var git = new TestGit();
 
             var settings = new Settings(envars, git);
@@ -52,7 +51,7 @@ namespace Microsoft.Git.CredentialManager.Tests
         [Fact]
         public void Settings_IsTerminalPromptsEnabled_EnvarUnset_ReturnsTrue()
         {
-            var envars = new EnvironmentVariables(new Dictionary<string, string>());
+            var envars = new TestEnvironment();
             var git = new TestGit();
 
             var settings = new Settings(envars, git);
@@ -63,10 +62,10 @@ namespace Microsoft.Git.CredentialManager.Tests
         [Fact]
         public void Settings_IsTerminalPromptsEnabled_EnvarTruthy_ReturnsTrue()
         {
-            var envars = new EnvironmentVariables(new Dictionary<string, string>
+            var envars = new TestEnvironment
             {
-                [Constants.EnvironmentVariables.GitTerminalPrompts] = "1"
-            });
+                Variables = {[Constants.EnvironmentVariables.GitTerminalPrompts] = "1"}
+            };
             var git = new TestGit();
 
             var settings = new Settings(envars, git);
@@ -77,10 +76,10 @@ namespace Microsoft.Git.CredentialManager.Tests
         [Fact]
         public void Settings_IsTerminalPromptsEnabled_EnvarFalsey_ReturnsFalse()
         {
-            var envars = new EnvironmentVariables(new Dictionary<string, string>
+            var envars = new TestEnvironment
             {
-                [Constants.EnvironmentVariables.GitTerminalPrompts] = "0"
-            });
+                Variables = {[Constants.EnvironmentVariables.GitTerminalPrompts] = "0"}
+            };
             var git = new TestGit();
 
             var settings = new Settings(envars, git);
@@ -91,7 +90,7 @@ namespace Microsoft.Git.CredentialManager.Tests
         [Fact]
         public void Settings_IsTracingEnabled_EnvarUnset_ReturnsFalse()
         {
-            var envars = new EnvironmentVariables(new Dictionary<string, string>());
+            var envars = new TestEnvironment();
             var git = new TestGit();
 
             var settings = new Settings(envars, git);
@@ -104,10 +103,10 @@ namespace Microsoft.Git.CredentialManager.Tests
         public void Settings_IsTracingEnabled_EnvarTruthy_ReturnsTrueOutValue()
         {
             const string expectedValue = "1";
-            var envars = new EnvironmentVariables(new Dictionary<string, string>
+            var envars = new TestEnvironment
             {
-                [Constants.EnvironmentVariables.GcmTrace] = expectedValue
-            });
+                Variables = {[Constants.EnvironmentVariables.GcmTrace] = expectedValue}
+            };
             var git = new TestGit();
 
             var settings = new Settings(envars, git);
@@ -121,10 +120,10 @@ namespace Microsoft.Git.CredentialManager.Tests
         public void Settings_IsTracingEnabled_EnvarFalsey_ReturnsFalseOutValue()
         {
             const string expectedValue = "0";
-            var envars = new EnvironmentVariables(new Dictionary<string, string>
+            var envars = new TestEnvironment
             {
-                [Constants.EnvironmentVariables.GcmTrace] = expectedValue
-            });
+                Variables = {[Constants.EnvironmentVariables.GcmTrace] = expectedValue}
+            };
             var git = new TestGit();
 
             var settings = new Settings(envars, git);
@@ -139,10 +138,10 @@ namespace Microsoft.Git.CredentialManager.Tests
         public void Settings_IsTracingEnabled_EnvarPathy_ReturnsTrueOutValue()
         {
             const string expectedValue = "/tmp/gcm.log";
-            var envars = new EnvironmentVariables(new Dictionary<string, string>
+            var envars = new TestEnvironment
             {
-                [Constants.EnvironmentVariables.GcmTrace] = expectedValue
-            });
+                Variables = {[Constants.EnvironmentVariables.GcmTrace] = expectedValue}
+            };
             var git = new TestGit();
 
             var settings = new Settings(envars, git);
@@ -155,7 +154,7 @@ namespace Microsoft.Git.CredentialManager.Tests
         [Fact]
         public void Settings_IsSecretTracingEnabled_EnvarUnset_ReturnsFalse()
         {
-            var envars = new EnvironmentVariables(new Dictionary<string, string>());
+            var envars = new TestEnvironment();
             var git = new TestGit();
 
             var settings = new Settings(envars, git);
@@ -166,10 +165,10 @@ namespace Microsoft.Git.CredentialManager.Tests
         [Fact]
         public void Settings_IsSecretTracingEnabled_EnvarTruthy_ReturnsTrue()
         {
-            var envars = new EnvironmentVariables(new Dictionary<string, string>
+            var envars = new TestEnvironment
             {
-                [Constants.EnvironmentVariables.GcmTraceSecrets] = "1"
-            });
+                Variables = {[Constants.EnvironmentVariables.GcmTraceSecrets] = "1"}
+            };
             var git = new TestGit();
 
             var settings = new Settings(envars, git);
@@ -180,10 +179,10 @@ namespace Microsoft.Git.CredentialManager.Tests
         [Fact]
         public void Settings_IsSecretTracingEnabled_EnvarFalsey_ReturnsFalse()
         {
-            var envars = new EnvironmentVariables(new Dictionary<string, string>
+            var envars = new TestEnvironment
             {
-                [Constants.EnvironmentVariables.GcmTraceSecrets] = "0"
-            });
+                Variables = {[Constants.EnvironmentVariables.GcmTraceSecrets] = "0"}
+            };
             var git = new TestGit();
 
             var settings = new Settings(envars, git);
@@ -198,7 +197,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             const string remoteUrl = "http://example.com/foo.git";
             var remoteUri = new Uri(remoteUrl);
 
-            var envars = new EnvironmentVariables(new Dictionary<string, string>());
+            var envars = new TestEnvironment();
             var git = new TestGit();
 
             var settings = new Settings(envars, git, repositoryPath)
@@ -221,11 +220,9 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             var expectedValue = new Uri("http://john.doe:letmein123@proxy.example.com");
 
-            var envars = new EnvironmentVariables(new Dictionary<string, string>());
-            var git = new TestGit(new Dictionary<string, string>
-            {
-                [$"{section}.{property}"] = expectedValue.ToString()
-            });
+            var envars = new TestEnvironment();
+            var git = new TestGit();
+            git.GlobalConfiguration[$"{section}.{property}"] = expectedValue.ToString();
 
             var settings = new Settings(envars, git, repositoryPath)
             {
@@ -248,11 +245,9 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             var expectedValue = new Uri("http://john.doe:letmein123@proxy.example.com");
 
-            var envars = new EnvironmentVariables(new Dictionary<string, string>());
-            var git = new TestGit(new Dictionary<string, string>
-            {
-                [$"{section}.{property}"] = expectedValue.ToString()
-            });
+            var envars = new TestEnvironment();
+            var git = new TestGit();
+            git.GlobalConfiguration[$"{section}.{property}"] = expectedValue.ToString();
 
             var settings = new Settings(envars, git, repositoryPath)
             {
@@ -275,11 +270,9 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             var expectedValue = new Uri("http://john.doe:letmein123@proxy.example.com");
 
-            var envars = new EnvironmentVariables(new Dictionary<string, string>());
-            var git = new TestGit(new Dictionary<string, string>
-            {
-                [$"{section}.{property}"] = expectedValue.ToString()
-            });
+            var envars = new TestEnvironment();
+            var git = new TestGit();
+            git.GlobalConfiguration[$"{section}.{property}"] = expectedValue.ToString();
 
             var settings = new Settings(envars, git, repositoryPath)
             {
@@ -300,10 +293,10 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             var expectedValue = new Uri("http://john.doe:letmein123@proxy.example.com");
 
-            var envars = new EnvironmentVariables(new Dictionary<string, string>
+            var envars = new TestEnvironment
             {
-                [Constants.EnvironmentVariables.CurlHttpProxy] = expectedValue.ToString()
-            });
+                Variables = {[Constants.EnvironmentVariables.CurlHttpProxy] = expectedValue.ToString()}
+            };
             var git = new TestGit();
 
             var settings = new Settings(envars, git, repositoryPath)
@@ -325,10 +318,10 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             var expectedValue = new Uri("http://john.doe:letmein123@proxy.example.com");
 
-            var envars = new EnvironmentVariables(new Dictionary<string, string>
+            var envars = new TestEnvironment
             {
-                [Constants.EnvironmentVariables.CurlHttpsProxy] = expectedValue.ToString()
-            });
+                Variables = {[Constants.EnvironmentVariables.CurlHttpsProxy] = expectedValue.ToString()}
+            };
             var git = new TestGit();
 
             var settings = new Settings(envars, git, repositoryPath)
@@ -350,10 +343,10 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             var expectedValue = new Uri("http://john.doe:letmein123@proxy.example.com");
 
-            var envars = new EnvironmentVariables(new Dictionary<string, string>
+            var envars = new TestEnvironment
             {
-                [Constants.EnvironmentVariables.CurlAllProxy] = expectedValue.ToString()
-            });
+                Variables = {[Constants.EnvironmentVariables.CurlAllProxy] = expectedValue.ToString()}
+            };
             var git = new TestGit();
 
             var settings = new Settings(envars, git, repositoryPath)
@@ -375,10 +368,10 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             var expectedValue = new Uri("http://john.doe:letmein123@proxy.example.com");
 
-            var envars = new EnvironmentVariables(new Dictionary<string, string>
+            var envars = new TestEnvironment
             {
-                [Constants.EnvironmentVariables.GcmHttpProxy] = expectedValue.ToString()
-            });
+                Variables = {[Constants.EnvironmentVariables.GcmHttpProxy] = expectedValue.ToString()}
+            };
             var git = new TestGit();
 
             var settings = new Settings(envars, git, repositoryPath)
@@ -415,12 +408,12 @@ namespace Microsoft.Git.CredentialManager.Tests
             var value3 = new Uri("http://proxy3.example.com");
             var value4 = new Uri("http://proxy4.example.com");
 
-            var envarDict = new Dictionary<string, string>();
-            var configDict = new Dictionary<string, string>();
+            var envars = new TestEnvironment();
+            var git = new TestGit();
 
             void RunTest(Uri expectedValue)
             {
-                var settings = new Settings(new EnvironmentVariables(envarDict), new TestGit(configDict), repositoryPath)
+                var settings = new Settings(envars, git, repositoryPath)
                 {
                     RemoteUri = remoteUri
                 };
@@ -429,16 +422,16 @@ namespace Microsoft.Git.CredentialManager.Tests
             }
 
              // Test case 1: cURL environment variables > GCM_HTTP_PROXY
-            envarDict[Constants.EnvironmentVariables.GcmHttpProxy] = value1.ToString();
-            envarDict[Constants.EnvironmentVariables.CurlHttpProxy] = value2.ToString();
+            envars.Variables[Constants.EnvironmentVariables.GcmHttpProxy] = value1.ToString();
+            envars.Variables[Constants.EnvironmentVariables.CurlHttpProxy] = value2.ToString();
             RunTest(value2);
 
              // Test case 2: http.proxy > cURL environment variables
-            configDict[$"{Constants.GitConfiguration.Http.SectionName}.{Constants.GitConfiguration.Http.Proxy}"] = value3.ToString();
+            git.GlobalConfiguration[$"{Constants.GitConfiguration.Http.SectionName}.{Constants.GitConfiguration.Http.Proxy}"] = value3.ToString();
             RunTest(value3);
 
              // Test case 3: credential.httpProxy > http.proxy
-            configDict[$"{Constants.GitConfiguration.Credential.SectionName}.{Constants.GitConfiguration.Credential.HttpProxy}"] = value4.ToString();
+             git.GlobalConfiguration[$"{Constants.GitConfiguration.Credential.SectionName}.{Constants.GitConfiguration.Credential.HttpProxy}"] = value4.ToString();
             RunTest(value4);
         }
 
@@ -449,7 +442,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             const string remoteUrl = "http://example.com/foo.git";
             var remoteUri = new Uri(remoteUrl);
 
-            var envars = new EnvironmentVariables(new Dictionary<string, string>());
+            var envars = new TestEnvironment();
             var git = new TestGit();
 
             var settings = new Settings(envars, git, repositoryPath)
@@ -470,10 +463,10 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             const string expectedValue = "provider1";
 
-            var envars = new EnvironmentVariables(new Dictionary<string, string>
+            var envars = new TestEnvironment
             {
-                [Constants.EnvironmentVariables.GcmProvider] = expectedValue
-            });
+                Variables = {[Constants.EnvironmentVariables.GcmProvider] = expectedValue}
+            };
             var git = new TestGit();
 
             var settings = new Settings(envars, git, repositoryPath)
@@ -496,11 +489,9 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             const string expectedValue = "provider1";
 
-            var envars = new EnvironmentVariables(new Dictionary<string, string>());
-            var git = new TestGit(new Dictionary<string, string>
-            {
-                [$"{section}.{property}"] = expectedValue
-            });
+            var envars = new TestEnvironment();
+            var git = new TestGit();
+            git.GlobalConfiguration[$"{section}.{property}"] = expectedValue;
 
             var settings = new Settings(envars, git, repositoryPath)
             {
@@ -523,14 +514,12 @@ namespace Microsoft.Git.CredentialManager.Tests
             const string expectedValue = "provider1";
             const string otherValue = "provider2";
 
-            var envars = new EnvironmentVariables(new Dictionary<string, string>
+            var envars = new TestEnvironment
             {
-                [Constants.EnvironmentVariables.GcmProvider] = expectedValue
-            });
-            var git = new TestGit(new Dictionary<string, string>
-            {
-                [$"{section}.{property}"] = otherValue
-            });
+                Variables = {[Constants.EnvironmentVariables.GcmProvider] = expectedValue}
+            };
+            var git = new TestGit();
+            git.GlobalConfiguration[$"{section}.{property}"] = otherValue;
 
             var settings = new Settings(envars, git, repositoryPath)
             {
@@ -548,7 +537,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             const string remoteUrl = "http://example.com/foo.git";
             var remoteUri = new Uri(remoteUrl);
 
-            var envars = new EnvironmentVariables(new Dictionary<string, string>());
+            var envars = new TestEnvironment();
             var git = new TestGit();
 
             var settings = new Settings(envars, git, repositoryPath)
@@ -569,10 +558,10 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             const string expectedValue = "provider1";
 
-            var envars = new EnvironmentVariables(new Dictionary<string, string>
+            var envars = new TestEnvironment
             {
-                [Constants.EnvironmentVariables.GcmAuthority] = expectedValue
-            });
+                Variables = {[Constants.EnvironmentVariables.GcmAuthority] = expectedValue}
+            };
             var git = new TestGit();
 
             var settings = new Settings(envars, git, repositoryPath)
@@ -595,11 +584,9 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             const string expectedValue = "provider1";
 
-            var envars = new EnvironmentVariables(new Dictionary<string, string>());
-            var git = new TestGit(new Dictionary<string, string>
-            {
-                [$"{section}.{property}"] = expectedValue
-            });
+            var envars = new TestEnvironment();
+            var git = new TestGit();
+            git.GlobalConfiguration[$"{section}.{property}"] = expectedValue;
 
             var settings = new Settings(envars, git, repositoryPath)
             {
@@ -622,14 +609,12 @@ namespace Microsoft.Git.CredentialManager.Tests
             const string expectedValue = "provider1";
             const string otherValue = "provider2";
 
-            var envars = new EnvironmentVariables(new Dictionary<string, string>
+            var envars = new TestEnvironment
             {
-                [Constants.EnvironmentVariables.GcmAuthority] = expectedValue
-            });
-            var git = new TestGit(new Dictionary<string, string>
-            {
-                [$"{section}.{property}"] = otherValue
-            });
+                Variables = {[Constants.EnvironmentVariables.GcmAuthority] = expectedValue}
+            };
+            var git = new TestGit();
+            git.GlobalConfiguration[$"{section}.{property}"] = otherValue;
 
             var settings = new Settings(envars, git, repositoryPath)
             {
@@ -652,10 +637,10 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             const string expectedValue = "Hello, World!";
 
-            var envars = new EnvironmentVariables(new Dictionary<string, string>
+            var envars = new TestEnvironment
             {
-                [envarName] = expectedValue,
-            });
+                Variables = {[envarName] = expectedValue}
+            };
             var git = new TestGit();
 
             var settings = new Settings(envars, git, repositoryPath)
@@ -678,7 +663,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             const string property = "bar";
             var remoteUri = new Uri(remoteUrl);
 
-            var envars = new EnvironmentVariables(new Dictionary<string, string>());
+            var envars = new TestEnvironment();
             var git = new TestGit();
 
             var settings = new Settings(envars, git, repositoryPath)
@@ -703,11 +688,9 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             const string expectedValue = "Hello, World!";
 
-            var envars = new EnvironmentVariables(new Dictionary<string, string>());
-            var git = new TestGit(new Dictionary<string, string>
-            {
-                [$"{section}.{property}"] = expectedValue
-            });
+            var envars = new TestEnvironment();
+            var git = new TestGit();
+            git.GlobalConfiguration[$"{section}.{property}"] = expectedValue;
 
             var settings = new Settings(envars, git, repositoryPath)
             {
@@ -731,12 +714,10 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             const string expectedValue = "Hello, World!";
 
-            var envars = new EnvironmentVariables(new Dictionary<string, string>());
+            var envars = new TestEnvironment();
             var git = new TestGit();
-            git.AddRepository(repositoryPath, new Dictionary<string, string>
-            {
-                [$"{section}.{property}"] = expectedValue
-            });
+            var repo = git.AddRepository(repositoryPath);
+            repo.Configuration[$"{section}.{property}"] = expectedValue;
 
             var settings = new Settings(envars, git, repositoryPath)
             {
@@ -763,13 +744,11 @@ namespace Microsoft.Git.CredentialManager.Tests
             const string expectedValue = "Hello, World!";
             const string otherValue = "Goodbye, World!";
 
-            var envars = new EnvironmentVariables(new Dictionary<string, string>());
+            var envars = new TestEnvironment();
             var git = new TestGit();
-            git.AddRepository(repositoryPath, new Dictionary<string, string>
-            {
-                [$"{section}.{scope1}.{property}"] = otherValue,
-                [$"{section}.{scope2}.{property}"] = expectedValue,
-            });
+            var repo = git.AddRepository(repositoryPath);
+            repo.Configuration[$"{section}.{scope1}.{property}"] = otherValue;
+            repo.Configuration[$"{section}.{scope2}.{property}"] = expectedValue;
 
             var settings = new Settings(envars, git, repositoryPath)
             {
@@ -794,15 +773,13 @@ namespace Microsoft.Git.CredentialManager.Tests
             const string expectedValue = "Hello, World!";
             const string otherValue = "Goodbye, World!";
 
-            var envars = new EnvironmentVariables(new Dictionary<string, string>
+            var envars = new TestEnvironment
             {
-                [envarName] = expectedValue,
-            });
+                Variables = {[envarName] = expectedValue}
+            };
             var git = new TestGit();
-            git.AddRepository(repositoryPath, new Dictionary<string, string>
-            {
-                [$"{section}.{property}"] = otherValue
-            });
+            var repo = git.AddRepository(repositoryPath);
+            repo.Configuration[$"{section}.{property}"] = otherValue;
 
             var settings = new Settings(envars, git, repositoryPath)
             {
@@ -833,17 +810,15 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             string[] expectedValues = {value1, value2, value3, value4};
 
-            var envars = new EnvironmentVariables(new Dictionary<string, string>
+            var envars = new TestEnvironment
             {
-                [envarName] = value1,
-            });
+                Variables = {[envarName] = value1}
+            };
             var git = new TestGit();
-            git.AddRepository(repositoryPath, new Dictionary<string, string>
-            {
-                [$"{section}.{scope1}.{property}"] = value2,
-                [$"{section}.{scope2}.{property}"] = value3,
-                [$"{section}.{property}"]          = value4
-            });
+            var repo = git.AddRepository(repositoryPath);
+            repo.Configuration[$"{section}.{scope1}.{property}"] = value2;
+            repo.Configuration[$"{section}.{scope2}.{property}"] = value3;
+            repo.Configuration[$"{section}.{property}"]          = value4;
 
             var settings = new Settings(envars, git, repositoryPath)
             {
