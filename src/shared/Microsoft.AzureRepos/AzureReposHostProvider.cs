@@ -54,6 +54,8 @@ namespace Microsoft.AzureRepos
 
         public override async Task<ICredential> GenerateCredentialAsync(InputArguments input)
         {
+            ThrowIfDisposed();
+
             // We should not allow unencrypted communication and should inform the user
             if (StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "http"))
             {
@@ -94,14 +96,10 @@ namespace Microsoft.AzureRepos
             return new GitCredential(Constants.PersonalAccessTokenUserName, pat);
         }
 
-        protected override void Dispose(bool disposing)
+        protected override void ReleaseManagedResources()
         {
-            if (disposing)
-            {
-                _azDevOps.Dispose();
-            }
-
-            base.Dispose(disposing);
+            _azDevOps.Dispose();
+            base.ReleaseManagedResources();
         }
 
         #endregion

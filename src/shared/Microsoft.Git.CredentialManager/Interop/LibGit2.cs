@@ -8,7 +8,7 @@ using static Microsoft.Git.CredentialManager.Interop.Native.LibGit2;
 
 namespace Microsoft.Git.CredentialManager.Interop
 {
-    public class LibGit2 : IGit
+    public class LibGit2 : DisposableObject, IGit
     {
         private readonly ITrace _trace;
 
@@ -24,6 +24,8 @@ namespace Microsoft.Git.CredentialManager.Interop
 
         public unsafe IGitConfiguration GetConfiguration(string repositoryPath)
         {
+            ThrowIfDisposed();
+
             _trace.WriteLine("Opening default Git configuration...");
 
             // Open the default, non-repository-scoped configuration (progdata, system, xdg, global)
@@ -59,6 +61,8 @@ namespace Microsoft.Git.CredentialManager.Interop
 
         public string GetRepositoryPath(string path)
         {
+            ThrowIfDisposed();
+
             _trace.WriteLine($"Discovering repository from path '{path}'...");
 
             var buf = new git_buf();
@@ -85,24 +89,14 @@ namespace Microsoft.Git.CredentialManager.Interop
             }
         }
 
-        private void Dispose(bool disposing)
+        protected override void ReleaseUnmanagedResources()
         {
             git_libgit2_shutdown();
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        ~LibGit2()
-        {
-            Dispose(false);
+            base.ReleaseUnmanagedResources();
         }
     }
 
-    internal class LibGit2Configuration : IGitConfiguration
+    internal class LibGit2Configuration : DisposableObject, IGitConfiguration
     {
         private readonly ITrace _trace;
         private readonly unsafe git_config* _config;
@@ -122,6 +116,8 @@ namespace Microsoft.Git.CredentialManager.Interop
 
         public unsafe void Enumerate(GitConfigurationEnumerationCallback cb)
         {
+            ThrowIfDisposed();
+
             int native_cb(git_config_entry entry, void* payload)
             {
                 if (!cb(entry.GetName(), entry.GetValue()))
@@ -149,6 +145,8 @@ namespace Microsoft.Git.CredentialManager.Interop
 
         public unsafe bool TryGetValue(string name, out string value)
         {
+            ThrowIfDisposed();
+
             _trace.WriteLine($"Reading Git configuration entry '{name}'...");
             int result = git_config_get_string(out value, _snapshot, name);
 
@@ -169,7 +167,7 @@ namespace Microsoft.Git.CredentialManager.Interop
             return false;
         }
 
-        private void Dispose(bool disposing)
+        protected override void ReleaseUnmanagedResources()
         {
             unsafe
             {
@@ -177,17 +175,6 @@ namespace Microsoft.Git.CredentialManager.Interop
                 git_config_free(_snapshot);
                 git_config_free(_config);
             }
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        ~LibGit2Configuration()
-        {
-            Dispose(false);
         }
     }
 }

@@ -54,7 +54,7 @@ namespace Microsoft.Git.CredentialManager
     /// <summary>
     /// Real command execution environment using the actual <see cref="Console"/>, file system calls and environment.
     /// </summary>
-    public class CommandContext : ICommandContext
+    public class CommandContext : DisposableObject, ICommandContext
     {
         private readonly IGit _git;
 
@@ -111,10 +111,13 @@ namespace Microsoft.Git.CredentialManager
 
         #region IDisposable
 
-        public void Dispose()
+        protected override void ReleaseManagedResources()
         {
             Settings?.Dispose();
             _git?.Dispose();
+            Trace?.Dispose();
+
+            base.ReleaseManagedResources();
         }
 
         #endregion
