@@ -53,6 +53,8 @@ namespace Microsoft.Git.CredentialManager
 
         public override async Task<ICredential> GenerateCredentialAsync(InputArguments input)
         {
+            ThrowIfDisposed();
+
             Uri uri = GetUriFromInput(input);
 
             // Determine the if the host supports Windows Integration Authentication (WIA)
@@ -115,10 +117,10 @@ namespace Microsoft.Git.CredentialManager
             }
         }
 
-        protected override void Dispose(bool disposing)
+        protected override void ReleaseManagedResources()
         {
             _winAuth.Dispose();
-            base.Dispose(disposing);
+            base.ReleaseManagedResources();
         }
 
         #endregion

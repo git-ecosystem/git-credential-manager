@@ -13,7 +13,7 @@ namespace Microsoft.Git.CredentialManager
     /// <summary>
     /// Represents the execution environment for a Git credential helper command.
     /// </summary>
-    public interface ICommandContext
+    public interface ICommandContext : IDisposable
     {
         /// <summary>
         /// Settings and configuration for Git Credential Manager.
@@ -54,20 +54,20 @@ namespace Microsoft.Git.CredentialManager
     /// <summary>
     /// Real command execution environment using the actual <see cref="Console"/>, file system calls and environment.
     /// </summary>
-    public class CommandContext : ICommandContext
+    public class CommandContext : DisposableObject, ICommandContext
     {
+        private readonly IGit _git;
+
         public CommandContext()
         {
             Streams = new StandardStreams();
             Trace = new Trace();
             FileSystem = new FileSystem();
 
-            var git = new LibGit2();
+            _git = new LibGit2(Trace);
             var envars = new EnvironmentVariables(Environment.GetEnvironmentVariables());
-            Settings = new Settings(envars, git)
-            {
-                RepositoryPath = git.GetRepositoryPath(FileSystem.GetCurrentDirectory())
-            };
+            string repoPath = _git.GetRepositoryPath(FileSystem.GetCurrentDirectory());
+            Settings = new Settings(envars, _git, repoPath);
 
             HttpClientFactory = new HttpClientFactory(Trace, Settings, Streams);
 
@@ -106,6 +106,19 @@ namespace Microsoft.Git.CredentialManager
         public ICredentialStore CredentialStore { get; }
 
         public IHttpClientFactory HttpClientFactory { get; }
+
+        #endregion
+
+        #region IDisposable
+
+        protected override void ReleaseManagedResources()
+        {
+            Settings?.Dispose();
+            _git?.Dispose();
+            Trace?.Dispose();
+
+            base.ReleaseManagedResources();
+        }
 
         #endregion
     }

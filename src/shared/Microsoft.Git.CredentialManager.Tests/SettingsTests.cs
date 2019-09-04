@@ -201,10 +201,9 @@ namespace Microsoft.Git.CredentialManager.Tests
             var envars = new EnvironmentVariables(new Dictionary<string, string>());
             var git = new TestGit();
 
-            var settings = new Settings(envars, git)
+            var settings = new Settings(envars, git, repositoryPath)
             {
-                RemoteUri = remoteUri,
-                RepositoryPath = repositoryPath
+                RemoteUri = remoteUri
             };
             Uri value = settings.GetProxyConfiguration(out _);
 
@@ -228,10 +227,9 @@ namespace Microsoft.Git.CredentialManager.Tests
                 [$"{section}.{property}"] = expectedValue.ToString()
             });
 
-            var settings = new Settings(envars, git)
+            var settings = new Settings(envars, git, repositoryPath)
             {
-                RemoteUri = remoteUri,
-                RepositoryPath = repositoryPath
+                RemoteUri = remoteUri
             };
             Uri actualValue = settings.GetProxyConfiguration(out bool actualIsDeprecated);
 
@@ -256,10 +254,9 @@ namespace Microsoft.Git.CredentialManager.Tests
                 [$"{section}.{property}"] = expectedValue.ToString()
             });
 
-            var settings = new Settings(envars, git)
+            var settings = new Settings(envars, git, repositoryPath)
             {
-                RemoteUri = remoteUri,
-                RepositoryPath = repositoryPath
+                RemoteUri = remoteUri
             };
             Uri actualValue = settings.GetProxyConfiguration(out bool actualIsDeprecated);
 
@@ -284,10 +281,9 @@ namespace Microsoft.Git.CredentialManager.Tests
                 [$"{section}.{property}"] = expectedValue.ToString()
             });
 
-            var settings = new Settings(envars, git)
+            var settings = new Settings(envars, git, repositoryPath)
             {
-                RemoteUri = remoteUri,
-                RepositoryPath = repositoryPath
+                RemoteUri = remoteUri
             };
             Uri actualValue = settings.GetProxyConfiguration(out bool actualIsDeprecated);
 
@@ -310,10 +306,9 @@ namespace Microsoft.Git.CredentialManager.Tests
             });
             var git = new TestGit();
 
-            var settings = new Settings(envars, git)
+            var settings = new Settings(envars, git, repositoryPath)
             {
-                RemoteUri = remoteUri,
-                RepositoryPath = repositoryPath
+                RemoteUri = remoteUri
             };
             Uri actualValue = settings.GetProxyConfiguration(out bool actualIsDeprecated);
 
@@ -336,10 +331,9 @@ namespace Microsoft.Git.CredentialManager.Tests
             });
             var git = new TestGit();
 
-            var settings = new Settings(envars, git)
+            var settings = new Settings(envars, git, repositoryPath)
             {
-                RemoteUri = remoteUri,
-                RepositoryPath = repositoryPath
+                RemoteUri = remoteUri
             };
             Uri actualValue = settings.GetProxyConfiguration(out bool actualIsDeprecated);
 
@@ -362,10 +356,9 @@ namespace Microsoft.Git.CredentialManager.Tests
             });
             var git = new TestGit();
 
-            var settings = new Settings(envars, git)
+            var settings = new Settings(envars, git, repositoryPath)
             {
-                RemoteUri = remoteUri,
-                RepositoryPath = repositoryPath
+                RemoteUri = remoteUri
             };
             Uri actualValue = settings.GetProxyConfiguration(out bool actualIsDeprecated);
 
@@ -388,10 +381,9 @@ namespace Microsoft.Git.CredentialManager.Tests
             });
             var git = new TestGit();
 
-            var settings = new Settings(envars, git)
+            var settings = new Settings(envars, git, repositoryPath)
             {
-                RemoteUri = remoteUri,
-                RepositoryPath = repositoryPath
+                RemoteUri = remoteUri
             };
             Uri actualValue = settings.GetProxyConfiguration(out bool actualIsDeprecated);
 
@@ -428,10 +420,9 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             void RunTest(Uri expectedValue)
             {
-                var settings = new Settings(new EnvironmentVariables(envarDict), new TestGit(configDict))
+                var settings = new Settings(new EnvironmentVariables(envarDict), new TestGit(configDict), repositoryPath)
                 {
-                    RemoteUri = remoteUri,
-                    RepositoryPath = repositoryPath
+                    RemoteUri = remoteUri
                 };
                 Uri actualValue = settings.GetProxyConfiguration(out bool actualIsDeprecated);
                 Assert.Equal(expectedValue, actualValue);
@@ -461,9 +452,8 @@ namespace Microsoft.Git.CredentialManager.Tests
             var envars = new EnvironmentVariables(new Dictionary<string, string>());
             var git = new TestGit();
 
-            var settings = new Settings(envars, git)
+            var settings = new Settings(envars, git, repositoryPath)
             {
-                RepositoryPath = repositoryPath,
                 RemoteUri = remoteUri
             };
             string value = settings.ProviderOverride;
@@ -486,9 +476,8 @@ namespace Microsoft.Git.CredentialManager.Tests
             });
             var git = new TestGit();
 
-            var settings = new Settings(envars, git)
+            var settings = new Settings(envars, git, repositoryPath)
             {
-                RepositoryPath = repositoryPath,
                 RemoteUri = remoteUri
             };
             string actualValue = settings.ProviderOverride;
@@ -513,9 +502,8 @@ namespace Microsoft.Git.CredentialManager.Tests
                 [$"{section}.{property}"] = expectedValue
             });
 
-            var settings = new Settings(envars, git)
+            var settings = new Settings(envars, git, repositoryPath)
             {
-                RepositoryPath = repositoryPath,
                 RemoteUri = remoteUri
             };
             string actualValue = settings.ProviderOverride;
@@ -544,9 +532,8 @@ namespace Microsoft.Git.CredentialManager.Tests
                 [$"{section}.{property}"] = otherValue
             });
 
-            var settings = new Settings(envars, git)
+            var settings = new Settings(envars, git, repositoryPath)
             {
-                RepositoryPath = repositoryPath,
                 RemoteUri = remoteUri
             };
             string actualValue = settings.ProviderOverride;
@@ -564,9 +551,8 @@ namespace Microsoft.Git.CredentialManager.Tests
             var envars = new EnvironmentVariables(new Dictionary<string, string>());
             var git = new TestGit();
 
-            var settings = new Settings(envars, git)
+            var settings = new Settings(envars, git, repositoryPath)
             {
-                RepositoryPath = repositoryPath,
                 RemoteUri = remoteUri
             };
             string value = settings.LegacyAuthorityOverride;
@@ -589,9 +575,8 @@ namespace Microsoft.Git.CredentialManager.Tests
             });
             var git = new TestGit();
 
-            var settings = new Settings(envars, git)
+            var settings = new Settings(envars, git, repositoryPath)
             {
-                RepositoryPath = repositoryPath,
                 RemoteUri = remoteUri
             };
             string actualValue = settings.LegacyAuthorityOverride;
@@ -616,9 +601,8 @@ namespace Microsoft.Git.CredentialManager.Tests
                 [$"{section}.{property}"] = expectedValue
             });
 
-            var settings = new Settings(envars, git)
+            var settings = new Settings(envars, git, repositoryPath)
             {
-                RepositoryPath = repositoryPath,
                 RemoteUri = remoteUri
             };
             var actualValue = settings.LegacyAuthorityOverride;
@@ -647,9 +631,8 @@ namespace Microsoft.Git.CredentialManager.Tests
                 [$"{section}.{property}"] = otherValue
             });
 
-            var settings = new Settings(envars, git)
+            var settings = new Settings(envars, git, repositoryPath)
             {
-                RepositoryPath = repositoryPath,
                 RemoteUri = remoteUri
             };
             var actualValue = settings.LegacyAuthorityOverride;
@@ -675,9 +658,8 @@ namespace Microsoft.Git.CredentialManager.Tests
             });
             var git = new TestGit();
 
-            var settings = new Settings(envars, git)
+            var settings = new Settings(envars, git, repositoryPath)
             {
-                RepositoryPath = repositoryPath,
                 RemoteUri = remoteUri
             };
             var result = settings.TryGetSetting(envarName, section, property, out string actualValue);
@@ -699,9 +681,8 @@ namespace Microsoft.Git.CredentialManager.Tests
             var envars = new EnvironmentVariables(new Dictionary<string, string>());
             var git = new TestGit();
 
-            var settings = new Settings(envars, git)
+            var settings = new Settings(envars, git, repositoryPath)
             {
-                RepositoryPath = repositoryPath,
                 RemoteUri = remoteUri
             };
             var result = settings.TryGetSetting(envarName, section, property, out string actualValue);
@@ -728,9 +709,8 @@ namespace Microsoft.Git.CredentialManager.Tests
                 [$"{section}.{property}"] = expectedValue
             });
 
-            var settings = new Settings(envars, git)
+            var settings = new Settings(envars, git, repositoryPath)
             {
-                RepositoryPath = repositoryPath,
                 RemoteUri = remoteUri
             };
             var result = settings.TryGetSetting( envarName, section, property, out string actualValue);
@@ -758,9 +738,8 @@ namespace Microsoft.Git.CredentialManager.Tests
                 [$"{section}.{property}"] = expectedValue
             });
 
-            var settings = new Settings(envars, git)
+            var settings = new Settings(envars, git, repositoryPath)
             {
-                RepositoryPath = repositoryPath,
                 RemoteUri = remoteUri
             };
             var result = settings.TryGetSetting(envarName, section, property, out string actualValue);
@@ -792,9 +771,8 @@ namespace Microsoft.Git.CredentialManager.Tests
                 [$"{section}.{scope2}.{property}"] = expectedValue,
             });
 
-            var settings = new Settings(envars, git)
+            var settings = new Settings(envars, git, repositoryPath)
             {
-                RepositoryPath = repositoryPath,
                 RemoteUri = remoteUri
             };
             var result = settings.TryGetSetting(envarName, section, property, out string actualValue);
@@ -826,9 +804,8 @@ namespace Microsoft.Git.CredentialManager.Tests
                 [$"{section}.{property}"] = otherValue
             });
 
-            var settings = new Settings(envars, git)
+            var settings = new Settings(envars, git, repositoryPath)
             {
-                RepositoryPath = repositoryPath,
                 RemoteUri = remoteUri
             };
             var result = settings.TryGetSetting(envarName, section, property, out string actualValue);
@@ -868,9 +845,8 @@ namespace Microsoft.Git.CredentialManager.Tests
                 [$"{section}.{property}"]          = value4
             });
 
-            var settings = new Settings(envars, git)
+            var settings = new Settings(envars, git, repositoryPath)
             {
-                RepositoryPath = repositoryPath,
                 RemoteUri = remoteUri
             };
             string[] actualValues = settings.GetSettingValues(envarName, section, property).ToArray();

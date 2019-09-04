@@ -20,7 +20,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
 
         public TestGitRepository AddRepository(string repoPath, IDictionary<string, string> config = null)
         {
-            var repoConfig = new TestGitConfiguration(repoPath, config);
+            var repoConfig = new TestGitConfiguration(config);
             var repo = new TestGitRepository(repoPath, repoConfig);
 
             Repositories.Add(repoPath, repo);
@@ -41,7 +41,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
 
             IDictionary<string, string> mergedConfigDict = MergeDictionaries(GlobalConfiguration.Dictionary, repo.Configuration.Dictionary);
 
-            return new TestGitConfiguration(repositoryPath, mergedConfigDict);
+            return new TestGitConfiguration(mergedConfigDict);
         }
 
         string IGit.GetRepositoryPath(string path) =>

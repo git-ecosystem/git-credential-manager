@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
+using System;
 
 namespace Microsoft.Git.CredentialManager.Tests.Objects
 {
@@ -28,6 +29,12 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
         ICredentialStore ICommandContext.CredentialStore => CredentialStore;
 
         IHttpClientFactory ICommandContext.HttpClientFactory => HttpClientFactory;
+
+        #endregion
+
+        #region IDisposable
+
+        void IDisposable.Dispose() { }
 
         #endregion
     }

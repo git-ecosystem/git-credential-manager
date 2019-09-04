@@ -42,5 +42,11 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
             string format, object[] secrets, string filePath, int lineNumber, string memberName) { }
 
         #endregion
+
+        #region IDisposable
+
+        void IDisposable.Dispose() { }
+
+        #endregion
     }
 }

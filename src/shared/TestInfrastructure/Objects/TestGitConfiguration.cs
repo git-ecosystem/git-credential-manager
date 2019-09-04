@@ -7,15 +7,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
 {
     public class TestGitConfiguration : IGitConfiguration
     {
-        public TestGitConfiguration() : this(null, null) { }
-
-        public TestGitConfiguration(string repositoryPath) : this(repositoryPath, null) { }
-
-        public TestGitConfiguration(IDictionary<string,string> config) : this(null, config) { }
-
-        public TestGitConfiguration(string repositoryPath, IDictionary<string,string> config)
+        public TestGitConfiguration(IDictionary<string,string> config = null)
         {
-            RepositoryPath = repositoryPath;
             Dictionary = config ?? new Dictionary<string, string>();
         }
 
@@ -32,7 +25,16 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
 
         #region IGitConfiguration
 
-        public string RepositoryPath { get; set; }
+        public void Enumerate(GitConfigurationEnumerationCallback cb)
+        {
+            foreach (var kvp in Dictionary)
+            {
+                if (!cb(kvp.Key, kvp.Value))
+                {
+                    break;
+                }
+            }
+        }
 
         public bool TryGetValue(string name, out string value) => Dictionary.TryGetValue(name, out value);
 

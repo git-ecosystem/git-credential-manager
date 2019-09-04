@@ -10,7 +10,7 @@ namespace Microsoft.Git.CredentialManager
     {
         public static void Main(string[] args)
         {
-            var context = new CommandContext();
+            using (var context = new CommandContext())
             using (var app = new Application(context))
             {
                 // Register all supported host providers

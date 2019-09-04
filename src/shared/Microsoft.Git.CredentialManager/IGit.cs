@@ -8,9 +8,10 @@ namespace Microsoft.Git.CredentialManager
     public interface IGitConfiguration : IDisposable
     {
         /// <summary>
-        /// Path to repository if this configuration object is also scoped to a repository, otherwise null.
+        /// Enumerate all configuration entries invoking the specified callback for each entry.
         /// </summary>
-        string RepositoryPath { get; }
+        /// <param name="cb">Callback to invoke for each configuration entry.</param>
+        void Enumerate(GitConfigurationEnumerationCallback cb);
 
         /// <summary>
         /// Try and get the value of a configuration entry as a string.
@@ -20,6 +21,14 @@ namespace Microsoft.Git.CredentialManager
         /// <returns>True if the value was found, false otherwise.</returns>
         bool TryGetValue(string name, out string value);
     }
+
+    /// <summary>
+    /// Invoked for each Git configuration entry during an enumeration (<see cref="IGitConfiguration.Enumerate"/>).
+    /// </summary>
+    /// <param name="name">Name of the current configuration entry.</param>
+    /// <param name="value">Value of the current configuration entry.</param>
+    /// <returns>True to continue enumeration, false to stop enumeration.</returns>
+    public delegate bool GitConfigurationEnumerationCallback(string name, string value);
 
     public interface IGit : IDisposable
     {

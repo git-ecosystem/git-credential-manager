@@ -58,7 +58,7 @@ namespace Microsoft.Git.CredentialManager
     /// Represents a Git hosting provider where credentials can be stored and recalled in/from the Operating System's
     /// secure credential store.
     /// </summary>
-    public abstract class HostProvider : IHostProvider
+    public abstract class HostProvider : DisposableObject, IHostProvider
     {
         protected HostProvider(ICommandContext context)
         {
@@ -193,23 +193,6 @@ namespace Microsoft.Git.CredentialManager
             }
 
             return Task.CompletedTask;
-        }
-
-        /// <summary>
-        /// Called when the application is being terminated. Clean up and release any resources.
-        /// </summary>
-        /// <param name="disposing">True if the instance is being disposed, false if being finalized.</param>
-        protected virtual void Dispose(bool disposing) { }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        ~HostProvider()
-        {
-            Dispose(false);
         }
     }
 }

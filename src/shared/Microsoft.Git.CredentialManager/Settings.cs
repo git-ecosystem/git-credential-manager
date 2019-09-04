@@ -13,12 +13,12 @@ namespace Microsoft.Git.CredentialManager
     /// <summary>
     /// Component that represents settings for Git Credential Manager as found from the environment and Git configuration.
     /// </summary>
-    public interface ISettings
+    public interface ISettings : IDisposable
     {
         /// <summary>
-        /// Git repository that local configuration lookup is scoped to, or null if no repository has been discovered.
+        /// Git repository that local configuration lookup is scoped to, or null if this instance is not scoped to a repository.
         /// </summary>
-        string RepositoryPath { get; set; }
+        string RepositoryPath { get; }
 
         /// <summary>
         /// Git remote address that setting lookup is scoped to, or null if no remote URL has been discovered.
@@ -85,16 +85,19 @@ namespace Microsoft.Git.CredentialManager
         private readonly IEnvironmentVariables _environment;
         private readonly IGit _git;
 
-        public Settings(IEnvironmentVariables environmentVariables, IGit git)
+        private IGitConfiguration _gitConfig;
+
+        public Settings(IEnvironmentVariables environmentVariables, IGit git, string repositoryPath = null)
         {
             EnsureArgument.NotNull(environmentVariables, nameof(environmentVariables));
             EnsureArgument.NotNull(git, nameof(git));
 
             _environment = environmentVariables;
             _git = git;
+            RepositoryPath = repositoryPath;
         }
 
-        public string RepositoryPath { get; set; }
+        public string RepositoryPath { get; }
 
         public Uri RemoteUri { get; set; }
 
@@ -261,78 +264,107 @@ namespace Microsoft.Git.CredentialManager
 
             if (section != null && property != null)
             {
-                using (var config = _git.GetConfiguration(RepositoryPath))
+                IGitConfiguration config = GetGitConfiguration();
+
+                if (RemoteUri != null)
                 {
-                    if (RemoteUri != null)
-                    {
-                        /*
-                         * Look for URL scoped "section" configuration entries, starting from the most specific
-                         * down to the least specific (stopping before the TLD).
-                         *
-                         * In a divergence from standard Git configuration rules, we also consider matching URL scopes
-                         * without a scheme ("protocol://").
-                         *
-                         * For each level of scope, we look for an entry with the scheme included (the default), and then
-                         * also one without it specified. This allows you to have one configuration scope for both "http" and
-                         * "https" without needing to repeat yourself, for example.
-                         *
-                         * For example, starting with "https://foo.example.com/bar/buzz" we have:
-                         *
-                         *   1a. [section "https://foo.example.com/bar/buzz"]
-                         *          property = value
-                         *
-                         *   1b. [section "foo.example.com/bar/buzz"]
-                         *          property = value
-                         *
-                         *   2a. [section "https://foo.example.com/bar"]
-                         *          property = value
-                         *
-                         *   2b. [section "foo.example.com/bar"]
-                         *          property = value
-                         *
-                         *   3a. [section "https://foo.example.com"]
-                         *          property = value
-                         *
-                         *   3b. [section "foo.example.com"]
-                         *          property = value
-                         *
-                         *   4a. [section "https://example.com"]
-                         *          property = value
-                         *
-                         *   4b. [section "example.com"]
-                         *          property = value
-                         *
-                         */
-                        foreach (string scope in RemoteUri.GetGitConfigurationScopes())
-                        {
-                            // Look for a scoped entry that includes the scheme "protocol://example.com" first as this is more specific
-                            if (config.TryGetValue(section, scope, property, out value))
-                            {
-                                yield return value;
-                            }
-
-                            // Now look for a scoped entry that omits the scheme "example.com" second as this is less specific
-                            string scopeWithoutScheme = scope.TrimUntilIndexOf(Uri.SchemeDelimiter);
-                            if (config.TryGetValue(section, scopeWithoutScheme, property, out value))
-                            {
-                                yield return value;
-                            }
-                        }
-                    }
-
                     /*
-                     * Try to look for an un-scoped "section" property setting:
+                     * Look for URL scoped "section" configuration entries, starting from the most specific
+                     * down to the least specific (stopping before the TLD).
                      *
-                     *    [section]
-                     *        property = value
+                     * In a divergence from standard Git configuration rules, we also consider matching URL scopes
+                     * without a scheme ("protocol://").
+                     *
+                     * For each level of scope, we look for an entry with the scheme included (the default), and then
+                     * also one without it specified. This allows you to have one configuration scope for both "http" and
+                     * "https" without needing to repeat yourself, for example.
+                     *
+                     * For example, starting with "https://foo.example.com/bar/buzz" we have:
+                     *
+                     *   1a. [section "https://foo.example.com/bar/buzz"]
+                     *          property = value
+                     *
+                     *   1b. [section "foo.example.com/bar/buzz"]
+                     *          property = value
+                     *
+                     *   2a. [section "https://foo.example.com/bar"]
+                     *          property = value
+                     *
+                     *   2b. [section "foo.example.com/bar"]
+                     *          property = value
+                     *
+                     *   3a. [section "https://foo.example.com"]
+                     *          property = value
+                     *
+                     *   3b. [section "foo.example.com"]
+                     *          property = value
+                     *
+                     *   4a. [section "https://example.com"]
+                     *          property = value
+                     *
+                     *   4b. [section "example.com"]
+                     *          property = value
                      *
                      */
-                    if (config.TryGetValue(section, property, out value))
+
+                    // Enumerate all configuration entries with the correct section and property name
+                    // and make a local copy of them here to avoid needing to call `TryGetValue` on the
+                    // IGitConfiguration object multiple times in a loop below.
+                    var configEntries = new Dictionary<string, string>();
+                    config.Enumerate((entryName, entryValue) =>
                     {
-                        yield return value;
+                        string entrySection = entryName.TruncateFromIndexOf('.');
+                        string entryProperty = entryName.TrimUntilLastIndexOf('.');
+
+                        if (StringComparer.OrdinalIgnoreCase.Equals(entrySection, section) &&
+                            StringComparer.OrdinalIgnoreCase.Equals(entryProperty, property))
+                        {
+                            configEntries[entryName] = entryValue;
+                        }
+
+                        // Continue the enumeration
+                        return true;
+                    });
+
+                    foreach (string scope in RemoteUri.GetGitConfigurationScopes())
+                    {
+                        string queryName = $"{section}.{scope}.{property}";
+                        // Look for a scoped entry that includes the scheme "protocol://example.com" first as this is more specific
+                        if (configEntries.TryGetValue(queryName, out value))
+                        {
+                            yield return value;
+                        }
+
+                        // Now look for a scoped entry that omits the scheme "example.com" second as this is less specific
+                        string scopeWithoutScheme = scope.TrimUntilIndexOf(Uri.SchemeDelimiter);
+                        string queryWithSchemeName = $"{section}.{scopeWithoutScheme}.{property}";
+                        if (configEntries.TryGetValue(queryWithSchemeName, out value))
+                        {
+                            yield return value;
+                        }
                     }
+                }
+
+                /*
+                 * Try to look for an un-scoped "section" property setting:
+                 *
+                 *    [section]
+                 *        property = value
+                 *
+                 */
+                if (config.TryGetValue($"{section}.{property}", out value))
+                {
+                    yield return value;
                 }
             }
         }
+
+        private IGitConfiguration GetGitConfiguration() => _gitConfig ?? (_gitConfig = _git.GetConfiguration(RepositoryPath));
+
+        #region IDisposable
+
+        public void Dispose() => _gitConfig?.Dispose();
+
+        #endregion
     }
 }

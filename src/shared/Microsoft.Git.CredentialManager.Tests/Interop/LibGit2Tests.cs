@@ -7,6 +7,7 @@ using System.IO;
 using System.Text;
 using Microsoft.Git.CredentialManager.Interop;
 using Microsoft.Git.CredentialManager.Interop.Posix.Native;
+using Microsoft.Git.CredentialManager.Tests.Objects;
 using Xunit;
 
 namespace Microsoft.Git.CredentialManager.Tests.Interop
@@ -16,7 +17,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop
         [Fact]
         public void LibGit2_GetRepositoryPath_NotInsideRepository_ReturnsNull()
         {
-            var git = new LibGit2();
+            var trace = new NullTrace();
+            var git = new LibGit2(trace);
             string randomPath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}");
             Directory.CreateDirectory(randomPath);
 
@@ -28,10 +30,86 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop
         [Fact]
         public void LibGit2_GetConfiguration_ReturnsConfiguration()
         {
-            var git = new LibGit2();
+            var trace = new NullTrace();
+            var git = new LibGit2(trace);
             using (var config = git.GetConfiguration())
             {
                 Assert.NotNull(config);
+            }
+        }
+
+        [Fact]
+        public void LibGit2Configuration_Enumerate_CallbackReturnsTrue_InvokesCallbackForEachEntry()
+        {
+            string repoPath = CreateRepository();
+            Git(repoPath, "config --local foo.name lancelot").AssertSuccess();
+            Git(repoPath, "config --local foo.quest seek-holy-grail").AssertSuccess();
+            Git(repoPath, "config --local foo.favcolor blue").AssertSuccess();
+
+            var expectedVisitedEntries = new List<(string name, string value)>
+            {
+                ("foo.name", "lancelot"),
+                ("foo.quest", "seek-holy-grail"),
+                ("foo.favcolor", "blue")
+            };
+
+            var trace = new NullTrace();
+            var git = new LibGit2(trace);
+            using (var config = git.GetConfiguration(repoPath))
+            {
+                var actualVisitedEntries = new List<(string name, string value)>();
+
+                bool cb(string name, string value)
+                {
+                    if (name.StartsWith("foo."))
+                    {
+                        actualVisitedEntries.Add((name, value));
+                    }
+
+                    // Continue enumeration
+                    return true;
+                }
+
+                config.Enumerate(cb);
+
+                Assert.Equal(expectedVisitedEntries, actualVisitedEntries);
+            }
+        }
+
+        [Fact]
+        public void LibGit2Configuration_Enumerate_CallbackReturnsFalse_InvokesCallbackForEachEntryUntilReturnsFalse()
+        {
+            string repoPath = CreateRepository();
+            Git(repoPath, "config --local foo.name lancelot").AssertSuccess();
+            Git(repoPath, "config --local foo.quest seek-holy-grail").AssertSuccess();
+            Git(repoPath, "config --local foo.favcolor blue").AssertSuccess();
+
+            var expectedVisitedEntries = new List<(string name, string value)>
+            {
+                ("foo.name", "lancelot"),
+                ("foo.quest", "seek-holy-grail")
+            };
+
+            var trace = new NullTrace();
+            var git = new LibGit2(trace);
+            using (var config = git.GetConfiguration(repoPath))
+            {
+                var actualVisitedEntries = new List<(string name, string value)>();
+
+                bool cb(string name, string value)
+                {
+                    if (name.StartsWith("foo."))
+                    {
+                        actualVisitedEntries.Add((name, value));
+                    }
+
+                    // Stop enumeration after 2 'foo' entries
+                    return actualVisitedEntries.Count < 2;
+                }
+
+                config.Enumerate(cb);
+
+                Assert.Equal(expectedVisitedEntries, actualVisitedEntries);
             }
         }
 
@@ -41,7 +119,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop
             string repoPath = CreateRepository();
             Git(repoPath, "config --local user.name john.doe").AssertSuccess();
 
-            var git = new LibGit2();
+            var trace = new NullTrace();
+            var git = new LibGit2(trace);
             using (var config = git.GetConfiguration(repoPath))
             {
                 bool result = config.TryGetValue("user.name", out string value);
@@ -56,7 +135,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop
         {
             string repoPath = CreateRepository();
 
-            var git = new LibGit2();
+            var trace = new NullTrace();
+            var git = new LibGit2(trace);
             using (var config = git.GetConfiguration(repoPath))
             {
                 string randomName = $"{Guid.NewGuid():N}.{Guid.NewGuid():N}";
@@ -72,7 +152,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop
             string repoPath = CreateRepository();
             Git(repoPath, "config --local user.name john.doe").AssertSuccess();
 
-            var git = new LibGit2();
+            var trace = new NullTrace();
+            var git = new LibGit2(trace);
             using (var config = git.GetConfiguration(repoPath))
             {
                 bool result = config.TryGetValue("user", "name", out string value);
@@ -87,7 +168,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop
         {
             string repoPath = CreateRepository();
 
-            var git = new LibGit2();
+            var trace = new NullTrace();
+            var git = new LibGit2(trace);
             using (var config = git.GetConfiguration(repoPath))
             {
                 string randomSection  = Guid.NewGuid().ToString("N");
@@ -104,7 +186,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop
             string repoPath = CreateRepository();
             Git(repoPath, "config --local user.example.com.name john.doe").AssertSuccess();
 
-            var git = new LibGit2();
+            var trace = new NullTrace();
+            var git = new LibGit2(trace);
             using (var config = git.GetConfiguration(repoPath))
             {
                 bool result = config.TryGetValue("user", "example.com", "name", out string value);
@@ -120,7 +203,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop
             string repoPath = CreateRepository();
             Git(repoPath, "config --local user.name john.doe").AssertSuccess();
 
-            var git = new LibGit2();
+            var trace = new NullTrace();
+            var git = new LibGit2(trace);
             using (var config = git.GetConfiguration(repoPath))
             {
                 bool result = config.TryGetValue("user", null, "name", out string value);
@@ -135,7 +219,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop
         {
             string repoPath = CreateRepository();
 
-            var git = new LibGit2();
+            var trace = new NullTrace();
+            var git = new LibGit2(trace);
             using (var config = git.GetConfiguration(repoPath))
             {
                 string randomSection  = Guid.NewGuid().ToString("N");
@@ -153,7 +238,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop
             string repoPath = CreateRepository();
             Git(repoPath, "config --local user.name john.doe").AssertSuccess();
 
-            var git = new LibGit2();
+            var trace = new NullTrace();
+            var git = new LibGit2(trace);
             using (var config = git.GetConfiguration(repoPath))
             {
                 string value = config.GetValue("user.name");
@@ -167,7 +253,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop
         {
             string repoPath = CreateRepository();
 
-            var git = new LibGit2();
+            var trace = new NullTrace();
+            var git = new LibGit2(trace);
             using (var config = git.GetConfiguration(repoPath))
             {
                 string randomName = $"{Guid.NewGuid():N}.{Guid.NewGuid():N}";
@@ -181,7 +268,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop
             string repoPath = CreateRepository();
             Git(repoPath, "config --local user.name john.doe").AssertSuccess();
 
-            var git = new LibGit2();
+            var trace = new NullTrace();
+            var git = new LibGit2(trace);
             using (var config = git.GetConfiguration(repoPath))
             {
                 string value = config.GetValue("user", "name");
@@ -195,7 +283,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop
         {
             string repoPath = CreateRepository();
 
-            var git = new LibGit2();
+            var trace = new NullTrace();
+            var git = new LibGit2(trace);
             using (var config = git.GetConfiguration(repoPath))
             {
                 string randomSection  = Guid.NewGuid().ToString("N");
@@ -210,7 +299,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop
             string repoPath = CreateRepository();
             Git(repoPath, "config --local user.example.com.name john.doe").AssertSuccess();
 
-            var git = new LibGit2();
+            var trace = new NullTrace();
+            var git = new LibGit2(trace);
             using (var config = git.GetConfiguration(repoPath))
             {
                 string value = config.GetValue("user", "example.com", "name");
@@ -225,7 +315,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop
             string repoPath = CreateRepository();
             Git(repoPath, "config --local user.name john.doe").AssertSuccess();
 
-            var git = new LibGit2();
+            var trace = new NullTrace();
+            var git = new LibGit2(trace);
             using (var config = git.GetConfiguration(repoPath))
             {
                 string value = config.GetValue("user", null, "name");
@@ -239,7 +330,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop
         {
             string repoPath = CreateRepository();
 
-            var git = new LibGit2();
+            var trace = new NullTrace();
+            var git = new LibGit2(trace);
             using (var config = git.GetConfiguration(repoPath))
             {
                 string randomSection  = Guid.NewGuid().ToString("N");
@@ -259,7 +351,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop
             string fileL1Path = Path.Combine(directoryL0Path, "inner-file.txt");
             string directoryL1Path = Path.Combine(directoryL0Path, "sub-directory");
 
-            var git = new LibGit2();
+            var trace = new NullTrace();
+            var git = new LibGit2(trace);
 
             // Create files and directories
             Directory.CreateDirectory(directoryL0Path);

@@ -64,6 +64,8 @@ namespace GitHub
 
         public override async Task<ICredential> GenerateCredentialAsync(InputArguments input)
         {
+            ThrowIfDisposed();
+
             // We should not allow unencrypted communication and should inform the user
             if (StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "http"))
             {
@@ -105,14 +107,10 @@ namespace GitHub
             throw new Exception($"Interactive logon for '{targetUri}' failed.");
         }
 
-        protected override void Dispose(bool disposing)
+        protected override void ReleaseManagedResources()
         {
-            if (disposing)
-            {
-                _gitHubApi.Dispose();
-            }
-
-            base.Dispose(disposing);
+            _gitHubApi.Dispose();
+            base.ReleaseManagedResources();
         }
 
         #region Private Methods
