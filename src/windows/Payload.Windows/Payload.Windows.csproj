@@ -29,7 +29,7 @@
       $(OutDir)Microsoft.AzureRepos.dll;
       $(OutDir)Microsoft.Git.CredentialManager.dll;
       $(OutDir)Microsoft.Authentication.Helper.exe;">
-      <Authenticode>Microsoft</Authenticode>
+      <Authenticode>Microsoft400</Authenticode>
       <InProject>false</InProject>
     </FilesToSign>
   </ItemGroup>

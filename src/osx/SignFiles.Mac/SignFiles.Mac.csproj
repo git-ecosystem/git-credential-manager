@@ -24,7 +24,7 @@
       $(OutDir)\GitHub.dll;
       $(OutDir)\Microsoft.AzureRepos.dll;
       $(OutDir)\Microsoft.Git.CredentialManager.dll;">
-      <Authenticode>Microsoft</Authenticode>
+      <Authenticode>Microsoft400</Authenticode>
       <InProject>false</InProject>
     </FilesToSign>
     <MacFilesToSign Include="
