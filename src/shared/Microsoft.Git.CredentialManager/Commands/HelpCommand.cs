@@ -46,6 +46,9 @@ namespace Microsoft.Git.CredentialManager.Commands
             writer.WriteLine("    get");
             writer.WriteLine("    store");
             writer.WriteLine();
+            writer.WriteLine("    configure [--system]");
+            writer.WriteLine("    unconfigure [--system]");
+            writer.WriteLine();
             writer.WriteLine("    --version, version");
             writer.WriteLine("    --help, -h, -?");
             writer.WriteLine();

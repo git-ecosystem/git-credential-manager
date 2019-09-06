@@ -22,10 +22,8 @@ namespace Microsoft.Git.CredentialManager.Interop.Windows
             return value.Split(';');
         }
 
-        public override void AddDirectoryToPath(string directoryPath, bool system)
+        public override void AddDirectoryToPath(string directoryPath, EnvironmentVariableTarget target)
         {
-            var target = system ? EnvironmentVariableTarget.Machine : EnvironmentVariableTarget.User;
-
             // Read the current PATH variable, not the cached one
             string currentValue = Environment.GetEnvironmentVariable("PATH", target) ?? string.Empty;
 
@@ -47,10 +45,8 @@ namespace Microsoft.Git.CredentialManager.Interop.Windows
             Variables = GetCurrentVariables();
         }
 
-        public override void RemoveDirectoryFromPath(string directoryPath, bool system)
+        public override void RemoveDirectoryFromPath(string directoryPath, EnvironmentVariableTarget target)
         {
-            var target = system ? EnvironmentVariableTarget.Machine : EnvironmentVariableTarget.User;
-
             // Read the current PATH variable, not the cached one
             string currentValue = Environment.GetEnvironmentVariable("PATH", target) ?? string.Empty;
 

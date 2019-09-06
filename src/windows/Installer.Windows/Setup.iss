@@ -70,7 +70,13 @@ Name: english; MessagesFile: "compiler:Default.isl";
 Name: full; Description: "Full installation"; Flags: iscustom;
 
 [Components]
-; TODO
+; No individual components
+
+[Run]
+Filename: "{app}\git-credential-manager-core.exe"; Parameters: "configure"; Flags: runhidden
+
+[UninstallRun]
+Filename: "{app}\git-credential-manager-core.exe"; Parameters: "unconfigure"; Flags: runhidden
 
 [Files]
 Source: "{#PayloadDir}\git-credential-manager-core.exe";               DestDir: "{app}"; Flags: ignoreversion
