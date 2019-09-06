@@ -30,7 +30,7 @@
   <Target Name="CreateFilesToSignItems" DependsOnTargets="GetBuildVersion" BeforeTargets="PrepareForRun">
     <ItemGroup>
       <FilesToSign Include="$(OutDir)gcmcore-windows-$(BuildVersion).exe">
-        <Authenticode>Microsoft</Authenticode>
+        <Authenticode>Microsoft400</Authenticode>
         <InProject>false</InProject>
       </FilesToSign>
     </ItemGroup>
