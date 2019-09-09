@@ -40,7 +40,7 @@ namespace Microsoft.Git.CredentialManager.Interop
             if (repositoryPath != null)
             {
                 // We don't need to check for the file's existence since libgit2 will do that for us!
-                string repoConfigPath = Path.Combine(repositoryPath, ".git", "config");
+                string repoConfigPath = Path.Combine(repositoryPath, "config");
 
                 // Add the repository configuration
                 _trace.WriteLine($"Adding local configuration from repository '{repositoryPath}'...");
@@ -123,9 +123,15 @@ namespace Microsoft.Git.CredentialManager.Interop
 
             int native_cb(git_config_entry entry, void* payload)
             {
-                if (!cb(entry.GetName(), entry.GetValue()))
+                if (entry != null)
                 {
-                    return GIT_ITEROVER;
+                    string name = entry.GetName();
+                    string value = entry.GetValue();
+
+                    if (!cb(name, value))
+                    {
+                        return GIT_ITEROVER;
+                    }
                 }
 
                 return GIT_OK;

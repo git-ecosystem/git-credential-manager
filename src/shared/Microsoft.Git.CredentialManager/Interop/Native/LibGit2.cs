@@ -2,6 +2,7 @@
 // Licensed under the MIT license.
 using System;
 using System.Runtime.InteropServices;
+using static System.Runtime.InteropServices.CallingConvention;
 using static System.Runtime.InteropServices.UnmanagedType;
 using static Microsoft.Git.CredentialManager.Interop.U8StringMarshaler;
 
@@ -31,19 +32,19 @@ namespace Microsoft.Git.CredentialManager.Interop.Native
          */
         private const string LibraryName = "git2-572e4d8";
 
-        [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibraryName, CallingConvention = Cdecl)]
         public static extern int git_libgit2_init();
 
-        [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibraryName, CallingConvention = Cdecl)]
         public static extern int git_libgit2_shutdown();
 
-        [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibraryName, CallingConvention = Cdecl)]
         public static extern unsafe git_error* git_error_last();
 
-        [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibraryName, CallingConvention = Cdecl)]
         public static extern void git_buf_dispose(git_buf buf);
 
-        [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibraryName, CallingConvention = Cdecl)]
         public static extern int git_repository_discover(
             git_buf @out,
             [MarshalAs(CustomMarshaler, MarshalCookie = NativeCookie, MarshalTypeRef = typeof(U8StringMarshaler))]
@@ -52,7 +53,7 @@ namespace Microsoft.Git.CredentialManager.Interop.Native
             [MarshalAs(CustomMarshaler, MarshalCookie = NativeCookie, MarshalTypeRef = typeof(U8StringMarshaler))]
             string ceiling_dirs);
 
-        [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibraryName, CallingConvention = Cdecl)]
         public static extern unsafe int git_config_add_file_ondisk(
             git_config* cfg,
             [MarshalAs(CustomMarshaler, MarshalCookie = NativeCookie, MarshalTypeRef = typeof(U8StringMarshaler))]
@@ -61,10 +62,10 @@ namespace Microsoft.Git.CredentialManager.Interop.Native
             git_repository* repo,
             int force);
 
-        [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibraryName, CallingConvention = Cdecl)]
         public static extern unsafe void git_config_free(git_config* cfg);
 
-        [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibraryName, CallingConvention = Cdecl)]
         public static extern unsafe int git_config_get_string(
             [MarshalAs(CustomMarshaler, MarshalCookie = ManagedCookie, MarshalTypeRef = typeof(U8StringMarshaler))]
             out string @out,
@@ -72,10 +73,10 @@ namespace Microsoft.Git.CredentialManager.Interop.Native
             [MarshalAs(CustomMarshaler, MarshalCookie = NativeCookie, MarshalTypeRef = typeof(U8StringMarshaler))]
             string name);
 
-        [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibraryName, CallingConvention = Cdecl)]
         public static extern unsafe int git_config_foreach(git_config* cfg, git_config_foreach_cb callback, void* payload);
 
-        [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibraryName, CallingConvention = Cdecl)]
         public static extern unsafe int git_config_set_string(
             git_config* cfg,
             [MarshalAs(CustomMarshaler, MarshalCookie = NativeCookie, MarshalTypeRef = typeof(U8StringMarshaler))]
@@ -83,13 +84,13 @@ namespace Microsoft.Git.CredentialManager.Interop.Native
             [MarshalAs(CustomMarshaler, MarshalCookie = NativeCookie, MarshalTypeRef = typeof(U8StringMarshaler))]
             string value);
 
-        [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibraryName, CallingConvention = Cdecl)]
         public static extern unsafe int git_config_delete_entry(
             git_config* cfg,
             [MarshalAs(CustomMarshaler, MarshalCookie = NativeCookie, MarshalTypeRef = typeof(U8StringMarshaler))]
             string name);
 
-        [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibraryName, CallingConvention = Cdecl)]
         public static extern unsafe int git_config_get_multivar_foreach(
             git_config* cfg,
             [MarshalAs(CustomMarshaler, MarshalCookie = NativeCookie, MarshalTypeRef = typeof(U8StringMarshaler))]
@@ -99,7 +100,7 @@ namespace Microsoft.Git.CredentialManager.Interop.Native
             git_config_foreach_cb callback,
             void *payload);
 
-        [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibraryName, CallingConvention = Cdecl)]
         public static extern unsafe int git_config_set_multivar(
             git_config* cfg,
             [MarshalAs(CustomMarshaler, MarshalCookie = NativeCookie, MarshalTypeRef = typeof(U8StringMarshaler))]
@@ -109,7 +110,7 @@ namespace Microsoft.Git.CredentialManager.Interop.Native
             [MarshalAs(CustomMarshaler, MarshalCookie = NativeCookie, MarshalTypeRef = typeof(U8StringMarshaler))]
             string value);
 
-        [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibraryName, CallingConvention = Cdecl)]
         public static extern unsafe int git_config_delete_multivar(
             git_config* cfg,
             [MarshalAs(CustomMarshaler, MarshalCookie = NativeCookie, MarshalTypeRef = typeof(U8StringMarshaler))]
@@ -118,17 +119,20 @@ namespace Microsoft.Git.CredentialManager.Interop.Native
             string regexp);
 
 
-        [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibraryName, CallingConvention = Cdecl)]
         public static extern unsafe int git_config_open_default(git_config** @out);
 
-        [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibraryName, CallingConvention = Cdecl)]
         public static extern unsafe int git_config_open_level(git_config** @out, git_config* parent, git_config_level_t level);
 
-        [DllImport(LibraryName, CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibraryName, CallingConvention = Cdecl)]
         public static extern unsafe int git_config_snapshot(git_config** @out, git_config* config);
     }
 
+    [UnmanagedFunctionPointer(Cdecl)]
     public unsafe delegate int git_config_foreach_cb(git_config_entry entry, void* payload);
+
+    [UnmanagedFunctionPointer(Cdecl)]
     public delegate void git_config_entry_free_callback(git_config_entry entry);
 
     [StructLayout(LayoutKind.Sequential)]

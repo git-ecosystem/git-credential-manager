@@ -41,10 +41,10 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop
         [Fact]
         public void LibGit2Configuration_Enumerate_CallbackReturnsTrue_InvokesCallbackForEachEntry()
         {
-            string repoPath = CreateRepository();
-            Git(repoPath, "config --local foo.name lancelot").AssertSuccess();
-            Git(repoPath, "config --local foo.quest seek-holy-grail").AssertSuccess();
-            Git(repoPath, "config --local foo.favcolor blue").AssertSuccess();
+            string repoPath = CreateRepository(out string workDirPath);
+            Git(repoPath, workDirPath, "config --local foo.name lancelot").AssertSuccess();
+            Git(repoPath, workDirPath, "config --local foo.quest seek-holy-grail").AssertSuccess();
+            Git(repoPath, workDirPath, "config --local foo.favcolor blue").AssertSuccess();
 
             var expectedVisitedEntries = new List<(string name, string value)>
             {
@@ -79,10 +79,10 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop
         [Fact]
         public void LibGit2Configuration_Enumerate_CallbackReturnsFalse_InvokesCallbackForEachEntryUntilReturnsFalse()
         {
-            string repoPath = CreateRepository();
-            Git(repoPath, "config --local foo.name lancelot").AssertSuccess();
-            Git(repoPath, "config --local foo.quest seek-holy-grail").AssertSuccess();
-            Git(repoPath, "config --local foo.favcolor blue").AssertSuccess();
+            string repoPath = CreateRepository(out string workDirPath);
+            Git(repoPath, workDirPath, "config --local foo.name lancelot").AssertSuccess();
+            Git(repoPath, workDirPath, "config --local foo.quest seek-holy-grail").AssertSuccess();
+            Git(repoPath, workDirPath, "config --local foo.favcolor blue").AssertSuccess();
 
             var expectedVisitedEntries = new List<(string name, string value)>
             {
@@ -116,8 +116,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop
         [Fact]
         public void LibGit2Configuration_TryGetValue_Name_Exists_ReturnsTrueOutString()
         {
-            string repoPath = CreateRepository();
-            Git(repoPath, "config --local user.name john.doe").AssertSuccess();
+            string repoPath = CreateRepository(out string workDirPath);
+            Git(repoPath, workDirPath, "config --local user.name john.doe").AssertSuccess();
 
             var trace = new NullTrace();
             var git = new LibGit2(trace);
@@ -149,8 +149,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop
         [Fact]
         public void LibGit2Configuration_TryGetValue_SectionProperty_Exists_ReturnsTrueOutString()
         {
-            string repoPath = CreateRepository();
-            Git(repoPath, "config --local user.name john.doe").AssertSuccess();
+            string repoPath = CreateRepository(out string workDirPath);
+            Git(repoPath, workDirPath, "config --local user.name john.doe").AssertSuccess();
 
             var trace = new NullTrace();
             var git = new LibGit2(trace);
@@ -183,8 +183,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop
         [Fact]
         public void LibGit2Configuration_TryGetValue_SectionScopeProperty_Exists_ReturnsTrueOutString()
         {
-            string repoPath = CreateRepository();
-            Git(repoPath, "config --local user.example.com.name john.doe").AssertSuccess();
+            string repoPath = CreateRepository(out string workDirPath);
+            Git(repoPath, workDirPath, "config --local user.example.com.name john.doe").AssertSuccess();
 
             var trace = new NullTrace();
             var git = new LibGit2(trace);
@@ -200,8 +200,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop
         [Fact]
         public void LibGit2Configuration_TryGetValue_SectionScopeProperty_NullScope_ReturnsTrueOutUnscopedString()
         {
-            string repoPath = CreateRepository();
-            Git(repoPath, "config --local user.name john.doe").AssertSuccess();
+            string repoPath = CreateRepository(out string workDirPath);
+            Git(repoPath, workDirPath, "config --local user.name john.doe").AssertSuccess();
 
             var trace = new NullTrace();
             var git = new LibGit2(trace);
@@ -235,8 +235,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop
         [Fact]
         public void LibGit2Configuration_GetString_Name_Exists_ReturnsString()
         {
-            string repoPath = CreateRepository();
-            Git(repoPath, "config --local user.name john.doe").AssertSuccess();
+            string repoPath = CreateRepository(out string workDirPath);
+            Git(repoPath, workDirPath, "config --local user.name john.doe").AssertSuccess();
 
             var trace = new NullTrace();
             var git = new LibGit2(trace);
@@ -265,8 +265,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop
         [Fact]
         public void LibGit2Configuration_GetString_SectionProperty_Exists_ReturnsString()
         {
-            string repoPath = CreateRepository();
-            Git(repoPath, "config --local user.name john.doe").AssertSuccess();
+            string repoPath = CreateRepository(out string workDirPath);
+            Git(repoPath, workDirPath, "config --local user.name john.doe").AssertSuccess();
 
             var trace = new NullTrace();
             var git = new LibGit2(trace);
@@ -296,8 +296,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop
         [Fact]
         public void LibGit2Configuration_GetString_SectionScopeProperty_Exists_ReturnsString()
         {
-            string repoPath = CreateRepository();
-            Git(repoPath, "config --local user.example.com.name john.doe").AssertSuccess();
+            string repoPath = CreateRepository(out string workDirPath);
+            Git(repoPath, workDirPath, "config --local user.example.com.name john.doe").AssertSuccess();
 
             var trace = new NullTrace();
             var git = new LibGit2(trace);
@@ -312,8 +312,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop
         [Fact]
         public void LibGit2Configuration_GetString_SectionScopeProperty_NullScope_ReturnsUnscopedString()
         {
-            string repoPath = CreateRepository();
-            Git(repoPath, "config --local user.name john.doe").AssertSuccess();
+            string repoPath = CreateRepository(out string workDirPath);
+            Git(repoPath, workDirPath, "config --local user.name john.doe").AssertSuccess();
 
             var trace = new NullTrace();
             var git = new LibGit2(trace);
@@ -344,10 +344,9 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop
         [Fact]
         public void LibGit2Configuration_GetRepositoryPath_ReturnsRepositoryPath()
         {
-            string repoBasePath = CreateRepository();
-            string expectedRepoGitPath = Path.Combine(repoBasePath, ".git") + "/";
-            string fileL0Path = Path.Combine(repoBasePath, "file.txt");
-            string directoryL0Path = Path.Combine(repoBasePath, "directory");
+            string expectedRepoGitPath = CreateRepository(out string workDirPath) + "/";
+            string fileL0Path = Path.Combine(workDirPath, "file.txt");
+            string directoryL0Path = Path.Combine(workDirPath, "directory");
             string fileL1Path = Path.Combine(directoryL0Path, "inner-file.txt");
             string directoryL1Path = Path.Combine(directoryL0Path, "sub-directory");
 
@@ -425,34 +424,55 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop
             throw new PlatformNotSupportedException();
         }
 
-        private static string CreateRepository()
+        private static string CreateBareRepository()
         {
             string tempDirectory = Path.GetTempPath();
             string repoName = $"repo-{Guid.NewGuid().ToString("N").Substring(0, 8)}";
-            string repoPath = Path.Combine(tempDirectory, repoName);
+            var gitDirPath = Path.Combine(tempDirectory, repoName);
 
-            if (Directory.Exists(repoPath))
+            if (Directory.Exists(gitDirPath))
             {
-                Directory.Delete(repoPath);
+                Directory.Delete(gitDirPath);
             }
 
-            Directory.CreateDirectory(repoPath);
+            Directory.CreateDirectory(gitDirPath);
 
-            Git(repoPath, "init").AssertSuccess();
+            Git(gitDirPath, gitDirPath, "init --bare").AssertSuccess();
 
-            return repoPath;
+            return gitDirPath;
         }
 
-        private static GitResult Git(string repositoryPath, string command)
+        private static string CreateRepository() => CreateRepository(out _);
+
+        private static string CreateRepository(out string workDirPath)
+        {
+            string tempDirectory = Path.GetTempPath();
+            string repoName = $"repo-{Guid.NewGuid().ToString("N").Substring(0, 8)}";
+            workDirPath = Path.Combine(tempDirectory, repoName);
+            string gitDirPath = Path.Combine(workDirPath, ".git");
+
+            if (Directory.Exists(workDirPath))
+            {
+                Directory.Delete(workDirPath);
+            }
+
+            Directory.CreateDirectory(workDirPath);
+
+            Git(gitDirPath, workDirPath, "init").AssertSuccess();
+
+            return gitDirPath;
+        }
+
+        private static GitResult Git(string repositoryPath, string workingDirectory, string command)
         {
             var procInfo = new ProcessStartInfo("git", command)
             {
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
+                WorkingDirectory = workingDirectory
             };
 
-            string gitDirectory = Path.Combine(repositoryPath, ".git");
-            procInfo.Environment["GIT_DIR"] = gitDirectory;
+            procInfo.Environment["GIT_DIR"] = repositoryPath;
 
             Process proc = Process.Start(procInfo);
             if (proc is null)
