@@ -91,7 +91,6 @@ namespace Microsoft.Git.CredentialManager.Interop
 
         protected override void ReleaseUnmanagedResources()
         {
-            _trace.WriteLine("Shutting-down libgit2...");
             git_libgit2_shutdown();
             base.ReleaseUnmanagedResources();
         }
@@ -299,9 +298,9 @@ namespace Microsoft.Git.CredentialManager.Interop
         {
             unsafe
             {
-                _trace.WriteLine("Disposing Git configuration...");
                 git_config_free(_snapshot);
                 git_config_free(_config);
+                base.ReleaseUnmanagedResources();
             }
         }
     }
