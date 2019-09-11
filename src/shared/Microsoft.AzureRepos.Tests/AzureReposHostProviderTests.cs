@@ -13,6 +13,9 @@ namespace Microsoft.AzureRepos.Tests
 {
     public class AzureReposHostProviderTests
     {
+        private static readonly string AzDevUseHttpPathKey =
+            $"{Constants.GitConfiguration.Credential.SectionName}.https://dev.azure.com.{Constants.GitConfiguration.Credential.UseHttpPath}";
+
         [Fact]
         public void AzureReposProvider_IsSupported_AzureHost_UnencryptedHttp_ReturnsTrue()
         {
@@ -170,6 +173,85 @@ namespace Microsoft.AzureRepos.Tests
             Assert.NotNull(credential);
             Assert.Equal(personalAccessToken, credential.Password);
             // We don't care about the username value
+        }
+
+        [Fact]
+        public async Task AzureReposHostProvider_ConfigureAsync_UseHttpPathSetTrue_DoesNothing()
+        {
+            var provider = new AzureReposHostProvider(new TestCommandContext());
+
+            var environment = new TestEnvironment();
+            var config = new TestGitConfiguration(new Dictionary<string, IList<string>>
+            {
+                [AzDevUseHttpPathKey] = new List<string> {"true"}
+            });
+
+            await provider.ConfigureAsync(
+                environment, EnvironmentVariableTarget.User,
+                config, GitConfigurationLevel.Global);
+
+            Assert.Single(config.Dictionary);
+            Assert.True(config.Dictionary.TryGetValue(AzDevUseHttpPathKey, out IList<string> actualValues));
+            Assert.Single(actualValues);
+            Assert.Equal("true", actualValues[0]);
+        }
+
+        [Fact]
+        public async Task AzureReposHostProvider_ConfigureAsync_UseHttpPathSetFalse_SetsUseHttpPathTrue()
+        {
+            var provider = new AzureReposHostProvider(new TestCommandContext());
+
+            var environment = new TestEnvironment();
+            var config = new TestGitConfiguration(new Dictionary<string, IList<string>>
+            {
+                [AzDevUseHttpPathKey] = new List<string> {"false"}
+            });
+
+            await provider.ConfigureAsync(
+                environment, EnvironmentVariableTarget.User,
+                config, GitConfigurationLevel.Global);
+
+            Assert.Single(config.Dictionary);
+            Assert.True(config.Dictionary.TryGetValue(AzDevUseHttpPathKey, out IList<string> actualValues));
+            Assert.Single(actualValues);
+            Assert.Equal("true", actualValues[0]);
+        }
+
+        [Fact]
+        public async Task AzureReposHostProvider_ConfigureAsync_UseHttpPathUnset_SetsUseHttpPathTrue()
+        {
+            var provider = new AzureReposHostProvider(new TestCommandContext());
+
+            var environment = new TestEnvironment();
+            var config = new TestGitConfiguration();
+
+            await provider.ConfigureAsync(
+                environment, EnvironmentVariableTarget.User,
+                config, GitConfigurationLevel.Global);
+
+            Assert.Single(config.Dictionary);
+            Assert.True(config.Dictionary.TryGetValue(AzDevUseHttpPathKey, out IList<string> actualValues));
+            Assert.Single(actualValues);
+            Assert.Equal("true", actualValues[0]);
+        }
+
+
+        [Fact]
+        public async Task AzureReposHostProvider_UnconfigureAsync_UseHttpPathSet_RemovesEntry()
+        {
+            var provider = new AzureReposHostProvider(new TestCommandContext());
+
+            var environment = new TestEnvironment();
+            var config = new TestGitConfiguration(new Dictionary<string, IList<string>>
+            {
+                [AzDevUseHttpPathKey] = new List<string> {"true"}
+            });
+
+            await provider.UnconfigureAsync(
+                environment, EnvironmentVariableTarget.User,
+                config, GitConfigurationLevel.Global);
+
+            Assert.Empty(config.Dictionary);
         }
     }
 }

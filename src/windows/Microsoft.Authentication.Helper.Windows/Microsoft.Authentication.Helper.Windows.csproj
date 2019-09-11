@@ -4,6 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <Prefer32Bit>true</Prefer32Bit>
     <ProjectGuid>{8B984F78-4EAF-4BC0-A34E-BA3949700ED4}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>Microsoft.Authentication.Helper</RootNamespace>

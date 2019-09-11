@@ -13,6 +13,15 @@ namespace Microsoft.Git.CredentialManager.Commands
     /// </summary>
     public class HelpCommand : CommandBase
     {
+        private readonly string _appName;
+
+        public HelpCommand(string appName)
+        {
+            EnsureArgument.NotNullOrWhiteSpace(appName, nameof(appName));
+
+            _appName = appName;
+        }
+
         public override bool CanExecute(string[] args)
         {
             return args.Any(x => StringComparer.OrdinalIgnoreCase.Equals(x, "--help") ||
@@ -25,7 +34,7 @@ namespace Microsoft.Git.CredentialManager.Commands
         {
             context.Streams.Out.WriteLine(Constants.GetProgramHeader());
 
-            PrintUsage(context.Streams.Out);
+            PrintUsage(context.Streams.Out, _appName);
 
             return Task.CompletedTask;
         }
@@ -34,10 +43,9 @@ namespace Microsoft.Git.CredentialManager.Commands
         /// Print the standard usage documentation for Git Credential Manager to the given <see cref="TextWriter"/>.
         /// </summary>
         /// <param name="writer">Text writer to write usage information to.</param>
-        public static void PrintUsage(TextWriter writer)
+        /// <param name="appName">Application name.</param>
+        public static void PrintUsage(TextWriter writer, string appName)
         {
-            string appName = Path.GetFileName(Assembly.GetEntryAssembly().CodeBase);
-
             writer.WriteLine();
             writer.WriteLine("usage: {0} <command>", appName);
             writer.WriteLine();

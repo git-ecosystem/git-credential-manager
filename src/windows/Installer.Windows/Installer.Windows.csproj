@@ -5,7 +5,7 @@
   <PropertyGroup>
     <TargetFramework>net461</TargetFramework>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <PayloadPath>$(PlatformOutPath)Payload.Windows\bin\$(Configuration)\net461\win-x64</PayloadPath>
+    <PayloadPath>$(PlatformOutPath)Payload.Windows\bin\$(Configuration)\net461\win-x86</PayloadPath>
     <EnableDefaultItems>false</EnableDefaultItems>
   </PropertyGroup>
 
@@ -29,7 +29,7 @@
        before we attempt to sign any files or validate they exist. -->
   <Target Name="CreateFilesToSignItems" DependsOnTargets="GetBuildVersion" BeforeTargets="PrepareForRun">
     <ItemGroup>
-      <FilesToSign Include="$(OutDir)gcmcore-windows-$(BuildVersion).exe">
+      <FilesToSign Include="$(OutDir)gcmcore-windows-x86-$(BuildVersion).exe">
         <Authenticode>Microsoft400</Authenticode>
         <InProject>false</InProject>
       </FilesToSign>

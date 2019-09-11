@@ -5,10 +5,11 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Git.CredentialManager;
 using Microsoft.Git.CredentialManager.Authentication;
+using KnownGitCfg = Microsoft.Git.CredentialManager.Constants.GitConfiguration;
 
 namespace Microsoft.AzureRepos
 {
-    public class AzureReposHostProvider : HostProvider
+    public class AzureReposHostProvider : HostProvider, IConfigurableComponent
     {
         private readonly IAzureDevOpsRestApi _azDevOps;
         private readonly IMicrosoftAuthentication _msAuth;
@@ -100,6 +101,50 @@ namespace Microsoft.AzureRepos
         {
             _azDevOps.Dispose();
             base.ReleaseManagedResources();
+        }
+
+        #endregion
+
+        #region IConfigurationComponent
+
+        string IConfigurableComponent.Name => "Azure Repos provider";
+
+        public Task ConfigureAsync(
+            IEnvironment environment, EnvironmentVariableTarget environmentTarget,
+            IGitConfiguration configuration, GitConfigurationLevel configurationLevel)
+        {
+            string useHttpPathKey = $"{KnownGitCfg.Credential.SectionName}.https://dev.azure.com.{KnownGitCfg.Credential.UseHttpPath}";
+
+            using (IGitConfiguration targetConfig = configuration.GetFilteredConfiguration(configurationLevel))
+            {
+                if (targetConfig.TryGetValue(useHttpPathKey, out string currentValue) && currentValue.IsTruthy())
+                {
+                    Context.Trace.WriteLine("Git configuration 'credential.useHttpPath' is already set to 'true' for https://dev.azure.com.");
+                }
+                else
+                {
+                    Context.Trace.WriteLine("Setting Git configuration 'credential.useHttpPath' to 'true' for https://dev.azure.com...");
+                    targetConfig.SetValue(useHttpPathKey, "true");
+                }
+            }
+
+            return Task.CompletedTask;
+        }
+
+        public Task UnconfigureAsync(
+            IEnvironment environment, EnvironmentVariableTarget environmentTarget,
+            IGitConfiguration configuration, GitConfigurationLevel configurationLevel)
+        {
+            string useHttpPathKey = $"{KnownGitCfg.Credential.SectionName}.https://dev.azure.com.{KnownGitCfg.Credential.UseHttpPath}";
+
+            Context.Trace.WriteLine("Clearing Git configuration 'credential.useHttpPath' for https://dev.azure.com...");
+
+            using (IGitConfiguration targetConfig = configuration.GetFilteredConfiguration(configurationLevel))
+            {
+                targetConfig.DeleteEntry(useHttpPathKey);
+            }
+
+            return Task.CompletedTask;
         }
 
         #endregion
