@@ -35,7 +35,8 @@ namespace Microsoft.Git.CredentialManager.Authentication
         public async Task<JsonWebToken> GetAccessTokenAsync(
             string authority, string clientId, Uri redirectUri, string resource, Uri remoteUri, string userName)
         {
-            // If we find an external authentication helper we should delegate everything to it
+            // If we find an external authentication helper we should delegate everything to it.
+            // Assume the external helper can provide the best authentication experience.
             if (TryFindHelperExecutablePath(out string helperPath))
             {
                 return await GetAccessTokenViaHelperAsync(helperPath,
@@ -51,6 +52,9 @@ namespace Microsoft.Git.CredentialManager.Authentication
 
         #region Authentication strategies
 
+        /// <summary>
+        /// Start an authentication helper process to obtain an access token.
+        /// </summary>
         private async Task<JsonWebToken> GetAccessTokenViaHelperAsync(string helperPath,
             string authority, string clientId, Uri redirectUri, string resource, Uri remoteUri, string userName)
         {
@@ -74,6 +78,9 @@ namespace Microsoft.Git.CredentialManager.Authentication
             return new JsonWebToken(accessToken);
         }
 
+        /// <summary>
+        /// Obtain an access token using MSAL running inside the current process.
+        /// </summary>
         private async Task<JsonWebToken> GetAccessTokenInProcAsync(string authority, string clientId, Uri redirectUri, string[] scopes, string userName)
         {
             IPublicClientApplication app = await CreatePublicClientApplicationAsync(authority, clientId, redirectUri);
@@ -86,12 +93,28 @@ namespace Microsoft.Git.CredentialManager.Authentication
                 result = await GetAccessTokenSilentlyAsync(app, scopes, userName);
             }
 
+            //
             // If we failed to acquire an AT silently (either because we don't have an existing user, or the user's RT has expired)
             // we need to prompt the user for credentials.
-            // Depending on the current platform and session type we try to show the most appropriate authentication interface.
+            //
+            // Depending on the current platform and session type we try to show the most appropriate authentication interface:
+            //
+            // On .NET Framework MSAL supports the WinForms based 'embedded' webview UI. For Windows + .NET Framework this is the
+            // best and natural experience.
+            //
+            // On other runtimes (e.g., .NET Core) MSAL only supports the system webview flow (launch the user's browser),
+            // and the device-code flows.
+            // 
+            //     Note: .NET Core 3 allows using WinForms when run on Windows but MSAL does not yet support this.
+            //
+            // The system webview flow requires that the redirect URI is a loopback address, and that we are in an interactive session.
+            //
+            // The device code flow has no limitations other than a way to communicate to the user the code required to authenticate.
+            //
             if (result is null)
             {
 #if NETFRAMEWORK
+                // If we're in an interactive session and on .NET Framework, let MSAL show the WinForms-based embeded UI
                 if (PlatformUtils.IsInteractiveSession())
                 {
                     result = await app.AcquireTokenInteractive(scopes)
@@ -121,6 +144,9 @@ namespace Microsoft.Git.CredentialManager.Authentication
             return new JsonWebToken(result.AccessToken);
         }
 
+        /// <summary>
+        /// Obtain an access token without showing UI or prompts.
+        /// </summary>
         private async Task<AuthenticationResult> GetAccessTokenSilentlyAsync(IPublicClientApplication app, string[] scopes, string userName)
         {
             try
