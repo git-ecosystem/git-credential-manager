@@ -51,6 +51,21 @@ namespace Microsoft.Git.CredentialManager
             return _dict.TryGetValue(key, out string value) ? value : null;
         }
 
+        public Uri GetRemoteUri()
+        {
+            if (Protocol is null || Host is null)
+            {
+                return null;
+            }
+
+            var ub = new UriBuilder(Protocol, Host)
+            {
+                Path = Path
+            };
+
+            return ub.Uri;
+        }
+
         #endregion
     }
 }

@@ -13,6 +13,15 @@ namespace Microsoft.Git.CredentialManager.Commands
     /// </summary>
     public class HelpCommand : CommandBase
     {
+        private readonly string _appName;
+
+        public HelpCommand(string appName)
+        {
+            EnsureArgument.NotNullOrWhiteSpace(appName, nameof(appName));
+
+            _appName = appName;
+        }
+
         public override bool CanExecute(string[] args)
         {
             return args.Any(x => StringComparer.OrdinalIgnoreCase.Equals(x, "--help") ||
@@ -23,9 +32,9 @@ namespace Microsoft.Git.CredentialManager.Commands
 
         public override Task ExecuteAsync(ICommandContext context, string[] args)
         {
-            context.StdOut.WriteLine(Constants.GetProgramHeader());
+            context.Streams.Out.WriteLine(Constants.GetProgramHeader());
 
-            PrintUsage(context.StdOut);
+            PrintUsage(context.Streams.Out, _appName);
 
             return Task.CompletedTask;
         }
@@ -34,10 +43,9 @@ namespace Microsoft.Git.CredentialManager.Commands
         /// Print the standard usage documentation for Git Credential Manager to the given <see cref="TextWriter"/>.
         /// </summary>
         /// <param name="writer">Text writer to write usage information to.</param>
-        public static void PrintUsage(TextWriter writer)
+        /// <param name="appName">Application name.</param>
+        public static void PrintUsage(TextWriter writer, string appName)
         {
-            string appName = Path.GetFileName(Assembly.GetEntryAssembly().CodeBase);
-
             writer.WriteLine();
             writer.WriteLine("usage: {0} <command>", appName);
             writer.WriteLine();
@@ -45,6 +53,9 @@ namespace Microsoft.Git.CredentialManager.Commands
             writer.WriteLine("    erase");
             writer.WriteLine("    get");
             writer.WriteLine("    store");
+            writer.WriteLine();
+            writer.WriteLine("    configure [--system]");
+            writer.WriteLine("    unconfigure [--system]");
             writer.WriteLine();
             writer.WriteLine("    --version, version");
             writer.WriteLine("    --help, -h, -?");

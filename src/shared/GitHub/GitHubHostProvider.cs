@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Git.CredentialManager;
 
@@ -30,7 +31,11 @@ namespace GitHub
             _gitHubAuth = gitHubAuth;
         }
 
+        public override string Id => "github";
+
         public override string Name => "GitHub";
+
+        public override IEnumerable<string> SupportedAuthorityIds => GitHubAuthentication.AuthorityIds;
 
         public override bool IsSupported(InputArguments input)
         {
@@ -59,6 +64,8 @@ namespace GitHub
 
         public override async Task<ICredential> GenerateCredentialAsync(InputArguments input)
         {
+            ThrowIfDisposed();
+
             // We should not allow unencrypted communication and should inform the user
             if (StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "http"))
             {
@@ -100,14 +107,10 @@ namespace GitHub
             throw new Exception($"Interactive logon for '{targetUri}' failed.");
         }
 
-        protected override void Dispose(bool disposing)
+        protected override void ReleaseManagedResources()
         {
-            if (disposing)
-            {
-                _gitHubApi.Dispose();
-            }
-
-            base.Dispose(disposing);
+            _gitHubApi.Dispose();
+            base.ReleaseManagedResources();
         }
 
         #region Private Methods

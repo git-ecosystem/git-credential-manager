@@ -62,5 +62,80 @@ namespace Microsoft.Git.CredentialManager.Tests
             Assert.Equal("bar", inputArgs["foo"]);
             Assert.Equal("bar", inputArgs.GetArgumentOrDefault("foo"));
         }
+
+        [Fact]
+        public void InputArguments_GetRemoteUri_NoAuthority_ReturnsNull()
+        {
+            var dict = new Dictionary<string, string>();
+
+            var inputArgs = new InputArguments(dict);
+
+            Uri actualUri = inputArgs.GetRemoteUri();
+
+            Assert.Null(actualUri);
+        }
+
+        [Fact]
+        public void InputArguments_GetRemoteUri_Authority_ReturnsUriWithAuthority()
+        {
+            var expectedUri = new Uri("https://example.com/");
+
+            var dict = new Dictionary<string, string>
+            {
+                ["protocol"] = "https",
+                ["host"]     = "example.com"
+            };
+
+            var inputArgs = new InputArguments(dict);
+
+            Uri actualUri = inputArgs.GetRemoteUri();
+
+            Assert.NotNull(actualUri);
+            Assert.Equal(expectedUri, actualUri);
+        }
+
+        [Fact]
+        public void InputArguments_GetRemoteUri_AuthorityPath_ReturnsUriWithAuthorityAndPath()
+        {
+            var expectedUri = new Uri("https://example.com/an/example/path");
+
+            var dict = new Dictionary<string, string>
+            {
+                ["protocol"] = "https",
+                ["host"]     = "example.com",
+                ["path"]     = "an/example/path"
+            };
+
+            var inputArgs = new InputArguments(dict);
+
+            Uri actualUri = inputArgs.GetRemoteUri();
+
+            Assert.NotNull(actualUri);
+            Assert.Equal(expectedUri, actualUri);
+        }
+
+        [Fact]
+        public void InputArguments_GetRemoteUri_AuthorityPathUserInfo_ReturnsUriWithAuthorityAndPath()
+        {
+            var expectedUri = new Uri("https://example.com/an/example/path");
+
+            var dict = new Dictionary<string, string>
+            {
+                ["protocol"] = "https",
+                ["host"]     = "example.com",
+                ["path"]     = "an/example/path",
+
+                // Username and password are not expected to appear in the returned URI
+                ["username"] = "john.doe",
+                ["password"] = "password123"
+            };
+
+            var inputArgs = new InputArguments(dict);
+
+            Uri actualUri = inputArgs.GetRemoteUri();
+
+            Assert.NotNull(actualUri);
+            Assert.Equal(expectedUri, actualUri);
+        }
     }
 }

@@ -15,6 +15,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Commands
         public async Task HostProviderCommandBase_ExecuteAsync_CallsExecuteInternalAsyncWithCorrectArgs()
         {
             var mockContext = new Mock<ICommandContext>();
+            var mockStreams = new Mock<IStandardStreams>();
             var mockProvider = new Mock<IHostProvider>();
             var mockHostRegistry = new Mock<IHostProviderRegistry>();
 
@@ -28,8 +29,10 @@ namespace Microsoft.Git.CredentialManager.Tests.Commands
             string standardIn = "protocol=test\nhost=example.com\npath=a/b/c\n\n";
             TextReader standardInReader = new StringReader(standardIn);
 
-            mockContext.Setup(x => x.StdIn).Returns(standardInReader);
-            mockContext.Setup(x => x.Trace).Returns(new Mock<ITrace>().Object);
+            mockStreams.Setup(x => x.In).Returns(standardInReader);
+            mockContext.Setup(x => x.Streams).Returns(mockStreams.Object);
+            mockContext.Setup(x => x.Trace).Returns(Mock.Of<ITrace>());
+            mockContext.Setup(x => x.Settings).Returns(Mock.Of<ISettings>());
 
             HostProviderCommandBase testCommand = new TestCommand(mockHostRegistry.Object)
             {
@@ -46,6 +49,37 @@ namespace Microsoft.Git.CredentialManager.Tests.Commands
             await testCommand.ExecuteAsync(mockContext.Object, new string[0]);
         }
 
+        [Fact]
+        public async Task HostProviderCommandBase_ExecuteAsync_ConfiguresSettingsRemoteUri()
+        {
+            var mockContext = new Mock<ICommandContext>();
+            var mockStreams = new Mock<IStandardStreams>();
+            var mockProvider = new Mock<IHostProvider>();
+            var mockSettings = new Mock<ISettings>();
+            var mockHostRegistry = new Mock<IHostProviderRegistry>();
+
+            mockHostRegistry.Setup(x => x.GetProvider(It.IsAny<InputArguments>()))
+                .Returns(mockProvider.Object);
+
+            string standardIn = "protocol=test\nhost=example.com\npath=a/b/c\n\n";
+            TextReader standardInReader = new StringReader(standardIn);
+
+            var remoteUri = new Uri("test://example.com/a/b/c");
+
+            mockSettings.SetupProperty(x => x.RemoteUri);
+
+            mockStreams.Setup(x => x.In).Returns(standardInReader);
+            mockContext.Setup(x => x.Streams).Returns(mockStreams.Object);
+            mockContext.Setup(x => x.Trace).Returns(Mock.Of<ITrace>());
+            mockContext.Setup(x => x.Settings).Returns(mockSettings.Object);
+
+            HostProviderCommandBase testCommand = new TestCommand(mockHostRegistry.Object);
+
+            await testCommand.ExecuteAsync(mockContext.Object, new string[0]);
+
+            Assert.Equal(remoteUri, mockSettings.Object.RemoteUri);
+        }
+
         private class TestCommand : HostProviderCommandBase
         {
             public TestCommand(IHostProviderRegistry hostProviderRegistry)
@@ -57,7 +91,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Commands
 
             protected override Task ExecuteInternalAsync(ICommandContext context, InputArguments input, IHostProvider provider)
             {
-                VerifyExecuteInternalAsync(context, input, provider);
+                VerifyExecuteInternalAsync?.Invoke(context, input, provider);
                 return Task.CompletedTask;
             }
 

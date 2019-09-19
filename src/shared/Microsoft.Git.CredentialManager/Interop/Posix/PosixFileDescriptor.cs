@@ -9,11 +9,9 @@ namespace Microsoft.Git.CredentialManager.Interop.Posix
     /// <summary>
     /// Represents a thin wrapper over a POSIX file descriptor.
     /// </summary>
-    public class PosixFileDescriptor : IDisposable
+    public class PosixFileDescriptor : DisposableObject
     {
         private readonly int _fd;
-
-        private bool _isDisposed;
 
         private PosixFileDescriptor()
         {
@@ -72,27 +70,14 @@ namespace Microsoft.Git.CredentialManager.Interop.Posix
             return Write(buf, buf.Length);
         }
 
-        private void Dispose(bool disposing)
+        protected override void ReleaseUnmanagedResources()
         {
-            if (_isDisposed)
-            {
-                return;
-            }
-
             if (!IsInvalid)
             {
                 Unistd.close(_fd);
             }
 
-            _isDisposed = true;
-        }
-
-        private void ThrowIfDisposed()
-        {
-            if (_isDisposed)
-            {
-                throw new ObjectDisposedException(nameof(PosixFileDescriptor));
-            }
+            base.ReleaseUnmanagedResources();
         }
 
         private void ThrowIfInvalid()
@@ -101,17 +86,6 @@ namespace Microsoft.Git.CredentialManager.Interop.Posix
             {
                 throw new InvalidOperationException("File descriptor is invalid");
             }
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        ~PosixFileDescriptor()
-        {
-            Dispose(false);
         }
     }
 }

@@ -4,15 +4,15 @@
 
   <PropertyGroup>
     <TargetFramework>net461</TargetFramework>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\shared\Git-Credential-Manager\Git-Credential-Manager.csproj" />
     <ProjectReference Include="..\GitHub.Authentication.Helper.Windows\GitHub.Authentication.Helper.Windows.csproj" />
-    <ProjectReference Include="..\Microsoft.Authentication.Helper.Windows\Microsoft.Authentication.Helper.Windows.csproj" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <PackageReference Include="MicroBuild.Core" Version="0.2.0">
       <PrivateAssets>all</PrivateAssets>
@@ -21,14 +21,13 @@
 
   <ItemGroup>
     <FilesToSign Include="
-      $(OutDir)git-credential-manager.exe;
+      $(OutDir)git-credential-manager-core.exe;
       $(OutDir)GitHub.dll;
       $(OutDir)GitHub.UI.dll;
       $(OutDir)GitHub.Authentication.Helper.exe;
       $(OutDir)Microsoft.AzureRepos.dll;
-      $(OutDir)Microsoft.Git.CredentialManager.dll;
-      $(OutDir)Microsoft.Authentication.Helper.exe;">
-      <Authenticode>Microsoft</Authenticode>
+      $(OutDir)Microsoft.Git.CredentialManager.dll;">
+      <Authenticode>Microsoft400</Authenticode>
       <InProject>false</InProject>
     </FilesToSign>
   </ItemGroup>
@@ -50,7 +49,7 @@
 
   <!-- We don't want to produce a binary with this project -->
   <Target Name="CoreCompile" />
-  
+
   <!-- We only want to copy the dependent projects' outputs; no binary is produced for this project -->
   <Target Name="CopyFilesToOutputDirectory"
           DependsOnTargets="

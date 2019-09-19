@@ -1,21 +1,27 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Git.CredentialManager;
 using Microsoft.Git.CredentialManager.Authentication;
+using Microsoft.IdentityModel.JsonWebTokens;
+using KnownGitCfg = Microsoft.Git.CredentialManager.Constants.GitConfiguration;
 
 namespace Microsoft.AzureRepos
 {
-    public class AzureReposHostProvider : HostProvider
+    public class AzureReposHostProvider : HostProvider, IConfigurableComponent
     {
         private readonly IAzureDevOpsRestApi _azDevOps;
         private readonly IMicrosoftAuthentication _msAuth;
 
         public AzureReposHostProvider(ICommandContext context)
-            : this(context, new AzureDevOpsRestApi(context), new MicrosoftAuthentication(context)) { }
+            : this(context, new AzureDevOpsRestApi(context), new MicrosoftAuthentication(context))
+        {
+        }
 
-        public AzureReposHostProvider(ICommandContext context, IAzureDevOpsRestApi azDevOps, IMicrosoftAuthentication msAuth)
+        public AzureReposHostProvider(ICommandContext context, IAzureDevOpsRestApi azDevOps,
+            IMicrosoftAuthentication msAuth)
             : base(context)
         {
             EnsureArgument.NotNull(azDevOps, nameof(azDevOps));
@@ -27,7 +33,11 @@ namespace Microsoft.AzureRepos
 
         #region HostProvider
 
+        public override string Id => "azure-repos";
+
         public override string Name => "Azure Repos";
+
+        public override IEnumerable<string> SupportedAuthorityIds => MicrosoftAuthentication.AuthorityIds;
 
         public override bool IsSupported(InputArguments input)
         {
@@ -46,6 +56,8 @@ namespace Microsoft.AzureRepos
 
         public override async Task<ICredential> GenerateCredentialAsync(InputArguments input)
         {
+            ThrowIfDisposed();
+
             // We should not allow unencrypted communication and should inform the user
             if (StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "http"))
             {
@@ -53,6 +65,7 @@ namespace Microsoft.AzureRepos
             }
 
             Uri orgUri = UriHelpers.CreateOrganizationUri(input);
+            Uri remoteUri = input.GetRemoteUri();
 
             // Determine the MS authentication authority for this organization
             Context.Trace.WriteLine("Determining Microsoft Authentication Authority...");
@@ -61,12 +74,15 @@ namespace Microsoft.AzureRepos
 
             // Get an AAD access token for the Azure DevOps SPS
             Context.Trace.WriteLine("Getting Azure AD access token...");
-            string accessToken = await _msAuth.GetAccessTokenAsync(
+            JsonWebToken accessToken = await _msAuth.GetAccessTokenAsync(
                 authAuthority,
                 AzureDevOpsConstants.AadClientId,
                 AzureDevOpsConstants.AadRedirectUri,
-                AzureDevOpsConstants.AadResourceId);
-            Context.Trace.WriteLineSecrets("Acquired access token. Token='{0}'", new object[] {accessToken});
+                AzureDevOpsConstants.AadResourceId,
+                remoteUri,
+                null);
+            string atUser = accessToken.GetAzureUserName();
+            Context.Trace.WriteLineSecrets($"Acquired Azure access token. User='{atUser}' Token='{{0}}'", new object[] {accessToken.EncodedToken});
 
             // Ask the Azure DevOps instance to create a new PAT
             var patScopes = new[]
@@ -84,14 +100,54 @@ namespace Microsoft.AzureRepos
             return new GitCredential(Constants.PersonalAccessTokenUserName, pat);
         }
 
-        protected override void Dispose(bool disposing)
+        protected override void ReleaseManagedResources()
         {
-            if (disposing)
+            _azDevOps.Dispose();
+            base.ReleaseManagedResources();
+        }
+
+        #endregion
+
+        #region IConfigurationComponent
+
+        string IConfigurableComponent.Name => "Azure Repos provider";
+
+        public Task ConfigureAsync(
+            IEnvironment environment, EnvironmentVariableTarget environmentTarget,
+            IGitConfiguration configuration, GitConfigurationLevel configurationLevel)
+        {
+            string useHttpPathKey = $"{KnownGitCfg.Credential.SectionName}.https://dev.azure.com.{KnownGitCfg.Credential.UseHttpPath}";
+
+            using (IGitConfiguration targetConfig = configuration.GetFilteredConfiguration(configurationLevel))
             {
-                _azDevOps.Dispose();
+                if (targetConfig.TryGetValue(useHttpPathKey, out string currentValue) && currentValue.IsTruthy())
+                {
+                    Context.Trace.WriteLine("Git configuration 'credential.useHttpPath' is already set to 'true' for https://dev.azure.com.");
+                }
+                else
+                {
+                    Context.Trace.WriteLine("Setting Git configuration 'credential.useHttpPath' to 'true' for https://dev.azure.com...");
+                    targetConfig.SetValue(useHttpPathKey, "true");
+                }
             }
 
-            base.Dispose(disposing);
+            return Task.CompletedTask;
+        }
+
+        public Task UnconfigureAsync(
+            IEnvironment environment, EnvironmentVariableTarget environmentTarget,
+            IGitConfiguration configuration, GitConfigurationLevel configurationLevel)
+        {
+            string useHttpPathKey = $"{KnownGitCfg.Credential.SectionName}.https://dev.azure.com.{KnownGitCfg.Credential.UseHttpPath}";
+
+            Context.Trace.WriteLine("Clearing Git configuration 'credential.useHttpPath' for https://dev.azure.com...");
+
+            using (IGitConfiguration targetConfig = configuration.GetFilteredConfiguration(configurationLevel))
+            {
+                targetConfig.DeleteEntry(useHttpPathKey);
+            }
+
+            return Task.CompletedTask;
         }
 
         #endregion

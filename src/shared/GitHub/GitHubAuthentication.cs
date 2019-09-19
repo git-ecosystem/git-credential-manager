@@ -19,6 +19,11 @@ namespace GitHub
 
     public class GitHubAuthentication : AuthenticationBase, IGitHubAuthentication
     {
+        public static readonly string[] AuthorityIds =
+        {
+            "github",
+        };
+
         public GitHubAuthentication(ICommandContext context)
             : base(context) {}
 
@@ -44,7 +49,7 @@ namespace GitHub
             {
                 EnsureTerminalPromptsEnabled();
 
-                Context.Terminal.WriteLine("Enter credentials for '{0}'...", targetUri);
+                Context.Terminal.WriteLine("Enter GitHub credentials for '{0}'...", targetUri);
 
                 userName = Context.Terminal.Prompt("Username");
                 password = Context.Terminal.PromptSecret("Password");
@@ -102,7 +107,7 @@ namespace GitHub
                 // We currently only have a helper on Windows. If we failed to find the helper we should warn the user.
                 if (PlatformUtils.IsWindows())
                 {
-                    Context.StdError.WriteLine($"warning: missing '{helperName}' from installation.");
+                    Context.Streams.Error.WriteLine($"warning: missing '{helperName}' from installation.");
                 }
 
                 return false;

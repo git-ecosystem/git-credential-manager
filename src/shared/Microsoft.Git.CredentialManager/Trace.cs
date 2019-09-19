@@ -10,7 +10,7 @@ namespace Microsoft.Git.CredentialManager
     /// <summary>
     /// Represents the application's tracing system.
     /// </summary>
-    public interface ITrace
+    public interface ITrace : IDisposable
     {
         /// <summary>
         /// True if any listeners have been added to the tracing system.
@@ -118,7 +118,7 @@ namespace Microsoft.Git.CredentialManager
             [System.Runtime.CompilerServices.CallerMemberName] string memberName = "");
     }
 
-    public class Trace : ITrace, IDisposable
+    public class Trace : DisposableObject, ITrace
     {
         private const string SecretMask = "********";
 
@@ -140,6 +140,8 @@ namespace Microsoft.Git.CredentialManager
 
         public void AddListener(TextWriter listener)
         {
+            ThrowIfDisposed();
+
             lock (_writersLock)
             {
                 // Try not to add the same listener more than once
@@ -150,19 +152,10 @@ namespace Microsoft.Git.CredentialManager
             }
         }
 
-        ~Trace()
-        {
-            Dispose(true);
-        }
-
-        public void Dispose()
-        {
-            Dispose(false);
-            GC.SuppressFinalize(this);
-        }
-
         public void Flush()
         {
+            ThrowIfDisposed();
+
             lock (_writersLock)
             {
                 foreach (var writer in _writers)
@@ -240,6 +233,8 @@ namespace Microsoft.Git.CredentialManager
             [System.Runtime.CompilerServices.CallerLineNumber] int lineNumber = 0,
             [System.Runtime.CompilerServices.CallerMemberName] string memberName = "")
         {
+            ThrowIfDisposed();
+
             lock (_writersLock)
             {
                 if (_writers.Count == 0)
@@ -277,26 +272,25 @@ namespace Microsoft.Git.CredentialManager
             WriteLine(message, filePath, lineNumber, memberName);
         }
 
-        private void Dispose(bool finalizing)
+        protected override void ReleaseManagedResources()
         {
-            if (!finalizing)
+            lock (_writersLock)
             {
-                lock (_writersLock)
+                try
                 {
-                    try
+                    for (int i = 0; i < _writers.Count; i += 1)
                     {
-                        for (int i = 0; i < _writers.Count; i += 1)
+                        using (var writer = _writers[i])
                         {
-                            using (var writer = _writers[i])
-                            {
-                                _writers.Remove(writer);
-                            }
+                            _writers.Remove(writer);
                         }
                     }
-                    catch
-                    { /* squelch */ }
                 }
+                catch
+                { /* squelch */ }
             }
+
+            base.ReleaseManagedResources();
         }
 
         private static string FormatText(string message, string filePath, int lineNumber, string memberName)

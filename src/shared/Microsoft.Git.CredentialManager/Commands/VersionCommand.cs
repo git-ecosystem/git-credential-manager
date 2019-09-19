@@ -21,7 +21,7 @@ namespace Microsoft.Git.CredentialManager.Commands
         {
             string appHeader = Constants.GetProgramHeader();
 
-            context.StdOut.WriteLine(appHeader);
+            context.Streams.Out.WriteLine(appHeader);
 
             return Task.CompletedTask;
         }
