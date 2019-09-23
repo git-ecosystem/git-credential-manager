@@ -1,4 +1,10 @@
 steps:
+- task: ms-vseng.MicroBuildTasks.30666190-6959-11e5-9f96-f56098202fef.MicroBuildSigningPlugin@2
+  displayName: Install signing plugin
+  condition: and(succeeded(), eq(variables['SignType'], 'real'))
+  inputs:
+    signType: '$(SignType)'
+
 - task: DotNetCoreInstaller@0
   displayName: Install .NET Core SDK 2.2.100
   inputs:
