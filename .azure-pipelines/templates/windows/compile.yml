@@ -46,3 +46,4 @@ steps:
     configuration: 'Windows$(configuration)'
     otherConsoleOptions: '/Framework:.NETFramework,Version=v4.6.1'
     testRunTitle: 'Unit tests - helpers (Windows)'
+  continueOnError: true

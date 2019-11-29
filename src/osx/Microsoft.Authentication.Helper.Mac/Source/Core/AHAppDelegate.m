@@ -2,6 +2,7 @@
 // Licensed under the MIT license.
 
 #import "AHAppDelegate.h"
+#import <Cocoa/Cocoa.h>
 
 extern const NSString* kErrorDomain;
 
@@ -21,7 +22,10 @@ extern const NSString* kErrorDomain;
 
 -(void)run
 {
-    NSApplication * application = [NSApplication sharedApplication];
+    NSApplication *application = [NSApplication sharedApplication];
+    NSMenu *mainMenu = [self createMainMenu];
+    [application setMainMenu:mainMenu];
+
     [self setApplication:application];
     [application setDelegate:self];
     [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
@@ -55,6 +59,35 @@ extern const NSString* kErrorDomain;
                                            data2:0];
 
     [[self application] postEvent:event atStart:NO];
+}
+
+-(NSMenu*) createMainMenu
+{
+    NSMenu *mainMenu = [NSMenu new];
+
+    // Create top-level menu items
+    NSMenuItem *appMenuItem = [NSMenuItem new];
+    NSMenuItem *editMenuItem = [NSMenuItem new];
+    [mainMenu addItem:appMenuItem];
+    [mainMenu addItem:editMenuItem];
+
+    // Create app menu items
+    NSMenu *appMenu = [NSMenu new];
+    [appMenuItem setSubmenu:appMenu];
+    [appMenu addItemWithTitle:@"Quit"
+                       action:@selector(terminate:)
+                keyEquivalent:@"q"];
+
+    // Create edit menu items
+    NSMenu *editMenu = [[NSMenu alloc] initWithTitle:@"Edit"];
+    [editMenuItem setSubmenu:editMenu];
+    [editMenu addItemWithTitle:@"Cut" action:@selector(cut:) keyEquivalent:@"x"];
+    [editMenu addItemWithTitle:@"Copy" action:@selector(copy:) keyEquivalent:@"c"];
+    [editMenu addItemWithTitle:@"Paste" action:@selector(paste:) keyEquivalent:@"v"];
+    [editMenu addItemWithTitle:@"Delete" action:@selector(delete:) keyEquivalent:@""];
+    [editMenu addItemWithTitle:@"Select All" action:@selector(selectAll:) keyEquivalent:@"a"];
+
+    return mainMenu;
 }
 
 + (NSError*)runDelegate:(AHAppWorkBlock)completionBlock logger:(AHLogger*)logger
