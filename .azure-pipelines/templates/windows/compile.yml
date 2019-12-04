@@ -38,12 +38,13 @@ steps:
     otherConsoleOptions: '/Framework:.NETCoreApp,Version=2.1'
     testRunTitle: 'Unit tests - common (Windows)'
 
-- task: VSTest@2
-  displayName: Run helpers unit tests
-  inputs:
-    testAssemblyVer2: |
-      out\windows\*.Tests\bin\**\*.Tests.dll
-    configuration: 'Windows$(configuration)'
-    otherConsoleOptions: '/Framework:.NETFramework,Version=v4.6.1'
-    testRunTitle: 'Unit tests - helpers (Windows)'
-  continueOnError: true
+# Uncomment once Windows helpers have unit tests
+# - task: VSTest@2
+#   displayName: Run helpers unit tests
+#   inputs:
+#     testAssemblyVer2: |
+#       out\windows\*.Tests\bin\**\*.Tests.dll
+#     configuration: 'Windows$(configuration)'
+#     otherConsoleOptions: '/Framework:.NETFramework,Version=v4.6.1'
+#     testRunTitle: 'Unit tests - helpers (Windows)'
+

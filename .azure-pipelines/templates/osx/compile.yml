@@ -19,4 +19,4 @@ steps:
     projects: 'Git-Credential-Manager.sln'
     arguments: '--configuration=Mac$(configuration)'
     publishTestResults: true
-    #testRunTitle: 'Unit tests - common (macOS)' # option not yet available
+    testRunTitle: 'Unit tests - common (macOS)'
