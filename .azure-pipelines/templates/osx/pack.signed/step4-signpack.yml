@@ -30,28 +30,8 @@ steps:
       Remove-Item $dir\gcmcorepkg.zip -Force
     displayName: 'Unzip signed package file'
 
-  - task: DownloadPipelineArtifact@1
-    displayName: Download signed payload
-    inputs:
-      buildType: 'current'
-      artifactName: 'tmp.macpayload_signed'
-      downloadPath: '$(Build.StagingDirectory)\payload'
-
-  - task: DownloadPipelineArtifact@1
-    displayName: Download symbols
-    inputs:
-      buildType: 'current'
-      artifactName: 'tmp.macsymbols'
-      downloadPath: '$(Build.StagingDirectory)\symbols'
-
-  - script: |
-      xcopy "$(Build.StagingDirectory)\pkg\*.pkg" "$(Build.StagingDirectory)\publish\"
-      xcopy "$(Build.StagingDirectory)\payload"   "$(Build.StagingDirectory)\publish\payload\"
-      xcopy "$(Build.StagingDirectory)\symbols"   "$(Build.StagingDirectory)\publish\payload.sym\"
-    displayName: Prepare final build artifact
-
   - task: PublishPipelineArtifact@0
-    displayName: Publish signed installer artifacts
+    displayName: Upload signed installer
     inputs:
-      artifactName: 'Installer.Mac.Signed'
-      targetPath: '$(Build.StagingDirectory)\publish'
+      artifactName: 'tmp.macinstaller_signed'
+      targetPath: '$(Build.StagingDirectory)\pkg'
