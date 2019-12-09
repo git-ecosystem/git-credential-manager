@@ -47,3 +47,12 @@ jobs:
     name: VSEng-MicroBuildVS2017
   steps:
   - template: templates/osx/pack.signed/step4-signpack.yml
+
+- job: osx_step5
+  displayName: macOS (Prepare for distribution)
+  dependsOn: osx_step4
+  condition: succeeded()
+  pool:
+    vmImage: macOS 10.13
+  steps:
+  - template: templates/osx/pack.signed/step5-dist.yml

@@ -1,0 +1,36 @@
+steps:
+  - task: DownloadPipelineArtifact@1
+    displayName: Download signed installer
+    inputs:
+      buildType: 'current'
+      artifactName: 'tmp.macinstaller_signed'
+      downloadPath: '$(Build.StagingDirectory)\pkg'
+
+  - task: DownloadPipelineArtifact@1
+    displayName: Download signed payload
+    inputs:
+      buildType: 'current'
+      artifactName: 'tmp.macpayload_signed'
+      downloadPath: '$(Build.StagingDirectory)\payload'
+
+  - task: DownloadPipelineArtifact@1
+    displayName: Download symbols
+    inputs:
+      buildType: 'current'
+      artifactName: 'tmp.macsymbols'
+      downloadPath: '$(Build.StagingDirectory)\symbols'
+
+  - script: src/osx/SignFiles.Mac/notarize-pkg.sh -id "$(AppleId)" -p "$(AppleIdPassword)" -pkg '$(Build.StagingDirectory)\pkg\*.pkg'
+    displayName: Notarize and staple installer package
+
+  - script: |
+      cp "$(Build.StagingDirectory)/pkg/*.pkg" "$(Build.StagingDirectory)/publish/"
+      cp "$(Build.StagingDirectory)/payload"   "$(Build.StagingDirectory)/publish/payload/"
+      cp "$(Build.StagingDirectory)/symbols"   "$(Build.StagingDirectory)/publish/payload.sym/"
+    displayName: Prepare final build artifact
+
+  - task: PublishPipelineArtifact@0
+    displayName: Publish signed installer artifacts
+    inputs:
+      artifactName: 'Installer.Mac.Signed'
+      targetPath: '$(Build.StagingDirectory)/publish'
