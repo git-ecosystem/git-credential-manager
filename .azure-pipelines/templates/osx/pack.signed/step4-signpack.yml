@@ -8,7 +8,7 @@ steps:
     displayName: Download unsigned package
     inputs:
       buildType: 'current'
-      artifactName: 'tmp.macpkg_unsigned'
+      artifactName: 'tmp.macinstaller_unsigned'
       downloadPath: '$(Build.StagingDirectory)\pkg'
 
   - powershell: |
