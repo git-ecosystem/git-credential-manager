@@ -24,5 +24,5 @@ steps:
   - task: PublishPipelineArtifact@0
     displayName: Upload unsigned package
     inputs:
-      artifactName: 'tmp.macpkg_unsigned'
+      artifactName: 'tmp.macinstaller_unsigned'
       targetPath: '$(Build.StagingDirectory)/pkg/gcmcore-osx-$(GitBuildVersion).pkg'

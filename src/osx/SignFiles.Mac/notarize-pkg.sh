@@ -75,7 +75,7 @@ if [[ -z $arg_Password ]]; then
     exit 1
 fi
 
-if [[ ! -f "$arg_PackagePath" ]]; then
+if [[ ! -f $arg_PackagePath ]]; then
     echo "[ERROR] Must supply valid / non-empty path to package!"
     exit 1
 fi
