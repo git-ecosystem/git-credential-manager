@@ -62,13 +62,28 @@ namespace Microsoft.Git.CredentialManager.Authentication
             return resultDict;
         }
 
-        protected void EnsureTerminalPromptsEnabled()
+        protected void ThrowIfUserInteractionDisabled()
+        {
+            if (!Context.Settings.IsInteractionAllowed)
+            {
+                string envName = Constants.EnvironmentVariables.GcmInteractive;
+                string cfgName = string.Format("{0}.{1}",
+                    Constants.GitConfiguration.Credential.SectionName,
+                    Constants.GitConfiguration.Credential.Interactive);
+
+                Context.Trace.WriteLine($"{envName} / {cfgName} is false/never; user interactivity has been disabled.");
+
+                throw new InvalidOperationException("Cannot prompt because user interactivity has been disabled.");
+            }
+        }
+
+        protected void ThrowIfTerminalPromptsDisabled()
         {
             if (!Context.Settings.IsTerminalPromptsEnabled)
             {
                 Context.Trace.WriteLine($"{Constants.EnvironmentVariables.GitTerminalPrompts} is 0; terminal prompts have been disabled.");
 
-                throw new InvalidOperationException("Cannot show credential prompt because terminal prompts have been disabled.");
+                throw new InvalidOperationException("Cannot prompt because terminal prompts have been disabled.");
             }
         }
     }

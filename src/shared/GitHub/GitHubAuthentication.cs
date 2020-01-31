@@ -31,6 +31,8 @@ namespace GitHub
         {
             string userName, password;
 
+            ThrowIfUserInteractionDisabled();
+
             if (TryFindHelperExecutablePath(out string helperPath))
             {
                 IDictionary<string, string> resultDict = await InvokeHelperAsync(helperPath, "--prompt userpass", null);
@@ -47,7 +49,7 @@ namespace GitHub
             }
             else
             {
-                EnsureTerminalPromptsEnabled();
+                ThrowIfTerminalPromptsDisabled();
 
                 Context.Terminal.WriteLine("Enter GitHub credentials for '{0}'...", targetUri);
 
@@ -57,8 +59,11 @@ namespace GitHub
 
             return new GitCredential(userName, password);
         }
+
         public async Task<string> GetAuthenticationCodeAsync(Uri targetUri, bool isSms)
         {
+            ThrowIfUserInteractionDisabled();
+
             if (TryFindHelperExecutablePath(out string helperPath))
             {
                 IDictionary<string, string> resultDict = await InvokeHelperAsync(helperPath, "--prompt authcode", null);
@@ -72,7 +77,7 @@ namespace GitHub
             }
             else
             {
-                EnsureTerminalPromptsEnabled();
+                ThrowIfTerminalPromptsDisabled();
 
                 Context.Terminal.WriteLine("Two-factor authentication is enabled and an authentication code is required.");
 

@@ -56,6 +56,21 @@ namespace Microsoft.Git.CredentialManager.Tests.Authentication
         }
 
         [Fact]
+        public void BasicAuthentication_GetCredentials_NoInteraction_ThrowsException()
+        {
+            const string testResource = "https://example.com";
+
+            var context = new TestCommandContext
+            {
+                Settings = {IsInteractionAllowed = false},
+            };
+
+            var basicAuth = new BasicAuthentication(context);
+
+            Assert.Throws<InvalidOperationException>(() => basicAuth.GetCredentials(testResource));
+        }
+
+        [Fact]
         public void BasicAuthentication_GetCredentials_NoTerminalPrompts_ThrowsException()
         {
             const string testResource = "https://example.com";

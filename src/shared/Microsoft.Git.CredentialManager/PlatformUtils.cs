@@ -8,10 +8,10 @@ namespace Microsoft.Git.CredentialManager
     public static class PlatformUtils
     {
         /// <summary>
-        /// Determine if the current session is interactive (can display UI).
+        /// Determine if the current session has access to a desktop/can display UI.
         /// </summary>
-        /// <returns>True if the session is interactive, false otherwise.</returns>
-        public static bool IsInteractiveSession()
+        /// <returns>True if the session can display UI, false otherwise.</returns>
+        public static bool IsDesktopSession()
         {
             return Environment.UserInteractive;
         }

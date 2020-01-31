@@ -28,7 +28,8 @@ int main(int argc, const char * argv[]) {
 
     @autoreleasepool {
         int exitCode;
-        NSError* error;
+        NSError *error;
+        NSString *output;
 
         AHLogger *logger = [[AHLogger alloc] init];
 
@@ -97,24 +98,32 @@ int main(int argc, const char * argv[]) {
         NSString* clientId    = [configs objectForKey:@"clientId"];
         NSString* resource    = [configs objectForKey:@"resource"];
         NSString* redirectUri = [configs objectForKey:@"redirectUri"];
+        NSString* interactive = [configs objectForKey:@"interactive"];
 
-        NSString *accessToken = [AHGenerateAccessToken generateAccessTokenWithAuthority:authority
-                                                                               clientId:clientId
-                                                                               resource:resource
-                                                                            redirectUri:redirectUri
-                                                                                  error:&error
-                                                                                 logger:logger];
-
-        NSString* output;
-
-        if (error == nil && accessToken != nil)
+        // We only perform interactive flows
+        if (isTruthy(interactive))
         {
-            output = [NSString stringWithFormat:@"accessToken=%@\n", accessToken];
-            exitCode = 0;
+            NSString *accessToken = [AHGenerateAccessToken generateAccessTokenWithAuthority:authority
+                                                                                   clientId:clientId
+                                                                                   resource:resource
+                                                                                redirectUri:redirectUri
+                                                                                      error:&error
+                                                                                     logger:logger];
+
+            if (error == nil && accessToken != nil)
+            {
+                output = [NSString stringWithFormat:@"accessToken=%@\n", accessToken];
+                exitCode = 0;
+            }
+            else
+            {
+                output = [NSString stringWithFormat:@"error=%@\n", [error description]];
+                exitCode = -1;
+            }
         }
         else
         {
-            output = [NSString stringWithFormat:@"error=%@\n", [error description]];
+            output = @"error=Interactivity is required but has been disabled.\n";
             exitCode = -1;
         }
 
