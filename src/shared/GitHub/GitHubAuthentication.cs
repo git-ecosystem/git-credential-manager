@@ -63,7 +63,9 @@ namespace GitHub
 
             // If the GitHub auth stack doesn't support flows such as RFC 8628 and we do not have
             // an interactive desktop session, we cannot offer OAuth authentication.
-            if ((modes & AuthenticationModes.OAuth) != 0 && !Context.IsDesktopSession && !GitHubConstants.IsOAuthDeviceAuthSupported)
+            if ((modes & AuthenticationModes.OAuth) != 0
+                && !Context.SessionManager.IsDesktopSession
+                && !GitHubConstants.IsOAuthDeviceAuthSupported)
             {
                 Context.Trace.WriteLine("Ignoring OAuth authentication mode because we are not in an interactive desktop session. GitHub does not support RFC 8628.");
 
@@ -189,7 +191,7 @@ namespace GitHub
             var oauthClient = new GitHubOAuth2Client(HttpClient, Context.Settings, targetUri);
 
             // If we have a desktop session try authentication using the user's default web browser
-            if (Context.IsDesktopSession)
+            if (Context.SessionManager.IsDesktopSession)
             {
                 var browserOptions = new OAuth2WebBrowserOptions
                 {

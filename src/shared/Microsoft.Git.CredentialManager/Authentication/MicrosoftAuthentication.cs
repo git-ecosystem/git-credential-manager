@@ -119,7 +119,7 @@ namespace Microsoft.Git.CredentialManager.Authentication
             {
 #if NETFRAMEWORK
                 // If we're in an interactive session and on .NET Framework, let MSAL show the WinForms-based embeded UI
-                if (PlatformUtils.IsDesktopSession())
+                if (Context.SessionManager.IsDesktopSession)
                 {
                     result = await app.AcquireTokenInteractive(scopes)
                         .WithPrompt(Prompt.SelectAccount)
@@ -128,7 +128,7 @@ namespace Microsoft.Git.CredentialManager.Authentication
                 }
 #elif NETSTANDARD
                 // MSAL requires the application redirect URI is a loopback address to use the System WebView
-                if (Context.IsDesktopSession && app.IsSystemWebViewAvailable && redirectUri.IsLoopback)
+                if (Context.SessionManager.IsDesktopSession && app.IsSystemWebViewAvailable && redirectUri.IsLoopback)
                 {
                     result = await app.AcquireTokenInteractive(scopes)
                         .WithPrompt(Prompt.SelectAccount)

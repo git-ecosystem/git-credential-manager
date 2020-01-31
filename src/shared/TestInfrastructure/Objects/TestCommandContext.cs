@@ -14,7 +14,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
         {
             Streams = new TestStandardStreams();
             Terminal = new TestTerminal();
-            IsDesktopSession = true;
+            SessionManager = new TestSessionManager();
             Trace = new NullTrace();
             FileSystem = new TestFileSystem();
             CredentialStore = new TestCredentialStore();
@@ -29,7 +29,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
         public TestSettings Settings { get; set; }
         public TestStandardStreams Streams { get; set; }
         public TestTerminal Terminal { get; set; }
-        public bool IsDesktopSession { get; set; }
+        public TestSessionManager SessionManager { get; set; }
         public ITrace Trace { get; set; }
         public TestFileSystem FileSystem { get; set; }
         public TestCredentialStore CredentialStore { get; set; }
@@ -46,7 +46,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
 
         ITerminal ICommandContext.Terminal => Terminal;
 
-        bool ICommandContext.IsDesktopSession => IsDesktopSession;
+        ISessionManager ICommandContext.SessionManager => SessionManager;
 
         ITrace ICommandContext.Trace => Trace;
 

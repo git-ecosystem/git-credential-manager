@@ -11,6 +11,9 @@ namespace Microsoft.Git.CredentialManager.Interop.MacOS.Native
         private const string SecurityFrameworkLib = "/System/Library/Frameworks/Security.framework/Security";
 
         [DllImport(SecurityFrameworkLib, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int SessionGetInfo(int session, out int sessionId, out SessionAttributeBits attributes);
+
+        [DllImport(SecurityFrameworkLib, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
         public static extern int SecKeychainAddGenericPassword(
             IntPtr keychain,
             uint serviceNameLength,
@@ -62,6 +65,8 @@ namespace Microsoft.Git.CredentialManager.Interop.MacOS.Native
             IntPtr attrList, // SecKeychainAttributeList*
             IntPtr data);
 
+        public const int CallerSecuritySession = -1;
+
         // https://developer.apple.com/documentation/security/1542001-security_framework_result_codes
         public const int OK = 0;
         public const int ErrorSecNoSuchKeychain = -25294;
@@ -99,6 +104,15 @@ namespace Microsoft.Git.CredentialManager.Interop.MacOS.Native
                     throw new InteropException(defaultErrorMessage, error);
             }
         }
+    }
+
+    [Flags]
+    public enum SessionAttributeBits
+    {
+        SessionIsRoot = 0x0001,
+        SessionHasGraphicAccess = 0x0010,
+        SessionHasTty = 0x0020,
+        SessionIsRemote = 0x1000,
     }
 
     [StructLayout(LayoutKind.Sequential)]
