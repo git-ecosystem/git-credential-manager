@@ -66,6 +66,7 @@ namespace Microsoft.Git.CredentialManager.Authentication
                 ["resource"] = resource,
                 ["remoteUrl"] = remoteUri.ToString(),
                 ["username"] = userName,
+                ["interactive"] = Context.Settings.IsInteractionAllowed.ToString()
             };
 
             IDictionary<string, string> resultDict = await InvokeHelperAsync(helperPath, null, inputDict);
@@ -104,18 +105,22 @@ namespace Microsoft.Git.CredentialManager.Authentication
             //
             // On other runtimes (e.g., .NET Core) MSAL only supports the system webview flow (launch the user's browser),
             // and the device-code flows.
-            // 
+            //
             //     Note: .NET Core 3 allows using WinForms when run on Windows but MSAL does not yet support this.
             //
             // The system webview flow requires that the redirect URI is a loopback address, and that we are in an interactive session.
             //
             // The device code flow has no limitations other than a way to communicate to the user the code required to authenticate.
             //
+
+            // If the user has disabled interaction all we can do is fail at this point
+            ThrowIfUserInteractionDisabled();
+
             if (result is null)
             {
 #if NETFRAMEWORK
                 // If we're in an interactive session and on .NET Framework, let MSAL show the WinForms-based embeded UI
-                if (PlatformUtils.IsInteractiveSession())
+                if (PlatformUtils.IsDesktopSession())
                 {
                     result = await app.AcquireTokenInteractive(scopes)
                         .WithPrompt(Prompt.SelectAccount)
@@ -124,7 +129,7 @@ namespace Microsoft.Git.CredentialManager.Authentication
                 }
 #elif NETSTANDARD
                 // MSAL requires the application redirect URI is a loopback address to use the System WebView
-                if (PlatformUtils.IsInteractiveSession() && app.IsSystemWebViewAvailable && redirectUri.IsLoopback)
+                if (PlatformUtils.IsDesktopSession() && app.IsSystemWebViewAvailable && redirectUri.IsLoopback)
                 {
                     result = await app.AcquireTokenInteractive(scopes)
                         .WithPrompt(Prompt.SelectAccount)
@@ -135,7 +140,7 @@ namespace Microsoft.Git.CredentialManager.Authentication
                 // If we do not have a way to show a GUI, use device code flow over the TTY
                 else
                 {
-                    EnsureTerminalPromptsEnabled();
+                    ThrowIfTerminalPromptsDisabled();
 
                     result = await app.AcquireTokenWithDeviceCode(scopes, ShowDeviceCodeInTty).ExecuteAsync();
                 }

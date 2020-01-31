@@ -36,6 +36,15 @@ namespace Microsoft.Git.CredentialManager
         bool IsTerminalPromptsEnabled { get; }
 
         /// <summary>
+        /// True if it is permitted to interact with the user, false otherwise.
+        /// </summary>
+        /// <remarks>
+        /// If this value is false but interactivity is required to continue execution, the caller should
+        /// abort the operation and report failure.
+        /// </remarks>
+        bool IsInteractionAllowed { get; }
+
+        /// <summary>
         /// Get if tracing has been enabled, returning trace setting value in the out parameter.
         /// </summary>
         /// <param name="value">Trace setting value.</param>
@@ -104,6 +113,44 @@ namespace Microsoft.Git.CredentialManager
         public bool IsDebuggingEnabled => _environment.Variables.GetBooleanyOrDefault(KnownEnvars.GcmDebug, false);
 
         public bool IsTerminalPromptsEnabled => _environment.Variables.GetBooleanyOrDefault(KnownEnvars.GitTerminalPrompts, true);
+
+        public bool IsInteractionAllowed
+        {
+            get
+            {
+                const bool defaultValue = true;
+                if (TryGetSetting(KnownEnvars.GcmInteractive, GitCredCfg.SectionName, GitCredCfg.Interactive, out string value))
+                {
+                    /*
+                     * COMPAT: In the previous GCM we accepted the values 'auto', 'never', and 'always'.
+                     *
+                     * We've slightly changed the behaviour of this setting in GCM Core to essentially
+                     * remove the 'always' option. The table below outlines the changes:
+                     *
+                     * ┌──────────┬───────────────────────────┬────────────────────┐
+                     * │ Value(s) │ Old meaning               │ New meaning        │
+                     * ┝━━━━━━━━━━┿━━━━━━━━━━━━━━━━━━━━━━━━━━━┿━━━━━━━━━━━━━━━━━━━━┥
+                     * │ auto     │ Prompt if required        │ [unchanged]        │
+                     * ├──────────┼───────────────────────────┼────────────────────┤
+                     * │ never    │ Never prompt ─ fail if    │ [unchanged]        │
+                     * │ false    │ interaction is required   │                    │
+                     * ├──────────┼───────────────────────────┼────────────────────┤
+                     * │ always   │ Always prompt ─ don't use │ Prompt if required │
+                     * │ force    │ cached credentials        │                    │
+                     * │ true     │                           │                    │
+                     * └──────────┴───────────────────────────┴────────────────────┘
+                     */
+                    if (StringComparer.OrdinalIgnoreCase.Equals("never", value))
+                    {
+                        return false;
+                    }
+
+                    return value.ToBooleanyOrDefault(defaultValue);
+                }
+
+                return defaultValue;
+            }
+        }
 
         public bool GetTracingEnabled(out string value) => _environment.Variables.TryGetValue(KnownEnvars.GcmTrace, out value) && !value.IsFalsey();
 

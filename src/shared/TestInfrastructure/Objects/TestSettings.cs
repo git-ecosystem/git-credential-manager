@@ -10,6 +10,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
 
         public bool IsTerminalPromptsEnabled { get; set; } = true;
 
+        public bool IsInteractionAllowed { get; set; } = true;
+
         public string Trace { get; set; }
 
         public bool IsSecretTracingEnabled { get; set; }
@@ -37,6 +39,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
         bool ISettings.IsDebuggingEnabled => IsDebuggingEnabled;
 
         bool ISettings.IsTerminalPromptsEnabled => IsTerminalPromptsEnabled;
+
+        bool ISettings.IsInteractionAllowed => IsInteractionAllowed;
 
         bool ISettings.GetTracingEnabled(out string value)
         {

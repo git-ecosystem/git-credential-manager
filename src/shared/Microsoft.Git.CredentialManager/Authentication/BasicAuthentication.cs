@@ -30,7 +30,8 @@ namespace Microsoft.Git.CredentialManager.Authentication
         {
             EnsureArgument.NotNullOrWhiteSpace(resource, nameof(resource));
 
-            EnsureTerminalPromptsEnabled();
+            ThrowIfUserInteractionDisabled();
+            ThrowIfTerminalPromptsDisabled();
 
             Context.Terminal.WriteLine("Enter basic credentials for '{0}':", resource);
 
