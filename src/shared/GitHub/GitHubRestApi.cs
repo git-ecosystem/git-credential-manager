@@ -46,8 +46,6 @@ namespace GitHub
             EnsureArgument.AbsoluteUri(targetUri, nameof(targetUri));
             EnsureArgument.NotNull(scopes, nameof(scopes));
 
-            string base64Cred = new GitCredential(username, password).ToBase64String();
-
             Uri requestUri = GetAuthenticationRequestUri(targetUri);
 
             _context.Trace.WriteLine($"HTTP: POST {requestUri}");
@@ -56,7 +54,7 @@ namespace GitHub
             {
                 // Set the request content as well as auth and 2FA headers
                 request.Content = content;
-                request.Headers.Authorization = new AuthenticationHeaderValue(Constants.Http.WwwAuthenticateBasicScheme, base64Cred);
+                request.AddBasicAuthenticationHeader(username, password);
                 if (!string.IsNullOrWhiteSpace(authenticationCode))
                 {
                     request.Headers.Add(GitHubConstants.GitHubOptHeader, authenticationCode);

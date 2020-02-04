@@ -3,11 +3,37 @@
 using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Web;
 
 namespace Microsoft.Git.CredentialManager
 {
     public static class UriExtensions
     {
+        public static IDictionary<string, string> GetQueryParameters(this Uri uri)
+        {
+            var dict = new Dictionary<string, string>();
+
+            string[] queryParts = uri.Query.TrimStart('?').Split('&');
+            foreach (var queryPart in queryParts)
+            {
+                if (string.IsNullOrWhiteSpace(queryPart)) continue;
+
+                string[] parts = queryPart.Split('=');
+
+                var key = HttpUtility.UrlDecode(parts[0]);
+
+                string value = null;
+                if (parts.Length > 1)
+                {
+                    value = HttpUtility.UrlDecode(parts[1]);
+                }
+
+                dict[key] = value;
+            }
+
+            return dict;
+        }
+
         public static bool TryGetUserInfo(this Uri uri, out string userName, out string password)
         {
             EnsureArgument.NotNull(uri, nameof(uri));
