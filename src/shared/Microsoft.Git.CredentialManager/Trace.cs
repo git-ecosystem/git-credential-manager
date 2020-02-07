@@ -2,8 +2,10 @@
 // Licensed under the MIT license.
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 
 namespace Microsoft.Git.CredentialManager
 {
@@ -330,5 +332,16 @@ namespace Microsoft.Git.CredentialManager
 
             return text;
         }
+    }
+
+    public class DebugTraceWriter : TextWriter
+    {
+        public override Encoding Encoding => Encoding.UTF8;
+
+        public override void Write(char value) => Debug.Write(value);
+
+        public override void Write(string value) => Debug.Write(value);
+
+        public override void WriteLine(string value) => Debug.WriteLine(value);
     }
 }
