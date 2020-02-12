@@ -9,6 +9,14 @@ namespace Microsoft.Git.CredentialManager.Interop.Windows
 {
     public class WindowsSystemPrompts : ISystemPrompts
     {
+        private IntPtr _parentHwd = IntPtr.Zero;
+
+        public object ParentWindowId
+        {
+            get => _parentHwd.ToString();
+            set => _parentHwd = ConvertUtils.TryToInt32(value, out int ptr) ? new IntPtr(ptr) : IntPtr.Zero;
+        }
+
         public bool ShowCredentialPrompt(string resource, string userName, out ICredential credential)
         {
             EnsureArgument.NotNullOrWhiteSpace(resource, nameof(resource));
@@ -19,7 +27,7 @@ namespace Microsoft.Git.CredentialManager.Interop.Windows
             {
                 BannerArt = IntPtr.Zero,
                 CaptionText = "Git Credential Manager", // TODO: make this a parameter?
-                Parent = IntPtr.Zero, // TODO: get the parent window handle
+                Parent = _parentHwd,
                 MessageText = message,
                 Size = Marshal.SizeOf(typeof(CredUi.CredentialUiInfo))
             };

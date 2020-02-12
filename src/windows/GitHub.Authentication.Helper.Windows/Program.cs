@@ -23,7 +23,8 @@ namespace GitHub.Authentication.Helper
                 }
                 else
                 {
-                    var prompts = new AuthenticationPrompts(gui);
+                    IntPtr parentHwnd = GetParentWindowHandle();
+                    var prompts = new AuthenticationPrompts(gui, parentHwnd);
                     var resultDict = new Dictionary<string, string>();
 
                     if (!TryGetArgument(args, "--prompt", out string promptType))
@@ -64,6 +65,12 @@ namespace GitHub.Authentication.Helper
                 Console.Out.WriteLine(e.Message);
                 Environment.Exit(-1);
             }
+        }
+
+        private static IntPtr GetParentWindowHandle()
+        {
+            string hwndStr = Environment.GetEnvironmentVariable(Constants.EnvironmentVariables.GcmParentWindow);
+            return ConvertUtils.TryToInt32(hwndStr, out int ptr) ? new IntPtr(ptr) : IntPtr.Zero;
         }
 
         private static bool TryGetArgument(string[] args, string name, out string value)

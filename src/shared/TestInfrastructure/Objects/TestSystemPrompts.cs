@@ -8,6 +8,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
     {
         public Func<string, string, ICredential> CredentialPrompt { get; set; } = (resource, user) => null;
 
+        public object ParentWindowId { get; set; }
+
         public bool ShowCredentialPrompt(string resource, string userName, out ICredential credential)
         {
             credential = CredentialPrompt(resource, userName);

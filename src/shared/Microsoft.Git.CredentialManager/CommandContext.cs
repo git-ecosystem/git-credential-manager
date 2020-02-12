@@ -109,6 +109,9 @@ namespace Microsoft.Git.CredentialManager
             Settings          = new Settings(Environment, Git, repoPath);
             HttpClientFactory = new HttpClientFactory(Trace, Settings, Streams);
             IsDesktopSession  = PlatformUtils.IsDesktopSession();
+
+            // Set the parent window handle/ID
+            SystemPrompts.ParentWindowId = Settings.ParentWindowId;
         }
 
         #region ICommandContext
