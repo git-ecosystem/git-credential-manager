@@ -12,10 +12,10 @@ steps:
       packageType: sdk
       version: '2.2.100'
 
-  - script: dotnet tool install --tool-path './.tmp' nbgv
+  - script: dotnet tool install --global nbgv
     displayName: Install Nerdbank.GitVersioning tool
 
-  - script: ./.tmp/nbgv cloud --common-vars
+  - script: nbgv cloud --common-vars
     displayName: Set version variables
 
   - script: src/osx/Installer.Mac/pack.sh --payload='$(Build.StagingDirectory)/payload' --version='$(GitBuildVersion)' --output='$(Build.StagingDirectory)/pkg/gcmcore-osx-$(GitBuildVersion).pkg'
