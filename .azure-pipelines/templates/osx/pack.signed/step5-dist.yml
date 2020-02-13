@@ -28,7 +28,31 @@ steps:
       cp -f  "$(Build.StagingDirectory)"/pkg/*.pkg "$(Build.StagingDirectory)/publish/"
       cp -Rf "$(Build.StagingDirectory)/payload/"  "$(Build.StagingDirectory)/publish/payload/"
       cp -Rf "$(Build.StagingDirectory)/symbols/"  "$(Build.StagingDirectory)/publish/payload.sym/"
-    displayName: Prepare final build artifact
+    displayName: Prepare final build artifacts
+
+  - script: dotnet tool install --global nbgv
+    displayName: Install Nerdbank.GitVersioning tool
+
+  - script: nbgv cloud --common-vars
+    displayName: Set version variables
+
+  - task: ArchiveFiles@2
+    displayName: Create payload archive
+    inputs:
+      rootFolderOrFile: '$(Build.StagingDirectory)\publish\payload\'
+      includeRootFolder: false
+      archiveType: 'tar'
+      archiveFile: '$(Build.StagingDirectory)\publish\gcmcore-osx-$(GitBuildVersion).tar.gz'
+      replaceExistingArchive: true
+
+  - task: ArchiveFiles@2
+    displayName: Create symbol archive
+    inputs:
+      rootFolderOrFile: '$(Build.StagingDirectory)\publish\payload.sym\'
+      includeRootFolder: false
+      archiveType: 'tar'
+      archiveFile: '$(Build.StagingDirectory)\publish\symbols-osx.tar.gz'
+      replaceExistingArchive: true
 
   - task: PublishPipelineArtifact@0
     displayName: Publish signed installer artifacts
