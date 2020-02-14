@@ -30,6 +30,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
 
         public bool IsDeprecatedProxyConfiguration { get; set; }
 
+        public string ParentWindowId { get; set; }
+
         #region ISettings
 
         public string RepositoryPath { get; set; }
@@ -65,6 +67,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
             isDeprecatedConfiguration = IsDeprecatedProxyConfiguration;
             return ProxyConfiguration;
         }
+
+        string ISettings.ParentWindowId => ParentWindowId;
 
         #endregion
 

@@ -80,6 +80,11 @@ namespace Microsoft.Git.CredentialManager.Interop.Windows.Native
         public const int NotFound = 1168;
 
         /// <summary>
+        /// The operation was canceled by the user.
+        /// </summary>
+        public const int Cancelled = 1223;
+
+        /// <summary>
         /// A specified logon session does not exist. It may already have been terminated.
         /// </summary>
         public const int NoSuchLogonSession = 1312;
@@ -92,6 +97,17 @@ namespace Microsoft.Git.CredentialManager.Interop.Windows.Native
             }
 
             return Marshal.GetLastWin32Error();
+        }
+
+        /// <summary>
+        /// Throw an <see cref="InteropException"/> if <paramref name="succeeded"/> is not true.
+        /// </summary>
+        /// <param name="succeeded">Windows API return code.</param>
+        /// <param name="defaultErrorMessage">Default error message.</param>
+        /// <exception cref="InteropException">Throw if <paramref name="succeeded"/> is not true.</exception>
+        public static void ThrowIfError(bool succeeded, string defaultErrorMessage = "Unknown error.")
+        {
+            ThrowIfError(GetLastError(succeeded), defaultErrorMessage);
         }
 
         /// <summary>
