@@ -1,0 +1,44 @@
+﻿<UserControl x:Class="GitHub.UI.Controls.HorizontalShadowDivider"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d"
+             d:DesignWidth="200"
+             Width="200"
+             Opacity=".6"
+             Height="23.75"
+             Margin="0,0,0,25"
+             IsHitTestVisible="False"
+             VerticalAlignment="Top">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <SolidColorBrush x:Key="HorizontalDividerBorderBrush" Color="{DynamicResource ToolWindowBackground}" />
+            <RadialGradientBrush x:Key="HorizontalDividerShadowBrush">
+                <GradientStop Color="{DynamicResource ToolWindowText}"/>
+                <GradientStop Offset="1" Color="#00000000"/>
+            </RadialGradientBrush>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid IsHitTestVisible="False">
+        <Rectangle 
+            Height="1" 
+            Fill="{StaticResource HorizontalDividerBorderBrush}"
+            VerticalAlignment="Top"
+            IsHitTestVisible="False" />
+        <Rectangle 
+            x:Name="shadow"
+            Height="4" 
+            StrokeThickness="0" 
+            VerticalAlignment="Top" 
+            Margin="0,-2,0,0" 
+            Opacity="0.25"
+            IsHitTestVisible="False"
+            Fill="{StaticResource HorizontalDividerShadowBrush}">
+            <Rectangle.Clip>
+                <RectangleGeometry Rect="0,2,10000,2" />
+            </Rectangle.Clip>
+        </Rectangle>
+    </Grid>
+</UserControl>

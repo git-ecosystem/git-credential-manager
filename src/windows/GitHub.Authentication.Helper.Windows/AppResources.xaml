@@ -1,9 +1,0 @@
-﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
-    <ResourceDictionary.MergedDictionaries>
-        <ResourceDictionary Source="Assets/Styles.xaml" />
-        <ResourceDictionary Source="Assets/TextBlocks.xaml" />
-        <ResourceDictionary Source="Assets/ValidationMessage.xaml" />
-        <ResourceDictionary Source="Controls/Octicons/OcticonImage.xaml" />
-        <ResourceDictionary Source="Controls/Buttons/OcticonCircleButton.xaml" />
-    </ResourceDictionary.MergedDictionaries>
-</ResourceDictionary>

@@ -9,7 +9,7 @@ namespace GitHub
         public const string GitHubBaseUrlHost = "github.com";
         public const string GistBaseUrlHost = "gist." + GitHubBaseUrlHost;
 
-        public const string AuthHelperName = "GitHub.Authentication.Helper";
+        public const string AuthHelperName = "GitHub.UI";
 
         /// <summary>
         /// The GitHub required HTTP accepts header value

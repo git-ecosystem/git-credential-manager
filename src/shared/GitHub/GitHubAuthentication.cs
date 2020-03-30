@@ -82,6 +82,7 @@ namespace GitHub
                 var promptArgs = new StringBuilder("prompt");
                 if ((modes & AuthenticationModes.Basic) != 0) promptArgs.Append(" --basic");
                 if ((modes & AuthenticationModes.OAuth) != 0) promptArgs.Append(" --oauth");
+                if (!GitHubHostProvider.IsGitHubDotCom(targetUri)) promptArgs.AppendFormat(" --enterprise-url {0}", targetUri.ToString());
 
                 IDictionary<string, string> resultDict = await InvokeHelperAsync(helperPath, promptArgs.ToString(), null);
 

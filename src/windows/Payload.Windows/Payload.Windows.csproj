@@ -10,7 +10,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\shared\Git-Credential-Manager\Git-Credential-Manager.csproj" />
-    <ProjectReference Include="..\GitHub.Authentication.Helper.Windows\GitHub.Authentication.Helper.Windows.csproj" />
+    <ProjectReference Include="..\GitHub.UI.Windows\GitHub.UI.Windows.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -23,8 +23,7 @@
     <FilesToSign Include="
       $(OutDir)git-credential-manager-core.exe;
       $(OutDir)GitHub.dll;
-      $(OutDir)GitHub.UI.dll;
-      $(OutDir)GitHub.Authentication.Helper.exe;
+      $(OutDir)GitHub.UI.exe;
       $(OutDir)Microsoft.AzureRepos.dll;
       $(OutDir)Microsoft.Git.CredentialManager.dll;">
       <Authenticode>Microsoft400</Authenticode>
