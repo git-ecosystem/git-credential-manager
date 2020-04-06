@@ -16,7 +16,7 @@ jobs:
 - job: osx_step1
   displayName: macOS (Build & Layout)
   pool:
-    vmImage: macOS 10.13
+    vmImage: macOS-10.14
   steps:
   - template: templates/osx/compile.yml
   - template: templates/osx/pack.signed/step1-layout.yml
@@ -35,7 +35,7 @@ jobs:
   dependsOn: osx_step2
   condition: succeeded()
   pool:
-    vmImage: macOS 10.13
+    vmImage: macOS-10.14
   steps:
   - template: templates/osx/pack.signed/step3-pack.yml
 
@@ -53,6 +53,6 @@ jobs:
   dependsOn: osx_step4
   condition: succeeded()
   pool:
-    vmImage: macOS 10.13
+    vmImage: macOS-10.14
   steps:
   - template: templates/osx/pack.signed/step5-dist.yml
