@@ -16,7 +16,7 @@ jobs:
 - job: osx
   displayName: macOS
   pool:
-    vmImage: macOS 10.13
+    vmImage: macOS-10.14
   steps:
   - template: templates/osx/compile.yml
   - template: templates/osx/pack.unsigned.yml
