@@ -69,6 +69,11 @@ namespace Microsoft.Git.CredentialManager
             return split.Length > 0;
         }
 
+        public static string GetUserName(this Uri uri)
+        {
+            return TryGetUserInfo(uri, out string userName, out _) ? userName : null;
+        }
+
         public static IEnumerable<string> GetGitConfigurationScopes(this Uri uri)
         {
             EnsureArgument.NotNull(uri, nameof(uri));
