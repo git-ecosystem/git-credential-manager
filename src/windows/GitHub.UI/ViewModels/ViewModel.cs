@@ -16,5 +16,11 @@ namespace GitHub.UI.ViewModels
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
+
+        protected void SetAndRaisePropertyChangedEvent<T>(ref T field, T value, string propertyName)
+        {
+            field = value;
+            RaisePropertyChangedEvent(propertyName);
+        }
     }
 }

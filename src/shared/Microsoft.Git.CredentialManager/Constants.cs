@@ -8,6 +8,7 @@ namespace Microsoft.Git.CredentialManager
     public static class Constants
     {
         public const string PersonalAccessTokenUserName = "PersonalAccessToken";
+        public const string OAuthTokenUserName = "OAuthToken";
         public const string MicrosoftAuthHelperName = "Microsoft.Authentication.Helper";
 
         public const string ProviderIdAuto  = "auto";

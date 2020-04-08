@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,34 +26,52 @@ namespace GitHub.Authentication.Helper
                     var prompts = new AuthenticationPrompts(gui, parentHwnd);
                     var resultDict = new Dictionary<string, string>();
 
-                    if (!TryGetArgument(args, "--prompt", out string promptType))
+                    if (StringComparer.OrdinalIgnoreCase.Equals(args[0], "prompt"))
                     {
-                        throw new Exception("missing --prompt argument");
-                    }
-                    bool isSms = TryGetSwitch(args, "--sms");
+                        bool basic = TryGetSwitch(args, "--basic");
+                        bool oauth = TryGetSwitch(args, "--oauth");
 
-                    if (StringComparer.OrdinalIgnoreCase.Equals(promptType, "userpass"))
-                    {
-                        if (!prompts.CredentialModalPrompt(out string username, out string password))
+                        if (!basic && !oauth)
                         {
-                            throw new Exception("failed to get username and password");
+                            throw new Exception("at least authentication mode must be specified");
                         }
 
-                        resultDict["username"] = username;
-                        resultDict["password"] = password;
+                        var result = prompts.ShowCredentialPrompt(basic, oauth, out string username, out string password);
+
+                        switch (result)
+                        {
+                            case CredentialPromptResult.BasicAuthentication:
+                                resultDict["mode"] = "basic";
+                                resultDict["username"] = username;
+                                resultDict["password"] = password;
+                                break;
+
+                            case CredentialPromptResult.OAuthAuthentication:
+                                resultDict["mode"] = "oauth";
+                                break;
+
+                            case CredentialPromptResult.Cancel:
+                                Environment.Exit(-1);
+                                break;
+
+                            default:
+                                throw new ArgumentOutOfRangeException();
+                        }
                     }
-                    else if (StringComparer.OrdinalIgnoreCase.Equals(promptType, "authcode"))
+                    else if (StringComparer.OrdinalIgnoreCase.Equals(args[0], "2fa"))
                     {
-                        if (!prompts.AuthenticationCodeModalPrompt(isSms, out string authCode))
+                        bool isSms = TryGetSwitch(args, "--sms");
+
+                        if (!prompts.ShowAuthenticationCodePrompt(isSms, out string authCode))
                         {
                             throw new Exception("failed to get authentication code");
                         }
 
-                        resultDict["authcode"] = authCode;
+                        resultDict["code"] = authCode;
                     }
                     else
                     {
-                        throw new Exception($"unknown prompt type '{promptType}'");
+                        throw new Exception($"unknown argument '{args[0]}'");
                     }
 
                     Console.Out.WriteDictionary(resultDict);

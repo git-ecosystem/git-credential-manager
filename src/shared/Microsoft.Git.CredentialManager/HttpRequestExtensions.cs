@@ -23,5 +23,13 @@ namespace Microsoft.Git.CredentialManager
             string base64String = Convert.ToBase64String(authBytes);
             request.Headers.Authorization = new AuthenticationHeaderValue(Constants.Http.WwwAuthenticateBasicScheme, base64String);
         }
+
+        /// <summary>
+        /// Add a bearer authentication header to the request, with the given bearer token.
+        /// </summary>
+        public static void AddBearerAuthenticationHeader(this HttpRequestMessage request, string bearerToken)
+        {
+            request.Headers.Authorization = new AuthenticationHeaderValue(Constants.Http.WwwAuthenticateBearerScheme, bearerToken);
+        }
     }
 }

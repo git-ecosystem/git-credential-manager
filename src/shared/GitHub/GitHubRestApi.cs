@@ -10,17 +10,22 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Git.CredentialManager;
+using Newtonsoft.Json;
 
 namespace GitHub
 {
     public interface IGitHubRestApi : IDisposable
     {
-        Task<AuthenticationResult> AcquireTokenAsync(
+        Task<AuthenticationResult> CreatePersonalAccessTokenAsync(
             Uri targetUri,
             string username,
             string password,
             string authenticationCode,
             IEnumerable<string> scopes);
+
+        Task<GitHubUserInfo> GetUserInfoAsync(Uri targetUri, string accessToken);
+
+        Task<GitHubMetaInfo> GetMetaInfoAsync(Uri targetUri);
     }
 
     public class GitHubRestApi : IGitHubRestApi
@@ -41,12 +46,12 @@ namespace GitHub
 
         #region IGitHubApi
 
-        public async Task<AuthenticationResult> AcquireTokenAsync(Uri targetUri, string username, string password, string authenticationCode, IEnumerable<string> scopes)
+        public async Task<AuthenticationResult> CreatePersonalAccessTokenAsync(Uri targetUri, string username, string password, string authenticationCode, IEnumerable<string> scopes)
         {
             EnsureArgument.AbsoluteUri(targetUri, nameof(targetUri));
             EnsureArgument.NotNull(scopes, nameof(scopes));
 
-            Uri requestUri = GetAuthenticationRequestUri(targetUri);
+            Uri requestUri = GetApiRequestUri(targetUri, "authorizations");
 
             _context.Trace.WriteLine($"HTTP: POST {requestUri}");
             using (HttpContent content = GetTokenJsonContent(targetUri, scopes))
@@ -82,6 +87,46 @@ namespace GitHub
                             return new AuthenticationResult(GitHubAuthenticationResultType.Failure);
                     }
                 }
+            }
+        }
+
+        public async Task<GitHubUserInfo> GetUserInfoAsync(Uri targetUri, string accessToken)
+        {
+            Uri requestUri = GetApiRequestUri(targetUri, "user");
+
+            _context.Trace.WriteLine($"HTTP: GET {requestUri}");
+            using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
+            {
+                request.AddBearerAuthenticationHeader(accessToken);
+
+                using (HttpResponseMessage response = await HttpClient.SendAsync(request))
+                {
+                    _context.Trace.WriteLine($"HTTP: Response {(int) response.StatusCode} [{response.StatusCode}]");
+
+                    response.EnsureSuccessStatusCode();
+
+                    string json = await response.Content.ReadAsStringAsync();
+
+                    return JsonConvert.DeserializeObject<GitHubUserInfo>(json);
+                }
+            }
+        }
+
+        public async Task<GitHubMetaInfo> GetMetaInfoAsync(Uri targetUri)
+        {
+            Uri requestUri = GetApiRequestUri(targetUri, "meta");
+
+            _context.Trace.WriteLine($"HTTP: GET {requestUri}");
+            using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
+            using (HttpResponseMessage response = await HttpClient.SendAsync(request))
+            {
+                _context.Trace.WriteLine($"HTTP: Response {(int) response.StatusCode} [{response.StatusCode}]");
+
+                response.EnsureSuccessStatusCode();
+
+                string json = await response.Content.ReadAsStringAsync();
+
+                return JsonConvert.DeserializeObject<GitHubMetaInfo>(json);
             }
         }
 
@@ -161,17 +206,17 @@ namespace GitHub
             }
         }
 
-        private Uri GetAuthenticationRequestUri(Uri targetUri)
+        private Uri GetApiRequestUri(Uri targetUri, string apiUrl)
         {
-            if (targetUri.DnsSafeHost.Equals(GitHubConstants.GitHubBaseUrlHost, StringComparison.OrdinalIgnoreCase))
+            if (GitHubHostProvider.IsGitHubDotCom(targetUri))
             {
-                return new Uri("https://api.github.com/authorizations");
+                return new Uri($"https://api.github.com/{apiUrl}");
             }
             else
             {
                 // If we're here, it's GitHub Enterprise via a configured authority
                 var baseUrl = targetUri.GetLeftPart(UriPartial.Authority);
-                return new Uri(baseUrl + "/api/v3/authorizations");
+                return new Uri(baseUrl + $"/api/v3/{apiUrl}");
             }
         }
 
@@ -218,16 +263,31 @@ namespace GitHub
         #endregion
     }
 
+    public class GitHubUserInfo
+    {
+        [JsonProperty("login")]
+        public string Login { get; set; }
+    }
+
+    public class GitHubMetaInfo
+    {
+        [JsonProperty("installed_version")]
+        public string InstalledVersion { get; set; }
+
+        [JsonProperty("verifiable_password_authentication")]
+        public bool VerifiablePasswordAuthentication { get; set; }
+    }
+
     public static class GitHubRestApiExtensions
     {
-        public static Task<AuthenticationResult> AcquireTokenAsync(
+        public static Task<AuthenticationResult> CreatePersonalTokenAsync(
             this IGitHubRestApi api,
             Uri targetUri,
             ICredential credentials,
             string authenticationCode,
             IEnumerable<string> scopes)
         {
-            return api.AcquireTokenAsync(
+            return api.CreatePersonalAccessTokenAsync(
                 targetUri,
                 credentials?.UserName,
                 credentials?.Password,

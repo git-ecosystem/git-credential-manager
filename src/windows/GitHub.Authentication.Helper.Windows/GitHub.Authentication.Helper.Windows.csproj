@@ -80,7 +80,7 @@
     <Resource Include="Assets\octocat-mark.ico" />
     <EmbeddedResource Include="Controls\Octicons\OcticonPaths.resx" />
     <EmbeddedResource Include="Properties\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
+      <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>

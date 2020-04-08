@@ -136,8 +136,33 @@ Configure GCM Core to use the a proxy for network operations.
 
 **Note:** Git itself does _not_ respect this setting; this affects GCM _only_.
 
+#### Example
+
 ```shell
 git config --global credential.httpsProxy http://john.doe:password@proxy.contoso.com
 ```
 
 **Also see: [GCM_HTTP_PROXY](environment.md#GCM_HTTP_PROXY-deprecated)**
+
+---
+
+### credential.gitHubAuthModes
+
+Override the available authentication modes presented during GitHub authentication.
+If this option is not set, then the available authentication modes will be automatically detected.
+
+**Note:** This setting supports multiple values separated by spaces.
+
+Value|Authentication Mode
+-|-
+_(unset)_|Automatically detect modes
+`oauth`|OAuth-based authentication
+`basic`|Basic/PAT-based authentication
+
+#### Example
+
+```shell
+git config --global credential.gitHubAuthModes "oauth basic"
+```
+
+**Also see: [GCM_GITHUB_AUTHMODES](environment.md#GCM_GITHUB_AUTHMODES)**

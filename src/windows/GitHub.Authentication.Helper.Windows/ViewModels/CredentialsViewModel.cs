@@ -12,6 +12,11 @@ namespace GitHub.Authentication.Helper.ViewModels
     {
         public CredentialsViewModel()
         {
+            UseOAuthCommand = new ActionCommand(_ =>
+            {
+                Result = AuthenticationDialogResult.Ok;
+                UseOAuth = true;
+            });
             LoginCommand = new ActionCommand(_ => Result = AuthenticationDialogResult.Ok);
             CancelCommand = new ActionCommand(_ => Result = AuthenticationDialogResult.Cancel);
 
@@ -29,6 +34,15 @@ namespace GitHub.Authentication.Helper.ViewModels
                     IsValid = ModelValidator.IsValid;
                 }
             };
+        }
+
+        /// <summary>
+        /// Flag to use OAuth
+        /// </summary>
+        public bool UseOAuth
+        {
+            get;
+            set;
         }
 
         private string _login;
@@ -66,10 +80,25 @@ namespace GitHub.Authentication.Helper.ViewModels
             }
         }
 
+        private bool _showBasic;
+        public bool IsBasicVisible
+        {
+            get => _showBasic;
+            set => SetAndRaisePropertyChangedEvent(ref _showBasic, value, nameof(IsBasicVisible));
+        }
+
+        private bool _showOAuth;
+        public bool IsOAuthVisible
+        {
+            get => _showOAuth;
+            set => SetAndRaisePropertyChangedEvent(ref _showOAuth, value, nameof(IsOAuthVisible));
+        }
+
         public PropertyValidator<string> PasswordValidator { get; }
 
         public ModelValidator ModelValidator { get; }
 
+        public ICommand UseOAuthCommand { get; }
         public ICommand LoginCommand { get; }
         public ICommand CancelCommand { get; }
         public ICommand HyperLinkCommand { get; } = new HyperLinkCommand();

@@ -20,29 +20,49 @@ namespace GitHub.Authentication.Helper
         private readonly IGui _gui;
         private readonly IntPtr _parentHwnd;
 
-        public bool CredentialModalPrompt(out string username, out string password)
+        public CredentialPromptResult ShowCredentialPrompt(bool showBasic, bool showOAuth, out string username, out string password)
         {
-            var credentialViewModel = new CredentialsViewModel();
+            username = null;
+            password = null;
+
+            var credentialViewModel = new CredentialsViewModel
+            {
+                IsBasicVisible = showBasic,
+                IsOAuthVisible = showOAuth
+            };
 
             bool credentialValid = _gui.ShowViewModel(credentialViewModel, () => new CredentialsWindow(_parentHwnd));
 
-            username = credentialViewModel.Login;
-            password = credentialViewModel.Password;
+            if (credentialViewModel.UseOAuth)
+            {
+                return CredentialPromptResult.OAuthAuthentication;
+            }
+            else if (credentialValid)
+            {
+                username = credentialViewModel.Login;
+                password = credentialViewModel.Password;
+                return CredentialPromptResult.BasicAuthentication;
+            }
 
-            return credentialValid;
+            return CredentialPromptResult.Cancel;
         }
 
-        public bool AuthenticationCodeModalPrompt(bool isSms, out string authenticationCode)
+        public bool ShowAuthenticationCodePrompt(bool isSms, out string authenticationCode)
         {
             var twoFactorViewModel = new TwoFactorViewModel(isSms);
 
             bool authenticationCodeValid = _gui.ShowViewModel(twoFactorViewModel, () => new TwoFactorWindow(_parentHwnd));
 
-            authenticationCode = authenticationCodeValid
-                ? twoFactorViewModel.AuthenticationCode
-                : null;
+            authenticationCode = authenticationCodeValid ? twoFactorViewModel.AuthenticationCode : null;
 
             return authenticationCodeValid;
         }
+    }
+
+    public enum CredentialPromptResult
+    {
+        BasicAuthentication,
+        OAuthAuthentication,
+        Cancel,
     }
 }

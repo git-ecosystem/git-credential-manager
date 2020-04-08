@@ -162,4 +162,7 @@
   <data name="ForgotPasswordText" xml:space="preserve">
     <value>Forgot your password?</value>
   </data>
+  <data name="UseOAuthLogin" xml:space="preserve">
+    <value>Sign in with OAuth</value>
+  </data>
 </root>
