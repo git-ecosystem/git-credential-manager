@@ -9,11 +9,11 @@ namespace Microsoft.Git.CredentialManager
 {
     public static class UriExtensions
     {
-        public static IDictionary<string, string> GetQueryParameters(this Uri uri)
+        public static IDictionary<string, string> ParseQueryString(string queryString)
         {
             var dict = new Dictionary<string, string>();
 
-            string[] queryParts = uri.Query.TrimStart('?').Split('&');
+            string[] queryParts = queryString.Split('&');
             foreach (var queryPart in queryParts)
             {
                 if (string.IsNullOrWhiteSpace(queryPart)) continue;
@@ -32,6 +32,11 @@ namespace Microsoft.Git.CredentialManager
             }
 
             return dict;
+        }
+
+        public static IDictionary<string, string> GetQueryParameters(this Uri uri)
+        {
+            return ParseQueryString(uri.Query.TrimStart('?'));
         }
 
         public static bool TryGetUserInfo(this Uri uri, out string userName, out string password)

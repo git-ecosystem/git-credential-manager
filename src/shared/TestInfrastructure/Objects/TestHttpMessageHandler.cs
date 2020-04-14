@@ -15,8 +15,10 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
     {
         public delegate HttpResponseMessage RequestHandler(HttpRequestMessage request);
 
-        private readonly IDictionary<(HttpMethod method, Uri uri), RequestHandler> _handlers =
-                      new Dictionary<(HttpMethod, Uri), RequestHandler>();
+        public delegate Task<HttpResponseMessage> AsyncRequestHandler(HttpRequestMessage request);
+
+        private readonly IDictionary<(HttpMethod method, Uri uri), AsyncRequestHandler> _handlers =
+                      new Dictionary<(HttpMethod, Uri), AsyncRequestHandler>();
 
         private readonly IDictionary<(HttpMethod method, Uri uri), int> _requestCounts =
                       new Dictionary<(HttpMethod, Uri), int>();
@@ -24,24 +26,29 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
         public bool ThrowOnUnexpectedRequest { get; set; }
         public bool SimulateNoNetwork { get; set; }
 
+        public void Setup(HttpMethod method, Uri uri, AsyncRequestHandler handler)
+        {
+            _handlers[CreateRequestKey(method, uri)] = handler;
+        }
+
         public void Setup(HttpMethod method, Uri uri, RequestHandler handler)
         {
-            _handlers[(method, uri)] = handler;
+            Setup(method, uri, x => Task.FromResult(handler(x)));
         }
 
         public void Setup(HttpMethod method, Uri uri, HttpResponseMessage responseMessage)
         {
-            _handlers[(method, uri)] = _ => responseMessage;
-        }
-
-        public void Setup(HttpMethod method, Uri uri, HttpStatusCode responseCode)
-        {
-            Setup(method, uri, responseCode, string.Empty);
+            Setup(method, uri, _ => responseMessage);
         }
 
         public void Setup(HttpMethod method, Uri uri, HttpStatusCode responseCode, string content)
         {
             Setup(method, uri, new HttpResponseMessage(responseCode){Content = new StringContent(content)});
+        }
+
+        public void Setup(HttpMethod method, Uri uri, HttpStatusCode responseCode)
+        {
+            Setup(method, uri, responseCode, string.Empty);
         }
 
         public void AssertRequest(HttpMethod method, Uri uri, int expectedNumberOfCalls)
@@ -57,9 +64,10 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
 
         #region HttpMessageHandler
 
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            (HttpMethod method, Uri uri) requestKey = (request.Method, request.RequestUri);
+            // Build the request key to match against registered handlers
+            (HttpMethod method, Uri uri) requestKey = CreateRequestKey(request.Method, request.RequestUri);
 
             IncrementRequestCount(requestKey);
 
@@ -72,7 +80,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
             {
                 if (kvp.Key == requestKey)
                 {
-                    return Task.FromResult(kvp.Value(request));
+                    return await kvp.Value(request);
                 }
             }
 
@@ -82,11 +90,19 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
             }
             else
             {
-                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK));
+                return new HttpResponseMessage(HttpStatusCode.OK);
             }
         }
 
         #endregion
+
+        private static (HttpMethod Method, Uri requestUri) CreateRequestKey(HttpMethod method, Uri uri)
+        {
+            // Trim the query and fragment
+            var normalizedUri = new Uri(uri.GetLeftPart(UriPartial.Path));
+
+            return (method, normalizedUri);
+        }
 
         private void IncrementRequestCount((HttpMethod, Uri) requestKey)
         {
