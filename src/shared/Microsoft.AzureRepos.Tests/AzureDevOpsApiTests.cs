@@ -329,13 +329,13 @@ namespace Microsoft.AzureRepos.Tests
             var identSvcError = CreateIdentityServiceErrorResponse(serverErrorMessage);
 
             var httpHandler = new TestHttpMessageHandler {ThrowOnUnexpectedRequest = true};
-            httpHandler.Setup(HttpMethod.Get,  locSvcRequestUri,   x =>
+            httpHandler.Setup(HttpMethod.Get, locSvcRequestUri, x =>
             {
                 AssertAcceptJson(x);
                 AssertBearerToken(x, accessToken);
                 return locSvcResponse;
             });
-            httpHandler.Setup(HttpMethod.Post, identSvcRequestUri, _ => identSvcError);
+            httpHandler.Setup(HttpMethod.Post, identSvcRequestUri, identSvcError);
 
             context.HttpClientFactory.MessageHandler = httpHandler;
             var api = new AzureDevOpsRestApi(context);

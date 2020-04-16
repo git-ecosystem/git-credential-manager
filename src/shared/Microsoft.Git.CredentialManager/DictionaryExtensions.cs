@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
 using System.Collections.Generic;
+using System.Text;
+using System.Web;
 
 namespace Microsoft.Git.CredentialManager
 {
@@ -24,6 +26,29 @@ namespace Microsoft.Git.CredentialManager
             }
 
             return defaultValue;
+        }
+
+        public static string ToQueryString(this IDictionary<string, string> dict)
+        {
+            var sb = new StringBuilder();
+            int i = 0;
+
+            foreach (var kvp in dict)
+            {
+                string key  = HttpUtility.UrlEncode(kvp.Key);
+                string value = HttpUtility.UrlEncode(kvp.Value);
+
+                if (i > 0)
+                {
+                    sb.Append('&');
+                }
+
+                sb.AppendFormat("{0}={1}", key, value);
+
+                i++;
+            }
+
+            return sb.ToString();
         }
     }
 }

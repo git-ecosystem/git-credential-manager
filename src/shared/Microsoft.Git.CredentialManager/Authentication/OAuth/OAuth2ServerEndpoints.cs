@@ -1,0 +1,37 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT license.
+using System;
+
+namespace Microsoft.Git.CredentialManager.Authentication.OAuth
+{
+    /// <summary>
+    /// Represents the various OAuth2 endpoints for an <see cref="OAuth2Client"/>.
+    /// </summary>
+    public class OAuth2ServerEndpoints
+    {
+        private Uri _deviceAuthorizationEndpoint;
+
+        public OAuth2ServerEndpoints(Uri authorizationEndpoint, Uri tokenEndpoint)
+        {
+            EnsureArgument.AbsoluteUri(authorizationEndpoint, nameof(authorizationEndpoint));
+            EnsureArgument.AbsoluteUri(tokenEndpoint, nameof(tokenEndpoint));
+
+            AuthorizationEndpoint = authorizationEndpoint;
+            TokenEndpoint = tokenEndpoint;
+        }
+
+        public Uri AuthorizationEndpoint { get; }
+
+        public Uri TokenEndpoint { get; }
+
+        public Uri DeviceAuthorizationEndpoint
+        {
+            get => _deviceAuthorizationEndpoint;
+            set
+            {
+                EnsureArgument.AbsoluteUri(value, nameof(value));
+                _deviceAuthorizationEndpoint = value;
+            }
+        }
+    }
+}

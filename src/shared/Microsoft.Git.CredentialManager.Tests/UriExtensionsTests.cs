@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
@@ -8,6 +9,25 @@ namespace Microsoft.Git.CredentialManager.Tests
 {
     public class UriExtensionsTests
     {
+        [Fact]
+        public void UriExtensions_GetQueryParameters()
+        {
+            var uri = new Uri("https://example.com/foo/bar?q1=value1&q2=value%20with%20spaces&key%20with%20spaces=value3");
+
+            IDictionary<string, string> result = uri.GetQueryParameters();
+
+            Assert.Equal(3, result.Count);
+
+            Assert.True(result.TryGetValue("q1", out string value1));
+            Assert.Equal("value1", value1);
+
+            Assert.True(result.TryGetValue("q2", out string value2));
+            Assert.Equal("value with spaces", value2);
+
+            Assert.True(result.TryGetValue("key with spaces", out string value3));
+            Assert.Equal("value3", value3);
+        }
+
         [Theory]
         [InlineData("http://com")]
         [InlineData("http://example.com",

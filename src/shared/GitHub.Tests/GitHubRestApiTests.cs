@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Git.CredentialManager;
 using Microsoft.Git.CredentialManager.Tests.Objects;
@@ -380,7 +381,7 @@ namespace GitHub.Tests
 
         private static void AssertBasicAuth(HttpRequestMessage request, string userName, string password)
         {
-            string expectedBasicValue = new GitCredential(userName, password).ToBase64String();
+            string expectedBasicValue = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{userName}:{password}"));
 
             AuthenticationHeaderValue authHeader = request.Headers.Authorization;
             Assert.NotNull(authHeader);
