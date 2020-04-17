@@ -1,9 +1,9 @@
 steps:
 - task: DotNetCoreInstaller@0
-  displayName: Install .NET Core SDK 2.2.100
+  displayName: Install .NET Core SDK 3.1.201
   inputs:
     packageType: sdk
-    version: '2.2.100'
+    version: '3.1.201'
 
 - task: DotNetCoreCLI@2
   displayName: Compile common code and macOS Helpers
