@@ -6,11 +6,11 @@ steps:
       artifactName: 'tmp.macpayload_signed'
       downloadPath: '$(Build.StagingDirectory)/payload'
 
-  - task: DotNetCoreInstaller@0
-    displayName: Install .NET Core SDK 3.1.201
+  - task: UseDotNet@2
+    displayName: Use .NET Core SDK 3.1.x
     inputs:
       packageType: sdk
-      version: '3.1.201'
+      version: 3.1.x
 
   - script: dotnet tool install --global nbgv
     displayName: Install Nerdbank.GitVersioning tool

@@ -1,22 +1,22 @@
 steps:
-- task: DotNetCoreInstaller@0
-  displayName: Install .NET Core SDK 3.1.201
-  inputs:
-    packageType: sdk
-    version: '3.1.201'
+  - task: UseDotNet@2
+    displayName: Use .NET Core SDK 3.1.x
+    inputs:
+      packageType: sdk
+      version: 3.1.x
 
-- task: DotNetCoreCLI@2
-  displayName: Compile common code and macOS Helpers
-  inputs:
-    command: build
-    projects: 'Git-Credential-Manager.sln'
-    arguments: '--configuration=Mac$(configuration)'
+  - task: DotNetCoreCLI@2
+    displayName: Compile common code and macOS Helpers
+    inputs:
+      command: build
+      projects: 'Git-Credential-Manager.sln'
+      arguments: '--configuration=Mac$(configuration)'
 
-- task: DotNetCoreCLI@2
-  displayName: Run common unit tests
-  inputs:
-    command: test
-    projects: 'Git-Credential-Manager.sln'
-    arguments: '--configuration=Mac$(configuration)'
-    publishTestResults: true
-    testRunTitle: 'Unit tests - common (macOS)'
+  - task: DotNetCoreCLI@2
+    displayName: Run common unit tests
+    inputs:
+      command: test
+      projects: 'Git-Credential-Manager.sln'
+      arguments: '--configuration=Mac$(configuration)'
+      publishTestResults: true
+      testRunTitle: 'Unit tests (macOS)'
