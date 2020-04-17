@@ -13,6 +13,10 @@
     <ProjectReference Include="..\..\shared\Microsoft.Git.CredentialManager\Microsoft.Git.CredentialManager.csproj" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(OSPlatform)' != 'windows'">
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0" />
+  </ItemGroup>
+
   <ItemGroup>
     <Compile Update="GitHubResources.Designer.cs">
       <DesignTime>True</DesignTime>
