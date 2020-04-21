@@ -42,6 +42,23 @@ namespace Microsoft.Git.CredentialManager.Authentication.OAuth
             _options = options;
         }
 
+        public Uri UpdateRedirectUri(Uri uri)
+        {
+            if (!uri.IsLoopback)
+            {
+                throw new ArgumentException("Only localhost is supported as a redirect URI.", nameof(uri));
+            }
+
+            // If a port has been specified use it, otherwise find a free one
+            if (uri.IsDefaultPort)
+            {
+                int port = GetFreeTcpPort();
+                return new UriBuilder(uri) {Port = port}.Uri;
+            }
+
+            return uri;
+        }
+
         public async Task<Uri> GetAuthenticationCodeAsync(Uri authorizationUri, Uri redirectUri, CancellationToken ct)
         {
             if (!redirectUri.IsLoopback)
@@ -49,48 +66,11 @@ namespace Microsoft.Git.CredentialManager.Authentication.OAuth
                 throw new ArgumentException("Only localhost is supported as a redirect URI.", nameof(redirectUri));
             }
 
-            // If a port has been specified use it, otherwise find a free one
-            if (redirectUri.IsDefaultPort)
-            {
-                int port = GetFreeTcpPort();
-
-                UpdateLoopbackRedirectPort(port, ref authorizationUri, ref redirectUri);
-            }
-
             Task<Uri> interceptTask = InterceptRequestsAsync(redirectUri, ct);
 
             OpenDefaultBrowser(authorizationUri);
 
             return await interceptTask;
-        }
-
-        private void UpdateLoopbackRedirectPort(int port, ref Uri authorizationUri, ref Uri redirectUri)
-        {
-            IDictionary<string, string> authUriQuery = authorizationUri.GetQueryParameters();
-
-            Uri newRedirectUri = new UriBuilder(redirectUri) {Port = port}.Uri;
-
-            authUriQuery[OAuth2Constants.RedirectUriParameter] = newRedirectUri.ToString();
-
-            Uri newAuthorizationUri = new UriBuilder(authorizationUri){Query = authUriQuery.ToQueryString()}.Uri;
-
-            authorizationUri = newAuthorizationUri;
-            redirectUri = newRedirectUri;
-        }
-
-        private static int GetFreeTcpPort()
-        {
-            var listener = new TcpListener(IPAddress.Loopback, 0);
-
-            try
-            {
-                listener.Start();
-                return ((IPEndPoint) listener.LocalEndpoint).Port;
-            }
-            finally
-            {
-                listener.Stop();
-            }
         }
 
         private void OpenDefaultBrowser(Uri uri)
@@ -205,5 +185,21 @@ namespace Microsoft.Git.CredentialManager.Authentication.OAuth
                 }
             }
         }
+
+        private static int GetFreeTcpPort()
+        {
+            var listener = new TcpListener(IPAddress.Loopback, 0);
+
+            try
+            {
+                listener.Start();
+                return ((IPEndPoint) listener.LocalEndpoint).Port;
+            }
+            finally
+            {
+                listener.Stop();
+            }
+        }
+
     }
 }

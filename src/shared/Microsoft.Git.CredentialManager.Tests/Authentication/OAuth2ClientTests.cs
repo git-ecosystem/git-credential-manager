@@ -98,7 +98,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Authentication
 
             OAuth2Client client = CreateClient(httpHandler, endpoints);
 
-            var authCodeResult = new OAuth2AuthorizationCodeResult(authCode);
+            var authCodeResult = new OAuth2AuthorizationCodeResult(authCode, TestRedirectUri);
             OAuth2TokenResult result = await client.GetTokenByAuthorizationCodeAsync(authCodeResult, CancellationToken.None);
 
             Assert.NotNull(result);

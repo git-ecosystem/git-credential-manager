@@ -17,6 +17,11 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
             _httpClient = new HttpClient(httpHandler);
         }
 
+        public Uri UpdateRedirectUri(Uri uri)
+        {
+            return uri;
+        }
+
         public async Task<Uri> GetAuthenticationCodeAsync(Uri authorizationUri, Uri redirectUri, CancellationToken ct)
         {
             using (var response = await _httpClient.SendAsync(HttpMethod.Get, authorizationUri))

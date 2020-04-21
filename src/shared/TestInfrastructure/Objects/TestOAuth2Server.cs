@@ -68,7 +68,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
             }
 
             // Redirect is optional, but if it is specified it must match a registered URI
-            Uri redirectUri = app.ValidateRedirect(reqQuery[OAuth2Constants.RedirectUriParameter]);
+            reqQuery.TryGetValue(OAuth2Constants.RedirectUriParameter, out string redirectUriStr);
+            Uri redirectUri = app.ValidateRedirect(redirectUriStr);
 
             // Scope is optional
             reqQuery.TryGetValue(OAuth2Constants.ScopeParameter, out string scopeStr);
@@ -99,7 +100,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
 
             // Create the auth code grant
             OAuth2Application.AuthCodeGrant grant = app.CreateAuthorizationCodeGrant(
-                TokenGenerator, scopes, codeChallenge, codeChallengeMethod);
+                TokenGenerator, scopes, redirectUriStr, codeChallenge, codeChallengeMethod);
 
             var respQuery = new Dictionary<string, string>
             {
@@ -189,10 +190,12 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
                 }
 
                 formData.TryGetValue(OAuth2Constants.TokenEndpoint.PkceVerifierParameter, out string codeVerifier);
+                if (formData.TryGetValue(OAuth2Constants.RedirectUriParameter, out string redirectUriStr))
+                {
+                    app.ValidateRedirect(redirectUriStr);
+                }
 
-                app.ValidateRedirect(formData[OAuth2Constants.RedirectUriParameter]);
-
-                tokenResp = app.CreateTokenByAuthorizationGrant(TokenGenerator, authCode, codeVerifier);
+                tokenResp = app.CreateTokenByAuthorizationGrant(TokenGenerator, authCode, codeVerifier, redirectUriStr);
             }
             else if (StringComparer.OrdinalIgnoreCase.Equals(grantType, OAuth2Constants.TokenEndpoint.RefreshTokenGrantType))
             {
@@ -287,16 +290,18 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
     {
         public class AuthCodeGrant
         {
-            public AuthCodeGrant(string code, string[] scopes,
+            public AuthCodeGrant(string code, string[] scopes, string redirectUri = null,
                 string codeChallenge = null, OAuth2PkceChallengeMethod codeChallengeMethod = OAuth2PkceChallengeMethod.Plain)
             {
                 Code = code;
                 Scopes = scopes;
+                RedirectUri = redirectUri;
                 CodeChallenge = codeChallenge;
                 CodeChallengeMethod = codeChallengeMethod;
             }
             public string Code { get; }
             public string[] Scopes { get; }
+            public string RedirectUri { get; }
             public string CodeChallenge { get; }
             public OAuth2PkceChallengeMethod CodeChallengeMethod { get; }
         }
@@ -336,11 +341,11 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
         public IDictionary<string, string[]> RefreshTokens { get; } = new Dictionary<string, string[]>();
 
         public AuthCodeGrant CreateAuthorizationCodeGrant(TestOAuth2ServerTokenGenerator generator,
-            string[] scopes, string codeChallenge, OAuth2PkceChallengeMethod codeChallengeMethod)
+            string[] scopes, string redirectUri, string codeChallenge, OAuth2PkceChallengeMethod codeChallengeMethod)
         {
             string code = generator.CreateAuthorizationCode();
 
-            var grant = new AuthCodeGrant(code, scopes, codeChallenge, codeChallengeMethod);
+            var grant = new AuthCodeGrant(code, scopes, redirectUri, codeChallenge, codeChallengeMethod);
             AuthGrants.Add(grant);
 
             return grant;
@@ -387,7 +392,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
         }
 
         public TokenEndpointResponseJson CreateTokenByAuthorizationGrant(
-            TestOAuth2ServerTokenGenerator generator, string authCode, string codeVerifier)
+            TestOAuth2ServerTokenGenerator generator, string authCode, string codeVerifier, string redirectUri)
         {
             var grant = AuthGrants.FirstOrDefault(x => x.Code == authCode);
             if (grant is null)
@@ -395,6 +400,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
                 throw new Exception($"Invalid authorization code '{authCode}'");
             }
 
+            // Validate the grant's code challenge was constructed from the given code verifier
             if (!string.IsNullOrWhiteSpace(grant.CodeChallenge))
             {
                 if (string.IsNullOrWhiteSpace(codeVerifier))
@@ -429,6 +435,13 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
                         }
                         break;
                 }
+            }
+
+            // If an explicit redirect URI was used as part of the authorization request then
+            // the redirect URI used for the token call must match exactly.
+            if (!string.IsNullOrWhiteSpace(grant.RedirectUri) && !StringComparer.Ordinal.Equals(grant.RedirectUri, redirectUri))
+            {
+                throw new Exception("Redirect URI must match exactly the one used when requesting the authorization code.");
             }
 
             string accessToken = generator.CreateAccessToken();

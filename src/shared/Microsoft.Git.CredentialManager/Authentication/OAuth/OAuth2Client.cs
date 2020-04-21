@@ -104,9 +104,11 @@ namespace Microsoft.Git.CredentialManager.Authentication.OAuth
                 [OAuth2Constants.AuthorizationEndpoint.PkceChallengeParameter] = codeChallenge
             };
 
+            Uri redirectUri = null;
             if (_redirectUri != null)
             {
-                queryParams[OAuth2Constants.RedirectUriParameter] = _redirectUri.ToString();
+                redirectUri = browser.UpdateRedirectUri(_redirectUri);
+                queryParams[OAuth2Constants.RedirectUriParameter] = redirectUri.ToString();
             }
 
             string scopesStr = string.Join(" ", scopes);
@@ -123,12 +125,12 @@ namespace Microsoft.Git.CredentialManager.Authentication.OAuth
             Uri authorizationUri = authorizationUriBuilder.Uri;
 
             // Open the browser at the request URI to start the authorization code grant flow.
-            Uri redirectUri = await browser.GetAuthenticationCodeAsync(authorizationUri, _redirectUri, ct);
+            Uri finalUri = await browser.GetAuthenticationCodeAsync(authorizationUri, redirectUri, ct);
 
             // Check for errors serious enough we should terminate the flow, such as if the state value returned does
             // not match the one we passed. This indicates a badly implemented Authorization Server, or worse, some
             // form of failed MITM or replay attack.
-            IDictionary<string, string> redirectQueryParams = redirectUri.GetQueryParameters();
+            IDictionary<string, string> redirectQueryParams = finalUri.GetQueryParameters();
             if (!redirectQueryParams.TryGetValue(OAuth2Constants.AuthorizationGrantResponse.StateParameter, out string replyState))
             {
                 throw new OAuth2Exception($"Missing '{OAuth2Constants.AuthorizationGrantResponse.StateParameter}' in response.");
@@ -144,7 +146,7 @@ namespace Microsoft.Git.CredentialManager.Authentication.OAuth
                 throw new OAuth2Exception($"Missing '{OAuth2Constants.AuthorizationGrantResponse.AuthorizationCodeParameter}' in response.");
             }
 
-            return new OAuth2AuthorizationCodeResult(authCode, codeVerifier);
+            return new OAuth2AuthorizationCodeResult(authCode, redirectUri, codeVerifier);
         }
 
         public async Task<OAuth2DeviceCodeResult> GetDeviceCodeAsync(IEnumerable<string> scopes, CancellationToken ct)
@@ -191,14 +193,14 @@ namespace Microsoft.Git.CredentialManager.Authentication.OAuth
                 [OAuth2Constants.ClientIdParameter] = _clientId
             };
 
+            if (authorizationCodeResult.RedirectUri != null)
+            {
+                formData[OAuth2Constants.RedirectUriParameter] = authorizationCodeResult.RedirectUri.ToString();
+            }
+
             if (authorizationCodeResult.CodeVerifier != null)
             {
                 formData[OAuth2Constants.TokenEndpoint.PkceVerifierParameter] = authorizationCodeResult.CodeVerifier;
-            }
-
-            if (_redirectUri != null)
-            {
-                formData[OAuth2Constants.RedirectUriParameter] = _redirectUri.ToString();
             }
 
             using (HttpContent requestContent = new FormUrlEncodedContent(formData))
