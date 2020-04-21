@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Git.CredentialManager.Authentication.OAuth;
 using Microsoft.Git.CredentialManager.Authentication.OAuth.Json;
@@ -72,12 +74,36 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
             reqQuery.TryGetValue(OAuth2Constants.ScopeParameter, out string scopeStr);
             string[] scopes = scopeStr?.Split(' ');
 
+            // Code challenge is optional
+            reqQuery.TryGetValue(OAuth2Constants.AuthorizationEndpoint.PkceChallengeParameter, out string codeChallenge);
+
+            // Code challenge method is optional and defaults to "plain"
+            var codeChallengeMethod = OAuth2PkceChallengeMethod.Plain;
+            if (reqQuery.TryGetValue(OAuth2Constants.AuthorizationEndpoint.PkceChallengeMethodParameter, out string challengeMethodStr))
+            {
+                if (StringComparer.OrdinalIgnoreCase.Equals(challengeMethodStr,
+                    OAuth2Constants.AuthorizationEndpoint.PkceChallengeMethodPlain))
+                {
+                    codeChallengeMethod = OAuth2PkceChallengeMethod.Plain;
+                }
+                else if (StringComparer.OrdinalIgnoreCase.Equals(challengeMethodStr,
+                    OAuth2Constants.AuthorizationEndpoint.PkceChallengeMethodS256))
+                {
+                    codeChallengeMethod = OAuth2PkceChallengeMethod.Sha256;
+                }
+                else
+                {
+                    throw new Exception($"Unsupported code challenge method '{challengeMethodStr}'");
+                }
+            }
+
             // Create the auth code grant
-            string code = app.CreateAuthorizationCode(TokenGenerator, scopes);
+            OAuth2Application.AuthCodeGrant grant = app.CreateAuthorizationCodeGrant(
+                TokenGenerator, scopes, codeChallenge, codeChallengeMethod);
 
             var respQuery = new Dictionary<string, string>
             {
-                [OAuth2Constants.AuthorizationGrantResponse.AuthorizationCodeParameter] = code
+                [OAuth2Constants.AuthorizationGrantResponse.AuthorizationCodeParameter] = grant.Code
             };
 
             // State is optional but must be included in the reply if specified
@@ -162,9 +188,11 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
                     throw new Exception("Missing authorization code parameter");
                 }
 
+                formData.TryGetValue(OAuth2Constants.TokenEndpoint.PkceVerifierParameter, out string codeVerifier);
+
                 app.ValidateRedirect(formData[OAuth2Constants.RedirectUriParameter]);
 
-                tokenResp = app.CreateTokenByAuthorizationGrant(TokenGenerator, authCode);
+                tokenResp = app.CreateTokenByAuthorizationGrant(TokenGenerator, authCode, codeVerifier);
             }
             else if (StringComparer.OrdinalIgnoreCase.Equals(grantType, OAuth2Constants.TokenEndpoint.RefreshTokenGrantType))
             {
@@ -257,6 +285,22 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
 
     public class OAuth2Application
     {
+        public class AuthCodeGrant
+        {
+            public AuthCodeGrant(string code, string[] scopes,
+                string codeChallenge = null, OAuth2PkceChallengeMethod codeChallengeMethod = OAuth2PkceChallengeMethod.Plain)
+            {
+                Code = code;
+                Scopes = scopes;
+                CodeChallenge = codeChallenge;
+                CodeChallengeMethod = codeChallengeMethod;
+            }
+            public string Code { get; }
+            public string[] Scopes { get; }
+            public string CodeChallenge { get; }
+            public OAuth2PkceChallengeMethod CodeChallengeMethod { get; }
+        }
+
         public class DeviceCodeGrant
         {
             public DeviceCodeGrant(string userCode, string deviceCode, string[] scopes)
@@ -283,7 +327,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
 
         public Uri[] RedirectUris { get; set; }
 
-        public IDictionary<string, string[]> AuthCodes { get; } = new Dictionary<string, string[]>();
+        public IList<AuthCodeGrant> AuthGrants { get; } = new List<AuthCodeGrant>();
 
         public IList<DeviceCodeGrant> DeviceGrants { get; } = new List<DeviceCodeGrant>();
 
@@ -291,12 +335,15 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
 
         public IDictionary<string, string[]> RefreshTokens { get; } = new Dictionary<string, string[]>();
 
-        public string CreateAuthorizationCode(TestOAuth2ServerTokenGenerator generator, IEnumerable<string> scopes)
+        public AuthCodeGrant CreateAuthorizationCodeGrant(TestOAuth2ServerTokenGenerator generator,
+            string[] scopes, string codeChallenge, OAuth2PkceChallengeMethod codeChallengeMethod)
         {
             string code = generator.CreateAuthorizationCode();
-            AuthCodes[code] = scopes.ToArray();
 
-            return code;
+            var grant = new AuthCodeGrant(code, scopes, codeChallenge, codeChallengeMethod);
+            AuthGrants.Add(grant);
+
+            return grant;
         }
 
         public DeviceCodeGrant CreateDeviceCodeGrant(TestOAuth2ServerTokenGenerator generator, string[] scopes)
@@ -339,29 +386,67 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
             return grant.Approved;
         }
 
-        public TokenEndpointResponseJson CreateTokenByAuthorizationGrant(TestOAuth2ServerTokenGenerator generator, string authCode)
+        public TokenEndpointResponseJson CreateTokenByAuthorizationGrant(
+            TestOAuth2ServerTokenGenerator generator, string authCode, string codeVerifier)
         {
-            if (!AuthCodes.TryGetValue(authCode, out string[] scopes))
+            var grant = AuthGrants.FirstOrDefault(x => x.Code == authCode);
+            if (grant is null)
             {
                 throw new Exception($"Invalid authorization code '{authCode}'");
+            }
+
+            if (!string.IsNullOrWhiteSpace(grant.CodeChallenge))
+            {
+                if (string.IsNullOrWhiteSpace(codeVerifier))
+                {
+                    throw new Exception("Missing code verifier");
+                }
+
+                switch (grant.CodeChallengeMethod)
+                {
+                    case OAuth2PkceChallengeMethod.Sha256:
+                        using (var sha256 = SHA256.Create())
+                        {
+                            string challenge = Base64UrlConvert.Encode(
+                                sha256.ComputeHash(
+                                    Encoding.ASCII.GetBytes(codeVerifier)
+                                ),
+                                false
+                            );
+
+                            if (challenge != grant.CodeChallenge)
+                            {
+                                throw new Exception($"Invalid code verifier '{codeVerifier}'");
+                            }
+                        }
+                        break;
+
+                    case OAuth2PkceChallengeMethod.Plain:
+                        // The case matters!
+                        if (!StringComparer.Ordinal.Equals(codeVerifier, grant.CodeChallenge))
+                        {
+                            throw new Exception($"Invalid code verifier '{codeVerifier}'");
+                        }
+                        break;
+                }
             }
 
             string accessToken = generator.CreateAccessToken();
             string refreshToken = generator.CreateRefreshToken();
 
             // Remove the auth code grant now we've generated an access token (do not allow auth code reuse)
-            AuthCodes.Remove(authCode);
+            AuthGrants.Remove(grant);
 
             // Store the tokens
             AccessTokens[accessToken] = refreshToken;
-            RefreshTokens[refreshToken] = scopes;
+            RefreshTokens[refreshToken] = grant.Scopes;
 
             return new TokenEndpointResponseJson
             {
                 TokenType = Constants.Http.WwwAuthenticateBearerScheme,
                 AccessToken = accessToken,
                 RefreshToken = refreshToken,
-                Scope = string.Join(" ", scopes) // Keep the same scopes as before
+                Scope = string.Join(" ", grant.Scopes) // Keep the same scopes as before
             };
         }
 

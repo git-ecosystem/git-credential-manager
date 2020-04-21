@@ -39,9 +39,9 @@ namespace Microsoft.Git.CredentialManager.Tests.Authentication
 
             OAuth2Client client = CreateClient(httpHandler, endpoints);
 
-            string actualAuthCode = await client.GetAuthorizationCodeAsync(expectedScopes, browser, CancellationToken.None);
+            OAuth2AuthorizationCodeResult result = await client.GetAuthorizationCodeAsync(expectedScopes, browser, CancellationToken.None);
 
-            Assert.Equal(expectedAuthCode, actualAuthCode);
+            Assert.Equal(expectedAuthCode, result.Code);
         }
 
         [Fact]
@@ -88,7 +88,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Authentication
             string[] expectedScopes = {"read", "write", "delete"};
 
             OAuth2Application app = CreateTestApplication();
-            app.AuthCodes[authCode] = expectedScopes;
+            app.AuthGrants.Add(new OAuth2Application.AuthCodeGrant(authCode, expectedScopes));
 
             var server = new TestOAuth2Server(endpoints);
             server.RegisterApplication(app);
@@ -98,7 +98,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Authentication
 
             OAuth2Client client = CreateClient(httpHandler, endpoints);
 
-            OAuth2TokenResult result = await client.GetTokenByAuthorizationCodeAsync(authCode, CancellationToken.None);
+            var authCodeResult = new OAuth2AuthorizationCodeResult(authCode);
+            OAuth2TokenResult result = await client.GetTokenByAuthorizationCodeAsync(authCodeResult, CancellationToken.None);
 
             Assert.NotNull(result);
             Assert.Equal(expectedScopes, result.Scopes);
@@ -217,9 +218,10 @@ namespace Microsoft.Git.CredentialManager.Tests.Authentication
 
             OAuth2Client client = CreateClient(httpHandler, endpoints);
 
-            string authCode = await client.GetAuthorizationCodeAsync(expectedScopes, browser, CancellationToken.None);
+            OAuth2AuthorizationCodeResult authCodeResult = await client.GetAuthorizationCodeAsync(
+                expectedScopes, browser, CancellationToken.None);
 
-            OAuth2TokenResult result1 = await client.GetTokenByAuthorizationCodeAsync(authCode, CancellationToken.None);
+            OAuth2TokenResult result1 = await client.GetTokenByAuthorizationCodeAsync(authCodeResult, CancellationToken.None);
 
             Assert.NotNull(result1);
             Assert.Equal(expectedScopes, result1.Scopes);
@@ -296,11 +298,11 @@ namespace Microsoft.Git.CredentialManager.Tests.Authentication
             RedirectUris = new[] {TestRedirectUri}
         };
 
-        private static OAuth2Client CreateClient(HttpMessageHandler httpHandler, OAuth2ServerEndpoints endpoints, IOAuth2NonceGenerator generator = null)
+        private static OAuth2Client CreateClient(HttpMessageHandler httpHandler, OAuth2ServerEndpoints endpoints, IOAuth2CodeGenerator generator = null)
         {
             return new OAuth2Client(new HttpClient(httpHandler), endpoints, TestClientId, TestRedirectUri, TestClientSecret)
             {
-                NonceGenerator = generator
+                CodeGenerator = generator
             };
         }
 

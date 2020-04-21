@@ -2,10 +2,8 @@
 // Licensed under the MIT license.
 using System;
 using System.Collections.Generic;
-using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Git.CredentialManager.Authentication.OAuth.Json;
@@ -26,7 +24,7 @@ namespace Microsoft.Git.CredentialManager.Authentication.OAuth
         /// <param name="browser">User agent to use to start the authorization code grant flow.</param>
         /// <param name="ct">Token to cancel the operation.</param>
         /// <returns>Authorization code.</returns>
-        Task<string> GetAuthorizationCodeAsync(IEnumerable<string> scopes, IOAuth2WebBrowser browser, CancellationToken ct);
+        Task<OAuth2AuthorizationCodeResult> GetAuthorizationCodeAsync(IEnumerable<string> scopes, IOAuth2WebBrowser browser, CancellationToken ct);
 
         /// <summary>
         /// Retrieve a device code grant.
@@ -40,10 +38,10 @@ namespace Microsoft.Git.CredentialManager.Authentication.OAuth
         /// <summary>
         /// Exchange an authorization code acquired from <see cref="GetAuthorizationCodeAsync"/> for an access token.
         /// </summary>
-        /// <param name="authorizationCode">Authorization code.</param>
+        /// <param name="authorizationCodeResult">Authorization code grant result.</param>
         /// <param name="ct">Token to cancel the operation.</param>
         /// <returns>Token result.</returns>
-        Task<OAuth2TokenResult> GetTokenByAuthorizationCodeAsync(string authorizationCode, CancellationToken ct);
+        Task<OAuth2TokenResult> GetTokenByAuthorizationCodeAsync(OAuth2AuthorizationCodeResult authorizationCodeResult, CancellationToken ct);
 
         /// <summary>
         /// Use a refresh token to get a new access token.
@@ -70,7 +68,7 @@ namespace Microsoft.Git.CredentialManager.Authentication.OAuth
         private readonly string _clientId;
         private readonly string _clientSecret;
 
-        private IOAuth2NonceGenerator _nonceGenerator;
+        private IOAuth2CodeGenerator _codeGenerator;
 
         public OAuth2Client(HttpClient httpClient, OAuth2ServerEndpoints endpoints, string clientId, Uri redirectUri = null, string clientSecret = null)
         {
@@ -81,24 +79,29 @@ namespace Microsoft.Git.CredentialManager.Authentication.OAuth
             _clientSecret = clientSecret;
         }
 
-        public IOAuth2NonceGenerator NonceGenerator
+        public IOAuth2CodeGenerator CodeGenerator
         {
-            get => _nonceGenerator ?? (_nonceGenerator = new OAuth2NonceGenerator());
-            set => _nonceGenerator = value;
+            get => _codeGenerator ?? (_codeGenerator = new OAuth2CryptographicCodeGenerator());
+            set => _codeGenerator = value;
         }
 
         #region IOAuth2Client
 
-        public async Task<string> GetAuthorizationCodeAsync(IEnumerable<string> scopes, IOAuth2WebBrowser browser, CancellationToken ct)
+        public async Task<OAuth2AuthorizationCodeResult> GetAuthorizationCodeAsync(IEnumerable<string> scopes, IOAuth2WebBrowser browser, CancellationToken ct)
         {
-            string state = NonceGenerator.CreateNonce();
-            string scopesStr = string.Join(" ", scopes);
+            string state = CodeGenerator.CreateNonce();
+            string codeVerifier = CodeGenerator.CreatePkceCodeVerifier();
+            string codeChallenge = CodeGenerator.CreatePkceCodeChallenge(OAuth2PkceChallengeMethod.Sha256, codeVerifier);
 
             var queryParams = new Dictionary<string, string>
             {
-                [OAuth2Constants.AuthorizationEndpoint.ResponseTypeParameter] = OAuth2Constants.AuthorizationEndpoint.AuthorizationCodeResponseType,
+                [OAuth2Constants.AuthorizationEndpoint.ResponseTypeParameter] =
+                    OAuth2Constants.AuthorizationEndpoint.AuthorizationCodeResponseType,
                 [OAuth2Constants.ClientIdParameter] = _clientId,
                 [OAuth2Constants.AuthorizationEndpoint.StateParameter] = state,
+                [OAuth2Constants.AuthorizationEndpoint.PkceChallengeMethodParameter] =
+                    OAuth2Constants.AuthorizationEndpoint.PkceChallengeMethodS256,
+                [OAuth2Constants.AuthorizationEndpoint.PkceChallengeParameter] = codeChallenge
             };
 
             if (_redirectUri != null)
@@ -106,6 +109,7 @@ namespace Microsoft.Git.CredentialManager.Authentication.OAuth
                 queryParams[OAuth2Constants.RedirectUriParameter] = _redirectUri.ToString();
             }
 
+            string scopesStr = string.Join(" ", scopes);
             if (!string.IsNullOrWhiteSpace(scopesStr))
             {
                 queryParams[OAuth2Constants.ScopeParameter] = scopesStr;
@@ -140,7 +144,7 @@ namespace Microsoft.Git.CredentialManager.Authentication.OAuth
                 throw new OAuth2Exception($"Missing '{OAuth2Constants.AuthorizationGrantResponse.AuthorizationCodeParameter}' in response.");
             }
 
-            return authCode;
+            return new OAuth2AuthorizationCodeResult(authCode, codeVerifier);
         }
 
         public async Task<OAuth2DeviceCodeResult> GetDeviceCodeAsync(IEnumerable<string> scopes, CancellationToken ct)
@@ -177,14 +181,20 @@ namespace Microsoft.Git.CredentialManager.Authentication.OAuth
             }
         }
 
-        public async Task<OAuth2TokenResult> GetTokenByAuthorizationCodeAsync(string authorizationCode, CancellationToken ct)
+        public async Task<OAuth2TokenResult> GetTokenByAuthorizationCodeAsync(OAuth2AuthorizationCodeResult authorizationCodeResult, CancellationToken ct)
         {
             var formData = new Dictionary<string, string>
             {
                 [OAuth2Constants.TokenEndpoint.GrantTypeParameter] = OAuth2Constants.TokenEndpoint.AuthorizationCodeGrantType,
-                [OAuth2Constants.TokenEndpoint.AuthorizationCodeParameter] = authorizationCode,
-                [OAuth2Constants.ClientIdParameter] = _clientId,
+                [OAuth2Constants.TokenEndpoint.AuthorizationCodeParameter] = authorizationCodeResult.Code,
+                [OAuth2Constants.TokenEndpoint.PkceVerifierParameter] = authorizationCodeResult.CodeVerifier,
+                [OAuth2Constants.ClientIdParameter] = _clientId
             };
+
+            if (authorizationCodeResult.CodeVerifier != null)
+            {
+                formData[OAuth2Constants.TokenEndpoint.PkceVerifierParameter] = authorizationCodeResult.CodeVerifier;
+            }
 
             if (_redirectUri != null)
             {
