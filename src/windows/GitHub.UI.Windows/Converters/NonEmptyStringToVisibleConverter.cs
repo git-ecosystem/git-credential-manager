@@ -1,0 +1,23 @@
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT license.
+using System;
+using System.Globalization;
+using System.Windows;
+using System.Windows.Data;
+
+namespace GitHub.UI.Converters
+{
+    [ValueConversion(typeof(string), typeof(Visibility))]
+    public class NonEmptyStringToVisibleConverter : IValueConverter
+    {
+        public virtual object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return ConverterHelper.GetConditionalVisibility(!string.IsNullOrEmpty(value as string), parameter);
+        }
+
+        public virtual object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return Binding.DoNothing;
+        }
+    }
+}

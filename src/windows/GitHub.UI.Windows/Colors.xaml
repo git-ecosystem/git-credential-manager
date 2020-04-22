@@ -1,0 +1,123 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:local="clr-namespace:GitHub.UI">
+    <!-- Colors -->
+    <Color x:Key="Button">#ECECF0</Color>
+    <Color x:Key="ButtonText">#1E1E1E</Color>
+    <Color x:Key="ButtonBorder">#ACACAC</Color>
+
+    <Color x:Key="ButtonDefault">#ECECF0</Color>
+    <Color x:Key="ButtonDefaultText">#1E1E1E</Color>
+    <Color x:Key="ButtonBorderDefault">#3399FF</Color>
+
+    <Color x:Key="ButtonFocused">#C9DEF5</Color>
+    <Color x:Key="ButtonFocusedText">#1E1E1E</Color>
+    <Color x:Key="ButtonBorderFocused">#3399FF</Color>
+
+    <Color x:Key="ButtonHover">#C9DEF5</Color>
+    <Color x:Key="ButtonHoverText">#1E1E1E</Color>
+    <Color x:Key="ButtonBorderHover">#3399FF</Color>
+
+    <Color x:Key="ButtonPressed">#007ACC</Color>
+    <Color x:Key="ButtonPressedText">#FFFFFF</Color>
+    <Color x:Key="ButtonBorderPressed">#007ACC</Color>
+
+    <Color x:Key="ButtonDisabled">#F5F5F5</Color>
+    <Color x:Key="ButtonDisabledText">#A2A4A5</Color>
+    <Color x:Key="ButtonBorderDisabled">#CCCEDB</Color>
+
+    <Color x:Key="GrayText">#989898</Color>
+
+    <Color x:Key="Hyperlink">#0E70C0</Color>
+    <Color x:Key="HyperlinkHover">#3399FF</Color>
+    <Color x:Key="HyperlinkDisabled">lightgray</Color>
+
+    <Color x:Key="TextBoxBackground">#FCFCFC</Color>
+    <Color x:Key="TextBoxText">#1E1E1E</Color>
+    <Color x:Key="TextBoxBorder">#8591A2</Color>
+
+    <Color x:Key="TextBoxBackgroundFocused">#FCFCFC</Color>
+    <Color x:Key="TextBoxTextFocused">#1E1E1E</Color>
+    <Color x:Key="TextBoxBorderFocused">#E5C365</Color>
+
+    <!-- TODO -->
+    <Color x:Key="TextBoxBackgroundDisabled">purple</Color>
+    <Color x:Key="TextBoxTextDisabled">yellow</Color>
+    <Color x:Key="TextBoxBorderDisabled">black</Color>
+
+    <Color x:Key="WindowPanel">#FBFBFB</Color>
+    <Color x:Key="WindowPanelText">#1E1E1E</Color>
+    <Color x:Key="WindowBorder">#CCCEDB</Color>
+
+    <Color x:Key="WindowButton">#FBFBFB</Color>
+    <Color x:Key="WindowButtonGlyph">#332C21</Color>
+
+    <Color x:Key="WindowButtonHover">#FCD8A2</Color>
+    <Color x:Key="WindowButtonHoverGlyph">#332C21</Color>
+    <Color x:Key="WindowButtonHoverBorder">#FFFFFF</Color>
+
+    <Color x:Key="WindowButtonDown">#FCD8A2</Color>
+    <Color x:Key="WindowButtonDownGlyph">#332C21</Color>
+    <Color x:Key="WindowButtonDownBorder">#FFFFFF</Color>
+
+    <Color x:Key="ToolWindowBackground">#F1F1F1</Color>
+    <Color x:Key="ToolWindowText">#F1F1F1</Color>
+
+    <!-- Brushes -->
+    <SolidColorBrush x:Key="ButtonBrush" Color="{DynamicResource Button}" />
+    <SolidColorBrush x:Key="ButtonTextBrush" Color="{DynamicResource ButtonText}" />
+    <SolidColorBrush x:Key="ButtonBorderBrush" Color="{DynamicResource ButtonBorder}" />
+
+    <SolidColorBrush x:Key="ButtonDefaultBrush" Color="{DynamicResource ButtonDefault}" />
+    <SolidColorBrush x:Key="ButtonDefaultTextBrush" Color="{DynamicResource ButtonDefaultText}" />
+    <SolidColorBrush x:Key="ButtonBorderDefaultBrush" Color="{DynamicResource ButtonBorderDefault}" />
+
+    <SolidColorBrush x:Key="ButtonFocusedBrush" Color="{DynamicResource ButtonFocused}" />
+    <SolidColorBrush x:Key="ButtonFocusedTextBrush" Color="{DynamicResource ButtonFocusedText}" />
+    <SolidColorBrush x:Key="ButtonBorderFocusedBrush" Color="{DynamicResource ButtonBorderFocused}" />
+
+    <SolidColorBrush x:Key="ButtonHoverBrush" Color="{DynamicResource ButtonHover}" />
+    <SolidColorBrush x:Key="ButtonHoverTextBrush" Color="{DynamicResource ButtonHoverText}" />
+    <SolidColorBrush x:Key="ButtonBorderHoverBrush" Color="{DynamicResource ButtonBorderHover}" />
+
+    <SolidColorBrush x:Key="ButtonPressedBrush" Color="{DynamicResource ButtonPressed}" />
+    <SolidColorBrush x:Key="ButtonPressedTextBrush" Color="{DynamicResource ButtonPressedText}" />
+    <SolidColorBrush x:Key="ButtonBorderPressedBrush" Color="{DynamicResource ButtonBorderPressed}" />
+
+    <SolidColorBrush x:Key="ButtonDisabledBrush" Color="{DynamicResource ButtonDisabled}" />
+    <SolidColorBrush x:Key="ButtonDisabledTextBrush" Color="{DynamicResource ButtonDisabledText}" />
+    <SolidColorBrush x:Key="ButtonBorderDisabledBrush" Color="{DynamicResource ButtonBorderDisabled}" />
+
+    <SolidColorBrush x:Key="GrayTextBrush" Color="{DynamicResource GrayText}" />
+
+    <SolidColorBrush x:Key="HyperlinkBrush" Color="{DynamicResource Hyperlink}" />
+    <SolidColorBrush x:Key="HyperlinkHoverBrush" Color="{DynamicResource HyperlinkHover}" />
+    <SolidColorBrush x:Key="HyperlinkDisabledBrush" Color="{DynamicResource HyperlinkDisabled}" />
+
+    <SolidColorBrush x:Key="TextBoxBackgroundBrush" Color="{DynamicResource TextBoxBackground}" />
+    <SolidColorBrush x:Key="TextBoxTextBrush" Color="{DynamicResource TextBoxText}" />
+    <SolidColorBrush x:Key="TextBoxBorderBrush" Color="{DynamicResource TextBoxBorder}" />
+
+    <SolidColorBrush x:Key="TextBoxBackgroundFocusedBrush" Color="{DynamicResource TextBoxBackgroundFocused}" />
+    <SolidColorBrush x:Key="TextBoxTextFocusedBrush" Color="{DynamicResource TextBoxTextFocused}" />
+    <SolidColorBrush x:Key="TextBoxBorderFocusedBrush" Color="{DynamicResource TextBoxBorderFocused}" />
+
+    <SolidColorBrush x:Key="TextBoxBackgroundDisabledBrush" Color="{DynamicResource TextBoxBackgroundDisabled}" />
+    <SolidColorBrush x:Key="TextBoxTextDisabledBrush" Color="{DynamicResource TextBoxTextDisabled}" />
+    <SolidColorBrush x:Key="TextBoxBorderDisabledBrush" Color="{DynamicResource TextBoxBorderDisabled}" />
+
+    <SolidColorBrush x:Key="WindowPanelBrush" Color="{DynamicResource WindowPanel}" />
+    <SolidColorBrush x:Key="WindowPanelTextBrush" Color="{DynamicResource WindowPanelText}" />
+    <SolidColorBrush x:Key="WindowBorderBrush" Color="{DynamicResource WindowBorder}" />
+
+    <SolidColorBrush x:Key="WindowButtonBrush" Color="{DynamicResource WindowButton}" />
+    <SolidColorBrush x:Key="WindowButtonGlyphBrush" Color="{DynamicResource WindowButtonGlyph}" />
+
+    <SolidColorBrush x:Key="WindowButtonHoverBrush" Color="{DynamicResource WindowButtonHover}" />
+    <SolidColorBrush x:Key="WindowButtonHoverGlyphBrush" Color="{DynamicResource WindowButtonHoverGlyph}" />
+    <SolidColorBrush x:Key="WindowButtonHoverBorderBrush" Color="{DynamicResource WindowButtonHoverBorder}" />
+
+    <SolidColorBrush x:Key="WindowButtonDownBrush" Color="{DynamicResource WindowButtonDown}" />
+    <SolidColorBrush x:Key="WindowButtonDownGlyphBrush" Color="{DynamicResource WindowButtonDownGlyph}" />
+    <SolidColorBrush x:Key="WindowButtonDownBorderBrush" Color="{DynamicResource WindowButtonDownBorder}" />
+</ResourceDictionary>

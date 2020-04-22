@@ -280,3 +280,32 @@ export GCM_HTTP_PROXY=http://john.doe:password@proxy.contoso.com
 ```
 
 **Also see: [credential.httpProxy](configuration.md#credentialhttpProxy-deprecated)**
+
+---
+
+### GCM_GITHUB_AUTHMODES
+
+Override the available authentication modes presented during GitHub authentication.
+If this option is not set, then the available authentication modes will be automatically detected.
+
+**Note:** This setting supports multiple values separated by spaces.
+
+Value|Authentication Mode
+-|-
+_(unset)_|Automatically detect modes
+`oauth`|OAuth-based authentication
+`basic`|Basic/PAT-based authentication
+
+##### Windows
+
+```batch
+SET GCM_GITHUB_AUTHMODES="oauth basic"
+```
+
+##### macOS/Linux
+
+```bash
+export GCM_GITHUB_AUTHMODES="oauth basic"
+```
+
+**Also see: [credential.gitHubAuthModes](configuration.md#credentialgitHubAuthModes)**

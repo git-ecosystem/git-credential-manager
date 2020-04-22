@@ -29,7 +29,11 @@ namespace Microsoft.Git.CredentialManager.Authentication.OAuth
             get => _deviceAuthorizationEndpoint;
             set
             {
-                EnsureArgument.AbsoluteUri(value, nameof(value));
+                if (value != null)
+                {
+                    EnsureArgument.AbsoluteUri(value, nameof(value));
+                }
+
                 _deviceAuthorizationEndpoint = value;
             }
         }
