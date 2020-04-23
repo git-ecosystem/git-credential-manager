@@ -14,6 +14,10 @@ namespace Microsoft.Git.CredentialManager.Authentication.OAuth
             public const string StateParameter = "state";
             public const string AuthorizationCodeResponseType = "code";
             public const string ResponseTypeParameter = "response_type";
+            public const string PkceChallengeParameter = "code_challenge";
+            public const string PkceChallengeMethodParameter = "code_challenge_method";
+            public const string PkceChallengeMethodPlain = "plain";
+            public const string PkceChallengeMethodS256 = "S256";
         }
 
         public static class AuthorizationGrantResponse
@@ -30,7 +34,7 @@ namespace Microsoft.Git.CredentialManager.Authentication.OAuth
             public const string GrantTypeParameter = "grant_type";
             public const string AuthorizationCodeGrantType = "authorization_code";
             public const string RefreshTokenGrantType = "refresh_token";
-
+            public const string PkceVerifierParameter = "code_verifier";
             public const string AuthorizationCodeParameter = "code";
             public const string RefreshTokenParameter = "refresh_token";
         }
