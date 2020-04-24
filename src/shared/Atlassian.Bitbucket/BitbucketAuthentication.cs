@@ -123,7 +123,7 @@ namespace Atlassian.Bitbucket
 
         public async Task<OAuth2TokenResult> CreateOAuthCredentialsAsync(Uri targetUri)
         {
-            var oauthClient = new BitbucketOAuth2Client(HttpClient);
+            var oauthClient = new BitbucketOAuth2Client(HttpClient, Context.Settings);
 
             var browserOptions = new OAuth2WebBrowserOptions
             {
@@ -139,7 +139,7 @@ namespace Atlassian.Bitbucket
 
         public async Task<OAuth2TokenResult> RefreshOAuthCredentialsAsync(string refreshToken)
         {
-            var oauthClient = new BitbucketOAuth2Client(HttpClient);
+            var oauthClient = new BitbucketOAuth2Client(HttpClient, Context.Settings);
 
             return await oauthClient.GetTokenByRefreshTokenAsync(refreshToken, CancellationToken.None);
         }

@@ -21,5 +21,22 @@ namespace Atlassian.Bitbucket
             public const string RepositoryWrite = "repository:write";
             public const string Account = "account";
         }
+
+        public static class EnvironmentVariables
+        {
+            public const string DevOAuthClientId = "GCM_DEV_BITBUCKET_CLIENTID";
+            public const string DevOAuthClientSecret = "GCM_DEV_BITBUCKET_CLIENTSECRET";
+            public const string DevOAuthRedirectUri = "GCM_DEV_BITBUCKET_REDIRECTURI";
+        }
+
+        public static class GitConfiguration
+        {
+            public static class Credential
+            {
+                public const string DevOAuthClientId = "bitbucketDevClientId";
+                public const string DevOAuthClientSecret = "bitbucketDevClientSecret";
+                public const string DevOAuthRedirectUri = "bitbucketDevRedirectUri";
+            }
+        }
     }
 }
