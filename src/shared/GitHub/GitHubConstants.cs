@@ -11,6 +11,13 @@ namespace GitHub
 
         public const string AuthHelperName = "GitHub.UI";
 
+        public const string OAuthClientId = "0120e057bd645470c1ed";
+        public const string OAuthClientSecret = "18867509d956965542b521a529a79bb883344c90";
+        public static readonly Uri OAuthRedirectUri = new Uri("http://localhost/");
+        public static readonly Uri OAuthAuthorizationEndpointRelativeUri = new Uri("/login/oauth/authorize", UriKind.Relative);
+        public static readonly Uri OAuthTokenEndpointRelativeUri = new Uri("/login/oauth/access_token", UriKind.Relative);
+        public static readonly Uri OAuthDeviceEndpointRelativeUri = new Uri("/login/oauth/authorize/device", UriKind.Relative);
+
         /// <summary>
         /// The GitHub required HTTP accepts header value
         /// </summary>
@@ -51,6 +58,9 @@ namespace GitHub
         public static class EnvironmentVariables
         {
             public const string AuthenticationModes = "GCM_GITHUB_AUTHMODES";
+            public const string DevOAuthClientId = "GCM_DEV_GITHUB_CLIENTID";
+            public const string DevOAuthClientSecret = "GCM_DEV_GITHUB_CLIENTSECRET";
+            public const string DevOAuthRedirectUri = "GCM_DEV_GITHUB_REDIRECTURI";
         }
 
         public static class GitConfiguration
@@ -58,6 +68,9 @@ namespace GitHub
             public static class Credential
             {
                 public const string AuthModes = "gitHubAuthModes";
+                public const string DevOAuthClientId = "gitHubDevClientId";
+                public const string DevOAuthClientSecret = "gitHubDevClientSecret";
+                public const string DevOAuthRedirectUri = "gitHubDevRedirectUri";
             }
         }
     }
