@@ -12,6 +12,13 @@ steps:
       version: 3.1.x
 
   - task: DotNetCoreCLI@2
+    displayName: Restore packages
+    inputs:
+      command: restore
+      projects: 'Git-Credential-Manager.sln'
+      arguments: '--configuration=Windows$(configuration)'
+
+  - task: DotNetCoreCLI@2
     displayName: Compile common code and Windows Helpers
     inputs:
       command: build
