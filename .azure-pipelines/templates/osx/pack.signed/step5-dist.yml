@@ -20,8 +20,10 @@ steps:
       artifactName: 'tmp.macsymbols'
       downloadPath: '$(Build.StagingDirectory)/symbols'
 
-  - script: src/osx/SignFiles.Mac/notarize-pkg.sh -id "$(AppleId)" -p "$(AppleIdPassword)" -pkg "$(Build.StagingDirectory)"/pkg/*.pkg
-    displayName: Notarize and staple installer package
+  # Skip notarization until we can preserve the hardened runtime bit and sign the .NET Core runtime bits
+  # Tracked: https://github.com/microsoft/Git-Credential-Manager-Core/issues/108
+  #- script: src/osx/SignFiles.Mac/notarize-pkg.sh -id "$(AppleId)" -p "$(AppleIdPassword)" -pkg "$(Build.StagingDirectory)"/pkg/*.pkg
+  #  displayName: Notarize and staple installer package
 
   - script: |
       mkdir -p "$(Build.StagingDirectory)/publish/payload" "$(Build.StagingDirectory)/publish/payload.sym"
