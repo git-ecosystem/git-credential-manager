@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Git.CredentialManager;
 using Microsoft.Git.CredentialManager.Tests.Objects;
@@ -27,7 +28,7 @@ namespace GitHub.Tests
             var api = new GitHubRestApi(context);
 
             await Assert.ThrowsAsync<ArgumentNullException>(
-                () => api.AcquireTokenAsync(null, testUserName, testPassword, testAuthCode, testScopes)
+                () => api.CreatePersonalAccessTokenAsync(null, testUserName, testPassword, testAuthCode, testScopes)
             );
         }
 
@@ -48,7 +49,7 @@ namespace GitHub.Tests
             var api = new GitHubRestApi(context);
 
             await Assert.ThrowsAsync<HttpRequestException>(
-                () => api.AcquireTokenAsync(uri, testUserName, testPassword, testAuthCode, testScopes)
+                () => api.CreatePersonalAccessTokenAsync(uri, testUserName, testPassword, testAuthCode, testScopes)
             );
         }
 
@@ -84,7 +85,7 @@ namespace GitHub.Tests
             context.HttpClientFactory.MessageHandler = httpHandler;
             var api = new GitHubRestApi(context);
 
-            AuthenticationResult authResult = await api.AcquireTokenAsync(
+            AuthenticationResult authResult = await api.CreatePersonalAccessTokenAsync(
                 uri, testUserName, testPassword, testAuthCode, testScopes);
 
             Assert.Equal(GitHubAuthenticationResultType.Success, authResult.Type);
@@ -123,7 +124,7 @@ namespace GitHub.Tests
             context.HttpClientFactory.MessageHandler = httpHandler;
             var api = new GitHubRestApi(context);
 
-            AuthenticationResult authResult = await api.AcquireTokenAsync(
+            AuthenticationResult authResult = await api.CreatePersonalAccessTokenAsync(
                 uri, testUserName, testPassword, testAuthCode, testScopes);
 
             Assert.Equal(GitHubAuthenticationResultType.Failure, authResult.Type);
@@ -161,7 +162,7 @@ namespace GitHub.Tests
             context.HttpClientFactory.MessageHandler = httpHandler;
             var api = new GitHubRestApi(context);
 
-            AuthenticationResult authResult = await api.AcquireTokenAsync(
+            AuthenticationResult authResult = await api.CreatePersonalAccessTokenAsync(
                 uri, testUserName, testPassword, testAuthCode, testScopes);
 
             Assert.Equal(GitHubAuthenticationResultType.Success, authResult.Type);
@@ -195,7 +196,7 @@ namespace GitHub.Tests
             context.HttpClientFactory.MessageHandler = httpHandler;
             var api = new GitHubRestApi(context);
 
-            AuthenticationResult authResult = await api.AcquireTokenAsync(
+            AuthenticationResult authResult = await api.CreatePersonalAccessTokenAsync(
                 uri, testUserName, testPassword, null, testScopes);
 
             Assert.Equal(GitHubAuthenticationResultType.TwoFactorApp, authResult.Type);
@@ -227,7 +228,7 @@ namespace GitHub.Tests
             context.HttpClientFactory.MessageHandler = httpHandler;
             var api = new GitHubRestApi(context);
 
-            AuthenticationResult authResult = await api.AcquireTokenAsync(
+            AuthenticationResult authResult = await api.CreatePersonalAccessTokenAsync(
                 uri, testUserName, testPassword, null, testScopes);
 
             Assert.Equal(GitHubAuthenticationResultType.TwoFactorSms, authResult.Type);
@@ -261,7 +262,7 @@ namespace GitHub.Tests
             context.HttpClientFactory.MessageHandler = httpHandler;
             var api = new GitHubRestApi(context);
 
-            AuthenticationResult authResult = await api.AcquireTokenAsync(
+            AuthenticationResult authResult = await api.CreatePersonalAccessTokenAsync(
                 uri, testUserName, testOAuthToken, null, testScopes);
 
             Assert.Equal(GitHubAuthenticationResultType.Success, authResult.Type);
@@ -298,7 +299,7 @@ namespace GitHub.Tests
             context.HttpClientFactory.MessageHandler = httpHandler;
             var api = new GitHubRestApi(context);
 
-            AuthenticationResult authResult = await api.AcquireTokenAsync(
+            AuthenticationResult authResult = await api.CreatePersonalAccessTokenAsync(
                 uri, testUserName, testPassword, testAuthCode, testScopes);
 
             Assert.Equal(GitHubAuthenticationResultType.Failure, authResult.Type);
@@ -333,7 +334,7 @@ namespace GitHub.Tests
             context.HttpClientFactory.MessageHandler = httpHandler;
             var api = new GitHubRestApi(context);
 
-            AuthenticationResult authResult = await api.AcquireTokenAsync(
+            AuthenticationResult authResult = await api.CreatePersonalAccessTokenAsync(
                 uri, testUserName, testPassword, testAuthCode, testScopes);
 
             Assert.Equal(GitHubAuthenticationResultType.Failure, authResult.Type);
@@ -370,7 +371,7 @@ namespace GitHub.Tests
             context.HttpClientFactory.MessageHandler = httpHandler;
             var api = new GitHubRestApi(context);
 
-            AuthenticationResult authResult = await api.AcquireTokenAsync(
+            AuthenticationResult authResult = await api.CreatePersonalAccessTokenAsync(
                 uri, testUserName, testPassword, testAuthCode, testScopes);
 
             Assert.Equal(GitHubAuthenticationResultType.Failure, authResult.Type);
@@ -380,7 +381,7 @@ namespace GitHub.Tests
 
         private static void AssertBasicAuth(HttpRequestMessage request, string userName, string password)
         {
-            string expectedBasicValue = new GitCredential(userName, password).ToBase64String();
+            string expectedBasicValue = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{userName}:{password}"));
 
             AuthenticationHeaderValue authHeader = request.Headers.Authorization;
             Assert.NotNull(authHeader);

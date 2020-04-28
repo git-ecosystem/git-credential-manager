@@ -8,8 +8,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
 {
     public class TestFileSystem : IFileSystem
     {
-        public IDictionary<string, Stream> Files { get; set; }
-        public ISet<string> Directories { get; set; }
+        public IDictionary<string, Stream> Files { get; set; } = new Dictionary<string, Stream>();
+        public ISet<string> Directories { get; set; } = new HashSet<string>();
         public string CurrentDirectory { get; set; } = Path.GetTempPath();
         public IEqualityComparer<string> PathComparer { get; set; }= StringComparer.OrdinalIgnoreCase;
 

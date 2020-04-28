@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
+using System;
 using Microsoft.Git.CredentialManager.Interop;
 
 namespace Microsoft.Git.CredentialManager
@@ -35,5 +36,16 @@ namespace Microsoft.Git.CredentialManager
         /// <returns>Secret user input.</returns>
         /// <exception cref="InteropException">Throw if an error occurs interacting with the native terminal device.</exception>
         string PromptSecret(string prompt);
+    }
+
+    public static class TerminalExtensions
+    {
+        /// <summary>
+        /// Write a blank line to the terminal screen.
+        /// </summary>
+        public static void WriteLine(this ITerminal terminal)
+        {
+            terminal.WriteLine(Environment.NewLine);
+        }
     }
 }

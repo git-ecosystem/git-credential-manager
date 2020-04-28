@@ -24,7 +24,7 @@ MSAUTH_OUT="$OUT/osx/Microsoft.Authentication.Helper.Mac"
 GCM_SRC="$SRC/shared/Git-Credential-Manager"
 
 # Build parameters
-FRAMEWORK=netcoreapp2.1
+FRAMEWORK=netcoreapp3.1
 RUNTIME=osx-x64
 
 # Parse script arguments

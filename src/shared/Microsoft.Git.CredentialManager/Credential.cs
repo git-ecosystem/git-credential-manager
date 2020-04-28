@@ -1,8 +1,5 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
-using System;
-using System.Globalization;
-using System.Text;
 
 namespace Microsoft.Git.CredentialManager
 {
@@ -36,18 +33,5 @@ namespace Microsoft.Git.CredentialManager
         public string UserName { get; }
 
         public string Password { get; }
-    }
-
-    public static class CredentialExtensions
-    {
-        /// <summary>
-        /// Returns the base-64 encoded, {username}:{password} formatted string of this `<see cref="ICredential"/>`.
-        /// </summary>
-        public static string ToBase64String(this ICredential credential)
-        {
-            string basicAuthValue = string.Format(CultureInfo.InvariantCulture, "{0}:{1}", credential.UserName, credential.Password);
-            byte[] authBytes = Encoding.UTF8.GetBytes(basicAuthValue);
-            return Convert.ToBase64String(authBytes);
-        }
     }
 }

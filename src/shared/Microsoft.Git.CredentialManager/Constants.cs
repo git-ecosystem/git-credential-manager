@@ -8,6 +8,7 @@ namespace Microsoft.Git.CredentialManager
     public static class Constants
     {
         public const string PersonalAccessTokenUserName = "PersonalAccessToken";
+        public const string OAuthTokenUserName = "OAuthToken";
         public const string MicrosoftAuthHelperName = "Microsoft.Authentication.Helper";
 
         public const string ProviderIdAuto  = "auto";
@@ -46,6 +47,8 @@ namespace Microsoft.Git.CredentialManager
             public const string CurlHttpsProxy     = "HTTPS_PROXY";
             public const string GcmHttpProxy       = "GCM_HTTP_PROXY";
             public const string GitSslNoVerify     = "GIT_SSL_NO_VERIFY";
+            public const string GcmInteractive     = "GCM_INTERACTIVE";
+            public const string GcmParentWindow    = "GCM_MODAL_PARENTHWND";
         }
 
         public static class Http
@@ -70,6 +73,7 @@ namespace Microsoft.Git.CredentialManager
                 public const string HttpProxy   = "httpProxy";
                 public const string HttpsProxy  = "httpsProxy";
                 public const string UseHttpPath = "useHttpPath";
+                public const string Interactive = "interactive";
             }
 
             public static class Http

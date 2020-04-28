@@ -216,20 +216,15 @@
 			files = (
 			);
 			inputFileListPaths = (
-			);
-			inputPaths = (
-				"${SRCROOT}/Pods/Target Support Files/Pods-Microsoft.Authentication.Helper/Pods-Microsoft.Authentication.Helper-resources.sh",
-				"${PODS_ROOT}/ADAL/ADAL/resources/mac/ADCredentialViewController.xib",
+				"${PODS_ROOT}/Target Support Files/Pods-Microsoft.Authentication.Helper/Pods-Microsoft.Authentication.Helper-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
-			);
-			outputPaths = (
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ADCredentialViewController.nib",
+				"${PODS_ROOT}/Target Support Files/Pods-Microsoft.Authentication.Helper/Pods-Microsoft.Authentication.Helper-resources-${CONFIGURATION}-output-files.xcfilelist",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-Microsoft.Authentication.Helper/Pods-Microsoft.Authentication.Helper-resources.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Microsoft.Authentication.Helper/Pods-Microsoft.Authentication.Helper-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */

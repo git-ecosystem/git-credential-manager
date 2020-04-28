@@ -36,6 +36,12 @@ namespace Microsoft.Git.CredentialManager
                 Debugger.Break();
             }
 
+            // Add the debug tracer if the debugger is attached
+            if (Debugger.IsAttached)
+            {
+                Context.Trace.AddListener(new DebugTraceWriter());
+            }
+
             // Enable tracing
             if (Context.Settings.GetTracingEnabled(out string traceValue))
             {

@@ -22,6 +22,37 @@ For the complete list of settings GCM Core understands, see the list below.
 
 ## Available settings
 
+### credential.interactive
+
+Permit or disable GCM Core from interacting with the user (showing GUI or TTY prompts). If interaction is required but has been disabled, an error is returned.
+
+This can be helpful when using GCM Core in headless and unattended environments, such as build servers, where it would be preferable to fail than to hang indefinately waiting for a non-existent user.
+
+To disable interactivity set this to `false` or `0`.
+
+#### Compatibility
+
+In previous versions of GCM this setting had a different behavior and accepted other values.
+The following table summarizes the change in behavior and the mapping of older values such as `never`:
+
+Value(s)|Old meaning|New meaning
+-|-|-
+`auto`|Prompt if required – use cached credentials if possible|_(unchanged)_
+`never`,<br/>`false`| Never prompt – fail if interaction is required|_(unchanged)_
+`always`,<br/>`force`,<br/>`true`|Always prompt – don't use cached credentials|Prompt if required (same as the old `auto` value)
+
+#### Example
+
+```shell
+git config --global credential.interactive false
+```
+
+Defaults to enabled.
+
+**Also see: [GCM_INTERACTIVE](environment.md#GCM_INTERACTIVE)**
+
+---
+
 ### credential.provider
 
 Define the host provider to use when authenticating.
@@ -105,8 +136,33 @@ Configure GCM Core to use the a proxy for network operations.
 
 **Note:** Git itself does _not_ respect this setting; this affects GCM _only_.
 
+#### Example
+
 ```shell
 git config --global credential.httpsProxy http://john.doe:password@proxy.contoso.com
 ```
 
 **Also see: [GCM_HTTP_PROXY](environment.md#GCM_HTTP_PROXY-deprecated)**
+
+---
+
+### credential.gitHubAuthModes
+
+Override the available authentication modes presented during GitHub authentication.
+If this option is not set, then the available authentication modes will be automatically detected.
+
+**Note:** This setting supports multiple values separated by spaces.
+
+Value|Authentication Mode
+-|-
+_(unset)_|Automatically detect modes
+`oauth`|OAuth-based authentication
+`basic`|Basic/PAT-based authentication
+
+#### Example
+
+```shell
+git config --global credential.gitHubAuthModes "oauth basic"
+```
+
+**Also see: [GCM_GITHUB_AUTHMODES](environment.md#GCM_GITHUB_AUTHMODES)**

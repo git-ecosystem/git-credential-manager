@@ -88,6 +88,135 @@ namespace Microsoft.Git.CredentialManager.Tests
         }
 
         [Fact]
+        public void Settings_IsInteractionAllowed_EnvarUnset_ReturnsTrue()
+        {
+            var envars = new TestEnvironment();
+            var git = new TestGit();
+
+            var settings = new Settings(envars, git);
+
+            Assert.True(settings.IsInteractionAllowed);
+        }
+
+        [Fact]
+        public void Settings_IsInteractionAllowed_EnvarTruthy_ReturnsTrue()
+        {
+            var envars = new TestEnvironment
+            {
+                Variables = {[Constants.EnvironmentVariables.GcmInteractive] = "1"}
+            };
+            var git = new TestGit();
+
+            var settings = new Settings(envars, git);
+
+            Assert.True(settings.IsInteractionAllowed);
+        }
+
+        [Fact]
+        public void Settings_IsInteractionAllowed_EnvarFalsey_ReturnsFalse()
+        {
+            var envars = new TestEnvironment
+            {
+                Variables = {[Constants.EnvironmentVariables.GcmInteractive] = "0"},
+            };
+            var git = new TestGit();
+
+            var settings = new Settings(envars, git);
+
+            Assert.False(settings.IsInteractionAllowed);
+        }
+
+        [Fact]
+        public void Settings_IsInteractionAllowed_ConfigAuto_ReturnsTrue()
+        {
+            const string section = Constants.GitConfiguration.Credential.SectionName;
+            const string property = Constants.GitConfiguration.Credential.Interactive;
+
+            var envars = new TestEnvironment();
+            var git = new TestGit();
+            git.GlobalConfiguration[$"{section}.{property}"] = "auto";
+
+            var settings = new Settings(envars, git);
+
+            Assert.True(settings.IsInteractionAllowed);
+        }
+
+        [Fact]
+        public void Settings_IsInteractionAllowed_ConfigAlways_ReturnsTrue()
+        {
+            const string section = Constants.GitConfiguration.Credential.SectionName;
+            const string property = Constants.GitConfiguration.Credential.Interactive;
+
+            var envars = new TestEnvironment();
+            var git = new TestGit();
+            git.GlobalConfiguration[$"{section}.{property}"] = "always";
+
+            var settings = new Settings(envars, git);
+
+            Assert.True(settings.IsInteractionAllowed);
+        }
+
+        [Fact]
+        public void Settings_IsInteractionAllowed_ConfigNever_ReturnsFalse()
+        {
+            const string section = Constants.GitConfiguration.Credential.SectionName;
+            const string property = Constants.GitConfiguration.Credential.Interactive;
+
+            var envars = new TestEnvironment();
+            var git = new TestGit();
+            git.GlobalConfiguration[$"{section}.{property}"] = "never";
+
+            var settings = new Settings(envars, git);
+
+            Assert.False(settings.IsInteractionAllowed);
+        }
+
+        [Fact]
+        public void Settings_IsInteractionAllowed_ConfigTruthy_ReturnsTrue()
+        {
+            const string section = Constants.GitConfiguration.Credential.SectionName;
+            const string property = Constants.GitConfiguration.Credential.Interactive;
+
+            var envars = new TestEnvironment();
+            var git = new TestGit();
+            git.GlobalConfiguration[$"{section}.{property}"] = "1";
+
+            var settings = new Settings(envars, git);
+
+            Assert.True(settings.IsInteractionAllowed);
+        }
+
+        [Fact]
+        public void Settings_IsInteractionAllowed_ConfigFalsey_ReturnsFalse()
+        {
+            const string section = Constants.GitConfiguration.Credential.SectionName;
+            const string property = Constants.GitConfiguration.Credential.Interactive;
+
+            var envars = new TestEnvironment();
+            var git = new TestGit();
+            git.GlobalConfiguration[$"{section}.{property}"] = "0";
+
+            var settings = new Settings(envars, git);
+
+            Assert.False(settings.IsInteractionAllowed);
+        }
+
+        [Fact]
+        public void Settings_IsInteractionAllowed_ConfigNonBooleanyValue_ReturnsTrue()
+        {
+            const string section = Constants.GitConfiguration.Credential.SectionName;
+            const string property = Constants.GitConfiguration.Credential.Interactive;
+
+            var envars = new TestEnvironment();
+            var git = new TestGit();
+            git.GlobalConfiguration[$"{section}.{property}"] = Guid.NewGuid().ToString();
+
+            var settings = new Settings(envars, git);
+
+            Assert.True(settings.IsInteractionAllowed);
+        }
+
+        [Fact]
         public void Settings_IsTracingEnabled_EnvarUnset_ReturnsFalse()
         {
             var envars = new TestEnvironment();
