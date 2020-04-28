@@ -188,7 +188,7 @@ namespace GitHub
         {
             ThrowIfUserInteractionDisabled();
 
-            var oauthClient = new GitHubOAuth2Client(HttpClient, targetUri);
+            var oauthClient = new GitHubOAuth2Client(HttpClient, Context.Settings, targetUri);
 
             // If we have a desktop session try authentication using the user's default web browser
             if (Context.IsDesktopSession)
