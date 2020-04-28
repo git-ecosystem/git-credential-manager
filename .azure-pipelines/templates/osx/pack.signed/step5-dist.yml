@@ -41,19 +41,19 @@ steps:
   - task: ArchiveFiles@2
     displayName: Create payload archive
     inputs:
-      rootFolderOrFile: '$(Build.StagingDirectory)\publish\payload\'
+      rootFolderOrFile: '$(Build.StagingDirectory)/publish/payload/'
       includeRootFolder: false
       archiveType: 'tar'
-      archiveFile: '$(Build.StagingDirectory)\publish\gcmcore-osx-$(GitBuildVersion).tar.gz'
+      archiveFile: '$(Build.StagingDirectory)/publish/gcmcore-osx-$(GitBuildVersion).tar.gz'
       replaceExistingArchive: true
 
   - task: ArchiveFiles@2
     displayName: Create symbol archive
     inputs:
-      rootFolderOrFile: '$(Build.StagingDirectory)\publish\payload.sym\'
+      rootFolderOrFile: '$(Build.StagingDirectory)/publish/payload.sym/'
       includeRootFolder: false
       archiveType: 'tar'
-      archiveFile: '$(Build.StagingDirectory)\publish\symbols-osx.tar.gz'
+      archiveFile: '$(Build.StagingDirectory)/publish/symbols-osx.tar.gz'
       replaceExistingArchive: true
 
   - task: PublishPipelineArtifact@0
