@@ -1,10 +1,4 @@
 steps:
-  - task: ms-vseng.MicroBuildTasks.30666190-6959-11e5-9f96-f56098202fef.MicroBuildSigningPlugin@2
-    displayName: Install signing plugin
-    condition: and(succeeded(), eq(variables['SignType'], 'real'))
-    inputs:
-      signType: '$(SignType)'
-
   - task: UseDotNet@2
     displayName: Use .NET Core SDK 3.1.x
     inputs:
@@ -33,4 +27,3 @@ steps:
       arguments: '--configuration=Mac$(configuration)'
       publishTestResults: true
       testRunTitle: 'Unit tests (Windows)'
-
