@@ -18,6 +18,8 @@ namespace GitHub.UI.Login
             NavigateLearnMoreCommand = new RelayCommand(NavigateLearnMore);
         }
 
+        public override bool IsValid => CanVerify();
+
         public override string Title => GitHubResources.TwoFactorTitle;
 
         public TwoFactorType TwoFactorType
