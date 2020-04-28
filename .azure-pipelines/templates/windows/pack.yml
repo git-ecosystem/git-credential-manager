@@ -1,8 +1,8 @@
 steps:
-  - script: dotnet tool install --global nbgv
+  - script: dotnet tool install --tool-path .tools nbgv
     displayName: Install Nerdbank.GitVersioning tool
 
-  - script: nbgv cloud --common-vars
+  - script: .tools\nbgv cloud --common-vars
     displayName: Set version variables
 
   - script: |

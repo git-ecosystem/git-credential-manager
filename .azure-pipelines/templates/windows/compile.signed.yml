@@ -1,0 +1,41 @@
+steps:
+  - task: ms-vseng.MicroBuildTasks.30666190-6959-11e5-9f96-f56098202fef.MicroBuildSigningPlugin@2
+    displayName: Install signing plugin
+    condition: and(succeeded(), eq(variables['SignType'], 'real'))
+    inputs:
+      signType: '$(SignType)'
+
+  - task: UseDotNet@2
+    displayName: Use .NET Core SDK 3.1.x
+    inputs:
+      packageType: sdk
+      version: 3.1.x
+
+  - task: NuGetToolInstaller@0
+    displayName: Install NuGet tool >=4.3.0
+    inputs:
+      versionSpec: '>=4.3.0'
+
+  # Must use the NuGet & MSBuild toolchain here rather than `dotnet`
+  # because the signing tasks target the netfx MSBuild runtime only.
+  - task: NuGetCommand@2
+    displayName: Restore packages
+    inputs:
+      command: restore
+      restoreSolution: 'Git-Credential-Manager.sln'
+      configuration: 'Windows$(configuration)'
+
+  - task: MSBuild@1
+    displayName: Compile common code and Windows helpers
+    inputs:
+      solution: 'Git-Credential-Manager.sln'
+      configuration: 'Windows$(configuration)'
+
+  - task: VSTest@2
+    displayName: Run common unit tests
+    inputs:
+      testAssemblyVer2: |
+        out\shared\*.Tests\bin\**\*.Tests.dll
+      configuration: 'Windows$(configuration)'
+      otherConsoleOptions: '/Framework:.NETCoreApp,Version=2.1'
+      testRunTitle: 'Unit tests (Windows)'

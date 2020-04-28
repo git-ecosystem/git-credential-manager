@@ -337,3 +337,6 @@ out/
 
 # Temporary build directory
 .tmp/
+
+# dotnet local tools
+.tools/

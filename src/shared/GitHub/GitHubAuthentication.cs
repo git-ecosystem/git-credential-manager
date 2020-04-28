@@ -123,8 +123,8 @@ namespace GitHub
                         var menuTitle = $"Select an authentication method for '{targetUri}'";
                         var menu = new TerminalMenu(Context.Terminal, menuTitle)
                         {
-                            new TerminalMenuItem(1, "Web browser", true),
-                            new TerminalMenuItem(2, "Username/password")
+                            new TerminalMenuItem(1, "Web browser"),
+                            new TerminalMenuItem(2, "Username/password", true)
                         };
 
                         int option = menu.Show();

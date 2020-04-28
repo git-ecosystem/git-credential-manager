@@ -3,7 +3,7 @@ trigger:
 
 variables:
   configuration: Release
-  signPool: VSEng-MicroBuildVS2017
+  signPool: VSEng-MicroBuildVS2019
   winImage: vs2017-win2016
   osxImage: macos-latest
 
@@ -13,7 +13,7 @@ jobs:
   pool:
     name: $(signPool)
   steps:
-  - template: templates/windows/compile.yml
+  - template: templates/windows/compile.signed.yml
   - template: templates/windows/pack.yml
 
 - job: osx_step1

@@ -27,6 +27,8 @@ namespace GitHub.UI.Login
             }
         }
 
+        public override bool IsValid => IsLoginUsingBrowserVisible || CanLoginUsingUsernameAndPassword();
+
         public override string Title => GitHubResources.LoginTitle;
 
         /// <summary>
