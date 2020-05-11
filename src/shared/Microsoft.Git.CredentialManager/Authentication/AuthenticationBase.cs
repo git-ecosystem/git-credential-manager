@@ -18,7 +18,7 @@ namespace Microsoft.Git.CredentialManager.Authentication
             Context = context;
         }
 
-        protected async Task<IDictionary<string, string>> InvokeHelperAsync(string path, string args, IDictionary<string, string> standardInput)
+        protected async Task<IDictionary<string, string>> InvokeHelperAsync(string path, string args, IDictionary<string, string> standardInput = null)
         {
             var procStartInfo = new ProcessStartInfo(path)
             {
