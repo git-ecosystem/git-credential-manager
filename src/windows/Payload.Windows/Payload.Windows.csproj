@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\shared\Git-Credential-Manager\Git-Credential-Manager.csproj" />
+    <ProjectReference Include="..\Atlassian.Bitbucket.UI.Windows\Atlassian.Bitbucket.UI.Windows.csproj" />
     <ProjectReference Include="..\GitHub.UI.Windows\GitHub.UI.Windows.csproj" />
   </ItemGroup>
 
@@ -22,6 +23,7 @@
   <ItemGroup>
     <FilesToSign Include="
       $(OutDir)Atlassian.Bitbucket.dll;
+      $(OutDir)Atlassian.Bitbucket.UI.exe;
       $(OutDir)git-credential-manager-core.exe;
       $(OutDir)GitHub.dll;
       $(OutDir)GitHub.UI.exe;
