@@ -12,15 +12,7 @@ namespace GitHub.UI
     {
         public static void Main(string[] args)
         {
-            IGui gui;
-            if (TryGetParentWindowHandle(out IntPtr parentHwnd))
-            {
-                gui = new Gui(parentHwnd);
-            }
-            else
-            {
-                gui = new Gui();
-            }
+            IGui gui = new Gui();
 
             try
             {
@@ -96,20 +88,6 @@ namespace GitHub.UI
                 });
                 Environment.Exit(-1);
             }
-        }
-
-        private static bool TryGetParentWindowHandle(out IntPtr hwnd)
-        {
-            string envar = Environment.GetEnvironmentVariable(Constants.EnvironmentVariables.GcmParentWindow);
-
-            if (long.TryParse(envar, out long ptrInt))
-            {
-                hwnd = new IntPtr(ptrInt);
-                return true;
-            }
-
-            hwnd = default(IntPtr);
-            return false;
         }
     }
 }

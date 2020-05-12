@@ -30,16 +30,16 @@ namespace Microsoft.Git.CredentialManager.UI
 
     public class Gui : IGui
     {
-        private readonly IntPtr? _parentHwnd;
+        private readonly IntPtr _parentHwnd = IntPtr.Zero;
 
         public Gui()
         {
-            _parentHwnd = null;
-        }
+            string envar = Environment.GetEnvironmentVariable(Constants.EnvironmentVariables.GcmParentWindow);
 
-        public Gui(IntPtr parentHwnd)
-        {
-            _parentHwnd = parentHwnd;
+            if (long.TryParse(envar, out long ptrInt))
+            {
+                _parentHwnd = new IntPtr(ptrInt);
+            }
         }
 
         public bool ShowDialogWindow(Func<Window> windowCreator)
@@ -50,7 +50,7 @@ namespace Microsoft.Git.CredentialManager.UI
             {
                 var window = windowCreator();
 
-                windowResult = window.ShowDialog(_parentHwnd) ?? false;
+                windowResult = ShowDialog(window, _parentHwnd) ?? false;
             })
             .Wait();
 
@@ -67,7 +67,7 @@ namespace Microsoft.Git.CredentialManager.UI
 
                 window.DataContext = viewModel;
 
-                windowResult = window.ShowDialog(_parentHwnd) ?? false;
+                windowResult = ShowDialog(window, _parentHwnd) ?? false;
             })
             .Wait();
 
@@ -95,25 +95,17 @@ namespace Microsoft.Git.CredentialManager.UI
 
             return completionSource.Task;
         }
-    }
 
-    public static class WindowExtensions
-    {
-        public static void SetOwnerHandle(this Window window, IntPtr hwnd)
-        {
-            new System.Windows.Interop.WindowInteropHelper(window).Owner = hwnd;
-        }
-
-        public static bool? ShowDialog(this Window window, IntPtr? parentHwnd)
+        public static bool? ShowDialog(Window window, IntPtr parentHwnd)
         {
             // Zero is not a valid window handles
-            if (!parentHwnd.HasValue || parentHwnd.Value == IntPtr.Zero)
+            if (parentHwnd == IntPtr.Zero)
             {
                 return window.ShowDialog();
             }
 
             // Set the parent window handle and ensure the dialog starts in the correct location
-            window.SetOwnerHandle(parentHwnd.Value);
+            new System.Windows.Interop.WindowInteropHelper(window).Owner = parentHwnd;
             window.WindowStartupLocation = WindowStartupLocation.CenterOwner;
 
             const int ERROR_INVALID_WINDOW_HANDLE = 1400;
