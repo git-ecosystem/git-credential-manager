@@ -36,9 +36,9 @@ namespace GitHub.UI
 
                     if (StringComparer.OrdinalIgnoreCase.Equals(args[0], "prompt"))
                     {
-                        string enterpriseUrl = GetParameter(args, "--enterprise-url");
-                        bool basic = TryGetSwitch(args, "--basic");
-                        bool oauth = TryGetSwitch(args, "--oauth");
+                        string enterpriseUrl = CommandLineUtils.GetParameter(args, "--enterprise-url");
+                        bool basic = CommandLineUtils.TryGetSwitch(args, "--basic");
+                        bool oauth = CommandLineUtils.TryGetSwitch(args, "--oauth");
 
                         if (!basic && !oauth)
                         {
@@ -71,7 +71,7 @@ namespace GitHub.UI
                     }
                     else if (StringComparer.OrdinalIgnoreCase.Equals(args[0], "2fa"))
                     {
-                        bool isSms = TryGetSwitch(args, "--sms");
+                        bool isSms = CommandLineUtils.TryGetSwitch(args, "--sms");
 
                         if (!prompts.ShowAuthenticationCodePrompt(isSms, out string authCode))
                         {
@@ -110,23 +110,6 @@ namespace GitHub.UI
 
             hwnd = default(IntPtr);
             return false;
-        }
-
-        private static bool TryGetSwitch(string[] args, string name)
-        {
-            return args.Any(arg => StringComparer.OrdinalIgnoreCase.Equals(arg, name));
-        }
-
-        private static string GetParameter(string[] args, string name)
-        {
-            int index = Array.FindIndex(args, x => StringComparer.OrdinalIgnoreCase.Equals(x, name));
-
-            if (-1 < index && index + 1 < args.Length)
-            {
-                return args[index + 1];
-            }
-
-            return null;
         }
     }
 }
