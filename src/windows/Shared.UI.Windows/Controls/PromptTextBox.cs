@@ -2,9 +2,9 @@
 using System.Windows;
 using System.Windows.Controls;
 
-namespace GitHub.UI.Controls
+namespace Microsoft.Git.CredentialManager.UI.Controls
 {
-    public class PromptTextBox : TextBox, IShortcutContainer
+    public class PromptTextBox : TextBox
     {
         public static readonly DependencyProperty IconContentProperty = 
             DependencyProperty.RegisterAttached(nameof(IconContent), typeof(object), typeof(PromptTextBox));
@@ -32,8 +32,5 @@ namespace GitHub.UI.Controls
             get { return (string)GetValue(PromptTextProperty); }
             set { SetValue(PromptTextProperty, value); }
         }
-
-        [DefaultValue(true)]
-        public bool SupportsKeyboardShortcuts { get; set; }
     }
 }

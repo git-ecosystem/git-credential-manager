@@ -2,19 +2,19 @@
 using System.Runtime.InteropServices;
 using System.Security;
 
-namespace GitHub.UI.Controls
+namespace Microsoft.Git.CredentialManager.UI
 {
     /// <summary>
     /// Extension methods for the SecureString type.
     /// </summary>
-    internal static class SecureStringExtensions
+    public static class SecureStringExtensions
     {
         /// <summary>
         /// Create a new SecureString from the provided text.
         /// </summary>
         /// <param name="text">The text to create the SecureString from.</param>
         /// <returns>The SecureString with the provided text.</returns>
-        internal static SecureString ToSecureString(this string text)
+        public static SecureString ToSecureString(this string text)
         {
             if (text == null)
             {
@@ -35,7 +35,7 @@ namespace GitHub.UI.Controls
         /// </summary>
         /// <param name="secureString">The SecureString to convert.</param>
         /// <returns>The unsecure string version of the SecureString.</returns>
-        internal static string ToUnsecureString(this SecureString secureString)
+        public static string ToUnsecureString(this SecureString secureString)
         {
             if (secureString == null)
             {

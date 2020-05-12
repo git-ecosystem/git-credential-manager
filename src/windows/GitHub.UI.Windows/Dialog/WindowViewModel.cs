@@ -1,4 +1,5 @@
 ﻿using System;
+using Microsoft.Git.CredentialManager.UI;
 
 namespace GitHub.UI
 {

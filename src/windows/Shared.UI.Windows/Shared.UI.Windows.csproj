@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+
+  <PropertyGroup>
+    <TargetFramework>net461</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>Microsoft.Git.CredentialManager.UI</RootNamespace>
+    <AssemblyName>Microsoft.Git.CredentialManager.UI</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\shared\Microsoft.Git.CredentialManager\Microsoft.Git.CredentialManager.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(OSPlatform)' != 'windows'">
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0" />
+  </ItemGroup>
+
+</Project>

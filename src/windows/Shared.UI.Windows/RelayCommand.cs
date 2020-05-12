@@ -3,7 +3,7 @@
 using System;
 using System.Windows.Input;
 
-namespace GitHub.UI
+namespace Microsoft.Git.CredentialManager.UI
 {
     public class RelayCommand : ICommand
     {

@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Security;
+using Microsoft.Git.CredentialManager.UI;
 
 namespace GitHub.UI.Login
 {

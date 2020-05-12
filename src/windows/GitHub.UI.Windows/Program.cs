@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Git.CredentialManager;
+using Microsoft.Git.CredentialManager.UI;
 
 namespace GitHub.UI
 {

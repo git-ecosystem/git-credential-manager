@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Interop;
 using GitHub.UI.Dialog;
 using GitHub.UI.Login;
+using Microsoft.Git.CredentialManager.UI;
 
 namespace GitHub.UI
 {

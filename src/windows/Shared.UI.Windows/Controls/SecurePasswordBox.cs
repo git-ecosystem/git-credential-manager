@@ -2,7 +2,7 @@
 using System.Windows;
 using System.Windows.Controls;
 
-namespace GitHub.UI.Controls
+namespace Microsoft.Git.CredentialManager.UI.Controls
 {
     /// <summary>
     ///   A SecureString based password PromptTextBox implementation.

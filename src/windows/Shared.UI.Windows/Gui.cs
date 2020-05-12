@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 
-namespace GitHub.UI
+namespace Microsoft.Git.CredentialManager.UI
 {
     public interface IGui
     {
@@ -28,7 +28,7 @@ namespace GitHub.UI
         bool ShowDialogWindow(Func<Window> windowCreator);
     }
 
-    internal class Gui : IGui
+    public class Gui : IGui
     {
         private readonly IntPtr? _parentHwnd;
 

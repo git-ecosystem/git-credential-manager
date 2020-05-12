@@ -1,8 +1,8 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
-using GitHub.UI.Controls;
 using GitHub.UI.Dialog;
 using GitHub.UI.Login;
+using Microsoft.Git.CredentialManager.UI;
 
 namespace GitHub.UI
 {

@@ -88,6 +88,7 @@ Source: "{#PayloadDir}\GitHub.UI.exe";                                 DestDir: 
 Source: "{#PayloadDir}\GitHub.UI.exe.config";                          DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PayloadDir}\Microsoft.AzureRepos.dll";                      DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PayloadDir}\Microsoft.Git.CredentialManager.dll";           DestDir: "{app}"; Flags: ignoreversion
+Source: "{#PayloadDir}\Microsoft.Git.CredentialManager.UI.dll";        DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PayloadDir}\Microsoft.Identity.Client.dll";                 DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PayloadDir}\Microsoft.Identity.Client.Extensions.Msal.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PayloadDir}\Microsoft.IdentityModel.JsonWebTokens.dll";     DestDir: "{app}"; Flags: ignoreversion
