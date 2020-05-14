@@ -45,20 +45,7 @@
     <Color x:Key="TextBoxTextDisabled">yellow</Color>
     <Color x:Key="TextBoxBorderDisabled">black</Color>
 
-    <Color x:Key="WindowPanel">#FBFBFB</Color>
-    <Color x:Key="WindowPanelText">#1E1E1E</Color>
-    <Color x:Key="WindowBorder">#CCCEDB</Color>
 
-    <Color x:Key="WindowButton">#FBFBFB</Color>
-    <Color x:Key="WindowButtonGlyph">#332C21</Color>
-
-    <Color x:Key="WindowButtonHover">#FCD8A2</Color>
-    <Color x:Key="WindowButtonHoverGlyph">#332C21</Color>
-    <Color x:Key="WindowButtonHoverBorder">#FFFFFF</Color>
-
-    <Color x:Key="WindowButtonDown">#FCD8A2</Color>
-    <Color x:Key="WindowButtonDownGlyph">#332C21</Color>
-    <Color x:Key="WindowButtonDownBorder">#FFFFFF</Color>
 
     <Color x:Key="ToolWindowBackground">#F1F1F1</Color>
     <Color x:Key="ToolWindowText">#F1F1F1</Color>
@@ -106,18 +93,5 @@
     <SolidColorBrush x:Key="TextBoxTextDisabledBrush" Color="{DynamicResource TextBoxTextDisabled}" />
     <SolidColorBrush x:Key="TextBoxBorderDisabledBrush" Color="{DynamicResource TextBoxBorderDisabled}" />
 
-    <SolidColorBrush x:Key="WindowPanelBrush" Color="{DynamicResource WindowPanel}" />
-    <SolidColorBrush x:Key="WindowPanelTextBrush" Color="{DynamicResource WindowPanelText}" />
-    <SolidColorBrush x:Key="WindowBorderBrush" Color="{DynamicResource WindowBorder}" />
 
-    <SolidColorBrush x:Key="WindowButtonBrush" Color="{DynamicResource WindowButton}" />
-    <SolidColorBrush x:Key="WindowButtonGlyphBrush" Color="{DynamicResource WindowButtonGlyph}" />
-
-    <SolidColorBrush x:Key="WindowButtonHoverBrush" Color="{DynamicResource WindowButtonHover}" />
-    <SolidColorBrush x:Key="WindowButtonHoverGlyphBrush" Color="{DynamicResource WindowButtonHoverGlyph}" />
-    <SolidColorBrush x:Key="WindowButtonHoverBorderBrush" Color="{DynamicResource WindowButtonHoverBorder}" />
-
-    <SolidColorBrush x:Key="WindowButtonDownBrush" Color="{DynamicResource WindowButtonDown}" />
-    <SolidColorBrush x:Key="WindowButtonDownGlyphBrush" Color="{DynamicResource WindowButtonDownGlyph}" />
-    <SolidColorBrush x:Key="WindowButtonDownBorderBrush" Color="{DynamicResource WindowButtonDownBorder}" />
 </ResourceDictionary>

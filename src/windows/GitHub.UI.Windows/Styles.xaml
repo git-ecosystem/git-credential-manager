@@ -179,44 +179,6 @@
         </Style.Triggers>
     </Style>
 
-    <Style x:Key="WindowCloseButton" TargetType="{x:Type Button}">
-        <Setter x:Uid="Setter_1" Property="FocusVisualStyle" Value="{x:Null}"/>
-        <Setter x:Uid="Setter_2" Property="Background" Value="{DynamicResource WindowButtonBrush}"/>
-        <Setter x:Uid="Setter_3" Property="Foreground" Value="{DynamicResource WindowButtonGlyphBrush}"/>
-        <Setter x:Uid="Setter_4" Property="BorderBrush" Value="Transparent"/>
-        <Setter x:Uid="Setter_5" Property="BorderThickness" Value="0"/>
-        <Setter x:Uid="Setter_6" Property="HorizontalContentAlignment" Value="Center"/>
-        <Setter x:Uid="Setter_7" Property="VerticalContentAlignment" Value="Center"/>
-        <Setter x:Uid="Setter_8" Property="Width" Value="46" />
-        <Setter x:Uid="Setter_9" Property="Height" Value="33" />
-        <Style.Triggers>
-            <Trigger x:Uid="Trigger_3" Property="IsDefaulted" Value="true">
-                <Setter x:Uid="Setter_18" Property="Background" Value="{DynamicResource WindowButtonBrush}"/>
-                <Setter x:Uid="Setter_19" Property="Foreground" Value="{DynamicResource WindowButtonGlyphBrush}"/>
-            </Trigger>
-            <Trigger x:Uid="Trigger_1" Property="IsKeyboardFocused" Value="true">
-                <Setter x:Uid="Setter_12" Property="Background" Value="{DynamicResource WindowButtonHoverBrush}"/>
-                <Setter x:Uid="Setter_13" Property="Foreground" Value="{DynamicResource WindowButtonHoverGlyphBrush}"/>
-                <Setter x:Uid="Setter_14" Property="BorderBrush" Value="{DynamicResource WindowButtonHoverBorderBrush}"/>
-            </Trigger>
-            <Trigger x:Uid="Trigger_2" Property="IsMouseOver" Value="true">
-                <Setter x:Uid="Setter_15" Property="Background" Value="{DynamicResource WindowButtonHoverBrush}"/>
-                <Setter x:Uid="Setter_16" Property="Foreground" Value="{DynamicResource WindowButtonHoverGlyphBrush}"/>
-                <Setter x:Uid="Setter_17" Property="BorderBrush" Value="{DynamicResource WindowButtonHoverBorderBrush}"/>
-            </Trigger>
-            <Trigger x:Uid="Trigger_4" Property="IsPressed" Value="true">
-                <Setter x:Uid="Setter_21" Property="Background" Value="{DynamicResource WindowButtonDownBrush}"/>
-                <Setter x:Uid="Setter_22" Property="Foreground" Value="{DynamicResource WindowButtonDownGlyphBrush}"/>
-                <Setter x:Uid="Setter_23" Property="BorderBrush" Value="{DynamicResource WindowButtonDownBorderBrush}"/>
-            </Trigger>
-            <Trigger x:Uid="Trigger_5" Property="IsFocused" Value="true">
-                <Setter x:Uid="Setter_10" Property="Background" Value="{DynamicResource WindowButtonHoverBrush}"/>
-                <Setter x:Uid="Setter_11" Property="Foreground" Value="{DynamicResource WindowButtonHoverGlyphBrush}"/>
-                <Setter x:Uid="Setter_12" Property="BorderBrush" Value="{DynamicResource WindowButtonHoverBorderBrush}"/>
-            </Trigger>
-        </Style.Triggers>
-    </Style>
-
     <Style TargetType="{x:Type sharedControls:PromptTextBox}" BasedOn="{StaticResource GitHubVsPromptTextBox}" />
     <Style TargetType="{x:Type sharedControls:SecurePasswordBox}" BasedOn="{StaticResource GitHubVsPromptTextBox}" />
     <Style TargetType="{x:Type TextBlock}" x:Key="GitHubDescriptionTextBlock">
@@ -228,7 +190,4 @@
         <Setter Property="FontWeight" Value="Thin" />
     </Style>
     <Style TargetType="{x:Type Label}" />
-    <Style TargetType="UserControl" x:Key="DialogUserControl">
-        <Setter Property="Margin" Value="30,30,30,0" />
-    </Style>
 </ResourceDictionary>

@@ -5,27 +5,34 @@ using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using Microsoft.Git.CredentialManager.UI.Controls;
+using Microsoft.Git.CredentialManager.UI.ViewModels;
 
 namespace Microsoft.Git.CredentialManager.UI
 {
     public interface IGui
     {
         /// <summary>
-        /// Presents the user with `<paramref name="windowCreator"/>` with the `<paramref name="viewModel"/>`.
-        /// <para/>
-        /// Returns `<see langword="true"/>` if the user completed the dialog; otherwise `<see langword="false"/>` if the user canceled or abandoned the dialog.
+        /// Present the user with a <see cref="Window"/>.
         /// </summary>
-        /// <param name="viewModel">The view model passed to the presented window.</param>
-        /// <param name="windowCreator">Creates the window `<paramref name="viewModel"/>` is passed to.</param>
-        bool ShowViewModel(ViewModel viewModel, Func<Window> windowCreator);
+        /// <param name="windowCreator"><see cref="Window"/> factory.</param>
+        /// <returns>
+        /// Returns `<see langword="true"/>` if the user completed the dialog; otherwise `<see langword="false"/>`
+        /// if the user canceled or abandoned the dialog.
+        /// </returns>
+        bool ShowWindow(Func<Window> windowCreator);
 
         /// <summary>
-        /// Present the user with `<paramref name="windowCreator"/>`.
-        /// <para/>
-        /// Returns `<see langword="true"/>` if the user completed the dialog; otherwise `<see langword="false"/>` if the user canceled or abandoned the dialog.
+        /// Present the user with a <see cref="DialogWindow"/>.
         /// </summary>
-        /// <param name="windowCreator">Creates the window.</param>
-        bool ShowDialogWindow(Func<Window> windowCreator);
+        /// <returns>
+        /// Returns `<see langword="true"/>` if the user completed the dialog and the view model is valid;
+        /// otherwise `<see langword="false"/>` if the user canceled or abandoned the dialog, or the view
+        /// model is invalid.
+        /// </returns>
+        /// <param name="viewModel">Window view model.</param>
+        /// <param name="contentCreator">Window content factory.</param>
+        bool ShowDialogWindow(WindowViewModel viewModel, Func<object> contentCreator);
     }
 
     public class Gui : IGui
@@ -42,36 +49,23 @@ namespace Microsoft.Git.CredentialManager.UI
             }
         }
 
-        public bool ShowDialogWindow(Func<Window> windowCreator)
+        public bool ShowWindow(Func<Window> windowCreator)
         {
             bool windowResult = false;
 
-            StartSTATask(() =>
+            var staTask = StartSTATask(() =>
             {
-                var window = windowCreator();
+                windowResult = ShowDialog(windowCreator(), _parentHwnd) ?? false;
+            });
 
-                windowResult = ShowDialog(window, _parentHwnd) ?? false;
-            })
-            .Wait();
+            staTask.Wait();
 
             return windowResult;
         }
 
-        public bool ShowViewModel(ViewModel viewModel, Func<Window> windowCreator)
+        public bool ShowDialogWindow(WindowViewModel viewModel, Func<object> contentCreator)
         {
-            bool windowResult = false;
-
-            StartSTATask(() =>
-            {
-                var window = windowCreator();
-
-                window.DataContext = viewModel;
-
-                windowResult = ShowDialog(window, _parentHwnd) ?? false;
-            })
-            .Wait();
-
-            return windowResult && viewModel.IsValid;
+             return ShowWindow(() => new DialogWindow(viewModel, contentCreator())) && viewModel.IsValid;
         }
 
         private static Task StartSTATask(Action action)
@@ -98,7 +92,7 @@ namespace Microsoft.Git.CredentialManager.UI
 
         public static bool? ShowDialog(Window window, IntPtr parentHwnd)
         {
-            // Zero is not a valid window handles
+            // Zero is not a valid window handle
             if (parentHwnd == IntPtr.Zero)
             {
                 return window.ShowDialog();

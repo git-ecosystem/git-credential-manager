@@ -1,8 +1,9 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
-using GitHub.UI.Dialog;
+
 using GitHub.UI.Login;
 using Microsoft.Git.CredentialManager.UI;
+using Microsoft.Git.CredentialManager.UI.Controls;
 
 namespace GitHub.UI
 {
@@ -25,7 +26,7 @@ namespace GitHub.UI
                 GitHubEnterpriseUrl = enterpriseUrl
             };
 
-            bool valid = _gui.ShowDialogWindow(() => new GitHubDialogWindow(viewModel, new LoginCredentialsView()));
+            bool valid = _gui.ShowDialogWindow(viewModel, () => new LoginCredentialsView());
 
             if (viewModel.UseBrowserLogin)
             {
@@ -46,7 +47,7 @@ namespace GitHub.UI
         {
             var viewModel = new Login2FaViewModel(isSms ? TwoFactorType.Sms : TwoFactorType.AuthenticatorApp);
 
-            bool valid = _gui.ShowViewModel(viewModel, () => new GitHubDialogWindow(viewModel, new Login2FaView()));
+            bool valid = _gui.ShowDialogWindow(viewModel, () => new Login2FaView());
 
             authenticationCode = valid ? viewModel.AuthenticationCode : null;
 

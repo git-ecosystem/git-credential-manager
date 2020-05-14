@@ -3,7 +3,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace Microsoft.Git.CredentialManager.UI
+namespace Microsoft.Git.CredentialManager.UI.ViewModels
 {
     public abstract class ViewModel : INotifyPropertyChanged
     {

@@ -3,9 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:controls="clr-namespace:GitHub.UI.Controls"
              xmlns:octicons="clr-namespace:GitHub.UI.Octicons"
-             Style="{DynamicResource DialogUserControl}"
-             Background="{DynamicResource WindowPanelBrush}"
-             Foreground="{DynamicResource WindowPanelTextBrush}">
+             Style="{DynamicResource DialogUserControl}">
 
     <Control.Resources>
         <ResourceDictionary>
@@ -18,10 +16,10 @@
     <StackPanel Style="{DynamicResource DialogContainerStackPanel}">
         <octicons:OcticonImage Icon="logo_github" Style="{DynamicResource GitHubLogo}" />
         <WrapPanel Orientation="Vertical" HorizontalAlignment="Center" Margin="0,0,0,12">
-            <TextBlock Text="Two-factor authentication" 
-                       Padding="0" 
+            <TextBlock Text="Two-factor authentication"
+                       Padding="0"
                        Margin="0,0,12,0"
-                       Style="{DynamicResource GitHubH1TextBlock}" 
+                       Style="{DynamicResource GitHubH1TextBlock}"
                        x:Uid="titleBlock"/>
         </WrapPanel>
 

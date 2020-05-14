@@ -19,7 +19,7 @@ namespace GitHub.UI
                 // Show test UI when given no arguments
                 if (args.Length == 0)
                 {
-                    gui.ShowDialogWindow(() => new Tester());
+                    gui.ShowWindow(() => new Tester());
                 }
                 else
                 {
