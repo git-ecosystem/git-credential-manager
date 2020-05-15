@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <FilesToSign Include="
+      $(OutDir)Atlassian.Bitbucket.dll;
       $(OutDir)git-credential-manager-core.exe;
       $(OutDir)GitHub.dll;
       $(OutDir)GitHub.UI.exe;
