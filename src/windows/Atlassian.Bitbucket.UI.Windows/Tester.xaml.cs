@@ -3,7 +3,10 @@
 using System;
 using System.Windows;
 using System.Windows.Interop;
+using Atlassian.Bitbucket.UI.Controls;
+using Atlassian.Bitbucket.UI.ViewModels;
 using Microsoft.Git.CredentialManager.UI;
+using Microsoft.Git.CredentialManager.UI.Controls;
 
 namespace Atlassian.Bitbucket.UI
 {
@@ -21,16 +24,12 @@ namespace Atlassian.Bitbucket.UI
 
         private void ShowCredentials(object sender, RoutedEventArgs e)
         {
-            // TODO
-            var window = new Window();
-            Gui.ShowDialog(window, Handle);
+            Gui.ShowDialog(new DialogWindow(new CredentialsViewModel(), new CredentialsControl()), Handle);
         }
 
         private void ShowOAuth(object sender, RoutedEventArgs e)
         {
-            // TODO
-            var window = new Window();
-            Gui.ShowDialog(window, Handle);
+            Gui.ShowDialog(new DialogWindow(new OAuthViewModel(), new OAuthControl()), Handle);
         }
     }
 }

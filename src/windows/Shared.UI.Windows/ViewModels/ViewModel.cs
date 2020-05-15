@@ -20,6 +20,6 @@ namespace Microsoft.Git.CredentialManager.UI.ViewModels
             RaisePropertyChanged(propertyName);
         }
 
-        public virtual bool IsValid { get; }
+        public abstract bool IsValid { get; }
     }
 }

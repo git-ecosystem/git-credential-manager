@@ -18,4 +18,34 @@
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Remove="Images\atlassian-logo-gradient-horizontal-blue@2x.png" />
+    <None Remove="Images\Bitbucket-16x16.ico" />
+    <None Remove="Images\error.png" />
+    <Resource Include="Images\atlassian-logo-gradient-horizontal-blue@2x.png" />
+    <Resource Include="Images\Bitbucket-16x16.ico" />
+    <Resource Include="Images\error.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="BitbucketResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>BitbucketResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="BitbucketResources.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>BitbucketResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Update="Styles.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+
 </Project>

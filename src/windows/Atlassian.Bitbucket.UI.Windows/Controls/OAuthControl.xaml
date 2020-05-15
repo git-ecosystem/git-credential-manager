@@ -1,0 +1,75 @@
+﻿<UserControl
+    x:Class="Atlassian.Bitbucket.UI.Controls.OAuthControl"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:local="clr-namespace:Atlassian.Bitbucket.UI"
+    xmlns:viewModels="clr-namespace:Atlassian.Bitbucket.UI.ViewModels"
+    mc:Ignorable="d"
+    d:DesignWidth="414"
+    d:DesignHeight="440"
+    d:DataContext="{d:DesignInstance viewModels:OAuthViewModel}">
+    <Control.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../Styles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Control.Resources>
+
+    <DockPanel Margin="0,0,0,30" LastChildFill="True">
+        <StackPanel DockPanel.Dock="Bottom">
+            <TextBlock HorizontalAlignment="Center" Margin="0,0,0,10">
+                <Hyperlink
+                    Style="{StaticResource BlueHyperlink}"
+                    ToolTip="{x:Static local:BitbucketResources.PasswordResetUrl}"
+                    Command="{Binding ForgotPasswordCommand}"
+                    CommandParameter="{Binding RelativeSource={RelativeSource Self}, Path=ToolTip}">
+                    <TextBlock Text="{x:Static local:BitbucketResources.ForgotPasswordText}" />
+                </Hyperlink>
+            </TextBlock>
+            <TextBlock HorizontalAlignment="Center" Margin="0,0,0,10">
+                <Hyperlink
+                    Style="{StaticResource BlueHyperlink}"
+                    ToolTip="{x:Static local:BitbucketResources.SignUpLinkUrl}"
+                    Command="{Binding SignUpCommand}"
+                    CommandParameter="{Binding RelativeSource={RelativeSource Self}, Path=ToolTip}">
+                    <TextBlock Text="{x:Static local:BitbucketResources.SignUpLinkText}" />
+                </Hyperlink>
+            </TextBlock>
+        </StackPanel>
+
+
+        <StackPanel DockPanel.Dock="Top">
+            <Image Style="{StaticResource AtlassianLogoBlue}"
+                       HorizontalAlignment="Center" />
+            <TextBlock Style="{StaticResource AtlassianLogoStrapline}"
+                       HorizontalAlignment="Center"
+                       Text="{x:Static local:BitbucketResources.OAuthAuthText}"/>
+        </StackPanel>
+
+        <StackPanel Width="288">
+            <TextBlock Margin="0,44,0,30"
+                       TextAlignment="Center"
+                       HorizontalAlignment="Center"
+                       Style="{StaticResource BitbucketDescriptionTextBlock}"
+                       VerticalAlignment="Center">
+                <Hyperlink Style="{StaticResource BlueHyperlink}"
+                           Command="{Binding LearnMoreCommand}"
+                           CommandParameter="{Binding
+                           RelativeSource={RelativeSource Self},
+                           Path=ToolTip}"
+                           ToolTip="{x:Static local:BitbucketResources.TwoFactorLearnMoreLinkUrl}">
+                    <TextBlock Text="{x:Static local:BitbucketResources.LearnMoreLink}" />
+                </Hyperlink>
+            </TextBlock>
+            <Button TabIndex="2"
+                    IsDefault="True"
+                    Command="{Binding OkCommand}"
+                    IsEnabled="{Binding IsValid, Mode=OneWay}"
+                    Content="{x:Static local:BitbucketResources.AuthorizeLabel}"
+                    Style="{StaticResource BitbucketButton}"/>
+        </StackPanel>
+    </DockPanel>
+</UserControl>

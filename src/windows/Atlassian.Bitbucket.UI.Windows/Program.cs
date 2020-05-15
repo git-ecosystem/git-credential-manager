@@ -2,8 +2,6 @@
 // Licensed under the MIT license.
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Windows.Controls;
 using Microsoft.Git.CredentialManager;
 using Microsoft.Git.CredentialManager.UI;
 
@@ -20,7 +18,7 @@ namespace Atlassian.Bitbucket.UI
                 // Show test UI when given no arguments
                 if (args.Length == 0)
                 {
-                    gui.ShowDialogWindow(() => new Tester());
+                    gui.ShowWindow(() => new Tester());
                 }
                 else
                 {
