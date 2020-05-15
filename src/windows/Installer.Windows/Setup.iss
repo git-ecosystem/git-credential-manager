@@ -79,6 +79,7 @@ Filename: "{app}\git-credential-manager-core.exe"; Parameters: "configure"; Flag
 Filename: "{app}\git-credential-manager-core.exe"; Parameters: "unconfigure"; Flags: runhidden
 
 [Files]
+Source: "{#PayloadDir}\Atlassian.Bitbucket.dll";                       DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PayloadDir}\git-credential-manager-core.exe";               DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PayloadDir}\git-credential-manager-core.exe.config";        DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PayloadDir}\git2-572e4d8.dll";                              DestDir: "{app}"; Flags: ignoreversion
