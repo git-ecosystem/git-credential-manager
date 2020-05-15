@@ -47,6 +47,7 @@ namespace Microsoft.Git.CredentialManager.UI.Controls
         }
 
         private bool updatingTextFromPasswordChange;
+
         private void UpdateText()
         {
             updatingTextFromPasswordChange = true;
@@ -69,7 +70,9 @@ namespace Microsoft.Git.CredentialManager.UI.Controls
         {
             if (!updatingTextFromPasswordChange)
             {
-                SecureString password = Password;
+                // Update a copy of the password SecureString so that we can trigger a changed event
+                // for anyone listening on the actual password property.
+                SecureString password = Password.Copy();
                 int selectionStart = SelectionStart;
                 foreach (TextChange change in e.Changes)
                 {
@@ -77,6 +80,7 @@ namespace Microsoft.Git.CredentialManager.UI.Controls
                     password.InsertAt(change.Offset, Text.Substring(change.Offset, change.AddedLength));
                 }
                 UpdateText();
+                Password = password;
                 SelectionStart = selectionStart;
             }
             base.OnTextChanged(e);
