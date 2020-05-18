@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
-using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.Identity.Client;
 using Microsoft.Identity.Client.Extensions.Msal;
@@ -201,16 +200,11 @@ namespace Microsoft.Git.CredentialManager.Authentication
 
         private bool TryFindHelperExecutablePath(out string path)
         {
-            string helperName = Constants.MicrosoftAuthHelperName;
-
-            if (PlatformUtils.IsWindows())
-            {
-                helperName += ".exe";
-            }
-
-            string executableDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            path = Path.Combine(executableDirectory, helperName);
-            return Context.FileSystem.FileExists(path);
+            return TryFindHelperExecutablePath(
+                Constants.EnvironmentVariables.MsAuthHelper,
+                Constants.GitConfiguration.Credential.MsAuthHelper,
+                Constants.DefaultMsAuthHelper,
+                out path);
         }
 
         private async Task RegisterVisualStudioTokenCacheAsync(IPublicClientApplication app)

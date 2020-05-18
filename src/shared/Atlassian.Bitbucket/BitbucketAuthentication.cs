@@ -2,9 +2,7 @@
 // Licensed under the MIT license.
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Net.Http;
-using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -150,16 +148,11 @@ namespace Atlassian.Bitbucket
 
         private bool TryFindHelperExecutablePath(out string path)
         {
-            string helperName = BitbucketConstants.BitbucketAuthHelperName;
-
-            if (PlatformUtils.IsWindows())
-            {
-                helperName += ".exe";
-            }
-
-            string executableDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            path = Path.Combine(executableDirectory, helperName);
-            return Context.FileSystem.FileExists(path);
+            return TryFindHelperExecutablePath(
+                BitbucketConstants.EnvironmentVariables.AuthenticationHelper,
+                BitbucketConstants.GitConfiguration.Credential.AuthenticationHelper,
+                BitbucketConstants.DefaultAuthenticationHelper,
+                out path);
         }
 
         private HttpClient _httpClient;

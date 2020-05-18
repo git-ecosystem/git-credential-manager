@@ -143,7 +143,7 @@ namespace GitHub
             // Check for an explicit override for supported authentication modes
             if (Context.Settings.TryGetSetting(
                 GitHubConstants.EnvironmentVariables.AuthenticationModes,
-                Constants.GitConfiguration.Credential.SectionName, GitHubConstants.GitConfiguration.Credential.AuthModes,
+                Constants.GitConfiguration.Credential.SectionName, GitHubConstants.GitConfiguration.Credential.AuthenticationModes,
                 out string authModesStr))
             {
                 if (Enum.TryParse(authModesStr, true, out AuthenticationModes authModes) && authModes != AuthenticationModes.None)
