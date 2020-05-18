@@ -8,49 +8,102 @@ master|[![Build Status](https://mseng.visualstudio.com/AzureDevOps/_apis/build/s
 
 [Git Credential Manager Core](https://github.com/Microsoft/Git-Credential-Manager-Core) (GCM Core) is a secure Git credential helper built on [.NET Core](https://microsoft.com/dotnet) that runs on Windows and macOS. Linux support is planned, but not yet scheduled.
 
-Compared to Git's [built-in credential helpers]((https://git-scm.com/book/en/v2/Git-Tools-Credential-Storage)) (Windows: wincred, macOS: osxkeychain, Linux: gnome-keyring) which provides single-factor authentication support working on any HTTP-enabled Git repository, GCM Core provides multi-factor authentication support for [Azure DevOps](https://dev.azure.com/), Azure DevOps Server (formerly Team Foundation Server), and GitHub.
+Compared to Git's [built-in credential helpers]((https://git-scm.com/book/en/v2/Git-Tools-Credential-Storage)) (Windows: wincred, macOS: osxkeychain, Linux: gnome-keyring) which provides single-factor authentication support working on any HTTP-enabled Git repository, GCM Core provides multi-factor authentication support for [Azure DevOps](https://dev.azure.com/), Azure DevOps Server (formerly Team Foundation Server), GitHub, and Bitbucket.
 
-## Public preview for macOS
+## Public preview
 
-The long-term goal of GCM Core is to converge the .NET Framework-based [Git Credential Manager for Windows](https://github.com/Microsoft/Git-Credential-Manager-for-Windows) (GCM Windows), and the Java-based [Git Credential Manager for Mac and Linux](https://github.com/Microsoft/Git-Credential-Manager-for-Mac-and-Linux) (Java GCM), providing a consistent authentication experience across all platforms.
+The long-term goal of Git Credential Manager Core (GCM Core) is to converge the .NET Framework-based [Git Credential Manager for Windows](https://github.com/Microsoft/Git-Credential-Manager-for-Windows) (GCM), and the Java-based [Git Credential Manager for Mac and Linux](https://github.com/Microsoft/Git-Credential-Manager-for-Mac-and-Linux) (Java GCM), providing a consistent authentication experience across all platforms.
 
 ### Current status
 
-GCM Core is currently in preview only for macOS, with a Windows preview following soon. Until that time we recommend Windows users to continue to use GCM Windows. Linux support is planned, but not yet scheduled. For now, we recommend [SSH for authentication to Azure DevOps](https://docs.microsoft.com/en-us/azure/devops/repos/git/use-ssh-keys-to-authenticate?view=azure-devops).
+Git Credential Manager Core is currently in preview for macOS and Windows. Linux support is planned, but not yet scheduled. For now, we recommend [SSH for authentication to Azure DevOps](https://docs.microsoft.com/en-us/azure/devops/repos/git/use-ssh-keys-to-authenticate?view=azure-devops) for Linux users.
 
 Feature|Windows|macOS|Linux
 -|:-:|:-:|:-:
-Installer/uninstaller||&#10003;|
+Installer/uninstaller|&#10003;|&#10003;|
 Secure platform credential storage|&#10003;<br/>Windows Credential Manager|&#10003;<br/>macOS Keychain|
-Multi-factor authentication support for Azure DevOps|&#10003;|&#10003;|
+Multi-factor authentication support for Azure DevOps|&#10003;|&#10003;|&#10003;\*
 Two-factor authentication support for GitHub|&#10003;|&#10003;\*|&#10003;\*
-Two-factor authentication support for BitBucket|||
+Two-factor authentication support for Bitbucket|&#10003;|&#10003;\*|&#10003;\*
 Windows Integrated Authentication (NTLM/Kerberos) support|&#10003;|_N/A_|_N/A_
 Basic HTTP authentication support|&#10003;|&#10003;|&#10003;
+Proxy support|&#10003;|&#10003;|
 
 **Notes:**
 
-(\*) Currently only supported when using Git from the terminal or command line. A platform-native UI experience for GitHub is not yet available on macOS, but planned.
+(\*) Currently only supported when using Git from the terminal or command line. A platform-native UI experience is not yet available on macOS, but planned.
 
 ### Planned features
 
-- [ ] Proxy support
-- [ ] Windows installer
-- [ ] Improved GitHub support (platform-native UI)
-- [ ] BitBucket
-- [ ] Linux installer
+- [ ] 32-bit Windows support (only 64-bit Windows is supported currently)
+- [ ] Linux support
+- [ ] macOS/Linux native UI
 
 ## Download and Install
 
-To use GCM Core, you can download the [latest installer](https://github.com/Microsoft/Git-Credential-Manager-Core/releases/latest) for your platform. To install, double-click installation package and follow the instructions presented.
+### macOS Homebrew
 
-### Git Credential Manager for Mac and Linux (Java-based GCM)
+The preferred installation mechanism is using Homebrew; we offer a Cask in our custom Tap.
+
+To install, run the following:
+
+```shell
+brew tap microsoft/git
+brew cask install git-credential-manager-core
+```
+
+#### Git Credential Manager for Mac and Linux (Java-based GCM)
 
 If you have an existing installation of the 'Java GCM' on macOS and you have installed this using Homebrew, this installation will be unlinked (`brew unlink git-credential-manager`) when GCM Core is installed.
 
+#### Uninstall
+
+To uninstall, run the following:
+
+```shell
+brew cask uninstall git-credential-manager-core
+```
+
+---
+
+### macOS Package
+
+We also provide a [.pkg installer](https://github.com/Microsoft/Git-Credential-Manager-Core/releases/latest) with each release. To install, double-click the installation package and follow the instructions presented.
+
+#### Uninstall
+
+To uninstall, run the following:
+
+```shell
+sudo /usr/local/share/gcm-core/uninstall.sh
+```
+
+---
+
+### Windows
+
+You can download the [latest installer](https://github.com/Microsoft/Git-Credential-Manager-Core/releases/latest) for Windows. To install, double-click the installation package and follow the instructions presented.
+
+#### Git Credential Manager for Windows
+
+GCM Core installs side-by-side any existing Git Credential Manager for Windows installation and will take precedence over it and use any existing credentials so you shouldn't need to re-authenticate.
+
+#### Uninstall (Windows 10)
+
+To uninstall, open the Settings app and navigate to the Apps section. Select "Git Credential Manager Core" and click "Uninstall".
+
+#### Uninstall (Windows 7-8.1)
+
+To uninstall, open Control Panel and navigate to the Programs and Features screen. Select "Git Credential Manager Core" and click "Remove".
+
 ## How to use
 
-You don't! GCM gets called when Git needs credentials for an operation. For example, when pushing (`git push`) to [Azure DevOps](https://dev.azure.com), it automatically opens a window and initializes an OAuth2 flow to get your personal access token.
+Git Credential Manager Core is called implicitly by Git, when so configured. It is not intended to be called directly by the user.
+For example, when pushing (`git push`) to [Azure DevOps](https://dev.azure.com), a window is automatically opened and an OAuth2 flow is started to get your personal access token.
+
+### Configuring a proxy
+
+See detailed information [here](https://aka.ms/gcmcore-httpproxy).
 
 ## Additional Resources
 
@@ -59,6 +112,7 @@ You don't! GCM gets called when Git needs credentials for an operation. For exam
 - [Command-line usage](docs/usage.md)
 - [Configuration options](docs/configuration.md)
 - [Environment variables](docs/environment.md)
+- [Network and HTTP configuration](docs/netconfig.md)
 
 ## Contributing
 
