@@ -8,7 +8,7 @@ namespace Atlassian.Bitbucket
     {
         public const string BitbucketBaseUrlHost = "bitbucket.org";
         public static readonly Uri BitbucketApiUri = new Uri("https://api.bitbucket.org");
-        public const string BitbucketAuthHelperName = "Atlassian.Bitbucket.UI";
+        public const string DefaultAuthenticationHelper = "Atlassian.Bitbucket.UI";
 
         // TODO: use the GCM client ID and secret once we have this approved.
         // Until then continue to use Sourcetree's values like GCM Windows.
@@ -30,6 +30,7 @@ namespace Atlassian.Bitbucket
 
         public static class EnvironmentVariables
         {
+            public const string AuthenticationHelper = "GCM_BITBUCKET_HELPER";
             public const string DevOAuthClientId = "GCM_DEV_BITBUCKET_CLIENTID";
             public const string DevOAuthClientSecret = "GCM_DEV_BITBUCKET_CLIENTSECRET";
             public const string DevOAuthRedirectUri = "GCM_DEV_BITBUCKET_REDIRECTURI";
@@ -39,6 +40,7 @@ namespace Atlassian.Bitbucket
         {
             public static class Credential
             {
+                public const string AuthenticationHelper = "bitbucketHelper";
                 public const string DevOAuthClientId = "bitbucketDevClientId";
                 public const string DevOAuthClientSecret = "bitbucketDevClientSecret";
                 public const string DevOAuthRedirectUri = "bitbucketDevRedirectUri";

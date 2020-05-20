@@ -3,9 +3,7 @@
 using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using System.IO;
 using System.Net.Http;
-using System.Reflection;
 using System.Text;
 using System.Threading;
 using Microsoft.Git.CredentialManager;
@@ -231,29 +229,11 @@ namespace GitHub
 
         private bool TryFindHelperExecutablePath(out string path)
         {
-            string helperName = GitHubConstants.AuthHelperName;
-
-            if (PlatformUtils.IsWindows())
-            {
-                helperName += ".exe";
-            }
-
-            string executableDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            path = Path.Combine(executableDirectory, helperName);
-            if (!Context.FileSystem.FileExists(path))
-            {
-                Context.Trace.WriteLine($"Did not find helper '{helperName}' in '{executableDirectory}'");
-
-                // We currently only have a helper on Windows. If we failed to find the helper we should warn the user.
-                if (PlatformUtils.IsWindows())
-                {
-                    Context.Streams.Error.WriteLine($"warning: missing '{helperName}' from installation.");
-                }
-
-                return false;
-            }
-
-            return true;
+            return TryFindHelperExecutablePath(
+                GitHubConstants.EnvironmentVariables.AuthenticationHelper,
+                GitHubConstants.GitConfiguration.Credential.AuthenticationHelper,
+                GitHubConstants.DefaultAuthenticationHelper,
+                out path);
         }
 
         private HttpClient _httpClient;

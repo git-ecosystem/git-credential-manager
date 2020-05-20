@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace Microsoft.Git.CredentialManager.Authentication
@@ -85,6 +87,48 @@ namespace Microsoft.Git.CredentialManager.Authentication
 
                 throw new InvalidOperationException("Cannot prompt because terminal prompts have been disabled.");
             }
+        }
+
+        protected bool TryFindHelperExecutablePath(string envar, string configName, string defaultValue, out string path)
+        {
+            bool isOverride = false;
+            if (Context.Settings.TryGetSetting(
+                envar, Constants.GitConfiguration.Credential.SectionName, configName, out string helperName))
+            {
+                Context.Trace.WriteLine($"UI helper override specified: '{helperName}'.");
+                isOverride = true;
+            }
+            else
+            {
+                // Use the default helper if none was specified.
+                // On Windows append ".exe" for the default helpers only. If a user has specified their own
+                // helper they should append the correct extension.
+                helperName = PlatformUtils.IsWindows() ? $"{defaultValue}.exe" : defaultValue;
+            }
+
+            if (Path.IsPathRooted(helperName))
+            {
+                path = helperName;
+            }
+            else
+            {
+                string executableDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+                path = Path.Combine(executableDirectory!, helperName);
+            }
+
+            if (!Context.FileSystem.FileExists(path))
+            {
+                // Only warn for missing helpers specified by the user, not in-box ones
+                if (isOverride)
+                {
+                    Context.Trace.WriteLine($"UI helper '{helperName}' was not found at '{path}'.");
+                    Context.Streams.Error.WriteLine($"warning: could not find configured UI helper '{helperName}'");
+                }
+
+                return false;
+            }
+
+            return true;
         }
     }
 }
