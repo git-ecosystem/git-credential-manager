@@ -1,0 +1,44 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT license.
+using System;
+using Microsoft.Git.CredentialManager.Interop.Windows.Native;
+
+namespace Microsoft.Git.CredentialManager.Interop.Windows
+{
+    public class WindowsSessionManager : ISessionManager
+    {
+        public WindowsSessionManager()
+        {
+            PlatformUtils.EnsureWindows();
+        }
+
+        public unsafe bool IsDesktopSession
+        {
+            get
+            {
+                // Environment.UserInteractive is hard-coded to return true for POSIX and Windows platforms on .NET Core 2.x and 3.x.
+                // In .NET 5 the implementation on Windows has been 'fixed', but still POSIX versions always return true.
+                //
+                // This code is lifted from the .NET 5 targeting dotnet/runtime implementation for Windows:
+                // https://github.com/dotnet/runtime/blob/8c10a98c13263eea806d4fcecb76d29e38593539/src/libraries/System.Private.CoreLib/src/System/Environment.Windows.cs#L125-L145
+
+                // Per documentation of GetProcessWindowStation, this handle should not be closed
+                IntPtr handle = User32.GetProcessWindowStation();
+                if (handle != IntPtr.Zero)
+                {
+                    USEROBJECTFLAGS flags = default;
+                    uint dummy = 0;
+                    if (User32.GetUserObjectInformation(handle, User32.UOI_FLAGS, &flags,
+                        (uint) sizeof(USEROBJECTFLAGS), ref dummy))
+                    {
+                        return (flags.dwFlags & User32.WSF_VISIBLE) == 0;
+                    }
+                }
+
+                // If we can't determine, return true optimistically
+                // This will include cases like Windows Nano which do not expose WindowStations
+                return true;
+            }
+        }
+    }
+}

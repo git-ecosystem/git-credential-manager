@@ -45,7 +45,7 @@ namespace Atlassian.Bitbucket
             string password;
 
             // Shell out to the UI helper and show the Bitbucket u/p prompt
-            if (Context.IsDesktopSession && TryFindHelperExecutablePath(out string helperPath))
+            if (Context.SessionManager.IsDesktopSession && TryFindHelperExecutablePath(out string helperPath))
             {
                 var cmdArgs = new StringBuilder("--prompt userpass");
                 if (!string.IsNullOrWhiteSpace(userName))
@@ -96,7 +96,7 @@ namespace Atlassian.Bitbucket
             ThrowIfUserInteractionDisabled();
 
             // Shell out to the UI helper and show the Bitbucket prompt
-            if (Context.IsDesktopSession && TryFindHelperExecutablePath(out string helperPath))
+            if (Context.SessionManager.IsDesktopSession && TryFindHelperExecutablePath(out string helperPath))
             {
                 IDictionary<string, string> output = await InvokeHelperAsync(helperPath, "--prompt oauth");
 

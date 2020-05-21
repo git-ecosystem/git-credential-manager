@@ -34,7 +34,7 @@ namespace Microsoft.Git.CredentialManager.Authentication
             ThrowIfUserInteractionDisabled();
 
             // TODO: we only support system GUI prompts on Windows currently
-            if (Context.IsDesktopSession && PlatformUtils.IsWindows())
+            if (Context.SessionManager.IsDesktopSession && PlatformUtils.IsWindows())
             {
                 return GetCredentialsByUi(resource, userName);
             }
