@@ -20,7 +20,7 @@ namespace Microsoft.Git.CredentialManager.Interop.Windows
                 // In .NET 5 the implementation on Windows has been 'fixed', but still POSIX versions always return true.
                 //
                 // This code is lifted from the .NET 5 targeting dotnet/runtime implementation for Windows:
-                // https://github.com/dotnet/runtime/blob/8c10a98c13263eea806d4fcecb76d29e38593539/src/libraries/System.Private.CoreLib/src/System/Environment.Windows.cs#L125-L145
+                // https://github.com/dotnet/runtime/blob/cf654f08fb0078a96a4e414a0d2eab5e6c069387/src/libraries/System.Private.CoreLib/src/System/Environment.Windows.cs#L125-L145
 
                 // Per documentation of GetProcessWindowStation, this handle should not be closed
                 IntPtr handle = User32.GetProcessWindowStation();
@@ -31,7 +31,7 @@ namespace Microsoft.Git.CredentialManager.Interop.Windows
                     if (User32.GetUserObjectInformation(handle, User32.UOI_FLAGS, &flags,
                         (uint) sizeof(USEROBJECTFLAGS), ref dummy))
                     {
-                        return (flags.dwFlags & User32.WSF_VISIBLE) == 0;
+                        return (flags.dwFlags & User32.WSF_VISIBLE) != 0;
                     }
                 }
 
