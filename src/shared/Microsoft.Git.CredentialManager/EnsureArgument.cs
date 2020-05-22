@@ -6,7 +6,7 @@ namespace Microsoft.Git.CredentialManager
 {
     public static class EnsureArgument
     {
-        public static void NotNull<T>(T arg, string name) where T : class
+        public static void NotNull<T>(T arg, string name)
         {
             if (arg is null)
             {

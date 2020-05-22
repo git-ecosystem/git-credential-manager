@@ -47,7 +47,7 @@ namespace Atlassian.Bitbucket
             // Shell out to the UI helper and show the Bitbucket u/p prompt
             if (Context.SessionManager.IsDesktopSession && TryFindHelperExecutablePath(out string helperPath))
             {
-                var cmdArgs = new StringBuilder("--prompt userpass");
+                var cmdArgs = new StringBuilder("userpass");
                 if (!string.IsNullOrWhiteSpace(userName))
                 {
                     cmdArgs.AppendFormat(" --username {0}", userName);
@@ -98,7 +98,7 @@ namespace Atlassian.Bitbucket
             // Shell out to the UI helper and show the Bitbucket prompt
             if (Context.SessionManager.IsDesktopSession && TryFindHelperExecutablePath(out string helperPath))
             {
-                IDictionary<string, string> output = await InvokeHelperAsync(helperPath, "--prompt oauth");
+                IDictionary<string, string> output = await InvokeHelperAsync(helperPath, "oauth");
 
                 if (output.TryGetValue("continue", out string continueStr) && continueStr.IsTruthy())
                 {
