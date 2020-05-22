@@ -165,8 +165,8 @@ namespace Microsoft.Git.CredentialManager.Interop.Native
                 unsafe
                 {
                     string mainMessage = functionName is null
-                        ? $"libgit2 '{functionName}' returned non-zero value"
-                        : "libgit2 returned non-zero value";
+                        ? "libgit2 returned non-zero value"
+                        : $"libgit2 '{functionName}' returned non-zero value";
 
                     git_error* error = git_error_last();
 

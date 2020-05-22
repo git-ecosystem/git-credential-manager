@@ -9,7 +9,7 @@ namespace GitHub
         public const string GitHubBaseUrlHost = "github.com";
         public const string GistBaseUrlHost = "gist." + GitHubBaseUrlHost;
 
-        public const string AuthHelperName = "GitHub.UI";
+        public const string DefaultAuthenticationHelper = "GitHub.UI";
 
         public const string OAuthClientId = "0120e057bd645470c1ed";
         public const string OAuthClientSecret = "18867509d956965542b521a529a79bb883344c90";
@@ -57,6 +57,7 @@ namespace GitHub
 
         public static class EnvironmentVariables
         {
+            public const string AuthenticationHelper = "GCM_GITHUB_HELPER";
             public const string AuthenticationModes = "GCM_GITHUB_AUTHMODES";
             public const string DevOAuthClientId = "GCM_DEV_GITHUB_CLIENTID";
             public const string DevOAuthClientSecret = "GCM_DEV_GITHUB_CLIENTSECRET";
@@ -67,7 +68,8 @@ namespace GitHub
         {
             public static class Credential
             {
-                public const string AuthModes = "gitHubAuthModes";
+                public const string AuthenticationHelper = "gitHubHelper";
+                public const string AuthenticationModes = "gitHubAuthModes";
                 public const string DevOAuthClientId = "gitHubDevClientId";
                 public const string DevOAuthClientSecret = "gitHubDevClientSecret";
                 public const string DevOAuthRedirectUri = "gitHubDevRedirectUri";

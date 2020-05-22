@@ -20,7 +20,7 @@ Git Credential Manager version 2.0.8-beta+e1f8492d04 (macOS, .NET Core 4.6.27129
 * [ ] Azure DevOps Server (TFS/on-prem)
 * [ ] GitHub
 * [ ] GitHub Enterprise
-* [ ] BitBucket
+* [ ] Bitbucket
 * [ ] Other - please describe
 
 **Can you access the remote repository directly in the browser using the remote URL?**

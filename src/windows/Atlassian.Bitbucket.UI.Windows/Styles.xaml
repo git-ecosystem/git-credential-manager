@@ -1,0 +1,290 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sharedControls="clr-namespace:Microsoft.Git.CredentialManager.UI.Controls;assembly=Microsoft.Git.CredentialManager.UI"
+                    xmlns:sharedConverters="clr-namespace:Microsoft.Git.CredentialManager.UI.Converters;assembly=Microsoft.Git.CredentialManager.UI">
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="pack://application:,,,/Atlassian.Bitbucket.UI;component/Colors.xaml"/>
+    </ResourceDictionary.MergedDictionaries>
+
+    <sharedConverters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+
+    <FontFamily x:Key="BitbucketFontFamilyNormal">Segoe UI</FontFamily>
+
+    <Style x:Key="BlueHyperlink" TargetType="{x:Type Hyperlink}">
+        <Setter Property="Foreground" Value="{DynamicResource BBBlueLinkButtonTextBrush}" />
+        <Setter Property="TextDecorations" Value="None" />
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="true">
+                <Setter Property="Foreground" Value="{DynamicResource BBBlueLinkButtonHoverBrush}" />
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="false">
+                <Setter Property="Foreground"  Value="{DynamicResource BBBlueLinkButtonDisabledTextBrush}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="BitbucketLabel" TargetType="{x:Type Label}">
+        <Setter Property="Foreground" Value="{DynamicResource BitbucketTextBrush}" />
+    </Style>
+
+    <Style x:Key="BitbucketTextBlock" TargetType="{x:Type TextBlock}">
+        <Setter Property="Foreground" Value="{DynamicResource BitbucketTextBrush}" />
+        <Setter Property="FontFamily" Value="{DynamicResource BitbucketFontFamilyNormal}" />
+        <Setter Property="FontWeight" Value="Normal" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Margin" Value="0" />
+        <Setter Property="ToolTipService.ShowDuration" Value="30000" />
+    </Style>
+
+    <Style x:Key="BitbucketDescriptionTextBlock" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource BitbucketTextBlock}">
+        <Setter Property="Margin" Value="24,0" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+        <Setter Property="Foreground" Value="{DynamicResource BitbucketTextSecondaryBrush}" />
+    </Style>
+
+    <Style x:Key="AtlassianLogoStrapline" TargetType="{x:Type TextBlock}">
+        <Setter Property="Foreground" Value="{DynamicResource PacificBridgeBrush}" />
+        <Setter Property="FontSize" Value="20" />
+    </Style>
+
+    <Style x:Key="BitbucketToolTip" TargetType="{x:Type ToolTip}">
+        <Setter Property="Margin" Value="0" />
+        <Setter Property="FontSize" Value="10pt" />
+        <Setter Property="FontWeight" Value="Normal" />
+        <Setter Property="HasDropShadow" Value="False" />
+        <Setter Property="Padding" Value="5,1,5,3" />
+        <Setter Property="Background" Value="#f9f9f9" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="BorderBrush" Value="#20000000" />
+        <Setter Property="Foreground" Value="#494949" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ToolTip">
+                    <Grid>
+                        <Rectangle Margin="2,2,0,0" Width="{TemplateBinding Width}" Height="{TemplateBinding Height}"
+                               Fill="{TemplateBinding Background}" Opacity="0" StrokeThickness="0" />
+                        <Border Opacity="0.95" Margin="4,2,4,5" SnapsToDevicePixels="True"
+                            Background="{TemplateBinding Background}" BorderBrush="#cacaca" BorderThickness="1" Width="{TemplateBinding Width}"
+                            Height="{TemplateBinding Height}">
+                            <ContentPresenter Margin="{TemplateBinding Padding}" HorizontalAlignment="Left" VerticalAlignment="Top" />
+                            <Border.Effect>
+                                <DropShadowEffect ShadowDepth="1" Direction="270" BlurRadius="4" Opacity="0.2" />
+                            </Border.Effect>
+                        </Border>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="ImageX" TargetType="{x:Type Image}">
+        <Setter Property="Stretch" Value="None" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="RenderOptions.BitmapScalingMode" Value="HighQuality" />
+    </Style>
+
+    <!-- https://atlassian.design/guidelines/brand/logos -->
+    <Style x:Key="AtlassianLogoBlue" TargetType="{x:Type Image}" BasedOn="{StaticResource ImageX}">
+        <Setter Property="Source" Value="/Atlassian.Bitbucket.UI;Component/Images/atlassian-logo-gradient-horizontal-blue@2x.png" />
+        <Setter Property="Width" Value="270" />
+        <Setter Property="Height" Value="75" />
+        <Setter Property="Stretch" Value="Uniform" />
+    </Style>
+
+    <Style x:Key="ErrorIcon" TargetType="{x:Type Image}" BasedOn="{StaticResource ImageX}">
+        <Setter Property="Source" Value="/Atlassian.Bitbucket.UI;Component/Images/error.png" />
+        <Setter Property="Width" Value="16" />
+        <Setter Property="Height" Value="16" />
+        <Setter Property="Stretch" Value="Uniform" />
+    </Style>
+
+    <Style x:Key="BitbucketButton" TargetType="{x:Type Button}">
+        <Setter Property="Height" Value="39"/>
+        <Setter Property="Background" Value="{DynamicResource PrimaryBackground}"/>
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryForeground}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border BorderThickness="0"
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="5">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Background" Value="{DynamicResource SpookyGhostBrush}" />
+            </Trigger>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{DynamicResource SodiumExplosionBrush}"/>
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Background" Value="{DynamicResource ChoreCoatBrush}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="BitbucketPromptTextBox" TargetType="{x:Type sharedControls:PromptTextBox}">
+        <Setter Property="Background" Value="{DynamicResource TextBoxBackgroundBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BitbucketTextBoxBorderBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource BitbucketTextBoxForegroundBrush}" />
+        <Setter Property="FontFamily" Value="{DynamicResource BitbucketFontFamilyNormal}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="ToolTipService.ShowDuration" Value="30000" />
+        <Setter Property="ToolTipService.ShowOnDisabled" Value="True" />
+        <Setter Property="ContextMenu" Value="{DynamicResource DefaultContextMenu}" />
+        <Setter Property="KeyboardNavigation.TabNavigation" Value="None"/>
+        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="AllowDrop" Value="true"/>
+        <Setter Property="Padding" Value="5"/>
+        <Setter Property="ScrollViewer.PanningMode" Value="VerticalFirst"/>
+        <Setter Property="Stylus.IsFlicksEnabled" Value="False"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type sharedControls:PromptTextBox}">
+                    <Grid>
+                        <Border x:Name="Bd"
+                                CornerRadius="2"
+                                ClipToBounds="True"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                Background="{TemplateBinding Background}"
+                                SnapsToDevicePixels="True">
+                            <Border CornerRadius="0" BorderBrush="Black" BorderThickness="0,1,0,0" Margin="0,-2,0,0" Opacity="0.4">
+                                <Border.Effect>
+                                    <DropShadowEffect Direction="270" ShadowDepth="0" BlurRadius="4" Opacity="1" />
+                                </Border.Effect>
+                            </Border>
+                        </Border>
+
+                        <Grid>
+                            <ScrollViewer x:Name="PART_ContentHost" Padding="{TemplateBinding Padding}"
+                                          Focusable="false"
+                                          HorizontalScrollBarVisibility="Hidden"
+                                          VerticalScrollBarVisibility="Hidden"
+                                          VerticalAlignment="Top"
+                                          Margin="0"/>
+                            <Label x:Name="PromptLabel"
+                                   HorizontalAlignment="Left"
+                                   Foreground="{DynamicResource GrayTextBrush}"
+                                   FontSize="{TemplateBinding FontSize}" Padding="{TemplateBinding Padding}" Opacity="0"
+                                   Target="{Binding ElementName=Bd}"
+                                   SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" Focusable="False" IsHitTestVisible="False"
+                                   VerticalAlignment="Top">
+                                <TextBlock Text="{TemplateBinding PromptText}" Margin="2,0,0,0" TextTrimming="CharacterEllipsis" />
+                            </Label>
+                        </Grid>
+                    </Grid>
+
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.5" />
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="BorderBrush" TargetName="Bd" Value="{DynamicResource GitHubVsBrandedUIBorder}" />
+                        </Trigger>
+                        <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                            <Setter Property="BorderBrush" TargetName="Bd" Value="{DynamicResource TextBoxBorderFocusedBrush}" />
+                        </Trigger>
+                        <DataTrigger Binding="{Binding Text.Length, RelativeSource={RelativeSource Self}}" Value="0">
+                            <Setter Property="Opacity" TargetName="PromptLabel" Value="0.7" />
+                            <Setter Property="Foreground" Value="Transparent" />
+                        </DataTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType="{x:Type sharedControls:ValidationMessage}">
+        <Setter Property="Padding" Value="2,6" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type sharedControls:ValidationMessage}">
+
+                    <Grid x:Name="grid" Visibility="Collapsed" Opacity="0" Margin="{TemplateBinding Padding}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Viewbox Width="16" Height="16" Grid.Column="0"
+                                 Visibility="{TemplateBinding ShowError, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <Image Style="{DynamicResource ErrorIcon}"/>
+                        </Viewbox>
+
+                        <ContentPresenter x:Name="massageContentPresenter" ContentSource="Content"
+                                        Margin="3,0,0,2"
+                                        Grid.Column="1" />
+
+                        <TextBlock x:Name="defaultMessage"
+                                   Text="{TemplateBinding Text}"
+                                   Margin="3,0,0,2"
+                                   Grid.Column="1"
+                                   Foreground="{DynamicResource PrimaryHighlight}"
+                                   VerticalAlignment="Center" />
+                        <Grid.RenderTransform>
+                            <ScaleTransform x:Name="HeightScaleTransform" ScaleY="0" />
+                        </Grid.RenderTransform>
+                    </Grid>
+
+                    <ControlTemplate.Resources>
+                        <Storyboard x:Key="Show" Storyboard.TargetName="grid">
+                            <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Visibility)">
+                                <DiscreteObjectKeyFrame KeyTime="0:0:0.0" Value="{x:Static Visibility.Visible}" />
+                            </ObjectAnimationUsingKeyFrames>
+                            <DoubleAnimationUsingKeyFrames
+                                Storyboard.TargetName="HeightScaleTransform"
+                                Storyboard.TargetProperty="(ScaleTransform.ScaleY)">
+                                <EasingDoubleKeyFrame KeyTime="0" Value="0" />
+                                <EasingDoubleKeyFrame KeyTime="0:0:0.2" Value="1.0" />
+                            </DoubleAnimationUsingKeyFrames>
+                            <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Opacity)">
+                                <EasingDoubleKeyFrame KeyTime="0:0:0.2" Value="0" />
+                                <EasingDoubleKeyFrame KeyTime="0:0:0.4" Value="1" />
+                            </DoubleAnimationUsingKeyFrames>
+                        </Storyboard>
+                        <Storyboard x:Key="Hide" Storyboard.TargetName="grid">
+                            <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Visibility)">
+                                <DiscreteObjectKeyFrame KeyTime="0:0:0" Value="{x:Static Visibility.Collapsed}" />
+                            </ObjectAnimationUsingKeyFrames>
+                        </Storyboard>
+                    </ControlTemplate.Resources>
+
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="HasContent" Value="True">
+                            <Setter TargetName="defaultMessage" Property="Visibility" Value="Collapsed" />
+                        </Trigger>
+
+                        <Trigger Property="ShowError" Value="True">
+                            <Trigger.EnterActions>
+                                <BeginStoryboard x:Name="Show_BeginStoryboard" Storyboard="{StaticResource Show}" />
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="Show_BeginStoryboard" />
+                            </Trigger.ExitActions>
+                        </Trigger>
+
+                        <Trigger Property="ShowError" Value="False">
+                            <Trigger.EnterActions>
+                                <BeginStoryboard x:Name="Hide_BeginStoryboard" Storyboard="{StaticResource Hide}" />
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <RemoveStoryboard BeginStoryboardName="Hide_BeginStoryboard" />
+                            </Trigger.ExitActions>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType="{x:Type Label}" BasedOn="{StaticResource BitbucketLabel}" />
+    <Style TargetType="{x:Type ToolTip}" BasedOn="{StaticResource BitbucketToolTip}" />
+    <Style TargetType="{x:Type sharedControls:PromptTextBox}" BasedOn="{StaticResource BitbucketPromptTextBox}" />
+    <Style TargetType="{x:Type sharedControls:SecurePasswordBox}" BasedOn="{StaticResource BitbucketPromptTextBox}" />
+</ResourceDictionary>

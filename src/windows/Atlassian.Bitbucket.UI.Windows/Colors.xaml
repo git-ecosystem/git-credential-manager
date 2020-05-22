@@ -1,0 +1,293 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:PresentationOptions="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"
+                    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                    mc:Ignorable="PresentationOptions">
+
+    <!--
+    Colors
+
+    https://atlassian.design/guidelines/brand/color-1
+    -->
+
+    <!-- Primary Palette -->
+    <Color x:Key="PacificBridge">#0052CC</Color>
+    <Color x:Key="SquidInk">#172B4D</Color>
+    <Color x:Key="Doctor">#FFFFFF</Color>
+
+    <!-- Secondary Palette -->
+    <Color x:Key="PoppySurprise">#FF5630</Color>
+    <Color x:Key="GoldenState">#FFAB00</Color>
+    <Color x:Key="OurKellie">#36B37E</Color>
+    <Color x:Key="DaJuice">#6554C0</Color>
+    <Color x:Key="Tamarama">#00B8D9</Color>
+    <Color x:Key="Tan">#f1a257</Color>
+    <Color x:Key="LightBrown">#d39c3f</Color>
+    <Color x:Key="Cyan">#59afe1</Color>
+    <Color x:Key="Slate">#4a6785</Color>
+    <Color x:Key="CoolBlue">#84bbc6</Color>
+    <Color x:Key="LimeGreen">#8eb021</Color>
+    <Color x:Key="MidGreen">#67ab49</Color>
+    <Color x:Key="Violet">#654982</Color>
+    <Color x:Key="Mauve">#ac707a</Color>
+    <Color x:Key="BrightPink">#f15c75</Color>
+    <Color x:Key="Rosie">#f691b2</Color>
+
+    <!-- Reds -->
+
+    <Color x:Key="DragonsBlood">#BF2600</Color>
+    <Color x:Key="RedDirt">#DE350B</Color>
+    <!-- Defined as Secondary <Color x:Key="PoppySurprise">#FF5630</Color>-->
+    <Color x:Key="SalmonSashimi">#FF7452</Color>
+    <Color x:Key="Alexandria">#FF8F73</Color>
+    <Color x:Key="BondiSunburn">#FFBDAD</Color>
+    <!-- Defined as Secondary <Color x:Key="Rosie">#FFEBE5</Color>-->
+
+    <!-- Yellows -->
+
+    <Color x:Key="Debrito">#FF8B00</Color>
+    <Color x:Key="CheezyBlasters">#FF991F</Color>
+    <!-- Defined as Secondary <Color x:Key="GoldenState">#FFAB00</Color>-->
+    <Color x:Key="PubMix">#FFC400</Color>
+    <Color x:Key="Cowbell">#FFE380</Color>
+    <Color x:Key="DandelionWhisper">#FFF0B2</Color>
+    <Color x:Key="JamesBlonde">#FFFAE5</Color>
+
+    <!-- Greens -->
+
+    <Color x:Key="KeenGreen">#006644</Color>
+    <Color x:Key="Slime">#00875A</Color>
+    <!-- Defined as Secondary <Color x:Key="OurKellie">#36B37E</Color>-->
+    <Color x:Key="GreenTea">#57D9A3</Color>
+    <Color x:Key="Cloverleaf">#79F2C0</Color>
+    <Color x:Key="Mintie">#ABF5D1</Color>
+    <Color x:Key="TheSmell">#E3FCEF</Color>
+
+    <!-- Teals -->
+
+    <Color x:Key="ShabbyChic">#008DA6</Color>
+    <Color x:Key="PromDress">#00A3BF</Color>
+    <!-- Defined as Secondary <Color x:Key="Tamarama">#00B8D9</Color>-->
+    <Color x:Key="MermaidNet">#00C7E5</Color>
+    <Color x:Key="HairyFairy">#79E2F2</Color>
+    <Color x:Key="ArcticChill">#B3F5FF</Color>
+    <Color x:Key="GramsSofa">#E6FCFF</Color>
+
+    <!-- Blues -->
+
+    <Color x:Key="ChoreCoat">#0747A6</Color>
+    <!-- Defined as Primary <Color x:Key="PacificBridge">#0052CC</Color>-->
+    <Color x:Key="SodiumExplosion">#0065FF</Color>
+    <Color x:Key="Coogee">#2684FF</Color>
+    <Color x:Key="ArvoBreeze">#4C9AFF</Color>
+    <Color x:Key="Schwag">#B2D4FF</Color>
+    <Color x:Key="PixieDust">#DEEBFF</Color>
+
+    <!-- Purples -->
+
+    <Color x:Key="Prince">#403294</Color>
+    <Color x:Key="Snozzberry">#5243AA</Color>
+    <!-- Defined as Secondary <Color x:Key="DaJuice">#6554C0</Color>-->
+    <Color x:Key="Pastelli">#8777D9</Color>
+    <Color x:Key="HerkyJerky">#998DD9</Color>
+    <Color x:Key="PhantomMist">#C0B6F2</Color>
+    <Color x:Key="LavenderSecret">#EAE6FF</Color>
+
+    <!-- Neutrals -->
+
+    <!-- Defined as Secondary <Color x:Key="Slate">#091E42</Color>-->
+    <!-- Defined as Primary <Color x:Key="SquidInk">#172B4D</Color>-->
+    <Color x:Key="Snorlax">#253858</Color>
+    <Color x:Key="PetRock">#344563</Color>
+    <Color x:Key="McFanning">#42526E</Color>
+    <Color x:Key="ConcreteJungle">#505F79</Color>
+    <Color x:Key="Clooney">#5E6C84</Color>
+    <Color x:Key="BlingBling">#6C798F</Color>
+    <Color x:Key="HumboldtFog">#7A869A</Color>
+    <Color x:Key="Meredith">#8993A4</Color>
+    <Color x:Key="SpookyGhost">#97A0AF</Color>
+    <Color x:Key="Blanche">#A5ADBA</Color>
+    <Color x:Key="Sentinel">#B3BAC5</Color>
+    <Color x:Key="Karl">#C1C7D0</Color>
+    <Color x:Key="JollyFunTime">#DFE1E5</Color>
+    <Color x:Key="NortheastNnow">#EBECF0</Color>
+    <Color x:Key="GramsHair">#F4F5F7</Color>
+    <Color x:Key="WashMe">#FAFBFC</Color>
+    <!--Defined as Primary <Color x:Key="Doctor">#FFFFFF</Color>-->
+    
+    <!--
+    Brushes
+    
+    -->
+    <!-- Primary Palette -->
+    <SolidColorBrush x:Key="PacificBridgeBrush" Color="{StaticResource PacificBridge}" />
+    <SolidColorBrush x:Key="SquidInkBrush" Color="{StaticResource SquidInk}" />
+    <SolidColorBrush x:Key="DoctorBrush" Color="{StaticResource Doctor}" />
+
+    <!-- Secondary Palette -->
+    <SolidColorBrush x:Key="PoppySurpriseBrush" Color="{StaticResource PoppySurprise}" />
+    <SolidColorBrush x:Key="GoldenStateBrush" Color="{StaticResource GoldenState}" />
+    <SolidColorBrush x:Key="OurKellieBrush" Color="{StaticResource OurKellie}" />
+    <SolidColorBrush x:Key="DaJuiceBrush" Color="{StaticResource DaJuice}" />
+    <SolidColorBrush x:Key="TamaramaBrush" Color="{StaticResource Tamarama}" />
+    <SolidColorBrush x:Key="TanBrush" Color="{StaticResource Tan}" />
+    <SolidColorBrush x:Key="LightBrownBrush" Color="{StaticResource LightBrown}" />
+    <SolidColorBrush x:Key="CyanBrush" Color="{StaticResource Cyan}" />
+    <SolidColorBrush x:Key="SlateBrush" Color="{StaticResource Slate}" />
+    <SolidColorBrush x:Key="CoolBlueBrush" Color="{StaticResource CoolBlue}" />
+    <SolidColorBrush x:Key="LimeGreenBrush" Color="{StaticResource LimeGreen}" />
+    <SolidColorBrush x:Key="MidGreenBrush" Color="{StaticResource MidGreen}" />
+    <SolidColorBrush x:Key="VioletBrush" Color="{StaticResource Violet}" />
+    <SolidColorBrush x:Key="MauveBrush" Color="{StaticResource Mauve}" />
+    <SolidColorBrush x:Key="BrightPinkBrush" Color="{StaticResource BrightPink}" />
+    <SolidColorBrush x:Key="RosieBrush" Color="{StaticResource Rosie}" />
+
+    <!-- Reds -->
+
+    <SolidColorBrush x:Key="DragonsBloodBrush" Color="{StaticResource DragonsBlood}" />
+    <SolidColorBrush x:Key="RedDirtBrush" Color="{StaticResource RedDirt}" />
+    <!-- Defined as Secondary <SolidColorBrush x:Key="PoppySurpriseBrush" Color="{StaticResource   }" />-->
+    <SolidColorBrush x:Key="SalmonSashimiBrush" Color="{StaticResource SalmonSashimi}" />
+    <SolidColorBrush x:Key="AlexandriaBrush" Color="{StaticResource Alexandria}" />
+    <SolidColorBrush x:Key="BondiSunburnBrush" Color="{StaticResource  BondiSunburn}" />
+    <!-- Defined as Secondary <SolidColorBrush x:Key="RosieBrush" Color="{StaticResource   }" />-->
+
+    <!-- Yellows -->
+
+    <SolidColorBrush x:Key="DebritoBrush" Color="{StaticResource Debrito}" />
+    <SolidColorBrush x:Key="CheezyBlastersBrush" Color="{StaticResource CheezyBlasters}" />
+    <!-- Defined as Secondary <SolidColorBrush x:Key="GoldenStateBrush" Color="{StaticResource   }" />-->
+    <SolidColorBrush x:Key="PubMixBrush" Color="{StaticResource PubMix}" />
+    <SolidColorBrush x:Key="CowbellBrush" Color="{StaticResource Cowbell}" />
+    <SolidColorBrush x:Key="DandelionWhisperBrush" Color="{StaticResource DandelionWhisper}" />
+    <SolidColorBrush x:Key="JamesBlondeBrush" Color="{StaticResource JamesBlonde}" />
+
+    <!-- Greens -->
+
+    <SolidColorBrush x:Key="KeenGreenBrush" Color="{StaticResource KeenGreen}" />
+    <SolidColorBrush x:Key="SlimeBrush" Color="{StaticResource Slime}" />
+    <!-- Defined as Secondary <SolidColorBrush x:Key="OurKellieBrush" Color="{StaticResource   }" />-->
+    <SolidColorBrush x:Key="GreenTeaBrush" Color="{StaticResource GreenTea}" />
+    <SolidColorBrush x:Key="CloverleafBrush" Color="{StaticResource Cloverleaf}" />
+    <SolidColorBrush x:Key="MintieBrush" Color="{StaticResource Mintie}" />
+    <SolidColorBrush x:Key="TheSmellBrush" Color="{StaticResource TheSmell}" />
+
+    <!-- Teals -->
+
+    <SolidColorBrush x:Key="ShabbyChicBrush" Color="{StaticResource ShabbyChic}" />
+    <SolidColorBrush x:Key="PromDressBrush" Color="{StaticResource PromDress}" />
+    <!-- Defined as Secondary <SolidColorBrush x:Key="TamaramaBrush" Color="{StaticResource   }" />-->
+    <SolidColorBrush x:Key="MermaidNetBrush" Color="{StaticResource MermaidNet}" />
+    <SolidColorBrush x:Key="HairyFairyBrush" Color="{StaticResource HairyFairy}" />
+    <SolidColorBrush x:Key="ArcticChillBrush" Color="{StaticResource ArcticChill}" />
+    <SolidColorBrush x:Key="GramsSofaBrush" Color="{StaticResource GramsSofa}" />
+
+    <!-- Blues -->
+
+    <SolidColorBrush x:Key="ChoreCoatBrush" Color="{StaticResource ChoreCoat}" />
+    <!-- Defined as Primary <SolidColorBrush x:Key="PacificBridgeBrush" Color="{StaticResource   }" />-->
+    <SolidColorBrush x:Key="SodiumExplosionBrush" Color="{StaticResource SodiumExplosion}" />
+    <SolidColorBrush x:Key="CoogeeBrush" Color="{StaticResource Coogee}" />
+    <SolidColorBrush x:Key="ArvoBreezeBrush" Color="{StaticResource ArvoBreeze}" />
+    <SolidColorBrush x:Key="SchwagBrush" Color="{StaticResource Schwag}" />
+    <SolidColorBrush x:Key="PixieDustBrush" Color="{StaticResource PixieDust}" />
+
+    <!-- Purples -->
+
+    <SolidColorBrush x:Key="PrinceBrush" Color="{StaticResource Prince}" />
+    <SolidColorBrush x:Key="SnozzberryBrush" Color="{StaticResource Snozzberry}" />
+    <!-- Defined as Secondary <SolidColorBrush x:Key="DaJuiceBrush" Color="{StaticResource   }" />-->
+    <SolidColorBrush x:Key="PastelliBrush" Color="{StaticResource Pastelli}" />
+    <SolidColorBrush x:Key="HerkyJerkyBrush" Color="{StaticResource HerkyJerky}" />
+    <SolidColorBrush x:Key="PhantomMistBrush" Color="{StaticResource PhantomMist}" />
+    <SolidColorBrush x:Key="LavenderSecretBrush" Color="{StaticResource LavenderSecret}" />
+
+    <!-- Neutrals -->
+
+    <!-- Defined as Secondary <SolidColorBrush x:Key="SlateBrush" Color="{StaticResource   }" />-->
+    <!-- Defined as Primary <SolidColorBrush x:Key="SquidInkBrush" Color="{StaticResource   }" />-->
+    <SolidColorBrush x:Key="SnorlaxBrush" Color="{StaticResource Snorlax}" />
+    <SolidColorBrush x:Key="PetRockBrush" Color="{StaticResource PetRock}" />
+    <SolidColorBrush x:Key="McFanningBrush" Color="{StaticResource McFanning}" />
+    <SolidColorBrush x:Key="ConcreteJungleBrush" Color="{StaticResource ConcreteJungle}" />
+    <SolidColorBrush x:Key="ClooneyBrush" Color="{StaticResource Clooney}" />
+    <SolidColorBrush x:Key="BlingBlingBrush" Color="{StaticResource BlingBling}" />
+    <SolidColorBrush x:Key="HumboldtFogBrush" Color="{StaticResource HumboldtFog}" />
+    <SolidColorBrush x:Key="MeredithBrush" Color="{StaticResource Meredith}" />
+    <SolidColorBrush x:Key="SpookyGhostBrush" Color="{StaticResource SpookyGhost}" />
+    <SolidColorBrush x:Key="BlancheBrush" Color="{StaticResource Blanche}" />
+    <SolidColorBrush x:Key="SentinelBrush" Color="{StaticResource Sentinel}" />
+    <SolidColorBrush x:Key="KarlBrush" Color="{StaticResource Karl}" />
+    <SolidColorBrush x:Key="JollyFunTimeBrush" Color="{StaticResource JollyFunTime}" />
+    <SolidColorBrush x:Key="NortheastNnowBrush" Color="{StaticResource NortheastNnow}" />
+    <SolidColorBrush x:Key="GramsHairBrush" Color="{StaticResource GramsHair}" />
+    <SolidColorBrush x:Key="WashMeBrush" Color="{StaticResource WashMe}" />
+    <!--Defined as Primary <SolidColorBrush x:Key="DoctorBrush" Color="{StaticResource   }" />-->
+
+    
+    <!--
+    ADG UI usage
+    -->
+
+    <SolidColorBrush x:Key="PrimaryForeground" Color="{StaticResource Doctor}" />
+    <SolidColorBrush x:Key="PrimaryBackground" Color="{StaticResource PacificBridge}" />
+    <SolidColorBrush x:Key="PrimaryHighlight" Color="{StaticResource SquidInk}" />
+
+
+    <SolidColorBrush x:Key="BitbucketAccentBrush" Color="{DynamicResource Coogee}"
+                     PresentationOptions:Freeze="true" />
+
+    <!-- Default text colors -->
+    <SolidColorBrush x:Key="BitbucketTextBrush" Color="{DynamicResource SquidInk}"/>
+    <SolidColorBrush x:Key="BitbucketLightTextBrush" Color="{DynamicResource Doctor}"/>
+    
+    <SolidColorBrush x:Key="BitbucketTextSecondaryBrush"
+                     Color="{DynamicResource PacificBridge}"
+                     PresentationOptions:Freeze="true" />
+
+    <!-- Link Button colors -->
+    <SolidColorBrush x:Key="BBLinkButtonTextBrush" Color="{DynamicResource Doctor}"
+                     PresentationOptions:Freeze="true" />
+
+    <SolidColorBrush x:Key="BBLinkButtonHoverBrush" Color="{DynamicResource WashMe}"
+                     PresentationOptions:Freeze="true" />
+
+    <SolidColorBrush x:Key="BBLinkButtonPressedBrush" Color="{DynamicResource GramsHair}"
+                     PresentationOptions:Freeze="true" />
+
+    <!-- Blue Link Button colors -->
+    <SolidColorBrush x:Key="BBBlueLinkButtonTextBrush" Color="{DynamicResource PacificBridge}"
+                     PresentationOptions:Freeze="true" />
+
+    <SolidColorBrush x:Key="BBBlueLinkButtonDisabledTextBrush" Color="{DynamicResource ChoreCoat}"
+                     PresentationOptions:Freeze="true" />
+
+    <SolidColorBrush x:Key="BBBlueLinkButtonIconBrush" Color="{DynamicResource ChoreCoat}"
+                     PresentationOptions:Freeze="true" />
+
+    <SolidColorBrush x:Key="BBBlueLinkButtonHoverBrush" Color="{DynamicResource SodiumExplosion}"
+                     PresentationOptions:Freeze="true" />
+
+    <SolidColorBrush x:Key="BBBlueLinkButtonHoverIconBrush" Color="{DynamicResource SodiumExplosion}"
+                     PresentationOptions:Freeze="true" />
+
+    <SolidColorBrush x:Key="BBBlueLinkButtonPressedBrush" Color="{DynamicResource ChoreCoat}"
+                     PresentationOptions:Freeze="true" />
+
+    <SolidColorBrush x:Key="BBBlueLinkButtonPressedIconBrush" Color="{DynamicResource ChoreCoat}"
+                     PresentationOptions:Freeze="true" />
+
+    <SolidColorBrush x:Key="BBBlueLinkButtonDisabledBrush" Color="{DynamicResource PixieDust}"
+                     PresentationOptions:Freeze="true" />
+
+    <SolidColorBrush x:Key="BBBlueLinkButtonDisabledIconBrush" Color="{DynamicResource PixieDust}"
+                     PresentationOptions:Freeze="true" />
+
+    <!-- TextBox -->
+    <SolidColorBrush x:Key="BitbucketTextBoxForegroundBrush" Color="{DynamicResource SquidInk}"
+                     PresentationOptions:Freeze="true" />
+    <SolidColorBrush x:Key="BitbucketTextBoxBorderBrush" Color="{DynamicResource Karl}"
+                     PresentationOptions:Freeze="true" />
+    <SolidColorBrush x:Key="BitbucketTextBoxMouseOverBorderBrush" Color="{DynamicResource NortheastSnow}"
+                     PresentationOptions:Freeze="true" />
+</ResourceDictionary>

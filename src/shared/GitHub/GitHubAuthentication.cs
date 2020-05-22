@@ -3,9 +3,7 @@
 using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using System.IO;
 using System.Net.Http;
-using System.Reflection;
 using System.Text;
 using System.Threading;
 using Microsoft.Git.CredentialManager;
@@ -65,7 +63,9 @@ namespace GitHub
 
             // If the GitHub auth stack doesn't support flows such as RFC 8628 and we do not have
             // an interactive desktop session, we cannot offer OAuth authentication.
-            if ((modes & AuthenticationModes.OAuth) != 0 && !Context.IsDesktopSession && !GitHubConstants.IsOAuthDeviceAuthSupported)
+            if ((modes & AuthenticationModes.OAuth) != 0
+                && !Context.SessionManager.IsDesktopSession
+                && !GitHubConstants.IsOAuthDeviceAuthSupported)
             {
                 Context.Trace.WriteLine("Ignoring OAuth authentication mode because we are not in an interactive desktop session. GitHub does not support RFC 8628.");
 
@@ -191,7 +191,7 @@ namespace GitHub
             var oauthClient = new GitHubOAuth2Client(HttpClient, Context.Settings, targetUri);
 
             // If we have a desktop session try authentication using the user's default web browser
-            if (Context.IsDesktopSession)
+            if (Context.SessionManager.IsDesktopSession)
             {
                 var browserOptions = new OAuth2WebBrowserOptions
                 {
@@ -231,29 +231,11 @@ namespace GitHub
 
         private bool TryFindHelperExecutablePath(out string path)
         {
-            string helperName = GitHubConstants.AuthHelperName;
-
-            if (PlatformUtils.IsWindows())
-            {
-                helperName += ".exe";
-            }
-
-            string executableDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            path = Path.Combine(executableDirectory, helperName);
-            if (!Context.FileSystem.FileExists(path))
-            {
-                Context.Trace.WriteLine($"Did not find helper '{helperName}' in '{executableDirectory}'");
-
-                // We currently only have a helper on Windows. If we failed to find the helper we should warn the user.
-                if (PlatformUtils.IsWindows())
-                {
-                    Context.Streams.Error.WriteLine($"warning: missing '{helperName}' from installation.");
-                }
-
-                return false;
-            }
-
-            return true;
+            return TryFindHelperExecutablePath(
+                GitHubConstants.EnvironmentVariables.AuthenticationHelper,
+                GitHubConstants.GitConfiguration.Credential.AuthenticationHelper,
+                GitHubConstants.DefaultAuthenticationHelper,
+                out path);
         }
 
         private HttpClient _httpClient;

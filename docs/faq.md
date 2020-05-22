@@ -16,9 +16,13 @@ Please follow these steps to diagnose or resolve the problem:
 
 ### Q: I got an error saying unsecure HTTP is not supported.
 
-To keep your data secure, Git Credential Manager Core will not send credentials for Azure Repos, Azure DevOps Server (TFS), GitHub, and BitBucket, over HTTP connections that are not secured using TLS (HTTPS).
+To keep your data secure, Git Credential Manager Core will not send credentials for Azure Repos, Azure DevOps Server (TFS), GitHub, and Bitbucket, over HTTP connections that are not secured using TLS (HTTPS).
 
 Please make sure your remote URLs use "https://" rather than "http://".
+
+### Q: I got an authentication error and I am behind a network proxy.
+
+You probably need to configure Git and GCM Core to use a proxy. Please see detailed information [here](https://aka.ms/gcmcore-httpproxy).
 
 ## About the project
 
@@ -41,7 +45,7 @@ SSH configuration instructions:
 
 - [Azure DevOps](https://docs.microsoft.com/en-us/azure/devops/repos/git/use-ssh-keys-to-authenticate?view=azure-devops)
 - [GitHub](https://help.github.com/en/articles/connecting-to-github-with-ssh)
-- [BitBucket](https://confluence.atlassian.com/bitbucket/ssh-keys-935365775.html)
+- [Bitbucket](https://confluence.atlassian.com/bitbucket/ssh-keys-935365775.html)
 
 ### Q: Why did you not just port the existing GCM Windows codebase from .NET Framework to .NET Core?
 
@@ -55,6 +59,6 @@ Support will be best-effort. We would really appreciate your feedback as we work
 
 The likely answer is we haven't gotten around to that yet! 🙂
 
-We are working on ensuring support for the Windows, macOS, and Ubuntu operating system, as well as the following Git hosting providers: Azure Repos, Azure DevOps Server (TFS), GitHub, and BitBucket.
+We are working on ensuring support for the Windows, macOS, and Ubuntu operating system, as well as the following Git hosting providers: Azure Repos, Azure DevOps Server (TFS), GitHub, and Bitbucket.
 
 We are happy to accept proposals and/or contributions to enable GCM Core to run on other platforms and Git host providers. Thank you!

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Git.CredentialManager;
+using Microsoft.Git.CredentialManager.UI;
 
 namespace GitHub.UI
 {
@@ -11,22 +12,14 @@ namespace GitHub.UI
     {
         public static void Main(string[] args)
         {
-            IGui gui;
-            if (TryGetParentWindowHandle(out IntPtr parentHwnd))
-            {
-                gui = new Gui(parentHwnd);
-            }
-            else
-            {
-                gui = new Gui();
-            }
+            IGui gui = new Gui();
 
             try
             {
                 // Show test UI when given no arguments
                 if (args.Length == 0)
                 {
-                    gui.ShowDialogWindow(() => new Tester());
+                    gui.ShowWindow(() => new Tester());
                 }
                 else
                 {
@@ -35,9 +28,9 @@ namespace GitHub.UI
 
                     if (StringComparer.OrdinalIgnoreCase.Equals(args[0], "prompt"))
                     {
-                        string enterpriseUrl = GetParameter(args, "--enterprise-url");
-                        bool basic = TryGetSwitch(args, "--basic");
-                        bool oauth = TryGetSwitch(args, "--oauth");
+                        string enterpriseUrl = CommandLineUtils.GetParameter(args, "--enterprise-url");
+                        bool basic = CommandLineUtils.TryGetSwitch(args, "--basic");
+                        bool oauth = CommandLineUtils.TryGetSwitch(args, "--oauth");
 
                         if (!basic && !oauth)
                         {
@@ -70,7 +63,7 @@ namespace GitHub.UI
                     }
                     else if (StringComparer.OrdinalIgnoreCase.Equals(args[0], "2fa"))
                     {
-                        bool isSms = TryGetSwitch(args, "--sms");
+                        bool isSms = CommandLineUtils.TryGetSwitch(args, "--sms");
 
                         if (!prompts.ShowAuthenticationCodePrompt(isSms, out string authCode))
                         {
@@ -95,37 +88,6 @@ namespace GitHub.UI
                 });
                 Environment.Exit(-1);
             }
-        }
-
-        private static bool TryGetParentWindowHandle(out IntPtr hwnd)
-        {
-            string envar = Environment.GetEnvironmentVariable(Constants.EnvironmentVariables.GcmParentWindow);
-
-            if (long.TryParse(envar, out long ptrInt))
-            {
-                hwnd = new IntPtr(ptrInt);
-                return true;
-            }
-
-            hwnd = default(IntPtr);
-            return false;
-        }
-
-        private static bool TryGetSwitch(string[] args, string name)
-        {
-            return args.Any(arg => StringComparer.OrdinalIgnoreCase.Equals(arg, name));
-        }
-
-        private static string GetParameter(string[] args, string name)
-        {
-            int index = Array.FindIndex(args, x => StringComparer.OrdinalIgnoreCase.Equals(x, name));
-
-            if (-1 < index && index + 1 < args.Length)
-            {
-                return args[index + 1];
-            }
-
-            return null;
         }
     }
 }

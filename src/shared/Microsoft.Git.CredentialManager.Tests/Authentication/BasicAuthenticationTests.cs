@@ -26,7 +26,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Authentication
             const string testUserName = "john.doe";
             const string testPassword = "letmein123";
 
-            var context = new TestCommandContext {IsDesktopSession = false};
+            var context = new TestCommandContext {SessionManager = {IsDesktopSession = false}};
             context.Terminal.SecretPrompts["Password"] = testPassword;
 
             var basicAuth = new BasicAuthentication(context);
@@ -44,7 +44,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Authentication
             const string testUserName = "john.doe";
             const string testPassword = "letmein123";
 
-            var context = new TestCommandContext {IsDesktopSession = false};
+            var context = new TestCommandContext {SessionManager = {IsDesktopSession = false}};
             context.Terminal.Prompts["Username"] = testUserName;
             context.Terminal.SecretPrompts["Password"] = testPassword;
 
@@ -63,7 +63,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Authentication
 
             var context = new TestCommandContext
             {
-                IsDesktopSession = false,
+                SessionManager = {IsDesktopSession = false},
                 Settings = {IsInteractionAllowed = false},
             };
 
@@ -81,7 +81,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Authentication
 
             var context = new TestCommandContext
             {
-                IsDesktopSession = true,
+                SessionManager = {IsDesktopSession = true},
                 SystemPrompts =
                 {
                     CredentialPrompt = (resource, userName) =>
@@ -112,7 +112,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Authentication
 
             var context = new TestCommandContext
             {
-                IsDesktopSession = true,
+                SessionManager = {IsDesktopSession = true},
                 SystemPrompts =
                 {
                     CredentialPrompt = (resource, userName) =>
@@ -144,7 +144,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Authentication
 
             var context = new TestCommandContext
             {
-                IsDesktopSession = true,
+                SessionManager = {IsDesktopSession = true},
                 SystemPrompts =
                 {
                     CredentialPrompt = (resource, userName) =>

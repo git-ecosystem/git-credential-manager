@@ -3,8 +3,9 @@
 using System;
 using System.Windows;
 using System.Windows.Interop;
-using GitHub.UI.Dialog;
 using GitHub.UI.Login;
+using Microsoft.Git.CredentialManager.UI;
+using Microsoft.Git.CredentialManager.UI.Controls;
 
 namespace GitHub.UI
 {
@@ -22,12 +23,18 @@ namespace GitHub.UI
 
         private void ShowCredentials(object sender, RoutedEventArgs e)
         {
-            new GitHubDialogWindow(new LoginCredentialsViewModel(true, true), new LoginCredentialsView()).ShowDialog(Handle);
+            var model = new LoginCredentialsViewModel(true, true);
+            var view = new LoginCredentialsView();
+            var window = new DialogWindow(model, view);
+            Gui.ShowDialog(window, Handle);
         }
 
         private void ShowAuthenticationCode(object sender, RoutedEventArgs e)
         {
-            new GitHubDialogWindow(new Login2FaViewModel(TwoFactorType.AuthenticatorApp), new Login2FaView()).ShowDialog(Handle);
+            var model = new Login2FaViewModel(TwoFactorType.AuthenticatorApp);
+            var view = new Login2FaView();
+            var window = new DialogWindow(model, view);
+            Gui.ShowDialog(window, Handle);
         }
     }
 }

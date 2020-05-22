@@ -3,6 +3,7 @@
 using System;
 using System.IO;
 using System.Reflection;
+using Atlassian.Bitbucket;
 using GitHub;
 using Microsoft.AzureRepos;
 
@@ -19,6 +20,7 @@ namespace Microsoft.Git.CredentialManager
                 // Register all supported host providers
                 app.RegisterProviders(
                     new AzureReposHostProvider(context),
+                    new BitbucketHostProvider(context),
                     new GitHubHostProvider(context),
                     new GenericHostProvider(context)
                 );

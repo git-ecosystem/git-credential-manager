@@ -29,9 +29,9 @@ namespace Microsoft.Git.CredentialManager
         ITerminal Terminal { get; }
 
         /// <summary>
-        /// Returns true if in a GUI session/desktop is available, false otherwise.
+        /// Provides services regarding user sessions.
         /// </summary>
-        bool IsDesktopSession { get; }
+        ISessionManager SessionManager { get; }
 
         /// <summary>
         /// Application tracing system.
@@ -85,6 +85,7 @@ namespace Microsoft.Git.CredentialManager
                 FileSystem      = new WindowsFileSystem();
                 Environment     = new WindowsEnvironment(FileSystem);
                 Terminal        = new WindowsTerminal(Trace);
+                SessionManager  = new WindowsSessionManager();
                 CredentialStore = WindowsCredentialManager.Open();
                 SystemPrompts   = new WindowsSystemPrompts();
             }
@@ -93,6 +94,7 @@ namespace Microsoft.Git.CredentialManager
                 if (PlatformUtils.IsMacOS())
                 {
                     FileSystem      = new MacOSFileSystem();
+                    SessionManager  = new MacOSSessionManager();
                     CredentialStore = MacOSKeychain.Open();
                     SystemPrompts   = new MacOSSystemPrompts();
                 }
@@ -108,7 +110,6 @@ namespace Microsoft.Git.CredentialManager
             string repoPath   = Git.GetRepositoryPath(FileSystem.GetCurrentDirectory());
             Settings          = new Settings(Environment, Git, repoPath);
             HttpClientFactory = new HttpClientFactory(Trace, Settings, Streams);
-            IsDesktopSession  = PlatformUtils.IsDesktopSession();
 
             // Set the parent window handle/ID
             SystemPrompts.ParentWindowId = Settings.ParentWindowId;
@@ -122,7 +123,7 @@ namespace Microsoft.Git.CredentialManager
 
         public ITerminal Terminal { get; }
 
-        public bool IsDesktopSession { get; }
+        public ISessionManager SessionManager { get; }
 
         public ITrace Trace { get; }
 
