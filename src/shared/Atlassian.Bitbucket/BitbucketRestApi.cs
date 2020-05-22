@@ -80,7 +80,7 @@ namespace Atlassian.Bitbucket
 
                     if (response.IsSuccessStatusCode)
                     {
-                        var obj = JsonConvert.DeserializeObject<UserInfo>(json);
+                        var obj = JsonConvert.DeserializeObject<UserInfo>(json, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
 
                         return new RestApiResult<UserInfo>(response.StatusCode, obj);
                     }
