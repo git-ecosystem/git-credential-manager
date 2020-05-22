@@ -1,5 +1,7 @@
-﻿using Microsoft.Git.CredentialManager;
-using System.Windows.Input;
+﻿using System.Windows.Input;
+using Microsoft.Git.CredentialManager;
+using Microsoft.Git.CredentialManager.UI;
+using Microsoft.Git.CredentialManager.UI.ViewModels;
 
 namespace GitHub.UI.Login
 {

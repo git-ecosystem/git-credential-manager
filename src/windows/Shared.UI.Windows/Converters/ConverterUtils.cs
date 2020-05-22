@@ -3,7 +3,7 @@
 using System;
 using System.Windows;
 
-namespace GitHub.UI.Converters
+namespace Microsoft.Git.CredentialManager.UI.Converters
 {
     public class ConverterHelper
     {

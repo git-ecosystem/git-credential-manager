@@ -1,6 +1,8 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT license.
+using System;
 
-namespace GitHub.UI
+namespace Microsoft.Git.CredentialManager.UI.ViewModels
 {
     public abstract class WindowViewModel : ViewModel
     {
