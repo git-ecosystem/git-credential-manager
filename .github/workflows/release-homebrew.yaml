@@ -11,6 +11,7 @@ jobs:
       uses: actions/github-script@0.3.0
       id: version
       with:
+        github-token: ${{secrets.GITHUB_TOKEN}}
         result-encoding: string
         script: |
           const { data } = await github.repos.getReleaseByTag({
