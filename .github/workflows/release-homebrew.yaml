@@ -14,13 +14,19 @@ jobs:
         github-token: ${{secrets.GITHUB_TOKEN}}
         result-encoding: string
         script: |
-          const { data } = await github.repos.getReleaseByTag({
+          const { data: releases } = await github.repos.listReleases({
             owner: context.repo.owner,
-            repo: context.repo.repo,
-            tag: process.env.GITHUB_REF
+            repo: context.repo.repo
           });
+          const release = releases.find(x => x.tag_name === process.env.GITHUB_REF);
+          if (!release) {
+            throw new Error(`unable to find release with tag '${process.env.GITHUB_REF}'`);
+          }
           const regex = /gcmcore-osx-(.*)\.pkg/;
-          const asset = data.assets.find(x => regex.test(x.name));
+          const asset = release.assets.find(x => regex.test(x.name));
+          if (!asset) {
+            throw new Error(`unable to find asset matching '${regex}'`);
+          }
           const matches = asset.name.match(regex);
           const version = matches[1];
           return version;

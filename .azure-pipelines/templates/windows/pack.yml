@@ -7,7 +7,7 @@ steps:
 
   - script: |
       xcopy "out\windows\Installer.Windows\bin\$(configuration)\net461"       "$(Build.StagingDirectory)\publish\"
-      xcopy "out\windows\Payload.Windows\bin\$(configuration)\net461\win-x64" "$(Build.StagingDirectory)\publish\payload\"
+      xcopy "out\windows\Payload.Windows\bin\$(configuration)\net461\win-x86" "$(Build.StagingDirectory)\publish\payload\"
       mkdir "$(Build.StagingDirectory)\publish\payload.sym\"
       move  "$(Build.StagingDirectory)\publish\payload\*.pdb"                 "$(Build.StagingDirectory)\publish\payload.sym\"
     displayName: Prepare final build artifacts
@@ -18,7 +18,7 @@ steps:
       rootFolderOrFile: '$(Build.StagingDirectory)\publish\payload\'
       includeRootFolder: false
       archiveType: 'zip'
-      archiveFile: '$(Build.StagingDirectory)\publish\gcmcore-win-x64-$(GitBuildVersion).zip'
+      archiveFile: '$(Build.StagingDirectory)\publish\gcmcore-win-x86-$(GitBuildVersion).zip'
       replaceExistingArchive: true
 
   - task: ArchiveFiles@2
@@ -27,7 +27,7 @@ steps:
       rootFolderOrFile: '$(Build.StagingDirectory)\publish\payload.sym\'
       includeRootFolder: false
       archiveType: 'zip'
-      archiveFile: '$(Build.StagingDirectory)\publish\symbols-win-x64.zip'
+      archiveFile: '$(Build.StagingDirectory)\publish\symbols-win-x86.zip'
       replaceExistingArchive: true
 
   - task: PublishPipelineArtifact@0
