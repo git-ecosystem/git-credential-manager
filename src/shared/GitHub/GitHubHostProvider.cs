@@ -89,7 +89,16 @@ namespace GitHub
             switch (promptResult.AuthenticationMode)
             {
                 case AuthenticationModes.Basic:
-                    return await GeneratePersonalAccessTokenAsync(targetUri, promptResult.BasicCredential);
+                    ICredential patCredential = await GeneratePersonalAccessTokenAsync(targetUri, promptResult.BasicCredential);
+                    // HACK: Store the PAT immediately in case this PAT is not valid for SSO.
+                    // We don't know if this PAT is valid for SAML SSO and if it's not Git will fail
+                    // with a 403 and call neither 'store' or 'erase'. The user is expected to fiddle with
+                    // the PAT permissions manually on the web and then retry the Git operation.
+                    // We must store the PAT now so they can resume/repeat the operation with the same,
+                    // now SSO authorized, PAT.
+                    // See: https://github.com/microsoft/Git-Credential-Manager-Core/issues/133
+                    Context.CredentialStore.AddOrUpdate(GetCredentialKey(input), patCredential);
+                    return patCredential;
 
                 case AuthenticationModes.OAuth:
                     return await GenerateOAuthCredentialAsync(targetUri);
