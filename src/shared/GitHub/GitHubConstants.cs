@@ -36,12 +36,6 @@ namespace GitHub
         // TODO: remove Basic once the GCM OAuth app is whitelisted and does not require installation in every organization
         public const AuthenticationModes DotDomAuthenticationModes = AuthenticationModes.Basic | AuthenticationModes.OAuth;
 
-        /// <summary>
-        /// Check if RFC 8628 is supported by GitHub.com and GHE.
-        /// </summary>
-        // TODO: remove this once device auth is supported
-        public const bool IsOAuthDeviceAuthSupported = false;
-
         public static class TokenScopes
         {
             public const string Gist = "gist";
