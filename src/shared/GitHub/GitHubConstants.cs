@@ -16,7 +16,7 @@ namespace GitHub
         public static readonly Uri OAuthRedirectUri = new Uri("http://localhost/");
         public static readonly Uri OAuthAuthorizationEndpointRelativeUri = new Uri("/login/oauth/authorize", UriKind.Relative);
         public static readonly Uri OAuthTokenEndpointRelativeUri = new Uri("/login/oauth/access_token", UriKind.Relative);
-        public static readonly Uri OAuthDeviceEndpointRelativeUri = new Uri("/login/oauth/authorize/device", UriKind.Relative);
+        public static readonly Uri OAuthDeviceEndpointRelativeUri = new Uri("/login/device/code", UriKind.Relative);
 
         /// <summary>
         /// The GitHub required HTTP accepts header value
