@@ -59,9 +59,9 @@ Throughout this document you may see multiple abbreviations of product names and
 security or credential objects.
 
 "Git Credential Manager Core" is abbreviated to "GCM Core". "Git Credential
-Manager for Windows" is abbreviated to "GCM for Windows", "GCM Windows", or
-"GCM4W". "Git Credential Manager for Mac & Linux" is abbreviated to "GCM for
-Mac/Linux", "GCM Mac/Linux", "GCM4ML", or "Java GCM".
+Manager for Windows" is abbreviated to "GCM for Windows" or "GCM Windows".
+"Git Credential Manager for Mac & Linux" is abbreviated to "GCM for
+Mac/Linux" or "GCM Mac/Linux".
 
 OAuth2 [[RFC6749](https://tools.ietf.org/html/rfc6749)] "access tokens" are
 abbreviated to "ATs" and "refresh tokens" to "RTs". "Personal Access Tokens" are
