@@ -39,60 +39,78 @@
                                     +---------------------------------------+    +------------------------------------+
 ```
 
-Git Credential Manager Core (GCM Core) is built to be Git host and platform/OS agonstic.
-Most of the shared logic (command execution, the abstract platform subsystems, etc) can be found in the
-`Microsoft.Git.CredentialManager` class library (C#). The library targets .NET Standard as well as .NET Framework.
+Git Credential Manager Core (GCM Core) is built to be Git host and platform/OS
+agonstic. Most of the shared logic (command execution, the abstract platform
+subsystems, etc) can be found in the `Microsoft.Git.CredentialManager` class
+library (C#). The library targets .NET Standard as well as .NET Framework.
 
 > **Note**
 >
-> The reason for also targeting .NET Framework directly is that the `Microsoft.Identity.Client`
-> ([MSAL.NET](https://github.com/AzureAD/microsoft-authentication-library-for-dotnet)) library requires a .NET Framework
-> target to be able to show the embedded web browser auth pop-up on Windows platforms.
+> The reason for also targeting .NET Framework directly is that the
+> `Microsoft.Identity.Client` ([MSAL.NET](https://github.com/AzureAD/microsoft-authentication-library-for-dotnet))
+> library requires a .NET Framework target to be able to show the embedded web
+> browser auth pop-up on Windows platforms.
 >
-> There are extension points that now exist in MSAL.NET meaning we can plug-in our own browser pop-up handling code
-> on .NET Core meaning both Windows and Mac. We haven't yet gotten around to exploring this.
+> There are extension points that now exist in MSAL.NET meaning we can plug-in
+> our own browser pop-up handling code on .NET Core meaning both Windows and
+> Mac. We haven't yet gotten around to exploring this.
 >
-> See [this](https://github.com/microsoft/Git-Credential-Manager-Core/issues/113) issue for more information.
+> See [this](https://github.com/microsoft/Git-Credential-Manager-Core/issues/113)
+> issue for more information.
 
-The entry-point for GCM Core can be found in the `Git-Credential-Manager` project, a console application that targets both
-.NET Core and .NET Framework. This project emits the `git-credential-manager-core(.exe)` executable, and contains very little
-code - registration of all supported host providers and running the `Application` object found in `Microsoft.Git.CredentialManager`.
+The entry-point for GCM Core can be found in the `Git-Credential-Manager`
+project, a console application that targets both .NET Core and .NET Framework.
+This project emits the `git-credential-manager-core(.exe)` executable, and
+contains very little code - registration of all supported host providers and
+running the `Application` object found in `Microsoft.Git.CredentialManager`.
 
-Providers have their own projects/assemblies that take dependencies on the `Microsoft.Git.CredentialManager` core assembly,
-and are dependents of the main entry point application `Git-Credential-Manager`. Code in these binaries is expected to run
-on all supported platforms and typically (see MSAL.NET note above) does not include any graphical user interface; they use
-terminal prompts only.
+Providers have their own projects/assemblies that take dependencies on the
+`Microsoft.Git.CredentialManager` core assembly, and are dependents of the main
+entry point application `Git-Credential-Manager`. Code in these binaries is
+expected to run on all supported platforms and typically (see MSAL.NET note
+above) does not include any graphical user interface; they use terminal prompts
+only.
 
-Where a provider needs some platform-specific interaction or graphical user interface, the recommended model is to have a
-separate 'helper' executable that the shared, core binaries shell out to. Currently the Bitbucket and GitHub providers each
-have a WPF (Windows only) helper executable that shows authentication prompts and messages.
+Where a provider needs some platform-specific interaction or graphical user
+interface, the recommended model is to have a separate 'helper' executable that
+the shared, core binaries shell out to. Currently the Bitbucket and GitHub
+providers each have a WPF (Windows only) helper executable that shows
+authentication prompts and messages.
 
-The `Microsoft.Git.CredentialHelper.UI` project is a WPF (Windows only) assembly that contains common WPF components and styles
-that are shared between provider helpers on Windows.
+The `Microsoft.Git.CredentialHelper.UI` project is a WPF (Windows only) assembly
+that contains common WPF components and styles that are shared between provider
+helpers on Windows.
 
 ### Cross-platform UI
 
-We hope to be able to migrate the WPF/Windows only helpers to [Avalonia](https://avaloniaui.net/) in order to gain cross-platform
-graphical user interface support. See [this](https://github.com/microsoft/Git-Credential-Manager-Core/issues/136) issue for
-up-to-date progress on this effort.
+We hope to be able to migrate the WPF/Windows only helpers to [Avalonia](https://avaloniaui.net/)
+in order to gain cross-platform graphical user interface support. See [this](https://github.com/microsoft/Git-Credential-Manager-Core/issues/136)
+issue for up-to-date progress on this effort.
 
 ### Microsoft authentication
 
-For authentication using Microsoft Accounts or Azure Active Directory, things are a little different. The `MicrosoftAuthentication`
-component is present in the core `Microsoft.Git.CredentialManager` assembly, rather than bundled with a specific host provider.
-This was done to allow any service that may wish to in the future integrate with Microsoft Accounts or Azure Active Directory can
-make use of this reusable authentication component.
+For authentication using Microsoft Accounts or Azure Active Directory, things
+are a little different. The `MicrosoftAuthentication` component is present in
+the core `Microsoft.Git.CredentialManager` assembly, rather than bundled with a
+specific host provider. This was done to allow any service that may wish to in
+the future integrate with Microsoft Accounts or Azure Active Directory can make
+use of this reusable authentication component.
 
-Since MSAL.NET includes embedded GUI on Windows (when targeting .NET Frameonly only - see note above) we have no helper executable
-on Windows. However, on macOS the `MicrosoftAuthentication` component shells out to a native macOS helper that completely takes over
-all authentication flows using the older ADAL Objective-C libary. This was done because MSAL.NET does not offer the same level of
-integration for [MDM](https://en.wikipedia.org/wiki/Mobile_device_management) purposes, as well as lacking an embedded UI on non-Windows
-platforms. As MSAL.NET continues to evolve we hope to replace the ADAL/macOS helper altogether.
+Since MSAL.NET includes embedded GUI on Windows (when targeting .NET Frameonly
+only - see note above) we have no helper executable on Windows. However, on
+macOS the `MicrosoftAuthentication` component shells out to a native macOS
+helper that completely takes over all authentication flows using the older ADAL
+Objective-C libary. This was done because MSAL.NET does not offer the same level
+of integration for [MDM](https://en.wikipedia.org/wiki/Mobile_device_management)
+purposes, as well as lacking an embedded UI on non-Windows platforms. As
+MSAL.NET continues to evolve we hope to replace the ADAL/macOS helper
+altogether.
 
 ## Asynchronous programming
 
-GCM Core makes use of the `async`/`await` model of .NET and C# in almost all parts of the codebase where appropriate
-as usually requests end up going to the network at some point.
+GCM Core makes use of the `async`/`await` model of .NET and C# in almost all
+parts of the codebase where appropriate as usually requests end up going to the
+network at some point.
 
 ## Command execution
 
@@ -137,62 +155,94 @@ as usually requests end up going to the network at some point.
                              +---------------+
 ```
 
-Git Credential Manager Core maintains a set of known commands including `Get|Store|EraseCommand`, as well as commands for install and help/usage.
+Git Credential Manager Core maintains a set of known commands including
+`Get|Store|EraseCommand`, as well as commands for install and help/usage.
 
-GCM Core also maintains a set of known, registered host providers that implement the `IHostProvider` interface. Providers register themselves
-by adding an instance of the provider to the `Application` object via the `RegisterProvider` method [in `Microsoft.Git.CredentialManager.Program`](../src/shared/Git-Credential-Manager/Program.cs).
-The `GenericHostProvider` is registered last so that it can handle all other HTTP-based remotes as a catch-all, and provide basic username/password
-auth and detect the presense of Windows Integrated Authentication (Kerberos, NTLM, Negotiate) support (1).
+GCM Core also maintains a set of known, registered host providers that implement
+the `IHostProvider` interface. Providers register themselves by adding an
+instance of the provider to the `Application` object via the `RegisterProvider`
+method [in `Microsoft.Git.CredentialManager.Program`](../src/shared/Git-Credential-Manager/Program.cs).
+The `GenericHostProvider` is registered last so that it can handle all other
+HTTP-based remotes as a catch-all, and provide basic username/password auth and
+detect the presense of Windows Integrated Authentication (Kerberos, NTLM,
+Negotiate) support (1).
 
-For each invocation of GCM Core, the first argument on the command-line is matched against the known commands and if there is a successful match,
-the input from Git (over standard input) is deserialized and the command is executed (2).
+For each invocation of GCM Core, the first argument on the command-line is
+matched against the known commands and if there is a successful match, the input
+from Git (over standard input) is deserialized and the command is executed (2).
 
-The `Get|Store|EraseCommand`s consult the host provider registry for the most appropriate host provider. The default registry implementation select
-the a host provider by asking each registered provider in turn if they understand the request. The provider selection can be overriden by the user
-via the [`credential.provider`](configuration.md#credentialprovider) or [`GCM_PROVIDER`](environment.md#GCM_PROVIDER) configuration and environment
-variable respectively (3)).
+The `Get|Store|EraseCommand`s consult the host provider registry for the most
+appropriate host provider. The default registry implementation select the a host
+provider by asking each registered provider in turn if they understand the
+request. The provider selection can be overriden by the user via the
+[`credential.provider`](configuration.md#credentialprovider) or [`GCM_PROVIDER`](environment.md#GCM_PROVIDER)
+configuration and environment variable respectively (3)).
 
-The `Get|Store|EraseCommand`s call the corresponding `Get|Store|EraseCredentialAsync` methods on the `IHostProvider`, passing the request from Git
-together with an instance of the `ICommandContext` (4). The host provider can then make use of various services available on the command context to
-complete the requested operation (5).
+The `Get|Store|EraseCommand`s call the corresponding
+`Get|Store|EraseCredentialAsync` methods on the `IHostProvider`, passing the
+request from Git together with an instance of the `ICommandContext` (4). The
+host provider can then make use of various services available on the command
+context to complete the requested operation (5).
 
-Once a credential has been created, retrieved, stored or erased, the host provider returns the credential (for `get` operations only) to the calling
-command (6). The credential is then serialized and returned to Git over standard output (7) and GCM Core terminates with a successful exit code.
+Once a credential has been created, retrieved, stored or erased, the host
+provider returns the credential (for `get` operations only) to the calling
+command (6). The credential is then serialized and returned to Git over standard
+output (7) and GCM Core terminates with a successful exit code.
 
 ## Host provider
 
-Host providers implement the `IHostProvider` interface. They can choose to directly implement the interface they can also derive from the `HostProvider`
+Host providers implement the `IHostProvider` interface. They can choose to
+directly implement the interface they can also derive from the `HostProvider`
 abstract class (which itself implements the `IHostProvider` interface).
 
-The `HostProvider` abstract class implements the `Get|Store|EraseCredentialAsync` methods and instead has a `GenerateCredentialAsync` and
-`GetCredentialKey` abstract methods. Calls to `get`, `store`, or `erase` result in first a call to `GetCredentialKey` which should return a stable and
-unique "key" for the request. This forms the key for any stored credential in the credential store. During a `get` operation the credential store is queried
-for an existing credential with the computed key. If a credential is found it is returned immediately. Similarly, calls to `store` and `erase` are handles
-automatically to store credentials against, and erase credentials matching the computed key. Methods are implemented as `virtual` meaning you can always
-override this behaviour, for example to clear other custom caches on an `erase` request, without having to reimplement the lookup/store credential logic.
+The `HostProvider` abstract class implements the
+`Get|Store|EraseCredentialAsync` methods and instead has a
+`GenerateCredentialAsync` and `GetCredentialKey` abstract methods. Calls to
+`get`, `store`, or `erase` result in first a call to `GetCredentialKey` which
+should return a stable and unique "key" for the request. This forms the key for
+any stored credential in the credential store. During a `get` operation the
+credential store is queried for an existing credential with the computed key.
+If a credential is found it is returned immediately. Similarly, calls to `store`
+and `erase` are handles automatically to store credentials against, and erase
+credentials matching the computed key. Methods are implemented as `virtual`
+meaning you can always override this behaviour, for example to clear other
+custom caches on an `erase` request, without having to reimplement the
+lookup/store credential logic.
 
-Host providers are queried in turn (registration order) via the `IHostProvider.IsSupported` method and passed the input recieved from Git.
-If the provider recognises the request, for example by a matching known host name, they can return `true`. If the provider wants to cancel and abort
-an authentication request, for example if this is a HTTP (not HTTPS) request for a known host, they should still return `true` and later cancel the request.
+Host providers are queried in turn (registration order) via the
+`IHostProvider.IsSupported` method and passed the input recieved from Git. If
+the provider recognises the request, for example by a matching known host name,
+they can return `true`. If the provider wants to cancel and abort an
+authentication request, for example if this is a HTTP (not HTTPS) request for a
+known host, they should still return `true` and later cancel the request.
 
-Depending on the request from Git, one of `GetCredentialAsync` (for `get` requests), `StoreCredentialAsync` (for `store` requests) or
-`EraseCredentialAsync` (for `erase` requests) will be called. The argument `InputArguments` contains the request information passed over standard input
+Depending on the request from Git, one of `GetCredentialAsync` (for `get`
+requests), `StoreCredentialAsync` (for `store` requests) or
+`EraseCredentialAsync` (for `erase` requests) will be called. The argument
+`InputArguments` contains the request information passed over standard input
 from Git/the caller; the same as was passed to `IsSupported`.
 
-The return value for the `get` operation must be an `ICredential` that Git can use to complete authentication.
+The return value for the `get` operation must be an `ICredential` that Git can
+use to complete authentication.
 
 > **Note:**
 >
-> The credential can also be an instance where both username and password are the empty string, to signal to Git it
-> should let cURL use "any auth" detection - typically to use Windows Integrated Authentication.
+> The credential can also be an instance where both username and password are
+> the empty string, to signal to Git it should let cURL use "any auth"
+> detection - typically to use Windows Integrated Authentication.
 
-There are no return values for the `store` and `erase` operations as Git ignores any output or exit codes for these commands. Failures for these operations
-are best communicated via writing to the Standard Error stream via `ICommandContext.Streams.Error`.
+There are no return values for the `store` and `erase` operations as Git ignores
+any output or exit codes for these commands. Failures for these operations are
+best communicated via writing to the Standard Error stream via
+`ICommandContext.Streams.Error`.
 
 ## Command context
 
-The `ICommandContext` which contains numerous services which are useful for interacting with various platform subsystems, such as the file system or environment
-variables. All services on the command context are exposed as interfaces for ease of testing and portability between different operating systems and platforms.
+The `ICommandContext` which contains numerous services which are useful for
+interacting with various platform subsystems, such as the file system or
+environment variables. All services on the command context are exposed as
+interfaces for ease of testing and portability between different operating
+systems and platforms.
 
 Component|Description
 -|-
@@ -210,13 +260,20 @@ SystemPrompts|Provides services for showing system/OS native credential prompts.
 
 ## Error handling and tracing
 
-GCM Core operates a 'fail fast' approach to unrecoverable errors. This usually means throwing an `Exception` which will propagate up to the entry-point and
-be caught, a non-zero exit code returned, and the error message printed with the "fatal:" prefix. For errors originating from interop/native code, you should
-throw an exception of the `InteropException` type. Error messages in exceptions should be human readable. When there is a known or user-fixable issue, instructions
-on how to self-rememdy the issue, or links to relevant documentation should be given.
+GCM Core operates a 'fail fast' approach to unrecoverable errors. This usually
+means throwing an `Exception` which will propagate up to the entry-point and be
+caught, a non-zero exit code returned, and the error message printed with the
+"fatal:" prefix. For errors originating from interop/native code, you should
+throw an exception of the `InteropException` type. Error messages in exceptions
+should be human readable. When there is a known or user-fixable issue,
+instructions on how to self-rememdy the issue, or links to relevant
+documentation should be given.
 
-Warnings can be emitted over the standard error stream (`ICommandContext.Streams.Error`) when you want to alert the user to a potential issue with their
-configuration that does not necessarily stop the operation/authentication.
+Warnings can be emitted over the standard error stream
+(`ICommandContext.Streams.Error`) when you want to alert the user to a potential
+issue with their configuration that does not necessarily stop the
+operation/authentication.
 
-The `ITrace` component can be found on the `ICommandContext` object or passed in directly to some constructors. Verbose and diagnostic information is be written
+The `ITrace` component can be found on the `ICommandContext` object or passed in
+directly to some constructors. Verbose and diagnostic information is be written
 to the trace object in most places of GCM Core.
