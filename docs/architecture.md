@@ -51,6 +51,8 @@ Most of the shared logic (command execution, the abstract platform subsystems, e
 >
 > There are extension points that now exist in MSAL.NET meaning we can plug-in our own browser pop-up handling code
 > on .NET Core meaning both Windows and Mac. We haven't yet gotten around to exploring this.
+>
+> See [this](https://github.com/microsoft/Git-Credential-Manager-Core/issues/113) issue for more information.
 
 The entry-point for GCM Core can be found in the `Git-Credential-Manager` project, a console application that targets both
 .NET Core and .NET Framework. This project emits the `git-credential-manager-core(.exe)` executable, and contains very little
@@ -138,7 +140,7 @@ as usually requests end up going to the network at some point.
 Git Credential Manager Core maintains a set of known commands including `Get|Store|EraseCommand`, as well as commands for install and help/usage.
 
 GCM Core also maintains a set of known, registered host providers that implement the `IHostProvider` interface. Providers register themselves
-by adding an instance of the provider to the `Application` object via the `RegisterProvider` method [here](../src/shared/Git-Credential-Manager/Program.cs).
+by adding an instance of the provider to the `Application` object via the `RegisterProvider` method [in `Microsoft.Git.CredentialManager.Program`](../src/shared/Git-Credential-Manager/Program.cs).
 The `GenericHostProvider` is registered last so that it can handle all other HTTP-based remotes as a catch-all, and provide basic username/password
 auth and detect the presense of Windows Integrated Authentication (Kerberos, NTLM, Negotiate) support (1).
 
@@ -177,8 +179,12 @@ Depending on the request from Git, one of `GetCredentialAsync` (for `get` reques
 `EraseCredentialAsync` (for `erase` requests) will be called. The argument `InputArguments` contains the request information passed over standard input
 from Git/the caller; the same as was passed to `IsSupported`.
 
-The return value for the `get` operation must be an `ICredential` that Git can use to complete authentication. The credential can also be an instance where
-both username and password are the empty string, to signal to Git it should let cURL use "any auth" detection - typically to use Windows Integrated Authentication.
+The return value for the `get` operation must be an `ICredential` that Git can use to complete authentication.
+
+> **Note:**
+>
+> The credential can also be an instance where both username and password are the empty string, to signal to Git it
+> should let cURL use "any auth" detection - typically to use Windows Integrated Authentication.
 
 There are no return values for the `store` and `erase` operations as Git ignores any output or exit codes for these commands. Failures for these operations
 are best communicated via writing to the Standard Error stream via `ICommandContext.Streams.Error`.
