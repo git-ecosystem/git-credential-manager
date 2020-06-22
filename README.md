@@ -31,13 +31,12 @@ Proxy support|&#10003;|&#10003;|
 
 **Notes:**
 
-(\*) Currently only supported when using Git from the terminal or command line. A platform-native UI experience is not yet available on macOS, but planned.
+(\*) Currently only supported when using Git from the terminal or command line. A platform-native UI experience is not yet available, but planned.
 
 ### Planned features
 
-- [ ] 32-bit Windows support (only 64-bit Windows is supported currently)
-- [ ] Linux support
-- [ ] macOS/Linux native UI
+- [ ] Linux support ([#135](https://github.com/microsoft/Git-Credential-Manager-Core/issues/135))
+- [ ] macOS/Linux native UI ([#136](https://github.com/microsoft/Git-Credential-Manager-Core/issues/136))
 
 ## Download and Install
 
@@ -113,6 +112,8 @@ See detailed information [here](https://aka.ms/gcmcore-httpproxy).
 - [Configuration options](docs/configuration.md)
 - [Environment variables](docs/environment.md)
 - [Network and HTTP configuration](docs/netconfig.md)
+- [Architectural overview](docs/architecture.md)
+- [Host provider specification](docs/hostprovider.md)
 
 ## Contributing
 
