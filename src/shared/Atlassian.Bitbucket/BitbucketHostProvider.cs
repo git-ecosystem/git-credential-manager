@@ -51,14 +51,15 @@ namespace Atlassian.Bitbucket
 
         public async Task<ICredential> GetCredentialAsync(InputArguments input)
         {
+            // Compute the target URI
+            Uri targetUri = GetTargetUri(input);
+
             // We should not allow unencrypted communication and should inform the user
-            if (StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "http"))
+            if (StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "http")
+                && targetUri.Host.Equals(BitbucketConstants.BitbucketBaseUrlHost))
             {
                 throw new Exception("Unencrypted HTTP is not supported for Bitbucket. Ensure the repository remote URL is using HTTPS.");
             }
-
-            // Compute the target URI
-            Uri targetUri = GetTargetUri(input);
 
             // Try and get the username specified in the remote URL if any
             string targetUriUser = targetUri.GetUserName();
@@ -93,7 +94,7 @@ namespace Atlassian.Bitbucket
                 // or we have a freshly captured user/pass. Regardless, we must check if these credentials
                 // pass and two-factor requirement on the account.
                 _context.Trace.WriteLine("Checking if two-factor requirements for stored credentials...");
-                bool requires2Fa = await RequiresTwoFactorAuthenticationAsync(credential);
+                bool requires2Fa = await RequiresTwoFactorAuthenticationAsync(credential, targetUri);
                 if (!requires2Fa)
                 {
                     _context.Trace.WriteLine("Two-factor requirement passed with stored credentials");
@@ -220,8 +221,14 @@ namespace Atlassian.Bitbucket
             throw new Exception($"Failed to resolve username. HTTP: {result.StatusCode}");
         }
 
-        private async Task<bool> RequiresTwoFactorAuthenticationAsync(ICredential credentials)
+        private async Task<bool> RequiresTwoFactorAuthenticationAsync(ICredential credentials, Uri targetUri)
         {
+            if(!targetUri.Host.Equals(BitbucketConstants.BitbucketBaseUrlHost))
+            {
+                // BBS
+                return false;
+            }
+
             RestApiResult<UserInfo> result = await _bitbucketApi.GetUserInformationAsync(credentials.UserName, credentials.Password, false);
             switch (result.StatusCode)
             {

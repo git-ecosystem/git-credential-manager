@@ -62,6 +62,7 @@ ID|Provider
 `auto` _(default)_|_\[automatic\]_
 `azure-repos`|Azure Repos
 `github`|GitHub
+`bitbucket`|Bitbucket
 `generic`|Generic (any other provider not listed above)
 
 Automatic provider selection is based on the remote URL.
@@ -91,6 +92,7 @@ Authority|Provider(s)
 `auto` _(default)_|_\[automatic\]_
 `msa`, `microsoft`, `microsoftaccount`,<br/>`aad`, `azure`, `azuredirectory`,</br>`live`, `liveconnect`, `liveid`|Azure Repos<br/>_(supports Microsoft Authentication)_
 `github`|GitHub<br/>_(supports GitHub Authentication)_
+`bitbucket`|Bitbucket.org<br/>_(supports Basic Authentication and OAuth)_<br/>Bitbucket Server<br/>_(supports Basic Authentication)_
 `basic`, `integrated`, `windows`, `kerberos`, `ntlm`,<br/>`tfs`, `sso`|Generic<br/>_(supports Basic and Windows Integrated Authentication)_
 
 #### Example
