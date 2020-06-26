@@ -277,7 +277,7 @@ namespace Atlassian.Bitbucket
             return $"git:{url}";
         }
 
-        private string GetBbSCredentialKey(InputArguments input)
+        private string GetBitbucketServerCredentialKey(InputArguments input)
         {
             // The credential (user/pass or an OAuth access token) key is the full target URI.
             // If the full path is included (credential.useHttpPath = true) then respect that.
