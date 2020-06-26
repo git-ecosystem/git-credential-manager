@@ -236,7 +236,7 @@ namespace Atlassian.Bitbucket
 
         private async Task<bool> RequiresTwoFactorAuthenticationAsync(ICredential credentials, Uri targetUri)
         {
-            if(IsBitbucketServer(targetUri))
+            if (IsBitbucketServer(targetUri))
             {
                 // BBS does not support 2FA out of the box so neither does GCM
                 return false;
