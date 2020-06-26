@@ -332,7 +332,7 @@ namespace Atlassian.Bitbucket
             return uri;
         }
 
-        private static Uri GetBbsTargetUri(InputArguments input)
+        private static Uri GetBitbucketServerTargetUri(InputArguments input)
         {
             Uri uri = new UriBuilder
             {
