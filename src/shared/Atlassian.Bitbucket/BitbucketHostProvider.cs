@@ -191,7 +191,7 @@ namespace Atlassian.Bitbucket
                 // which means if we store only with the username the credentials are never found again ...
                 // This does have the potential to overwrite itself for different BbS accounts, 
                 // but typically BbS doesn't encourage multiple user accounts
-                string bbsCredentialKey = GetBitbuckerServerCredentialKey(input);
+                string bbsCredentialKey = GetBitbucketServerCredentialKey(input);
                 _context.Trace.WriteLine($"Storing Bitbucket Server credential with key '{bbsCredentialKey}'...");
                 _context.CredentialStore.AddOrUpdate(bbsCredentialKey, credential);
                 _context.Trace.WriteLine("Bitbucket Server Credential was successfully stored.");
