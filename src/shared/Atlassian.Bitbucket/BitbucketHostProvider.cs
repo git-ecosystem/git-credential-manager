@@ -58,7 +58,7 @@ namespace Atlassian.Bitbucket
             if (StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "http")
                 && !IsBitbucketServer(targetUri))
             {
-                throw new Exception("Unencrypted HTTP is not supported for Bitbucket. Ensure the repository remote URL is using HTTPS.");
+                throw new Exception("Unencrypted HTTP is not supported for Bitbucket.org. Ensure the repository remote URL is using HTTPS.");
             }
 
             // Try and get the username specified in the remote URL if any
