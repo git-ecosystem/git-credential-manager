@@ -185,7 +185,7 @@ namespace Atlassian.Bitbucket
             _context.Trace.WriteLine("Credential was successfully stored.");
 
             Uri targetUri = GetTargetUri(input);
-            if(IsBitbucketServer(targetUri))
+            if (IsBitbucketServer(targetUri))
             {
                 // BBS doesn't usually include the username in the urls which means they aren't included in the GET call, 
                 // which means if we store only with the username the credentials are never found again ...
