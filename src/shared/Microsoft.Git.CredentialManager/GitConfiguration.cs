@@ -5,6 +5,23 @@ using System.Collections.Generic;
 
 namespace Microsoft.Git.CredentialManager
 {
+    /// <summary>
+    /// Invoked for each Git configuration entry during an enumeration (<see cref="IGitConfiguration.Enumerate"/>).
+    /// </summary>
+    /// <param name="name">Name of the current configuration entry.</param>
+    /// <param name="value">Value of the current configuration entry.</param>
+    /// <returns>True to continue enumeration, false to stop enumeration.</returns>
+    public delegate bool GitConfigurationEnumerationCallback(string name, string value);
+
+    public enum GitConfigurationLevel
+    {
+        ProgramData,
+        System,
+        Xdg,
+        Global,
+        Local,
+    }
+
     public interface IGitConfiguration : IDisposable
     {
         /// <summary>
@@ -66,49 +83,8 @@ namespace Microsoft.Git.CredentialManager
         void DeleteMultivarEntry(string name, string regexp);
     }
 
-    /// <summary>
-    /// Invoked for each Git configuration entry during an enumeration (<see cref="IGitConfiguration.Enumerate"/>).
-    /// </summary>
-    /// <param name="name">Name of the current configuration entry.</param>
-    /// <param name="value">Value of the current configuration entry.</param>
-    /// <returns>True to continue enumeration, false to stop enumeration.</returns>
-    public delegate bool GitConfigurationEnumerationCallback(string name, string value);
-
-    public interface IGit : IDisposable
+    public static class GitConfigurationExtensions
     {
-        /// <summary>
-        /// Get a snapshot of the configuration for the system, user, and optionally a specified repository.
-        /// </summary>
-        /// <param name="repositoryPath">Optional repository path from which to load local configuration.</param>
-        /// <returns>Git configuration snapshot.</returns>
-        IGitConfiguration GetConfiguration(string repositoryPath);
-
-        /// <summary>
-        /// Resolve the given path to a containing repository, or null if the path is not inside a Git repository.
-        /// </summary>
-        /// <param name="path">Path to resolve.</param>
-        /// <returns>Git repository root path, or null if <paramref name="path"/> is not inside of a Git repository.</returns>
-        string GetRepositoryPath(string path);
-    }
-
-    public enum GitConfigurationLevel
-    {
-        ProgramData,
-        System,
-        Xdg,
-        Global,
-        Local,
-    }
-
-    public static class GitExtensions
-    {
-        /// <summary>
-        /// Get a snapshot of the configuration for the system and user.
-        /// </summary>
-        /// <param name="git">Git object.</param>
-        /// <returns>Git configuration snapshot.</returns>
-        public static IGitConfiguration GetConfiguration(this IGit git) => git.GetConfiguration(null);
-
         /// <summary>
         /// Get the value of a configuration entry as a string.
         /// </summary>
