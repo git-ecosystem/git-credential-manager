@@ -51,14 +51,15 @@ namespace Atlassian.Bitbucket
 
         public async Task<ICredential> GetCredentialAsync(InputArguments input)
         {
-            // We should not allow unencrypted communication and should inform the user
-            if (StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "http"))
-            {
-                throw new Exception("Unencrypted HTTP is not supported for Bitbucket. Ensure the repository remote URL is using HTTPS.");
-            }
-
             // Compute the target URI
             Uri targetUri = GetTargetUri(input);
+
+            // We should not allow unencrypted communication and should inform the user
+            if (StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "http")
+                && !IsBitbucketServer(targetUri))
+            {
+                throw new Exception("Unencrypted HTTP is not supported for Bitbucket.org. Ensure the repository remote URL is using HTTPS.");
+            }
 
             // Try and get the username specified in the remote URL if any
             string targetUriUser = targetUri.GetUserName();
@@ -93,7 +94,7 @@ namespace Atlassian.Bitbucket
                 // or we have a freshly captured user/pass. Regardless, we must check if these credentials
                 // pass and two-factor requirement on the account.
                 _context.Trace.WriteLine("Checking if two-factor requirements for stored credentials...");
-                bool requires2Fa = await RequiresTwoFactorAuthenticationAsync(credential);
+                bool requires2Fa = await RequiresTwoFactorAuthenticationAsync(credential, targetUri);
                 if (!requires2Fa)
                 {
                     _context.Trace.WriteLine("Two-factor requirement passed with stored credentials");
@@ -183,6 +184,19 @@ namespace Atlassian.Bitbucket
             _context.CredentialStore.AddOrUpdate(credentialKey, credential);
             _context.Trace.WriteLine("Credential was successfully stored.");
 
+            Uri targetUri = GetTargetUri(input);
+            if (IsBitbucketServer(targetUri))
+            {
+                // BBS doesn't usually include the username in the urls which means they aren't included in the GET call, 
+                // which means if we store only with the username the credentials are never found again ...
+                // This does have the potential to overwrite itself for different BbS accounts, 
+                // but typically BbS doesn't encourage multiple user accounts
+                string bbsCredentialKey = GetBitbucketServerCredentialKey(input);
+                _context.Trace.WriteLine($"Storing Bitbucket Server credential with key '{bbsCredentialKey}'...");
+                _context.CredentialStore.AddOrUpdate(bbsCredentialKey, credential);
+                _context.Trace.WriteLine("Bitbucket Server Credential was successfully stored.");
+            }
+
             return Task.CompletedTask;
         }
 
@@ -220,8 +234,14 @@ namespace Atlassian.Bitbucket
             throw new Exception($"Failed to resolve username. HTTP: {result.StatusCode}");
         }
 
-        private async Task<bool> RequiresTwoFactorAuthenticationAsync(ICredential credentials)
+        private async Task<bool> RequiresTwoFactorAuthenticationAsync(ICredential credentials, Uri targetUri)
         {
+            if (IsBitbucketServer(targetUri))
+            {
+                // BBS does not support 2FA out of the box so neither does GCM
+                return false;
+            }
+
             RestApiResult<UserInfo> result = await _bitbucketApi.GetUserInformationAsync(credentials.UserName, credentials.Password, false);
             switch (result.StatusCode)
             {
@@ -247,6 +267,21 @@ namespace Atlassian.Bitbucket
             // The credential (user/pass or an OAuth access token) key is the full target URI.
             // If the full path is included (credential.useHttpPath = true) then respect that.
             string url = GetTargetUri(input).AbsoluteUri;
+
+            // Trim trailing slash
+            if (url.EndsWith("/"))
+            {
+                url = url.Substring(0, url.Length - 1);
+            }
+
+            return $"git:{url}";
+        }
+
+        private string GetBitbucketServerCredentialKey(InputArguments input)
+        {
+            // The credential (user/pass or an OAuth access token) key is the full target URI.
+            // If the full path is included (credential.useHttpPath = true) then respect that.
+            string url = GetBitbucketServerTargetUri(input).AbsoluteUri;
 
             // Trim trailing slash
             if (url.EndsWith("/"))
@@ -295,6 +330,23 @@ namespace Atlassian.Bitbucket
             }.Uri;
 
             return uri;
+        }
+
+        private static Uri GetBitbucketServerTargetUri(InputArguments input)
+        {
+            Uri uri = new UriBuilder
+            {
+                Scheme = input.Protocol,
+                Host = input.Host,
+                Path = input.Path
+            }.Uri;
+
+            return uri;
+        }
+
+        private bool IsBitbucketServer(Uri targetUri)
+        {
+            return !targetUri.Host.Equals(BitbucketConstants.BitbucketBaseUrlHost);
         }
 
         #endregion

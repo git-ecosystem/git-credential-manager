@@ -17,6 +17,18 @@
             "stopAtEntry": false,
         },
         {
+            "name": "Git Credential Manager (store)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            // If you have changed target frameworks, make sure to update the program path.
+            "program": "${workspaceFolder}/out/shared/Git-Credential-Manager/bin/Debug/netcoreapp3.1/git-credential-manager-core.dll",
+            "args": ["store"],
+            "cwd": "${workspaceFolder}/out/shared/Git-Credential-Manager",
+            "console": "integratedTerminal",
+            "stopAtEntry": false,
+        },
+        {
             "name": ".NET Core Attach",
             "type": "coreclr",
             "request": "attach",
