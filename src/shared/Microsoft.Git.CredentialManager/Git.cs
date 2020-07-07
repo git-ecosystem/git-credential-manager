@@ -1,34 +1,61 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
-using System;
-using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Microsoft.Git.CredentialManager
 {
-    public interface IGit : IDisposable
+    public interface IGit
     {
         /// <summary>
-        /// Get a snapshot of the configuration for the system, user, and optionally a specified repository.
+        /// Get the configuration for the specific configuration level.
         /// </summary>
-        /// <param name="repositoryPath">Optional repository path from which to load local configuration.</param>
-        /// <returns>Git configuration snapshot.</returns>
-        IGitConfiguration GetConfiguration(string repositoryPath);
+        /// <param name="level">Configuration level filter.</param>
+        /// <returns>Git configuration.</returns>
+        IGitConfiguration GetConfiguration(GitConfigurationLevel level);
+    }
 
-        /// <summary>
-        /// Resolve the given path to a containing repository, or null if the path is not inside a Git repository.
-        /// </summary>
-        /// <param name="path">Path to resolve.</param>
-        /// <returns>Git repository root path, or null if <paramref name="path"/> is not inside of a Git repository.</returns>
-        string GetRepositoryPath(string path);
+    public class GitProcess : IGit
+    {
+        private readonly ITrace _trace;
+        private readonly string _gitPath;
+        private readonly string _workingDirectory;
+
+        public GitProcess(ITrace trace, string gitPath, string workingDirectory = null)
+        {
+            EnsureArgument.NotNull(trace, nameof(trace));
+            EnsureArgument.NotNullOrWhiteSpace(gitPath, nameof(gitPath));
+
+            _trace = trace;
+            _gitPath = gitPath;
+            _workingDirectory = workingDirectory;
+        }
+
+        public IGitConfiguration GetConfiguration(GitConfigurationLevel level)
+        {
+            return new GitProcessConfiguration(_trace, this);
+        }
+
+        public Process CreateProcess(string args)
+        {
+            var psi = new ProcessStartInfo(_gitPath, args)
+            {
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                WorkingDirectory = _workingDirectory
+            };
+
+            return new Process {StartInfo = psi};
+        }
     }
 
     public static class GitExtensions
     {
         /// <summary>
-        /// Get a snapshot of the configuration for the system and user.
+        /// Get the configuration.
         /// </summary>
         /// <param name="git">Git object.</param>
-        /// <returns>Git configuration snapshot.</returns>
-        public static IGitConfiguration GetConfiguration(this IGit git) => git.GetConfiguration(null);
+        /// <returns>Git configuration.</returns>
+        public static IGitConfiguration GetConfiguration(this IGit git) => git.GetConfiguration(GitConfigurationLevel.All);
     }
 }

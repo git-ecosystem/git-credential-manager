@@ -37,11 +37,6 @@ namespace Microsoft.Git.CredentialManager
         IEnumerable<string> GetSettingValues(string envarName, string section, string property);
 
         /// <summary>
-        /// Git repository that local configuration lookup is scoped to, or null if this instance is not scoped to a repository.
-        /// </summary>
-        string RepositoryPath { get; }
-
-        /// <summary>
         /// Git remote address that setting lookup is scoped to, or null if no remote URL has been discovered.
         /// </summary>
         Uri RemoteUri { get; set; }
@@ -121,16 +116,13 @@ namespace Microsoft.Git.CredentialManager
         private readonly IEnvironment _environment;
         private readonly IGit _git;
 
-        private IGitConfiguration _gitConfig;
-
-        public Settings(IEnvironment environment, IGit git, string repositoryPath = null)
+        public Settings(IEnvironment environment, IGit git)
         {
             EnsureArgument.NotNull(environment, nameof(environment));
             EnsureArgument.NotNull(git, nameof(git));
 
             _environment = environment;
             _git = git;
-            RepositoryPath = repositoryPath;
         }
 
         public bool TryGetSetting(string envarName, string section, string property, out string value)
@@ -156,7 +148,7 @@ namespace Microsoft.Git.CredentialManager
 
             if (section != null && property != null)
             {
-                IGitConfiguration config = GetGitConfiguration();
+                IGitConfiguration config = _git.GetConfiguration();
 
                 if (RemoteUri != null)
                 {
@@ -250,8 +242,6 @@ namespace Microsoft.Git.CredentialManager
                 }
             }
         }
-
-        public string RepositoryPath { get; }
 
         public Uri RemoteUri { get; set; }
 
@@ -418,11 +408,12 @@ namespace Microsoft.Git.CredentialManager
 
         public string ParentWindowId => _environment.Variables.TryGetValue(Constants.EnvironmentVariables.GcmParentWindow, out string parentWindowId) ? parentWindowId : null;
 
-        private IGitConfiguration GetGitConfiguration() => _gitConfig ?? (_gitConfig = _git.GetConfiguration(RepositoryPath));
-
         #region IDisposable
 
-        public void Dispose() => _gitConfig?.Dispose();
+        public void Dispose()
+        {
+            // Do nothing
+        }
 
         #endregion
     }

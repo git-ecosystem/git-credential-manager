@@ -78,8 +78,8 @@ namespace Microsoft.Git.CredentialManager
         {
             Streams = new StandardStreams();
             Trace   = new Trace();
-            Git     = new LibGit2(Trace);
 
+            string gitPath;
             if (PlatformUtils.IsWindows())
             {
                 FileSystem      = new WindowsFileSystem();
@@ -88,6 +88,7 @@ namespace Microsoft.Git.CredentialManager
                 SessionManager  = new WindowsSessionManager();
                 CredentialStore = WindowsCredentialManager.Open();
                 SystemPrompts   = new WindowsSystemPrompts();
+                gitPath         = Environment.LocateExecutable("git.exe");
             }
             else if (PlatformUtils.IsPosix())
             {
@@ -105,10 +106,15 @@ namespace Microsoft.Git.CredentialManager
 
                 Environment = new PosixEnvironment(FileSystem);
                 Terminal    = new PosixTerminal(Trace);
+                gitPath     = Environment.LocateExecutable("git");
+            }
+            else
+            {
+                throw new PlatformNotSupportedException();
             }
 
-            string repoPath   = Git.GetRepositoryPath(FileSystem.GetCurrentDirectory());
-            Settings          = new Settings(Environment, Git, repoPath);
+            Git               = new GitProcess(Trace, gitPath, FileSystem.GetCurrentDirectory());
+            Settings          = new Settings(Environment, Git);
             HttpClientFactory = new HttpClientFactory(Trace, Settings, Streams);
 
             // Set the parent window handle/ID
@@ -146,7 +152,6 @@ namespace Microsoft.Git.CredentialManager
         protected override void ReleaseManagedResources()
         {
             Settings?.Dispose();
-            Git?.Dispose();
             Trace?.Dispose();
 
             base.ReleaseManagedResources();
