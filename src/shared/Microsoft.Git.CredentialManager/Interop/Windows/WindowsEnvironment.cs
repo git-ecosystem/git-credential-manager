@@ -2,6 +2,7 @@
 // Licensed under the MIT license.
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -61,6 +62,35 @@ namespace Microsoft.Git.CredentialManager.Interop.Windows
 
                 // Update the cached PATH variable to the latest value (as well as all other variables)
                 Variables = GetCurrentVariables();
+            }
+        }
+
+        public override string LocateExecutable(string program)
+        {
+            string wherePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "where.exe");
+            var psi = new ProcessStartInfo(wherePath, program)
+            {
+                RedirectStandardOutput = true
+            };
+
+            using (var where = new Process {StartInfo = psi})
+            {
+                where.Start();
+                where.WaitForExit();
+
+                if (where.ExitCode != 0)
+                {
+                    throw new Exception($"Failed to locate '{program}' using where.exe. Exit code: {where.ExitCode}.");
+                }
+
+                string stdout = where.StandardOutput.ReadToEnd();
+                if (string.IsNullOrWhiteSpace(stdout))
+                {
+                    return null;
+                }
+
+                string[] results = stdout.Split(new[] {'\r', '\n'}, StringSplitOptions.RemoveEmptyEntries);
+                return results.FirstOrDefault();
             }
         }
 

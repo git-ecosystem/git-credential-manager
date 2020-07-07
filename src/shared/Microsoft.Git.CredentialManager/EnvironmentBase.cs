@@ -36,6 +36,13 @@ namespace Microsoft.Git.CredentialManager
         /// <param name="directoryPath">Path to directory to remove from the path.</param>
         /// <param name="target">The level of the path environment variable that should be modified.</param>
         void RemoveDirectoryFromPath(string directoryPath, EnvironmentVariableTarget target);
+
+        /// <summary>
+        /// Locate an executable on the current PATH.
+        /// </summary>
+        /// <param name="program">Executable program name.</param>
+        /// <returns>List of all instances of the found executable program, in order of most specific to least.</returns>
+        string LocateExecutable(string program);
     }
 
     public abstract class EnvironmentBase : IEnvironment
@@ -67,5 +74,7 @@ namespace Microsoft.Git.CredentialManager
         public abstract void RemoveDirectoryFromPath(string directoryPath, EnvironmentVariableTarget target);
 
         protected abstract string[] SplitPathVariable(string value);
+
+        public abstract string LocateExecutable(string program);
     }
 }

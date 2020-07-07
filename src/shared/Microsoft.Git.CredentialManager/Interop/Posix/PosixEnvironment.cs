@@ -2,6 +2,8 @@
 // Licensed under the MIT license.
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 
 namespace Microsoft.Git.CredentialManager.Interop.Posix
 {
@@ -27,6 +29,35 @@ namespace Microsoft.Git.CredentialManager.Interop.Posix
         protected override string[] SplitPathVariable(string value)
         {
             return value.Split(':');
+        }
+
+        public override string LocateExecutable(string program)
+        {
+            const string whichPath = "/usr/bin/which";
+            var psi = new ProcessStartInfo(whichPath, program)
+            {
+                RedirectStandardOutput = true
+            };
+
+            using (var where = new Process {StartInfo = psi})
+            {
+                where.Start();
+                where.WaitForExit();
+
+                if (where.ExitCode != 0)
+                {
+                    throw new Exception($"Failed to locate '{program}' using {whichPath}. Exit code: {where.ExitCode}.");
+                }
+
+                string stdout = where.StandardOutput.ReadToEnd();
+                if (string.IsNullOrWhiteSpace(stdout))
+                {
+                    return null;
+                }
+
+                string[] results = stdout.Split(new[] {'\n'}, StringSplitOptions.RemoveEmptyEntries);
+                return results.FirstOrDefault();
+            }
         }
 
         #endregion
