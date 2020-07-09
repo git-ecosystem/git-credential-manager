@@ -6,7 +6,7 @@ namespace Microsoft.Git.CredentialManager.Interop.Posix
 {
     public class PosixSessionManager : ISessionManager
     {
-        protected PosixSessionManager()
+        public PosixSessionManager()
         {
             PlatformUtils.EnsurePosix();
         }
