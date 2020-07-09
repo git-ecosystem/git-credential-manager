@@ -104,6 +104,8 @@ namespace Microsoft.Git.CredentialManager
                     FileSystem      = new LinuxFileSystem();
                     // TODO: support more than just 'Posix' or X11
                     SessionManager  = new PosixSessionManager();
+                    // TODO: support more than just libsecret
+                    CredentialStore = LibsecretCollection.Open();
                     SystemPrompts   = new LinuxSystemPrompts();
                 }
 
