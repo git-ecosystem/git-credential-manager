@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
 using System;
-using Microsoft.Git.CredentialManager.Interop;
+using Microsoft.Git.CredentialManager.Interop.Linux;
 using Microsoft.Git.CredentialManager.Interop.MacOS;
 using Microsoft.Git.CredentialManager.Interop.Posix;
 using Microsoft.Git.CredentialManager.Interop.Windows;
@@ -101,7 +101,7 @@ namespace Microsoft.Git.CredentialManager
                 }
                 else if (PlatformUtils.IsLinux())
                 {
-                    throw new NotImplementedException();
+                    FileSystem      = new LinuxFileSystem();
                 }
 
                 Environment = new PosixEnvironment(FileSystem);
