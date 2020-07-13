@@ -3,7 +3,8 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Text;
-using static Microsoft.Git.CredentialManager.Interop.Linux.Native.GLib;
+using static Microsoft.Git.CredentialManager.Interop.Linux.Native.Gobject;
+using static Microsoft.Git.CredentialManager.Interop.Linux.Native.Glib;
 using static Microsoft.Git.CredentialManager.Interop.Linux.Native.Libsecret;
 using static Microsoft.Git.CredentialManager.Interop.Linux.Native.Libsecret.SecretSchemaAttributeType;
 using static Microsoft.Git.CredentialManager.Interop.Linux.Native.Libsecret.SecretSchemaFlags;
@@ -17,8 +18,6 @@ namespace Microsoft.Git.CredentialManager.Interop.Linux
         private const string UserAttributeName = "user";
         private const string PlainTextContentType = "plain/text";
 
-        private static readonly SecretSchema Schema;
-
         #region Constructors
 
         /// <summary>
@@ -28,28 +27,6 @@ namespace Microsoft.Git.CredentialManager.Interop.Linux
         public static LibsecretCollection Open()
         {
             return new LibsecretCollection();
-        }
-
-        static LibsecretCollection()
-        {
-            Schema = new SecretSchema
-            {
-                name = SchemaName,
-                flags = SECRET_SCHEMA_DONT_MATCH_NAME,
-                attributes = new SecretSchemaAttribute[32]
-            };
-
-            Schema.attributes[0] = new SecretSchemaAttribute
-            {
-                name = KeyAttributeName,
-                type = SECRET_SCHEMA_ATTRIBUTE_STRING
-            };
-
-            Schema.attributes[1] = new SecretSchemaAttribute
-            {
-                name = UserAttributeName,
-                type = SECRET_SCHEMA_ATTRIBUTE_STRING
-            };
         }
 
         private LibsecretCollection()
@@ -64,64 +41,91 @@ namespace Microsoft.Git.CredentialManager.Interop.Linux
         public unsafe ICredential Get(string key)
         {
             GHashTable* queryAttrs = null;
-            IntPtr keyAttrKey = IntPtr.Zero;
-            IntPtr keyAttrValue = IntPtr.Zero;
-            IntPtr userKey = IntPtr.Zero;
-
-            GError error = null;
+            GHashTable* secretAttrs = null;
+            IntPtr userKeyPtr = IntPtr.Zero;
+            IntPtr passwordPtr = IntPtr.Zero;
+            GList* results = null;
+            GError* error = null;
 
             try
             {
+                SecretService* service = GetSecretService();
+
                 // Build search query
-                queryAttrs = g_hash_table_new(g_str_hash, g_str_equal);
-                keyAttrKey = Marshal.StringToHGlobalAnsi(KeyAttributeName);
-                keyAttrValue = Marshal.StringToHGlobalAnsi(key);
+                queryAttrs = g_hash_table_new_full(
+                    g_str_hash, g_str_equal,
+                    Marshal.FreeHGlobal, Marshal.FreeHGlobal);
+                IntPtr keyKeyPtr = Marshal.StringToHGlobalAnsi(KeyAttributeName);
+                IntPtr keyValuePtr = Marshal.StringToHGlobalAnsi(key);
+                g_hash_table_insert(queryAttrs, keyKeyPtr, keyValuePtr);
 
-                if (!g_hash_table_insert(queryAttrs, keyAttrKey, keyAttrValue))
-                {
-                    throw new InteropException("Failed to add key to search query hash table.", -1);
-                }
+                SecretSchema schema = GetSchema();
 
-                // Execute search query and return one result (with secrets values pre-loaded)
-                IntPtr itemListPtr = secret_service_search_sync(
-                    IntPtr.Zero,
-                    Schema,
+                // Execute search query and return one result
+                results = secret_service_search_sync(
+                    service,
+                    ref schema,
                     queryAttrs,
-                    SecretSearchFlags.SECRET_SEARCH_LOAD_SECRETS,
+                    SecretSearchFlags.SECRET_SEARCH_UNLOCK,
                     IntPtr.Zero,
                     out error);
 
-                // Handle errors
                 if (error != null)
                 {
-                    string msg = Encoding.UTF8.GetString(error.message);
-                    int code = error.code;
-                    g_error_free(error);
-                    throw new InteropException("Failed to search for credentials.", code, new Exception(msg));
+                    int code = error->code;
+                    string message = Marshal.PtrToStringAuto(error->message)!;
+                    throw new InteropException("Failed to search for credentials", code, new Exception(message));
                 }
 
-                if (itemListPtr != IntPtr.Zero)
+                if (results != null && results->data != null)
                 {
-                    GList itemList = Marshal.PtrToStructure<GList>(itemListPtr);
-                    if (itemList != null && itemList.data != IntPtr.Zero)
+                    SecretItem* item = (SecretItem*) results->data;
+
+                    // Although we've unlocked the collection during the search call,
+                    // an item can also be individually locked within a collection.
+                    // If the item is locked we should try and unlock it.
+                    if (secret_item_get_locked(item))
                     {
-                        IntPtr itemPtr = itemList.data;
+                        var toUnlockList = new GList
+                        {
+                            data = (IntPtr) item,
+                            next = IntPtr.Zero,
+                            prev = IntPtr.Zero
+                        };
 
-                        // Extract the user attribute
-                        GHashTable* secretAttrs = secret_item_get_attributes(itemPtr);
-                        userKey = Marshal.StringToHGlobalAnsi(UserAttributeName);
-                        IntPtr userValue = g_hash_table_lookup(secretAttrs, userKey);
-                        string userName = Marshal.PtrToStringAnsi(userValue);
+                        int numUnlocked = secret_service_unlock_sync(
+                            service,
+                            &toUnlockList,
+                            IntPtr.Zero,
+                            out _,
+                            out error
+                        );
 
-                        // Extract the secret/password
-                        SecretValue* secretValue = secret_item_get_secret(itemPtr);
-                        IntPtr passwordPtr = secret_value_get(secretValue, out int passwordLength);
-                        byte[] passwordBytes = new byte[passwordLength];
-                        Marshal.Copy(passwordPtr, passwordBytes, 0, passwordBytes.Length);
-                        string password = Encoding.UTF8.GetString(passwordBytes);
-
-                        return new GitCredential(userName, password);
+                        if (numUnlocked != 1)
+                        {
+                            throw new InteropException("Failed to unlock item", numUnlocked);
+                        }
                     }
+
+                    // Extract the user attribute
+                    secretAttrs = secret_item_get_attributes(item);
+                    userKeyPtr = Marshal.StringToHGlobalAnsi(UserAttributeName);
+                    IntPtr userValuePtr = g_hash_table_lookup(secretAttrs, userKeyPtr);
+                    string userName = Marshal.PtrToStringAuto(userValuePtr);
+
+                    // Load the secret value
+                    secret_item_load_secret_sync(item, IntPtr.Zero, out error);
+                    SecretValue* value = secret_item_get_secret(item);
+                    if (value == null)
+                    {
+                        throw new InteropException("Failed to load secret", -1);
+                    }
+
+                    // Extract the secret/password
+                    passwordPtr = secret_value_unref_to_password(value, out int passwordLength);
+                    string password = Marshal.PtrToStringAuto(passwordPtr, passwordLength);
+
+                    return new GitCredential(userName, password);
                 }
 
                 return null;
@@ -129,50 +133,46 @@ namespace Microsoft.Git.CredentialManager.Interop.Linux
             finally
             {
                 if (queryAttrs != null) g_hash_table_destroy(queryAttrs);
-                if (keyAttrKey != IntPtr.Zero) Marshal.FreeHGlobal(keyAttrKey);
-                if (keyAttrValue != IntPtr.Zero) Marshal.FreeHGlobal(keyAttrValue);
-                if (userKey != IntPtr.Zero) Marshal.FreeHGlobal(userKey);
+                if (secretAttrs != null) g_hash_table_unref(secretAttrs);
+                if (userKeyPtr != IntPtr.Zero) Marshal.FreeHGlobal(userKeyPtr);
+                if (passwordPtr != IntPtr.Zero) secret_password_free(passwordPtr);
                 if (error != null) g_error_free(error);
+                if (results != null) g_list_free_full(results, g_object_unref);
             }
         }
 
         public unsafe void AddOrUpdate(string key, ICredential credential)
         {
             GHashTable* attributes = null;
-            IntPtr userAttrKey = IntPtr.Zero;
-            IntPtr userAttrValue = IntPtr.Zero;
-            IntPtr keyAttrKey = IntPtr.Zero;
-            IntPtr keyAttrValue = IntPtr.Zero;
-
-            GError error = null;
+            SecretValue* secretValue = null;
+            GError *error = null;
 
             try
             {
+                SecretService* service = GetSecretService();
+
                 // Create attributes for the key and user
-                attributes = g_hash_table_new(g_str_hash, g_str_equal);
+                attributes = g_hash_table_new_full(g_str_hash, g_str_equal,
+                    Marshal.FreeHGlobal, Marshal.FreeHGlobal);
 
-                keyAttrKey = Marshal.StringToHGlobalAnsi(KeyAttributeName);
-                keyAttrValue = Marshal.StringToHGlobalAnsi(key);
-                if (!g_hash_table_insert(attributes, keyAttrKey, keyAttrValue))
-                {
-                    throw new InteropException("Failed to add key to attribute hash table.", -1);
-                }
+                IntPtr keyKeyPtr = Marshal.StringToHGlobalAnsi(KeyAttributeName);
+                IntPtr keyValuePtr = Marshal.StringToHGlobalAnsi(key);
+                g_hash_table_insert(attributes, keyKeyPtr, keyValuePtr);
 
-                userAttrKey = Marshal.StringToHGlobalAnsi(UserAttributeName);
-                userAttrValue = Marshal.StringToHGlobalAnsi(credential.UserName);
-                if (!g_hash_table_insert(attributes, userAttrKey, userAttrValue))
-                {
-                    throw new InteropException("Failed to add user to attribute hash table.", -1);
-                }
+                IntPtr userKeyPtr = Marshal.StringToHGlobalAnsi(UserAttributeName);
+                IntPtr userValuePtr = Marshal.StringToHGlobalAnsi(credential.UserName);
+                g_hash_table_insert(attributes, userKeyPtr, userValuePtr);
 
                 // Create the secret value from the password
                 byte[] passwordBytes = Encoding.UTF8.GetBytes(credential.Password);
-                SecretValue* secretValue = secret_value_new(passwordBytes, passwordBytes.Length, PlainTextContentType);
+                secretValue = secret_value_new(passwordBytes, passwordBytes.Length, PlainTextContentType);
+
+                SecretSchema schema = GetSchema();
 
                 // Store the secret with the associated attributes
                 bool result = secret_service_store_sync(
-                    IntPtr.Zero,
-                    Schema,
+                    service,
+                    ref schema,
                     attributes,
                     null,
                     key, // Use the key also as the label
@@ -180,81 +180,111 @@ namespace Microsoft.Git.CredentialManager.Interop.Linux
                     IntPtr.Zero,
                     out error);
 
-                // Handle errors
                 if (error != null)
                 {
-                    string msg = Encoding.UTF8.GetString(error.message);
-                    int code = error.code;
-                    g_error_free(error);
-                    throw new InteropException("Failed to store credentials.", code, new Exception(msg));
+                    int code = error->code;
+                    string message = Marshal.PtrToStringAuto(error->message)!;
+                    throw new InteropException("Failed to store credentials", code, new Exception(message));
                 }
 
                 if (!result)
                 {
-                    throw new InteropException("Failed to store credentials.", -1);
+                    throw new InteropException("Failed to store credentials", -1);
                 }
             }
             finally
             {
                 if (attributes != null) g_hash_table_destroy(attributes);
-                if (userAttrKey != IntPtr.Zero) Marshal.FreeHGlobal(userAttrKey);
-                if (userAttrValue != IntPtr.Zero) Marshal.FreeHGlobal(userAttrValue);
-                if (keyAttrKey != IntPtr.Zero) Marshal.FreeHGlobal(keyAttrKey);
-                if (keyAttrValue != IntPtr.Zero) Marshal.FreeHGlobal(keyAttrValue);
+                if (secretValue != null) secret_value_unref(secretValue);
                 if (error != null) g_error_free(error);
             }
         }
 
-        public bool Remove(string key)
+        public unsafe bool Remove(string key)
         {
-            unsafe
+            GHashTable* attributes = null;
+            GError* error = null;
+
+            try
             {
-                GHashTable* attributes = null;
-                IntPtr keyAttrKey = IntPtr.Zero;
-                IntPtr keyAttrValue = IntPtr.Zero;
+                SecretService* service = GetSecretService();
 
-                GError error = null;
+                // Create attributes for the key
+                attributes = g_hash_table_new_full(g_str_hash, g_str_equal,
+                    Marshal.FreeHGlobal, Marshal.FreeHGlobal);
+                IntPtr keyKeyPtr = Marshal.StringToHGlobalAnsi(KeyAttributeName);
+                IntPtr keyValuePtr = Marshal.StringToHGlobalAnsi(key);
+                g_hash_table_insert(attributes, keyKeyPtr, keyValuePtr);
 
-                try
+                SecretSchema schema = GetSchema();
+
+                // Erase the secret with the specified key
+                bool result = secret_service_clear_sync(
+                    service,
+                    ref schema,
+                    attributes,
+                    IntPtr.Zero,
+                    out error);
+
+                if (error != null)
                 {
-                    // Create attributes for the key
-                    attributes = g_hash_table_new(g_str_hash, g_str_equal);
-                    keyAttrKey = Marshal.StringToHGlobalAnsi(KeyAttributeName);
-                    keyAttrValue = Marshal.StringToHGlobalAnsi(key);
-                    if (!g_hash_table_insert(attributes, keyAttrKey, keyAttrValue))
-                    {
-                        throw new InteropException("Failed to add key to delete query hash table.", -1);
-                    }
-
-                    // Erase the secret with the specified key
-                    bool result = secret_service_clear_sync(
-                        IntPtr.Zero,
-                        Schema,
-                        attributes,
-                        IntPtr.Zero,
-                        out error);
-
-                    // Handle errors
-                    if (error != null)
-                    {
-                        string msg = Encoding.UTF8.GetString(error.message);
-                        int code = error.code;
-                        g_error_free(error);
-                        throw new InteropException("Failed to erase the credentials.", code, new Exception(msg));
-                    }
-
-                    return result;
+                    int code = error->code;
+                    string message = Marshal.PtrToStringAuto(error->message)!;
+                    throw new InteropException("Failed to erase credentials", code, new Exception(message));
                 }
-                finally
-                {
-                    if (attributes != null) g_hash_table_destroy(attributes);
-                    if (keyAttrKey != IntPtr.Zero) Marshal.FreeHGlobal(keyAttrKey);
-                    if (keyAttrValue != IntPtr.Zero) Marshal.FreeHGlobal(keyAttrValue);
-                    if (error != null) g_error_free(error);
-                }
+
+                return result;
+            }
+            finally
+            {
+                if (attributes != null) g_hash_table_destroy(attributes);
+                if (error != null) g_error_free(error);
             }
         }
 
         #endregion
+
+        private static unsafe SecretService* GetSecretService()
+        {
+            // Get a handle to the default secret service, open a session,
+            // and load all collections
+            SecretService* service = secret_service_get_sync(
+                SecretServiceFlags.SECRET_SERVICE_OPEN_SESSION | SecretServiceFlags.SECRET_SERVICE_LOAD_COLLECTIONS,
+                IntPtr.Zero, out GError* error);
+
+            if (error != null)
+            {
+                int code = error->code;
+                string message = Marshal.PtrToStringAuto(error->message)!;
+                g_error_free(error);
+                throw new InteropException("Failed to open secret service session", code, new Exception(message));
+            }
+
+            return service;
+        }
+
+        private static SecretSchema GetSchema()
+        {
+            var schema = new SecretSchema
+            {
+                name = SchemaName,
+                flags = SECRET_SCHEMA_DONT_MATCH_NAME,
+                attributes = new SecretSchemaAttribute[32]
+            };
+
+            schema.attributes[0] = new SecretSchemaAttribute
+            {
+                name = KeyAttributeName,
+                type = SECRET_SCHEMA_ATTRIBUTE_STRING
+            };
+
+            schema.attributes[1] = new SecretSchemaAttribute
+            {
+                name = UserAttributeName,
+                type = SECRET_SCHEMA_ATTRIBUTE_STRING
+            };
+
+            return schema;
+        }
     }
 }

@@ -2,15 +2,12 @@
 // Licensed under the MIT license.
 using System;
 using System.Runtime.InteropServices;
-using static Microsoft.Git.CredentialManager.Interop.Linux.Native.GLib;
 
 namespace Microsoft.Git.CredentialManager.Interop.Linux.Native
 {
     public static class Libsecret
     {
-        private const string LibsecretLib = "libsecret-1.so.0";
-
-        #region Schema
+        private const string LibraryName = "libsecret-1.so.0";
 
         public enum SecretSchemaAttributeType
         {
@@ -51,56 +48,9 @@ namespace Microsoft.Git.CredentialManager.Interop.Linux.Native
             IntPtr reserved6;
             IntPtr reserved7;
         }
+        public struct SecretService { /* transparent */ }
 
-        #endregion
-
-        #region Password
-
-        [DllImport(LibsecretLib, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
-        public static extern bool secret_password_storev_sync(
-            in SecretSchema schema,
-            ref GHashTable attributes,
-            in byte[] collection,
-            in byte[] label,
-            in byte[] password,
-            IntPtr cancellable,
-            out GError error);
-
-        [DllImport(LibsecretLib, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
-        public static extern byte[] secret_password_lookupv_sync(
-            ref SecretSchema schema,
-            ref GHashTable attributes,
-            IntPtr cancellable,
-            out GError error);
-
-        [DllImport(LibsecretLib, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
-        public static extern byte[] secret_password_lookupv_nonpageable_sync(
-            in SecretSchema schema,
-            ref GHashTable attributes,
-            IntPtr cancellable,
-            ref GError error);
-
-        [DllImport(LibsecretLib, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
-        public static extern bool secret_password_clearv_sync(
-            in SecretSchema schema,
-            ref GHashTable attributes,
-            IntPtr cancellable,
-            ref GError error);
-
-        [DllImport(LibsecretLib, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void secret_password_free(
-            byte[] password);
-
-        [DllImport(LibsecretLib, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void secret_password_wipe(
-            byte[] password);
-
-        #endregion
-
-        #region Service
-
-        public struct SecretService { /* transparent type */ }
-
+        [Flags]
         public enum SecretServiceFlags
         {
             SECRET_SERVICE_NONE             = 0,
@@ -117,66 +67,85 @@ namespace Microsoft.Git.CredentialManager.Interop.Linux.Native
             SECRET_SEARCH_LOAD_SECRETS = 1 << 3,
         }
 
-        [DllImport(LibsecretLib, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
-        public static extern SecretService secret_service_get_sync(
+        public struct SecretItem { /* transparent */ }
+
+        public struct SecretValue { /* transparent */ }
+
+        [DllImport(LibraryName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+        public static extern unsafe SecretService* secret_service_get_sync(
             SecretServiceFlags flags,
             IntPtr cancellable,
-            out GError error);
+            out Glib.GError* error);
 
-        [DllImport(LibsecretLib, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
-        public static extern unsafe IntPtr secret_service_search_sync(
-            IntPtr service,
-            in SecretSchema schema,
-            GHashTable* attributes,
+        [DllImport(LibraryName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+        public static extern unsafe Glib.GList* secret_service_search_sync(
+            SecretService* service,
+            ref SecretSchema schema,
+            Glib.GHashTable* attributes,
             SecretSearchFlags flags,
             IntPtr cancellable,
-            out GError error);
+            out Glib.GError* error);
 
-        [DllImport(LibsecretLib, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibraryName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
         public static extern unsafe bool secret_service_store_sync(
-            IntPtr service,
-            in SecretSchema schema,
-            GHashTable *attributes,
+            SecretService* service,
+            ref SecretSchema schema,
+            Glib.GHashTable *attributes,
             string collection,
             string label,
             SecretValue *value,
             IntPtr cancellable,
-            out GError error);
+            out Glib.GError* error);
 
-        [DllImport(LibsecretLib, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibraryName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
         public static extern unsafe bool secret_service_clear_sync(
-            IntPtr service,
-            in SecretSchema schema,
-            GHashTable *attributes,
+            SecretService* service,
+            ref SecretSchema schema,
+            Glib.GHashTable *attributes,
             IntPtr cancellable,
-            out GError error);
+            out Glib.GError* error);
 
-        #endregion
-
-        #region Item
-
-        public struct SecretItem { /* transparent type */ }
-
-        public struct SecretValue { /* transparent type */ }
-
-        [DllImport(LibsecretLib, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibraryName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
         public static extern string secret_item_get_label(IntPtr self);
 
-        [DllImport(LibsecretLib, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
-        public static extern unsafe GHashTable* secret_item_get_attributes(IntPtr item);
+        [DllImport(LibraryName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+        public static extern unsafe Glib.GHashTable* secret_item_get_attributes(SecretItem* item);
 
-        [DllImport(LibsecretLib, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
-        public static extern unsafe SecretValue* secret_item_get_secret(IntPtr item);
+        [DllImport(LibraryName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+        public static extern unsafe void secret_item_load_secret_sync(
+            SecretItem* self,
+            IntPtr cancellable,
+            out Glib.GError* error);
 
-        [DllImport(LibsecretLib, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibraryName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+        public static extern unsafe int secret_service_unlock_sync(SecretService* service,
+            Glib.GList* objects,
+            IntPtr cancellable,
+            out Glib.GList* unlocked,
+            out Glib.GError* error);
+
+        [DllImport(LibraryName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+        public static extern unsafe bool secret_item_get_locked(SecretItem *self);
+
+        [DllImport(LibraryName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+        public static extern unsafe SecretValue* secret_item_get_secret(SecretItem* item);
+
+        [DllImport(LibraryName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
         public static extern unsafe SecretValue* secret_value_new(
             byte[] secret,
             int length,
             string content_type);
 
-        [DllImport(LibsecretLib, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibraryName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
         public static extern unsafe IntPtr secret_value_get(SecretValue* value, out int length);
 
-        #endregion
+        [DllImport(LibraryName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+        public static extern unsafe void secret_value_unref(SecretValue* value);
+
+        [DllImport(LibraryName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+        public static extern unsafe IntPtr secret_value_unref_to_password(SecretValue *value, out int length);
+
+        [DllImport(LibraryName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void secret_password_free(IntPtr password);
     }
 }

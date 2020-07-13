@@ -5,14 +5,14 @@ using System.Runtime.InteropServices;
 
 namespace Microsoft.Git.CredentialManager.Interop.Linux.Native
 {
-    public static class GLib
+    public static class Glib
     {
-        private const string GLibLib = "libglib-2.0.so.0";
+        private const string LibraryName = "libglib-2.0.so.0";
 
-        public struct GHashTable { /* transparent type */ }
+        public struct GHashTable { /* transparent */ }
 
         [StructLayout(LayoutKind.Sequential)]
-        public class GList
+        public struct GList
         {
             public IntPtr data;
             public IntPtr next;
@@ -20,11 +20,11 @@ namespace Microsoft.Git.CredentialManager.Interop.Linux.Native
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        public class GError
+        public struct GError
         {
             public int domain;
             public int code;
-            public byte[] message;
+            public IntPtr message;
         }
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
@@ -36,40 +36,41 @@ namespace Microsoft.Git.CredentialManager.Interop.Linux.Native
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate void GDestroyNotify(IntPtr data);
 
-        [DllImport(GLibLib, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibraryName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
         public static extern uint g_str_hash(IntPtr key);
 
-        [DllImport(GLibLib, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibraryName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
         public static extern bool g_str_equal(IntPtr a, IntPtr b);
 
-        [DllImport(GLibLib, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibraryName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
         public static extern unsafe GHashTable* g_hash_table_new(GHashFunc hash_func, GEqualFunc key_equal_func);
 
-        [DllImport(GLibLib, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibraryName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
         public static extern unsafe GHashTable* g_hash_table_new_full(
             GHashFunc hash_func,
             GEqualFunc key_equal_func,
             GDestroyNotify key_destroy_func,
             GDestroyNotify value_destroy_func);
 
-        [DllImport(GLibLib, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibraryName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
         public static extern unsafe void g_hash_table_destroy(GHashTable* hash_table);
 
-        [DllImport(GLibLib, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibraryName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
         public static extern unsafe bool g_hash_table_insert(GHashTable* hash_table, IntPtr key, IntPtr value);
 
-        [DllImport(GLibLib, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibraryName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
         public static extern unsafe IntPtr g_hash_table_lookup(GHashTable* hash_table, IntPtr key);
 
-        [DllImport(GLibLib, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
-        public static extern unsafe IntPtr g_hash_table_get_keys_as_array(
-            GHashTable* hash_table,
-            out int length);
+        [DllImport(LibraryName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+        public static extern unsafe void g_list_free_full(GList* list, GDestroyNotify free_func);
 
-        [DllImport(GLibLib, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
-        public static extern unsafe void g_error_free(GError error);
+        [DllImport(LibraryName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+        public static extern unsafe void g_hash_table_unref(GHashTable* hash_table);
 
-        [DllImport(GLibLib, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(LibraryName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+        public static extern unsafe void g_error_free(GError* error);
+
+        [DllImport(LibraryName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
         public static extern void g_free(IntPtr mem);
     }
 }
