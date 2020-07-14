@@ -79,47 +79,57 @@ namespace Microsoft.Git.CredentialManager
             Streams = new StandardStreams();
             Trace   = new Trace();
 
-            string gitPath;
             if (PlatformUtils.IsWindows())
             {
-                FileSystem      = new WindowsFileSystem();
-                Environment     = new WindowsEnvironment(FileSystem);
-                Terminal        = new WindowsTerminal(Trace);
-                SessionManager  = new WindowsSessionManager();
-                CredentialStore = WindowsCredentialManager.Open();
-                SystemPrompts   = new WindowsSystemPrompts();
-                gitPath         = Environment.LocateExecutable("git.exe");
+                FileSystem        = new WindowsFileSystem();
+                SessionManager    = new WindowsSessionManager();
+                SystemPrompts     = new WindowsSystemPrompts();
+                Environment       = new WindowsEnvironment(FileSystem);
+                Terminal          = new WindowsTerminal(Trace);
+                Git               = new GitProcess(
+                                            Trace,
+                                            Environment.LocateExecutable("git.exe"),
+                                            FileSystem.GetCurrentDirectory()
+                                        );
+                Settings          = new Settings(Environment, Git);
+                CredentialStore   = WindowsCredentialManager.Open();
             }
-            else if (PlatformUtils.IsPosix())
+            else if (PlatformUtils.IsMacOS())
             {
-                if (PlatformUtils.IsMacOS())
-                {
-                    FileSystem      = new MacOSFileSystem();
-                    SessionManager  = new MacOSSessionManager();
-                    CredentialStore = MacOSKeychain.Open();
-                    SystemPrompts   = new MacOSSystemPrompts();
-                }
-                else if (PlatformUtils.IsLinux())
-                {
-                    FileSystem      = new LinuxFileSystem();
-                    // TODO: support more than just 'Posix' or X11
-                    SessionManager  = new PosixSessionManager();
-                    // TODO: support more than just libsecret
-                    CredentialStore = LibsecretCollection.Open();
-                    SystemPrompts   = new LinuxSystemPrompts();
-                }
-
-                Environment = new PosixEnvironment(FileSystem);
-                Terminal    = new PosixTerminal(Trace);
-                gitPath     = Environment.LocateExecutable("git");
+                FileSystem        = new MacOSFileSystem();
+                SessionManager    = new MacOSSessionManager();
+                SystemPrompts     = new MacOSSystemPrompts();
+                Environment       = new PosixEnvironment(FileSystem);
+                Terminal          = new PosixTerminal(Trace);
+                Git               = new GitProcess(
+                                            Trace,
+                                            Environment.LocateExecutable("git"),
+                                            FileSystem.GetCurrentDirectory()
+                                        );
+                Settings          = new Settings(Environment, Git);
+                CredentialStore   = MacOSKeychain.Open();
+            }
+            else if (PlatformUtils.IsLinux())
+            {
+                FileSystem        = new LinuxFileSystem();
+                // TODO: support more than just 'Posix' or X11
+                SessionManager    = new PosixSessionManager();
+                SystemPrompts     = new LinuxSystemPrompts();
+                Environment       = new PosixEnvironment(FileSystem);
+                Terminal          = new PosixTerminal(Trace);
+                Git               = new GitProcess(
+                                            Trace,
+                                            Environment.LocateExecutable("git"),
+                                            FileSystem.GetCurrentDirectory()
+                                        );
+                Settings          = new Settings(Environment, Git);
+                CredentialStore   = new LinuxCredentialStore(Settings, Git);
             }
             else
             {
                 throw new PlatformNotSupportedException();
             }
 
-            Git               = new GitProcess(Trace, gitPath, FileSystem.GetCurrentDirectory());
-            Settings          = new Settings(Environment, Git);
             HttpClientFactory = new HttpClientFactory(Trace, Settings, Streams);
 
             // Set the parent window handle/ID
