@@ -11,7 +11,7 @@ using static Microsoft.Git.CredentialManager.Interop.Linux.Native.Libsecret.Secr
 
 namespace Microsoft.Git.CredentialManager.Interop.Linux
 {
-    public class LibsecretCollection : ICredentialStore
+    public class SecretServiceCollection : ICredentialStore
     {
         private const string SchemaName = "com.microsoft.GitCredentialManager";
         private const string KeyAttributeName = "key";
@@ -24,12 +24,12 @@ namespace Microsoft.Git.CredentialManager.Interop.Linux
         /// Open the default secret collection for the current user.
         /// </summary>
         /// <returns>Default secret collection.</returns>
-        public static LibsecretCollection Open()
+        public static SecretServiceCollection Open()
         {
-            return new LibsecretCollection();
+            return new SecretServiceCollection();
         }
 
-        private LibsecretCollection()
+        private SecretServiceCollection()
         {
             PlatformUtils.EnsureLinux();
         }

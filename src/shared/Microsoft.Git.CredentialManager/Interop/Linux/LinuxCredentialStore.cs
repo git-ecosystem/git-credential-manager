@@ -51,7 +51,7 @@ namespace Microsoft.Git.CredentialManager.Interop.Linux
                 // TODO: determine the available backing stores based on the current session
                 // TODO: prompt for the desired backing store
                 // TODO: store the desired backing store to ~/.gitconfig
-                _backingStore = LibsecretCollection.Open();
+                _backingStore = SecretServiceCollection.Open();
             }
         }
     }

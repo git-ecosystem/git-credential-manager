@@ -6,12 +6,12 @@ using Microsoft.Git.CredentialManager.Interop.Linux;
 
 namespace Microsoft.Git.CredentialManager.Tests.Interop.Linux
 {
-    public class LibsecretCollectionTests
+    public class SecretServiceCollectionTests
     {
         [PlatformFact(Platform.Linux, Skip = "Cannot run headless")]
-        public void LibsecretCollection_ReadWriteDelete()
+        public void SecretServiceCollection_ReadWriteDelete()
         {
-            LibsecretCollection collection = LibsecretCollection.Open();
+            SecretServiceCollection collection = SecretServiceCollection.Open();
 
             // Create a key that is guarenteed to be unique
             string key = $"secretkey-{Guid.NewGuid():N}";
@@ -39,9 +39,9 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop.Linux
         }
 
         [PlatformFact(Platform.Linux, Skip = "Cannot run headless")]
-        public void LibsecretCollection_Get_KeyNotFound_ReturnsNull()
+        public void SecretServiceCollection_Get_KeyNotFound_ReturnsNull()
         {
-            LibsecretCollection collection = LibsecretCollection.Open();
+            SecretServiceCollection collection = SecretServiceCollection.Open();
 
             // Unique key; guaranteed not to exist!
             string key = Guid.NewGuid().ToString("N");
@@ -51,9 +51,9 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop.Linux
         }
 
         [PlatformFact(Platform.Linux, Skip = "Cannot run headless")]
-        public void LibsecretCollection_Remove_KeyNotFound_ReturnsFalse()
+        public void SecretServiceCollection_Remove_KeyNotFound_ReturnsFalse()
         {
-            LibsecretCollection collection = LibsecretCollection.Open();
+            SecretServiceCollection collection = SecretServiceCollection.Open();
 
             // Unique key; guaranteed not to exist!
             string key = Guid.NewGuid().ToString("N");
