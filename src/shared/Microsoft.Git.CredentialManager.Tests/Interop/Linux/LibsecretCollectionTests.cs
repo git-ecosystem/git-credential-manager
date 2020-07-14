@@ -8,7 +8,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop.Linux
 {
     public class LibsecretCollectionTests
     {
-        [PlatformFact(Platform.Linux)]
+        [PlatformFact(Platform.Linux, Skip = "Cannot run headless")]
         public void LibsecretCollection_ReadWriteDelete()
         {
             LibsecretCollection collection = LibsecretCollection.Open();
@@ -38,7 +38,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop.Linux
             }
         }
 
-        [PlatformFact(Platform.Linux)]
+        [PlatformFact(Platform.Linux, Skip = "Cannot run headless")]
         public void LibsecretCollection_Get_KeyNotFound_ReturnsNull()
         {
             LibsecretCollection collection = LibsecretCollection.Open();
@@ -50,7 +50,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop.Linux
             Assert.Null(credential);
         }
 
-        [PlatformFact(Platform.Linux)]
+        [PlatformFact(Platform.Linux, Skip = "Cannot run headless")]
         public void LibsecretCollection_Remove_KeyNotFound_ReturnsFalse()
         {
             LibsecretCollection collection = LibsecretCollection.Open();
