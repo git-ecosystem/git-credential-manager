@@ -100,6 +100,23 @@ int main(int argc, const char * argv[]) {
         NSString* redirectUri = [configs objectForKey:@"redirectUri"];
         NSString* interactive = [configs objectForKey:@"interactive"];
 
+        // Because ADAL only supports the v1 endpoints we need to transform any request
+        // for the /organizations or /consumers authority to the /common one or else
+        // we get errors back from the server.
+        NSString *lowerAuthority = [authority lowercaseString];
+        if ([lowerAuthority hasSuffix:@"/organizations"] || [lowerAuthority hasSuffix:@"/consumers"])
+        {
+            NSError *error = nil;
+            NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:@"/(organizations|consumers)$"
+                                                                                   options:NSRegularExpressionCaseInsensitive
+                                                                                     error:&error];
+            NSString* newAuthority = [regex stringByReplacingMatchesInString:authority
+                                                                     options:0
+                                                                       range:NSMakeRange(0, authority.length)
+                                                                withTemplate:@"/common"];
+            authority = newAuthority;
+        }
+
         // We only perform interactive flows
         if (isTruthy(interactive))
         {
