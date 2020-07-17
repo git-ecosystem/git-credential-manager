@@ -21,6 +21,7 @@ namespace Microsoft.AzureRepos.Tests
         private const string ExpectedLocationServicePath = "_apis/ServiceDefinitions/LocationService2/951917AC-A960-4999-8464-E3F0AA25B381?api-version=1.0";
         private const string ExpectedIdentityServicePath = "_apis/token/sessiontokens?api-version=1.0&tokentype=compact";
         private const string CommonAuthority = "https://login.microsoftonline.com/common";
+        private const string OrganizationsAuthority = "https://login.microsoftonline.com/organizations";
 
         [Fact]
         public async Task AzureDevOpsRestApi_GetAuthorityAsync_NullUri_ThrowsException()
@@ -169,13 +170,15 @@ namespace Microsoft.AzureRepos.Tests
         }
 
         [Fact]
-        public async Task AzureDevOpsRestApi_GetAuthorityAsync_VssResourceTenantMsa_ReturnsCommonAuthority()
+        public async Task AzureDevOpsRestApi_GetAuthorityAsync_VssResourceTenantMsa_ReturnsOrganizationsAuthority()
         {
             var context = new TestCommandContext();
             var uri = new Uri("https://example.com");
             var msaTenantId = Guid.Empty;
 
-            const string expectedAuthority = CommonAuthority;
+            // This is only the case because we're using MSA pass-through.. in the future, if and when we
+            // move away from MSA pass-through, this should be the common authority.
+            const string expectedAuthority = OrganizationsAuthority;
 
             var httpResponse = new HttpResponseMessage(HttpStatusCode.Unauthorized)
             {

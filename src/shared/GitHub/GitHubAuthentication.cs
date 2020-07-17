@@ -61,17 +61,6 @@ namespace GitHub
         {
             ThrowIfUserInteractionDisabled();
 
-            // If the GitHub auth stack doesn't support flows such as RFC 8628 and we do not have
-            // an interactive desktop session, we cannot offer OAuth authentication.
-            if ((modes & AuthenticationModes.OAuth) != 0
-                && !Context.SessionManager.IsDesktopSession
-                && !GitHubConstants.IsOAuthDeviceAuthSupported)
-            {
-                Context.Trace.WriteLine("Ignoring OAuth authentication mode because we are not in an interactive desktop session. GitHub does not support RFC 8628.");
-
-                modes &= ~AuthenticationModes.OAuth;
-            }
-
             if (modes == AuthenticationModes.None)
             {
                 throw new ArgumentException($"Must specify at least one {nameof(AuthenticationModes)}", nameof(modes));
@@ -211,21 +200,14 @@ namespace GitHub
             {
                 ThrowIfTerminalPromptsDisabled();
 
-                if (GitHubConstants.IsOAuthDeviceAuthSupported)
-                {
-                    OAuth2DeviceCodeResult deviceCodeResult = await oauthClient.GetDeviceCodeAsync(scopes, CancellationToken.None);
+                OAuth2DeviceCodeResult deviceCodeResult = await oauthClient.GetDeviceCodeAsync(scopes, CancellationToken.None);
 
-                    string deviceMessage = $"To complete authentication please visit {deviceCodeResult.VerificationUri} and enter the following code:" +
-                                           Environment.NewLine +
-                                           deviceCodeResult.UserCode;
-                    Context.Terminal.WriteLine(deviceMessage);
+                string deviceMessage = $"To complete authentication please visit {deviceCodeResult.VerificationUri} and enter the following code:" +
+                                       Environment.NewLine +
+                                       deviceCodeResult.UserCode;
+                Context.Terminal.WriteLine(deviceMessage);
 
-                    return await oauthClient.GetTokenByDeviceCodeAsync(deviceCodeResult, CancellationToken.None);
-                }
-
-                // We'd like to try using an OAuth2 flow that does not require a web browser on this device
-                // such as the device code flow (RFC 8628) but GitHub's auth stack does not support this.
-                throw new NotSupportedException("GitHub OAuth authentication is not supported without an interactive desktop session.");
+                return await oauthClient.GetTokenByDeviceCodeAsync(deviceCodeResult, CancellationToken.None);
             }
         }
 

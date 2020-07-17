@@ -37,6 +37,12 @@ namespace Microsoft.AzureRepos
             const string authorityBase = "https://login.microsoftonline.com/";
             const string commonAuthority = authorityBase + "common";
 
+            // We should be using "/common" or "/consumer" as the authority for MSA but since
+            // Azure DevOps uses MSA pass-through (an internal hack to support MSA and AAD
+            // accounts in the same auth stack), which actually need to consult the "/organizations"
+            // authority instead.
+            const string msaAuthority = authorityBase + "organizations";
+
             _context.Trace.WriteLine($"HTTP: HEAD {organizationUri}");
             using (HttpResponseMessage response = await HttpClient.HeadAsync(organizationUri))
             {
@@ -74,14 +80,14 @@ namespace Microsoft.AzureRepos
                         if (tenantIds.Length == 1 && Guid.TryParse(tenantIds[0], out guid) && guid == Guid.Empty)
                         {
                             _context.Trace.WriteLine($"Found {AzureDevOpsConstants.VssResourceTenantHeader} header with MSA tenant ID (empty GUID).");
-                            return commonAuthority;
+                            return msaAuthority;
                         }
                     }
                 }
             }
 
             // Use the common authority if we can't determine a specific one
-            _context.Trace.WriteLine("Falling back to common authority.");
+            _context.Trace.WriteLine($"Unable to determine AAD/MSA tenant - falling back to common authority");
             return commonAuthority;
         }
 

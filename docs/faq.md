@@ -49,7 +49,7 @@ SSH configuration instructions:
 
 ### Q: Why did you not just port the existing GCM Windows codebase from .NET Framework to .NET Core?
 
-GCM Windows was not designed a with cross-platform architecture.
+GCM Windows was not designed with a cross-platform architecture.
 
 ### What level of support does GCM Core have during the public preview?
 
