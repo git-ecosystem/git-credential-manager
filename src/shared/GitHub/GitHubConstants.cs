@@ -16,7 +16,7 @@ namespace GitHub
         public static readonly Uri OAuthRedirectUri = new Uri("http://localhost/");
         public static readonly Uri OAuthAuthorizationEndpointRelativeUri = new Uri("/login/oauth/authorize", UriKind.Relative);
         public static readonly Uri OAuthTokenEndpointRelativeUri = new Uri("/login/oauth/access_token", UriKind.Relative);
-        public static readonly Uri OAuthDeviceEndpointRelativeUri = new Uri("/login/oauth/authorize/device", UriKind.Relative);
+        public static readonly Uri OAuthDeviceEndpointRelativeUri = new Uri("/login/device/code", UriKind.Relative);
 
         /// <summary>
         /// The GitHub required HTTP accepts header value
@@ -35,12 +35,6 @@ namespace GitHub
         /// </summary>
         // TODO: remove Basic once the GCM OAuth app is whitelisted and does not require installation in every organization
         public const AuthenticationModes DotDomAuthenticationModes = AuthenticationModes.Basic | AuthenticationModes.OAuth;
-
-        /// <summary>
-        /// Check if RFC 8628 is supported by GitHub.com and GHE.
-        /// </summary>
-        // TODO: remove this once device auth is supported
-        public const bool IsOAuthDeviceAuthSupported = false;
 
         public static class TokenScopes
         {
