@@ -1,5 +1,6 @@
-trigger: none
-
+pr:
+  - master
+  - release
 
 variables:
   configuration: Release
