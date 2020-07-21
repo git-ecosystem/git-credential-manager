@@ -1,34 +1,18 @@
 name: "release-homebrew"
 on:
   release:
-    types: [published]
+    types: [released]
 
 jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-    - name: Get macOS package version
-      uses: actions/github-script@0.3.0
-      id: version
-      with:
-        github-token: ${{secrets.GITHUB_TOKEN}}
-        result-encoding: string
-        script: |
-          const { data } = await github.repos.getReleaseByTag({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            tag: process.env.GITHUB_REF
-          });
-          const regex = /gcmcore-osx-(.*)\.pkg/;
-          const asset = data.assets.find(x => regex.test(x.name));
-          const matches = asset.name.match(regex);
-          const version = matches[1];
-          return version;
     - name: Update Homebrew tap
-      uses: mjcheetham/update-homebrew@v1
+      uses: mjcheetham/update-homebrew@v1.1
       with:
         token: ${{ secrets.HOMEBREW_TOKEN }}
         tap: microsoft/git
         name: git-credential-manager-core
         type: cask
-        version: ${{ steps.version.outputs.result }}
+        releaseAsset: gcmcore-osx-(.*)\.pkg
+        alwaysUsePullRequest: true
