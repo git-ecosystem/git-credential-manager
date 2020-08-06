@@ -41,7 +41,7 @@ _No configuration equivalent._
 
 ### GCM_TRACE_SECRETS
 
-Enables tracing of secret and senstive information, which is by default masked in trace output.
+Enables tracing of secret and sensitive information, which is by default masked in trace output.
 Requires that `GCM_TRACE` is also enabled.
 
 #### Example
@@ -125,7 +125,7 @@ _No configuration equivalent._
 
 Permit or disable GCM Core from interacting with the user (showing GUI or TTY prompts). If interaction is required but has been disabled, an error is returned.
 
-This can be helpful when using GCM Core in headless and unattended environments, such as build servers, where it would be preferable to fail than to hang indefinately waiting for a non-existent user.
+This can be helpful when using GCM Core in headless and unattended environments, such as build servers, where it would be preferable to fail than to hang indefinitely waiting for a non-existent user.
 
 To disable interactivity set this to `false` or `0`.
 

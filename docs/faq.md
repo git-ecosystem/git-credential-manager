@@ -39,7 +39,7 @@ No. Git Credential Manager for Windows (GCM Windows) will continue to be support
 
 ### Q: Does this mean the Java-based GCM for Mac/Linux is deprecated?
 
-Yes. Usage of Git Credential Manager for Mac and Linux (Java GCM) should be replaced with SSH keys. If you wish to take part in the public preview of GCM Core on macOS please feel free to install the latest preview release and give feedback! Otherwise, using SSH would be prefered on macOS and Linux to Java GCM.
+Yes. Usage of Git Credential Manager for Mac and Linux (Java GCM) should be replaced with SSH keys. If you wish to take part in the public preview of GCM Core on macOS please feel free to install the latest preview release and give feedback! Otherwise, using SSH would be preferred on macOS and Linux to Java GCM.
 
 SSH configuration instructions:
 

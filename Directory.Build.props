@@ -5,7 +5,7 @@
   <PropertyGroup>
      <!--
         Set helpful property for detecting the current OS platform.
-        We can't use the build-in $(OS) because it returns 'Unix' on macOS when run under Mono.
+        We can't use the built-in $(OS) because it returns 'Unix' on macOS when run under Mono.
       -->
     <OSPlatform Condition="$([MSBuild]::IsOsPlatform('windows'))">windows</OSPlatform>
     <OSPlatform Condition="$([MSBuild]::IsOsPlatform('osx'))">osx</OSPlatform>
