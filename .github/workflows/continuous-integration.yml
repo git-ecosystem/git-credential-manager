@@ -1,26 +1,48 @@
 name: Continous Integration
+
 on:
+  push:
+    branches: [ linux ]
   pull_request:
-    branches:
-      - master
-      - linux
-  workflow_dispatch:
+    branches: [ linux ]
 
 jobs:
   build_and_test_ubuntu:
-    runs-on: ubuntu-latest
     name: "Build & Test: Ubuntu"
+    runs-on: ubuntu-latest
     steps:
-      - name: Hello Linux
-        run: |
-          echo "Hello World Github Actions"
-          echo "Running on: $(uname -a)"
+    - name: Hello Linux
+      run: |
+        echo "Hello World Github Actions"
+        echo "Running on: $(uname -a)"
+    - uses: actions/checkout@v2
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.301
+    - name: Install dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build --configuration Release --no-restore
+    - name: Test
+      run: dotnet test --no-restore --verbosity normal
     
   build_and_test_windows:
-    runs-on: windows-latest
     name: "Build & Test: Windows"
+    runs-on: windows-latest
     steps:
-      - name: Hello Windows
-        run: |
-          echo "Hello World from Github Actions"
-          systeminfo /FO list
+    - name: Hello Windows
+      run: |
+        echo "Hello World from Github Actions"
+        systeminfo /FO list
+    - uses: actions/checkout@v2
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.301
+    - name: Install dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build --configuration Release --no-restore
+    - name: Test
+      run: dotnet test --no-restore --verbosity normal
