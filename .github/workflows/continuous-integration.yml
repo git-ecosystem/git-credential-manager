@@ -3,6 +3,7 @@ on:
   pull_request:
     branches:
       - master
+      - linux
   workflow_dispatch:
 
 jobs:
@@ -10,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     name: "Build & Test: Ubuntu"
     steps:
-    - run: |
+      - run: |
       echo "Hello World Github Actions"
       echo "Running on: $(uname -a)"
     
@@ -18,7 +19,6 @@ jobs:
     runs-on: windows-latest
     name: "Build & Test: Windows"
     steps:
-    - script: |
+      - script: |
       echo "Hello World from Github Actions"
       systeminfo /FO list
-      
