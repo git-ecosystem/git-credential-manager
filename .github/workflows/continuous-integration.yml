@@ -1,0 +1,24 @@
+name: Continous Integration
+on:
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  build_and_test_ubuntu:
+    runs-on: ubuntu-latest
+    name: "Build & Test: Ubuntu"
+    steps:
+    - run: |
+      echo "Hello World Github Actions"
+      echo "Running on: $(uname -a)"
+    
+  build_and_test_windows:
+    runs-on: windows-latest
+    name: "Build & Test: Windows"
+    steps:
+    - script: |
+      echo "Hello World from Github Actions"
+      systeminfo /FO list
+      
