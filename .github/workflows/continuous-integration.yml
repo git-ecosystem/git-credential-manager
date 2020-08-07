@@ -1,4 +1,4 @@
-name: Continous Integration
+name: GCM-Core
 
 on:
   push:
