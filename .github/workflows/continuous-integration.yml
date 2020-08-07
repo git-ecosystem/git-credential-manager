@@ -8,7 +8,7 @@ on:
 
 jobs:
   validate_gcm:
-    name: "Build & Test GCM-Core"
+    name: "CI"
 
     runs-on: ${{ matrix.os }}
     strategy:
