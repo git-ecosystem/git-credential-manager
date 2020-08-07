@@ -96,11 +96,11 @@ specific host provider. This was done to allow any service that may wish to in
 the future integrate with Microsoft Accounts or Azure Active Directory can make
 use of this reusable authentication component.
 
-Since MSAL.NET includes embedded GUI on Windows (when targeting .NET Frameonly
+Since MSAL.NET includes embedded GUI on Windows (when targeting .NET Framework
 only - see note above) we have no helper executable on Windows. However, on
 macOS the `MicrosoftAuthentication` component shells out to a native macOS
 helper that completely takes over all authentication flows using the older ADAL
-Objective-C libary. This was done because MSAL.NET does not offer the same level
+Objective-C library. This was done because MSAL.NET does not offer the same level
 of integration for [MDM](https://en.wikipedia.org/wiki/Mobile_device_management)
 purposes, as well as lacking an embedded UI on non-Windows platforms. As
 MSAL.NET continues to evolve we hope to replace the ADAL/macOS helper
@@ -164,7 +164,7 @@ instance of the provider to the `Application` object via the `RegisterProvider`
 method [in `Microsoft.Git.CredentialManager.Program`](../src/shared/Git-Credential-Manager/Program.cs).
 The `GenericHostProvider` is registered last so that it can handle all other
 HTTP-based remotes as a catch-all, and provide basic username/password auth and
-detect the presense of Windows Integrated Authentication (Kerberos, NTLM,
+detect the presence of Windows Integrated Authentication (Kerberos, NTLM,
 Negotiate) support (1).
 
 For each invocation of GCM Core, the first argument on the command-line is
@@ -174,7 +174,7 @@ from Git (over standard input) is deserialized and the command is executed (2).
 The `Get|Store|EraseCommand`s consult the host provider registry for the most
 appropriate host provider. The default registry implementation select the a host
 provider by asking each registered provider in turn if they understand the
-request. The provider selection can be overriden by the user via the
+request. The provider selection can be overridden by the user via the
 [`credential.provider`](configuration.md#credentialprovider) or [`GCM_PROVIDER`](environment.md#GCM_PROVIDER)
 configuration and environment variable respectively (3)).
 
@@ -210,7 +210,7 @@ custom caches on an `erase` request, without having to reimplement the
 lookup/store credential logic.
 
 Host providers are queried in turn (registration order) via the
-`IHostProvider.IsSupported` method and passed the input recieved from Git. If
+`IHostProvider.IsSupported` method and passed the input received from Git. If
 the provider recognises the request, for example by a matching known host name,
 they can return `true`. If the provider wants to cancel and abort an
 authentication request, for example if this is a HTTP (not HTTPS) request for a
@@ -266,7 +266,7 @@ caught, a non-zero exit code returned, and the error message printed with the
 "fatal:" prefix. For errors originating from interop/native code, you should
 throw an exception of the `InteropException` type. Error messages in exceptions
 should be human readable. When there is a known or user-fixable issue,
-instructions on how to self-rememdy the issue, or links to relevant
+instructions on how to self-remedy the issue, or links to relevant
 documentation should be given.
 
 Warnings can be emitted over the standard error stream

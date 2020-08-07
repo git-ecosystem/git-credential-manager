@@ -6,7 +6,7 @@ Git Credential Manager Core's network and HTTP(S) behavior can be configured in 
 
 If your computer sits behind a network firewall that requires the use of a proxy server to reach repository remotes or the wider Internet, there are various methods for configuring GCM to use a proxy.
 
-The simplist way to configure a proxy for _all_ HTTP(S) remotes is to [use the standard Git HTTP(S) proxy setting `http.proxy`](https://git-scm.com/docs/git-config#Documentation/git-config.txt-httpproxy).
+The simplest way to configure a proxy for _all_ HTTP(S) remotes is to [use the standard Git HTTP(S) proxy setting `http.proxy`](https://git-scm.com/docs/git-config#Documentation/git-config.txt-httpproxy).
 
 For example to configure a proxy for all remotes for the current user:
 
@@ -57,7 +57,7 @@ GCM Core supports other ways of configuring a proxy for convenience and compatib
 
 ## TLS Verification
 
-If you are using self-signed TLS (SSL) certificates with a self-hosted host provider such as GitHub Enteprise Server or Azure DevOps Server (previously TFS), you may see the following error message when attempting to connect using Git and/or GCM:
+If you are using self-signed TLS (SSL) certificates with a self-hosted host provider such as GitHub Enterprise Server or Azure DevOps Server (previously TFS), you may see the following error message when attempting to connect using Git and/or GCM:
 
 ```shell
 $ git clone https://ghe.example.com/john.doe/myrepo
@@ -66,7 +66,7 @@ fatal: The remote certificate is invalid according to the validation procedure.
 
 The **recommended and safest option** is to acquire a TLS certificate signed by a public trusted certificate authority (CA). There are multiple public CAs; here is a non-exhaustive list to consider: [Let's Encrypt](https://letsencrypt.org/), [Comodo](https://www.comodoca.com/), [Digicert](https://www.digicert.com/), [GoDaddy](https://www.godaddy.com/web-security/ssl-certificate), [GlobalSign](https://www.globalsign.com/en/ssl/).
 
-If it is not possible to **obtain a TLS certifiate from a trusted 3rd party** then you should try to add the _specific_ self-signed certificate or one of the CA certificates in the verification chain to your operating system's trusted certificate store ([macOS](https://support.apple.com/en-gb/guide/keychain-access/kyca2431/mac), [Windows](https://blogs.technet.microsoft.com/sbs/2008/05/08/installing-a-self-signed-certificate-as-a-trusted-root-ca-in-windows-vista/)).
+If it is not possible to **obtain a TLS certificate from a trusted 3rd party** then you should try to add the _specific_ self-signed certificate or one of the CA certificates in the verification chain to your operating system's trusted certificate store ([macOS](https://support.apple.com/en-gb/guide/keychain-access/kyca2431/mac), [Windows](https://blogs.technet.microsoft.com/sbs/2008/05/08/installing-a-self-signed-certificate-as-a-trusted-root-ca-in-windows-vista/)).
 
 If you are _unable_ to either **obtain a trusted certificate**, or trust the self-signed certificate you can disable certificate verification in Git and GCM.
 
@@ -75,11 +75,11 @@ If you are _unable_ to either **obtain a trusted certificate**, or trust the sel
 
 Disabling verification of TLS (SSL) certificates removes protection against a [man-in-the-middle (MITM) attack](https://en.wikipedia.org/wiki/Man-in-the-middle_attack).
 
-Only disable certificate verification if you are sure you need to, are aware of all of the risks, and are unable to trust specific self-signed certificates (as described above).
+Only disable certificate verification if you are sure you need to, are aware of all the risks, and are unable to trust specific self-signed certificates (as described above).
 
 ---
 
-The [environment variable `GIT_SSL_NO_VERIFY`](https://git-scm.com/book/en/v2/Git-Internals-Environment-Variables#_networking) and [Git configuration option `http.sslVerify`](https://git-scm.com/docs/git-config#Documentation/git-config.txt-httpsslVerify) can be used to control TLS (SSL) certifcate verification.
+The [environment variable `GIT_SSL_NO_VERIFY`](https://git-scm.com/book/en/v2/Git-Internals-Environment-Variables#_networking) and [Git configuration option `http.sslVerify`](https://git-scm.com/docs/git-config#Documentation/git-config.txt-httpsslVerify) can be used to control TLS (SSL) certificate verification.
 
 To disable verification for a specific remote (for example <https://example.com>):
 
