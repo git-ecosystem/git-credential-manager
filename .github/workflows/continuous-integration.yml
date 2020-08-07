@@ -7,56 +7,27 @@ on:
     branches: [ master, linux ]
 
 jobs:
-  build_and_test_ubuntu:
-    name: "Build & Test: Ubuntu"
-    runs-on: ubuntu-latest
-    steps:
-    - name: Hello Linux
-      run: |
-        echo "Hello World Github Actions"
-        echo "Running on: $(uname -a)"
+  validate_gcm:
+    name: "Build & Test GCM-Core"
 
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-16.04, ubuntu-18.04, ubuntu-latest, windows-2019, macos-10.15]
+
+    steps:
     - uses: actions/checkout@v2
       with:
-        fetch-depth: 0
+        fetch-depth: 0 # Indicate full history so Nerdbank.GitVersioning works.
 
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 3.1.301
+        dotnet-version: 3.1.302
 
     - name: Install dependencies
       run: dotnet restore
-
     - name: Build
       run: dotnet build --configuration Release --no-restore
-
-    - name: Test
-      run: dotnet test --no-restore --verbosity normal
-
-  build_and_test_windows:
-    name: "Build & Test: Windows"
-    runs-on: windows-latest
-    steps:
-    - name: Hello Windows
-      run: |
-        echo "Hello World from Github Actions"
-        systeminfo /FO list
-
-    - uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: 3.1.301
-
-    - name: Install dependencies
-      run: dotnet restore
-
-    - name: Build
-      run: dotnet build --configuration Release --no-restore
-
     - name: Test
       run: dotnet test --no-restore --verbosity normal
