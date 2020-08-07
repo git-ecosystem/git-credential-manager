@@ -16,6 +16,7 @@ jobs:
         echo "Hello World Github Actions"
         echo "Running on: $(uname -a)"
     - uses: actions/checkout@v2
+      fetch-depth: 0
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
@@ -36,6 +37,7 @@ jobs:
         echo "Hello World from Github Actions"
         systeminfo /FO list
     - uses: actions/checkout@v2
+      fetch-depth: 0
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
