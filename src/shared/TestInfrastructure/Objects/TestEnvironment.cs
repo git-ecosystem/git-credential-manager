@@ -80,6 +80,23 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
             Variables["PATH"] = string.Join(_envPathSeparator, Path);
         }
 
+        public string LocateExecutable(string program)
+        {
+            if (WhichFiles.TryGetValue(program, out ICollection<string> paths))
+            {
+                return paths.FirstOrDefault();
+            }
+
+            if (!System.IO.Path.HasExtension(program) && PlatformUtils.IsWindows())
+            {
+                // If we're testing on a Windows platform, don't have a file extension, and were unable to locate
+                // the executable file.. try appending .exe.
+                return WhichFiles.TryGetValue($"{program}.exe", out paths) ? paths.FirstOrDefault() : null;
+            }
+
+            return null;
+        }
+
         #endregion
     }
 }

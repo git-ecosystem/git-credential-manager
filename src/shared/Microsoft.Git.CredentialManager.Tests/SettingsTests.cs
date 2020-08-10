@@ -329,7 +329,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             var envars = new TestEnvironment();
             var git = new TestGit();
 
-            var settings = new Settings(envars, git, repositoryPath)
+            var settings = new Settings(envars, git)
             {
                 RemoteUri = remoteUri
             };
@@ -353,7 +353,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             var git = new TestGit();
             git.GlobalConfiguration[$"{section}.{property}"] = expectedValue.ToString();
 
-            var settings = new Settings(envars, git, repositoryPath)
+            var settings = new Settings(envars, git)
             {
                 RemoteUri = remoteUri
             };
@@ -378,7 +378,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             var git = new TestGit();
             git.GlobalConfiguration[$"{section}.{property}"] = expectedValue.ToString();
 
-            var settings = new Settings(envars, git, repositoryPath)
+            var settings = new Settings(envars, git)
             {
                 RemoteUri = remoteUri
             };
@@ -403,7 +403,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             var git = new TestGit();
             git.GlobalConfiguration[$"{section}.{property}"] = expectedValue.ToString();
 
-            var settings = new Settings(envars, git, repositoryPath)
+            var settings = new Settings(envars, git)
             {
                 RemoteUri = remoteUri
             };
@@ -428,7 +428,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             };
             var git = new TestGit();
 
-            var settings = new Settings(envars, git, repositoryPath)
+            var settings = new Settings(envars, git)
             {
                 RemoteUri = remoteUri
             };
@@ -453,7 +453,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             };
             var git = new TestGit();
 
-            var settings = new Settings(envars, git, repositoryPath)
+            var settings = new Settings(envars, git)
             {
                 RemoteUri = remoteUri
             };
@@ -478,7 +478,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             };
             var git = new TestGit();
 
-            var settings = new Settings(envars, git, repositoryPath)
+            var settings = new Settings(envars, git)
             {
                 RemoteUri = remoteUri
             };
@@ -503,7 +503,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             };
             var git = new TestGit();
 
-            var settings = new Settings(envars, git, repositoryPath)
+            var settings = new Settings(envars, git)
             {
                 RemoteUri = remoteUri
             };
@@ -542,7 +542,7 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             void RunTest(Uri expectedValue)
             {
-                var settings = new Settings(envars, git, repositoryPath)
+                var settings = new Settings(envars, git)
                 {
                     RemoteUri = remoteUri
                 };
@@ -574,7 +574,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             var envars = new TestEnvironment();
             var git = new TestGit();
 
-            var settings = new Settings(envars, git, repositoryPath)
+            var settings = new Settings(envars, git)
             {
                 RemoteUri = remoteUri
             };
@@ -598,7 +598,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             };
             var git = new TestGit();
 
-            var settings = new Settings(envars, git, repositoryPath)
+            var settings = new Settings(envars, git)
             {
                 RemoteUri = remoteUri
             };
@@ -622,7 +622,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             var git = new TestGit();
             git.GlobalConfiguration[$"{section}.{property}"] = expectedValue;
 
-            var settings = new Settings(envars, git, repositoryPath)
+            var settings = new Settings(envars, git)
             {
                 RemoteUri = remoteUri
             };
@@ -650,7 +650,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             var git = new TestGit();
             git.GlobalConfiguration[$"{section}.{property}"] = otherValue;
 
-            var settings = new Settings(envars, git, repositoryPath)
+            var settings = new Settings(envars, git)
             {
                 RemoteUri = remoteUri
             };
@@ -669,7 +669,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             var envars = new TestEnvironment();
             var git = new TestGit();
 
-            var settings = new Settings(envars, git, repositoryPath)
+            var settings = new Settings(envars, git)
             {
                 RemoteUri = remoteUri
             };
@@ -693,7 +693,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             };
             var git = new TestGit();
 
-            var settings = new Settings(envars, git, repositoryPath)
+            var settings = new Settings(envars, git)
             {
                 RemoteUri = remoteUri
             };
@@ -717,7 +717,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             var git = new TestGit();
             git.GlobalConfiguration[$"{section}.{property}"] = expectedValue;
 
-            var settings = new Settings(envars, git, repositoryPath)
+            var settings = new Settings(envars, git)
             {
                 RemoteUri = remoteUri
             };
@@ -745,7 +745,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             var git = new TestGit();
             git.GlobalConfiguration[$"{section}.{property}"] = otherValue;
 
-            var settings = new Settings(envars, git, repositoryPath)
+            var settings = new Settings(envars, git)
             {
                 RemoteUri = remoteUri
             };
@@ -772,7 +772,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             };
             var git = new TestGit();
 
-            var settings = new Settings(envars, git, repositoryPath)
+            var settings = new Settings(envars, git)
             {
                 RemoteUri = remoteUri
             };
@@ -795,7 +795,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             var envars = new TestEnvironment();
             var git = new TestGit();
 
-            var settings = new Settings(envars, git, repositoryPath)
+            var settings = new Settings(envars, git)
             {
                 RemoteUri = remoteUri
             };
@@ -821,7 +821,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             var git = new TestGit();
             git.GlobalConfiguration[$"{section}.{property}"] = expectedValue;
 
-            var settings = new Settings(envars, git, repositoryPath)
+            var settings = new Settings(envars, git)
             {
                 RemoteUri = remoteUri
             };
@@ -845,10 +845,9 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             var envars = new TestEnvironment();
             var git = new TestGit();
-            var repo = git.AddRepository(repositoryPath);
-            repo.Configuration[$"{section}.{property}"] = expectedValue;
+            git.LocalConfiguration[$"{section}.{property}"] = expectedValue;
 
-            var settings = new Settings(envars, git, repositoryPath)
+            var settings = new Settings(envars, git)
             {
                 RemoteUri = remoteUri
             };
@@ -875,11 +874,10 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             var envars = new TestEnvironment();
             var git = new TestGit();
-            var repo = git.AddRepository(repositoryPath);
-            repo.Configuration[$"{section}.{scope1}.{property}"] = otherValue;
-            repo.Configuration[$"{section}.{scope2}.{property}"] = expectedValue;
+            git.LocalConfiguration[$"{section}.{scope1}.{property}"] = otherValue;
+            git.LocalConfiguration[$"{section}.{scope2}.{property}"] = expectedValue;
 
-            var settings = new Settings(envars, git, repositoryPath)
+            var settings = new Settings(envars, git)
             {
                 RemoteUri = remoteUri
             };
@@ -907,10 +905,9 @@ namespace Microsoft.Git.CredentialManager.Tests
                 Variables = {[envarName] = expectedValue}
             };
             var git = new TestGit();
-            var repo = git.AddRepository(repositoryPath);
-            repo.Configuration[$"{section}.{property}"] = otherValue;
+            git.LocalConfiguration[$"{section}.{property}"] = otherValue;
 
-            var settings = new Settings(envars, git, repositoryPath)
+            var settings = new Settings(envars, git)
             {
                 RemoteUri = remoteUri
             };
@@ -944,12 +941,11 @@ namespace Microsoft.Git.CredentialManager.Tests
                 Variables = {[envarName] = value1}
             };
             var git = new TestGit();
-            var repo = git.AddRepository(repositoryPath);
-            repo.Configuration[$"{section}.{scope1}.{property}"] = value2;
-            repo.Configuration[$"{section}.{scope2}.{property}"] = value3;
-            repo.Configuration[$"{section}.{property}"]          = value4;
+            git.LocalConfiguration[$"{section}.{scope1}.{property}"] = value2;
+            git.LocalConfiguration[$"{section}.{scope2}.{property}"] = value3;
+            git.LocalConfiguration[$"{section}.{property}"]          = value4;
 
-            var settings = new Settings(envars, git, repositoryPath)
+            var settings = new Settings(envars, git)
             {
                 RemoteUri = remoteUri
             };

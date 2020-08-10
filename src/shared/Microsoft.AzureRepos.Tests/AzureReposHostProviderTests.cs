@@ -182,17 +182,15 @@ namespace Microsoft.AzureRepos.Tests
             var provider = new AzureReposHostProvider(new TestCommandContext());
 
             var environment = new TestEnvironment();
-            var config = new TestGitConfiguration(new Dictionary<string, IList<string>>
-            {
-                [AzDevUseHttpPathKey] = new List<string> {"true"}
-            });
+            var git = new TestGit();
+            git.GlobalConfiguration.Dictionary[AzDevUseHttpPathKey] = new List<string> {"true"};
 
             await provider.ConfigureAsync(
                 environment, EnvironmentVariableTarget.User,
-                config, GitConfigurationLevel.Global);
+                git, GitConfigurationLevel.Global);
 
-            Assert.Single(config.Dictionary);
-            Assert.True(config.Dictionary.TryGetValue(AzDevUseHttpPathKey, out IList<string> actualValues));
+            Assert.Single(git.GlobalConfiguration.Dictionary);
+            Assert.True(git.GlobalConfiguration.Dictionary.TryGetValue(AzDevUseHttpPathKey, out IList<string> actualValues));
             Assert.Single(actualValues);
             Assert.Equal("true", actualValues[0]);
         }
@@ -203,17 +201,15 @@ namespace Microsoft.AzureRepos.Tests
             var provider = new AzureReposHostProvider(new TestCommandContext());
 
             var environment = new TestEnvironment();
-            var config = new TestGitConfiguration(new Dictionary<string, IList<string>>
-            {
-                [AzDevUseHttpPathKey] = new List<string> {"false"}
-            });
+            var git = new TestGit();
+            git.GlobalConfiguration.Dictionary[AzDevUseHttpPathKey] = new List<string> {"false"};
 
             await provider.ConfigureAsync(
                 environment, EnvironmentVariableTarget.User,
-                config, GitConfigurationLevel.Global);
+                git, GitConfigurationLevel.Global);
 
-            Assert.Single(config.Dictionary);
-            Assert.True(config.Dictionary.TryGetValue(AzDevUseHttpPathKey, out IList<string> actualValues));
+            Assert.Single(git.GlobalConfiguration.Dictionary);
+            Assert.True(git.GlobalConfiguration.Dictionary.TryGetValue(AzDevUseHttpPathKey, out IList<string> actualValues));
             Assert.Single(actualValues);
             Assert.Equal("true", actualValues[0]);
         }
@@ -224,14 +220,14 @@ namespace Microsoft.AzureRepos.Tests
             var provider = new AzureReposHostProvider(new TestCommandContext());
 
             var environment = new TestEnvironment();
-            var config = new TestGitConfiguration();
+            var git = new TestGit();
 
             await provider.ConfigureAsync(
                 environment, EnvironmentVariableTarget.User,
-                config, GitConfigurationLevel.Global);
+                git, GitConfigurationLevel.Global);
 
-            Assert.Single(config.Dictionary);
-            Assert.True(config.Dictionary.TryGetValue(AzDevUseHttpPathKey, out IList<string> actualValues));
+            Assert.Single(git.GlobalConfiguration.Dictionary);
+            Assert.True(git.GlobalConfiguration.Dictionary.TryGetValue(AzDevUseHttpPathKey, out IList<string> actualValues));
             Assert.Single(actualValues);
             Assert.Equal("true", actualValues[0]);
         }
@@ -243,16 +239,14 @@ namespace Microsoft.AzureRepos.Tests
             var provider = new AzureReposHostProvider(new TestCommandContext());
 
             var environment = new TestEnvironment();
-            var config = new TestGitConfiguration(new Dictionary<string, IList<string>>
-            {
-                [AzDevUseHttpPathKey] = new List<string> {"true"}
-            });
+            var git = new TestGit();
+            git.GlobalConfiguration.Dictionary[AzDevUseHttpPathKey] = new List<string> {"true"};
 
             await provider.UnconfigureAsync(
                 environment, EnvironmentVariableTarget.User,
-                config, GitConfigurationLevel.Global);
+                git, GitConfigurationLevel.Global);
 
-            Assert.Empty(config.Dictionary);
+            Assert.Empty(git.GlobalConfiguration.Dictionary);
         }
     }
 }

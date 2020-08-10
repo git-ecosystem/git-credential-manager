@@ -25,18 +25,18 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             var environment = new Mock<IEnvironment>();
 
-            var config = new TestGitConfiguration();
-            config.Dictionary[key] = new List<string>
+            var git = new TestGit();
+            git.GlobalConfiguration.Dictionary[key] = new List<string>
             {
                 emptyHelper, gcmConfigName
             };
 
             await application.ConfigureAsync(
                 environment.Object, EnvironmentVariableTarget.User,
-                config, GitConfigurationLevel.Global);
+                git, GitConfigurationLevel.Global);
 
-            Assert.Single(config.Dictionary);
-            Assert.True(config.Dictionary.TryGetValue(key, out var actualValues));
+            Assert.Single(git.GlobalConfiguration.Dictionary);
+            Assert.True(git.GlobalConfiguration.Dictionary.TryGetValue(key, out var actualValues));
             Assert.Equal(2, actualValues.Count);
             Assert.Equal(emptyHelper, actualValues[0]);
             Assert.Equal(gcmConfigName, actualValues[1]);
@@ -54,18 +54,18 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             var environment = new Mock<IEnvironment>();
 
-            var config = new TestGitConfiguration();
-            config.Dictionary[key] = new List<string>
+            var git = new TestGit();
+            git.GlobalConfiguration.Dictionary[key] = new List<string>
             {
                 "foo", "bar", emptyHelper, gcmConfigName
             };
 
             await application.ConfigureAsync(
                 environment.Object, EnvironmentVariableTarget.User,
-                config, GitConfigurationLevel.Global);
+                git, GitConfigurationLevel.Global);
 
-            Assert.Single(config.Dictionary);
-            Assert.True(config.Dictionary.TryGetValue(key, out var actualValues));
+            Assert.Single(git.GlobalConfiguration.Dictionary);
+            Assert.True(git.GlobalConfiguration.Dictionary.TryGetValue(key, out var actualValues));
             Assert.Equal(4, actualValues.Count);
             Assert.Equal("foo", actualValues[0]);
             Assert.Equal("bar", actualValues[1]);
@@ -85,18 +85,18 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             var environment = new Mock<IEnvironment>();
 
-            var config = new TestGitConfiguration();
-            config.Dictionary[key] = new List<string>
+            var git = new TestGit();
+            git.GlobalConfiguration.Dictionary[key] = new List<string>
             {
                 "bar", emptyHelper, executablePath, "foo"
             };
 
             await application.ConfigureAsync(
                 environment.Object, EnvironmentVariableTarget.User,
-                config, GitConfigurationLevel.Global);
+                git, GitConfigurationLevel.Global);
 
-            Assert.Single(config.Dictionary);
-            Assert.True(config.Dictionary.TryGetValue(key, out var actualValues));
+            Assert.Single(git.GlobalConfiguration.Dictionary);
+            Assert.True(git.GlobalConfiguration.Dictionary.TryGetValue(key, out var actualValues));
             Assert.Equal(2, actualValues.Count);
             Assert.Equal(emptyHelper, actualValues[0]);
             Assert.Equal(gcmConfigName, actualValues[1]);
@@ -114,14 +114,14 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             var environment = new Mock<IEnvironment>();
 
-            var config = new TestGitConfiguration();
+            var git = new TestGit();
 
             await application.ConfigureAsync(
                 environment.Object, EnvironmentVariableTarget.User,
-                config, GitConfigurationLevel.Global);
+                git, GitConfigurationLevel.Global);
 
-            Assert.Single(config.Dictionary);
-            Assert.True(config.Dictionary.TryGetValue(key, out var actualValues));
+            Assert.Single(git.GlobalConfiguration.Dictionary);
+            Assert.True(git.GlobalConfiguration.Dictionary.TryGetValue(key, out var actualValues));
             Assert.Equal(2, actualValues.Count);
             Assert.Equal(emptyHelper, actualValues[0]);
             Assert.Equal(gcmConfigName, actualValues[1]);
@@ -138,16 +138,14 @@ namespace Microsoft.Git.CredentialManager.Tests
             IConfigurableComponent application = new Application(new TestCommandContext(), executablePath);
 
             var environment = new Mock<IEnvironment>();
-            var config = new TestGitConfiguration(new Dictionary<string, IList<string>>
-            {
-                [key] = new List<string> {emptyHelper, gcmConfigName}
-            });
+            var git = new TestGit();
+            git.GlobalConfiguration.Dictionary[key] = new List<string> {emptyHelper, gcmConfigName};
 
             await application.UnconfigureAsync(
                 environment.Object, EnvironmentVariableTarget.User,
-                config, GitConfigurationLevel.Global);
+                git, GitConfigurationLevel.Global);
 
-            Assert.Empty(config.Dictionary);
+            Assert.Empty(git.GlobalConfiguration.Dictionary);
         }
 
         #endregion
@@ -165,11 +163,11 @@ namespace Microsoft.Git.CredentialManager.Tests
             var environment = new Mock<IEnvironment>();
             environment.Setup(x => x.IsDirectoryOnPath(directoryPath)).Returns(true);
 
-            var config = new TestGitConfiguration();
+            var git = new TestGit();
 
             await application.ConfigureAsync(
                 environment.Object, EnvironmentVariableTarget.User,
-                config, GitConfigurationLevel.Global);
+                git, GitConfigurationLevel.Global);
 
             environment.Verify(x => x.AddDirectoryToPath(It.IsAny<string>(), It.IsAny<EnvironmentVariableTarget>()), Times.Never);
         }
@@ -185,11 +183,11 @@ namespace Microsoft.Git.CredentialManager.Tests
             var environment = new Mock<IEnvironment>();
             environment.Setup(x => x.IsDirectoryOnPath(directoryPath)).Returns(false);
 
-            var config = new TestGitConfiguration();
+            var git = new TestGit();
 
             await application.ConfigureAsync(
                 environment.Object, EnvironmentVariableTarget.User,
-                config, GitConfigurationLevel.Global);
+                git, GitConfigurationLevel.Global);
 
             environment.Verify(x => x.AddDirectoryToPath(directoryPath, EnvironmentVariableTarget.User), Times.Once);
         }
@@ -205,11 +203,11 @@ namespace Microsoft.Git.CredentialManager.Tests
             var environment = new Mock<IEnvironment>();
             environment.Setup(x => x.IsDirectoryOnPath(directoryPath)).Returns(true);
 
-            var config = new TestGitConfiguration();
+            var git = new TestGit();
 
             await application.UnconfigureAsync(
                 environment.Object, EnvironmentVariableTarget.User,
-                config, GitConfigurationLevel.Global);
+                git, GitConfigurationLevel.Global);
 
             environment.Verify(x => x.RemoveDirectoryFromPath(directoryPath, EnvironmentVariableTarget.User), Times.Once);
         }
