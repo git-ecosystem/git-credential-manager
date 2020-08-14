@@ -45,16 +45,11 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
             }
         }
 
-        public IGitConfiguration GetFilteredConfiguration(GitConfigurationLevel level)
-        {
-            return this;
-        }
-
         public bool TryGetValue(string name, out string value)
         {
             if (Dictionary.TryGetValue(name, out var values))
             {
-                // Simulate libgit2
+                // TODO: simulate git
                 if (values.Count > 1)
                 {
                     throw new Exception("Configuration entry is a multivar");
@@ -79,7 +74,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
                 Dictionary[name] = values;
             }
 
-            // Simulate libgit2
+            // TODO: simulate git
             if (values.Count > 1)
             {
                 throw new Exception("Configuration entry is a multivar");
@@ -95,9 +90,9 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
             }
         }
 
-        public void DeleteEntry(string name)
+        public void Unset(string name)
         {
-            // Simulate libgit2
+            // TODO: simulate git
             if (Dictionary.TryGetValue(name, out var values) && values.Count > 1)
             {
                 throw new Exception("Configuration entry is a multivar");
@@ -106,29 +101,29 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
             Dictionary.Remove(name);
         }
 
-        public IEnumerable<string> GetMultivarValue(string name, string regexp)
+        public IEnumerable<string> GetRegex(string nameRegex, string valueRegex)
         {
-            if (Dictionary.TryGetValue(name, out IList<string> values))
+            if (Dictionary.TryGetValue(nameRegex, out IList<string> values))
             {
-                return values.Where(x => Regex.IsMatch(x, regexp));
+                return values.Where(x => Regex.IsMatch(x, valueRegex));
             }
 
             return Enumerable.Empty<string>();
         }
 
-        public void SetMultivarValue(string name, string regexp, string value)
+        public void ReplaceAll(string nameRegex, string valueRegex, string value)
         {
-            if (!Dictionary.TryGetValue(name, out IList<string> values))
+            if (!Dictionary.TryGetValue(nameRegex, out IList<string> values))
             {
                 values = new List<string>();
-                Dictionary[name] = values;
+                Dictionary[nameRegex] = values;
             }
 
             bool updated = false;
             for (int i = 0; i < values.Count; i++)
             {
                 // Update matching values
-                if (Regex.IsMatch(values[i], regexp))
+                if (Regex.IsMatch(values[i], valueRegex))
                 {
                     values[i] = value;
                     updated = true;
@@ -142,14 +137,14 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
             }
         }
 
-        public void DeleteMultivarEntry(string name, string regexp)
+        public void UnsetAll(string name, string valueRegex)
         {
             if (Dictionary.TryGetValue(name, out IList<string> values))
             {
                 for (int i = 0; i < values.Count;)
                 {
                     // Remove matching values
-                    if (Regex.IsMatch(values[i], regexp))
+                    if (Regex.IsMatch(values[i], valueRegex))
                     {
                         values.RemoveAt(i);
                     }
@@ -167,8 +162,6 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
                 }
             }
         }
-
-        void IDisposable.Dispose() { }
 
         #endregion
     }

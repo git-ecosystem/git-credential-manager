@@ -1,0 +1,25 @@
+steps:
+  - script: |
+      cp -R "out/linux/Payload.Linux/tar/$(configuration)" "$(Build.StagingDirectory)/publish/"
+    displayName: Prepare final build artifacts
+
+  - script: dotnet tool install --global nbgv
+    displayName: Install Nerdbank.GitVersioning tool
+
+  - script: nbgv cloud --common-vars
+    displayName: Set version variables
+
+  - task: ArchiveFiles@2
+    displayName: Create symbol archive
+    inputs:
+      rootFolderOrFile: '$(Build.StagingDirectory)/publish/payload.sym/'
+      includeRootFolder: false
+      archiveType: 'tar'
+      archiveFile: '$(Build.StagingDirectory)/publish/symbols-linux-x86_64.tar.gz'
+      replaceExistingArchive: true
+
+  - task: PublishPipelineArtifact@0
+    displayName: Publish unsigned installer artifacts
+    inputs:
+        artifactName: 'Installer.Linux.Unsigned'
+        targetPath: '$(Build.StagingDirectory)/publish'

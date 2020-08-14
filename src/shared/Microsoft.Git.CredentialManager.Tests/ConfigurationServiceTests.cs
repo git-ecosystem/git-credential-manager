@@ -28,15 +28,15 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             component1.Verify(x => x.ConfigureAsync(
                 context.Environment, EnvironmentVariableTarget.Machine,
-                It.IsAny<IGitConfiguration>(), GitConfigurationLevel.System),
+                context.Git, GitConfigurationLevel.System),
                 Times.Once);
             component2.Verify(x => x.ConfigureAsync(
                 context.Environment, EnvironmentVariableTarget.Machine,
-                It.IsAny<IGitConfiguration>(), GitConfigurationLevel.System),
+                context.Git, GitConfigurationLevel.System),
                 Times.Once);
             component3.Verify(x => x.ConfigureAsync(
                 context.Environment, EnvironmentVariableTarget.Machine,
-                It.IsAny<IGitConfiguration>(), GitConfigurationLevel.System),
+                context.Git, GitConfigurationLevel.System),
                 Times.Once);
         }
 
@@ -58,15 +58,15 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             component1.Verify(x => x.ConfigureAsync(
                     context.Environment, EnvironmentVariableTarget.User,
-                    It.IsAny<IGitConfiguration>(), GitConfigurationLevel.Global),
+                    context.Git, GitConfigurationLevel.Global),
                 Times.Once);
             component2.Verify(x => x.ConfigureAsync(
                     context.Environment, EnvironmentVariableTarget.User,
-                    It.IsAny<IGitConfiguration>(), GitConfigurationLevel.Global),
+                    context.Git, GitConfigurationLevel.Global),
                 Times.Once);
             component3.Verify(x => x.ConfigureAsync(
                     context.Environment, EnvironmentVariableTarget.User,
-                    It.IsAny<IGitConfiguration>(), GitConfigurationLevel.Global),
+                    context.Git, GitConfigurationLevel.Global),
                 Times.Once);
         }
 
@@ -88,15 +88,15 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             component1.Verify(x => x.UnconfigureAsync(
                     context.Environment, EnvironmentVariableTarget.Machine,
-                    It.IsAny<IGitConfiguration>(), GitConfigurationLevel.System),
+                    context.Git, GitConfigurationLevel.System),
                 Times.Once);
             component2.Verify(x => x.UnconfigureAsync(
                     context.Environment, EnvironmentVariableTarget.Machine,
-                    It.IsAny<IGitConfiguration>(), GitConfigurationLevel.System),
+                    context.Git, GitConfigurationLevel.System),
                 Times.Once);
             component3.Verify(x => x.UnconfigureAsync(
                     context.Environment, EnvironmentVariableTarget.Machine,
-                    It.IsAny<IGitConfiguration>(), GitConfigurationLevel.System),
+                    context.Git, GitConfigurationLevel.System),
                 Times.Once);
         }
 
@@ -118,15 +118,15 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             component1.Verify(x => x.UnconfigureAsync(
                     context.Environment, EnvironmentVariableTarget.User,
-                    It.IsAny<IGitConfiguration>(), GitConfigurationLevel.Global),
+                    context.Git, GitConfigurationLevel.Global),
                 Times.Once);
             component2.Verify(x => x.UnconfigureAsync(
                     context.Environment, EnvironmentVariableTarget.User,
-                    It.IsAny<IGitConfiguration>(), GitConfigurationLevel.Global),
+                    context.Git, GitConfigurationLevel.Global),
                 Times.Once);
             component3.Verify(x => x.UnconfigureAsync(
                     context.Environment, EnvironmentVariableTarget.User,
-                    It.IsAny<IGitConfiguration>(), GitConfigurationLevel.Global),
+                    context.Git, GitConfigurationLevel.Global),
                 Times.Once);
         }
     }
