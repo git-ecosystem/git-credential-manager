@@ -79,16 +79,27 @@ namespace Microsoft.Git.CredentialManager
         public abstract bool IsSupported(InputArguments input);
 
         /// <summary>
-        /// Return a key that uniquely represents the given Git credential query arguments.
+        /// Return a string that uniquely identifies the service that a credential should be stored against.
         /// </summary>
         /// <remarks>
+        /// <para>
         /// This key forms part of the identifier used to retrieve and store credentials from the OS secure
         /// credential storage system. It is important the returned value is stable over time to avoid any
         /// potential re-authentication requests.
+        /// </para>
+        /// <para>
+        /// The default implementation returns the absolute URI formed by from the <see cref="InputArguments"/>
+        /// without any userinfo component. Any trailing slashes are trimmed.
+        /// </para>
         /// </remarks>
         /// <param name="input">Input arguments of a Git credential query.</param>
-        /// <returns>Stable credential key.</returns>
-        public abstract string GetCredentialKey(InputArguments input);
+        /// <returns>Credential service name.</returns>
+        public virtual string GetServiceName(InputArguments input)
+        {
+            // By default we assume the service name will be the absolute URI based on the
+            // input arguments from Git, without any userinfo part.
+            return input.GetRemoteUri(includeUser: false).AbsoluteUri.TrimEnd('/');
+        }
 
         /// <summary>
         /// Create a new credential used for accessing the remote Git repository on this hosting service.
@@ -99,14 +110,14 @@ namespace Microsoft.Git.CredentialManager
 
         public virtual async Task<ICredential> GetCredentialAsync(InputArguments input)
         {
-            // Try and locate an existing PAT in the OS credential store
-            string credentialKey = GetCredentialKey(input);
-            Context.Trace.WriteLine($"Looking for existing credential in store with key '{credentialKey}'...");
-            ICredential credential = Context.CredentialStore.Get(credentialKey);
+            // Try and locate an existing credential in the OS credential store
+            string service = GetServiceName(input);
+            Context.Trace.WriteLine($"Looking for existing credential in store with service={service} account={input.UserName}...");
 
+            ICredential credential = Context.CredentialStore.Get(service, input.UserName);
             if (credential == null)
             {
-                Context.Trace.WriteLine("No existing credential found.");
+                Context.Trace.WriteLine("No existing credentials found.");
 
                 // No existing credential was found, create a new one
                 Context.Trace.WriteLine("Creating new credential...");
@@ -123,25 +134,20 @@ namespace Microsoft.Git.CredentialManager
 
         public virtual Task StoreCredentialAsync(InputArguments input)
         {
-            // Create the credential based on Git's input
-            string userName = input.UserName;
-            string password = input.Password;
+            string service = GetServiceName(input);
 
             // WIA-authentication is signaled to Git as an empty username/password pair
             // and we will get called to 'store' these WIA credentials.
             // We avoid storing empty credentials.
-            if (string.IsNullOrWhiteSpace(userName) && string.IsNullOrWhiteSpace(password))
+            if (string.IsNullOrWhiteSpace(input.UserName) && string.IsNullOrWhiteSpace(input.Password))
             {
                 Context.Trace.WriteLine("Not storing empty credential.");
             }
             else
             {
-                var credential = new GitCredential(userName, password);
-
                 // Add or update the credential in the store.
-                string credentialKey = GetCredentialKey(input);
-                Context.Trace.WriteLine($"Storing credential with key '{credentialKey}'...");
-                Context.CredentialStore.AddOrUpdate(credentialKey, credential);
+                Context.Trace.WriteLine($"Storing credential with service={service} account={input.UserName}...");
+                Context.CredentialStore.AddOrUpdate(service, input.UserName, input.Password);
                 Context.Trace.WriteLine("Credential was successfully stored.");
             }
 
@@ -150,46 +156,17 @@ namespace Microsoft.Git.CredentialManager
 
         public virtual Task EraseCredentialAsync(InputArguments input)
         {
-            // Try to locate an existing credential with the computed key
-            string credentialKey = GetCredentialKey(input);
-            Context.Trace.WriteLine($"Looking for existing credential in store with key '{credentialKey}'...");
-            ICredential credential = Context.CredentialStore.Get(credentialKey);
-            if (credential == null)
-            {
-                Context.Trace.WriteLine("No stored credential was found.");
-                return Task.CompletedTask;
-            }
-            else
-            {
-                Context.Trace.WriteLine("Existing credential found.");
-            }
+            string service = GetServiceName(input);
 
-            // If we've been given a specific username and/or password we should only proceed
-            // to erase the stored credential if they match exactly
-            if (!string.IsNullOrWhiteSpace(input.UserName) && !StringComparer.Ordinal.Equals(input.UserName, credential.UserName))
-            {
-                Context.Trace.WriteLine("Stored username does not match specified username - not erasing credential.");
-                Context.Trace.WriteLine($"\tInput  username={input.UserName}");
-                Context.Trace.WriteLine($"\tStored username={credential.UserName}");
-                return Task.CompletedTask;
-            }
-
-            if (!string.IsNullOrWhiteSpace(input.Password) && !StringComparer.Ordinal.Equals(input.Password, credential.Password))
-            {
-                Context.Trace.WriteLine("Stored password does not match specified password - not erasing credential.");
-                Context.Trace.WriteLineSecrets("\tInput  password={0}", new object[] {input.Password});
-                Context.Trace.WriteLineSecrets("\tStored password={0}", new object[] {credential.Password});
-                return Task.CompletedTask;
-            }
-
-            Context.Trace.WriteLine("Erasing stored credential...");
-            if (Context.CredentialStore.Remove(credentialKey))
+            // Try to locate an existing credential
+            Context.Trace.WriteLine($"Erasing stored credential in store with service={service} account={input.UserName}...");
+            if (Context.CredentialStore.Remove(service, input.UserName))
             {
                 Context.Trace.WriteLine("Credential was successfully erased.");
             }
             else
             {
-                Context.Trace.WriteLine("Credential erase failed.");
+                Context.Trace.WriteLine("No credential was erased.");
             }
 
             return Task.CompletedTask;
