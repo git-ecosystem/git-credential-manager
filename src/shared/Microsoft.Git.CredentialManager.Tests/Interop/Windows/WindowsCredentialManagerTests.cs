@@ -8,58 +8,203 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop.Windows
 {
     public class WindowsCredentialManagerTests
     {
+        private const string TestNamespace = "git-test";
+
         [PlatformFact(Platform.Windows)]
         public void WindowsCredentialManager_ReadWriteDelete()
         {
-            WindowsCredentialManager credManager = WindowsCredentialManager.Open();
+            WindowsCredentialManager credManager = WindowsCredentialManager.Open(TestNamespace);
 
-            // Create a key that is guarenteed to be unique
-            string key = $"secretkey-{Guid.NewGuid():N}";
+            // Create a service that is guaranteed to be unique
+            string uniqueGuid = Guid.NewGuid().ToString("N");
+            string service = $"https://example.com/{uniqueGuid}";
             const string userName = "john.doe";
             const string password = "letmein123";
-            var credential = new GitCredential(userName, password);
+
+            string expectedTargetName = $"{TestNamespace}:https://example.com/{uniqueGuid}";
 
             try
             {
                 // Write
-                credManager.AddOrUpdate(key, credential);
+                credManager.AddOrUpdate(service, userName, password);
 
                 // Read
-                ICredential outCredential = credManager.Get(key);
+                ICredential cred = credManager.Get(service, userName);
 
-                Assert.NotNull(outCredential);
-                Assert.Equal(credential.UserName, outCredential.UserName);
-                Assert.Equal(credential.Password, outCredential.Password);
+                // Valdiate
+                var winCred = cred as WindowsCredential;
+                Assert.NotNull(winCred);
+                Assert.Equal(userName, winCred.UserName);
+                Assert.Equal(password, winCred.Password);
+                Assert.Equal(service, winCred.Service);
+                Assert.Equal(expectedTargetName, winCred.TargetName);
             }
             finally
             {
                 // Ensure we clean up after ourselves even in case of 'get' failures
-                credManager.Remove(key);
+                credManager.Remove(service, userName);
+            }
+        }
+
+        [PlatformFact(Platform.Windows)]
+        public void WindowsCredentialManager_AddOrUpdate_UsernameWithAtCharacter()
+        {
+            WindowsCredentialManager credManager = WindowsCredentialManager.Open(TestNamespace);
+
+            // Create a service that is guaranteed to be unique
+            string uniqueGuid = Guid.NewGuid().ToString("N");
+            string service = $"https://example.com/{uniqueGuid}";
+            const string userName = "john.doe@auth.com";
+            const string password = "letmein123";
+
+            string expectedTargetName = $"{TestNamespace}:https://example.com/{uniqueGuid}";
+
+            try
+            {
+                // Write
+                credManager.AddOrUpdate(service, userName, password);
+
+                // Read
+                ICredential cred = credManager.Get(service, userName);
+
+                // Validate
+                var winCred = cred as WindowsCredential;
+                Assert.NotNull(winCred);
+                Assert.Equal(userName, winCred.UserName);
+                Assert.Equal(password, winCred.Password);
+                Assert.Equal(service, winCred.Service);
+                Assert.Equal(expectedTargetName, winCred.TargetName);
+            }
+            finally
+            {
+                // Ensure we clean up after ourselves even in case of 'get' failures
+                credManager.Remove(service, userName);
             }
         }
 
         [PlatformFact(Platform.Windows)]
         public void WindowsCredentialManager_Get_KeyNotFound_ReturnsNull()
         {
-            WindowsCredentialManager credManager = WindowsCredentialManager.Open();
+            WindowsCredentialManager credManager = WindowsCredentialManager.Open(TestNamespace);
 
-            // Unique key; guaranteed not to exist!
-            string key = Guid.NewGuid().ToString("N");
+            // Unique service; guaranteed not to exist!
+            string service = Guid.NewGuid().ToString("N");
 
-            ICredential credential = credManager.Get(key);
+            ICredential credential = credManager.Get(service, account: null);
             Assert.Null(credential);
         }
 
         [PlatformFact(Platform.Windows)]
         public void WindowsCredentialManager_Remove_KeyNotFound_ReturnsFalse()
         {
-            WindowsCredentialManager credManager = WindowsCredentialManager.Open();
+            WindowsCredentialManager credManager = WindowsCredentialManager.Open(TestNamespace);
 
-            // Unique key; guaranteed not to exist!
-            string key = Guid.NewGuid().ToString("N");
+            // Unique service; guaranteed not to exist!
+            string service = Guid.NewGuid().ToString("N");
 
-            bool result = credManager.Remove(key);
+            bool result = credManager.Remove(service, account: null);
             Assert.False(result);
+        }
+
+        [PlatformFact(Platform.Windows)]
+        public void WindowsCredentialManager_AddOrUpdate_TargetNameAlreadyExists_CreatesWithUserInTargetName()
+        {
+            WindowsCredentialManager credManager = WindowsCredentialManager.Open(TestNamespace);
+
+            // Create a service that is guaranteed to be unique
+            string uniqueGuid = Guid.NewGuid().ToString("N");
+            string service = $"https://example.com/{uniqueGuid}";
+            const string userName1 = "john.doe";
+            const string userName2 = "jane.doe";
+            const string password1 = "letmein123";
+            const string password2 = "password123";
+
+            string expectedTargetName1 = $"{TestNamespace}:https://example.com/{uniqueGuid}";
+            string expectedTargetName2 = $"{TestNamespace}:https://{userName2}@example.com/{uniqueGuid}";
+
+            try
+            {
+                // Add first credential
+                credManager.AddOrUpdate(service, userName1, password1);
+
+                // Add second credential
+                credManager.AddOrUpdate(service, userName2, password2);
+
+                // Validate first credential properties
+                ICredential cred1 = credManager.Get(service, userName1);
+                var winCred1 = cred1 as WindowsCredential;
+                Assert.NotNull(winCred1);
+                Assert.Equal(userName1, winCred1.UserName);
+                Assert.Equal(password1, winCred1.Password);
+                Assert.Equal(service,   winCred1.Service);
+                Assert.Equal(expectedTargetName1, winCred1.TargetName);
+
+                // Validate second credential properties
+                ICredential cred2 = credManager.Get(service, userName2);
+                var winCred2 = cred2 as WindowsCredential;
+                Assert.NotNull(winCred2);
+                Assert.Equal(userName2, winCred2.UserName);
+                Assert.Equal(password2, winCred2.Password);
+                Assert.Equal(service,   winCred2.Service);
+                Assert.Equal(expectedTargetName2, winCred2.TargetName);
+            }
+            finally
+            {
+                // Ensure we clean up after ourselves in case of failures
+                credManager.Remove(service, userName1);
+                credManager.Remove(service, userName2);
+            }
+        }
+
+        [PlatformFact(Platform.Windows)]
+        public void WindowsCredentialManager_AddOrUpdate_TargetNameAlreadyExistsAndUserWithAtCharacter_CreatesWithEscapedUserInTargetName()
+        {
+            WindowsCredentialManager credManager = WindowsCredentialManager.Open(TestNamespace);
+
+            // Create a service that is guaranteed to be unique
+            string uniqueGuid = Guid.NewGuid().ToString("N");
+            string service = $"https://example.com/{uniqueGuid}";
+            const string userName1 = "john.doe@auth.com";
+            const string userName2 = "jane.doe@auth.com";
+            const string escapedUserName2 = "jane.doe_auth.com";
+            const string password1 = "letmein123";
+            const string password2 = "password123";
+
+            string expectedTargetName1 = $"{TestNamespace}:https://example.com/{uniqueGuid}";
+            string expectedTargetName2 = $"{TestNamespace}:https://{escapedUserName2}@example.com/{uniqueGuid}";
+
+            try
+            {
+                // Add first credential
+                credManager.AddOrUpdate(service, userName1, password1);
+
+                // Add second credential
+                credManager.AddOrUpdate(service, userName2, password2);
+
+                // Validate first credential properties
+                ICredential cred1 = credManager.Get(service, userName1);
+                var winCred1 = cred1 as WindowsCredential;
+                Assert.NotNull(winCred1);
+                Assert.Equal(userName1, winCred1.UserName);
+                Assert.Equal(password1, winCred1.Password);
+                Assert.Equal(service,   winCred1.Service);
+                Assert.Equal(expectedTargetName1, winCred1.TargetName);
+
+                // Validate second credential properties
+                ICredential cred2 = credManager.Get(service, userName2);
+                var winCred2 = cred2 as WindowsCredential;
+                Assert.NotNull(winCred2);
+                Assert.Equal(userName2, winCred2.UserName);
+                Assert.Equal(password2, winCred2.Password);
+                Assert.Equal(service,   winCred2.Service);
+                Assert.Equal(expectedTargetName2, winCred2.TargetName);
+            }
+            finally
+            {
+                // Ensure we clean up after ourselves in case of failures
+                credManager.Remove(service, userName1);
+                credManager.Remove(service, userName2);
+            }
         }
     }
 }
