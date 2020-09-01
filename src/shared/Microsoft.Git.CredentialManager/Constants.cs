@@ -8,9 +8,8 @@ namespace Microsoft.Git.CredentialManager
     public static class Constants
     {
         public const string PersonalAccessTokenUserName = "PersonalAccessToken";
-        public const string OAuthTokenUserName = "OAuthToken";
         public const string DefaultMsAuthHelper = "Microsoft.Authentication.Helper";
-        public const string CredentialNamespace = "git";
+        public const string DefaultCredentialNamespace = "git";
 
         public const string ProviderIdAuto  = "auto";
         public const string AuthorityIdAuto = "auto";
@@ -51,6 +50,7 @@ namespace Microsoft.Git.CredentialManager
             public const string GcmInteractive     = "GCM_INTERACTIVE";
             public const string GcmParentWindow    = "GCM_MODAL_PARENTHWND";
             public const string MsAuthHelper       = "GCM_MSAUTH_HELPER";
+            public const string GcmCredNamespace   = "GCM_NAMESPACE";
         }
 
         public static class Http
@@ -77,6 +77,7 @@ namespace Microsoft.Git.CredentialManager
                 public const string UseHttpPath = "useHttpPath";
                 public const string Interactive = "interactive";
                 public const string MsAuthHelper = "msauthHelper";
+                public const string CredNamespace = "namespace";
             }
 
             public static class Http

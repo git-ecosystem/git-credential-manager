@@ -168,3 +168,20 @@ git config --global credential.gitHubAuthModes "oauth basic"
 ```
 
 **Also see: [GCM_GITHUB_AUTHMODES](environment.md#GCM_GITHUB_AUTHMODES)**
+
+---
+
+### credential.namespace
+
+Use a custom namespace prefix for credentials read and written in the OS credential store.
+Credentials will be stored in the format `{namespace}:{service}`.
+
+Defaults to the value `git`.
+
+#### Example
+
+```shell
+git config --global credential.namespace "my-namespace"
+```
+
+**Also see: [GCM_NAMESPACE](environment.md#GCM_NAMESPACE)**

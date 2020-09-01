@@ -92,7 +92,7 @@ namespace Microsoft.Git.CredentialManager
                                             FileSystem.GetCurrentDirectory()
                                         );
                 Settings          = new Settings(Environment, Git);
-                CredentialStore   = WindowsCredentialManager.Open(Constants.CredentialNamespace);
+                CredentialStore   = WindowsCredentialManager.Open(Settings.CredentialNamespace);
             }
             else if (PlatformUtils.IsMacOS())
             {
@@ -107,7 +107,7 @@ namespace Microsoft.Git.CredentialManager
                                             FileSystem.GetCurrentDirectory()
                                         );
                 Settings          = new Settings(Environment, Git);
-                CredentialStore   = MacOSKeychain.Open(Constants.CredentialNamespace);
+                CredentialStore   = MacOSKeychain.Open(Settings.CredentialNamespace);
             }
             else if (PlatformUtils.IsLinux())
             {
@@ -123,7 +123,7 @@ namespace Microsoft.Git.CredentialManager
                                             FileSystem.GetCurrentDirectory()
                                         );
                 Settings          = new Settings(Environment, Git);
-                CredentialStore   = new LinuxCredentialStore(Settings, Git, Constants.CredentialNamespace);
+                CredentialStore   = new LinuxCredentialStore(Settings, Git, Settings.CredentialNamespace);
             }
             else
             {
