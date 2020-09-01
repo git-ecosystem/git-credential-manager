@@ -16,14 +16,14 @@ namespace GitHub.UI
 
         private readonly IGui _gui;
 
-        public CredentialPromptResult ShowCredentialPrompt(string enterpriseUrl, bool showBasic, bool showOAuth, out string username, out string password)
+        public CredentialPromptResult ShowCredentialPrompt(string enterpriseUrl, bool showBasic, bool showOAuth, ref string username, out string password)
         {
-            username = null;
             password = null;
 
             var viewModel = new LoginCredentialsViewModel(showBasic, showOAuth)
             {
-                GitHubEnterpriseUrl = enterpriseUrl
+                GitHubEnterpriseUrl = enterpriseUrl,
+                UsernameOrEmail = username
             };
 
             bool valid = _gui.ShowDialogWindow(viewModel, () => new LoginCredentialsView());

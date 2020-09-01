@@ -145,8 +145,7 @@ namespace GitHub
             {
                 _context.Trace.WriteLine($"Authentication success: user supplied personal access token for '{targetUri}'.");
 
-                return new AuthenticationResult(GitHubAuthenticationResultType.Success,
-                    new GitCredential(Constants.PersonalAccessTokenUserName, password));
+                return new AuthenticationResult(GitHubAuthenticationResultType.Success, password);
             }
 
             _context.Trace.WriteLine($"Authentication failed for '{targetUri}'.");
@@ -182,7 +181,7 @@ namespace GitHub
 
         private async Task<AuthenticationResult> ParseSuccessResponseAsync(Uri targetUri, HttpResponseMessage response)
         {
-            GitCredential token = null;
+            string token = null;
             string responseText = await response.Content.ReadAsStringAsync();
 
             Match tokenMatch;
@@ -190,8 +189,7 @@ namespace GitHub
                     RegexOptions.CultureInvariant | RegexOptions.IgnoreCase)).Success
                 && tokenMatch.Groups.Count > 1)
             {
-                string tokenText = tokenMatch.Groups[1].Value;
-                token = new GitCredential(Constants.PersonalAccessTokenUserName, tokenText);
+                token = tokenMatch.Groups[1].Value;
             }
 
             if (token == null)
@@ -289,7 +287,7 @@ namespace GitHub
         {
             return api.CreatePersonalAccessTokenAsync(
                 targetUri,
-                credentials?.UserName,
+                credentials?.Account,
                 credentials?.Password,
                 authenticationCode,
                 scopes);
