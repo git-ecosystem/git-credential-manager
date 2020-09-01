@@ -82,6 +82,36 @@ namespace Microsoft.AzureRepos.Tests
         }
 
         [Fact]
+        public void UriHelpers_CreateOrganizationUri_AzureHost_WithPort_ReturnsCorrectUri()
+        {
+            var expected = new Uri("https://dev.azure.com:456/myorg");
+            var input = new InputArguments(new Dictionary<string, string>
+            {
+                ["protocol"] = "https",
+                ["host"]     = "dev.azure.com:456",
+                ["path"]     = "myorg/myproject/_git/myrepo"
+            });
+
+            Uri actual = UriHelpers.CreateOrganizationUri(input);
+
+            Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public void UriHelpers_CreateOrganizationUri_AzureHost_WithBadPort_ThrowsException()
+        {
+            var expected = new Uri("https://dev.azure.com:456/myorg");
+            var input = new InputArguments(new Dictionary<string, string>
+            {
+                ["protocol"] = "https",
+                ["host"]     = "dev.azure.com:not-a-port",
+                ["path"]     = "myorg/myproject/_git/myrepo"
+            });
+
+            Assert.Throws<InvalidOperationException>(() => UriHelpers.CreateOrganizationUri(input));
+        }
+
+        [Fact]
         public void UriHelpers_CreateOrganizationUri_AzureHost_OrgAlsoInUser_PrefersPathOrg()
         {
             var expected = new Uri("https://dev.azure.com/myorg-path");

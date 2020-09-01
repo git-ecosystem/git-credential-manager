@@ -76,7 +76,12 @@ namespace Microsoft.AzureRepos
                 throw new InvalidOperationException("Input arguments must include host");
             }
 
-            if (!IsAzureDevOpsHost(input.Host))
+            if (!input.TryGetHostAndPort(out string hostName, out _))
+            {
+                throw new InvalidOperationException("Host name and/or port is invalid");
+            }
+
+            if (!IsAzureDevOpsHost(hostName))
             {
                 throw new InvalidOperationException("Host is not Azure DevOps");
             }
@@ -84,12 +89,12 @@ namespace Microsoft.AzureRepos
             var ub = new UriBuilder
             {
                 Scheme = input.Protocol,
-                Host = input.Host,
+                Host = hostName,
             };
 
             // Extract the organization name for Azure ('dev.azure.com') style URLs.
             // The older *.visualstudio.com URLs contained the organization name in the host already.
-            if (StringComparer.OrdinalIgnoreCase.Equals(input.Host, AzureDevOpsConstants.AzureDevOpsHost))
+            if (StringComparer.OrdinalIgnoreCase.Equals(hostName, AzureDevOpsConstants.AzureDevOpsHost))
             {
                 // dev.azure.com/{org}
                 string[] pathParts = input.Path?.Split(new[] {'/'}, StringSplitOptions.RemoveEmptyEntries);

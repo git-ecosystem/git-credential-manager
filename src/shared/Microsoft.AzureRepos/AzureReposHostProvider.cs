@@ -41,17 +41,25 @@ namespace Microsoft.AzureRepos
 
         public override bool IsSupported(InputArguments input)
         {
+            if (input is null)
+            {
+                return false;
+            }
+
+            // Split port number and hostname from host input argument
+            input.TryGetHostAndPort(out string hostName, out _);
+
             // We do not support unencrypted HTTP communications to Azure Repos,
             // but we report `true` here for HTTP so that we can show a helpful
             // error message for the user in `CreateCredentialAsync`.
             return (StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "http") ||
                    StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "https")) &&
-                   UriHelpers.IsAzureDevOpsHost(input.Host);
+                   UriHelpers.IsAzureDevOpsHost(hostName);
         }
 
-        public override string GetCredentialKey(InputArguments input)
+        public override string GetServiceName(InputArguments input)
         {
-            return $"git:{UriHelpers.CreateOrganizationUri(input).AbsoluteUri}";
+            return UriHelpers.CreateOrganizationUri(input).AbsoluteUri.TrimEnd('/');
         }
 
         public override async Task<ICredential> GenerateCredentialAsync(InputArguments input)
@@ -97,7 +105,7 @@ namespace Microsoft.AzureRepos
                 patScopes);
             Context.Trace.WriteLineSecrets("PAT created. PAT='{0}'", new object[] {pat});
 
-            return new GitCredential(Constants.PersonalAccessTokenUserName, pat);
+            return new GitCredential(atUser, pat);
         }
 
         protected override void ReleaseManagedResources()
