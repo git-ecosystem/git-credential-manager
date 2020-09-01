@@ -107,7 +107,7 @@ namespace Microsoft.Git.CredentialManager
                                             FileSystem.GetCurrentDirectory()
                                         );
                 Settings          = new Settings(Environment, Git);
-                CredentialStore   = MacOSKeychain.Open();
+                CredentialStore   = MacOSKeychain.Open(Constants.CredentialNamespace);
             }
             else if (PlatformUtils.IsLinux())
             {

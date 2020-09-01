@@ -10,6 +10,7 @@ namespace Microsoft.Git.CredentialManager
         public const string PersonalAccessTokenUserName = "PersonalAccessToken";
         public const string OAuthTokenUserName = "OAuthToken";
         public const string DefaultMsAuthHelper = "Microsoft.Authentication.Helper";
+        public const string CredentialNamespace = "git";
 
         public const string ProviderIdAuto  = "auto";
         public const string AuthorityIdAuto = "auto";
