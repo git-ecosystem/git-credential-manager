@@ -39,9 +39,9 @@ namespace Microsoft.Git.CredentialManager.Tests
         }
 
         [Fact]
-        public void GenericHostProvider_GetCredentialKey_ReturnsCorrectKey()
+        public void GenericHostProvider_GetCredentialServiceUrl_ReturnsCorrectKey()
         {
-            const string expectedKey = "git:https://john.doe@example.com/foo/bar";
+            const string expectedService = "https://example.com/foo/bar";
 
             var input = new InputArguments(new Dictionary<string, string>
             {
@@ -53,9 +53,9 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             var provider = new GenericHostProvider(new TestCommandContext());
 
-            string actualKey = provider.GetCredentialKey(input);
+            string actualService = provider.GetServiceName(input);
 
-            Assert.Equal(expectedKey, actualKey);
+            Assert.Equal(expectedService, actualService);
         }
 
         [Fact]
@@ -86,7 +86,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             ICredential credential = await provider.GenerateCredentialAsync(input);
 
             Assert.NotNull(credential);
-            Assert.Equal(testUserName, credential.UserName);
+            Assert.Equal(testUserName, credential.Account);
             Assert.Equal(testPassword, credential.Password);
             wiaAuthMock.Verify(x => x.GetIsSupportedAsync(It.IsAny<Uri>()), Times.Never);
             basicAuthMock.Verify(x => x.GetCredentials(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
@@ -121,7 +121,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             ICredential credential = await provider.GenerateCredentialAsync(input);
 
             Assert.NotNull(credential);
-            Assert.Equal(testUserName, credential.UserName);
+            Assert.Equal(testUserName, credential.Account);
             Assert.Equal(testPassword, credential.Password);
             wiaAuthMock.Verify(x => x.GetIsSupportedAsync(It.IsAny<Uri>()), Times.Never);
             basicAuthMock.Verify(x => x.GetCredentials(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
@@ -168,7 +168,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             ICredential credential = await provider.GenerateCredentialAsync(input);
 
             Assert.NotNull(credential);
-            Assert.Equal(string.Empty, credential.UserName);
+            Assert.Equal(string.Empty, credential.Account);
             Assert.Equal(string.Empty, credential.Password);
             basicAuthMock.Verify(x => x.GetCredentials(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
@@ -199,7 +199,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             ICredential credential = await provider.GenerateCredentialAsync(input);
 
             Assert.NotNull(credential);
-            Assert.Equal(testUserName, credential.UserName);
+            Assert.Equal(testUserName, credential.Account);
             Assert.Equal(testPassword, credential.Password);
             basicAuthMock.Verify(x => x.GetCredentials(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
         }

@@ -46,16 +46,11 @@ namespace Microsoft.Git.CredentialManager
                                      StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "https"));
         }
 
-        public override string GetCredentialKey(InputArguments input)
-        {
-            return $"git:{GetUriFromInput(input).AbsoluteUri}";
-        }
-
         public override async Task<ICredential> GenerateCredentialAsync(InputArguments input)
         {
             ThrowIfDisposed();
 
-            Uri uri = GetUriFromInput(input);
+            Uri uri = input.GetRemoteUri();
 
             // Determine the if the host supports Windows Integration Authentication (WIA)
             if (IsWindowsAuthAllowed)
@@ -89,7 +84,7 @@ namespace Microsoft.Git.CredentialManager
             }
 
             Context.Trace.WriteLine("Prompting for basic credentials...");
-            return _basicAuth.GetCredentials(uri.AbsoluteUri, uri.UserInfo);
+            return _basicAuth.GetCredentials(uri.AbsoluteUri, input.UserName);
         }
 
         /// <summary>
@@ -121,21 +116,6 @@ namespace Microsoft.Git.CredentialManager
         {
             _winAuth.Dispose();
             base.ReleaseManagedResources();
-        }
-
-        #endregion
-
-        #region Helpers
-
-        private static Uri GetUriFromInput(InputArguments input)
-        {
-            return new UriBuilder
-            {
-                Scheme   = input.Protocol,
-                UserName = input.UserName,
-                Host     = input.Host,
-                Path     = input.Path
-            }.Uri;
         }
 
         #endregion
