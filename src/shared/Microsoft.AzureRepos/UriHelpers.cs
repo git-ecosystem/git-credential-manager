@@ -35,15 +35,69 @@ namespace Microsoft.AzureRepos
         }
 
         /// <summary>
+        /// Check if the hostname is the legacy Azure DevOps hostname (*.visualstudio.com).
+        /// </summary>
+        /// <param name="input">Git query arguments.</param>
+        /// <returns>True if the hostname is the legacy Azure DevOps host, false otherwise.</returns>
+        public static bool IsVisualStudioComHost(InputArguments input)
+        {
+            EnsureArgument.NotNull(input, nameof(input));
+
+            if (!input.TryGetHostAndPort(out string hostName, out _))
+            {
+                throw new InvalidOperationException("Host name and/or port is invalid.");
+            }
+
+            return IsVisualStudioComHost(hostName);
+        }
+
+        /// <summary>
+        /// Check if the hostname is the legacy Azure DevOps hostname (*.visualstudio.com).
+        /// </summary>
+        /// <param name="host">Hostname to check.</param>
+        /// <returns>True if the hostname is the legacy Azure DevOps host, false otherwise.</returns>
+        public static bool IsVisualStudioComHost(string host)
+        {
+            return host != null &&
+                   host.EndsWith(AzureDevOpsConstants.VstsHostSuffix, StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// Check if the hostname is the new Azure DevOps hostname (dev.azure.com).
+        /// </summary>
+        /// <param name="input">Git query arguments.</param>
+        /// <returns>True if the hostname is the new Azure DevOps host, false otherwise.</returns>
+        public static bool IsDevAzureComHost(InputArguments input)
+        {
+            EnsureArgument.NotNull(input, nameof(input));
+
+            if (!input.TryGetHostAndPort(out string hostName, out _))
+            {
+                throw new InvalidOperationException("Host name and/or port is invalid.");
+            }
+
+            return IsDevAzureComHost(hostName);
+        }
+
+        /// <summary>
+        /// Check if the hostname is the new Azure DevOps hostname (dev.azure.com).
+        /// </summary>
+        /// <param name="host">Hostname to check.</param>
+        /// <returns>True if the hostname is the new Azure DevOps host, false otherwise.</returns>
+        public static bool IsDevAzureComHost(string host)
+        {
+            return host != null &&
+                   StringComparer.OrdinalIgnoreCase.Equals(host, AzureDevOpsConstants.AzureDevOpsHost);
+        }
+
+        /// <summary>
         /// Check if the hostname is a valid Azure DevOps hostname (dev.azure.com or *.visualstudio.com).
         /// </summary>
         /// <param name="host">Hostname to check</param>
         /// <returns>True if the hostname is Azure DevOps, false otherwise.</returns>
         public static bool IsAzureDevOpsHost(string host)
         {
-            return host != null &&
-                   (StringComparer.OrdinalIgnoreCase.Equals(host, AzureDevOpsConstants.AzureDevOpsHost) ||
-                   host.EndsWith(AzureDevOpsConstants.VstsHostSuffix, StringComparison.OrdinalIgnoreCase));
+            return IsVisualStudioComHost(host) || IsDevAzureComHost(host);
         }
 
         /// <summary>
@@ -68,22 +122,22 @@ namespace Microsoft.AzureRepos
 
             if (string.IsNullOrWhiteSpace(input.Protocol))
             {
-                throw new InvalidOperationException("Input arguments must include protocol");
+                throw new InvalidOperationException("Input arguments must include protocol.");
             }
 
             if (string.IsNullOrWhiteSpace(input.Host))
             {
-                throw new InvalidOperationException("Input arguments must include host");
+                throw new InvalidOperationException("Input arguments must include host.");
             }
 
-            if (!input.TryGetHostAndPort(out string hostName, out _))
+            if (!input.TryGetHostAndPort(out string hostName, out int? port))
             {
-                throw new InvalidOperationException("Host name and/or port is invalid");
+                throw new InvalidOperationException("Host name and/or port is invalid.");
             }
 
             if (!IsAzureDevOpsHost(hostName))
             {
-                throw new InvalidOperationException("Host is not Azure DevOps");
+                throw new InvalidOperationException("Host is not Azure DevOps.");
             }
 
             var ub = new UriBuilder
@@ -92,17 +146,21 @@ namespace Microsoft.AzureRepos
                 Host = hostName,
             };
 
+            if (port.HasValue)
+            {
+                ub.Port = port.Value;
+            }
+
             // Extract the organization name for Azure ('dev.azure.com') style URLs.
             // The older *.visualstudio.com URLs contained the organization name in the host already.
-            if (StringComparer.OrdinalIgnoreCase.Equals(hostName, AzureDevOpsConstants.AzureDevOpsHost))
+            if (IsDevAzureComHost(hostName))
             {
-                // dev.azure.com/{org}
-                string[] pathParts = input.Path?.Split(new[] {'/'}, StringSplitOptions.RemoveEmptyEntries);
-                if (pathParts?.Length > 0)
+                // Prefer getting the org name from the path: dev.azure.com/{org}
+                if (GetFirstPathComponent(input.Path) is string orgName)
                 {
-                    ub.Path = pathParts[0];
+                    ub.Path = orgName;
                 }
-                // {org}@dev.azure.com
+                // Failing that try using the username: {org}@dev.azure.com
                 else if (!string.IsNullOrWhiteSpace(input.UserName))
                 {
                     ub.Path = input.UserName;
@@ -118,6 +176,17 @@ namespace Microsoft.AzureRepos
             }
 
             return ub.Uri;
+        }
+
+        public static string GetFirstPathComponent(string path)
+        {
+            string[] parts = path?.Split(new[] {'/'}, StringSplitOptions.RemoveEmptyEntries);
+            if (parts?.Length > 0)
+            {
+                return parts[0];
+            }
+
+            return null;
         }
     }
 }
