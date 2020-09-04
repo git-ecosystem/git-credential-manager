@@ -1,8 +1,5 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
-using System;
-using System.Runtime.InteropServices;
-using System.Text;
 
 namespace Microsoft.Git.CredentialManager.Interop.Linux
 {
@@ -10,36 +7,38 @@ namespace Microsoft.Git.CredentialManager.Interop.Linux
     {
         private readonly ISettings _settings;
         private readonly IGit _git;
+        private readonly string _namespace;
 
         private ICredentialStore _backingStore;
 
-        public LinuxCredentialStore(ISettings settings, IGit git)
+        public LinuxCredentialStore(ISettings settings, IGit git, string @namespace = null)
         {
             EnsureArgument.NotNull(settings, nameof(settings));
             EnsureArgument.NotNull(git, nameof(git));
 
             _settings = settings;
             _git = git;
+            _namespace = @namespace;
         }
 
         #region ICredentialStore
 
-        public ICredential Get(string key)
+        public ICredential Get(string service, string account)
         {
             EnsureBackingStore();
-            return _backingStore.Get(key);
+            return _backingStore.Get(service, account);
         }
 
-        public void AddOrUpdate(string key, ICredential credential)
+        public void AddOrUpdate(string service, string account, string secret)
         {
             EnsureBackingStore();
-            _backingStore.AddOrUpdate(key, credential);
+            _backingStore.AddOrUpdate(service, account, secret);
         }
 
-        public bool Remove(string key)
+        public bool Remove(string service, string account)
         {
             EnsureBackingStore();
-            return _backingStore.Remove(key);
+            return _backingStore.Remove(service, account);
         }
 
         #endregion
@@ -51,7 +50,7 @@ namespace Microsoft.Git.CredentialManager.Interop.Linux
                 // TODO: determine the available backing stores based on the current session
                 // TODO: prompt for the desired backing store
                 // TODO: store the desired backing store to ~/.gitconfig
-                _backingStore = SecretServiceCollection.Open();
+                _backingStore = SecretServiceCollection.Open(_namespace);
             }
         }
     }

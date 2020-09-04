@@ -147,5 +147,8 @@ namespace Microsoft.Git.CredentialManager.Interop.Linux.Native
 
         [DllImport(LibraryName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
         public static extern void secret_password_free(IntPtr password);
+
+        [DllImport(LibraryName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+        public static extern unsafe bool secret_item_delete_sync(SecretItem* self, IntPtr cancellable, out Glib.GError* error);
     }
 }
