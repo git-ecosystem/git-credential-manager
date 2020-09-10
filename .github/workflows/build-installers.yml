@@ -8,13 +8,9 @@ on:
 
 jobs:
   linux:
-    name: "Linux Installers"
+    name: "Linux"
 
-    runs-on: ubuntu-20.04
-    #strategy:
-    #  matrix:
-    #    os: [ubuntu-16.04, ubuntu-18.04, ubuntu-20.04, windows-2019, macos-10.15]
-
+    runs-on: ubuntu-18.04
     steps:
     - uses: actions/checkout@v2
       with:
@@ -30,6 +26,8 @@ jobs:
 
     - name: Build
       run: dotnet build --configuration Release --no-restore
+    - name: Test
+      run: dotnet test
 
     - name: Build Linux Payloads
       run: dotnet build -c release --no-restore src/linux/Payload.Linux/Payload.Linux.csproj
