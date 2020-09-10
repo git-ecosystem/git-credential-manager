@@ -24,10 +24,5 @@ jobs:
     - name: Install dependencies
       run: dotnet restore --force
 
-    - name: Build
-      run: dotnet build --configuration Release --no-restore
-    - name: Test
-      run: dotnet test
-
     - name: Build Linux Payloads
-      run: dotnet build -c release --no-restore src/linux/Payload.Linux/Payload.Linux.csproj
+      run: dotnet build -c release src/linux/Payload.Linux/Payload.Linux.csproj
