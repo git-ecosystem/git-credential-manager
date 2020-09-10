@@ -22,7 +22,7 @@ jobs:
         dotnet-version: 3.1.302
 
     - name: Install dependencies
-      run: dotnet restore
+      run: dotnet restore --force
 
     - name: Build
       run: dotnet build --configuration Release --no-restore
