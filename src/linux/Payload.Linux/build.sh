@@ -44,8 +44,8 @@ ROOT="$( cd "$THISDIR"/../../.. ; pwd -P )"
 SRC="$ROOT/src"
 OUT="$ROOT/out"
 GCM_SRC="$SRC/shared/Git-Credential-Manager"
-PAYLOAD_SRC="$SRC/linux/Payload.Linux"
-PAYLOAD_OUT="$OUT/linux/Payload.Linux"
+# PAYLOAD_SRC="$SRC/linux/Payload.Linux"
+PAYLOAD_OUT="$OUT/linux/"
 
 # Build parameters
 FRAMEWORK=netcoreapp3.1
@@ -57,20 +57,25 @@ if [ -z "$VERSION" ]; then
     die "--version was not set"
 fi
 
-PAYLOAD="$PAYLOAD_OUT/tar/$CONFIGURATION/payload"
-SYMBOLOUT="$PAYLOAD.sym"
-TAROUT="$PAYLOAD_OUT/tar/$CONFIGURATION/gcmcore-linux-x86_64-$VERSION.tar.gz"
-DEBOUT="$PAYLOAD_OUT/gcmcore.x86_64.$CONFIGURATION.$VERSION"
+ARCH="`dpkg-architecture -q DEB_HOST_ARCH`"
+if test -z "$ARCH"; then
+  die "Could not determine host architecture!"
+fi
 
-# Layout and pack
+PAYLOAD="$PAYLOAD_OUT/payload/$CONFIGURATION"
+TAROUT="$PAYLOAD_OUT/gcmcore-linux_$ARCH.$CONFIGURATION.$VERSION.tar.gz"
+DEBPKG="$PAYLOAD_OUT/gcmcore-linux/"
+DEBOUT="$PAYLOAD_OUT/gcmcore-linux_$ARCH.$CONFIGURATION.$VERSION.deb"
+SYMBOLOUT="$PAYLOAD.sym"
+
 # Cleanup any old payload directory
 if [ -d "$PAYLOAD" ]; then
     echo "Cleaning old payload directory '$PAYLOAD'..."
     rm -rf "$PAYLOAD"
 fi
 
-# Ensure payload and symbol directories exists
-mkdir -p "$PAYLOAD" "$SYMBOLOUT"
+# Ensure directories exists
+mkdir -p "$PAYLOAD" "$SYMBOLOUT" "$DEBPKG"
 
 # Publish core application executables
 echo "Publishing core application..."
@@ -78,8 +83,8 @@ dotnet publish "$GCM_SRC" \
 	--configuration="$CONFIGURATION" \
 	--framework="$FRAMEWORK" \
 	--runtime="$RUNTIME" \
-    --self-contained \
-    /p:PublishSingleFile \ # maybe also add /p:Version="$VERSION"
+    --self-contained=true \
+    "/p:PublishSingleFile=True" \
 	--output="$(make_absolute "$PAYLOAD")" || exit 1
 
 # Collect symbols
@@ -107,10 +112,32 @@ echo "Setting file permissions..."
 
 # Build tarball
 echo "Building archive..."
-cd "$PAYLOAD"
+pushd "$PAYLOAD"
 tar -czvf "$TAROUT" * || exit 1
+popd
 
 # Build .deb
-# TODO
+INSTALL_TO="$DEBPKG/usr/bin/"
+mkdir -p "$DEBPKG/DEBIAN" "$INSTALL_TO"
+
+# make the debian control file
+cat >"$DEBPKG/DEBIAN/control" <<EOF
+Package: gcmcore
+Version: $VERSION
+Section: vcs
+Priority: optional
+Architecture: $ARCH
+Depends:
+Maintainer: GCM-Core <gcmcore@microsoft.com>
+Description: Cross Platform Git-Credential-Manager-Core command line utility.
+ Linux build of the GCM-Core project to support auth with a number of
+ git hosting providers including GitHub, BitBucket, and Azure DevOps.
+ Hosted at https://github.com/microsoft/Git-Credential-Manager-Core
+EOF
+
+# Copy single binary to target installation location
+cp "$PAYLOAD/git-credential-manager-core" "$INSTALL_TO"
+
+dpkg-deb --build "$DEBPKG" "$DEBOUT"
 
 echo "Pack complete."
