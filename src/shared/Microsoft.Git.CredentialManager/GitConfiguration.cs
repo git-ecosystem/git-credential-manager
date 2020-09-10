@@ -120,7 +120,7 @@ namespace Microsoft.Git.CredentialManager
                 {
                     string[] kvp = entry.Split(new[]{'\n'}, count: 2);
 
-                    if (!cb(kvp[0], kvp[1]))
+                    if (kvp.Length == 2 && !cb(kvp[0], kvp[1]))
                     {
                         break;
                     }
@@ -226,7 +226,9 @@ namespace Microsoft.Git.CredentialManager
                 {
                     string[] kvp = entry.Split(new[]{'\n'}, count: 2);
 
-                    yield return kvp[1];
+                    if (kvp.Length == 2) {
+                        yield return kvp[1];
+                    }
                 }
             }
         }
