@@ -29,4 +29,7 @@ jobs:
       run: dotnet restore
 
     - name: Build
+      run: dotnet build -c release -f netcoreapp3.1
+
+    - name: Build Linux Payloads
       run: dotnet build -c release --no-restore src/linux/Payload.Linux/Payload.Linux.csproj
