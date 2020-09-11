@@ -26,3 +26,11 @@ jobs:
 
     - name: Build Linux Payloads
       run: dotnet build -c release src/linux/Payload.Linux/Payload.Linux.csproj
+
+    - name: Upload Installers
+      uses: actions/upload-artifact@v2
+      with:
+        name: Installers
+        path: |
+          out/linux/*.deb
+          out/linux/*.tar.gz

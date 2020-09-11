@@ -44,7 +44,6 @@ ROOT="$( cd "$THISDIR"/../../.. ; pwd -P )"
 SRC="$ROOT/src"
 OUT="$ROOT/out"
 GCM_SRC="$SRC/shared/Git-Credential-Manager"
-# PAYLOAD_SRC="$SRC/linux/Payload.Linux"
 PAYLOAD_OUT="$OUT/linux/"
 
 # Build parameters
@@ -62,16 +61,17 @@ if test -z "$ARCH"; then
   die "Could not determine host architecture!"
 fi
 
+# Outputs
 PAYLOAD="$PAYLOAD_OUT/payload/$CONFIGURATION"
 TAROUT="$PAYLOAD_OUT/gcmcore-linux_$ARCH.$CONFIGURATION.$VERSION.tar.gz"
 DEBPKG="$PAYLOAD_OUT/gcmcore-linux/"
 DEBOUT="$PAYLOAD_OUT/gcmcore-linux_$ARCH.$CONFIGURATION.$VERSION.deb"
 SYMBOLOUT="$PAYLOAD.sym"
 
-# Cleanup any old payload directory
-if [ -d "$PAYLOAD" ]; then
-    echo "Cleaning old payload directory '$PAYLOAD'..."
-    rm -rf "$PAYLOAD"
+# Cleanup payload directory
+if [ -d "$PAYLOAD_OUT" ]; then
+    echo "Cleaning existing payload directory '$PAYLOAD_OUT'..."
+    rm -rf "$PAYLOAD_OUT"
 fi
 
 # Ensure directories exists
