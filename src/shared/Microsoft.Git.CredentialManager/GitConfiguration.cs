@@ -120,7 +120,7 @@ namespace Microsoft.Git.CredentialManager
                 {
                     string[] kvp = entry.Split(new[]{'\n'}, count: 2);
 
-                    if (!cb(kvp[0], kvp[1]))
+                    if (kvp.Length == 2 && !cb(kvp[0], kvp[1]))
                     {
                         break;
                     }
@@ -166,7 +166,7 @@ namespace Microsoft.Git.CredentialManager
         public void SetValue(string name, string value)
         {
             string level = GetLevelFilterArg();
-            using (Process git = _git.CreateProcess($"config {level} {name} {value}"))
+            using (Process git = _git.CreateProcess($"config {level} {name} \"{value}\""))
             {
                 git.Start();
                 git.WaitForExit();
@@ -212,6 +212,7 @@ namespace Microsoft.Git.CredentialManager
                 switch (git.ExitCode)
                 {
                     case 0: // OK
+                    case 1: // No results
                         break;
                     default:
                         throw new Exception(
@@ -226,7 +227,9 @@ namespace Microsoft.Git.CredentialManager
                 {
                     string[] kvp = entry.Split(new[]{'\n'}, count: 2);
 
-                    yield return kvp[1];
+                    if (kvp.Length == 2) {
+                        yield return kvp[1];
+                    }
                 }
             }
         }
@@ -261,6 +264,7 @@ namespace Microsoft.Git.CredentialManager
                 switch (git.ExitCode)
                 {
                     case 0: // OK
+                    case 5: // Trying to unset a value that does not exist
                         break;
                     default:
                         throw new Exception(
