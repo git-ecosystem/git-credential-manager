@@ -69,9 +69,9 @@ DEBOUT="$PAYLOAD_OUT/gcmcore-linux_$ARCH.$CONFIGURATION.$VERSION.deb"
 SYMBOLOUT="$PAYLOAD.sym"
 
 # Cleanup payload directory
-if [ -d "$PAYLOAD_OUT" ]; then
-    echo "Cleaning existing payload directory '$PAYLOAD_OUT'..."
-    rm -rf "$PAYLOAD_OUT"
+if [ -d "$PAYLOAD" ]; then
+    echo "Cleaning existing payload directory '$PAYLOAD'..."
+    rm -rf "$PAYLOAD"
 fi
 
 # Ensure directories exists
