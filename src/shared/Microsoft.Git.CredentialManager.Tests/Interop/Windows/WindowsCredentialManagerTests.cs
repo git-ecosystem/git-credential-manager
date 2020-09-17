@@ -206,5 +206,34 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop.Windows
                 credManager.Remove(service, userName2);
             }
         }
+
+        [Theory]
+        [InlineData("https://example.com", "https://example.com")]
+        [InlineData("https://example.com/", "https://example.com/")]
+        [InlineData("https://example.com/@", "https://example.com/@")]
+        [InlineData("https://example.com/path", "https://example.com/path")]
+        [InlineData("https://example.com/path@", "https://example.com/path@")]
+        [InlineData("https://example.com:123/path@", "https://example.com:123/path@")]
+        [InlineData("https://example.com/path/", "https://example.com/path/")]
+        [InlineData("https://example.com/path@/", "https://example.com/path@/")]
+        [InlineData("https://example.com:123/path@/", "https://example.com:123/path@/")]
+        [InlineData("https://example.com/path/foo", "https://example.com/path/foo")]
+        [InlineData("https://example.com/path@/foo", "https://example.com/path@/foo")]
+        [InlineData("https://userinfo@example.com", "https://example.com")]
+        [InlineData("https://userinfo@example.com/", "https://example.com/")]
+        [InlineData("https://userinfo@example.com/@", "https://example.com/@")]
+        [InlineData("https://userinfo@example.com/path", "https://example.com/path")]
+        [InlineData("https://userinfo@example.com/path@", "https://example.com/path@")]
+        [InlineData("https://userinfo@example.com/path/", "https://example.com/path/")]
+        [InlineData("https://userinfo@example.com:123/path/", "https://example.com:123/path/")]
+        [InlineData("https://userinfo@example.com/path@/", "https://example.com/path@/")]
+        [InlineData("https://userinfo@example.com:123/path@/", "https://example.com:123/path@/")]
+        [InlineData("https://userinfo@example.com/path/foo", "https://example.com/path/foo")]
+        [InlineData("https://userinfo@example.com/path@/foo", "https://example.com/path@/foo")]
+        public void WindowsCredentialManager_RemoveUriUserInfo(string input, string expected)
+        {
+            string actual = WindowsCredentialManager.RemoveUriUserInfo(input);
+            Assert.Equal(expected, actual);
+        }
     }
 }

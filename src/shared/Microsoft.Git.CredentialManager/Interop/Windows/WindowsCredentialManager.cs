@@ -199,14 +199,56 @@ namespace Microsoft.Git.CredentialManager.Interop.Windows
                 password = Encoding.Unicode.GetString(passwordBytes);
             }
 
+            // Recover the target name we gave from the internal (raw) target name
+            string targetName = credential.TargetName.TrimUntilIndexOf(TargetNameLegacyGenericPrefix);
+            
             // Recover the service name from the target name
-            string service = credential.TargetName.TrimUntilIndexOf(TargetNameLegacyGenericPrefix);
+            string serviceName = targetName;
             if (!string.IsNullOrWhiteSpace(_namespace))
             {
-                service = service.TrimUntilIndexOf($"{_namespace}:");
+                serviceName = serviceName.TrimUntilIndexOf($"{_namespace}:");
             }
 
-            return new WindowsCredential(service, credential.UserName, password, credential.TargetName);
+            // Strip any userinfo component from the service name
+            serviceName = RemoveUriUserInfo(serviceName);
+
+            return new WindowsCredential(serviceName, credential.UserName, password, targetName);
+        }
+
+        public /* for testing */ static string RemoveUriUserInfo(string url)
+        {
+            // To remove the userinfo component we must search for the end of the :// scheme
+            // delimiter, and the start of the @ userinfo delimiter. We don't want to match
+            // any other '@' character however (such as one in the URI path).
+            // To ensure this we only consider an '@' character that exists before the first
+            // '/' character after the scheme delimiter - that is to say the authority-path
+            // separator.
+            //
+            //                authority
+            //              |-----------|
+            //     scheme://userinfo@host/path
+            //
+            int schemeDelimIdx = url.IndexOf(Uri.SchemeDelimiter, StringComparison.Ordinal);
+            if (schemeDelimIdx > 0)
+            {
+                int authorityIdx = schemeDelimIdx + Uri.SchemeDelimiter.Length;
+                int slashIdx = url.IndexOf("/", authorityIdx, StringComparison.Ordinal);
+                int atIdx = url.IndexOf("@", StringComparison.Ordinal);
+
+                // No path component or trailing slash; use end of string
+                if (slashIdx < 0)
+                {
+                    slashIdx = url.Length - 1;
+                }
+                
+                // Only if the '@' is before the first slash is this the userinfo delimiter
+                if (0 < atIdx && atIdx < slashIdx)
+                {
+                    return url.Substring(0, authorityIdx) + url.Substring(atIdx + 1);
+                }
+            }
+
+            return url;
         }
 
         private bool IsMatch(string service, string account, Win32Credential credential)
