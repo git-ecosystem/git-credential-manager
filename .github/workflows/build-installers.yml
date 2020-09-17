@@ -9,7 +9,6 @@ on:
 jobs:
   linux:
     name: "Linux"
-
     runs-on: ubuntu-18.04
     steps:
     - uses: actions/checkout@v2
@@ -34,3 +33,24 @@ jobs:
         path: |
           out/linux/Packaging.Linux/deb/Release/*.deb
           out/linux/Packaging.Linux/tar/Release/*.tar.gz
+
+  linux_publish:
+    name: 'Publish Linux'
+    runs-on: windows-latest
+    needs: linux
+    steps:
+    - name: 'Download Installers'
+      uses: actions/download-artifact@v2
+      with:
+        name: Installers
+
+    - name: Install ESRP Client
+      shell: pwsh
+      env:
+        AZDEV_PAT: ${{ secrets.MICROSOFT_AZDEV_NUGET_PAT }}
+        NUGET_FEED: "https://microsoft.pkgs.visualstudio.com/_packaging/ESRP/nuget/v3/index.json"
+      run: |
+        echo "Using nuget feed $env:NUGET_FEED"
+        nuget.exe sources add -name esrp -source "$env:NUGET_FEED" -username FOOBAR -password "$env:AZDEV_PAT"
+        nuget.exe install Microsoft.EsrpClient -source "$env:NUGET_FEED" -OutputDirectory ./esrp
+
