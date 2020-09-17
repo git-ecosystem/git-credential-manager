@@ -5,108 +5,137 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.Git.CredentialManager.Interop.MacOS.Native;
+using static Microsoft.Git.CredentialManager.Interop.MacOS.Native.CoreFoundation;
 using static Microsoft.Git.CredentialManager.Interop.MacOS.Native.SecurityFramework;
 
 namespace Microsoft.Git.CredentialManager.Interop.MacOS
 {
     public class MacOSKeychain : ICredentialStore
     {
+        private readonly string _namespace;
+
         #region Constructors
 
         /// <summary>
         /// Open the default keychain (current user's login keychain).
         /// </summary>
+        /// <param name="namespace">Optional namespace to scope credential operations.</param>
         /// <returns>Default keychain.</returns>
-        public static MacOSKeychain Open()
+        public static MacOSKeychain Open(string @namespace = null)
         {
-            return new MacOSKeychain();
+            return new MacOSKeychain(@namespace);
         }
 
-        private MacOSKeychain()
+        private MacOSKeychain(string @namespace)
         {
             PlatformUtils.EnsureMacOS();
+            _namespace = @namespace;
         }
 
         #endregion
 
         #region ICredentialStore
 
-        public ICredential Get(string key)
+        public ICredential Get(string service, string account)
         {
-            IntPtr passwordData = IntPtr.Zero;
-            IntPtr itemRef = IntPtr.Zero;
+            IntPtr query = IntPtr.Zero;
+            IntPtr resultPtr = IntPtr.Zero;
+            IntPtr servicePtr = IntPtr.Zero;
+            IntPtr accountPtr = IntPtr.Zero;
 
             try
             {
-                // Find the item (itemRef) and password (passwordData) in the keychain
-                int findResult = SecKeychainFindGenericPassword(
-                    IntPtr.Zero, (uint) key.Length, key, 0, null,
-                    out uint passwordLength, out passwordData, out itemRef);
+                query = CFDictionaryCreateMutable(
+                    IntPtr.Zero,
+                    0,
+                    IntPtr.Zero, IntPtr.Zero);
 
-                switch (findResult)
+                CFDictionaryAddValue(query, kSecClass, kSecClassGenericPassword);
+                CFDictionaryAddValue(query, kSecMatchLimit, kSecMatchLimitOne);
+                CFDictionaryAddValue(query, kSecReturnData, kCFBooleanTrue);
+                CFDictionaryAddValue(query, kSecReturnAttributes, kCFBooleanTrue);
+
+                if (!string.IsNullOrWhiteSpace(service))
+                {
+                    string fullService = CreateServiceName(service);
+                    servicePtr = CreateCFStringUtf8(fullService);
+                    CFDictionaryAddValue(query, kSecAttrService, servicePtr);
+                }
+
+                if (!string.IsNullOrWhiteSpace(account))
+                {
+                    accountPtr = CreateCFStringUtf8(account);
+                    CFDictionaryAddValue(query, kSecAttrAccount, accountPtr);
+                }
+
+                int searchResult = SecItemCopyMatching(query, out resultPtr);
+
+                switch (searchResult)
                 {
                     case OK:
-                        // Get and decode the user name from the 'account name' attribute
-                        byte[] userNameBytes = GetAccountNameAttributeData(itemRef);
-                        string userName = Encoding.UTF8.GetString(userNameBytes);
+                        int typeId = CFGetTypeID(resultPtr);
+                        Debug.Assert(typeId != CFArrayGetTypeID(), "Returned more than one keychain item in search");
+                        if (typeId == CFDictionaryGetTypeID())
+                        {
+                            return CreateCredentialFromAttributes(resultPtr);
+                        }
 
-                        // Decode the password from the raw data
-                        byte[] passwordBytes = InteropUtils.ToByteArray(passwordData, passwordLength);
-                        string password = Encoding.UTF8.GetString(passwordBytes);
-
-                        return new GitCredential(userName, password);
+                        throw new InteropException($"Unknown keychain search result type CFTypeID: {typeId}.", -1);
 
                     case ErrorSecItemNotFound:
                         return null;
 
                     default:
-                        ThrowIfError(findResult);
+                        ThrowIfError(searchResult);
                         return null;
                 }
             }
             finally
             {
-                if (passwordData != IntPtr.Zero)
-                {
-                    SecKeychainItemFreeContent(IntPtr.Zero, passwordData);
-                }
-
-                if (itemRef != IntPtr.Zero)
-                {
-                    CoreFoundation.CFRelease(itemRef);
-                }
+                if (query != IntPtr.Zero) CFRelease(query);
+                if (servicePtr != IntPtr.Zero) CFRelease(servicePtr);
+                if (accountPtr != IntPtr.Zero) CFRelease(accountPtr);
+                if (resultPtr != IntPtr.Zero) CFRelease(resultPtr);
             }
         }
 
-        public void AddOrUpdate(string key, ICredential credential)
+        public void AddOrUpdate(string service, string account, string secret)
         {
-            byte[] passwordBytes = Encoding.UTF8.GetBytes(credential.Password);
+            EnsureArgument.NotNullOrWhiteSpace(service, nameof(service));
+
+            byte[] secretBytes = Encoding.UTF8.GetBytes(secret);
 
             IntPtr passwordData = IntPtr.Zero;
             IntPtr itemRef = IntPtr.Zero;
+
+            string serviceName = CreateServiceName(service);
+
+
+            uint serviceNameLength = (uint) serviceName.Length;
+            uint accountLength = (uint) (account?.Length ?? 0);
 
             try
             {
                 // Check if an entry already exists in the keychain
                 int findResult = SecKeychainFindGenericPassword(
-                    IntPtr.Zero, (uint) key.Length, key, (uint) credential.UserName.Length, credential.UserName,
+                    IntPtr.Zero, serviceNameLength, serviceName, accountLength, account,
                     out uint _, out passwordData, out itemRef);
 
                 switch (findResult)
                 {
-                    // Create new entry
+                    // Update existing entry
                     case OK:
                         ThrowIfError(
-                            SecKeychainItemModifyAttributesAndData(itemRef, IntPtr.Zero, (uint) passwordBytes.Length, passwordBytes),
+                            SecKeychainItemModifyAttributesAndData(itemRef, IntPtr.Zero, (uint) secretBytes.Length, secretBytes),
                             "Could not update existing item"
                         );
                         break;
 
-                    // Update existing entry
+                    // Create new entry
                     case ErrorSecItemNotFound:
                         ThrowIfError(
-                            SecKeychainAddGenericPassword(IntPtr.Zero, (uint) key.Length, key, (uint) credential.UserName.Length,
-                                credential.UserName, (uint) passwordBytes.Length, passwordBytes, out itemRef),
+                            SecKeychainAddGenericPassword(IntPtr.Zero, serviceNameLength, serviceName, accountLength,
+                                account, (uint) secretBytes.Length, secretBytes, out itemRef),
                             "Could not create new item"
                         );
                         break;
@@ -125,27 +154,50 @@ namespace Microsoft.Git.CredentialManager.Interop.MacOS
 
                 if (itemRef != IntPtr.Zero)
                 {
-                    CoreFoundation.CFRelease(itemRef);
+                    CFRelease(itemRef);
                 }
             }
         }
 
-        public bool Remove(string key)
+        public bool Remove(string service, string account)
         {
-            IntPtr passwordData = IntPtr.Zero;
-            IntPtr itemRef = IntPtr.Zero;
+            IntPtr query = IntPtr.Zero;
+            IntPtr itemRefPtr = IntPtr.Zero;
+            IntPtr servicePtr = IntPtr.Zero;
+            IntPtr accountPtr = IntPtr.Zero;
 
             try
             {
-                int findResult = SecKeychainFindGenericPassword(
-                    IntPtr.Zero, (uint) key.Length, key, 0, null,
-                    out _, out passwordData, out itemRef);
+                query = CFDictionaryCreateMutable(
+                    IntPtr.Zero,
+                    0,
+                    IntPtr.Zero, IntPtr.Zero);
 
-                switch (findResult)
+                CFDictionaryAddValue(query, kSecClass, kSecClassGenericPassword);
+                CFDictionaryAddValue(query, kSecMatchLimit, kSecMatchLimitOne);
+                CFDictionaryAddValue(query, kSecReturnRef, kCFBooleanTrue);
+
+                if (!string.IsNullOrWhiteSpace(service))
+                {
+                    string fullService = CreateServiceName(service);
+                    servicePtr = CreateCFStringUtf8(fullService);
+                    CFDictionaryAddValue(query, kSecAttrService, servicePtr);
+                }
+
+                if (!string.IsNullOrWhiteSpace(account))
+                {
+                    accountPtr = CreateCFStringUtf8(account);
+                    CFDictionaryAddValue(query, kSecAttrAccount, accountPtr);
+                }
+
+                // Search for the credential to delete and get the SecKeychainItem ref.
+                int searchResult = SecItemCopyMatching(query, out itemRefPtr);
+                switch (searchResult)
                 {
                     case OK:
+                        // Delete the item
                         ThrowIfError(
-                            SecKeychainItemDelete(itemRef)
+                            SecKeychainItemDelete(itemRefPtr)
                         );
                         return true;
 
@@ -153,82 +205,89 @@ namespace Microsoft.Git.CredentialManager.Interop.MacOS
                         return false;
 
                     default:
-                        ThrowIfError(findResult);
+                        ThrowIfError(searchResult);
                         return false;
                 }
             }
             finally
             {
-                if (passwordData != IntPtr.Zero)
-                {
-                    SecKeychainItemFreeContent(IntPtr.Zero, passwordData);
-                }
-
-                if (itemRef != IntPtr.Zero)
-                {
-                    CoreFoundation.CFRelease(itemRef);
-                }
+                if (query != IntPtr.Zero) CFRelease(query);
+                if (itemRefPtr != IntPtr.Zero) CFRelease(itemRefPtr);
+                if (servicePtr != IntPtr.Zero) CFRelease(servicePtr);
+                if (accountPtr != IntPtr.Zero) CFRelease(accountPtr);
             }
         }
 
         #endregion
 
-        #region Private Methods
-
-        private static byte[] GetAccountNameAttributeData(IntPtr itemRef)
+        private static IntPtr CreateCFStringUtf8(string str)
         {
-            IntPtr tagArrayPtr = IntPtr.Zero;
-            IntPtr formatArrayPtr = IntPtr.Zero;
-            IntPtr attrListPtr = IntPtr.Zero; // SecKeychainAttributeList
+            byte[] bytes = Encoding.UTF8.GetBytes(str);
+            return CFStringCreateWithBytes(IntPtr.Zero,
+                bytes, bytes.Length, CFStringEncoding.kCFStringEncodingUTF8, false);
+        }
 
+        private static ICredential CreateCredentialFromAttributes(IntPtr attributes)
+        {
+            string service = GetStringAttribute(attributes, kSecAttrService);
+            string account = GetStringAttribute(attributes, kSecAttrAccount);
+            string password = GetStringAttribute(attributes, kSecValueData);
+            string label = GetStringAttribute(attributes, kSecAttrLabel);
+            return new MacOSKeychainCredential(service, account, password, label);
+        }
+
+        private static string GetStringAttribute(IntPtr dict, IntPtr key)
+        {
+            if (dict == IntPtr.Zero)
+            {
+                return null;
+            }
+
+            IntPtr buffer = IntPtr.Zero;
             try
             {
-                // Extract the user name by querying for the item's 'account' attribute
-                tagArrayPtr = Marshal.AllocHGlobal(sizeof(SecKeychainAttrType));
-                Marshal.WriteInt32(tagArrayPtr, (int) SecKeychainAttrType.AccountItem);
-
-                formatArrayPtr = Marshal.AllocHGlobal(sizeof(CssmDbAttributeFormat));
-                Marshal.WriteInt32(formatArrayPtr, (int) CssmDbAttributeFormat.String);
-
-                var attributeInfo = new SecKeychainAttributeInfo
+                if (CFDictionaryGetValueIfPresent(dict, key, out IntPtr value) && value != IntPtr.Zero)
                 {
-                    Count = 1,
-                    Tag = tagArrayPtr,
-                    Format = formatArrayPtr,
-                };
+                    if (CFGetTypeID(value) == CFStringGetTypeID())
+                    {
+                        int stringLength = (int)CFStringGetLength(value);
+                        int bufferSize = stringLength + 1;
+                        buffer = Marshal.AllocHGlobal(bufferSize);
+                        if (CFStringGetCString(value, buffer, bufferSize, CFStringEncoding.kCFStringEncodingUTF8))
+                        {
+                            return Marshal.PtrToStringAuto(buffer, stringLength);
+                        }
+                    }
 
-                ThrowIfError(
-                    SecKeychainItemCopyAttributesAndData(
-                        itemRef, ref attributeInfo,
-                        IntPtr.Zero, out attrListPtr, out _, IntPtr.Zero)
-                );
-
-                SecKeychainAttributeList attrList = Marshal.PtrToStructure<SecKeychainAttributeList>(attrListPtr);
-                Debug.Assert(attrList.Count == 1, "Only expecting a list structure containing one attribute to be returned");
-
-                SecKeychainAttribute attribute = Marshal.PtrToStructure<SecKeychainAttribute>(attrList.Attributes);
-
-                return InteropUtils.ToByteArray(attribute.Data, attribute.Length);
+                    if (CFGetTypeID(value) == CFDataGetTypeID())
+                    {
+                        int length = CFDataGetLength(value);
+                        IntPtr ptr = CFDataGetBytePtr(value);
+                        return Marshal.PtrToStringAuto(ptr, length);
+                    }
+                }
             }
             finally
             {
-                if (tagArrayPtr != IntPtr.Zero)
+                if (buffer != IntPtr.Zero)
                 {
-                    Marshal.FreeHGlobal(tagArrayPtr);
-                }
-
-                if (formatArrayPtr != IntPtr.Zero)
-                {
-                    Marshal.FreeHGlobal(formatArrayPtr);
-                }
-
-                if (attrListPtr != IntPtr.Zero)
-                {
-                    SecKeychainItemFreeAttributesAndData(attrListPtr, IntPtr.Zero);
+                    Marshal.FreeHGlobal(buffer);
                 }
             }
+
+            return null;
         }
 
-        #endregion
+        private string CreateServiceName(string service)
+        {
+            var sb = new StringBuilder();
+            if (!string.IsNullOrWhiteSpace(_namespace))
+            {
+                sb.AppendFormat("{0}:", _namespace);
+            }
+
+            sb.Append(service);
+            return sb.ToString();
+        }
     }
 }

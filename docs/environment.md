@@ -309,3 +309,26 @@ export GCM_GITHUB_AUTHMODES="oauth basic"
 ```
 
 **Also see: [credential.gitHubAuthModes](configuration.md#credentialgitHubAuthModes)**
+
+---
+
+### GCM_NAMESPACE
+
+Use a custom namespace prefix for credentials read and written in the OS credential store.
+Credentials will be stored in the format `{namespace}:{service}`.
+
+Defaults to the value `git`.
+
+##### Windows
+
+```batch
+SET GCM_NAMESPACE="my-namespace"
+```
+
+##### macOS/Linux
+
+```bash
+export GCM_NAMESPACE="my-namespace"
+```
+
+**Also see: [credential.namespace](configuration.md#credentialnamespace)**

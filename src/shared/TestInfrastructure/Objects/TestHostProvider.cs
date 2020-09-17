@@ -12,8 +12,6 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
 
         public Func<InputArguments, bool> IsSupportedFunc { get; set; }
 
-        public string CredentialKey { get; set; }
-
         public string LegacyAuthorityIdValue { get; set; }
 
         public Func<InputArguments, ICredential> GenerateCredentialFunc { get; set; }
@@ -27,11 +25,6 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
         public string LegacyAuthorityId => LegacyAuthorityIdValue;
 
         public override bool IsSupported(InputArguments input) => IsSupportedFunc(input);
-
-        public override string GetCredentialKey(InputArguments input)
-        {
-            return CredentialKey;
-        }
 
         public override Task<ICredential> GenerateCredentialAsync(InputArguments input)
         {

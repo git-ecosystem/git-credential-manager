@@ -14,23 +14,22 @@ namespace Microsoft.Git.CredentialManager.Tests
         [Fact]
         public async Task HostProvider_GetCredentialAsync_CredentialExists_ReturnsExistingCredential()
         {
-            const string testUserName = "john.doe";
-            const string testPassword = "letmein123";
-            const string testCredentialKey = "git:test-cred-key";
+            const string userName = "john.doe";
+            const string password = "letmein123";
+            const string service = "https://example.com";
             var input = new InputArguments(new Dictionary<string, string>
             {
-                ["username"] = testUserName,
-                ["password"] = testPassword,
+                ["protocol"] = "https",
+                ["host"] = "example.com",
+                ["username"] = userName,
+                ["password"] = password,
             });
 
-            var context = new TestCommandContext
-            {
-                CredentialStore = {[testCredentialKey] = new GitCredential(testUserName, testPassword)}
-            };
+            var context = new TestCommandContext();
+            context.CredentialStore.Add(service, userName, password);
             var provider = new TestHostProvider(context)
             {
                 IsSupportedFunc = _ => true,
-                CredentialKey = testCredentialKey,
                 GenerateCredentialFunc = _ =>
                 {
                     Assert.True(false, "Should never be called");
@@ -40,20 +39,21 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             ICredential actualCredential = await ((IHostProvider) provider).GetCredentialAsync(input);
 
-            Assert.Equal(testUserName, actualCredential.UserName);
-            Assert.Equal(testPassword, actualCredential.Password);
+            Assert.Equal(userName, actualCredential.Account);
+            Assert.Equal(password, actualCredential.Password);
         }
 
         [Fact]
         public async Task HostProvider_GetCredentialAsync_CredentialDoesNotExist_ReturnsNewGeneratedCredential()
         {
-            const string testUserName = "john.doe";
-            const string testPassword = "letmein123";
-            const string testCredentialKey = "git:test-cred-key";
+            const string userName = "john.doe";
+            const string password = "letmein123";
             var input = new InputArguments(new Dictionary<string, string>
             {
-                ["username"] = testUserName,
-                ["password"] = testPassword,
+                ["protocol"] = "https",
+                ["host"] = "example.com",
+                ["username"] = userName,
+                ["password"] = password,
             });
 
             bool generateWasCalled = false;
@@ -61,19 +61,18 @@ namespace Microsoft.Git.CredentialManager.Tests
             var provider = new TestHostProvider(context)
             {
                 IsSupportedFunc = _ => true,
-                CredentialKey = testCredentialKey,
                 GenerateCredentialFunc = _ =>
                 {
                     generateWasCalled = true;
-                    return new GitCredential(testUserName, testPassword);
+                    return new GitCredential(userName, password);
                 },
             };
 
             ICredential actualCredential = await ((IHostProvider) provider).GetCredentialAsync(input);
 
             Assert.True(generateWasCalled);
-            Assert.Equal(testUserName, actualCredential.UserName);
-            Assert.Equal(testPassword, actualCredential.Password);
+            Assert.Equal(userName, actualCredential.Account);
+            Assert.Equal(password, actualCredential.Password);
         }
 
 
@@ -86,42 +85,45 @@ namespace Microsoft.Git.CredentialManager.Tests
         {
             const string emptyUserName = "";
             const string emptyPassword = "";
-            const string testCredentialKey = "git:test-cred-key";
             var input = new InputArguments(new Dictionary<string, string>
             {
+                ["protocol"] = "https",
+                ["host"] = "example.com",
                 ["username"] = emptyUserName,
                 ["password"] = emptyPassword,
             });
 
             var context = new TestCommandContext();
-            var provider = new TestHostProvider(context) {CredentialKey = testCredentialKey};
+            var provider = new TestHostProvider(context);
 
             await ((IHostProvider) provider).StoreCredentialAsync(input);
 
-            Assert.Empty(context.CredentialStore);
+            Assert.Equal(0, context.CredentialStore.Count);
         }
 
         [Fact]
         public async Task HostProvider_StoreCredentialAsync_NonEmptyCredential_StoresCredential()
         {
-            const string testUserName = "john.doe";
-            const string testPassword = "letmein123";
-            const string testCredentialKey = "git:test-cred-key";
+            const string userName = "john.doe";
+            const string password = "letmein123";
+            const string service = "https://example.com";
             var input = new InputArguments(new Dictionary<string, string>
             {
-                ["username"] = testUserName,
-                ["password"] = testPassword,
+                ["protocol"] = "https",
+                ["host"] = "example.com",
+                ["username"] = userName,
+                ["password"] = password,
             });
 
             var context = new TestCommandContext();
-            var provider = new TestHostProvider(context) {CredentialKey = testCredentialKey};
+            var provider = new TestHostProvider(context);
 
             await ((IHostProvider) provider).StoreCredentialAsync(input);
 
-            Assert.Single(context.CredentialStore);
-            Assert.True(context.CredentialStore.TryGetValue(testCredentialKey, out ICredential storedCredential));
-            Assert.Equal(testUserName, storedCredential.UserName);
-            Assert.Equal(testPassword, storedCredential.Password);
+            Assert.Equal(1, context.CredentialStore.Count);
+            Assert.True(context.CredentialStore.TryGet(service, userName, out var storedCredential));
+            Assert.Equal(userName, storedCredential.Account);
+            Assert.Equal(password, storedCredential.Password);
         }
 
         [Fact]
@@ -130,24 +132,24 @@ namespace Microsoft.Git.CredentialManager.Tests
             const string testUserName = "john.doe";
             const string testPasswordOld = "letmein123-old";
             const string testPasswordNew = "letmein123-new";
-            const string testCredentialKey = "git:test-cred-key";
+            const string testService = "https://example.com";
             var input = new InputArguments(new Dictionary<string, string>
             {
+                ["protocol"] = "https",
+                ["host"] = "example.com",
                 ["username"] = testUserName,
                 ["password"] = testPasswordNew,
             });
 
-            var context = new TestCommandContext
-            {
-                CredentialStore = {[testCredentialKey] = new GitCredential(testUserName, testPasswordOld)}
-            };
-            var provider = new TestHostProvider(context) {CredentialKey = testCredentialKey};
+            var context = new TestCommandContext();
+            context.CredentialStore.Add(testService, testUserName, testPasswordOld);
+            var provider = new TestHostProvider(context);
 
             await ((IHostProvider) provider).StoreCredentialAsync(input);
 
-            Assert.Single(context.CredentialStore);
-            Assert.True(context.CredentialStore.TryGetValue(testCredentialKey, out ICredential storedCredential));
-            Assert.Equal(testUserName, storedCredential.UserName);
+            Assert.Equal(1, context.CredentialStore.Count);
+            Assert.True(context.CredentialStore.TryGet(testService, testUserName, out var storedCredential));
+            Assert.Equal(testUserName, storedCredential.Account);
             Assert.Equal(testPasswordNew, storedCredential.Password);
         }
 
@@ -156,130 +158,100 @@ namespace Microsoft.Git.CredentialManager.Tests
         #region EraseCredentialAsync
 
         [Fact]
-        public async Task HostProvider_EraseCredentialAsync_NoInputUserPass_CredentialExists_ErasesCredential()
+        public async Task HostProvider_EraseCredentialAsync_NoInputUser_CredentialExists_ErasesOneCredential()
         {
-            const string testCredentialKey = "git:test-cred-key";
-            const string otherCredentialKey1 = "git:credential1";
-            const string otherCredentialKey2 = "git:credential2";
-            var input = new InputArguments(new Dictionary<string, string>());
-
-            var context = new TestCommandContext
+            const string service = "https://example.com";
+            const string userName1 = "john.doe";
+            const string userName2 = "alice";
+            const string userName3 = "bob";
+            var input = new InputArguments(new Dictionary<string, string>
             {
-                CredentialStore =
-                {
-                    [testCredentialKey] = new GitCredential("john.doe", "letmein123"),
-                    [otherCredentialKey1] = new GitCredential("this.should-1", "not.be.erased-1"),
-                    [otherCredentialKey2] = new GitCredential("this.should-2", "not.be.erased-2")
-                }
-            };
-            var provider = new TestHostProvider(context) {CredentialKey = testCredentialKey};
+                ["protocol"] = "https",
+                ["host"] = "example.com",
+            });
+
+            var context = new TestCommandContext();
+            context.CredentialStore.Add(service, userName1, "letmein123");
+            context.CredentialStore.Add(service, userName2, "do-not-erase-me");
+            context.CredentialStore.Add(service, userName3, "here-forever");
+            var provider = new TestHostProvider(context);
 
             await ((IHostProvider) provider).EraseCredentialAsync(input);
 
             Assert.Equal(2, context.CredentialStore.Count);
-            Assert.False(context.CredentialStore.ContainsKey(testCredentialKey));
-            Assert.True(context.CredentialStore.ContainsKey(otherCredentialKey1));
-            Assert.True(context.CredentialStore.ContainsKey(otherCredentialKey2));
         }
 
         [Fact]
-        public async Task HostProvider_EraseCredentialAsync_InputUserPass_CredentialExists_UserNotMatch_DoesNothing()
+        public async Task HostProvider_EraseCredentialAsync_InputUser_CredentialExists_UserNotMatch_DoesNothing()
         {
-            const string testUserName = "john.doe";
-            const string testPassword = "letmein123";
-            const string testCredentialKey = "git:test-cred-key";
+            const string userName1 = "john.doe";
+            const string userName2 = "alice";
+            const string password = "letmein123";
+            const string service = "https://example.com";
             var input = new InputArguments(new Dictionary<string, string>
             {
-                ["username"] = testUserName,
-                ["password"] = testPassword,
+                ["protocol"] = "https",
+                ["host"] = "example.com",
+                ["username"] = userName1,
+                ["password"] = password,
             });
 
-            var context = new TestCommandContext
-            {
-                CredentialStore = {[testCredentialKey] = new GitCredential("different-username", testPassword)}
-            };
-            var provider = new TestHostProvider(context) {CredentialKey = testCredentialKey};
+            var context = new TestCommandContext();
+            context.CredentialStore.Add(service, userName2, password);
+            var provider = new TestHostProvider(context);
 
             await ((IHostProvider) provider).EraseCredentialAsync(input);
 
-            Assert.Single(context.CredentialStore);
-            Assert.True(context.CredentialStore.ContainsKey(testCredentialKey));
+            Assert.Equal(1, context.CredentialStore.Count);
+            Assert.True(context.CredentialStore.Contains(service, userName2));
         }
 
         [Fact]
-        public async Task HostProvider_EraseCredentialAsync_InputUserPass_CredentialExists_PassNotMatch_DoesNothing()
+        public async Task HostProvider_EraseCredentialAsync_InputUser_CredentialExists_UserMatch_ErasesCredential()
         {
-            const string testUserName = "john.doe";
-            const string testPassword = "letmein123";
-            const string testCredentialKey = "git:test-cred-key";
+            const string userName = "john.doe";
+            const string password = "letmein123";
+            const string service = "https://example.com";
             var input = new InputArguments(new Dictionary<string, string>
             {
-                ["username"] = testUserName,
-                ["password"] = testPassword,
+                ["protocol"] = "https",
+                ["host"] = "example.com",
+                ["username"] = userName,
+                ["password"] = password,
             });
 
-            var context = new TestCommandContext
-            {
-                CredentialStore =
-                {
-                    [testCredentialKey] = new GitCredential(testUserName, "different-password"),
-                }
-            };
-            var provider = new TestHostProvider(context) {CredentialKey = testCredentialKey};
+            var context = new TestCommandContext();
+            context.CredentialStore.Add(service, userName, password);
+            var provider = new TestHostProvider(context);
 
             await ((IHostProvider) provider).EraseCredentialAsync(input);
 
-            Assert.Single(context.CredentialStore);
-            Assert.True(context.CredentialStore.ContainsKey(testCredentialKey));
+            Assert.Equal(0, context.CredentialStore.Count);
+            Assert.False(context.CredentialStore.Contains(service, userName));
         }
 
         [Fact]
-        public async Task HostProvider_EraseCredentialAsync_InputUserPass_CredentialExists_UserPassMatch_ErasesCredential()
+        public async Task HostProvider_EraseCredentialAsync_DifferentHost_DoesNothing()
         {
-            const string testUserName = "john.doe";
-            const string testPassword = "letmein123";
-            const string testCredentialKey = "git:test-cred-key";
+            const string service2 = "https://example2.com";
+            const string service3 = "https://example3.com";
+            const string userName = "john.doe";
             var input = new InputArguments(new Dictionary<string, string>
             {
-                ["username"] = testUserName,
-                ["password"] = testPassword,
+                ["protocol"] = "https",
+                ["host"] = "example1.com",
             });
 
-            var context = new TestCommandContext
-            {
-                CredentialStore = {[testCredentialKey] = new GitCredential(testUserName, testPassword)}
-            };
-            var provider = new TestHostProvider(context) {CredentialKey = testCredentialKey};
-
-            await ((IHostProvider) provider).EraseCredentialAsync(input);
-
-            Assert.Empty(context.CredentialStore);
-            Assert.False(context.CredentialStore.ContainsKey(testCredentialKey));
-        }
-
-        [Fact]
-        public async Task HostProvider_EraseCredentialAsync_NoCredential_DoesNothing()
-        {
-            const string testCredentialKey = "git:test-cred-key";
-            const string otherCredentialKey1 = "git:credential1";
-            const string otherCredentialKey2 = "git:credential2";
-            var input = new InputArguments(new Dictionary<string, string>());
-
-            var context = new TestCommandContext
-            {
-                CredentialStore =
-                {
-                    [otherCredentialKey1] = new GitCredential("this.should-1", "not.be.erased-1"),
-                    [otherCredentialKey2] = new GitCredential("this.should-2", "not.be.erased-2")
-                }
-            };
-            var provider = new TestHostProvider(context) {CredentialKey = testCredentialKey};
+            var context = new TestCommandContext();
+            context.CredentialStore.Add(service2, userName, "keep-me");
+            context.CredentialStore.Add(service3, userName, "also-keep-me");
+            var provider = new TestHostProvider(context);
 
             await ((IHostProvider) provider).EraseCredentialAsync(input);
 
             Assert.Equal(2, context.CredentialStore.Count);
-            Assert.True(context.CredentialStore.ContainsKey(otherCredentialKey1));
-            Assert.True(context.CredentialStore.ContainsKey(otherCredentialKey2));
+            Assert.True(context.CredentialStore.Contains(service2, userName));
+            Assert.True(context.CredentialStore.Contains(service3, userName));
         }
 
         #endregion

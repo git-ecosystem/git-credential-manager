@@ -31,6 +31,7 @@ namespace GitHub.UI
                         string enterpriseUrl = CommandLineUtils.GetParameter(args, "--enterprise-url");
                         bool basic = CommandLineUtils.TryGetSwitch(args, "--basic");
                         bool oauth = CommandLineUtils.TryGetSwitch(args, "--oauth");
+                        string username = CommandLineUtils.GetParameter(args, "--username");
 
                         if (!basic && !oauth)
                         {
@@ -39,7 +40,7 @@ namespace GitHub.UI
 
                         var result = prompts.ShowCredentialPrompt(
                             enterpriseUrl, basic, oauth,
-                            out string username,
+                            ref username,
                             out string password);
 
                         switch (result)

@@ -70,6 +70,7 @@ namespace Microsoft.Git.CredentialManager.Interop.Windows
             string wherePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "where.exe");
             var psi = new ProcessStartInfo(wherePath, program)
             {
+                UseShellExecute = false,
                 RedirectStandardOutput = true
             };
 

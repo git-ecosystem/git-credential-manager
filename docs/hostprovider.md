@@ -3,8 +3,13 @@
 Property|Value
 -|-
 Author(s)|Matthew John Cheetham ([@mjcheetham](https://github.com/mjcheetham))
-Revision|1.0
-Last updated|2020-06-22
+Revision|1.1
+Last updated|2020-09-04
+
+## Revision Summary
+
+- 1.0. Initial revision.
+- 1.1. Replaced `GetCredentialKey` with `GetServiceName`.
 
 ## Abstract
 
@@ -28,7 +33,7 @@ authentication to secured Git repositories by implementing and registering a
   - [2.4. Storing Credentials](#24-storing-credentials)
   - [2.5. Erasing Credentials](#25-erasing-credentials)
   - [2.6 `HostProvider` base class](#26-hostprovider-base-class)
-    - [2.6.1 `GetCredentialKey`](#261-getcredentialkey)
+    - [2.6.1 `GetServiceName`](#261-getservicename)
     - [2.6.2 `GenerateCredentialAsync`](#262-generatecredentialasync)
   - [2.7. External Metadata](#27-external-metadata)
 - [3. Helpers](#3-helpers)
@@ -222,7 +227,7 @@ Host providers MAY store multiple credentials or tokens in the same request if
 it is required. One example where multiple credential storage is needed is with
 OAuth2 access tokens (AT) and refresh tokens (RT). Both the AT and RT SHOULD be
 stored in the same location using the credential store with complementary
-credential keys.
+credential service names.
 
 ### 2.5. Erasing Credentials
 
@@ -256,26 +261,29 @@ most of the methods as implemented - implementors SHOULD implement the
 `IHostProvider` interface directly instead.
 
 Implementors that choose to derive from this base class MUST implement all
-abstract methods and properties. The two primary abstract methods to implement
-are `GetCredentialKey` and `GenerateCredentialAsync`.
+abstract methods and properties. The primary abstract method to implement
+is `GenerateCredentialAsync`.
 
-#### 2.6.1 `GetCredentialKey`
+There is also an additional `virtual` method named `GetServiceName` that is used
+by the default implementations of the `Get|Store|EraseCredentialAsync` methods
+to locate and store credentials.
 
-The `GetCredentialKey` method MUST return a string that forms a key for storing
-credentials for this provider and request. The key returned MUST be stable -
-i.e, it MUST return the same value given the same or equivalent input arguments.
+#### 2.6.1 `GetServiceName`
 
-This key is used by the `GetCredentialAsync` method to first check for any
-existing credential stored in the credential store, returning it if found.
+The `GetServiceName` virtual method, if overriden, MUST return a string that
+identifies the service/provider for this request, and is used for storing
+credentials. The value returned MUST be stable - i.e, it MUST return the same
+value given the same or equivalent input arguments.
 
-The key is also similarly used by the `StoreCredentialAsync` and
-`EraseCredentialAsync` methods to store and erase, respectively, credentials
-passed as arguments by Git.
+By default this method returns the full remote URI, without a trailing slash,
+including protocol/scheme, hostname, and path if present in the input arguments.
+Any username in the input arguments is never included in the URI.
 
 #### 2.6.2 `GenerateCredentialAsync`
 
 The `GenerateCredentialAsync` method will be called if an existing credential
-with a matching credential key is not found in the credential store.
+with a matching service (from `GetServiceName`) and account is not found in the
+credential store.
 
 This method MUST return a freshly created/generated credential and not any
 existing or stored one. It MAY use existing or stored ancillary data or tokens,

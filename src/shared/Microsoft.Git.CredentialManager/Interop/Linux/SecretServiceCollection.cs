@@ -14,56 +14,51 @@ namespace Microsoft.Git.CredentialManager.Interop.Linux
     public class SecretServiceCollection : ICredentialStore
     {
         private const string SchemaName = "com.microsoft.GitCredentialManager";
-        private const string KeyAttributeName = "key";
-        private const string UserAttributeName = "user";
+        private const string ServiceAttributeName = "service";
+        private const string AccountAttributeName = "account";
         private const string PlainTextContentType = "plain/text";
+
+        private readonly string _namespace;
 
         #region Constructors
 
         /// <summary>
         /// Open the default secret collection for the current user.
         /// </summary>
+        /// <param name="namespace">Optional namespace to scope credential operations.</param>
         /// <returns>Default secret collection.</returns>
-        public static SecretServiceCollection Open()
+        public static SecretServiceCollection Open(string @namespace = null)
         {
-            return new SecretServiceCollection();
+            return new SecretServiceCollection(@namespace);
         }
 
-        private SecretServiceCollection()
+        private SecretServiceCollection(string @namespace)
         {
             PlatformUtils.EnsureLinux();
+            _namespace = @namespace;
         }
 
         #endregion
 
         #region ICredentialStore
 
-        public unsafe ICredential Get(string key)
+        public unsafe ICredential Get(string service, string account)
         {
             GHashTable* queryAttrs = null;
-            GHashTable* secretAttrs = null;
-            IntPtr userKeyPtr = IntPtr.Zero;
-            IntPtr passwordPtr = IntPtr.Zero;
             GList* results = null;
             GError* error = null;
 
             try
             {
-                SecretService* service = GetSecretService();
+                SecretService* secService = GetSecretService();
 
-                // Build search query
-                queryAttrs = g_hash_table_new_full(
-                    g_str_hash, g_str_equal,
-                    Marshal.FreeHGlobal, Marshal.FreeHGlobal);
-                IntPtr keyKeyPtr = Marshal.StringToHGlobalAnsi(KeyAttributeName);
-                IntPtr keyValuePtr = Marshal.StringToHGlobalAnsi(key);
-                g_hash_table_insert(queryAttrs, keyKeyPtr, keyValuePtr);
+                queryAttrs = CreateSearchQuery(service, account);
 
                 SecretSchema schema = GetSchema();
 
-                // Execute search query and return one result
+                // Execute search query and return the first result
                 results = secret_service_search_sync(
-                    service,
+                    secService,
                     ref schema,
                     queryAttrs,
                     SecretSearchFlags.SECRET_SEARCH_UNLOCK,
@@ -94,7 +89,7 @@ namespace Microsoft.Git.CredentialManager.Interop.Linux
                         };
 
                         int numUnlocked = secret_service_unlock_sync(
-                            service,
+                            secService,
                             &toUnlockList,
                             IntPtr.Zero,
                             out _,
@@ -107,25 +102,7 @@ namespace Microsoft.Git.CredentialManager.Interop.Linux
                         }
                     }
 
-                    // Extract the user attribute
-                    secretAttrs = secret_item_get_attributes(item);
-                    userKeyPtr = Marshal.StringToHGlobalAnsi(UserAttributeName);
-                    IntPtr userValuePtr = g_hash_table_lookup(secretAttrs, userKeyPtr);
-                    string userName = Marshal.PtrToStringAuto(userValuePtr);
-
-                    // Load the secret value
-                    secret_item_load_secret_sync(item, IntPtr.Zero, out error);
-                    SecretValue* value = secret_item_get_secret(item);
-                    if (value == null)
-                    {
-                        throw new InteropException("Failed to load secret", -1);
-                    }
-
-                    // Extract the secret/password
-                    passwordPtr = secret_value_unref_to_password(value, out int passwordLength);
-                    string password = Marshal.PtrToStringAuto(passwordPtr, passwordLength);
-
-                    return new GitCredential(userName, password);
+                    return CreateCredentialFromItem(item);
                 }
 
                 return null;
@@ -133,15 +110,12 @@ namespace Microsoft.Git.CredentialManager.Interop.Linux
             finally
             {
                 if (queryAttrs != null) g_hash_table_destroy(queryAttrs);
-                if (secretAttrs != null) g_hash_table_unref(secretAttrs);
-                if (userKeyPtr != IntPtr.Zero) Marshal.FreeHGlobal(userKeyPtr);
-                if (passwordPtr != IntPtr.Zero) secret_password_free(passwordPtr);
                 if (error != null) g_error_free(error);
                 if (results != null) g_list_free_full(results, g_object_unref);
             }
         }
 
-        public unsafe void AddOrUpdate(string key, ICredential credential)
+        public unsafe void AddOrUpdate(string service, string account, string secret)
         {
             GHashTable* attributes = null;
             SecretValue* secretValue = null;
@@ -149,33 +123,37 @@ namespace Microsoft.Git.CredentialManager.Interop.Linux
 
             try
             {
-                SecretService* service = GetSecretService();
+                SecretService* secService = GetSecretService();
 
                 // Create attributes for the key and user
                 attributes = g_hash_table_new_full(g_str_hash, g_str_equal,
                     Marshal.FreeHGlobal, Marshal.FreeHGlobal);
 
-                IntPtr keyKeyPtr = Marshal.StringToHGlobalAnsi(KeyAttributeName);
-                IntPtr keyValuePtr = Marshal.StringToHGlobalAnsi(key);
-                g_hash_table_insert(attributes, keyKeyPtr, keyValuePtr);
+                string fullServiceName = CreateServiceName(service);
+                IntPtr serviceKeyPtr = Marshal.StringToHGlobalAnsi(ServiceAttributeName);
+                IntPtr serviceValuePtr = Marshal.StringToHGlobalAnsi(fullServiceName);
+                g_hash_table_insert(attributes, serviceKeyPtr, serviceValuePtr);
 
-                IntPtr userKeyPtr = Marshal.StringToHGlobalAnsi(UserAttributeName);
-                IntPtr userValuePtr = Marshal.StringToHGlobalAnsi(credential.UserName);
-                g_hash_table_insert(attributes, userKeyPtr, userValuePtr);
+                if (!string.IsNullOrWhiteSpace(account))
+                {
+                    IntPtr accountKeyPtr = Marshal.StringToHGlobalAnsi(AccountAttributeName);
+                    IntPtr accountValuePtr = Marshal.StringToHGlobalAnsi(account);
+                    g_hash_table_insert(attributes, accountKeyPtr, accountValuePtr);
+                }
 
-                // Create the secret value from the password
-                byte[] passwordBytes = Encoding.UTF8.GetBytes(credential.Password);
-                secretValue = secret_value_new(passwordBytes, passwordBytes.Length, PlainTextContentType);
+                // Create the secret value object from the secret string
+                byte[] secretBytes = Encoding.UTF8.GetBytes(secret);
+                secretValue = secret_value_new(secretBytes, secretBytes.Length, PlainTextContentType);
 
                 SecretSchema schema = GetSchema();
 
                 // Store the secret with the associated attributes
                 bool result = secret_service_store_sync(
-                    service,
+                    secService,
                     ref schema,
                     attributes,
                     null,
-                    key, // Use the key also as the label
+                    fullServiceName, // Use full service name as label
                     secretValue,
                     IntPtr.Zero,
                     out error);
@@ -200,27 +178,23 @@ namespace Microsoft.Git.CredentialManager.Interop.Linux
             }
         }
 
-        public unsafe bool Remove(string key)
+        public unsafe bool Remove(string service, string account)
         {
             GHashTable* attributes = null;
             GError* error = null;
 
             try
             {
-                SecretService* service = GetSecretService();
+                SecretService* secService = GetSecretService();
 
-                // Create attributes for the key
-                attributes = g_hash_table_new_full(g_str_hash, g_str_equal,
-                    Marshal.FreeHGlobal, Marshal.FreeHGlobal);
-                IntPtr keyKeyPtr = Marshal.StringToHGlobalAnsi(KeyAttributeName);
-                IntPtr keyValuePtr = Marshal.StringToHGlobalAnsi(key);
-                g_hash_table_insert(attributes, keyKeyPtr, keyValuePtr);
+                // Create search query
+                attributes = CreateSearchQuery(service, account);
 
                 SecretSchema schema = GetSchema();
 
                 // Erase the secret with the specified key
                 bool result = secret_service_clear_sync(
-                    service,
+                    secService,
                     ref schema,
                     attributes,
                     IntPtr.Zero,
@@ -243,6 +217,91 @@ namespace Microsoft.Git.CredentialManager.Interop.Linux
         }
 
         #endregion
+
+        private unsafe GHashTable* CreateSearchQuery(string service, string account)
+        {
+            // Build search query
+            GHashTable* queryAttrs = g_hash_table_new_full(
+                g_str_hash, g_str_equal,
+                Marshal.FreeHGlobal, Marshal.FreeHGlobal);
+
+            // If we've be given a service then filter on the service attribute
+            if (!string.IsNullOrWhiteSpace(service))
+            {
+                string fullServiceName = CreateServiceName(service);
+                IntPtr keyPtr = Marshal.StringToHGlobalAnsi(ServiceAttributeName);
+                IntPtr valuePtr = Marshal.StringToHGlobalAnsi(fullServiceName);
+                g_hash_table_insert(queryAttrs, keyPtr, valuePtr);
+            }
+
+            // If we've be given a username then filter on the account attribute
+            if (!string.IsNullOrWhiteSpace(account))
+            {
+                IntPtr keyPtr = Marshal.StringToHGlobalAnsi(AccountAttributeName);
+                IntPtr valuePtr = Marshal.StringToHGlobalAnsi(account);
+                g_hash_table_insert(queryAttrs, keyPtr, valuePtr);
+            }
+
+            return queryAttrs;
+        }
+
+        private static unsafe ICredential CreateCredentialFromItem(SecretItem* item)
+        {
+            GHashTable* secretAttrs = null;
+            IntPtr serviceKeyPtr = IntPtr.Zero;
+            IntPtr accountKeyPtr = IntPtr.Zero;
+            IntPtr passwordPtr = IntPtr.Zero;
+            GError* error = null;
+
+            try
+            {
+                secretAttrs = secret_item_get_attributes(item);
+
+                // Extract the service attribute
+                serviceKeyPtr = Marshal.StringToHGlobalAnsi(ServiceAttributeName);
+                IntPtr serviceValuePtr = g_hash_table_lookup(secretAttrs, serviceKeyPtr);
+                string service = Marshal.PtrToStringAuto(serviceValuePtr);
+
+                // Extract the account attribute
+                accountKeyPtr = Marshal.StringToHGlobalAnsi(AccountAttributeName);
+                IntPtr accountValuePtr = g_hash_table_lookup(secretAttrs, accountKeyPtr);
+                string account = Marshal.PtrToStringAuto(accountValuePtr);
+
+                // Load the secret value
+                secret_item_load_secret_sync(item, IntPtr.Zero, out error);
+                SecretValue* value = secret_item_get_secret(item);
+                if (value == null)
+                {
+                    throw new InteropException("Failed to load secret", -1);
+                }
+
+                // Extract the secret/password
+                passwordPtr = secret_value_unref_to_password(value, out int passwordLength);
+                string password = Marshal.PtrToStringAuto(passwordPtr, passwordLength);
+
+                return new SecretServiceCredential(service, account, password);
+            }
+            finally
+            {
+                if (secretAttrs != null) g_hash_table_unref(secretAttrs);
+                if (accountKeyPtr != IntPtr.Zero) Marshal.FreeHGlobal(accountKeyPtr);
+                if (serviceKeyPtr != IntPtr.Zero) Marshal.FreeHGlobal(serviceKeyPtr);
+                if (passwordPtr != IntPtr.Zero) secret_password_free(passwordPtr);
+                if (error != null) g_error_free(error);
+            }
+        }
+
+        private string CreateServiceName(string service)
+        {
+            var sb = new StringBuilder();
+            if (!string.IsNullOrWhiteSpace(_namespace))
+            {
+                sb.AppendFormat("{0}:", _namespace);
+            }
+
+            sb.Append(service);
+            return sb.ToString();
+        }
 
         private static unsafe SecretService* GetSecretService()
         {
@@ -274,13 +333,13 @@ namespace Microsoft.Git.CredentialManager.Interop.Linux
 
             schema.attributes[0] = new SecretSchemaAttribute
             {
-                name = KeyAttributeName,
+                name = ServiceAttributeName,
                 type = SECRET_SCHEMA_ATTRIBUTE_STRING
             };
 
             schema.attributes[1] = new SecretSchemaAttribute
             {
-                name = UserAttributeName,
+                name = AccountAttributeName,
                 type = SECRET_SCHEMA_ATTRIBUTE_STRING
             };
 

@@ -36,7 +36,7 @@ namespace Microsoft.Git.CredentialManager.Commands
             }
 
             // Return the credential to Git
-            output["username"] = credential.UserName;
+            output["username"] = credential.Account;
             output["password"] = credential.Password;
 
             // Write the values to standard out

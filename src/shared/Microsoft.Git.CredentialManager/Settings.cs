@@ -109,6 +109,12 @@ namespace Microsoft.Git.CredentialManager
         /// </summary>
         /// <remarks>This value is platform specific.</remarks>
         string ParentWindowId { get; }
+
+        /// <summary>
+        /// Credential storage namespace prefix.
+        /// </summary>
+        /// <remarks>The default value is "git" if unset.</remarks>
+        string CredentialNamespace { get; }
     }
 
     public class Settings : ISettings
@@ -406,7 +412,14 @@ namespace Microsoft.Git.CredentialManager
             return null;
         }
 
-        public string ParentWindowId => _environment.Variables.TryGetValue(Constants.EnvironmentVariables.GcmParentWindow, out string parentWindowId) ? parentWindowId : null;
+        public string ParentWindowId => _environment.Variables.TryGetValue(KnownEnvars.GcmParentWindow, out string parentWindowId) ? parentWindowId : null;
+
+        public string CredentialNamespace =>
+            TryGetSetting(KnownEnvars.GcmCredNamespace,
+                KnownGitCfg.Credential.SectionName, KnownGitCfg.Credential.CredNamespace,
+                out string @namespace)
+                ? @namespace
+                : Constants.DefaultCredentialNamespace;
 
         #region IDisposable
 

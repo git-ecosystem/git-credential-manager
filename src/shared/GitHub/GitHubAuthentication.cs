@@ -14,7 +14,7 @@ namespace GitHub
 {
     public interface IGitHubAuthentication : IDisposable
     {
-        Task<AuthenticationPromptResult> GetAuthenticationAsync(Uri targetUri, AuthenticationModes modes);
+        Task<AuthenticationPromptResult> GetAuthenticationAsync(Uri targetUri, string userName, AuthenticationModes modes);
 
         Task<string> GetTwoFactorCodeAsync(Uri targetUri, bool isSms);
 
@@ -57,7 +57,7 @@ namespace GitHub
         public GitHubAuthentication(ICommandContext context)
             : base(context) {}
 
-        public async Task<AuthenticationPromptResult> GetAuthenticationAsync(Uri targetUri, AuthenticationModes modes)
+        public async Task<AuthenticationPromptResult> GetAuthenticationAsync(Uri targetUri, string userName, AuthenticationModes modes)
         {
             ThrowIfUserInteractionDisabled();
 
@@ -71,7 +71,8 @@ namespace GitHub
                 var promptArgs = new StringBuilder("prompt");
                 if ((modes & AuthenticationModes.Basic) != 0) promptArgs.Append(" --basic");
                 if ((modes & AuthenticationModes.OAuth) != 0) promptArgs.Append(" --oauth");
-                if (!GitHubHostProvider.IsGitHubDotCom(targetUri)) promptArgs.AppendFormat(" --enterprise-url {0}", targetUri.ToString());
+                if (!GitHubHostProvider.IsGitHubDotCom(targetUri)) promptArgs.AppendFormat(" --enterprise-url {0}", targetUri);
+                if (!string.IsNullOrWhiteSpace(userName)) promptArgs.AppendFormat("--username {0}", userName);
 
                 IDictionary<string, string> resultDict = await InvokeHelperAsync(helperPath, promptArgs.ToString(), null);
 
@@ -86,7 +87,7 @@ namespace GitHub
                         return new AuthenticationPromptResult(AuthenticationModes.OAuth);
 
                     case "basic":
-                        if (!resultDict.TryGetValue("username", out string userName))
+                        if (!resultDict.TryGetValue("username", out userName))
                         {
                             throw new Exception("Missing 'username' in response");
                         }
@@ -125,7 +126,16 @@ namespace GitHub
 
                     case AuthenticationModes.Basic:
                         Context.Terminal.WriteLine("Enter GitHub credentials for '{0}'...", targetUri);
-                        string userName = Context.Terminal.Prompt("Username");
+
+                        if (string.IsNullOrWhiteSpace(userName))
+                        {
+                            userName = Context.Terminal.Prompt("Username");
+                        }
+                        else
+                        {
+                            Context.Terminal.WriteLine("Username: {0}", userName);
+                        }
+
                         string password = Context.Terminal.PromptSecret("Password");
 
                         return new AuthenticationPromptResult(new GitCredential(userName, password));

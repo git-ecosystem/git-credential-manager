@@ -112,9 +112,9 @@ namespace GitHub.Tests
         }
 
         [Fact]
-        public void GitHubHostProvider_GetCredentialKey_GitHubHost_ReturnsCorrectKey()
+        public void GitHubHostProvider_GetCredentialServiceUrl_GitHubHost_ReturnsCorrectKey()
         {
-            const string expectedKey = "git:https://github.com";
+            const string expectedService = "https://github.com";
             var input = new InputArguments(new Dictionary<string, string>
             {
                 ["protocol"] = "https",
@@ -122,14 +122,14 @@ namespace GitHub.Tests
             });
 
             var provider = new GitHubHostProvider(new TestCommandContext());
-            string actualKey = provider.GetCredentialKey(input);
-            Assert.Equal(expectedKey, actualKey);
+            string actualService = provider.GetServiceName(input);
+            Assert.Equal(expectedService, actualService);
         }
 
         [Fact]
-        public void GitHubHostProvider_GetCredentialKey_GistHost_ReturnsCorrectKey()
+        public void GitHubHostProvider_GetCredentialServiceUrl_GistHost_ReturnsCorrectKey()
         {
-            const string expectedKey = "git:https://github.com";
+            const string expectedService = "https://github.com";
             var input = new InputArguments(new Dictionary<string, string>
             {
                 ["protocol"] = "https",
@@ -137,8 +137,8 @@ namespace GitHub.Tests
             });
 
             var provider = new GitHubHostProvider(new TestCommandContext());
-            string actualKey = provider.GetCredentialKey(input);
-            Assert.Equal(expectedKey, actualKey);
+            string actualService = provider.GetServiceName(input);
+            Assert.Equal(expectedService, actualService);
         }
 
         [Fact]
@@ -379,26 +379,29 @@ namespace GitHub.Tests
                 GitHubConstants.OAuthScopes.Workflow,
             };
 
+            var expectedUserName = "john.doe";
             var tokenValue = "OAUTH-TOKEN";
             var response = new OAuth2TokenResult(tokenValue, "bearer");
 
             var context = new TestCommandContext();
 
             var ghAuthMock = new Mock<IGitHubAuthentication>(MockBehavior.Strict);
-            ghAuthMock.Setup(x => x.GetAuthenticationAsync(expectedTargetUri, It.IsAny<AuthenticationModes>()))
+            ghAuthMock.Setup(x => x.GetAuthenticationAsync(expectedTargetUri, null, It.IsAny<AuthenticationModes>()))
                       .ReturnsAsync(new AuthenticationPromptResult(AuthenticationModes.OAuth));
 
             ghAuthMock.Setup(x => x.GetOAuthTokenAsync(expectedTargetUri, It.IsAny<IEnumerable<string>>()))
                       .ReturnsAsync(response);
 
             var ghApiMock = new Mock<IGitHubRestApi>(MockBehavior.Strict);
+            ghApiMock.Setup(x => x.GetUserInfoAsync(expectedTargetUri, tokenValue))
+                     .ReturnsAsync(new GitHubUserInfo{Login = expectedUserName});
 
             var provider = new GitHubHostProvider(context, ghApiMock.Object, ghAuthMock.Object);
 
             ICredential credential = await provider.GenerateCredentialAsync(input);
 
             Assert.NotNull(credential);
-            Assert.Equal(Constants.OAuthTokenUserName, credential.UserName);
+            Assert.Equal(expectedUserName, credential.Account);
             Assert.Equal(tokenValue, credential.Password);
 
             ghAuthMock.Verify(
@@ -426,25 +429,26 @@ namespace GitHub.Tests
             };
 
             var patValue = "PERSONAL-ACCESS-TOKEN";
-            var pat = new GitCredential(Constants.PersonalAccessTokenUserName, patValue);
-            var response = new AuthenticationResult(GitHubAuthenticationResultType.Success, pat);
+            var response = new AuthenticationResult(GitHubAuthenticationResultType.Success, patValue);
 
             var context = new TestCommandContext();
 
             var ghAuthMock = new Mock<IGitHubAuthentication>(MockBehavior.Strict);
-            ghAuthMock.Setup(x => x.GetAuthenticationAsync(expectedTargetUri, It.IsAny<AuthenticationModes>()))
+            ghAuthMock.Setup(x => x.GetAuthenticationAsync(expectedTargetUri, null, It.IsAny<AuthenticationModes>()))
                       .ReturnsAsync(new AuthenticationPromptResult(new GitCredential(expectedUserName, expectedPassword)));
 
             var ghApiMock = new Mock<IGitHubRestApi>(MockBehavior.Strict);
             ghApiMock.Setup(x => x.CreatePersonalAccessTokenAsync(expectedTargetUri, expectedUserName, expectedPassword, null, It.IsAny<IEnumerable<string>>()))
                      .ReturnsAsync(response);
+            ghApiMock.Setup(x => x.GetUserInfoAsync(expectedTargetUri, patValue))
+                     .ReturnsAsync(new GitHubUserInfo{Login = expectedUserName});
 
             var provider = new GitHubHostProvider(context, ghApiMock.Object, ghAuthMock.Object);
 
             ICredential credential = await provider.GenerateCredentialAsync(input);
 
             Assert.NotNull(credential);
-            Assert.Equal(Constants.PersonalAccessTokenUserName, credential.UserName);
+            Assert.Equal(expectedUserName, credential.Account);
             Assert.Equal(patValue, credential.Password);
 
             ghApiMock.Verify(
@@ -473,14 +477,13 @@ namespace GitHub.Tests
             };
 
             var patValue = "PERSONAL-ACCESS-TOKEN";
-            var pat = new GitCredential(Constants.PersonalAccessTokenUserName, patValue);
             var response1 = new AuthenticationResult(GitHubAuthenticationResultType.TwoFactorApp);
-            var response2 = new AuthenticationResult(GitHubAuthenticationResultType.Success, pat);
+            var response2 = new AuthenticationResult(GitHubAuthenticationResultType.Success, patValue);
 
             var context = new TestCommandContext();
 
             var ghAuthMock = new Mock<IGitHubAuthentication>(MockBehavior.Strict);
-            ghAuthMock.Setup(x => x.GetAuthenticationAsync(expectedTargetUri, It.IsAny<AuthenticationModes>()))
+            ghAuthMock.Setup(x => x.GetAuthenticationAsync(expectedTargetUri, null, It.IsAny<AuthenticationModes>()))
                       .ReturnsAsync(new AuthenticationPromptResult(new GitCredential(expectedUserName, expectedPassword)));
             ghAuthMock.Setup(x => x.GetTwoFactorCodeAsync(expectedTargetUri, false))
                       .ReturnsAsync(expectedAuthCode);
@@ -490,13 +493,15 @@ namespace GitHub.Tests
                         .ReturnsAsync(response1);
             ghApiMock.Setup(x => x.CreatePersonalAccessTokenAsync(expectedTargetUri, expectedUserName, expectedPassword, expectedAuthCode, It.IsAny<IEnumerable<string>>()))
                         .ReturnsAsync(response2);
+            ghApiMock.Setup(x => x.GetUserInfoAsync(expectedTargetUri, patValue))
+                     .ReturnsAsync(new GitHubUserInfo{Login = expectedUserName});
 
             var provider = new GitHubHostProvider(context, ghApiMock.Object, ghAuthMock.Object);
 
             ICredential credential = await provider.GenerateCredentialAsync(input);
 
             Assert.NotNull(credential);
-            Assert.Equal(Constants.PersonalAccessTokenUserName, credential.UserName);
+            Assert.Equal(expectedUserName, credential.Account);
             Assert.Equal(patValue, credential.Password);
 
             ghApiMock.Verify(

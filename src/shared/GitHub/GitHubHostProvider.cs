@@ -47,27 +47,32 @@ namespace GitHub
 
         public override bool IsSupported(InputArguments input)
         {
+            if (input is null)
+            {
+                return false;
+            }
+
+            // Split port number and hostname from host input argument
+            input.TryGetHostAndPort(out string hostName, out _);
+
             // We do not support unencrypted HTTP communications to GitHub,
             // but we report `true` here for HTTP so that we can show a helpful
             // error message for the user in `CreateCredentialAsync`.
-            return input != null &&
-                   (StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "http") ||
+            return (StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "http") ||
                     StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "https")) &&
-                   (StringComparer.OrdinalIgnoreCase.Equals(input.Host, GitHubConstants.GitHubBaseUrlHost) ||
-                    StringComparer.OrdinalIgnoreCase.Equals(input.Host, GitHubConstants.GistBaseUrlHost));
+                   (StringComparer.OrdinalIgnoreCase.Equals(hostName, GitHubConstants.GitHubBaseUrlHost) ||
+                    StringComparer.OrdinalIgnoreCase.Equals(hostName, GitHubConstants.GistBaseUrlHost));
         }
 
-        public override string GetCredentialKey(InputArguments input)
+        public override string GetServiceName(InputArguments input)
         {
-            string url = GetTargetUri(input).AbsoluteUri;
+            var baseUri = new Uri(base.GetServiceName(input));
+
+            // Normalise the URI
+            string url = NormalizeUri(baseUri).AbsoluteUri;
 
             // Trim trailing slash
-            if (url.EndsWith("/"))
-            {
-                url = url.Substring(0, url.Length - 1);
-            }
-
-            return $"git:{url}";
+            return url.TrimEnd('/');
         }
 
         public override async Task<ICredential> GenerateCredentialAsync(InputArguments input)
@@ -80,16 +85,19 @@ namespace GitHub
                 throw new Exception("Unencrypted HTTP is not supported for GitHub. Ensure the repository remote URL is using HTTPS.");
             }
 
-            Uri targetUri = GetTargetUri(input);
+            Uri remoteUri = input.GetRemoteUri();
 
-            AuthenticationModes authModes = await GetSupportedAuthenticationModesAsync(targetUri);
+            string service = GetServiceName(input);
 
-            AuthenticationPromptResult promptResult = await _gitHubAuth.GetAuthenticationAsync(targetUri, authModes);
+            AuthenticationModes authModes = await GetSupportedAuthenticationModesAsync(remoteUri);
+
+            AuthenticationPromptResult promptResult = await _gitHubAuth.GetAuthenticationAsync(remoteUri, input.UserName, authModes);
 
             switch (promptResult.AuthenticationMode)
             {
                 case AuthenticationModes.Basic:
-                    ICredential patCredential = await GeneratePersonalAccessTokenAsync(targetUri, promptResult.BasicCredential);
+                    GitCredential patCredential = await GeneratePersonalAccessTokenAsync(remoteUri, promptResult.BasicCredential);
+
                     // HACK: Store the PAT immediately in case this PAT is not valid for SSO.
                     // We don't know if this PAT is valid for SAML SSO and if it's not Git will fail
                     // with a 403 and call neither 'store' or 'erase'. The user is expected to fiddle with
@@ -97,38 +105,42 @@ namespace GitHub
                     // We must store the PAT now so they can resume/repeat the operation with the same,
                     // now SSO authorized, PAT.
                     // See: https://github.com/microsoft/Git-Credential-Manager-Core/issues/133
-                    Context.CredentialStore.AddOrUpdate(GetCredentialKey(input), patCredential);
+                    Context.CredentialStore.AddOrUpdate(service, patCredential.Account, patCredential.Password);
                     return patCredential;
 
                 case AuthenticationModes.OAuth:
-                    return await GenerateOAuthCredentialAsync(targetUri);
+                    return await GenerateOAuthCredentialAsync(remoteUri);
 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(promptResult));
             }
         }
 
-        private async Task<ICredential> GenerateOAuthCredentialAsync(Uri targetUri)
+        private async Task<GitCredential> GenerateOAuthCredentialAsync(Uri targetUri)
         {
             OAuth2TokenResult result = await _gitHubAuth.GetOAuthTokenAsync(targetUri, GitHubOAuthScopes);
 
-            return new GitCredential(Constants.OAuthTokenUserName, result.AccessToken);
+            // Resolve the GitHub user handle
+            GitHubUserInfo userInfo = await _gitHubApi.GetUserInfoAsync(targetUri, result.AccessToken);
+
+            return new GitCredential(userInfo.Login, result.AccessToken);
         }
 
-        private async Task<ICredential> GeneratePersonalAccessTokenAsync(Uri targetUri, ICredential credentials)
+        private async Task<GitCredential> GeneratePersonalAccessTokenAsync(Uri targetUri, ICredential credentials)
         {
             AuthenticationResult result = await _gitHubApi.CreatePersonalTokenAsync(
                 targetUri, credentials, null, GitHubCredentialScopes);
+
+            string token = null;
 
             if (result.Type == GitHubAuthenticationResultType.Success)
             {
                 Context.Trace.WriteLine($"Token acquisition for '{targetUri}' succeeded");
 
-                return result.Token;
+                token = result.Token;
             }
-
-            if (result.Type == GitHubAuthenticationResultType.TwoFactorApp ||
-                result.Type == GitHubAuthenticationResultType.TwoFactorSms)
+            else if (result.Type == GitHubAuthenticationResultType.TwoFactorApp ||
+                     result.Type == GitHubAuthenticationResultType.TwoFactorSms)
             {
                 bool isSms = result.Type == GitHubAuthenticationResultType.TwoFactorSms;
 
@@ -140,8 +152,16 @@ namespace GitHub
                 {
                     Context.Trace.WriteLine($"Token acquisition for '{targetUri}' succeeded.");
 
-                    return result.Token;
+                    token = result.Token;
                 }
+            }
+
+            if (token != null)
+            {
+                // Resolve the GitHub user handle
+                GitHubUserInfo userInfo = await _gitHubApi.GetUserInfoAsync(targetUri, token);
+
+                return new GitCredential(userInfo.Login, token);
             }
 
             throw new Exception($"Interactive logon for '{targetUri}' failed.");
@@ -217,32 +237,21 @@ namespace GitHub
             return StringComparer.OrdinalIgnoreCase.Equals(targetUri.Host, GitHubConstants.GitHubBaseUrlHost);
         }
 
-        private static Uri NormalizeUri(Uri targetUri)
+        private static Uri NormalizeUri(Uri uri)
         {
-            if (targetUri is null)
+            if (uri is null)
             {
-                throw new ArgumentNullException(nameof(targetUri));
+                throw new ArgumentNullException(nameof(uri));
             }
 
             // Special case for gist.github.com which are git backed repositories under the hood.
             // Credentials for these repositories are the same as the one stored with "github.com"
-            if (targetUri.DnsSafeHost.Equals(GitHubConstants.GistBaseUrlHost, StringComparison.OrdinalIgnoreCase))
+            if (uri.DnsSafeHost.Equals(GitHubConstants.GistBaseUrlHost, StringComparison.OrdinalIgnoreCase))
             {
                 return new Uri("https://" + GitHubConstants.GitHubBaseUrlHost);
             }
 
-            return targetUri;
-        }
-
-        private static Uri GetTargetUri(InputArguments input)
-        {
-            Uri uri = new UriBuilder
-            {
-                Scheme = input.Protocol,
-                Host = input.Host,
-            }.Uri;
-
-            return NormalizeUri(uri);
+            return uri;
         }
 
         #endregion

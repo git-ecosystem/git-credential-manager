@@ -33,7 +33,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Authentication
 
             ICredential credential = basicAuth.GetCredentials(testResource, testUserName);
 
-            Assert.Equal(testUserName, credential.UserName);
+            Assert.Equal(testUserName, credential.Account);
             Assert.Equal(testPassword, credential.Password);
         }
 
@@ -52,7 +52,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Authentication
 
             ICredential credential = basicAuth.GetCredentials(testResource);
 
-            Assert.Equal(testUserName, credential.UserName);
+            Assert.Equal(testUserName, credential.Account);
             Assert.Equal(testPassword, credential.Password);
         }
 
@@ -99,7 +99,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Authentication
             ICredential credential = basicAuth.GetCredentials(testResource);
 
             Assert.NotNull(credential);
-            Assert.Equal(testUserName, credential.UserName);
+            Assert.Equal(testUserName, credential.Account);
             Assert.Equal(testPassword, credential.Password);
         }
 
@@ -130,7 +130,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Authentication
             ICredential credential = basicAuth.GetCredentials(testResource, testUserName);
 
             Assert.NotNull(credential);
-            Assert.Equal(testUserName, credential.UserName);
+            Assert.Equal(testUserName, credential.Account);
             Assert.Equal(testPassword, credential.Password);
         }
 
@@ -162,7 +162,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Authentication
             ICredential credential = basicAuth.GetCredentials(testResource, testUserName);
 
             Assert.NotNull(credential);
-            Assert.Equal(newUserName, credential.UserName);
+            Assert.Equal(newUserName, credential.Account);
             Assert.Equal(testPassword, credential.Password);
         }
     }

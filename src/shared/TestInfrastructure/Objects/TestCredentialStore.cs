@@ -1,115 +1,108 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
-using System;
-using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Microsoft.Git.CredentialManager.Tests.Objects
 {
-    public class TestCredentialStore : ICredentialStore, IDictionary<string, ICredential>
+    public class TestCredentialStore : ICredentialStore
     {
-        private readonly IDictionary<string, ICredential> _store;
+        private readonly IDictionary<(string service, string account), TestCredential> _store;
 
         public TestCredentialStore()
         {
-            _store = new Dictionary<string, ICredential>(StringComparer.Ordinal);
+            _store = new Dictionary<(string,string), TestCredential>();
         }
 
         #region ICredentialStore
 
-        ICredential ICredentialStore.Get(string key)
+        ICredential ICredentialStore.Get(string service, string account)
         {
-            if (_store.TryGetValue(key, out var credential))
+            return TryGet(service, account, out TestCredential credential) ? credential : null;
+        }
+
+        void ICredentialStore.AddOrUpdate(string service, string account, string secret)
+        {
+            Add(service, account, secret);
+        }
+
+        bool ICredentialStore.Remove(string service, string account)
+        {
+            foreach (var key in _store.Keys)
             {
-                return credential;
+                if ((service == null || key.service == service) &&
+                    (account == null || key.account == account))
+                {
+                    _store.Remove(key);
+                    return true;
+                }
             }
 
-            return null;
-        }
-
-        void ICredentialStore.AddOrUpdate(string key, ICredential credential)
-        {
-            _store[key] = credential;
-        }
-
-        public void Add(string key, ICredential value)
-        {
-            _store.Add(key, value);
-        }
-
-        public bool ContainsKey(string key)
-        {
-            return _store.ContainsKey(key);
-        }
-
-        public bool Remove(string key)
-        {
-            return _store.Remove(key);
-        }
-
-        public bool TryGetValue(string key, out ICredential value)
-        {
-            return _store.TryGetValue(key, out value);
-        }
-
-        public ICredential this[string key]
-        {
-            get => _store[key];
-            set => _store[key] = value;
-        }
-
-        public ICollection<string> Keys => _store.Keys;
-
-        public ICollection<ICredential> Values => _store.Values;
-
-        bool ICredentialStore.Remove(string key)
-        {
-            return _store.Remove(key);
+            return false;
         }
 
         #endregion
-
-        #region IDictionary<string, ICredential>
-
-        public IEnumerator<KeyValuePair<string, ICredential>> GetEnumerator()
-        {
-            return _store.GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return ((IEnumerable) _store).GetEnumerator();
-        }
-
-        public void Add(KeyValuePair<string, ICredential> item)
-        {
-            _store.Add(item);
-        }
-
-        public void Clear()
-        {
-            _store.Clear();
-        }
-
-        public bool Contains(KeyValuePair<string, ICredential> item)
-        {
-            return _store.Contains(item);
-        }
-
-        public void CopyTo(KeyValuePair<string, ICredential>[] array, int arrayIndex)
-        {
-            _store.CopyTo(array, arrayIndex);
-        }
-
-        public bool Remove(KeyValuePair<string, ICredential> item)
-        {
-            return _store.Remove(item);
-        }
 
         public int Count => _store.Count;
 
-        public bool IsReadOnly => _store.IsReadOnly;
+        public bool TryGet(string service, string account, out TestCredential credential)
+        {
+            credential = Query(service, account).FirstOrDefault();
+            return credential != null;
+        }
 
-        #endregion
+        public void Add(string service, TestCredential credential)
+        {
+            _store[(service, credential.Account)] = credential;
+        }
+
+        public TestCredential Add(string service, string account, string secret)
+        {
+            var credential = new TestCredential(service, account, secret);
+            _store[(service, account)] = credential;
+            return credential;
+        }
+
+        public bool Contains(string service, string account)
+        {
+            return TryGet(service, account, out _);
+        }
+
+        private IEnumerable<TestCredential> Query(string service, string account)
+        {
+            if (string.IsNullOrWhiteSpace(account))
+            {
+                // Find the all credentials matching service
+                foreach (var kvp in _store)
+                {
+                    if (kvp.Key.service == service)
+                    {
+                        yield return kvp.Value;
+                    }
+                }
+            }
+
+            // Find the specific credential matching both service and credential
+            if (_store.TryGetValue((service, account), out var credential))
+            {
+                yield return credential;
+            }
+        }
+    }
+
+    public class TestCredential : ICredential
+    {
+        public TestCredential(string service, string account, string password)
+        {
+            Service = service;
+            Account = account;
+            Password = password;
+        }
+
+        public string Service { get; }
+
+        public string Account { get; }
+
+        public string Password { get; }
     }
 }

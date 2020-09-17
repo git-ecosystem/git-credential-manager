@@ -36,6 +36,7 @@ namespace Microsoft.Git.CredentialManager.Interop.Posix
             const string whichPath = "/usr/bin/which";
             var psi = new ProcessStartInfo(whichPath, program)
             {
+                UseShellExecute = false,
                 RedirectStandardOutput = true
             };
 

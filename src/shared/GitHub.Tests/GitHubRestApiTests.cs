@@ -1,14 +1,12 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.Git.CredentialManager;
 using Microsoft.Git.CredentialManager.Tests.Objects;
 using Xunit;
 
@@ -90,7 +88,7 @@ namespace GitHub.Tests
 
             Assert.Equal(GitHubAuthenticationResultType.Success, authResult.Type);
             Assert.NotNull(authResult.Token);
-            Assert.Equal(expectedTokenValue, authResult.Token.Password);
+            Assert.Equal(expectedTokenValue, authResult.Token);
         }
 
         [Fact]
@@ -167,7 +165,7 @@ namespace GitHub.Tests
 
             Assert.Equal(GitHubAuthenticationResultType.Success, authResult.Type);
             Assert.NotNull(authResult.Token);
-            Assert.Equal(expectedTokenValue, authResult.Token.Password);
+            Assert.Equal(expectedTokenValue, authResult.Token);
         }
 
         [Fact]
@@ -267,7 +265,7 @@ namespace GitHub.Tests
 
             Assert.Equal(GitHubAuthenticationResultType.Success, authResult.Type);
             Assert.NotNull(authResult.Token);
-            Assert.Equal(testOAuthToken, authResult.Token.Password);
+            Assert.Equal(testOAuthToken, authResult.Token);
         }
 
         [Fact]

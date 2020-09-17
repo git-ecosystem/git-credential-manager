@@ -196,18 +196,24 @@ directly implement the interface they can also derive from the `HostProvider`
 abstract class (which itself implements the `IHostProvider` interface).
 
 The `HostProvider` abstract class implements the
-`Get|Store|EraseCredentialAsync` methods and instead has a
-`GenerateCredentialAsync` and `GetCredentialKey` abstract methods. Calls to
-`get`, `store`, or `erase` result in first a call to `GetCredentialKey` which
-should return a stable and unique "key" for the request. This forms the key for
-any stored credential in the credential store. During a `get` operation the
-credential store is queried for an existing credential with the computed key.
+`Get|Store|EraseCredentialAsync` methods and instead has the
+`GenerateCredentialAsync` abstract method, and the `GetServiceName` virtual
+method. Calls to `get`, `store`, or `erase` result in first a call to
+`GetServiceName` which should return a stable and unique value for the provider
+and request. This value forms part of the attributes associated with any stored
+credential in the credential store. During a `get` operation the
+credential store is queried for an existing credential with such service name.
 If a credential is found it is returned immediately. Similarly, calls to `store`
 and `erase` are handles automatically to store credentials against, and erase
-credentials matching the computed key. Methods are implemented as `virtual`
+credentials matching the service name. Methods are implemented as `virtual`
 meaning you can always override this behaviour, for example to clear other
 custom caches on an `erase` request, without having to reimplement the
 lookup/store credential logic.
+
+The default implementation of `GetServiceName` is usually sufficient for most
+providers. It returns the computed remote URL (without a trailing slash) from
+the input arguments from Git - `<protocol>://<host>[/<path>]` - no username is
+included even if present.
 
 Host providers are queried in turn (registration order) via the
 `IHostProvider.IsSupported` method and passed the input received from Git. If
