@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
+using System.Collections.Generic;
 using System.IO;
 
 namespace Microsoft.Git.CredentialManager
@@ -46,6 +47,34 @@ namespace Microsoft.Git.CredentialManager
         /// <param name="fileShare">File share settings.</param>
         /// <returns></returns>
         Stream OpenFileStream(string path, FileMode fileMode, FileAccess fileAccess, FileShare fileShare);
+
+        /// <summary>
+        /// Creates all directories and subdirectories in the specified path unless they already exist.
+        /// </summary>
+        /// <param name="path">The directory to create.</param>
+        void CreateDirectory(string path);
+
+        /// <summary>
+        /// Deletes the specified file.
+        /// </summary>
+        /// <param name="path">Name of the file to be deleted.</param>
+        void DeleteFile(string path);
+
+        /// <summary>
+        /// Returns an enumerable collection of full file names that match a search pattern in a specified path.
+        /// </summary>
+        /// <param name="path">The relative or absolute path to the directory to search.</param>
+        /// <param name="searchPattern">
+        /// The search string to match against the names of files in path.
+        /// This parameter can contain a combination of valid literal path and wildcard (* and ?) characters,
+        /// but it doesn't support regular expressions.
+        /// </param>
+        /// <returns>
+        /// An enumerable collection of the full names (including paths) for the files in the directory
+        /// specified by path and that match the specified search pattern.
+        /// </returns>
+        IEnumerable<string> EnumerateFiles(string path, string searchPattern);
+
     }
 
     /// <summary>
@@ -63,5 +92,11 @@ namespace Microsoft.Git.CredentialManager
 
         public Stream OpenFileStream(string path, FileMode fileMode, FileAccess fileAccess, FileShare fileShare)
             => File.Open(path, fileMode, fileAccess, fileShare);
+
+        public void CreateDirectory(string path) => Directory.CreateDirectory(path);
+
+        public void DeleteFile(string path) => File.Delete(path);
+
+        public IEnumerable<string> EnumerateFiles(string path, string searchPattern) => Directory.EnumerateFiles(path, searchPattern);
     }
 }

@@ -332,3 +332,43 @@ export GCM_NAMESPACE="my-namespace"
 ```
 
 **Also see: [credential.namespace](configuration.md#credentialnamespace)**
+
+---
+
+### GCM_CREDENTIAL_STORE
+
+Select the type of credential store to use on supported platforms.
+
+Default value is unset.
+
+**Note:** This setting is only supported on Linux platforms. Setting this value on Windows and macOS has no effect.
+
+Value|Credential Store
+-|-
+_(unset)_|(error)
+`secretservice`|[freedesktop.org Secret Service API](https://specifications.freedesktop.org/secret-service/) via [libsecret](https://wiki.gnome.org/Projects/Libsecret) (requires a graphical interface to unlock secret collections).
+`plaintext`|Store credentials in plaintext files (**UNSECURE**). Customize the plaintext store location with [`GCM_PLAINTEXT_STORE_PATH`](#GCM_PLAINTEXT_STORE_PATH).
+
+##### Linux
+
+```bash
+export GCM_CREDENTIAL_STORE="secretservice"
+```
+
+**Also see: [credential.credentialStore](configuration.md#credentialcredentialstore)**
+
+---
+
+### GCM_PLAINTEXT_STORE_PATH
+
+Specify a custom directory to store plaintext credential files in when [`GCM_CREDENTIAL_STORE`](#GCM_CREDENTIAL_STORE) is set to `plaintext`.
+
+Defaults to the value `~/.gcm/store`.
+
+#### Linux
+
+```shell
+export GCM_PLAINTEXT_STORE_PATH=/mnt/external-drive/credentials
+```
+
+**Also see: [credential.plaintextStorePath](configuration.md#credentialplaintextstorepath)**

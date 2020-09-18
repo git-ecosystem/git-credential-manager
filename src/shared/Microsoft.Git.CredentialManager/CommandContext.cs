@@ -123,7 +123,7 @@ namespace Microsoft.Git.CredentialManager
                                             FileSystem.GetCurrentDirectory()
                                         );
                 Settings          = new Settings(Environment, Git);
-                CredentialStore   = new LinuxCredentialStore(Settings, Git, Settings.CredentialNamespace);
+                CredentialStore   = new LinuxCredentialStore(FileSystem, Settings, SessionManager);
             }
             else
             {
