@@ -21,12 +21,7 @@ namespace Microsoft.Git.CredentialManager.Interop.MacOS
         /// </summary>
         /// <param name="namespace">Optional namespace to scope credential operations.</param>
         /// <returns>Default keychain.</returns>
-        public static MacOSKeychain Open(string @namespace = null)
-        {
-            return new MacOSKeychain(@namespace);
-        }
-
-        private MacOSKeychain(string @namespace)
+        public MacOSKeychain(string @namespace = null)
         {
             PlatformUtils.EnsureMacOS();
             _namespace = @namespace;

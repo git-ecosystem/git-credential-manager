@@ -13,7 +13,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop.MacOS
         [PlatformFact(Platform.MacOS)]
         public void MacOSKeychain_ReadWriteDelete()
         {
-            MacOSKeychain keychain = MacOSKeychain.Open(TestNamespace);
+            var keychain = new MacOSKeychain(TestNamespace);
 
             // Create a service that is guaranteed to be unique
             string service = $"https://example.com/{Guid.NewGuid():N}";
@@ -42,7 +42,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop.MacOS
         [PlatformFact(Platform.MacOS)]
         public void MacOSKeychain_Get_NotFound_ReturnsNull()
         {
-            MacOSKeychain keychain = MacOSKeychain.Open(TestNamespace);
+            var keychain = new MacOSKeychain(TestNamespace);
 
             // Unique service; guaranteed not to exist!
             string service = $"https://example.com/{Guid.NewGuid():N}";
@@ -54,7 +54,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop.MacOS
         [PlatformFact(Platform.MacOS)]
         public void MacOSKeychain_Remove_NotFound_ReturnsFalse()
         {
-            MacOSKeychain keychain = MacOSKeychain.Open(TestNamespace);
+            var keychain = new MacOSKeychain(TestNamespace);
 
             // Unique service; guaranteed not to exist!
             string service = $"https://example.com/{Guid.NewGuid():N}";

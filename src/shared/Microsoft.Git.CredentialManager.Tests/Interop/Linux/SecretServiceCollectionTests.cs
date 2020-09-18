@@ -13,7 +13,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop.Linux
         [PlatformFact(Platform.Linux, Skip = "Cannot run headless")]
         public void SecretServiceCollection_ReadWriteDelete()
         {
-            SecretServiceCollection collection = SecretServiceCollection.Open(TestNamespace);
+            var collection = new SecretServiceCollection(TestNamespace);
 
             // Create a service that is guaranteed to be unique
             string service = $"https://example.com/{Guid.NewGuid():N}";
@@ -42,7 +42,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop.Linux
         [PlatformFact(Platform.Linux, Skip = "Cannot run headless")]
         public void SecretServiceCollection_Get_NotFound_ReturnsNull()
         {
-            SecretServiceCollection collection = SecretServiceCollection.Open(TestNamespace);
+            var collection = new SecretServiceCollection(TestNamespace);
 
             // Unique service; guaranteed not to exist!
             string service = $"https://example.com/{Guid.NewGuid():N}";
@@ -54,7 +54,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop.Linux
         [PlatformFact(Platform.Linux, Skip = "Cannot run headless")]
         public void SecretServiceCollection_Remove_NotFound_ReturnsFalse()
         {
-            SecretServiceCollection collection = SecretServiceCollection.Open(TestNamespace);
+            var collection = new SecretServiceCollection(TestNamespace);
 
             // Unique service; guaranteed not to exist!
             string service = $"https://example.com/{Guid.NewGuid():N}";

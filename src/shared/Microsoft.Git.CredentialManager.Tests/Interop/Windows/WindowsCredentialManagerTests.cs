@@ -13,7 +13,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop.Windows
         [PlatformFact(Platform.Windows)]
         public void WindowsCredentialManager_ReadWriteDelete()
         {
-            WindowsCredentialManager credManager = WindowsCredentialManager.Open(TestNamespace);
+            var credManager = new WindowsCredentialManager(TestNamespace);
 
             // Create a service that is guaranteed to be unique
             string uniqueGuid = Guid.NewGuid().ToString("N");
@@ -49,7 +49,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop.Windows
         [PlatformFact(Platform.Windows)]
         public void WindowsCredentialManager_AddOrUpdate_UsernameWithAtCharacter()
         {
-            WindowsCredentialManager credManager = WindowsCredentialManager.Open(TestNamespace);
+            var credManager = new WindowsCredentialManager(TestNamespace);
 
             // Create a service that is guaranteed to be unique
             string uniqueGuid = Guid.NewGuid().ToString("N");
@@ -85,7 +85,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop.Windows
         [PlatformFact(Platform.Windows)]
         public void WindowsCredentialManager_Get_KeyNotFound_ReturnsNull()
         {
-            WindowsCredentialManager credManager = WindowsCredentialManager.Open(TestNamespace);
+            var credManager = new WindowsCredentialManager(TestNamespace);
 
             // Unique service; guaranteed not to exist!
             string service = Guid.NewGuid().ToString("N");
@@ -97,7 +97,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop.Windows
         [PlatformFact(Platform.Windows)]
         public void WindowsCredentialManager_Remove_KeyNotFound_ReturnsFalse()
         {
-            WindowsCredentialManager credManager = WindowsCredentialManager.Open(TestNamespace);
+            var credManager = new WindowsCredentialManager(TestNamespace);
 
             // Unique service; guaranteed not to exist!
             string service = Guid.NewGuid().ToString("N");
@@ -109,7 +109,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop.Windows
         [PlatformFact(Platform.Windows)]
         public void WindowsCredentialManager_AddOrUpdate_TargetNameAlreadyExists_CreatesWithUserInTargetName()
         {
-            WindowsCredentialManager credManager = WindowsCredentialManager.Open(TestNamespace);
+            var credManager = new WindowsCredentialManager(TestNamespace);
 
             // Create a service that is guaranteed to be unique
             string uniqueGuid = Guid.NewGuid().ToString("N");
@@ -159,7 +159,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop.Windows
         [PlatformFact(Platform.Windows)]
         public void WindowsCredentialManager_AddOrUpdate_TargetNameAlreadyExistsAndUserWithAtCharacter_CreatesWithEscapedUserInTargetName()
         {
-            WindowsCredentialManager credManager = WindowsCredentialManager.Open(TestNamespace);
+            var credManager = new WindowsCredentialManager(TestNamespace);
 
             // Create a service that is guaranteed to be unique
             string uniqueGuid = Guid.NewGuid().ToString("N");

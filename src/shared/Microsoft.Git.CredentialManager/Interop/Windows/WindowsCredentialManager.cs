@@ -22,12 +22,7 @@ namespace Microsoft.Git.CredentialManager.Interop.Windows
         /// </summary>
         /// <param name="namespace">Optional namespace to scope credential operations.</param>
         /// <returns>Current user's Credential Manager vault.</returns>
-        public static WindowsCredentialManager Open(string @namespace = null)
-        {
-            return new WindowsCredentialManager(@namespace);
-        }
-
-        private WindowsCredentialManager(string @namespace)
+        public WindowsCredentialManager(string @namespace = null)
         {
             PlatformUtils.EnsureWindows();
             _namespace = @namespace;
