@@ -341,7 +341,7 @@ Select the type of credential store to use on supported platforms.
 
 Default value is unset.
 
-**Note:** This setting is only supported on Linux platforms. Setting this value on Windows and macOS has no effect.
+**Note:** This setting is only supported on Linux platforms. Setting this value on Windows and macOS has no effect.  See more information about configuring secret stores on Linux [here](linuxcredstores.md).
 
 Value|Credential Store
 -|-
