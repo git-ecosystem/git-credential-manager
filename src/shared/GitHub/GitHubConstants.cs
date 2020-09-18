@@ -33,8 +33,7 @@ namespace GitHub
         /// <summary>
         /// Supported authentication modes for GitHub.com.
         /// </summary>
-        // TODO: remove Basic once the GCM OAuth app is whitelisted and does not require installation in every organization
-        public const AuthenticationModes DotDomAuthenticationModes = AuthenticationModes.Basic | AuthenticationModes.OAuth;
+        public const AuthenticationModes DotDomAuthenticationModes = AuthenticationModes.OAuth;
 
         public static class TokenScopes
         {
