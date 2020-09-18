@@ -10,7 +10,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop.MacOS
     {
         private const string TestNamespace = "git-test";
 
-        [PlatformFact(Platform.MacOS)]
+        [PlatformFact(Platforms.MacOS)]
         public void MacOSKeychain_ReadWriteDelete()
         {
             var keychain = new MacOSKeychain(TestNamespace);
@@ -39,7 +39,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop.MacOS
             }
         }
 
-        [PlatformFact(Platform.MacOS)]
+        [PlatformFact(Platforms.MacOS)]
         public void MacOSKeychain_Get_NotFound_ReturnsNull()
         {
             var keychain = new MacOSKeychain(TestNamespace);
@@ -51,7 +51,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop.MacOS
             Assert.Null(credential);
         }
 
-        [PlatformFact(Platform.MacOS)]
+        [PlatformFact(Platforms.MacOS)]
         public void MacOSKeychain_Remove_NotFound_ReturnsFalse()
         {
             var keychain = new MacOSKeychain(TestNamespace);

@@ -10,7 +10,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop.Windows
     {
         private const string TestNamespace = "git-test";
 
-        [PlatformFact(Platform.Windows)]
+        [PlatformFact(Platforms.Windows)]
         public void WindowsCredentialManager_ReadWriteDelete()
         {
             var credManager = new WindowsCredentialManager(TestNamespace);
@@ -46,7 +46,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop.Windows
             }
         }
 
-        [PlatformFact(Platform.Windows)]
+        [PlatformFact(Platforms.Windows)]
         public void WindowsCredentialManager_AddOrUpdate_UsernameWithAtCharacter()
         {
             var credManager = new WindowsCredentialManager(TestNamespace);
@@ -82,7 +82,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop.Windows
             }
         }
 
-        [PlatformFact(Platform.Windows)]
+        [PlatformFact(Platforms.Windows)]
         public void WindowsCredentialManager_Get_KeyNotFound_ReturnsNull()
         {
             var credManager = new WindowsCredentialManager(TestNamespace);
@@ -94,7 +94,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop.Windows
             Assert.Null(credential);
         }
 
-        [PlatformFact(Platform.Windows)]
+        [PlatformFact(Platforms.Windows)]
         public void WindowsCredentialManager_Remove_KeyNotFound_ReturnsFalse()
         {
             var credManager = new WindowsCredentialManager(TestNamespace);
@@ -106,7 +106,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop.Windows
             Assert.False(result);
         }
 
-        [PlatformFact(Platform.Windows)]
+        [PlatformFact(Platforms.Windows)]
         public void WindowsCredentialManager_AddOrUpdate_TargetNameAlreadyExists_CreatesWithUserInTargetName()
         {
             var credManager = new WindowsCredentialManager(TestNamespace);
@@ -156,7 +156,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop.Windows
             }
         }
 
-        [PlatformFact(Platform.Windows)]
+        [PlatformFact(Platforms.Windows)]
         public void WindowsCredentialManager_AddOrUpdate_TargetNameAlreadyExistsAndUserWithAtCharacter_CreatesWithEscapedUserInTargetName()
         {
             var credManager = new WindowsCredentialManager(TestNamespace);

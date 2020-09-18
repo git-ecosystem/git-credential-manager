@@ -10,7 +10,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop.Linux
     {
         private const string TestNamespace = "git-test";
 
-        [PlatformFact(Platform.Linux, Skip = "Cannot run headless")]
+        [PlatformFact(Platforms.Linux, Skip = "Cannot run headless")]
         public void SecretServiceCollection_ReadWriteDelete()
         {
             var collection = new SecretServiceCollection(TestNamespace);
@@ -39,7 +39,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop.Linux
             }
         }
 
-        [PlatformFact(Platform.Linux, Skip = "Cannot run headless")]
+        [PlatformFact(Platforms.Linux, Skip = "Cannot run headless")]
         public void SecretServiceCollection_Get_NotFound_ReturnsNull()
         {
             var collection = new SecretServiceCollection(TestNamespace);
@@ -51,7 +51,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop.Linux
             Assert.Null(credential);
         }
 
-        [PlatformFact(Platform.Linux, Skip = "Cannot run headless")]
+        [PlatformFact(Platforms.Linux, Skip = "Cannot run headless")]
         public void SecretServiceCollection_Remove_NotFound_ReturnsFalse()
         {
             var collection = new SecretServiceCollection(TestNamespace);
