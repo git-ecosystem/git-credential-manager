@@ -200,12 +200,13 @@ Value|Credential Store
 -|-
 _(unset)_|(error)
 `secretservice`|[freedesktop.org Secret Service API](https://specifications.freedesktop.org/secret-service/) via [libsecret](https://wiki.gnome.org/Projects/Libsecret) (requires a graphical interface to unlock secret collections).
+`gpg`|Use GPG to store encrypted files that are compatible with the [`pass` utility](https://www.passwordstore.org/) (requires GPG and `pass` to initialize the store).
 `plaintext`|Store credentials in plaintext files (**UNSECURE**). Customize the plaintext store location with [`credential.plaintextStorePath`](#credentialplaintextstorepath).
 
 ##### Example
 
 ```bash
-git config --global credential.credentialStore secretservice
+git config --global credential.credentialStore gpg
 ```
 
 **Also see: [GCM_CREDENTIAL_STORE](environment.md#GCM_CREDENTIAL_STORE)**

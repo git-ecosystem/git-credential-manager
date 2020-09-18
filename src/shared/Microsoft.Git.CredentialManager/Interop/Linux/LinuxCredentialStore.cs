@@ -3,6 +3,7 @@
 using System;
 using System.IO;
 using System.Text;
+using Microsoft.Git.CredentialManager.Interop.Posix;
 
 namespace Microsoft.Git.CredentialManager.Interop.Linux
 {
@@ -11,18 +12,24 @@ namespace Microsoft.Git.CredentialManager.Interop.Linux
         private readonly IFileSystem _fileSystem;
         private readonly ISettings _settings;
         private readonly ISessionManager _sessionManager;
+        private readonly IGpg _gpg;
+        private readonly IEnvironment _environment;
 
         private ICredentialStore _backingStore;
 
-        public LinuxCredentialStore(IFileSystem fileSystem, ISettings settings, ISessionManager sessionManager)
+        public LinuxCredentialStore(IFileSystem fileSystem, ISettings settings, ISessionManager sessionManager, IGpg gpg, IEnvironment environment)
         {
             EnsureArgument.NotNull(fileSystem, nameof(fileSystem));
             EnsureArgument.NotNull(settings, nameof(settings));
             EnsureArgument.NotNull(sessionManager, nameof(sessionManager));
+            EnsureArgument.NotNull(gpg, nameof(gpg));
+            EnsureArgument.NotNull(environment, nameof(environment));
 
             _fileSystem = fileSystem;
             _settings = settings;
             _sessionManager = sessionManager;
+            _gpg = gpg;
+            _environment = environment;
         }
 
         #region ICredentialStore
@@ -64,6 +71,11 @@ namespace Microsoft.Git.CredentialManager.Interop.Linux
                     _backingStore = new SecretServiceCollection(ns);
                     break;
 
+                case "gpg":
+                    ValidateGpgPass(out string gpgStoreRoot);
+                    _backingStore = new GpgPassCredentialStore(_fileSystem, _gpg, gpgStoreRoot, ns);
+                    break;
+
                 case "plaintext":
                     ValidatePlaintext(out string plainStoreRoot);
                     _backingStore = new PlaintextCredentialStore(_fileSystem, plainStoreRoot, ns);
@@ -79,6 +91,7 @@ namespace Microsoft.Git.CredentialManager.Interop.Linux
                         Constants.GitConfiguration.Credential.CredentialStore,
                         Environment.NewLine);
                     sb.AppendLine("  secretservice : freedesktop.org Secret Service (requires graphical interface)");
+                    sb.AppendLine("  gpg           : GNU `pass` compatible credential storage (requires GPG and `pass`)");
                     sb.AppendLine("  plaintext     : store credentials in plain-text files (UNSECURE)");
                     sb.AppendLine();
                     sb.AppendLine($"See {Constants.HelpUrls.GcmLinuxCredStores} for more information.");
@@ -91,6 +104,37 @@ namespace Microsoft.Git.CredentialManager.Interop.Linux
             if (!_sessionManager.IsDesktopSession)
             {
                 throw new Exception("Cannot use the 'secretservice' credential backing store without a graphical interface present." +
+                                    Environment.NewLine + $"See {Constants.HelpUrls.GcmLinuxCredStores} for more information.");
+            }
+        }
+
+        private void ValidateGpgPass(out string storeRoot)
+        {
+            // If we are in a headless environment, and don't have the GPG_TTY or SSH_TTY
+            // variables set, then error - we need a TTY device path for pin-entry to work headless.
+            if (!_sessionManager.IsDesktopSession &&
+                !_environment.Variables.ContainsKey("GPG_TTY") &&
+                !_environment.Variables.ContainsKey("SSH_TTY"))
+            {
+                throw new Exception("GPG_TTY is not set; add `export GPG_TTY=$(tty)` to your profile." +
+                                    Environment.NewLine + $"See {Constants.HelpUrls.GcmLinuxCredStores} for more information.");
+            }
+
+            // Check for a redirected pass store location
+            if (!_settings.TryGetSetting(
+                GpgPassCredentialStore.PasswordStoreDirEnvar,
+                null, null,
+                out storeRoot))
+            {
+                // Use default store root at ~/.password-store
+                storeRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".password-store");
+            }
+
+            // Check we have a GPG ID to sign credential files with
+            string gpgIdFile = Path.Combine(storeRoot, ".gpg-id");
+            if (!_fileSystem.FileExists(gpgIdFile))
+            {
+                throw new Exception($"Password store has not been initialized at '{storeRoot}'; run `pass init <gpg-id>` to initialize the store." +
                                     Environment.NewLine + $"See {Constants.HelpUrls.GcmLinuxCredStores} for more information.");
             }
         }

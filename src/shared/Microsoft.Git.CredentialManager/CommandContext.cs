@@ -123,7 +123,11 @@ namespace Microsoft.Git.CredentialManager
                                             FileSystem.GetCurrentDirectory()
                                         );
                 Settings          = new Settings(Environment, Git);
-                CredentialStore   = new LinuxCredentialStore(FileSystem, Settings, SessionManager);
+                IGpg gpg          = new Gpg(
+                                            Environment.LocateExecutable("gpg"),
+                                            SessionManager
+                                        );
+                CredentialStore   = new LinuxCredentialStore(FileSystem, Settings, SessionManager, gpg, Environment);
             }
             else
             {

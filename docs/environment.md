@@ -347,12 +347,13 @@ Value|Credential Store
 -|-
 _(unset)_|(error)
 `secretservice`|[freedesktop.org Secret Service API](https://specifications.freedesktop.org/secret-service/) via [libsecret](https://wiki.gnome.org/Projects/Libsecret) (requires a graphical interface to unlock secret collections).
+`gpg`|Use GPG to store encrypted files that are compatible with the [`pass` utility](https://www.passwordstore.org/) (requires GPG and `pass` to initialize the store).
 `plaintext`|Store credentials in plaintext files (**UNSECURE**). Customize the plaintext store location with [`GCM_PLAINTEXT_STORE_PATH`](#GCM_PLAINTEXT_STORE_PATH).
 
 ##### Linux
 
 ```bash
-export GCM_CREDENTIAL_STORE="secretservice"
+export GCM_CREDENTIAL_STORE="gpg"
 ```
 
 **Also see: [credential.credentialStore](configuration.md#credentialcredentialstore)**
