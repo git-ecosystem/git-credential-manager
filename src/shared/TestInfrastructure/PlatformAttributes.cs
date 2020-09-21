@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
-using System.Linq;
+using System;
 using System.Runtime.InteropServices;
 using Xunit;
 
@@ -8,7 +8,7 @@ namespace Microsoft.Git.CredentialManager.Tests
 {
     public class PlatformFactAttribute : FactAttribute
     {
-        public PlatformFactAttribute(params Platform[] platforms)
+        public PlatformFactAttribute(Platforms platforms)
         {
             if (!XunitHelpers.IsSupportedPlatform(platforms))
             {
@@ -19,7 +19,7 @@ namespace Microsoft.Git.CredentialManager.Tests
 
     public class PlatformTheoryAttribute : TheoryAttribute
     {
-        public PlatformTheoryAttribute(params Platform[] platforms)
+        public PlatformTheoryAttribute(Platforms platforms)
         {
             if (!XunitHelpers.IsSupportedPlatform(platforms))
             {
@@ -30,11 +30,11 @@ namespace Microsoft.Git.CredentialManager.Tests
 
     internal static class XunitHelpers
     {
-        public static bool IsSupportedPlatform(Platform[] platforms)
+        public static bool IsSupportedPlatform(Platforms platforms)
         {
-            if (platforms.Contains(Platform.Windows) && RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ||
-                platforms.Contains(Platform.MacOS)   && RuntimeInformation.IsOSPlatform(OSPlatform.OSX)     ||
-                platforms.Contains(Platform.Linux)   && RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            if (platforms.HasFlag(Platforms.Windows) && RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ||
+                platforms.HasFlag(Platforms.MacOS)   && RuntimeInformation.IsOSPlatform(OSPlatform.OSX)     ||
+                platforms.HasFlag(Platforms.Linux)   && RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 return true;
             }
@@ -43,10 +43,14 @@ namespace Microsoft.Git.CredentialManager.Tests
         }
     }
 
-    public enum Platform
+    [Flags]
+    public enum Platforms
     {
-        Windows,
-        MacOS,
-        Linux,
+        None    = 0,
+        Windows = 1 << 0,
+        MacOS   = 1 << 2,
+        Linux   = 1 << 3,
+        Posix   = MacOS | Linux,
+        All     = Windows | Posix
     }
 }

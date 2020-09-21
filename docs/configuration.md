@@ -185,3 +185,44 @@ git config --global credential.namespace "my-namespace"
 ```
 
 **Also see: [GCM_NAMESPACE](environment.md#GCM_NAMESPACE)**
+
+---
+
+### credential.credentialStore
+
+Select the type of credential store to use on supported platforms.
+
+Default value is unset.
+
+**Note:** This setting is only supported on Linux platforms. Setting this value on Windows and macOS has no effect. See more information about configuring secret stores on Linux [here](linuxcredstores.md).
+
+Value|Credential Store
+-|-
+_(unset)_|(error)
+`secretservice`|[freedesktop.org Secret Service API](https://specifications.freedesktop.org/secret-service/) via [libsecret](https://wiki.gnome.org/Projects/Libsecret) (requires a graphical interface to unlock secret collections).
+`gpg`|Use GPG to store encrypted files that are compatible with the [`pass` utility](https://www.passwordstore.org/) (requires GPG and `pass` to initialize the store).
+`plaintext`|Store credentials in plaintext files (**UNSECURE**). Customize the plaintext store location with [`credential.plaintextStorePath`](#credentialplaintextstorepath).
+
+##### Example
+
+```bash
+git config --global credential.credentialStore gpg
+```
+
+**Also see: [GCM_CREDENTIAL_STORE](environment.md#GCM_CREDENTIAL_STORE)**
+
+---
+
+### credential.plaintextStorePath
+
+Specify a custom directory to store plaintext credential files in when [`credential.credentialStore`](#credentialcredentialstore) is set to `plaintext`.
+
+Defaults to the value `~/.gcm/store`.
+
+#### Example
+
+```shell
+git config --global credential.plaintextStorePath /mnt/external-drive/credentials
+```
+
+**Also see: [GCM_PLAINTEXT_STORE_PATH](environment.md#GCM_PLAINTEXT_STORE_PATH)**

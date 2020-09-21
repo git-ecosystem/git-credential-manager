@@ -14,6 +14,8 @@ namespace Microsoft.Git.CredentialManager
         public const string ProviderIdAuto  = "auto";
         public const string AuthorityIdAuto = "auto";
 
+        public const string GcmConfigDirectoryName = ".gcm";
+
         public static class RegexPatterns
         {
             /// <summary>
@@ -34,23 +36,25 @@ namespace Microsoft.Git.CredentialManager
 
         public static class EnvironmentVariables
         {
-            public const string GcmTrace           = "GCM_TRACE";
-            public const string GcmTraceSecrets    = "GCM_TRACE_SECRETS";
-            public const string GcmTraceMsAuth     = "GCM_TRACE_MSAUTH";
-            public const string GcmDebug           = "GCM_DEBUG";
-            public const string GcmProvider        = "GCM_PROVIDER";
-            public const string GcmAuthority       = "GCM_AUTHORITY";
-            public const string GitTerminalPrompts = "GIT_TERMINAL_PROMPT";
-            public const string GcmAllowWia        = "GCM_ALLOW_WINDOWSAUTH";
-            public const string CurlAllProxy       = "ALL_PROXY";
-            public const string CurlHttpProxy      = "HTTP_PROXY";
-            public const string CurlHttpsProxy     = "HTTPS_PROXY";
-            public const string GcmHttpProxy       = "GCM_HTTP_PROXY";
-            public const string GitSslNoVerify     = "GIT_SSL_NO_VERIFY";
-            public const string GcmInteractive     = "GCM_INTERACTIVE";
-            public const string GcmParentWindow    = "GCM_MODAL_PARENTHWND";
-            public const string MsAuthHelper       = "GCM_MSAUTH_HELPER";
-            public const string GcmCredNamespace   = "GCM_NAMESPACE";
+            public const string GcmTrace              = "GCM_TRACE";
+            public const string GcmTraceSecrets       = "GCM_TRACE_SECRETS";
+            public const string GcmTraceMsAuth        = "GCM_TRACE_MSAUTH";
+            public const string GcmDebug              = "GCM_DEBUG";
+            public const string GcmProvider           = "GCM_PROVIDER";
+            public const string GcmAuthority          = "GCM_AUTHORITY";
+            public const string GitTerminalPrompts    = "GIT_TERMINAL_PROMPT";
+            public const string GcmAllowWia           = "GCM_ALLOW_WINDOWSAUTH";
+            public const string CurlAllProxy          = "ALL_PROXY";
+            public const string CurlHttpProxy         = "HTTP_PROXY";
+            public const string CurlHttpsProxy        = "HTTPS_PROXY";
+            public const string GcmHttpProxy          = "GCM_HTTP_PROXY";
+            public const string GitSslNoVerify        = "GIT_SSL_NO_VERIFY";
+            public const string GcmInteractive        = "GCM_INTERACTIVE";
+            public const string GcmParentWindow       = "GCM_MODAL_PARENTHWND";
+            public const string MsAuthHelper          = "GCM_MSAUTH_HELPER";
+            public const string GcmCredNamespace      = "GCM_NAMESPACE";
+            public const string GcmCredentialStore    = "GCM_CREDENTIAL_STORE";
+            public const string GcmPlaintextStorePath = "GCM_PLAINTEXT_STORE_PATH";
         }
 
         public static class Http
@@ -78,6 +82,8 @@ namespace Microsoft.Git.CredentialManager
                 public const string Interactive = "interactive";
                 public const string MsAuthHelper = "msauthHelper";
                 public const string CredNamespace = "namespace";
+                public const string CredentialStore = "credentialStore";
+                public const string PlaintextStorePath = "plaintextStorePath";
             }
 
             public static class Http
@@ -94,6 +100,7 @@ namespace Microsoft.Git.CredentialManager
             public const string GcmAuthorityDeprecated = "https://aka.ms/gcmcore-authority";
             public const string GcmHttpProxyGuide      = "https://aka.ms/gcmcore-httpproxy";
             public const string GcmTlsVerification     = "https://aka.ms/gcmcore-tlsverify";
+            public const string GcmLinuxCredStores     = "https://aka.ms/gcmcore-linuxcredstores";
         }
 
         private static string _gcmVersion;

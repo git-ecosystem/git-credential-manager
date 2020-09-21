@@ -152,7 +152,7 @@ namespace Microsoft.Git.CredentialManager.Tests
 
         #region Windows-specific configuration tests
 
-        [PlatformFact(Platform.Windows)]
+        [PlatformFact(Platforms.Windows)]
         public async Task Application_ConfigureAsync_User_PathSet_DoesNothing()
         {
             const string directoryPath = @"X:\Install Location";
@@ -172,7 +172,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             environment.Verify(x => x.AddDirectoryToPath(It.IsAny<string>(), It.IsAny<EnvironmentVariableTarget>()), Times.Never);
         }
 
-        [PlatformFact(Platform.Windows)]
+        [PlatformFact(Platforms.Windows)]
         public async Task Application_ConfigureAsync_User_PathNotSet_SetsUserPath()
         {
             const string directoryPath = @"X:\Install Location";
@@ -192,7 +192,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             environment.Verify(x => x.AddDirectoryToPath(directoryPath, EnvironmentVariableTarget.User), Times.Once);
         }
 
-        [PlatformFact(Platform.Windows)]
+        [PlatformFact(Platforms.Windows)]
         public async Task Application_UnconfigureAsync_User_PathSet_RemovesFromUserPath()
         {
             const string directoryPath = @"X:\Install Location";

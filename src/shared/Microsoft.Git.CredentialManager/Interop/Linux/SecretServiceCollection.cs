@@ -27,12 +27,7 @@ namespace Microsoft.Git.CredentialManager.Interop.Linux
         /// </summary>
         /// <param name="namespace">Optional namespace to scope credential operations.</param>
         /// <returns>Default secret collection.</returns>
-        public static SecretServiceCollection Open(string @namespace = null)
-        {
-            return new SecretServiceCollection(@namespace);
-        }
-
-        private SecretServiceCollection(string @namespace)
+        public SecretServiceCollection(string @namespace)
         {
             PlatformUtils.EnsureLinux();
             _namespace = @namespace;

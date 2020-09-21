@@ -115,6 +115,11 @@ namespace Microsoft.Git.CredentialManager
         /// </summary>
         /// <remarks>The default value is "git" if unset.</remarks>
         string CredentialNamespace { get; }
+
+        /// <summary>
+        /// Credential backing store override.
+        /// </summary>
+        string CredentialBackingStore { get; }
     }
 
     public class Settings : ISettings
@@ -420,6 +425,15 @@ namespace Microsoft.Git.CredentialManager
                 out string @namespace)
                 ? @namespace
                 : Constants.DefaultCredentialNamespace;
+
+        public string CredentialBackingStore =>
+            TryGetSetting(
+                KnownEnvars.GcmCredentialStore,
+                KnownGitCfg.Credential.SectionName,
+                KnownGitCfg.Credential.CredentialStore,
+                out string credStore)
+                ? credStore
+                : null;
 
         #region IDisposable
 
