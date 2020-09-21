@@ -59,3 +59,11 @@ jobs:
     vmImage: $(osxImage)
   steps:
   - template: templates/osx/pack.signed/step5-dist.yml
+
+- job: ubuntu1804_x86_64
+  displayName: Ubuntu 18.04 LTS x86_64
+  pool:
+    vmImage: ubuntu-18.04
+  steps:
+  - template: templates/linux/compile.yml
+  - template: templates/linux/pack.unsigned.yml

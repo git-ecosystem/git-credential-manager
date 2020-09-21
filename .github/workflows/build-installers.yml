@@ -25,12 +25,12 @@ jobs:
       run: dotnet restore --force
 
     - name: Build Linux Payloads
-      run: dotnet build -c release src/linux/Payload.Linux/Payload.Linux.csproj
+      run: dotnet build -c Release src/linux/Packaging.Linux/Packaging.Linux.csproj
 
     - name: Upload Installers
       uses: actions/upload-artifact@v2
       with:
         name: Installers
         path: |
-          out/linux/*.deb
-          out/linux/*.tar.gz
+          out/linux/Packaging.Linux/deb/Release/*.deb
+          out/linux/Packaging.Linux/tar/Release/*.tar.gz
