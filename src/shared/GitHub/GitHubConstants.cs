@@ -33,7 +33,7 @@ namespace GitHub
         /// <summary>
         /// Supported authentication modes for GitHub.com.
         /// </summary>
-        public const AuthenticationModes DotDomAuthenticationModes = AuthenticationModes.OAuth;
+        public const AuthenticationModes DotComAuthenticationModes = AuthenticationModes.OAuth;
 
         public static class TokenScopes
         {

@@ -175,7 +175,7 @@ namespace GitHub.Tests
         public async Task GitHubHostProvider_GetSupportedAuthenticationModes_OverrideInvalid_ReturnsDetectedValue()
         {
             var targetUri = new Uri("https://github.com");
-            var expectedModes = GitHubConstants.DotDomAuthenticationModes;
+            var expectedModes = GitHubConstants.DotComAuthenticationModes;
 
             var context = new TestCommandContext
             {
@@ -205,7 +205,7 @@ namespace GitHub.Tests
         public async Task GitHubHostProvider_GetSupportedAuthenticationModes_OverrideNone_ReturnsDetectedValue()
         {
             var targetUri = new Uri("https://github.com");
-            var expectedModes = GitHubConstants.DotDomAuthenticationModes;
+            var expectedModes = GitHubConstants.DotComAuthenticationModes;
 
             var context = new TestCommandContext
             {
@@ -235,7 +235,7 @@ namespace GitHub.Tests
         public async Task GitHubHostProvider_GetSupportedAuthenticationModes_GitHubDotCom_ReturnsDotComModes()
         {
             var targetUri = new Uri("https://github.com");
-            var expectedModes = GitHubConstants.DotDomAuthenticationModes;
+            var expectedModes = GitHubConstants.DotComAuthenticationModes;
 
             var provider = new GitHubHostProvider(new TestCommandContext());
 
