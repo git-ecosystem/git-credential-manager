@@ -189,8 +189,8 @@ namespace GitHub
             // GitHub.com should use OAuth authentication only
             if (IsGitHubDotCom(targetUri))
             {
-                Context.Trace.WriteLine($"{targetUri} is github.com - authentication schemes: '{GitHubConstants.DotDomAuthenticationModes}'");
-                return GitHubConstants.DotDomAuthenticationModes;
+                Context.Trace.WriteLine($"{targetUri} is github.com - authentication schemes: '{GitHubConstants.DotComAuthenticationModes}'");
+                return GitHubConstants.DotComAuthenticationModes;
             }
 
             // For GitHub Enterprise we must do some detection of supported modes
