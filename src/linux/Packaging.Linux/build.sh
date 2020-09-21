@@ -18,7 +18,7 @@ make_absolute () {
 #####################################################################
 # Building
 #####################################################################
-echo "Building Payload.Linux..."
+echo "Building Packaging.Linux..."
 
 # Parse script arguments
 for i in "$@"
@@ -44,7 +44,7 @@ ROOT="$( cd "$THISDIR"/../../.. ; pwd -P )"
 SRC="$ROOT/src"
 OUT="$ROOT/out"
 GCM_SRC="$SRC/shared/Git-Credential-Manager"
-PAYLOAD_OUT="$OUT/linux/"
+PROJ_OUT="$OUT/linux/Packaging.Linux"
 
 # Build parameters
 FRAMEWORK=netcoreapp3.1
@@ -62,11 +62,16 @@ if test -z "$ARCH"; then
 fi
 
 # Outputs
-PAYLOAD="$PAYLOAD_OUT/payload/$CONFIGURATION"
-TAROUT="$PAYLOAD_OUT/gcmcore-linux_$ARCH.$CONFIGURATION.$VERSION.tar.gz"
-DEBPKG="$PAYLOAD_OUT/gcmcore-linux/"
-DEBOUT="$PAYLOAD_OUT/gcmcore-linux_$ARCH.$CONFIGURATION.$VERSION.deb"
-SYMBOLOUT="$PAYLOAD.sym"
+PAYLOAD="$PROJ_OUT/payload/$CONFIGURATION"
+SYMBOLOUT="$PROJ_OUT/payload.sym/$CONFIGURATION"
+
+TAROUT="$PROJ_OUT/tar/$CONFIGURATION"
+TARBALL="$TAROUT/gcmcore-linux_$ARCH.$VERSION.tar.gz"
+SYMTARBALL="$TAROUT/symbols-linux_$ARCH.$VERSION.tar.gz"
+
+DEBOUT="$PROJ_OUT/deb/$CONFIGURATION"
+DEBROOT="$DEBOUT/root"
+DEBPKG="$DEBOUT/gcmcore-linux_$ARCH.$VERSION.deb"
 
 # Cleanup payload directory
 if [ -d "$PAYLOAD" ]; then
@@ -74,8 +79,14 @@ if [ -d "$PAYLOAD" ]; then
     rm -rf "$PAYLOAD"
 fi
 
+# Cleanup symbol directory
+if [ -d "$SYMBOLOUT" ]; then
+    echo "Cleaning existing symbols directory '$SYMBOLOUT'..."
+    rm -rf "$SYMBOLOUT"
+fi
+
 # Ensure directories exists
-mkdir -p "$PAYLOAD" "$SYMBOLOUT" "$DEBPKG"
+mkdir -p "$PAYLOAD" "$SYMBOLOUT" "$DEBROOT"
 
 # Publish core application executables
 echo "Publishing core application..."
@@ -96,7 +107,7 @@ echo "Build complete."
 #####################################################################
 # PACKING
 #####################################################################
-echo "Packing Payload.Linux..."
+echo "Packing Packaging.Linux..."
 # Cleanup any old archive files
 if [ -e "$TAROUT" ]; then
     echo "Deleteing old archive '$TAROUT'..."
@@ -104,24 +115,30 @@ if [ -e "$TAROUT" ]; then
 fi
 
 # Ensure the parent directory for the archive exists
-mkdir -p "$(dirname "$TAROUT")"
+mkdir -p "$TAROUT" || exit 1
 
 # Set full read, write, execute permissions for owner and just read and execute permissions for group and other
 echo "Setting file permissions..."
 /bin/chmod -R 755 "$PAYLOAD" || exit 1
 
-# Build tarball
-echo "Building archive..."
+# Build binaries tarball
+echo "Building binaries tarball..."
 pushd "$PAYLOAD"
-tar -czvf "$TAROUT" * || exit 1
+tar -czvf "$TARBALL" * || exit 1
+popd
+
+# Build symbols tarball
+echo "Building symbols tarball..."
+pushd "$SYMBOLOUT"
+tar -czvf "$SYMTARBALL" * || exit 1
 popd
 
 # Build .deb
-INSTALL_TO="$DEBPKG/usr/bin/"
-mkdir -p "$DEBPKG/DEBIAN" "$INSTALL_TO"
+INSTALL_TO="$DEBROOT/usr/bin/"
+mkdir -p "$DEBROOT/DEBIAN" "$INSTALL_TO" || exit 1
 
 # make the debian control file
-cat >"$DEBPKG/DEBIAN/control" <<EOF
+cat >"$DEBROOT/DEBIAN/control" <<EOF
 Package: gcmcore
 Version: $VERSION
 Section: vcs
@@ -136,8 +153,8 @@ Description: Cross Platform Git-Credential-Manager-Core command line utility.
 EOF
 
 # Copy single binary to target installation location
-cp "$PAYLOAD/git-credential-manager-core" "$INSTALL_TO"
+cp "$PAYLOAD/git-credential-manager-core" "$INSTALL_TO" || exit 1
 
-dpkg-deb --build "$DEBPKG" "$DEBOUT"
+dpkg-deb --build "$DEBROOT" "$DEBPKG" || exit 1
 
 echo "Pack complete."
