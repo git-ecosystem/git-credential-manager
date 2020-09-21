@@ -9,6 +9,10 @@ namespace Microsoft.Git.CredentialManager.Interop.Linux
 {
     public class LinuxCredentialStore : ICredentialStore
     {
+        private const string SecretServiceStoreOption = "secretservice";
+        private const string GpgStoreOption = "gpg";
+        private const string PlaintextStoreOption = "plaintext";
+
         private readonly IFileSystem _fileSystem;
         private readonly ISettings _settings;
         private readonly ISessionManager _sessionManager;
@@ -66,17 +70,17 @@ namespace Microsoft.Git.CredentialManager.Interop.Linux
 
             switch (credStoreName)
             {
-                case "secretservice":
+                case SecretServiceStoreOption:
                     ValidateSecretService();
                     _backingStore = new SecretServiceCollection(ns);
                     break;
 
-                case "gpg":
+                case GpgStoreOption:
                     ValidateGpgPass(out string gpgStoreRoot);
                     _backingStore = new GpgPassCredentialStore(_fileSystem, _gpg, gpgStoreRoot, ns);
                     break;
 
-                case "plaintext":
+                case PlaintextStoreOption:
                     ValidatePlaintext(out string plainStoreRoot);
                     _backingStore = new PlaintextCredentialStore(_fileSystem, plainStoreRoot, ns);
                     break;
@@ -90,9 +94,9 @@ namespace Microsoft.Git.CredentialManager.Interop.Linux
                         Constants.GitConfiguration.Credential.SectionName,
                         Constants.GitConfiguration.Credential.CredentialStore,
                         Environment.NewLine);
-                    sb.AppendLine("  secretservice : freedesktop.org Secret Service (requires graphical interface)");
-                    sb.AppendLine("  gpg           : GNU `pass` compatible credential storage (requires GPG and `pass`)");
-                    sb.AppendLine("  plaintext     : store credentials in plain-text files (UNSECURE)");
+                    sb.AppendFormat("  {0,-13} : freedesktop.org Secret Service (requires graphical interface){1}", SecretServiceStoreOption, Environment.NewLine);
+                    sb.AppendFormat("  {0,-13} : GNU `pass` compatible credential storage (requires GPG and `pass`){1}", GpgStoreOption, Environment.NewLine);
+                    sb.AppendFormat("  {0,-13} : store credentials in plain-text files (UNSECURE){1}", PlaintextStoreOption, Environment.NewLine);
                     sb.AppendLine();
                     sb.AppendLine($"See {Constants.HelpUrls.GcmLinuxCredStores} for more information.");
                     throw new Exception(sb.ToString());
@@ -103,7 +107,7 @@ namespace Microsoft.Git.CredentialManager.Interop.Linux
         {
             if (!_sessionManager.IsDesktopSession)
             {
-                throw new Exception("Cannot use the 'secretservice' credential backing store without a graphical interface present." +
+                throw new Exception($"Cannot use the '{SecretServiceStoreOption}' credential backing store without a graphical interface present." +
                                     Environment.NewLine + $"See {Constants.HelpUrls.GcmLinuxCredStores} for more information.");
             }
         }
