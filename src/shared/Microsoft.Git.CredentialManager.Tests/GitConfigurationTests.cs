@@ -324,6 +324,142 @@ namespace Microsoft.Git.CredentialManager.Tests
             Assert.Throws<KeyNotFoundException>(() => config.GetValue(randomSection, randomScope, randomProperty));
         }
 
+        [Fact]
+        public void GitConfiguration_SetValue_Local_SetsLocalConfig()
+        {
+            string repoPath = CreateRepository(out string workDirPath);
+
+            string gitPath = GetGitPath();
+            var trace = new NullTrace();
+            var git = new GitProcess(trace, gitPath, repoPath);
+            IGitConfiguration config = git.GetConfiguration(GitConfigurationLevel.Local);
+
+            config.SetValue("core.foobar", "foo123");
+
+            GitResult localResult = Git(repoPath, workDirPath, "config --local core.foobar");
+
+            Assert.Equal("foo123",     localResult.StandardOutput.Trim());
+        }
+
+        [Fact]
+        public void GitConfiguration_SetValue_All_ThrowsException()
+        {
+            string repoPath = CreateRepository(out _);
+
+            string gitPath = GetGitPath();
+            var trace = new NullTrace();
+            var git = new GitProcess(trace, gitPath, repoPath);
+            IGitConfiguration config = git.GetConfiguration(GitConfigurationLevel.All);
+
+            Assert.Throws<InvalidOperationException>(() => config.SetValue("core.foobar", "test123"));
+        }
+
+        [Fact]
+        public void GitConfiguration_Unset_Global_UnsetsGlobalConfig()
+        {
+            string repoPath = CreateRepository(out string workDirPath);
+            try
+            {
+
+                Git(repoPath, workDirPath, "config --global core.foobar alice").AssertSuccess();
+                Git(repoPath, workDirPath, "config --local core.foobar bob").AssertSuccess();
+
+                string gitPath = GetGitPath();
+                var trace = new NullTrace();
+                var git = new GitProcess(trace, gitPath, repoPath);
+                IGitConfiguration config = git.GetConfiguration(GitConfigurationLevel.Global);
+
+                config.Unset("core.foobar");
+
+                GitResult globalResult = Git(repoPath, workDirPath, "config --global core.foobar");
+                GitResult localResult = Git(repoPath, workDirPath, "config --local core.foobar");
+
+                Assert.Equal(string.Empty, globalResult.StandardOutput.Trim());
+                Assert.Equal("bob", localResult.StandardOutput.Trim());
+            }
+            finally
+            {
+                // Cleanup global config changes
+                Git(repoPath, workDirPath, "config --global --unset core.foobar");
+            }
+        }
+
+        [Fact]
+        public void GitConfiguration_Unset_Local_UnsetsLocalConfig()
+        {
+            string repoPath = CreateRepository(out string workDirPath);
+
+            try
+            {
+                Git(repoPath, workDirPath, "config --global core.foobar alice").AssertSuccess();
+                Git(repoPath, workDirPath, "config --local core.foobar bob").AssertSuccess();
+
+                string gitPath = GetGitPath();
+                var trace = new NullTrace();
+                var git = new GitProcess(trace, gitPath, repoPath);
+                IGitConfiguration config = git.GetConfiguration(GitConfigurationLevel.Local);
+
+                config.Unset("core.foobar");
+
+                GitResult globalResult = Git(repoPath, workDirPath, "config --global core.foobar");
+                GitResult localResult = Git(repoPath, workDirPath, "config --local core.foobar");
+
+                Assert.Equal("alice", globalResult.StandardOutput.Trim());
+                Assert.Equal(string.Empty, localResult.StandardOutput.Trim());
+            }
+            finally
+            {
+                // Cleanup global config changes
+                Git(repoPath, workDirPath, "config --global --unset core.foobar");
+            }
+        }
+
+        [Fact]
+        public void GitConfiguration_Unset_All_ThrowsException()
+        {
+            string repoPath = CreateRepository(out _);
+
+            string gitPath = GetGitPath();
+            var trace = new NullTrace();
+            var git = new GitProcess(trace, gitPath, repoPath);
+            IGitConfiguration config = git.GetConfiguration(GitConfigurationLevel.All);
+
+            Assert.Throws<InvalidOperationException>(() => config.Unset("core.foobar"));
+        }
+
+        [Fact]
+        public void GitConfiguration_UnsetAll_UnsetsAllConfig()
+        {
+            string repoPath = CreateRepository(out string workDirPath);
+            Git(repoPath, workDirPath, "config --local --add core.foobar foo1").AssertSuccess();
+            Git(repoPath, workDirPath, "config --local --add core.foobar foo2").AssertSuccess();
+            Git(repoPath, workDirPath, "config --local --add core.foobar bar1").AssertSuccess();
+
+            string gitPath = GetGitPath();
+            var trace = new NullTrace();
+            var git = new GitProcess(trace, gitPath, repoPath);
+            IGitConfiguration config = git.GetConfiguration(GitConfigurationLevel.Local);
+
+            config.UnsetAll("core.foobar", "foo*");
+
+            GitResult result = Git(repoPath, workDirPath, "config --local --get-all core.foobar");
+
+            Assert.Equal("bar1", result.StandardOutput.Trim());
+        }
+
+        [Fact]
+        public void GitConfiguration_UnsetAll_All_ThrowsException()
+        {
+            string repoPath = CreateRepository(out _);
+
+            string gitPath = GetGitPath();
+            var trace = new NullTrace();
+            var git = new GitProcess(trace, gitPath, repoPath);
+            IGitConfiguration config = git.GetConfiguration(GitConfigurationLevel.All);
+
+            Assert.Throws<InvalidOperationException>(() => config.UnsetAll("core.foobar", Constants.RegexPatterns.Any));
+        }
+
         #region Test helpers
 
         private static string GetGitPath()

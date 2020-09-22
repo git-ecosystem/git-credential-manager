@@ -32,7 +32,7 @@ namespace Microsoft.Git.CredentialManager
 
         public IGitConfiguration GetConfiguration(GitConfigurationLevel level)
         {
-            return new GitProcessConfiguration(_trace, this);
+            return new GitProcessConfiguration(_trace, this, level);
         }
 
         public Process CreateProcess(string args)
