@@ -29,7 +29,7 @@ jobs:
     - name: Upload Installers
       uses: actions/upload-artifact@v2
       with:
-        name: Installers
+        name: LinuxInstallers
         path: |
           out/linux/Packaging.Linux/deb/Release/*.deb
           out/linux/Packaging.Linux/tar/Release/*.tar.gz
@@ -42,7 +42,7 @@ jobs:
     - name: 'Download Installers'
       uses: actions/download-artifact@v2
       with:
-        name: Installers
+        name: LinuxInstallers
 
     - name: Install ESRP Client
       shell: pwsh
@@ -54,3 +54,16 @@ jobs:
         nuget.exe sources add -name esrp -source "$env:NUGET_FEED" -username FOOBAR -password "$env:AZDEV_PAT"
         nuget.exe install Microsoft.EsrpClient -source "$env:NUGET_FEED" -OutputDirectory ./esrp
 
+    - name: setup python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+
+    - name: Install ESRP Key
+      shell: pwsh
+      env:
+        ESRP_KEY: ${{ secrets.ESRP_PRIVATE_KEY }}
+        ESRP_PASSWORD: ${{ secrets.ESRP_PRIVATE_KEY_PASSWORD }}
+        ESRP_KEY_MD5: ${{ secrets.ESRP_PRIVATE_KEY_MD5 }}
+      run: |
+        python .\github\workflows\install_esrp_key.py ESRP_KEY ESRP_PASSWORD ESRP_KEY_MD5
