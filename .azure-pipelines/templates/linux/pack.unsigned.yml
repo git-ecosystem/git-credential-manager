@@ -1,0 +1,12 @@
+steps:
+  - script: |
+      mkdir -p "$(Build.StagingDirectory)/publish/"
+      cp "out/linux/Packaging.Linux/tar/$(configuration)/"*.tar.gz "$(Build.StagingDirectory)/publish/"
+      cp "out/linux/Packaging.Linux/deb/$(configuration)/"*.deb    "$(Build.StagingDirectory)/publish/"
+    displayName: Prepare final build artifacts
+
+  - task: PublishPipelineArtifact@0
+    displayName: Publish unsigned installer artifacts
+    inputs:
+        artifactName: 'Installer.Linux.Unsigned'
+        targetPath: '$(Build.StagingDirectory)/publish'

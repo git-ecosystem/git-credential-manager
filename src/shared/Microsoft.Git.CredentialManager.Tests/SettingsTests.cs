@@ -322,14 +322,13 @@ namespace Microsoft.Git.CredentialManager.Tests
         [Fact]
         public void Settings_ProxyConfiguration_Unset_ReturnsNull()
         {
-            const string repositoryPath = "/tmp/repos/foo/.git";
             const string remoteUrl = "http://example.com/foo.git";
             var remoteUri = new Uri(remoteUrl);
 
             var envars = new TestEnvironment();
             var git = new TestGit();
 
-            var settings = new Settings(envars, git, repositoryPath)
+            var settings = new Settings(envars, git)
             {
                 RemoteUri = remoteUri
             };
@@ -341,7 +340,6 @@ namespace Microsoft.Git.CredentialManager.Tests
         [Fact]
         public void Settings_ProxyConfiguration_GcmHttpConfig_ReturnsValue()
         {
-            const string repositoryPath = "/tmp/repos/foo/.git";
             const string remoteUrl = "http://example.com/foo.git";
             const string section = Constants.GitConfiguration.Credential.SectionName;
             const string property = Constants.GitConfiguration.Credential.HttpProxy;
@@ -353,7 +351,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             var git = new TestGit();
             git.GlobalConfiguration[$"{section}.{property}"] = expectedValue.ToString();
 
-            var settings = new Settings(envars, git, repositoryPath)
+            var settings = new Settings(envars, git)
             {
                 RemoteUri = remoteUri
             };
@@ -366,7 +364,6 @@ namespace Microsoft.Git.CredentialManager.Tests
         [Fact]
         public void Settings_ProxyConfiguration_GcmHttpsConfig_ReturnsValue()
         {
-            const string repositoryPath = "/tmp/repos/foo/.git";
             const string remoteUrl = "https://example.com/foo.git";
             const string section = Constants.GitConfiguration.Credential.SectionName;
             const string property = Constants.GitConfiguration.Credential.HttpsProxy;
@@ -378,7 +375,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             var git = new TestGit();
             git.GlobalConfiguration[$"{section}.{property}"] = expectedValue.ToString();
 
-            var settings = new Settings(envars, git, repositoryPath)
+            var settings = new Settings(envars, git)
             {
                 RemoteUri = remoteUri
             };
@@ -391,7 +388,6 @@ namespace Microsoft.Git.CredentialManager.Tests
         [Fact]
         public void Settings_ProxyConfiguration_GitHttpConfig_ReturnsValue()
         {
-            const string repositoryPath = "/tmp/repos/foo/.git";
             const string remoteUrl = "http://example.com/foo.git";
             const string section = Constants.GitConfiguration.Http.SectionName;
             const string property = Constants.GitConfiguration.Http.Proxy;
@@ -403,7 +399,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             var git = new TestGit();
             git.GlobalConfiguration[$"{section}.{property}"] = expectedValue.ToString();
 
-            var settings = new Settings(envars, git, repositoryPath)
+            var settings = new Settings(envars, git)
             {
                 RemoteUri = remoteUri
             };
@@ -416,7 +412,6 @@ namespace Microsoft.Git.CredentialManager.Tests
         [Fact]
         public void Settings_ProxyConfiguration_CurlHttpEnvar_ReturnsValue()
         {
-            const string repositoryPath = "/tmp/repos/foo/.git";
             const string remoteUrl = "http://example.com/foo.git";
             var remoteUri = new Uri(remoteUrl);
 
@@ -428,7 +423,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             };
             var git = new TestGit();
 
-            var settings = new Settings(envars, git, repositoryPath)
+            var settings = new Settings(envars, git)
             {
                 RemoteUri = remoteUri
             };
@@ -441,7 +436,6 @@ namespace Microsoft.Git.CredentialManager.Tests
         [Fact]
         public void Settings_ProxyConfiguration_CurlHttpsEnvar_ReturnsValue()
         {
-            const string repositoryPath = "/tmp/repos/foo/.git";
             const string remoteUrl = "https://example.com/foo.git";
             var remoteUri = new Uri(remoteUrl);
 
@@ -453,7 +447,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             };
             var git = new TestGit();
 
-            var settings = new Settings(envars, git, repositoryPath)
+            var settings = new Settings(envars, git)
             {
                 RemoteUri = remoteUri
             };
@@ -466,7 +460,6 @@ namespace Microsoft.Git.CredentialManager.Tests
         [Fact]
         public void Settings_TryGetProxy_CurlAllEnvar_ReturnsValue()
         {
-            const string repositoryPath = "/tmp/repos/foo/.git";
             const string remoteUrl = "https://example.com/foo.git";
             var remoteUri = new Uri(remoteUrl);
 
@@ -478,7 +471,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             };
             var git = new TestGit();
 
-            var settings = new Settings(envars, git, repositoryPath)
+            var settings = new Settings(envars, git)
             {
                 RemoteUri = remoteUri
             };
@@ -491,7 +484,6 @@ namespace Microsoft.Git.CredentialManager.Tests
         [Fact]
         public void Settings_ProxyConfiguration_LegacyGcmEnvar_ReturnsValue()
         {
-            const string repositoryPath = "/tmp/repos/foo/.git";
             const string remoteUrl = "http://example.com/foo.git";
             var remoteUri = new Uri(remoteUrl);
 
@@ -503,7 +495,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             };
             var git = new TestGit();
 
-            var settings = new Settings(envars, git, repositoryPath)
+            var settings = new Settings(envars, git)
             {
                 RemoteUri = remoteUri
             };
@@ -528,7 +520,6 @@ namespace Microsoft.Git.CredentialManager.Tests
             // 4. GCM proxy environment variable (deprecated)
             //      GCM_HTTP_PROXY
 
-            const string repositoryPath = "/tmp/repos/foo/.git";
             const string remoteUrl = "http://example.com/foo.git";
             var remoteUri = new Uri(remoteUrl);
 
@@ -542,7 +533,7 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             void RunTest(Uri expectedValue)
             {
-                var settings = new Settings(envars, git, repositoryPath)
+                var settings = new Settings(envars, git)
                 {
                     RemoteUri = remoteUri
                 };
@@ -567,14 +558,13 @@ namespace Microsoft.Git.CredentialManager.Tests
         [Fact]
         public void Settings_ProviderOverride_Unset_ReturnsNull()
         {
-            const string repositoryPath = "/tmp/repos/foo/.git";
             const string remoteUrl = "http://example.com/foo.git";
             var remoteUri = new Uri(remoteUrl);
 
             var envars = new TestEnvironment();
             var git = new TestGit();
 
-            var settings = new Settings(envars, git, repositoryPath)
+            var settings = new Settings(envars, git)
             {
                 RemoteUri = remoteUri
             };
@@ -586,7 +576,6 @@ namespace Microsoft.Git.CredentialManager.Tests
         [Fact]
         public void Settings_ProviderOverride_EnvarSet_ReturnsValue()
         {
-            const string repositoryPath = "/tmp/repos/foo/.git";
             const string remoteUrl = "http://example.com/foo.git";
             var remoteUri = new Uri(remoteUrl);
 
@@ -598,7 +587,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             };
             var git = new TestGit();
 
-            var settings = new Settings(envars, git, repositoryPath)
+            var settings = new Settings(envars, git)
             {
                 RemoteUri = remoteUri
             };
@@ -610,7 +599,6 @@ namespace Microsoft.Git.CredentialManager.Tests
         [Fact]
         public void Settings_ProviderOverride_ConfigSet_ReturnsValue()
         {
-            const string repositoryPath = "/tmp/repos/foo/.git";
             const string remoteUrl = "http://example.com/foo.git";
             const string section = Constants.GitConfiguration.Credential.SectionName;
             const string property = Constants.GitConfiguration.Credential.Provider;
@@ -622,7 +610,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             var git = new TestGit();
             git.GlobalConfiguration[$"{section}.{property}"] = expectedValue;
 
-            var settings = new Settings(envars, git, repositoryPath)
+            var settings = new Settings(envars, git)
             {
                 RemoteUri = remoteUri
             };
@@ -634,7 +622,6 @@ namespace Microsoft.Git.CredentialManager.Tests
         [Fact]
         public void Settings_ProviderOverride_EnvarAndConfigSet_ReturnsEnvarValue()
         {
-            const string repositoryPath = "/tmp/repos/foo/.git";
             const string remoteUrl = "http://example.com/foo.git";
             const string section = Constants.GitConfiguration.Credential.SectionName;
             const string property = Constants.GitConfiguration.Credential.Provider;
@@ -650,7 +637,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             var git = new TestGit();
             git.GlobalConfiguration[$"{section}.{property}"] = otherValue;
 
-            var settings = new Settings(envars, git, repositoryPath)
+            var settings = new Settings(envars, git)
             {
                 RemoteUri = remoteUri
             };
@@ -662,14 +649,13 @@ namespace Microsoft.Git.CredentialManager.Tests
         [Fact]
         public void Settings_LegacyAuthorityOverride_Unset_ReturnsNull()
         {
-            const string repositoryPath = "/tmp/repos/foo/.git";
             const string remoteUrl = "http://example.com/foo.git";
             var remoteUri = new Uri(remoteUrl);
 
             var envars = new TestEnvironment();
             var git = new TestGit();
 
-            var settings = new Settings(envars, git, repositoryPath)
+            var settings = new Settings(envars, git)
             {
                 RemoteUri = remoteUri
             };
@@ -681,7 +667,6 @@ namespace Microsoft.Git.CredentialManager.Tests
         [Fact]
         public void Settings_LegacyAuthorityOverride_EnvarSet_ReturnsValue()
         {
-            const string repositoryPath = "/tmp/repos/foo/.git";
             const string remoteUrl = "http://example.com/foo.git";
             var remoteUri = new Uri(remoteUrl);
 
@@ -693,7 +678,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             };
             var git = new TestGit();
 
-            var settings = new Settings(envars, git, repositoryPath)
+            var settings = new Settings(envars, git)
             {
                 RemoteUri = remoteUri
             };
@@ -705,7 +690,6 @@ namespace Microsoft.Git.CredentialManager.Tests
         [Fact]
         public void Settings_LegacyAuthorityOverride_ConfigSet_ReturnsTrueOutValue()
         {
-            const string repositoryPath = "/tmp/repos/foo/.git";
             const string remoteUrl = "http://example.com/foo.git";
             const string section = Constants.GitConfiguration.Credential.SectionName;
             const string property = Constants.GitConfiguration.Credential.Authority;
@@ -717,7 +701,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             var git = new TestGit();
             git.GlobalConfiguration[$"{section}.{property}"] = expectedValue;
 
-            var settings = new Settings(envars, git, repositoryPath)
+            var settings = new Settings(envars, git)
             {
                 RemoteUri = remoteUri
             };
@@ -729,7 +713,6 @@ namespace Microsoft.Git.CredentialManager.Tests
         [Fact]
         public void Settings_LegacyAuthorityOverride_EnvarAndConfigSet_ReturnsEnvarValue()
         {
-            const string repositoryPath = "/tmp/repos/foo/.git";
             const string remoteUrl = "http://example.com/foo.git";
             const string section = Constants.GitConfiguration.Credential.SectionName;
             const string property = Constants.GitConfiguration.Credential.Authority;
@@ -745,7 +728,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             var git = new TestGit();
             git.GlobalConfiguration[$"{section}.{property}"] = otherValue;
 
-            var settings = new Settings(envars, git, repositoryPath)
+            var settings = new Settings(envars, git)
             {
                 RemoteUri = remoteUri
             };
@@ -757,7 +740,6 @@ namespace Microsoft.Git.CredentialManager.Tests
         [Fact]
         public void Settings_TryGetSetting_EnvarSet_ReturnsTrueOutValue()
         {
-            const string repositoryPath = "/tmp/repos/foo/.git";
             const string remoteUrl = "http://example.com/foo.git";
             const string envarName = "GCM_TESTVAR";
             const string section = "gcmtest";
@@ -772,7 +754,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             };
             var git = new TestGit();
 
-            var settings = new Settings(envars, git, repositoryPath)
+            var settings = new Settings(envars, git)
             {
                 RemoteUri = remoteUri
             };
@@ -785,7 +767,6 @@ namespace Microsoft.Git.CredentialManager.Tests
         [Fact]
         public void Settings_TryGetSetting_EnvarUnset_ReturnsFalse()
         {
-            const string repositoryPath = "/tmp/repos/foo/.git";
             const string remoteUrl = "http://example.com/foo.git";
             const string envarName = "GCM_TESTVAR";
             const string section = "gcmtest";
@@ -795,7 +776,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             var envars = new TestEnvironment();
             var git = new TestGit();
 
-            var settings = new Settings(envars, git, repositoryPath)
+            var settings = new Settings(envars, git)
             {
                 RemoteUri = remoteUri
             };
@@ -808,7 +789,6 @@ namespace Microsoft.Git.CredentialManager.Tests
         [Fact]
         public void Settings_TryGetSetting_GlobalConfig_ReturnsTrueAndValue()
         {
-            const string repositoryPath = "/tmp/repos/foo/.git";
             const string remoteUrl = "http://example.com/foo.git";
             const string envarName = "GCM_TESTVAR";
             const string section = "gcmtest";
@@ -821,7 +801,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             var git = new TestGit();
             git.GlobalConfiguration[$"{section}.{property}"] = expectedValue;
 
-            var settings = new Settings(envars, git, repositoryPath)
+            var settings = new Settings(envars, git)
             {
                 RemoteUri = remoteUri
             };
@@ -834,7 +814,6 @@ namespace Microsoft.Git.CredentialManager.Tests
         [Fact]
         public void Settings_TryGetSetting_RepoConfig_ReturnsTrueAndValue()
         {
-            const string repositoryPath = "/tmp/repos/foo/.git";
             const string remoteUrl = "http://example.com/foo.git";
             const string envarName = "GCM_TESTVAR";
             const string section = "gcmtest";
@@ -845,10 +824,9 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             var envars = new TestEnvironment();
             var git = new TestGit();
-            var repo = git.AddRepository(repositoryPath);
-            repo.Configuration[$"{section}.{property}"] = expectedValue;
+            git.LocalConfiguration[$"{section}.{property}"] = expectedValue;
 
-            var settings = new Settings(envars, git, repositoryPath)
+            var settings = new Settings(envars, git)
             {
                 RemoteUri = remoteUri
             };
@@ -861,7 +839,6 @@ namespace Microsoft.Git.CredentialManager.Tests
         [Fact]
         public void Settings_TryGetSetting_ScopedConfig()
         {
-            const string repositoryPath = "/tmp/repos/foo/.git";
             const string remoteUrl = "http://example.com/foo/bar/bazz.git";
             const string scope1 = "example.com";
             const string scope2 = "example.com/foo/bar";
@@ -875,11 +852,10 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             var envars = new TestEnvironment();
             var git = new TestGit();
-            var repo = git.AddRepository(repositoryPath);
-            repo.Configuration[$"{section}.{scope1}.{property}"] = otherValue;
-            repo.Configuration[$"{section}.{scope2}.{property}"] = expectedValue;
+            git.LocalConfiguration[$"{section}.{scope1}.{property}"] = otherValue;
+            git.LocalConfiguration[$"{section}.{scope2}.{property}"] = expectedValue;
 
-            var settings = new Settings(envars, git, repositoryPath)
+            var settings = new Settings(envars, git)
             {
                 RemoteUri = remoteUri
             };
@@ -892,7 +868,6 @@ namespace Microsoft.Git.CredentialManager.Tests
         [Fact]
         public void Settings_TryGetSetting_EnvarAndConfig_EnvarTakesPrecedence()
         {
-            const string repositoryPath = "/tmp/repos/foo/.git";
             const string remoteUrl = "http://example.com/foo.git";
             const string envarName = "GCM_TESTVAR";
             const string section = "gcmtest";
@@ -907,10 +882,9 @@ namespace Microsoft.Git.CredentialManager.Tests
                 Variables = {[envarName] = expectedValue}
             };
             var git = new TestGit();
-            var repo = git.AddRepository(repositoryPath);
-            repo.Configuration[$"{section}.{property}"] = otherValue;
+            git.LocalConfiguration[$"{section}.{property}"] = otherValue;
 
-            var settings = new Settings(envars, git, repositoryPath)
+            var settings = new Settings(envars, git)
             {
                 RemoteUri = remoteUri
             };
@@ -923,7 +897,6 @@ namespace Microsoft.Git.CredentialManager.Tests
         [Fact]
         public void Settings_GetSettingValues_EnvarAndMultipleConfig_ReturnsAllWithCorrectPrecedence()
         {
-            const string repositoryPath = "/tmp/repos/foo/.git";
             const string remoteUrl = "http://example.com/foo.git";
             const string scope1 = "http://example.com";
             const string scope2 = "example.com";
@@ -944,12 +917,11 @@ namespace Microsoft.Git.CredentialManager.Tests
                 Variables = {[envarName] = value1}
             };
             var git = new TestGit();
-            var repo = git.AddRepository(repositoryPath);
-            repo.Configuration[$"{section}.{scope1}.{property}"] = value2;
-            repo.Configuration[$"{section}.{scope2}.{property}"] = value3;
-            repo.Configuration[$"{section}.{property}"]          = value4;
+            git.LocalConfiguration[$"{section}.{scope1}.{property}"] = value2;
+            git.LocalConfiguration[$"{section}.{scope2}.{property}"] = value3;
+            git.LocalConfiguration[$"{section}.{property}"]          = value4;
 
-            var settings = new Settings(envars, git, repositoryPath)
+            var settings = new Settings(envars, git)
             {
                 RemoteUri = remoteUri
             };

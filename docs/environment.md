@@ -41,7 +41,7 @@ _No configuration equivalent._
 
 ### GCM_TRACE_SECRETS
 
-Enables tracing of secret and senstive information, which is by default masked in trace output.
+Enables tracing of secret and sensitive information, which is by default masked in trace output.
 Requires that `GCM_TRACE` is also enabled.
 
 #### Example
@@ -125,7 +125,7 @@ _No configuration equivalent._
 
 Permit or disable GCM Core from interacting with the user (showing GUI or TTY prompts). If interaction is required but has been disabled, an error is returned.
 
-This can be helpful when using GCM Core in headless and unattended environments, such as build servers, where it would be preferable to fail than to hang indefinately waiting for a non-existent user.
+This can be helpful when using GCM Core in headless and unattended environments, such as build servers, where it would be preferable to fail than to hang indefinitely waiting for a non-existent user.
 
 To disable interactivity set this to `false` or `0`.
 
@@ -309,3 +309,67 @@ export GCM_GITHUB_AUTHMODES="oauth basic"
 ```
 
 **Also see: [credential.gitHubAuthModes](configuration.md#credentialgitHubAuthModes)**
+
+---
+
+### GCM_NAMESPACE
+
+Use a custom namespace prefix for credentials read and written in the OS credential store.
+Credentials will be stored in the format `{namespace}:{service}`.
+
+Defaults to the value `git`.
+
+##### Windows
+
+```batch
+SET GCM_NAMESPACE="my-namespace"
+```
+
+##### macOS/Linux
+
+```bash
+export GCM_NAMESPACE="my-namespace"
+```
+
+**Also see: [credential.namespace](configuration.md#credentialnamespace)**
+
+---
+
+### GCM_CREDENTIAL_STORE
+
+Select the type of credential store to use on supported platforms.
+
+Default value is unset.
+
+**Note:** This setting is only supported on Linux platforms. Setting this value on Windows and macOS has no effect.  See more information about configuring secret stores on Linux [here](linuxcredstores.md).
+
+Value|Credential Store
+-|-
+_(unset)_|(error)
+`secretservice`|[freedesktop.org Secret Service API](https://specifications.freedesktop.org/secret-service/) via [libsecret](https://wiki.gnome.org/Projects/Libsecret) (requires a graphical interface to unlock secret collections).
+`gpg`|Use GPG to store encrypted files that are compatible with the [`pass` utility](https://www.passwordstore.org/) (requires GPG and `pass` to initialize the store).
+`plaintext`|Store credentials in plaintext files (**UNSECURE**). Customize the plaintext store location with [`GCM_PLAINTEXT_STORE_PATH`](#GCM_PLAINTEXT_STORE_PATH).
+
+##### Linux
+
+```bash
+export GCM_CREDENTIAL_STORE="gpg"
+```
+
+**Also see: [credential.credentialStore](configuration.md#credentialcredentialstore)**
+
+---
+
+### GCM_PLAINTEXT_STORE_PATH
+
+Specify a custom directory to store plaintext credential files in when [`GCM_CREDENTIAL_STORE`](#GCM_CREDENTIAL_STORE) is set to `plaintext`.
+
+Defaults to the value `~/.gcm/store`.
+
+#### Linux
+
+```shell
+export GCM_PLAINTEXT_STORE_PATH=/mnt/external-drive/credentials
+```
+
+**Also see: [credential.plaintextStorePath](configuration.md#credentialplaintextstorepath)**

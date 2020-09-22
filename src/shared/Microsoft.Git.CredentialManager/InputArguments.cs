@@ -48,22 +48,73 @@ namespace Microsoft.Git.CredentialManager
 
         public string GetArgumentOrDefault(string key)
         {
-            return _dict.TryGetValue(key, out string value) ? value : null;
+            return TryGetArgument(key, out string value) ? value : null;
         }
 
-        public Uri GetRemoteUri()
+        public bool TryGetArgument(string key, out string value)
+        {
+            return _dict.TryGetValue(key, out value);
+        }
+
+        public bool TryGetHostAndPort(out string host, out int? port)
+        {
+            host = null;
+            port = null;
+
+            if (Host is null)
+            {
+                return false;
+            }
+
+            // Split port number and hostname from host input argument
+            string[] hostParts = Host.Split(':');
+            if (hostParts.Length > 0)
+            {
+                host = hostParts[0];
+            }
+
+            if (hostParts.Length > 1)
+            {
+                if (!int.TryParse(hostParts[1], out int portInt))
+                {
+                    return false;
+                }
+
+                port = portInt;
+            }
+
+            return true;
+        }
+
+        public Uri GetRemoteUri(bool includeUser = false)
         {
             if (Protocol is null || Host is null)
             {
                 return null;
             }
 
-            var ub = new UriBuilder(Protocol, Host)
+            string[] hostParts = Host.Split(':');
+            if (hostParts.Length > 0)
             {
-                Path = Path
-            };
+                var ub = new UriBuilder(Protocol, hostParts[0])
+                {
+                    Path = Path
+                };
 
-            return ub.Uri;
+                if (hostParts.Length > 1 && int.TryParse(hostParts[1], out int port))
+                {
+                    ub.Port = port;
+                }
+
+                if (includeUser)
+                {
+                    ub.UserName = Uri.EscapeDataString(UserName);
+                }
+
+                return ub.Uri;
+            }
+
+            return null;
         }
 
         #endregion

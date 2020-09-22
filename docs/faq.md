@@ -26,7 +26,7 @@ You probably need to configure Git and GCM Core to use a proxy. Please see detai
 
 ## About the project
 
-### Q: How does project this relate to [Git Credential Manager for Windows](https://github.com/Microsoft/Git-Credential-Manager-for-Windows) and [Git Credential Manager for Mac and Linux](https://github.com/Microsoft/Git-Credential-Manager-for-Mac-and-Linux)?
+### Q: How does this project relate to [Git Credential Manager for Windows](https://github.com/Microsoft/Git-Credential-Manager-for-Windows) and [Git Credential Manager for Mac and Linux](https://github.com/Microsoft/Git-Credential-Manager-for-Mac-and-Linux)?
 
 Git Credential Manager for Windows (GCM Windows) is a .NET Framework-based Git credential helper which runs on Windows.
 Likewise the Git Credential Manager for Mac and Linux (Java GCM) is a Java-based Git credential helper that runs only on macOS and Linux. Although both of these projects aim to solve the same problem (providing seamless multi-factor HTTPS authentication with Git), they are based on different codebases and languages which is becoming hard to manage to ensure feature parity.
@@ -39,7 +39,7 @@ No. Git Credential Manager for Windows (GCM Windows) will continue to be support
 
 ### Q: Does this mean the Java-based GCM for Mac/Linux is deprecated?
 
-Yes. Usage of Git Credential Manager for Mac and Linux (Java GCM) should be replaced with SSH keys. If you wish to take part in the public preview of GCM Core on macOS please feel free to install the latest preview release and give feedback! Otherwise, using SSH would be prefered on macOS and Linux to Java GCM.
+Yes. Usage of Git Credential Manager for Mac and Linux (Java GCM) should be replaced with SSH keys. If you wish to take part in the public preview of GCM Core on macOS please feel free to install the latest preview release and give feedback! Otherwise, using SSH would be preferred on macOS and Linux to Java GCM.
 
 SSH configuration instructions:
 

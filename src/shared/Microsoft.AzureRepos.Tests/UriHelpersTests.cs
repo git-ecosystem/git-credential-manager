@@ -37,6 +37,42 @@ namespace Microsoft.AzureRepos.Tests
             Assert.Equal(expected, UriHelpers.IsAzureDevOpsHost(host));
         }
 
+        [Theory]
+        [InlineData("dev.azure.com", true)]
+        [InlineData("myorg.visualstudio.com", false)]
+        [InlineData("vs-ssh.myorg.visualstudio.com", false)]
+        [InlineData("DEV.AZURE.COM", true)]
+        [InlineData("MYORG.VISUALSTUDIO.COM", false)]
+        [InlineData(null, false)]
+        [InlineData("", false)]
+        [InlineData("    ", false)]
+        [InlineData("testdev.azure.com", false)]
+        [InlineData("test.dev.azure.com", false)]
+        [InlineData("visualstudio.com", false)]
+        [InlineData("testvisualstudio.com", false)]
+        public void UriHelpers_IsDevAzureComHost(string host, bool expected)
+        {
+            Assert.Equal(expected, UriHelpers.IsDevAzureComHost(host));
+        }
+
+        [Theory]
+        [InlineData("dev.azure.com", false)]
+        [InlineData("myorg.visualstudio.com", true)]
+        [InlineData("vs-ssh.myorg.visualstudio.com", true)]
+        [InlineData("DEV.AZURE.COM", false)]
+        [InlineData("MYORG.VISUALSTUDIO.COM", true)]
+        [InlineData(null, false)]
+        [InlineData("", false)]
+        [InlineData("    ", false)]
+        [InlineData("testdev.azure.com", false)]
+        [InlineData("test.dev.azure.com", false)]
+        [InlineData("visualstudio.com", false)]
+        [InlineData("testvisualstudio.com", false)]
+        public void UriHelpers_IsVisualStudioComHost(string host, bool expected)
+        {
+            Assert.Equal(expected, UriHelpers.IsVisualStudioComHost(host));
+        }
+
         [Fact]
         public void UriHelpers_CreateOrganizationUri_Null_ThrowsException()
         {
@@ -79,6 +115,36 @@ namespace Microsoft.AzureRepos.Tests
             Uri actual = UriHelpers.CreateOrganizationUri(input);
 
             Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public void UriHelpers_CreateOrganizationUri_AzureHost_WithPort_ReturnsCorrectUri()
+        {
+            var expected = new Uri("https://dev.azure.com:456/myorg");
+            var input = new InputArguments(new Dictionary<string, string>
+            {
+                ["protocol"] = "https",
+                ["host"]     = "dev.azure.com:456",
+                ["path"]     = "myorg/myproject/_git/myrepo"
+            });
+
+            Uri actual = UriHelpers.CreateOrganizationUri(input);
+
+            Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public void UriHelpers_CreateOrganizationUri_AzureHost_WithBadPort_ThrowsException()
+        {
+            var expected = new Uri("https://dev.azure.com:456/myorg");
+            var input = new InputArguments(new Dictionary<string, string>
+            {
+                ["protocol"] = "https",
+                ["host"]     = "dev.azure.com:not-a-port",
+                ["path"]     = "myorg/myproject/_git/myrepo"
+            });
+
+            Assert.Throws<InvalidOperationException>(() => UriHelpers.CreateOrganizationUri(input));
         }
 
         [Fact]

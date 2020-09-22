@@ -3,13 +3,18 @@
 Property|Value
 -|-
 Author(s)|Matthew John Cheetham ([@mjcheetham](https://github.com/mjcheetham))
-Revision|1.0
-Last updated|2020-06-22
+Revision|1.1
+Last updated|2020-09-04
+
+## Revision Summary
+
+- 1.0. Initial revision.
+- 1.1. Replaced `GetCredentialKey` with `GetServiceName`.
 
 ## Abstract
 
 Git Credential Manger Core, the cross-platform and cross-host Git credential
-helper, can be extended to support any Git hosting service allowing seemless
+helper, can be extended to support any Git hosting service allowing seamless
 authentication to secured Git repositories by implementing and registering a
 "host provider".
 
@@ -28,7 +33,7 @@ authentication to secured Git repositories by implementing and registering a
   - [2.4. Storing Credentials](#24-storing-credentials)
   - [2.5. Erasing Credentials](#25-erasing-credentials)
   - [2.6 `HostProvider` base class](#26-hostprovider-base-class)
-    - [2.6.1 `GetCredentialKey`](#261-getcredentialkey)
+    - [2.6.1 `GetServiceName`](#261-getservicename)
     - [2.6.2 `GenerateCredentialAsync`](#262-generatecredentialasync)
   - [2.7. External Metadata](#27-external-metadata)
 - [3. Helpers](#3-helpers)
@@ -65,7 +70,7 @@ Mac/Linux" or "GCM Mac/Linux".
 
 OAuth2 [[RFC6749](https://tools.ietf.org/html/rfc6749)] "access tokens" are
 abbreviated to "ATs" and "refresh tokens" to "RTs". "Personal Access Tokens" are
-abbreivated to "PATs".
+abbreviated to "PATs".
 
 ## 2. Implementation
 
@@ -109,7 +114,7 @@ register providers with by calling the `RegisterProvider` method.
 #### 2.1.2. Ordering
 
 The default host provider registry in GCM Core will call each host provider in
-the order they were registered in, unless the user has overriden the provider
+the order they were registered in, unless the user has overridden the provider
 selection process.
 
 There are no rules or restrictions on the ordering of host providers, except
@@ -120,9 +125,9 @@ way.
 ### 2.2. Handling Requests
 
 The `IsSupported` method will be called on all registered host providers in-turn
-on the invokation of a `get`, `store`, or `erase` request. The first host
+on the invocation of a `get`, `store`, or `erase` request. The first host
 provider to return `true` will be called upon to handle the specific request.
-If the user has overriden the host provider selection process, a specific host
+If the user has overridden the host provider selection process, a specific host
 provider may be selected instead, and the `IsSupported` method will NOT be
 called.
 
@@ -145,7 +150,7 @@ example "HTTP is not secure, please use HTTPS".
 ### 2.3. Retrieving Credentials
 
 The `GetCredentialAsync` method will be called when a `get` request is made.
-The method MUST return an instance of an `ICredential` capable of fufilling the
+The method MUST return an instance of an `ICredential` capable of fulfilling the
 specific access request. The argument passed to `GetCredentialAsync` contains
 properties indicating the required `protocol` and `host` for this request. The
 `username` and `path` properties are OPTIONAL, however if they are present, they
@@ -158,7 +163,7 @@ The host provider MAY choose to check if a stored credential is still valid
 by inspecting any stored metadata associated with the value. A host provider MAY
 also choose to further validate a retrieved stored credential by making a web
 request. However, it is NOT RECOMMENDED to make any request that is known to be
-slow or that typically produces inconclusive valudation results.
+slow or that typically produces inconclusive validation results.
 
 If a provider chooses to make a validation web request and that request fails or
 is inconclusive, it SHOULD assume the credential is still valid and return it
@@ -184,7 +189,7 @@ attempt first.
 Host providers are RECOMMENDED to attempt authentication mechanisms that do not
 require user interaction if possible. If there are multiple authentication
 mechanisms that could be equally considered "best" they MAY prompt the user
-to make a selection. Host providers MAY wish to rememeber such a selection for
+to make a selection. Host providers MAY wish to remember such a selection for
 future use, however they MUST make it clear how to clear this stored selection
 to the user.
 
@@ -222,7 +227,7 @@ Host providers MAY store multiple credentials or tokens in the same request if
 it is required. One example where multiple credential storage is needed is with
 OAuth2 access tokens (AT) and refresh tokens (RT). Both the AT and RT SHOULD be
 stored in the same location using the credential store with complementary
-credential keys.
+credential service names.
 
 ### 2.5. Erasing Credentials
 
@@ -249,33 +254,36 @@ provider implementors. This base class implements most required methods of the
 `IHostProvider` interface with common credential recall and storage behaviour.
 
 The `GetCredentialAsync`, `StoreCredentialAsync`, and `EraseCredentialAsync`
-methods are implemented as `virtual` meaning they MAY be overriden by derived
+methods are implemented as `virtual` meaning they MAY be overridden by derived
 classes to customise the behaviour of those operations. It is NOT RECOMMENDED
 to derive from the `HostProvider` base class if the implementor must override
 most of the methods as implemented - implementors SHOULD implement the
 `IHostProvider` interface directly instead.
 
 Implementors that choose to derive from this base class MUST implement all
-abstract methods and properties. The two primary abstract methods to implement
-are `GetCredentialKey` and `GenerateCredentialAsync`.
+abstract methods and properties. The primary abstract method to implement
+is `GenerateCredentialAsync`.
 
-#### 2.6.1 `GetCredentialKey`
+There is also an additional `virtual` method named `GetServiceName` that is used
+by the default implementations of the `Get|Store|EraseCredentialAsync` methods
+to locate and store credentials.
 
-The `GetCredentialKey` method MUST return a string that forms a key for storing
-credentials for this provider and request. The key returned MUST be stable -
-i.e, it MUST return the same value given the same or equivalent input arguments.
+#### 2.6.1 `GetServiceName`
 
-This key is used by the `GetCredentialAsync` method to first check for any
-existing credential stored in the credential store, returning it if found.
+The `GetServiceName` virtual method, if overriden, MUST return a string that
+identifies the service/provider for this request, and is used for storing
+credentials. The value returned MUST be stable - i.e, it MUST return the same
+value given the same or equivalent input arguments.
 
-The key is also similarly used by the `StoreCredentialAsync` and
-`EraseCredentialAsync` methods to store and erase, respectively, credentials
-passed as arguments by Git.
+By default this method returns the full remote URI, without a trailing slash,
+including protocol/scheme, hostname, and path if present in the input arguments.
+Any username in the input arguments is never included in the URI.
 
 #### 2.6.2 `GenerateCredentialAsync`
 
 The `GenerateCredentialAsync` method will be called if an existing credential
-with a matching credential key is not found in the credential store.
+with a matching service (from `GetServiceName`) and account is not found in the
+credential store.
 
 This method MUST return a freshly created/generated credential and not any
 existing or stored one. It MAY use existing or stored ancillary data or tokens,
@@ -300,7 +308,7 @@ features such as native APIs and native graphical user interfaces, in order to
 offer a better authentication experience.
 
 Host providers MUST function without the presence of a helper, even if that
-function is to fail gracefully with a user friendly error message, including
+function is to fail gracefully with a user-friendly error message, including
 a remedy to correct their installation. Host providers SHOULD always offer a
 terminal/TTY or text-based authentication mechanism alongside any graphical
 interface provided by a helper.
@@ -312,7 +320,7 @@ etc.
 
 Communications between the main and helper processes MAY use any IPC mechanism
 available. It is RECOMMENDED implementors use standard input/output streams or
-file descriptors to send and recieve data as this is consistent with how Git and
+file descriptors to send and receive data as this is consistent with how Git and
 GCM Core communicate. UNIX sockets or Windows Named Pipes MAY also be used when
 an ongoing back-and-forth communication is required.
 

@@ -2,6 +2,7 @@
 // Licensed under the MIT license.
 using System;
 using System.Runtime.InteropServices;
+using static Microsoft.Git.CredentialManager.Interop.MacOS.Native.LibSystem;
 
 namespace Microsoft.Git.CredentialManager.Interop.MacOS.Native
 {
@@ -10,8 +11,51 @@ namespace Microsoft.Git.CredentialManager.Interop.MacOS.Native
     {
         private const string SecurityFrameworkLib = "/System/Library/Frameworks/Security.framework/Security";
 
+        public static readonly IntPtr Handle;
+        public static readonly IntPtr kSecClass;
+        public static readonly IntPtr kSecMatchLimit;
+        public static readonly IntPtr kSecReturnAttributes;
+        public static readonly IntPtr kSecReturnRef;
+        public static readonly IntPtr kSecReturnPersistentRef;
+        public static readonly IntPtr kSecClassGenericPassword;
+        public static readonly IntPtr kSecMatchLimitOne;
+        public static readonly IntPtr kSecMatchItemList;
+        public static readonly IntPtr kSecAttrLabel;
+        public static readonly IntPtr kSecAttrAccount;
+        public static readonly IntPtr kSecAttrService;
+        public static readonly IntPtr kSecValueRef;
+        public static readonly IntPtr kSecValueData;
+        public static readonly IntPtr kSecReturnData;
+
+        static SecurityFramework()
+        {
+            Handle = dlopen(SecurityFrameworkLib, 0);
+
+            kSecClass                = GetGlobal(Handle, "kSecClass");
+            kSecMatchLimit           = GetGlobal(Handle, "kSecMatchLimit");
+            kSecReturnAttributes     = GetGlobal(Handle, "kSecReturnAttributes");
+            kSecReturnRef            = GetGlobal(Handle, "kSecReturnRef");
+            kSecReturnPersistentRef  = GetGlobal(Handle, "kSecReturnPersistentRef");
+            kSecClassGenericPassword = GetGlobal(Handle, "kSecClassGenericPassword");
+            kSecMatchLimitOne        = GetGlobal(Handle, "kSecMatchLimitOne");
+            kSecMatchItemList        = GetGlobal(Handle, "kSecMatchItemList");
+            kSecAttrLabel            = GetGlobal(Handle, "kSecAttrLabel");
+            kSecAttrAccount          = GetGlobal(Handle, "kSecAttrAccount");
+            kSecAttrService          = GetGlobal(Handle, "kSecAttrService");
+            kSecValueRef             = GetGlobal(Handle, "kSecValueRef");
+            kSecValueData            = GetGlobal(Handle, "kSecValueData");
+            kSecReturnData           = GetGlobal(Handle, "kSecReturnData");
+        }
+
         [DllImport(SecurityFrameworkLib, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
         public static extern int SessionGetInfo(int session, out int sessionId, out SessionAttributeBits attributes);
+
+        [DllImport(SecurityFrameworkLib, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int SecAccessCreate(IntPtr descriptor, IntPtr trustedList, out IntPtr accessRef);
+
+        [DllImport(SecurityFrameworkLib, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int SecKeychainItemCreateFromContent(IntPtr itemClass, IntPtr attrList, uint length,
+            IntPtr data, IntPtr keychainRef, IntPtr initialAccess, out IntPtr itemRef);
 
         [DllImport(SecurityFrameworkLib, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
         public static extern int SecKeychainAddGenericPassword(
@@ -36,13 +80,13 @@ namespace Microsoft.Git.CredentialManager.Interop.MacOS.Native
             out IntPtr itemRef);
 
         [DllImport(SecurityFrameworkLib, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int SecKeychainItemCopyAttributesAndData(
+        public static extern unsafe int SecKeychainItemCopyAttributesAndData(
             IntPtr itemRef,
-            ref SecKeychainAttributeInfo info,
-            IntPtr itemClass, // SecItemClass*
-            out IntPtr attrList, // SecKeychainAttributeList*
-            out uint dataLength,
-            IntPtr data);
+            IntPtr info,
+            IntPtr itemClass,
+            SecKeychainAttributeList** attrList,
+            uint* dataLength,
+            void** data);
 
         [DllImport(SecurityFrameworkLib, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
         public static extern int SecKeychainItemModifyAttributesAndData(
@@ -64,6 +108,16 @@ namespace Microsoft.Git.CredentialManager.Interop.MacOS.Native
         public static extern int SecKeychainItemFreeAttributesAndData(
             IntPtr attrList, // SecKeychainAttributeList*
             IntPtr data);
+
+        [DllImport(SecurityFrameworkLib, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int SecItemCopyMatching(IntPtr query, out IntPtr result);
+
+        [DllImport(SecurityFrameworkLib, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int SecKeychainItemCopyFromPersistentReference(IntPtr persistentItemRef, out IntPtr itemRef);
+
+        [DllImport(SecurityFrameworkLib, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int SecKeychainItemCopyContent(IntPtr itemRef, IntPtr itemClass, IntPtr attrList,
+            out uint length, out IntPtr outData);
 
         public const int CallerSecuritySession = -1;
 

@@ -37,20 +37,20 @@ namespace Microsoft.Git.CredentialManager
         /// </summary>
         /// <param name="environment">Environment variables.</param>
         /// <param name="environmentTarget">Environment variable target to update.</param>
-        /// <param name="configuration">Git configuration.</param>
+        /// <param name="git">Git object.</param>
         /// <param name="configurationLevel">Git configuration level to update.</param>
         Task ConfigureAsync(IEnvironment environment, EnvironmentVariableTarget environmentTarget,
-            IGitConfiguration configuration, GitConfigurationLevel configurationLevel);
+            IGit git, GitConfigurationLevel configurationLevel);
 
         /// <summary>
         /// Remove changes to the environment and Git configuration previously made with <see cref="ConfigureAsync"/>.
         /// </summary>
         /// <param name="environment">Environment variables.</param>
         /// <param name="environmentTarget">Environment variable target to update.</param>
-        /// <param name="configuration">Git configuration.</param>
+        /// <param name="git">Git object.</param>
         /// <param name="configurationLevel">Git configuration level to update.</param>
         Task UnconfigureAsync(IEnvironment environment, EnvironmentVariableTarget environmentTarget,
-            IGitConfiguration configuration, GitConfigurationLevel configurationLevel);
+            IGit git, GitConfigurationLevel configurationLevel);
     }
 
     public interface IConfigurationService
@@ -117,22 +117,19 @@ namespace Microsoft.Git.CredentialManager
                     throw new ArgumentOutOfRangeException(nameof(target));
             }
 
-            using (IGitConfiguration config = _context.Git.GetConfiguration())
+            foreach (IConfigurableComponent component in _components)
             {
-                foreach (IConfigurableComponent component in _components)
+                if (configure)
                 {
-                    if (configure)
-                    {
-                        _context.Trace.WriteLine($"Configuring component '{component.Name}'...");
-                        _context.Streams.Error.WriteLine($"Configuring component '{component.Name}'...");
-                        await component.ConfigureAsync(_context.Environment, envTarget, config, configLevel);
-                    }
-                    else
-                    {
-                        _context.Trace.WriteLine($"Unconfiguring component '{component.Name}'...");
-                        _context.Streams.Error.WriteLine($"Unconfiguring component '{component.Name}'...");
-                        await component.UnconfigureAsync(_context.Environment, envTarget, config, configLevel);
-                    }
+                    _context.Trace.WriteLine($"Configuring component '{component.Name}'...");
+                    _context.Streams.Error.WriteLine($"Configuring component '{component.Name}'...");
+                    await component.ConfigureAsync(_context.Environment, envTarget, _context.Git, configLevel);
+                }
+                else
+                {
+                    _context.Trace.WriteLine($"Unconfiguring component '{component.Name}'...");
+                    _context.Streams.Error.WriteLine($"Unconfiguring component '{component.Name}'...");
+                    await component.UnconfigureAsync(_context.Environment, envTarget, _context.Git, configLevel);
                 }
             }
         }

@@ -33,7 +33,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Authentication
 
             ICredential credential = basicAuth.GetCredentials(testResource, testUserName);
 
-            Assert.Equal(testUserName, credential.UserName);
+            Assert.Equal(testUserName, credential.Account);
             Assert.Equal(testPassword, credential.Password);
         }
 
@@ -52,7 +52,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Authentication
 
             ICredential credential = basicAuth.GetCredentials(testResource);
 
-            Assert.Equal(testUserName, credential.UserName);
+            Assert.Equal(testUserName, credential.Account);
             Assert.Equal(testPassword, credential.Password);
         }
 
@@ -72,7 +72,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Authentication
             Assert.Throws<InvalidOperationException>(() => basicAuth.GetCredentials(testResource));
         }
 
-        [PlatformFact(Platform.Windows)]
+        [PlatformFact(Platforms.Windows)]
         public void BasicAuthentication_GetCredentials_DesktopSession_Resource_UserPassPromptReturnsCredentials()
         {
             const string testResource = "https://example.com";
@@ -99,11 +99,11 @@ namespace Microsoft.Git.CredentialManager.Tests.Authentication
             ICredential credential = basicAuth.GetCredentials(testResource);
 
             Assert.NotNull(credential);
-            Assert.Equal(testUserName, credential.UserName);
+            Assert.Equal(testUserName, credential.Account);
             Assert.Equal(testPassword, credential.Password);
         }
 
-        [PlatformFact(Platform.Windows)]
+        [PlatformFact(Platforms.Windows)]
         public void BasicAuthentication_GetCredentials_DesktopSession_ResourceAndUser_PassPromptReturnsCredentials()
         {
             const string testResource = "https://example.com";
@@ -130,11 +130,11 @@ namespace Microsoft.Git.CredentialManager.Tests.Authentication
             ICredential credential = basicAuth.GetCredentials(testResource, testUserName);
 
             Assert.NotNull(credential);
-            Assert.Equal(testUserName, credential.UserName);
+            Assert.Equal(testUserName, credential.Account);
             Assert.Equal(testPassword, credential.Password);
         }
 
-        [PlatformFact(Platform.Windows)]
+        [PlatformFact(Platforms.Windows)]
         public void BasicAuthentication_GetCredentials_DesktopSession_ResourceAndUser_PassPromptDiffUserReturnsCredentials()
         {
             const string testResource = "https://example.com";
@@ -162,7 +162,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Authentication
             ICredential credential = basicAuth.GetCredentials(testResource, testUserName);
 
             Assert.NotNull(credential);
-            Assert.Equal(newUserName, credential.UserName);
+            Assert.Equal(newUserName, credential.Account);
             Assert.Equal(testPassword, credential.Password);
         }
     }

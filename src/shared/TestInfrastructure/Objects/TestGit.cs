@@ -2,45 +2,41 @@
 // Licensed under the MIT license.
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Microsoft.Git.CredentialManager.Tests.Objects
 {
     public class TestGit : IGit
     {
+        public TestGitConfiguration SystemConfiguration { get; } = new TestGitConfiguration();
         public TestGitConfiguration GlobalConfiguration { get; } = new TestGitConfiguration();
-
-        public IDictionary<string, TestGitRepository> Repositories { get; } = new Dictionary<string, TestGitRepository>();
-
-        public TestGitRepository AddRepository(TestGitRepository repo)
-        {
-            Repositories.Add(repo.Path, repo);
-            return repo;
-        }
-
-        public TestGitRepository AddRepository(string repoPath, TestGitConfiguration repoConfig) =>
-            AddRepository(new TestGitRepository(repoPath, repoConfig));
-
-        public TestGitRepository AddRepository(string repoPath) =>
-            AddRepository(repoPath, new TestGitConfiguration());
+        public TestGitConfiguration LocalConfiguration { get; } = new TestGitConfiguration();
 
         #region IGit
 
-        void IDisposable.Dispose() { }
-
-        IGitConfiguration IGit.GetConfiguration(string repositoryPath)
+        IGitConfiguration IGit.GetConfiguration(GitConfigurationLevel level)
         {
-            if (string.IsNullOrWhiteSpace(repositoryPath) || !Repositories.TryGetValue(repositoryPath, out TestGitRepository repo))
+            switch (level)
             {
-                return GlobalConfiguration;
+                case GitConfigurationLevel.All:
+                    IDictionary<string, IList<string>> mergedConfigDict =
+                        MergeDictionaries(
+                            SystemConfiguration.Dictionary,
+                            GlobalConfiguration.Dictionary,
+                            LocalConfiguration.Dictionary);
+                    return new TestGitConfiguration(mergedConfigDict);
+                case GitConfigurationLevel.ProgramData:
+                case GitConfigurationLevel.Xdg:
+                    return new TestGitConfiguration();
+                case GitConfigurationLevel.System:
+                    return SystemConfiguration;
+                case GitConfigurationLevel.Global:
+                    return GlobalConfiguration;
+                case GitConfigurationLevel.Local:
+                    return LocalConfiguration;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(level), level, $"Unknown {nameof(GitConfigurationLevel)}");
             }
-
-            IDictionary<string, IList<string>> mergedConfigDict = MergeDictionaries(GlobalConfiguration.Dictionary, repo.Configuration.Dictionary);
-
-            return new TestGitConfiguration(mergedConfigDict);
         }
-
-        string IGit.GetRepositoryPath(string path) => Repositories.Keys.FirstOrDefault(path.StartsWith);
 
         #endregion
 
@@ -57,19 +53,6 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
             }
 
             return result;
-        }
-
-        public class TestGitRepository
-        {
-            internal TestGitRepository(string path, TestGitConfiguration configuration)
-            {
-                Path = path;
-                Configuration = configuration ?? new TestGitConfiguration();
-            }
-
-            public string Path { get; }
-
-            public TestGitConfiguration Configuration { get; }
         }
     }
 }

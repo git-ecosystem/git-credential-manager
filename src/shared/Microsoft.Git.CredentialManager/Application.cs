@@ -143,7 +143,7 @@ namespace Microsoft.Git.CredentialManager
 
         Task IConfigurableComponent.ConfigureAsync(
             IEnvironment environment, EnvironmentVariableTarget environmentTarget,
-            IGitConfiguration configuration, GitConfigurationLevel configurationLevel)
+            IGit git, GitConfigurationLevel configurationLevel)
         {
             // NOTE: We currently only update the PATH in Windows installations and leave putting the GCM executable
             //       on the PATH on other platform to their installers.
@@ -164,59 +164,58 @@ namespace Microsoft.Git.CredentialManager
             string helperKey = $"{Constants.GitConfiguration.Credential.SectionName}.{Constants.GitConfiguration.Credential.Helper}";
             string gitConfigAppName = GetGitConfigAppName();
 
-            using (IGitConfiguration targetConfig = configuration.GetFilteredConfiguration(configurationLevel))
+            IGitConfiguration targetConfig = git.GetConfiguration(configurationLevel);
+
+            /*
+             * We are looking for the following to be considered already set:
+             *
+             * [credential]
+             *     ...                         # any number of helper entries
+             *     helper =                    # an empty value to reset/clear any previous entries
+             *     helper = {gitConfigAppName} # the expected executable value in the last position & directly following the empty value
+             *
+             */
+
+            string[] currentValues = targetConfig.GetRegex(helperKey, Constants.RegexPatterns.Any).ToArray();
+            if (currentValues.Length < 2 ||
+                !string.IsNullOrWhiteSpace(currentValues[currentValues.Length - 2]) ||    // second to last entry is empty
+                currentValues[currentValues.Length - 1] != gitConfigAppName)              // last entry is the expected executable
             {
-                /*
-                 * We are looking for the following to be considered already set:
-                 *
-                 * [credential]
-                 *     ...                         # any number of helper entries
-                 *     helper =                    # an empty value to reset/clear any previous entries
-                 *     helper = {gitConfigAppName} # the expected executable value in the last position & directly following the empty value
-                 *
-                 */
+                Context.Trace.WriteLine("Updating Git credential helper configuration...");
 
-                string[] currentValues = targetConfig.GetMultivarValue(helperKey, Constants.RegexPatterns.Any).ToArray();
-                if (currentValues.Length < 2 ||
-                    !string.IsNullOrWhiteSpace(currentValues[currentValues.Length - 2]) ||    // second to last entry is empty
-                    currentValues[currentValues.Length - 1] != gitConfigAppName)              // last entry is the expected executable
-                {
-                    Context.Trace.WriteLine("Updating Git credential helper configuration...");
+                // Clear any existing entries in the configuration.
+                targetConfig.UnsetAll(helperKey, Constants.RegexPatterns.Any);
 
-                    // Clear any existing entries in the configuration.
-                    targetConfig.DeleteMultivarEntry(helperKey, Constants.RegexPatterns.Any);
-
-                    // Add an empty value for `credential.helper`, which has the effect of clearing any helper value
-                    // from any lower-level Git configuration, then add a second value which is the actual executable path.
-                    targetConfig.SetValue(helperKey, string.Empty);
-                    targetConfig.SetMultivarValue(helperKey, Constants.RegexPatterns.None, gitConfigAppName);
-                }
-                else
-                {
-                    Context.Trace.WriteLine("Credential helper configuration is already set correctly.");
-                }
+                // Add an empty value for `credential.helper`, which has the effect of clearing any helper value
+                // from any lower-level Git configuration, then add a second value which is the actual executable path.
+                targetConfig.SetValue(helperKey, string.Empty);
+                targetConfig.ReplaceAll(helperKey, Constants.RegexPatterns.None, gitConfigAppName);
             }
+            else
+            {
+                Context.Trace.WriteLine("Credential helper configuration is already set correctly.");
+            }
+
 
             return Task.CompletedTask;
         }
 
         Task IConfigurableComponent.UnconfigureAsync(
             IEnvironment environment, EnvironmentVariableTarget environmentTarget,
-            IGitConfiguration configuration, GitConfigurationLevel configurationLevel)
+            IGit git, GitConfigurationLevel configurationLevel)
         {
             string helperKey = $"{Constants.GitConfiguration.Credential.SectionName}.{Constants.GitConfiguration.Credential.Helper}";
             string gitConfigAppName = GetGitConfigAppName();
 
-            using (IGitConfiguration targetConfig = configuration.GetFilteredConfiguration(configurationLevel))
-            {
-                Context.Trace.WriteLine("Removing Git credential helper configuration...");
+            IGitConfiguration targetConfig = git.GetConfiguration(configurationLevel);
 
-                // Clear any blank 'reset' entries
-                targetConfig.DeleteMultivarEntry(helperKey, Constants.RegexPatterns.Empty);
+            Context.Trace.WriteLine("Removing Git credential helper configuration...");
 
-                // Clear GCM executable entries
-                targetConfig.DeleteMultivarEntry(helperKey, Regex.Escape(gitConfigAppName));
-            }
+            // Clear any blank 'reset' entries
+            targetConfig.UnsetAll(helperKey, Constants.RegexPatterns.Empty);
+
+            // Clear GCM executable entries
+            targetConfig.UnsetAll(helperKey, Regex.Escape(gitConfigAppName));
 
             // NOTE: We currently only update the PATH in Windows installations and leave removing the GCM executable
             //       on the PATH on other platform to their installers.

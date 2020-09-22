@@ -4,14 +4,14 @@
 namespace Microsoft.Git.CredentialManager
 {
     /// <summary>
-    /// Represents a simple credential; user name and password pair.
+    /// Represents a credential.
     /// </summary>
     public interface ICredential
     {
         /// <summary>
-        /// User name.
+        /// Account associated with this credential.
         /// </summary>
-        string UserName { get; }
+        string Account { get; }
 
         /// <summary>
         /// Password.
@@ -26,11 +26,11 @@ namespace Microsoft.Git.CredentialManager
     {
         public GitCredential(string userName, string password)
         {
-            UserName = userName;
+            Account = userName;
             Password = password;
         }
 
-        public string UserName { get; }
+        public string Account { get; }
 
         public string Password { get; }
     }

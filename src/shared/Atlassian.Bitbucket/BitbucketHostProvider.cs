@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Net;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Git.CredentialManager;
 using Microsoft.Git.CredentialManager.Authentication.OAuth;
@@ -40,50 +39,57 @@ namespace Atlassian.Bitbucket
 
         public bool IsSupported(InputArguments input)
         {
+            if (input is null)
+            {
+                return false;
+            }
+
+            // Split port number and hostname from host input argument
+            input.TryGetHostAndPort(out string hostName, out _);
+
             // We do not support unencrypted HTTP communications to Bitbucket,
             // but we report `true` here for HTTP so that we can show a helpful
             // error message for the user in `GetCredentialAsync`.
-            return input != null &&
-                   (StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "http") ||
+            return (StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "http") ||
                     StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "https")) &&
-                   input.Host.EndsWith(BitbucketConstants.BitbucketBaseUrlHost, StringComparison.OrdinalIgnoreCase);
+                   hostName.EndsWith(BitbucketConstants.BitbucketBaseUrlHost, StringComparison.OrdinalIgnoreCase);
+
         }
 
         public async Task<ICredential> GetCredentialAsync(InputArguments input)
         {
-            // Compute the target URI
-            Uri targetUri = GetTargetUri(input);
+            // Compute the remote URI
+            Uri targetUri = input.GetRemoteUri();
+
+            bool isBitbucketServer = IsBitbucketServer(input);
 
             // We should not allow unencrypted communication and should inform the user
             if (StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "http")
-                && !IsBitbucketServer(targetUri))
+                && !isBitbucketServer)
             {
                 throw new Exception("Unencrypted HTTP is not supported for Bitbucket.org. Ensure the repository remote URL is using HTTPS.");
             }
 
-            // Try and get the username specified in the remote URL if any
-            string targetUriUser = targetUri.GetUserName();
-
             // Check for presence of refresh_token entry in credential store
-            string refreshKey = GetRefreshTokenKey(input);
-            _context.Trace.WriteLine($"Checking for refresh token with key '{refreshKey}'...");
-            ICredential refreshToken = _context.CredentialStore.Get(refreshKey);
+            string refreshTokenService = GetRefreshTokenServiceName(input);
 
+            _context.Trace.WriteLine("Checking for refresh token...");
+            ICredential refreshToken = _context.CredentialStore.Get(refreshTokenService, input.UserName);
             if (refreshToken is null)
             {
                 // There is no refresh token either because this is a non-2FA enabled account (where OAuth is not
                 // required), or because we previously erased the RT.
 
                 // Check for the presence of a credential in the store
-                string credentialKey = GetCredentialKey(input);
-                _context.Trace.WriteLine($"Checking for credentials with key '{credentialKey}'...");
-                ICredential credential = _context.CredentialStore.Get(credentialKey);
+                string credentialService = GetServiceName(input);
 
+                _context.Trace.WriteLine("Checking for credentials...");
+                ICredential credential = _context.CredentialStore.Get(credentialService, input.UserName);
                 if (credential is null)
                 {
                     // We don't have any credentials to use at all! Start with the assumption of no 2FA requirement
                     // and capture username and password via an interactive prompt.
-                    credential = await _bitbucketAuth.GetBasicCredentialsAsync(targetUri, targetUriUser);
+                    credential = await _bitbucketAuth.GetBasicCredentialsAsync(targetUri, input.UserName);
                     if (credential is null)
                     {
                         throw new Exception("User cancelled authentication prompt.");
@@ -94,7 +100,9 @@ namespace Atlassian.Bitbucket
                 // or we have a freshly captured user/pass. Regardless, we must check if these credentials
                 // pass and two-factor requirement on the account.
                 _context.Trace.WriteLine("Checking if two-factor requirements for stored credentials...");
-                bool requires2Fa = await RequiresTwoFactorAuthenticationAsync(credential, targetUri);
+
+                // BBS does not support 2FA out of the box so neither does GCM
+                bool requires2Fa = !isBitbucketServer && await RequiresTwoFactorAuthenticationAsync(credential);
                 if (!requires2Fa)
                 {
                     _context.Trace.WriteLine("Two-factor requirement passed with stored credentials");
@@ -134,9 +142,8 @@ namespace Atlassian.Bitbucket
                     _context.Trace.WriteLine($"Username for refreshed OAuth credential is '{refreshUserName}'");
 
                     // Store the refreshed RT
-                    _context.Trace.WriteLine($"Storing new refresh token with key '{refreshKey}'...");
-                    _context.CredentialStore.AddOrUpdate(refreshKey,
-                        new GitCredential(refreshUserName, refreshResult.RefreshToken));
+                    _context.Trace.WriteLine("Storing new refresh token...");
+                    _context.CredentialStore.AddOrUpdate(refreshTokenService, input.UserName, refreshResult.RefreshToken);
 
                     // Return new access token
                     return new GitCredential(refreshUserName, refreshResult.AccessToken);
@@ -164,8 +171,8 @@ namespace Atlassian.Bitbucket
             _context.Trace.WriteLine($"Username for OAuth credential is '{newUserName}'");
 
             // Store the new RT
-            _context.Trace.WriteLine($"Storing new refresh token with key '{refreshKey}'...");
-            _context.CredentialStore.AddOrUpdate(refreshKey, new GitCredential(newUserName, oauthResult.RefreshToken));
+            _context.Trace.WriteLine("Storing new refresh token...");
+            _context.CredentialStore.AddOrUpdate(refreshTokenService, newUserName, oauthResult.RefreshToken);
             _context.Trace.WriteLine("Refresh token was successfully stored.");
 
             // Return the new AT as the credential
@@ -177,25 +184,11 @@ namespace Atlassian.Bitbucket
             // It doesn't matter if this is an OAuth access token, or the literal username & password
             // because we store them the same way, against the same credential key in the store.
             // The OAuth refresh token is already stored on the 'get' request.
-            string credentialKey = GetCredentialKey(input);
-            ICredential credential = new GitCredential(input.UserName, input.Password);
+            string service = GetServiceName(input);
 
-            _context.Trace.WriteLine($"Storing credential with key '{credentialKey}'...");
-            _context.CredentialStore.AddOrUpdate(credentialKey, credential);
+            _context.Trace.WriteLine("Storing credential...");
+            _context.CredentialStore.AddOrUpdate(service, input.UserName, input.Password);
             _context.Trace.WriteLine("Credential was successfully stored.");
-
-            Uri targetUri = GetTargetUri(input);
-            if (IsBitbucketServer(targetUri))
-            {
-                // BBS doesn't usually include the username in the urls which means they aren't included in the GET call, 
-                // which means if we store only with the username the credentials are never found again ...
-                // This does have the potential to overwrite itself for different BbS accounts, 
-                // but typically BbS doesn't encourage multiple user accounts
-                string bbsCredentialKey = GetBitbucketServerCredentialKey(input);
-                _context.Trace.WriteLine($"Storing Bitbucket Server credential with key '{bbsCredentialKey}'...");
-                _context.CredentialStore.AddOrUpdate(bbsCredentialKey, credential);
-                _context.Trace.WriteLine("Bitbucket Server Credential was successfully stored.");
-            }
 
             return Task.CompletedTask;
         }
@@ -205,9 +198,10 @@ namespace Atlassian.Bitbucket
             // Erase the stored credential (which may be either the literal username & password, or
             // the OAuth access token). We don't need to erase the OAuth refresh token because on the
             // next 'get' request, if the RT is bad we will erase and reacquire a new one at that point.
-            string credentialKey = GetCredentialKey(input);
-            _context.Trace.WriteLine($"Erasing credential with key '{credentialKey}'...");
-            if (_context.CredentialStore.Remove(credentialKey))
+            string service = GetServiceName(input);
+
+            _context.Trace.WriteLine("Erasing credential...");
+            if (_context.CredentialStore.Remove(service, input.UserName))
             {
                 _context.Trace.WriteLine("Credential was successfully erased.");
             }
@@ -234,15 +228,10 @@ namespace Atlassian.Bitbucket
             throw new Exception($"Failed to resolve username. HTTP: {result.StatusCode}");
         }
 
-        private async Task<bool> RequiresTwoFactorAuthenticationAsync(ICredential credentials, Uri targetUri)
+        private async Task<bool> RequiresTwoFactorAuthenticationAsync(ICredential credentials)
         {
-            if (IsBitbucketServer(targetUri))
-            {
-                // BBS does not support 2FA out of the box so neither does GCM
-                return false;
-            }
-
-            RestApiResult<UserInfo> result = await _bitbucketApi.GetUserInformationAsync(credentials.UserName, credentials.Password, false);
+            RestApiResult<UserInfo> result = await _bitbucketApi.GetUserInformationAsync(
+                credentials.Account, credentials.Password, false);
             switch (result.StatusCode)
             {
                 // 2FA may not be required
@@ -262,91 +251,26 @@ namespace Atlassian.Bitbucket
             }
         }
 
-        private string GetCredentialKey(InputArguments input)
+        private static string GetServiceName(InputArguments input)
         {
-            // The credential (user/pass or an OAuth access token) key is the full target URI.
-            // If the full path is included (credential.useHttpPath = true) then respect that.
-            string url = GetTargetUri(input).AbsoluteUri;
-
-            // Trim trailing slash
-            if (url.EndsWith("/"))
-            {
-                url = url.Substring(0, url.Length - 1);
-            }
-
-            return $"git:{url}";
+            return input.GetRemoteUri(includeUser: false).AbsoluteUri.TrimEnd('/');
         }
 
-        private string GetBitbucketServerCredentialKey(InputArguments input)
+        private static string GetRefreshTokenServiceName(InputArguments input)
         {
-            // The credential (user/pass or an OAuth access token) key is the full target URI.
-            // If the full path is included (credential.useHttpPath = true) then respect that.
-            string url = GetBitbucketServerTargetUri(input).AbsoluteUri;
-
-            // Trim trailing slash
-            if (url.EndsWith("/"))
-            {
-                url = url.Substring(0, url.Length - 1);
-            }
-
-            return $"git:{url}";
-        }
-
-        private string GetRefreshTokenKey(InputArguments input)
-        {
-            Uri targetUri = GetTargetUri(input);
+            Uri baseUri = input.GetRemoteUri(includeUser: false);
 
             // The refresh token key never includes the path component.
-            // Starting from the full target URI, build the following:
-            //
-            //   {scheme}://[{userinfo}@]{authority}/refresh_token
-            //
+            // Instead we use the path component to specify this is the "refresh_token".
+            Uri uri = new UriBuilder(baseUri) {Path = "/refresh_token"}.Uri;
 
-            var url = new StringBuilder();
-
-            url.Append(targetUri.Scheme)
-                .Append(Uri.SchemeDelimiter);
-
-            if (!string.IsNullOrWhiteSpace(targetUri.UserInfo))
-            {
-                url.Append(targetUri.UserInfo)
-                    .Append('@');
-            }
-
-            url.Append(targetUri.Authority)
-                .Append("/refresh_token");
-
-            return $"git:{url}";
+            return uri.AbsoluteUri.TrimEnd('/');
         }
 
-        private static Uri GetTargetUri(InputArguments input)
+        private static bool IsBitbucketServer(InputArguments input)
         {
-            Uri uri = new UriBuilder
-            {
-                Scheme = input.Protocol,
-                Host = input.Host,
-                Path = input.Path,
-                UserName = input.UserName
-            }.Uri;
-
-            return uri;
-        }
-
-        private static Uri GetBitbucketServerTargetUri(InputArguments input)
-        {
-            Uri uri = new UriBuilder
-            {
-                Scheme = input.Protocol,
-                Host = input.Host,
-                Path = input.Path
-            }.Uri;
-
-            return uri;
-        }
-
-        private bool IsBitbucketServer(Uri targetUri)
-        {
-            return !targetUri.Host.Equals(BitbucketConstants.BitbucketBaseUrlHost);
+            input.TryGetHostAndPort(out string hostName, out _);
+            return !hostName.Equals(BitbucketConstants.BitbucketBaseUrlHost);
         }
 
         #endregion

@@ -37,6 +37,10 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
 
         public string ParentWindowId { get; set; }
 
+        public string CredentialNamespace { get; set; } = "git-test";
+
+        public string CredentialBackingStore { get; set; }
+
         #region ISettings
 
         public bool TryGetSetting(string envarName, string section, string property, out string value)
@@ -114,6 +118,10 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
         }
 
         string ISettings.ParentWindowId => ParentWindowId;
+
+        string ISettings.CredentialNamespace => CredentialNamespace;
+
+        string ISettings.CredentialBackingStore => CredentialBackingStore;
 
         #endregion
 

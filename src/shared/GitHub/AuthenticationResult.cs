@@ -12,7 +12,7 @@ namespace GitHub
             Token = null;
         }
 
-        public AuthenticationResult(GitHubAuthenticationResultType type, GitCredential token)
+        public AuthenticationResult(GitHubAuthenticationResultType type, string token)
         {
             Type = type;
             Token = token;
@@ -20,7 +20,7 @@ namespace GitHub
 
         public GitHubAuthenticationResultType Type { get; }
 
-        public GitCredential Token { get; }
+        public string Token { get; }
     }
 
     public enum GitHubAuthenticationResultType
