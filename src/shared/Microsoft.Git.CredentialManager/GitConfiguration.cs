@@ -165,6 +165,11 @@ namespace Microsoft.Git.CredentialManager
 
         public void SetValue(string name, string value)
         {
+            if (_filterLevel == GitConfigurationLevel.All)
+            {
+                throw new InvalidOperationException("Must have a specific configuration level filter to modify values.");
+            }
+
             string level = GetLevelFilterArg();
             using (Process git = _git.CreateProcess($"config {level} {name} \"{value}\""))
             {
@@ -184,6 +189,11 @@ namespace Microsoft.Git.CredentialManager
 
         public void Unset(string name)
         {
+            if (_filterLevel == GitConfigurationLevel.All)
+            {
+                throw new InvalidOperationException("Must have a specific configuration level filter to modify values.");
+            }
+
             string level = GetLevelFilterArg();
             using (Process git = _git.CreateProcess($"config {level} --unset {name}"))
             {
@@ -236,6 +246,11 @@ namespace Microsoft.Git.CredentialManager
 
         public void ReplaceAll(string name, string valueRegex, string value)
         {
+            if (_filterLevel == GitConfigurationLevel.All)
+            {
+                throw new InvalidOperationException("Must have a specific configuration level filter to modify values.");
+            }
+
             string level = GetLevelFilterArg();
             using (Process git = _git.CreateProcess($"config {level} --replace-all {name} {value} {valueRegex}"))
             {
@@ -255,6 +270,11 @@ namespace Microsoft.Git.CredentialManager
 
         public void UnsetAll(string name, string valueRegex)
         {
+            if (_filterLevel == GitConfigurationLevel.All)
+            {
+                throw new InvalidOperationException("Must have a specific configuration level filter to modify values.");
+            }
+
             string level = GetLevelFilterArg();
             using (Process git = _git.CreateProcess($"config {level} --unset-all {name} {valueRegex}"))
             {
