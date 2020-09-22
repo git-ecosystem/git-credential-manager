@@ -39,4 +39,4 @@ expected : {key_md5_expected}
 """)
     sys.exit(1)
 
-print(f"Key MD5 Check: passed ✅")
+print(f"Key MD5 Check: passed")

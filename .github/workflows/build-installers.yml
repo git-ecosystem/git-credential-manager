@@ -43,16 +43,17 @@ jobs:
     #   uses: actions/download-artifact@v2
     #   with:
     #     name: LinuxInstallers
+    - uses: actions/checkout@v2
 
-    - name: Install ESRP Client
-      shell: pwsh
-      env:
-        AZDEV_PAT: ${{ secrets.MICROSOFT_AZDEV_NUGET_PAT }}
-        NUGET_FEED: "https://microsoft.pkgs.visualstudio.com/_packaging/ESRP/nuget/v3/index.json"
-      run: |
-        echo "Using nuget feed $env:NUGET_FEED"
-        nuget.exe sources add -name esrp -source "$env:NUGET_FEED" -username FOOBAR -password "$env:AZDEV_PAT"
-        nuget.exe install Microsoft.EsrpClient -source "$env:NUGET_FEED" -OutputDirectory ./esrp
+    # - name: Install ESRP Client
+    #   shell: pwsh
+    #   env:
+    #     AZDEV_PAT: ${{ secrets.MICROSOFT_AZDEV_NUGET_PAT }}
+    #     NUGET_FEED: "https://microsoft.pkgs.visualstudio.com/_packaging/ESRP/nuget/v3/index.json"
+    #   run: |
+    #     echo "Using nuget feed $env:NUGET_FEED"
+    #     nuget.exe sources add -name esrp -source "$env:NUGET_FEED" -username FOOBAR -password "$env:AZDEV_PAT"
+    #     nuget.exe install Microsoft.EsrpClient -source "$env:NUGET_FEED" -OutputDirectory ./esrp
 
     - name: setup python
       uses: actions/setup-python@v2
@@ -61,10 +62,8 @@ jobs:
 
     - name: Install ESRP Key
       env:
-        ESRP_KEY: ${{ secrets.ESRP_PRIVATE_KEY }}
-        ESRP_PASSWORD: ${{ secrets.ESRP_PRIVATE_KEY_PASSWORD }}
-        ESRP_KEY_MD5: ${{ secrets.ESRP_PRIVATE_KEY_MD5 }}
+        ESRP_PRIVATE_KEY: ${{ secrets.ESRP_PRIVATE_KEY }}
+        ESRP_PRIVATE_KEY_PASSWORD: ${{ secrets.ESRP_PRIVATE_KEY_PASSWORD }}
+        ESRP_PRIVATE_KEY_MD5: ${{ secrets.ESRP_PRIVATE_KEY_MD5 }}
       run: |
-        echo "what is even here"
-        dir
-        python install_esrp_key.py ESRP_KEY ESRP_PASSWORD ESRP_KEY_MD5
+        python .github\workflows\install_esrp_key.py ESRP_PRIVATE_KEY ESRP_PRIVATE_KEY_PASSWORD ESRP_PRIVATE_KEY_MD5
