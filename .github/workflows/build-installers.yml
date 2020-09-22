@@ -60,10 +60,11 @@ jobs:
         python-version: 3.8
 
     - name: Install ESRP Key
-      shell: pwsh
       env:
         ESRP_KEY: ${{ secrets.ESRP_PRIVATE_KEY }}
         ESRP_PASSWORD: ${{ secrets.ESRP_PRIVATE_KEY_PASSWORD }}
         ESRP_KEY_MD5: ${{ secrets.ESRP_PRIVATE_KEY_MD5 }}
       run: |
-        python .\github\workflows\install_esrp_key.py ESRP_KEY ESRP_PASSWORD ESRP_KEY_MD5
+        echo "what is even here"
+        dir
+        python install_esrp_key.py ESRP_KEY ESRP_PASSWORD ESRP_KEY_MD5
