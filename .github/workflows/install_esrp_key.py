@@ -39,4 +39,21 @@ expected : {key_md5_expected}
 """)
     sys.exit(1)
 
-print(f"Key MD5 Check: passed")
+print("Key MD5 Matches.")
+
+# Write Key
+key_file = "key.pfx"
+with open(key_file, "wb") as f:
+    f.write(key)
+
+
+proc = subprocess.run(["certutil", "-f", "-p", password, "-importpfx", key_file])
+
+if proc.returncode != 0:
+    print(f"stdout:\n{proc.stdout}")
+    print(f"stderr:\n{proc.stderr}")
+    sys.exit(1)
+
+os.remove(key_file)
+
+print("Key installed with certutil.")
