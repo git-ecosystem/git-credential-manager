@@ -145,11 +145,11 @@ Section: vcs
 Priority: optional
 Architecture: $ARCH
 Depends:
-Maintainer: GCM-Core <gcmcore@microsoft.com>
+Maintainer: GCM-Core <gcmsupport@microsoft.com>
 Description: Cross Platform Git-Credential-Manager-Core command line utility.
- Linux build of the GCM-Core project to support auth with a number of
- git hosting providers including GitHub, BitBucket, and Azure DevOps.
- Hosted at https://github.com/microsoft/Git-Credential-Manager-Core
+ GCM-Core supports auth with a number of git hosting providers 
+ including GitHub, BitBucket, and Azure DevOps. 
+ For more info see https://aka.ms/gcmcore
 EOF
 
 # Copy single binary to target installation location
