@@ -65,7 +65,7 @@ namespace Microsoft.Git.CredentialManager.Interop.Windows
             }
         }
 
-        public override string LocateExecutable(string program)
+        public override bool TryLocateExecutable(string program, out string path)
         {
             string wherePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "where.exe");
             var psi = new ProcessStartInfo(wherePath, program)
@@ -79,19 +79,21 @@ namespace Microsoft.Git.CredentialManager.Interop.Windows
                 where.Start();
                 where.WaitForExit();
 
-                if (where.ExitCode != 0)
+                switch (where.ExitCode)
                 {
-                    throw new Exception($"Failed to locate '{program}' using where.exe. Exit code: {where.ExitCode}.");
-                }
+                    case 0: // found
+                        string stdout = where.StandardOutput.ReadToEnd();
+                        string[] results = stdout.Split(new[] {'\r', '\n'}, StringSplitOptions.RemoveEmptyEntries);
+                        path = results.First();
+                        return true;
 
-                string stdout = where.StandardOutput.ReadToEnd();
-                if (string.IsNullOrWhiteSpace(stdout))
-                {
-                    return null;
-                }
+                    case 1: // not found
+                        path = null;
+                        return false;
 
-                string[] results = stdout.Split(new[] {'\r', '\n'}, StringSplitOptions.RemoveEmptyEntries);
-                return results.FirstOrDefault();
+                    default:
+                        throw new Exception($"Unknown error locating '{program}' using where.exe. Exit code: {where.ExitCode}.");
+                }
             }
         }
 

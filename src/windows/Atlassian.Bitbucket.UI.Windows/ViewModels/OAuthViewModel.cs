@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
+using System.Diagnostics;
 using System.Windows.Input;
 using Microsoft.Git.CredentialManager;
 using Microsoft.Git.CredentialManager.UI;
@@ -16,9 +17,9 @@ namespace Atlassian.Bitbucket.UI.ViewModels
         {
             OkCommand = new RelayCommand(Accept);
             CancelCommand = new RelayCommand(Cancel);
-            LearnMoreCommand = new RelayCommand(() => BrowserHelper.OpenDefaultBrowser(BitbucketResources.TwoFactorLearnMoreLinkUrl));
-            ForgotPasswordCommand = new RelayCommand(() => BrowserHelper.OpenDefaultBrowser(BitbucketResources.PasswordResetUrl));
-            SignUpCommand = new RelayCommand(() => BrowserHelper.OpenDefaultBrowser(BitbucketResources.SignUpLinkUrl));
+            LearnMoreCommand = new RelayCommand(() => OpenDefaultBrowser(BitbucketResources.TwoFactorLearnMoreLinkUrl));
+            ForgotPasswordCommand = new RelayCommand(() => OpenDefaultBrowser(BitbucketResources.PasswordResetUrl));
+            SignUpCommand = new RelayCommand(() => OpenDefaultBrowser(BitbucketResources.SignUpLinkUrl));
         }
 
         public override string Title => BitbucketResources.OAuthWindowTitle;

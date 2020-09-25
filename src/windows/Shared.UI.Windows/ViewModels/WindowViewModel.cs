@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
 using System;
+using System.Diagnostics;
 
 namespace Microsoft.Git.CredentialManager.UI.ViewModels
 {
@@ -19,6 +20,22 @@ namespace Microsoft.Git.CredentialManager.UI.ViewModels
         public void Cancel()
         {
             Canceled?.Invoke(this, EventArgs.Empty);
+        }
+
+        public static void OpenDefaultBrowser(string url)
+        {
+            if (!url.StartsWith(Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase) &&
+                !url.StartsWith(Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new ArgumentException("Can only open HTTP/HTTPS URLs", nameof(url));
+            }
+
+            var psi = new ProcessStartInfo(url)
+            {
+                UseShellExecute = true
+            };
+
+            Process.Start(psi);
         }
     }
 }
