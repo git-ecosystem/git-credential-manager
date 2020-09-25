@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
+using System.Diagnostics;
 using System.Security;
 using System.Windows.Input;
 using Microsoft.Git.CredentialManager;
@@ -23,8 +24,8 @@ namespace Atlassian.Bitbucket.UI.ViewModels
         {
             LoginCommand = new RelayCommand(Accept, () => IsValid);
             CancelCommand = new RelayCommand(Cancel);
-            ForgotPasswordCommand = new RelayCommand(() => BrowserHelper.OpenDefaultBrowser(BitbucketResources.PasswordResetUrl));
-            SignUpCommand = new RelayCommand(() => BrowserHelper.OpenDefaultBrowser(BitbucketResources.SignUpLinkUrl));
+            ForgotPasswordCommand = new RelayCommand(() => OpenDefaultBrowser(BitbucketResources.PasswordResetUrl));
+            SignUpCommand = new RelayCommand(() => OpenDefaultBrowser(BitbucketResources.SignUpLinkUrl));
 
             LoginValidator = PropertyValidator.For(this, x => x.Login).Required(BitbucketResources.LoginRequired);
             PasswordValidator = PropertyValidator.For(this, x => x.Password).Required(BitbucketResources.PasswordRequired);

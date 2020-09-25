@@ -1,4 +1,5 @@
-﻿using System.Windows.Input;
+﻿using System.Diagnostics;
+using System.Windows.Input;
 using Microsoft.Git.CredentialManager;
 using Microsoft.Git.CredentialManager.UI;
 using Microsoft.Git.CredentialManager.UI.ViewModels;
@@ -87,7 +88,7 @@ namespace GitHub.UI.Login
 
         private void NavigateLearnMore()
         {
-            BrowserHelper.OpenDefaultBrowser(NavigateLearnMoreUrl);
+            OpenDefaultBrowser(NavigateLearnMoreUrl);
         }
 
         public string NavigateLearnMoreUrl => "https://aka.ms/vs-core-github-auth-help";
