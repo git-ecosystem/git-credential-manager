@@ -129,7 +129,7 @@ namespace Atlassian.Bitbucket
                 FailureResponseHtmlFormat = BitbucketResources.AuthenticationResponseFailureHtmlFormat
             };
 
-            var browser = new OAuth2SystemWebBrowser(browserOptions);
+            var browser = new OAuth2SystemWebBrowser(Context.Environment, browserOptions);
             var authCodeResult = await oauthClient.GetAuthorizationCodeAsync(Scopes, browser, CancellationToken.None);
 
             return await oauthClient.GetTokenByAuthorizationCodeAsync(authCodeResult, CancellationToken.None);

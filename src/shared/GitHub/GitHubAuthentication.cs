@@ -197,7 +197,7 @@ namespace GitHub
                     SuccessResponseHtml = GitHubResources.AuthenticationResponseSuccessHtml,
                     FailureResponseHtmlFormat = GitHubResources.AuthenticationResponseFailureHtmlFormat
                 };
-                var browser = new OAuth2SystemWebBrowser(browserOptions);
+                var browser = new OAuth2SystemWebBrowser(Context.Environment, browserOptions);
 
                 // Write message to the terminal (if any is attached) for some feedback that we're waiting for a web response
                 Context.Terminal.WriteLine("info: please complete authentication in your browser...");
