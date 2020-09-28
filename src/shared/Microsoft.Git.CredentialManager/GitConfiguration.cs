@@ -101,6 +101,9 @@ namespace Microsoft.Git.CredentialManager
             using (Process git = _git.CreateProcess($"config --null {level} --list"))
             {
                 git.Start();
+                // To avoid deadlocks, always read the output stream first and then wait
+                // TODO: don't read in all the data at once; stream it
+                string data = git.StandardOutput.ReadToEnd();
                 git.WaitForExit();
 
                 switch (git.ExitCode)
@@ -111,9 +114,6 @@ namespace Microsoft.Git.CredentialManager
                         throw new Exception(
                             $"Failed to enumerate all Git configuration entries. Exit code '{git.ExitCode}' (level={_filterLevel})");
                 }
-
-                // TODO: don't read in all the data at once; stream it
-                string data = git.StandardOutput.ReadToEnd();
 
                 IEnumerable<string> entries = data.Split('\0').Where(x => !string.IsNullOrWhiteSpace(x));
                 foreach (string entry in entries)
@@ -217,6 +217,9 @@ namespace Microsoft.Git.CredentialManager
             using (Process git = _git.CreateProcess($"config --null {level} --get-regex {nameRegex} {valueRegex}"))
             {
                 git.Start();
+                // To avoid deadlocks, always read the output stream first and then wait
+                // TODO: don't read in all the data at once; stream it
+                string data = git.StandardOutput.ReadToEnd();
                 git.WaitForExit();
 
                 switch (git.ExitCode)
@@ -228,9 +231,6 @@ namespace Microsoft.Git.CredentialManager
                         throw new Exception(
                             $"Failed to get Git configuration multi-valued entry '{nameRegex}' with value regex '{valueRegex}'. Exit code '{git.ExitCode}' (level={_filterLevel})");
                 }
-
-                // TODO: don't read in all the data at once; stream it
-                string data = git.StandardOutput.ReadToEnd();
 
                 string[] entries = data.Split('\0');
                 foreach (string entry in entries)
