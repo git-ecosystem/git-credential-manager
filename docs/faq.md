@@ -24,6 +24,10 @@ Please make sure your remote URLs use "https://" rather than "http://".
 
 You probably need to configure Git and GCM Core to use a proxy. Please see detailed information [here](https://aka.ms/gcmcore-httpproxy).
 
+### Q: I'm getting errors about picking a credential store on Linux.
+
+On Linux you must [select and configure a credential store](https://aka.ms/gcmcore-linuxcredstores), as due to the varied nature of distributions and installations, we cannot guarantee a suitable storage solution is available.
+
 ## About the project
 
 ### Q: How does this project relate to [Git Credential Manager for Windows](https://github.com/Microsoft/Git-Credential-Manager-for-Windows) and [Git Credential Manager for Mac and Linux](https://github.com/Microsoft/Git-Credential-Manager-for-Mac-and-Linux)?
@@ -35,13 +39,15 @@ Git Credential Manager Core (GCM Core; this project) aims to replace both GCM Wi
 
 ### Q: Does this mean GCM for Windows (.NET Framework-based) is deprecated?
 
-No. Git Credential Manager for Windows (GCM Windows) will continue to be supported until such a time that GCM Core is a complete replacement.
+Yes. Git Credential Manager for Windows (GCM Windows) is no longer receiving updates and fixes. All development effort has now been directed to GCM Core. GCM Core is available as an credential helper option in Git for Windows 2.28, and will be made the default helper in 2.29.
 
 ### Q: Does this mean the Java-based GCM for Mac/Linux is deprecated?
 
-Yes. Usage of Git Credential Manager for Mac and Linux (Java GCM) should be replaced with SSH keys. If you wish to take part in the public preview of GCM Core on macOS please feel free to install the latest preview release and give feedback! Otherwise, using SSH would be preferred on macOS and Linux to Java GCM.
+Yes. Usage of Git Credential Manager for Mac and Linux (Java GCM) should be replaced with GCM Core or SSH keys. If you wish to install GCM Core on macOS or Linux, please follow the [download and installation instructions](../README.md#download-and-install).
 
-SSH configuration instructions:
+### Q: I want to use SSH
+
+GCM Core is for HTTPS only. To use SSH please follow the below links:
 
 - [Azure DevOps](https://docs.microsoft.com/en-us/azure/devops/repos/git/use-ssh-keys-to-authenticate?view=azure-devops)
 - [GitHub](https://help.github.com/en/articles/connecting-to-github-with-ssh)
@@ -51,9 +57,9 @@ SSH configuration instructions:
 
 GCM Windows was not designed with a cross-platform architecture.
 
-### What level of support does GCM Core have during the public preview?
+### What level of support does GCM Core have?
 
-Support will be best-effort. We would really appreciate your feedback as we work to make this a great experience across each platform we support. However, for mission critical applications, please use GCM for Windows on Windows or SSH on Mac and Linux.
+Support will be best-effort. We would really appreciate your feedback to make this a great experience across each platform we support. 
 
 ### Q: Why does GCM Core not support operating system/distribution 'X', or Git hosting provider 'Y'?
 

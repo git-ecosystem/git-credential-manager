@@ -6,15 +6,27 @@ GCM Core stays invisible as much as possible, so ideally you’ll forget that yo
 Assuming GCM Core has been installed, use your favorite terminal to execute the following commands to interact directly with GCM.
 
 ```shell
-git credential-manager [<command> [<args>]]
+git credential-manager-core [<command> [<args>]]
 ```
 
 ## Commands
 
-### version
+### help / --help
+
+Displays a list of available commands.
+
+### version / --version
 
 Displays the current version.
 
 ### get / store / erase
 
 Commands for interaction with Git. You shouldn't need to run these manually.
+
+Read the [Git manual](https://git-scm.com/docs/gitcredentials#_custom_helpers) about custom helpers for more information.
+
+### configure/unconfigure
+
+Set your user-level Git configuration (`~/.gitconfig`) to use GCM Core. If you pass
+`--system` to these commands, they act on the system-level Git configuration
+(`/etc/gitconfig`) instead.

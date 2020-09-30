@@ -41,7 +41,17 @@ The flat binaries can also be found in `out\windows\Payload.Windows\bin\Debug\ne
 
 ### Linux
 
-_No information yet._
+The two available solution configurations are `LinuxDebug` and `LinuxRelease`.
+
+To build from the command line, run:
+
+```shell
+dotnet build -c LinuxDebug
+```
+
+You can find a copy of the Debian package (.deb) file in `out/linux/Packaging.Linux/deb/Debug`.
+
+The flat binaries can also be found in `out/linux/Packaging.Linux/payload/Debug`.
 
 ## Debugging
 
