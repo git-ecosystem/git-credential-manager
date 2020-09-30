@@ -45,6 +45,10 @@ jobs:
     #     name: LinuxInstallers
     - uses: actions/checkout@v2
 
+    - uses: Azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
     # - name: Install ESRP Client
     #   shell: pwsh
     #   env:
