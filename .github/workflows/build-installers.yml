@@ -45,9 +45,28 @@ jobs:
     #     name: LinuxInstallers
     - uses: actions/checkout@v2
 
-    - uses: Azure/login@v1
+    - uses: Azure/login@v1.1
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Install Certs
+      shell: pwsh
+      env:
+        AZ_SUB: ${{ secrets.AZURE_SUBSCRIPTION }}
+        AZ_VAULT: ${{ secrets.AZURE_VAULT }}
+        SSL_CERT: ${{ secrets.VAULT_SSL_CERT_NAME }}
+        ESRP_CERT: ${{ secrets.VAULT_ESRP_CERT_NAME }}
+      run: |
+        az account show
+        
+        az keyvault secret download --subscription "$env:AZ_SUB" --vault-name "$env:AZ_VAULT" --name "$env:SSL_CERT" -f out.pfx
+        certutil -f -importpfx out.pfx
+        Remove-Item out.pfx
+
+        az keyvault secret download --subscription "$env:AZ_SUB" --vault-name "$env:AZ_VAULT" --name "$env:ESRP_CERT" -f out.pfx
+        certutil -f -importpfx out.pfx
+        Remove-Item out.pfx
+
 
     # - name: Install ESRP Client
     #   shell: pwsh
@@ -59,15 +78,15 @@ jobs:
     #     nuget.exe sources add -name esrp -source "$env:NUGET_FEED" -username FOOBAR -password "$env:AZDEV_PAT"
     #     nuget.exe install Microsoft.EsrpClient -source "$env:NUGET_FEED" -OutputDirectory ./esrp
 
-    - name: setup python
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.8
+    # - name: setup python
+    #   uses: actions/setup-python@v2
+    #   with:
+    #     python-version: 3.8
 
-    - name: Install ESRP Key
-      env:
-        ESRP_PRIVATE_KEY: ${{ secrets.ESRP_PRIVATE_KEY }}
-        ESRP_PRIVATE_KEY_PASSWORD: ${{ secrets.ESRP_PRIVATE_KEY_PASSWORD }}
-        ESRP_PRIVATE_KEY_MD5: ${{ secrets.ESRP_PRIVATE_KEY_MD5 }}
-      run: |
-        python .github\workflows\install_esrp_key.py ESRP_PRIVATE_KEY ESRP_PRIVATE_KEY_PASSWORD ESRP_PRIVATE_KEY_MD5
+    # - name: Install ESRP Key
+    #   env:
+    #     ESRP_PRIVATE_KEY: ${{ secrets.ESRP_PRIVATE_KEY }}
+    #     ESRP_PRIVATE_KEY_PASSWORD: ${{ secrets.ESRP_PRIVATE_KEY_PASSWORD }}
+    #     ESRP_PRIVATE_KEY_MD5: ${{ secrets.ESRP_PRIVATE_KEY_MD5 }}
+    #   run: |
+    #     python .github\workflows\install_esrp_key.py ESRP_PRIVATE_KEY ESRP_PRIVATE_KEY_PASSWORD ESRP_PRIVATE_KEY_MD5
