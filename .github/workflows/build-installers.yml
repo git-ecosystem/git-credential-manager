@@ -37,7 +37,7 @@ jobs:
   linux_publish:
     name: 'Publish Linux'
     runs-on: windows-latest
-    # needs: linux
+    needs: linux
     steps:
     - name: setup python
       uses: actions/setup-python@v2
