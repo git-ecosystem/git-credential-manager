@@ -7,6 +7,8 @@ aad_id = os.environ['AZURE_AAD_ID'].strip()
 workspace = os.environ['GITHUB_WORKSPACE'].strip()
 
 source_root_location = os.path.join(workspace, "deb", "Release")
+destination_location = os.path.join(workspace)
+
 files = glob.glob(os.path.join(source_root_location, "*.deb"))
 
 print("Found files:")
@@ -16,7 +18,7 @@ if len(files) < 1 or not files[0].endswith(".deb"):
 	print("Error: cannot find .deb to sign")
 	exit(1)
 
-file_to_sign = files[0]
+file_to_sign = os.path.basename(files[0])
 
 auth_json = {
 	"Version": "1.0.0",
@@ -40,14 +42,14 @@ input_json = {
 	"SignBatches": [
 		{
 			"SourceLocationType": "UNC",
-			"SourceRootDirectory": "c:\\temp\\Signing\\Input",
+			"SourceRootDirectory": source_root_location,
 			"DestinationLocationType": "UNC",
-			"DestinationRootDirectory": "c:\\temp\\Signing\\Output",
+			"DestinationRootDirectory": destination_location,
 			"SignRequestFiles": [
 				{
 					"CustomerCorrelationId": "01A7F55F-6CDD-4123-B255-77E6F212CDAD",
-					"SourceLocation": "InputFile\\MyFileForSigning.exe",
-					"DestinationLocation": "Signed\\MyFileForSigning.exe",
+					"SourceLocation": file_to_sign,
+					"DestinationLocation": os.path.join("Signed", file_to_sign),
 				}
 			],
 			"SigningInfo": {

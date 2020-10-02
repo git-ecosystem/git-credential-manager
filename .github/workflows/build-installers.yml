@@ -87,9 +87,9 @@ jobs:
         certutil -f -importpfx out.pfx
         Remove-Item out.pfx
 
-    - name: Configure ESRP Client
+    - name: Run ESRP Client
       shell: pwsh
       env:
         AZURE_AAD_ID: ${{ secrets.AZURE_AAD_ID }}
       run: |
-        python .github/configure_esrp.py
+        python .github/run_esrp_signing.py
