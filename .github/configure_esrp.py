@@ -1,13 +1,16 @@
 import json
 import os
 import glob
-
+import pprint
 
 aad_id = os.environ['AZURE_AAD_ID'].strip()
 workspace = os.environ['GITHUB_WORKSPACE'].strip()
 
 source_root_location = os.path.join(workspace, "deb", "Release")
-files = glob.glob(f"source_root_location\\*.deb")
+files = glob.glob(os.path.join(source_root_location, "*.deb"))
+
+print("Found files:")
+pprint.pp(files)
 
 if len(files) < 1 or not files[0].endswith(".deb"):
 	print("Error: cannot find .deb to sign")
