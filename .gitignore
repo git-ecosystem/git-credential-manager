@@ -340,3 +340,7 @@ out/
 
 # dotnet local tools
 .tools/
+
+# Signing generated Files
+auth.json
+input.json
