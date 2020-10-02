@@ -6,7 +6,7 @@ import glob
 aad_id = os.environ['AZURE_AAD_ID'].strip()
 workspace = os.environ['GITHUB_WORKSPACE'].strip()
 
-source_root_location = os.path.join(workspace, "LinuxInstallers", "deb", "Release")
+source_root_location = os.path.join(workspace, "deb", "Release")
 files = glob.glob(f"source_root_location\\*.deb")
 
 if len(files) < 1 or not files[0].endswith(".deb"):

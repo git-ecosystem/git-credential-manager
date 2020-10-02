@@ -54,7 +54,8 @@ jobs:
     - name: Explore Artifact
       shell: pwsh
       run: |
-        ls -R LinuxInstallers
+        ls -R deb
+        ls -R tar
 
     - name: Install ESRP Client
       shell: pwsh
