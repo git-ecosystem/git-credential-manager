@@ -61,6 +61,8 @@ jobs:
         nuget.exe sources add -name esrp -source "$env:NUGET_FEED" -username FOOBAR -password "$env:AZDEV_PAT"
         nuget.exe install Microsoft.EsrpClient -source "$env:NUGET_FEED" -OutputDirectory ./esrp
 
+        ls -R esrp
+
     - uses: Azure/login@v1.1
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
