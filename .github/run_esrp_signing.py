@@ -82,7 +82,7 @@ for filename, data in configs:
 
 # Run ESRP Client
 esrp_out = "esrp_out.json"
-subprocess.run([esrp_tool, "-a", "auth.json", "-i", "input.json", "-o", esrp_out], cwd=workspace)
+subprocess.run([esrp_tool, "sign", "-a", "auth.json", "-i", "input.json", "-o", esrp_out], cwd=workspace)
 
 if os.path.isfile(esrp_out):
 	print("ESRP output json:")
