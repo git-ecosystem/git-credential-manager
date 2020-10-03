@@ -5,6 +5,8 @@ import pprint
 import subprocess
 
 
+esrp_tool = os.path.join("esrp", "Microsoft.EsrpClient.1.2.40", "tools", "EsrpClient.exe")
+
 aad_id = os.environ['AZURE_AAD_ID'].strip()
 workspace = os.environ['GITHUB_WORKSPACE'].strip()
 
@@ -80,7 +82,7 @@ for filename, data in configs:
 
 # Run ESRP Client
 esrp_out = "esrp_out.json"
-subprocess.run([os.path.join("esrp", "tools", "EsrpClient.exe"), "-a", "auth.json", "-i", "input.json", "-o", esrp_out], cwd=workspace)
+subprocess.run([esrp_tool, "-a", "auth.json", "-i", "input.json", "-o", esrp_out], cwd=workspace)
 
 if os.path.isfile(esrp_out):
 	print("ESRP output json:")

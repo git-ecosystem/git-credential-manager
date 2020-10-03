@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    name: "Linux"
+    name: "Build"
     runs-on: ubuntu-18.04
     steps:
     - uses: actions/checkout@v2
@@ -35,7 +35,7 @@ jobs:
           out/linux/Packaging.Linux/tar/Release/*.tar.gz
 
   sign:
-    name: 'Sign Linux Installer'
+    name: 'Sign'
     runs-on: windows-latest
     needs: build
     steps:
