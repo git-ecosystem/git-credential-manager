@@ -7,7 +7,7 @@ on:
     branches: [ master ]
 
 jobs:
-  linux:
+  build:
     name: "Linux"
     runs-on: ubuntu-18.04
     steps:
@@ -34,10 +34,10 @@ jobs:
           out/linux/Packaging.Linux/deb/Release/*.deb
           out/linux/Packaging.Linux/tar/Release/*.tar.gz
 
-  linux_publish:
-    name: 'Publish Linux'
+  sign:
+    name: 'Sign Linux Installer'
     runs-on: windows-latest
-    needs: linux
+    needs: build
     steps:
     - name: setup python
       uses: actions/setup-python@v2
