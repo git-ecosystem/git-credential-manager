@@ -2,6 +2,8 @@ import json
 import os
 import glob
 import pprint
+import subprocess
+
 
 aad_id = os.environ['AZURE_AAD_ID'].strip()
 workspace = os.environ['GITHUB_WORKSPACE'].strip()
@@ -72,6 +74,19 @@ configs = [
 	("input.json", input_json),
 ]
 
-for filename, data in configs: 
+for filename, data in configs:
 	with open(filename, 'w') as fp:
 		json.dump(data, fp)
+
+# Run ESRP Client
+esrp_out = "esrp_out.json"
+subprocess.run(os.path.join("esrp", "tools", "EsrpClient.exe"), "-a", "auth.json", "-i", "input.json", "-o", esrp_out, cwd=workspace)
+
+if os.path.isfile(esrp_out):
+	print("ESRP output json:")
+	with open(esrp_out, 'r') as fp:
+		pprint.pp(json.load(fp))
+
+signed_file = os.path.join(destination_location, "Signed", file_to_sign)
+if os.path.isfile(signed_file):
+	print(f"SUccess!\nSigned {signed_file}")
