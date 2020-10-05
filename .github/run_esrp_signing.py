@@ -98,7 +98,6 @@ result = subprocess.run(
 	"-l", "Verbose"],
 	cwd=workspace)
 
-
 if result.returncode != 0:
 	print("Failed to run ESRPClient.exe")
 	sys.exit(1)

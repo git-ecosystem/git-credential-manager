@@ -1,0 +1,17 @@
+name: Linux-Test
+
+on:
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  install:
+    name: "Install repo client"
+    runs-on: ubuntu-18.04
+    steps:
+    - name: Install It
+      run: |
+        curl http://tux-devrepo.corp.microsoft.com/keys/tux-devrepo.asc > tux-devrepo.asc | apt-key add tux-devrepo.asc
+        echo "deb [arch=amd64] http://tux-devrepo.corp.microsoft.com/repos/tux-dev/ xenial main" | tee /etc/apt/sources.list.d/tuxdev.list
+        sudo apt-get update
+        sudo apt-get install --yes azure-repoapi-client
