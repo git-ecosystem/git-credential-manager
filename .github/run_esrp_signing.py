@@ -71,9 +71,16 @@ input_json = {
 	]
 }
 
+policy_json = {
+	"Version": "1.0.0",
+	"Intent": "production release",
+	"ContentType": "Debian package",
+}
+
 configs = [
 	("auth.json", auth_json),
 	("input.json", input_json),
+	("policy.json", policy_json),
 ]
 
 for filename, data in configs:
@@ -82,7 +89,11 @@ for filename, data in configs:
 
 # Run ESRP Client
 esrp_out = "esrp_out.json"
-subprocess.run([esrp_tool, "sign", "-a", "auth.json", "-i", "input.json", "-o", esrp_out], cwd=workspace)
+subprocess.run([esrp_tool, "sign",
+	"-a", "auth.json",
+	"-i", "input.json",
+	"-p", "policy.json",
+	"-o", esrp_out], cwd=workspace)
 
 if os.path.isfile(esrp_out):
 	print("ESRP output json:")
