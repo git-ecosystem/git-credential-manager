@@ -94,8 +94,8 @@ result = subprocess.run(
 	"-a", "auth.json",
 	"-i", "input.json",
 	"-p", "policy.json",
-	"-o", esrp_out],
-	"-l", "Verbose",
+	"-o", esrp_out,
+	"-l", "Verbose"],
 	cwd=workspace)
 
 
