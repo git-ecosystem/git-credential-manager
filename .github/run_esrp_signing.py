@@ -3,7 +3,7 @@ import os
 import glob
 import pprint
 import subprocess
-
+import sys
 
 esrp_tool = os.path.join("esrp", "Microsoft.EsrpClient.1.2.40", "tools", "EsrpClient.exe")
 
@@ -89,11 +89,19 @@ for filename, data in configs:
 
 # Run ESRP Client
 esrp_out = "esrp_out.json"
-subprocess.run([esrp_tool, "sign",
+result = subprocess.run(
+	[esrp_tool, "sign",
 	"-a", "auth.json",
 	"-i", "input.json",
 	"-p", "policy.json",
-	"-o", esrp_out], cwd=workspace)
+	"-o", esrp_out],
+	"-l", "Verbose",
+	cwd=workspace)
+
+
+if result.returncode != 0:
+	print("Failed to run ESRPClient.exe")
+	sys.exit(1)
 
 if os.path.isfile(esrp_out):
 	print("ESRP output json:")
@@ -102,4 +110,4 @@ if os.path.isfile(esrp_out):
 
 signed_file = os.path.join(destination_location, "Signed", file_to_sign)
 if os.path.isfile(signed_file):
-	print(f"SUccess!\nSigned {signed_file}")
+	print(f"Success!\nSigned {signed_file}")
