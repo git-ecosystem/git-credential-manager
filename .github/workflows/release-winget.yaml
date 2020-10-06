@@ -1,0 +1,32 @@
+name: "release-winget"
+on:
+  release:
+    types: [released]
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Update winget repository
+      uses: mjcheetham/update-winget@v1.0
+      with:
+        token: ${{ secrets.WINGET_TOKEN }}
+        repo: microsoft/winget-pkgs
+        id: Microsoft.GitCredentialManagerCore
+        releaseAsset: gcmcore-win-x86-(.*)\.exe
+        manifestText: |
+          Id: {{id}}
+          Version: {{version}}
+          Name: Git Credential Manager Core
+          Publisher: Microsoft Corporation
+          AppMoniker: git-credential-manager-core
+          Homepage: https://aka.ms/gcmcore
+          Tags: "gcm, gcmcore, git, credential"
+          License: Copyright (C) Microsoft Corporation
+          Description: Secure, cross-platform Git credential storage with authentication to GitHub, Azure Repos, and other popular Git hosting services.
+          Installers:
+              - Arch: x86
+                Url: {{url}}
+                InstallerType: Inno
+                Sha256: {{sha256}}
+        alwaysUsePullRequest: true
