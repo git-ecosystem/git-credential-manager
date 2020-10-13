@@ -59,7 +59,7 @@ input_json = {
 			"SigningInfo": {
 				"Operations": [
 					{
-						"KeyCode": "CP-450778-Pgp",
+						"KeyCode": "CP-450779-Pgp",
 						"OperationCode": "LinuxSign",
 						"Parameters": {},
 						"ToolName": "sign",
