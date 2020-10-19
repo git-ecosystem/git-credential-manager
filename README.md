@@ -54,6 +54,12 @@ brew tap microsoft/git
 brew cask install git-credential-manager-core
 ```
 
+After installing you can stay up-to-date with new releases by running:
+
+```shell
+brew upgrade git-credential-manager-core
+```
+
 #### Git Credential Manager for Mac and Linux (Java-based GCM)
 
 If you have an existing installation of the 'Java GCM' on macOS and you have installed this using Homebrew, this installation will be unlinked (`brew unlink git-credential-manager`) when GCM Core is installed.
