@@ -1,4 +1,4 @@
-name: Build-Installers
+name: "Build Signed Debian Installer"
 
 on:
   push:
