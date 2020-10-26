@@ -62,11 +62,10 @@ require administrator permissions.
 0. Tell your system administrator they should start planning to upgrade the
    installed version of Git for Windows to at least 2.29! 😁
 
-1. Go to https://github.com/settings/tokens/new to [create a new personal access
-   token (PAT)](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token).
+1. [Create a new personal access token](https://github.com/settings/tokens/new?scopes=repo,gist,workflow) (see official [documentation](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token))
 
-2. Enter a name ("note") for the token and select the `repo`, `gist`, and
-   `workflow` scopes:
+2. Enter a name ("note") for the token and ensure the `repo`, `gist`, and
+   `workflow` scopes are selected:
 ![image](https://user-images.githubusercontent.com/5658207/95448332-1beb2000-095b-11eb-9a48-9c05b1926a6b.png)
 ...
 ![image](https://user-images.githubusercontent.com/5658207/95447304-6f5c6e80-0959-11eb-924b-50b86c2b3d77.png)
