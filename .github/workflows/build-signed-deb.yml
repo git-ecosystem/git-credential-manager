@@ -46,26 +46,22 @@ jobs:
 
     - uses: actions/checkout@v2
 
-    - name: 'Download Installers'
+    - name: 'Download Installer Artifact'
       uses: actions/download-artifact@v2
       with:
         name: LinuxInstallers
 
-    - name: Install ESRP Client
-      shell: pwsh
-      env:
-        AZDEV_PAT: ${{ secrets.MICROSOFT_AZDEV_NUGET_PAT }}
-        NUGET_FEED: "https://microsoft.pkgs.visualstudio.com/_packaging/ESRP/nuget/v3/index.json"
-      run: |
-        echo "Using nuget feed $env:NUGET_FEED"
-        nuget.exe sources add -name esrp -source "$env:NUGET_FEED" -username FOOBAR -password "$env:AZDEV_PAT"
-        nuget.exe install Microsoft.EsrpClient -source "$env:NUGET_FEED" -Version 1.2.47 -OutputDirectory ./esrp
-
-        ls -R esrp
-
     - uses: Azure/login@v1.1
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: 'Install ESRP Client'
+      shell: pwsh
+      env:
+        AZ_SUB: ${{ secrets.AZURE_SUBSCRIPTION }}
+      run: |
+        az storage blob download --subscription  "$env:AZ_SUB" --acount-name gitcitoolstore -c tools -n microsoft.esrpclient.1.2.47.nupkg -f microsoft.esrpclient.1.2.47.nupkg
+        nuget.exe install Microsoft.EsrpClient -source ./ -Version 1.2.47 -OutputDirectory ./esrp
 
     - name: Install Certs
       shell: pwsh
