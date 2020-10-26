@@ -60,7 +60,7 @@ jobs:
       env:
         AZ_SUB: ${{ secrets.AZURE_SUBSCRIPTION }}
       run: |
-        az storage blob download --subscription  "$env:AZ_SUB" --acount-name gitcitoolstore -c tools -n microsoft.esrpclient.1.2.47.nupkg -f microsoft.esrpclient.1.2.47.nupkg
+        az storage blob download --subscription  "$env:AZ_SUB" --account-name gitcitoolstore -c tools -n microsoft.esrpclient.1.2.47.nupkg -f microsoft.esrpclient.1.2.47.nupkg
         nuget.exe install Microsoft.EsrpClient -source ./ -Version 1.2.47 -OutputDirectory ./esrp
 
     - name: Install Certs
