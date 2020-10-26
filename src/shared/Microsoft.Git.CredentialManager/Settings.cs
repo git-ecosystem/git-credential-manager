@@ -311,7 +311,7 @@ namespace Microsoft.Git.CredentialManager
             TryGetSetting(KnownEnvars.GcmAuthority, GitCredCfg.SectionName, GitCredCfg.Authority, out string authority) ? authority : null;
 
         public bool IsWindowsIntegratedAuthenticationEnabled =>
-            TryGetSetting(KnownEnvars.GcmAllowWia, GitCredCfg.SectionName, GitCredCfg.AllowWia, out string value) && value.ToBooleanyOrDefault(true);
+            !TryGetSetting(KnownEnvars.GcmAllowWia, GitCredCfg.SectionName, GitCredCfg.AllowWia, out string value) || value.ToBooleanyOrDefault(true);
 
         public bool IsCertificateVerificationEnabled
         {
