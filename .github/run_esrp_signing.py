@@ -5,8 +5,7 @@ import pprint
 import subprocess
 import sys
 
-esrp_version = "1.2.47"
-esrp_tool = os.path.join("esrp", f"Microsoft.EsrpClient.{esrp_version}", "tools", "EsrpClient.exe")
+esrp_tool = os.path.join("esrp", "tools", "EsrpClient.exe")
 
 aad_id = os.environ['AZURE_AAD_ID'].strip()
 workspace = os.environ['GITHUB_WORKSPACE'].strip()
