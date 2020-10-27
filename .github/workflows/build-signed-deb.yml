@@ -2,9 +2,7 @@ name: "Build Signed Debian Installer"
 
 on:
   push:
-    branches: [ master, release ]
-  pull_request:
-    branches: [ master ]
+    branches: [ release ]
 
 jobs:
   build:
