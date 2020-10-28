@@ -250,13 +250,15 @@ namespace Microsoft.AzureRepos
 
         string IConfigurableComponent.Name => "Azure Repos provider";
 
-        public Task ConfigureAsync(
-            IEnvironment environment, EnvironmentVariableTarget environmentTarget,
-            IGit git, GitConfigurationLevel configurationLevel)
+        public Task ConfigureAsync(ConfigurationTarget target)
         {
             string useHttpPathKey = $"{KnownGitCfg.Credential.SectionName}.https://dev.azure.com.{KnownGitCfg.Credential.UseHttpPath}";
 
-            IGitConfiguration targetConfig = git.GetConfiguration(configurationLevel);
+            GitConfigurationLevel configurationLevel = target == ConfigurationTarget.System
+                ? GitConfigurationLevel.System
+                : GitConfigurationLevel.Global;
+
+            IGitConfiguration targetConfig = _context.Git.GetConfiguration(configurationLevel);
 
             if (targetConfig.TryGetValue(useHttpPathKey, out string currentValue) && currentValue.IsTruthy())
             {
@@ -271,15 +273,17 @@ namespace Microsoft.AzureRepos
             return Task.CompletedTask;
         }
 
-        public Task UnconfigureAsync(
-            IEnvironment environment, EnvironmentVariableTarget environmentTarget,
-            IGit git, GitConfigurationLevel configurationLevel)
+        public Task UnconfigureAsync(ConfigurationTarget target)
         {
             string useHttpPathKey = $"{KnownGitCfg.Credential.SectionName}.https://dev.azure.com.{KnownGitCfg.Credential.UseHttpPath}";
 
             _context.Trace.WriteLine("Clearing Git configuration 'credential.useHttpPath' for https://dev.azure.com...");
 
-            IGitConfiguration targetConfig = git.GetConfiguration(configurationLevel);
+            GitConfigurationLevel configurationLevel = target == ConfigurationTarget.System
+                ? GitConfigurationLevel.System
+                : GitConfigurationLevel.Global;
+
+            IGitConfiguration targetConfig = _context.Git.GetConfiguration(configurationLevel);
             targetConfig.Unset(useHttpPathKey);
 
             return Task.CompletedTask;

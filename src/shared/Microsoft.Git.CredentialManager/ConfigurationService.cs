@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -35,22 +34,14 @@ namespace Microsoft.Git.CredentialManager
         /// <summary>
         /// Configure the environment and Git to work with this hosting provider.
         /// </summary>
-        /// <param name="environment">Environment variables.</param>
-        /// <param name="environmentTarget">Environment variable target to update.</param>
-        /// <param name="git">Git object.</param>
-        /// <param name="configurationLevel">Git configuration level to update.</param>
-        Task ConfigureAsync(IEnvironment environment, EnvironmentVariableTarget environmentTarget,
-            IGit git, GitConfigurationLevel configurationLevel);
+        /// <param name="target">Configuration target.</param>
+        Task ConfigureAsync(ConfigurationTarget target);
 
         /// <summary>
         /// Remove changes to the environment and Git configuration previously made with <see cref="ConfigureAsync"/>.
         /// </summary>
-        /// <param name="environment">Environment variables.</param>
-        /// <param name="environmentTarget">Environment variable target to update.</param>
-        /// <param name="git">Git object.</param>
-        /// <param name="configurationLevel">Git configuration level to update.</param>
-        Task UnconfigureAsync(IEnvironment environment, EnvironmentVariableTarget environmentTarget,
-            IGit git, GitConfigurationLevel configurationLevel);
+        /// <param name="target">Configuration target.</param>
+        Task UnconfigureAsync(ConfigurationTarget target);
     }
 
     public interface IConfigurationService
@@ -93,44 +84,23 @@ namespace Microsoft.Git.CredentialManager
             _components.Add(component);
         }
 
-        public Task ConfigureAsync(ConfigurationTarget target) => RunAsync(target, true);
-
-        public Task UnconfigureAsync(ConfigurationTarget target) => RunAsync(target, false);
-
-        private async Task RunAsync(ConfigurationTarget target, bool configure)
+        public async Task ConfigureAsync(ConfigurationTarget target)
         {
-            GitConfigurationLevel configLevel;
-            EnvironmentVariableTarget envTarget;
-            switch (target)
-            {
-                case ConfigurationTarget.User:
-                    configLevel = GitConfigurationLevel.Global;
-                    envTarget   = EnvironmentVariableTarget.User;
-                    break;
-
-                case ConfigurationTarget.System:
-                    configLevel = GitConfigurationLevel.System;
-                    envTarget   = EnvironmentVariableTarget.Machine;
-                    break;
-
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(target));
-            }
-
             foreach (IConfigurableComponent component in _components)
             {
-                if (configure)
-                {
-                    _context.Trace.WriteLine($"Configuring component '{component.Name}'...");
-                    _context.Streams.Error.WriteLine($"Configuring component '{component.Name}'...");
-                    await component.ConfigureAsync(_context.Environment, envTarget, _context.Git, configLevel);
-                }
-                else
-                {
-                    _context.Trace.WriteLine($"Unconfiguring component '{component.Name}'...");
-                    _context.Streams.Error.WriteLine($"Unconfiguring component '{component.Name}'...");
-                    await component.UnconfigureAsync(_context.Environment, envTarget, _context.Git, configLevel);
-                }
+                _context.Trace.WriteLine($"Configuring component '{component.Name}'...");
+                _context.Streams.Error.WriteLine($"Configuring component '{component.Name}'...");
+                await component.ConfigureAsync(target);
+            }
+        }
+
+        public async Task UnconfigureAsync(ConfigurationTarget target)
+        {
+            foreach (IConfigurableComponent component in _components)
+            {
+                _context.Trace.WriteLine($"Unconfiguring component '{component.Name}'...");
+                _context.Streams.Error.WriteLine($"Unconfiguring component '{component.Name}'...");
+                await component.UnconfigureAsync(target);
             }
         }
 
