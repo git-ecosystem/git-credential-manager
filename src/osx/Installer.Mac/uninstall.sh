@@ -1,5 +1,8 @@
 #!/bin/bash
 
+THISDIR="$( cd "$(dirname "$0")" ; pwd -P )"
+GCMBIN="$THISDIR/git-credential-manager-core"
+
 # Ensure we're running as root
 if [ $(id -u) != "0" ]
 then
@@ -9,7 +12,7 @@ fi
 
 # Unconfigure
 echo "Unconfiguring credential helper..."
-/usr/local/share/gcm-core/git-credential-manager-core unconfigure
+"$GCMBIN" unconfigure
 
 # Remove symlink
 if [ -L /usr/local/bin/git-credential-manager-core ]
@@ -21,13 +24,14 @@ else
 fi
 
 # Forget package installation/delete receipt
-sudo pkgutil --forget com.microsoft.GitCredentialManager
+echo "Removing installation receipt..."
+pkgutil --forget com.microsoft.gitcredentialmanager
 
 # Remove application files
-if [ -d /usr/local/share/gcm-core/ ]
+if [ -d "$THISDIR" ]
 then
 	echo "Deleting application files..."
-	sudo rm -rf /usr/local/share/gcm-core/
+	rm -rf "$THISDIR"
 else
 	echo "No application files found."
 fi

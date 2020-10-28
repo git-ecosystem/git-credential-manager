@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <style>
+            body { font-family: Helvetica; margin: 0 20px; }
+            h2 { font-weight: normal; }
+            .section { overflow: auto; }
+            .mono { font-family: monospace; }
+        </style>
+    </head>
+    <body>
+        <div class="section">
+            <p>Git Credential Manager Core was installed in <a href="file:///usr/local/share/gcm-core"><code>/usr/local/share/gcm-core</code></a> and configured for the current user.</p>
+        </div>
+        <div class="section">
+            <h2>Other users</h2>
+            <p>
+                GCM Core has already been automatically configured for use by the current user with Git.
+                If other users wish to use GCM Core, have them run the following command to update their global Git configuration (<code>~/.gitconfig</code>):
+            </p>
+            <p class="mono">$ git-credential-manager-core configure</p>
+            <p>
+                To configure GCM Core for all users, run the following command to update the system Git configuration:
+            </p>
+            <p class="mono">$ git-credential-manager-core configure --system</p>
+        </div>
+        <div class="section">
+            <h2>Uninstall</h2>
+            <p>If you wish to uninstall GCM Core, run the following script:</p>
+            <p class="mono">$ /usr/local/share/gcm-core/uninstall.sh</p>
+        </div>
+        <div class="section">
+            <h2>Resources</h3>
+            <ul>
+                <li><a href="https://aka.ms/gcmcore">Project homepage</a></li>
+                <li><a href="https://aka.ms/gcmcore-config">Configuration options</a></li>
+            </ul>
+        </div>
+    </body>
+</html>
