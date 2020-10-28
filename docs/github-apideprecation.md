@@ -19,7 +19,7 @@ Windows, they will continue to work until they expire or are revoked/deleted.
 ### Windows command-line users
 
 The best thing to do right now is upgrade to the latest Git for Windows (at
-least version 2.29), which includes a version of Git Credential Manger Core that
+least version 2.29), which includes a version of Git Credential Manager Core that
 uses supported OAuth token-based authentication.
 
 [Download the latest Git for Windows ⬇️](https://git-scm.com/download/win)
@@ -92,7 +92,7 @@ require administrator permissions.
       cmdkey /generic:git:https://github.com /user:PersonalAccessToken /pass
       ```
 
-      You will prompted to enter a password – copy the newly generated PAT in
+      You will be prompted to enter a password – copy the newly generated PAT in
       step 4 and paste it here, and press <kbd>Enter</kbd>
 
       ![image](https://user-images.githubusercontent.com/5658207/95448479-4fc64580-095b-11eb-9970-0b6faf7f4ae7.png)
