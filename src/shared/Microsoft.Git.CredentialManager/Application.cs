@@ -3,7 +3,6 @@
 using System;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Git.CredentialManager.Commands;
@@ -147,63 +146,41 @@ namespace Microsoft.Git.CredentialManager
             string helperKey = $"{Constants.GitConfiguration.Credential.SectionName}.{Constants.GitConfiguration.Credential.Helper}";
             string appPath = GetGitConfigAppPath();
 
-            IGitConfiguration config;
-            switch (target)
+            GitConfigurationLevel configLevel = target == ConfigurationTarget.System
+                    ? GitConfigurationLevel.System
+                    : GitConfigurationLevel.Global;
+
+            Context.Trace.WriteLine($"Configuring for config level '{configLevel}'.");
+
+            IGitConfiguration config = Context.Git.GetConfiguration(configLevel);
+
+            // We are looking for the following to be set in the config:
+            //
+            // [credential]
+            //     ...                # any number of helper entries (possibly none)
+            //     helper =           # an empty value to reset/clear any previous entries (if applicable)
+            //     helper = {appPath} # the expected executable value & directly following the empty value
+            //     ...                # any number of helper entries (possibly none)
+            //
+            string[] currentValues = config.GetRegex(helperKey, Constants.RegexPatterns.Any).ToArray();
+
+            // Try to locate an existing app entry with a blank reset/clear entry immediately preceding
+            int appIndex = Array.FindIndex(currentValues, x => Context.FileSystem.IsSamePath(x, appPath));
+            if (appIndex > 0 && string.IsNullOrWhiteSpace(currentValues[appIndex - 1]))
             {
-                case ConfigurationTarget.User:
-                    // For per-user configuration, we are looking for the following to be set in the global config:
-                    //
-                    // [credential]
-                    //     ...                 # any number of helper entries (possibly none)
-                    //     helper =            # an empty value to reset/clear any previous entries (if applicable)
-                    //     helper = {appPath} # the expected executable value & directly following the empty value
-                    //     ...                 # any number of helper entries (possibly none)
-                    //
-                    config = Context.Git.GetConfiguration(GitConfigurationLevel.Global);
-                    string[] currentValues = config.GetRegex(helperKey, Constants.RegexPatterns.Any).ToArray();
+                Context.Trace.WriteLine("Credential helper configuration is already set correctly.");
+            }
+            else
+            {
+                Context.Trace.WriteLine("Updating Git credential helper configuration...");
 
-                    // Try to locate an existing app entry with a blank reset/clear entry immediately preceding
-                    int appIndex = Array.FindIndex(currentValues, x => Context.FileSystem.IsSamePath(x, appPath));
-                    if (appIndex > 0 && string.IsNullOrWhiteSpace(currentValues[appIndex - 1]))
-                    {
-                        Context.Trace.WriteLine("Credential helper user configuration is already set correctly.");
-                    }
-                    else
-                    {
-                        Context.Trace.WriteLine("Updating Git credential helper user configuration...");
+                // Clear any existing app entries in the configuration
+                config.UnsetAll(helperKey, Regex.Escape(appPath));
 
-                        // Clear any existing app entries in the configuration
-                        config.UnsetAll(helperKey, Regex.Escape(appPath));
-
-                        // Add an empty value for `credential.helper`, which has the effect of clearing any helper value
-                        // from any lower-level Git configuration, then add a second value which is the actual executable path.
-                        config.ReplaceAll(helperKey, Constants.RegexPatterns.None, string.Empty);
-                        config.ReplaceAll(helperKey, Constants.RegexPatterns.None, appPath);
-                    }
-                    break;
-
-                case ConfigurationTarget.System:
-                    // For machine-wide configuration, we are looking for the following to be set in the system config:
-                    //
-                    // [credential]
-                    //     helper = {appPath}
-                    //
-                    config = Context.Git.GetConfiguration(GitConfigurationLevel.System);
-                    string currentValue = config.GetValue(helperKey);
-                    if (Context.FileSystem.IsSamePath(currentValue, appPath))
-                    {
-                        Context.Trace.WriteLine("Credential helper system configuration is already set correctly.");
-                    }
-                    else
-                    {
-                        Context.Trace.WriteLine("Updating Git credential helper system configuration...");
-                        config.SetValue(helperKey, appPath);
-                    }
-
-                    break;
-
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(target), target, "Unknown configuration target.");
+                // Add an empty value for `credential.helper`, which has the effect of clearing any helper value
+                // from any lower-level Git configuration, then add a second value which is the actual executable path.
+                config.ReplaceAll(helperKey, Constants.RegexPatterns.None, string.Empty);
+                config.ReplaceAll(helperKey, Constants.RegexPatterns.None, appPath);
             }
 
             return Task.CompletedTask;
@@ -214,56 +191,41 @@ namespace Microsoft.Git.CredentialManager
             string helperKey = $"{Constants.GitConfiguration.Credential.SectionName}.{Constants.GitConfiguration.Credential.Helper}";
             string appPath = GetGitConfigAppPath();
 
-            IGitConfiguration config;
-            switch (target)
+            GitConfigurationLevel configLevel = target == ConfigurationTarget.System
+                    ? GitConfigurationLevel.System
+                    : GitConfigurationLevel.Global;
+
+            Context.Trace.WriteLine($"Unconfiguring for config level '{configLevel}'.");
+
+            IGitConfiguration config = Context.Git.GetConfiguration(configLevel);
+
+            // We are looking for the following to be set in the config:
+            //
+            // [credential]
+            //     ...                 # any number of helper entries (possibly none)
+            //     helper =            # an empty value to reset/clear any previous entries (if applicable)
+            //     helper = {appPath} # the expected executable value & directly following the empty value
+            //     ...                 # any number of helper entries (possibly none)
+            //
+            // We should remove the {appPath} entry, and any blank entries immediately preceding IFF there are no more entries following.
+            //
+            Context.Trace.WriteLine("Removing Git credential helper configuration...");
+
+            string[] currentValues = config.GetRegex(helperKey, Constants.RegexPatterns.Any).ToArray();
+
+            int appIndex = Array.FindIndex(currentValues, x => Context.FileSystem.IsSamePath(x, appPath));
+            if (appIndex > -1)
             {
-                case ConfigurationTarget.User:
-                    // For per-user configuration, we are looking for the following to be set in the global config:
-                    //
-                    // [credential]
-                    //     ...                 # any number of helper entries (possibly none)
-                    //     helper =            # an empty value to reset/clear any previous entries (if applicable)
-                    //     helper = {appPath} # the expected executable value & directly following the empty value
-                    //     ...                 # any number of helper entries (possibly none)
-                    //
-                    // We should remove the {appPath} entry, and any blank entries immediately preceding IFF there are no more entries following.
-                    //
-                    Context.Trace.WriteLine("Removing Git credential helper user configuration...");
+                // Check for the presence of a blank entry immediately preceding an app entry in the last position
+                if (appIndex > 0 && appIndex == currentValues.Length - 1 &&
+                    string.IsNullOrWhiteSpace(currentValues[appIndex - 1]))
+                {
+                    // Clear the blank entry
+                    config.UnsetAll(helperKey, Constants.RegexPatterns.Empty);
+                }
 
-                    config = Context.Git.GetConfiguration(GitConfigurationLevel.Global);
-                    string[] currentValues = config.GetRegex(helperKey, Constants.RegexPatterns.Any).ToArray();
-
-                    int appIndex = Array.FindIndex(currentValues, x => Context.FileSystem.IsSamePath(x, appPath));
-                    if (appIndex > -1)
-                    {
-                        // Check for the presence of a blank entry immediately preceding an app entry in the last position
-                        if (appIndex > 0 && appIndex == currentValues.Length - 1 &&
-                            string.IsNullOrWhiteSpace(currentValues[appIndex - 1]))
-                        {
-                            // Clear the blank entry
-                            config.UnsetAll(helperKey, Constants.RegexPatterns.Empty);
-                        }
-
-                        // Clear app entry
-                        config.UnsetAll(helperKey, Regex.Escape(appPath));
-                    }
-                    break;
-
-                case ConfigurationTarget.System:
-                    // For machine-wide configuration, we are looking for the following to be set in the system config:
-                    //
-                    // [credential]
-                    //     helper = {appPath}
-                    //
-                    // We should remove the {appPath} entry if it exists.
-                    //
-                    Context.Trace.WriteLine("Removing Git credential helper system configuration...");
-                    config = Context.Git.GetConfiguration(GitConfigurationLevel.System);
-                    config.UnsetAll(helperKey, Regex.Escape(appPath));
-                    break;
-
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(target), target, "Unknown configuration target.");
+                // Clear app entry
+                config.UnsetAll(helperKey, Regex.Escape(appPath));
             }
 
             return Task.CompletedTask;
