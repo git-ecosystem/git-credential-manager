@@ -50,10 +50,24 @@ namespace Microsoft.Git.CredentialManager
         void SetValue(string name, string value);
 
         /// <summary>
+        /// Add a new value for a configuration entry.
+        /// </summary>
+        /// <param name="name">Configuration entry name.</param>
+        /// <param name="value">Configuration entry value.</param>
+        void Add(string name, string value);
+
+        /// <summary>
         /// Deletes a configuration entry from the highest level.
         /// </summary>
         /// <param name="name">Configuration entry name.</param>
         void Unset(string name);
+
+        /// <summary>
+        /// Get all value of a multivar configuration entry.
+        /// </summary>
+        /// <param name="name">Configuration entry name.</param>
+        /// <returns>All values of the multivar configuration entry.</returns>
+        IEnumerable<string> GetAll(string name);
 
         /// <summary>
         /// Get all values of a multivar configuration entry.
@@ -188,6 +202,30 @@ namespace Microsoft.Git.CredentialManager
             }
         }
 
+        public void Add(string name, string value)
+        {
+            if (_filterLevel == GitConfigurationLevel.All)
+            {
+                throw new InvalidOperationException("Must have a specific configuration level filter to add values.");
+            }
+
+            string level = GetLevelFilterArg();
+            using (Process git = _git.CreateProcess($"config {level} --add {QuoteCmdArg(name)} {QuoteCmdArg(value)}"))
+            {
+                git.Start();
+                git.WaitForExit();
+
+                switch (git.ExitCode)
+                {
+                    case 0: // OK
+                        break;
+                    default:
+                        throw new Exception(
+                            $"Failed to add Git configuration entry '{name}' with value '{value}'. Exit code '{git.ExitCode}' (level={_filterLevel})");
+                }
+            }
+        }
+
         public void Unset(string name)
         {
             if (_filterLevel == GitConfigurationLevel.All)
@@ -208,6 +246,38 @@ namespace Microsoft.Git.CredentialManager
                     default:
                         throw new Exception(
                            $"Failed to unset Git configuration entry '{name}'. Exit code '{git.ExitCode}' (level={_filterLevel})");
+                }
+            }
+        }
+
+        public IEnumerable<string> GetAll(string name)
+        {
+            string level = GetLevelFilterArg();
+
+            var gitArgs = $"config --null {level} --get-all {QuoteCmdArg(name)}";
+
+            using (Process git = _git.CreateProcess(gitArgs))
+            {
+                git.Start();
+
+                // TODO: don't read in all the data at once; stream it
+                string data = git.StandardOutput.ReadToEnd();
+                git.WaitForExit();
+
+                switch (git.ExitCode)
+                {
+                    case 0: // OK
+                    case 1: // No results
+                        break;
+                    default:
+                        throw new Exception(
+                            $"Failed to get Git configuration multi-valued entry '{name}'. Exit code '{git.ExitCode}' (level={_filterLevel})");
+                }
+
+                string[] entries = data.Split('\0');
+                foreach (string entry in entries)
+                {
+                    yield return entry;
                 }
             }
         }
