@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Tools.InnoSetup" Version="5.6.1" />
+    <PackageReference Include="Tools.InnoSetup" Version="6.0.5" />
     <PackageReference Include="MicroBuild.Core" Version="0.2.0">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
@@ -29,7 +29,7 @@
        before we attempt to sign any files or validate they exist. -->
   <Target Name="CreateFilesToSignItems" DependsOnTargets="GetBuildVersion" BeforeTargets="PrepareForRun">
     <ItemGroup>
-      <FilesToSign Include="$(OutDir)gcmcore-win-x86-$(BuildVersion).exe">
+      <FilesToSign Include="$(OutDir)gcmcore*-win-x86-$(BuildVersion).exe">
         <Authenticode>Microsoft400</Authenticode>
         <InProject>false</InProject>
       </FilesToSign>
@@ -47,10 +47,13 @@
 
   <Target Name="CoreCompile" Condition="'$(OSPlatform)'=='windows'">
     <PropertyGroup>
-      <InnoSetupCommand>$(NuGetPackageRoot)Tools.InnoSetup\5.6.1\tools\ISCC.exe /DPayloadDir=$(PayloadPath) Setup.iss /O$(OutputPath)</InnoSetupCommand>
+      <InnoSetupCommandSystem>$(NuGetPackageRoot)Tools.InnoSetup\6.0.5\tools\ISCC.exe /DPayloadDir=$(PayloadPath) /DInstallTarget=system Setup.iss /O$(OutputPath)</InnoSetupCommandSystem>
+      <InnoSetupCommandUser>$(NuGetPackageRoot)Tools.InnoSetup\6.0.5\tools\ISCC.exe /DPayloadDir=$(PayloadPath) /DInstallTarget=user Setup.iss /O$(OutputPath)</InnoSetupCommandUser>
     </PropertyGroup>
-    <Message Text="$(InnoSetupCommand)" Importance="High" />
-    <Exec Command="$(InnoSetupCommand)" />
+    <Message Text="$(InnoSetupCommandSystem)" Importance="High" />
+    <Exec Command="$(InnoSetupCommandSystem)" />
+    <Message Text="$(InnoSetupCommandUser)" Importance="High" />
+    <Exec Command="$(InnoSetupCommandUser)" />
   </Target>
 
   <!-- We don't produce or copy any dependent files for this project -->
