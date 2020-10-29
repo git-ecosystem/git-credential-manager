@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 
 namespace Microsoft.Git.CredentialManager
 {
@@ -131,7 +132,7 @@ namespace Microsoft.Git.CredentialManager
         public bool TryGetValue(string name, out string value)
         {
             string level = GetLevelFilterArg();
-            using (Process git = _git.CreateProcess($"config {level} {name}"))
+            using (Process git = _git.CreateProcess($"config {level} {QuoteCmdArg(name)}"))
             {
                 git.Start();
                 git.WaitForExit();
@@ -171,7 +172,7 @@ namespace Microsoft.Git.CredentialManager
             }
 
             string level = GetLevelFilterArg();
-            using (Process git = _git.CreateProcess($"config {level} {name} \"{value}\""))
+            using (Process git = _git.CreateProcess($"config {level} {QuoteCmdArg(name)} {QuoteCmdArg(value)}"))
             {
                 git.Start();
                 git.WaitForExit();
@@ -195,7 +196,7 @@ namespace Microsoft.Git.CredentialManager
             }
 
             string level = GetLevelFilterArg();
-            using (Process git = _git.CreateProcess($"config {level} --unset {name}"))
+            using (Process git = _git.CreateProcess($"config {level} --unset {QuoteCmdArg(name)}"))
             {
                 git.Start();
                 git.WaitForExit();
@@ -214,7 +215,14 @@ namespace Microsoft.Git.CredentialManager
         public IEnumerable<string> GetRegex(string nameRegex, string valueRegex)
         {
             string level = GetLevelFilterArg();
-            using (Process git = _git.CreateProcess($"config --null {level} --get-regex {nameRegex} {valueRegex}"))
+
+            var gitArgs = $"config --null {level} --get-regex {QuoteCmdArg(nameRegex)}";
+            if (valueRegex != null)
+            {
+                gitArgs += $" {QuoteCmdArg(valueRegex)}";
+            }
+
+            using (Process git = _git.CreateProcess(gitArgs))
             {
                 git.Start();
                 // To avoid deadlocks, always read the output stream first and then wait
@@ -252,7 +260,13 @@ namespace Microsoft.Git.CredentialManager
             }
 
             string level = GetLevelFilterArg();
-            using (Process git = _git.CreateProcess($"config {level} --replace-all {name} {value} {valueRegex}"))
+            var gitArgs = $"config {level} --replace-all {QuoteCmdArg(name)} {QuoteCmdArg(value)}";
+            if (valueRegex != null)
+            {
+                gitArgs += $" {QuoteCmdArg(valueRegex)}";
+            }
+
+            using (Process git = _git.CreateProcess(gitArgs))
             {
                 git.Start();
                 git.WaitForExit();
@@ -276,7 +290,13 @@ namespace Microsoft.Git.CredentialManager
             }
 
             string level = GetLevelFilterArg();
-            using (Process git = _git.CreateProcess($"config {level} --unset-all {name} {valueRegex}"))
+            var gitArgs = $"config {level} --unset-all {QuoteCmdArg(name)}";
+            if (valueRegex != null)
+            {
+                gitArgs += $" {QuoteCmdArg(valueRegex)}";
+            }
+
+            using (Process git = _git.CreateProcess(gitArgs))
             {
                 git.Start();
                 git.WaitForExit();
@@ -309,6 +329,77 @@ namespace Microsoft.Git.CredentialManager
                 default:
                     return null;
             }
+        }
+
+        public static string QuoteCmdArg(string str)
+        {
+            bool needsQuotes = string.IsNullOrEmpty(str);
+            var result = new StringBuilder();
+
+            for (int i = 0; i < (str?.Length ?? 0); i++)
+            {
+                switch (str![i])
+                {
+                    case '"':
+                        result.Append("\\\"");
+                        needsQuotes = true;
+                        break;
+
+                    case ' ':
+                    case '{':
+                    case '*':
+                    case '?':
+                    case '\r':
+                    case '\n':
+                    case '\t':
+                    case '\'':
+                        result.Append(str[i]);
+                        needsQuotes = true;
+                        break;
+
+                    case '\\':
+                        int end = i;
+
+                        // Copy all the '\'s in this run.
+                        while (end < str.Length && str[end] == '\\')
+                        {
+                            result.Append('\\');
+                            end++;
+                        }
+
+                        // If we ended the run of '\'s with a '"' then we need to double up the number of '\'s.
+                        // The '"' will be escaped on the next pass of the loop.
+                        // Also if we have reached the end of the string, and we need to book-end the result
+                        // with double quotes ('"') we should escape all the '\'s to prevent ending on an
+                        // escaped '"' in the result.
+                        if (end < str.Length && str[end] == '"' ||
+                            end == str.Length && needsQuotes)
+                        {
+                            result.Append('\\', end - i);
+                        }
+
+                        // Back-off one character
+                        if (end > i)
+                        {
+                            end--;
+                        }
+
+                        i = end;
+                        break;
+
+                    default:
+                        result.Append(str[i]);
+                        break;
+                }
+            }
+
+            if (needsQuotes)
+            {
+                result.Insert(0, '"');
+                result.Append('"');
+            }
+
+            return result.ToString();
         }
     }
 

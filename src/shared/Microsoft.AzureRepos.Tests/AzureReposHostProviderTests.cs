@@ -179,18 +179,15 @@ namespace Microsoft.AzureRepos.Tests
         [Fact]
         public async Task AzureReposHostProvider_ConfigureAsync_UseHttpPathSetTrue_DoesNothing()
         {
-            var provider = new AzureReposHostProvider(new TestCommandContext());
+            var context = new TestCommandContext();
+            var provider = new AzureReposHostProvider(context);
 
-            var environment = new TestEnvironment();
-            var git = new TestGit();
-            git.GlobalConfiguration.Dictionary[AzDevUseHttpPathKey] = new List<string> {"true"};
+            context.Git.GlobalConfiguration.Dictionary[AzDevUseHttpPathKey] = new List<string> {"true"};
 
-            await provider.ConfigureAsync(
-                environment, EnvironmentVariableTarget.User,
-                git, GitConfigurationLevel.Global);
+            await provider.ConfigureAsync(ConfigurationTarget.User);
 
-            Assert.Single(git.GlobalConfiguration.Dictionary);
-            Assert.True(git.GlobalConfiguration.Dictionary.TryGetValue(AzDevUseHttpPathKey, out IList<string> actualValues));
+            Assert.Single(context.Git.GlobalConfiguration.Dictionary);
+            Assert.True(context.Git.GlobalConfiguration.Dictionary.TryGetValue(AzDevUseHttpPathKey, out IList<string> actualValues));
             Assert.Single(actualValues);
             Assert.Equal("true", actualValues[0]);
         }
@@ -198,18 +195,15 @@ namespace Microsoft.AzureRepos.Tests
         [Fact]
         public async Task AzureReposHostProvider_ConfigureAsync_UseHttpPathSetFalse_SetsUseHttpPathTrue()
         {
-            var provider = new AzureReposHostProvider(new TestCommandContext());
+            var context = new TestCommandContext();
+            var provider = new AzureReposHostProvider(context);
 
-            var environment = new TestEnvironment();
-            var git = new TestGit();
-            git.GlobalConfiguration.Dictionary[AzDevUseHttpPathKey] = new List<string> {"false"};
+            context.Git.GlobalConfiguration.Dictionary[AzDevUseHttpPathKey] = new List<string> {"false"};
 
-            await provider.ConfigureAsync(
-                environment, EnvironmentVariableTarget.User,
-                git, GitConfigurationLevel.Global);
+            await provider.ConfigureAsync(ConfigurationTarget.User);
 
-            Assert.Single(git.GlobalConfiguration.Dictionary);
-            Assert.True(git.GlobalConfiguration.Dictionary.TryGetValue(AzDevUseHttpPathKey, out IList<string> actualValues));
+            Assert.Single(context.Git.GlobalConfiguration.Dictionary);
+            Assert.True(context.Git.GlobalConfiguration.Dictionary.TryGetValue(AzDevUseHttpPathKey, out IList<string> actualValues));
             Assert.Single(actualValues);
             Assert.Equal("true", actualValues[0]);
         }
@@ -217,17 +211,13 @@ namespace Microsoft.AzureRepos.Tests
         [Fact]
         public async Task AzureReposHostProvider_ConfigureAsync_UseHttpPathUnset_SetsUseHttpPathTrue()
         {
-            var provider = new AzureReposHostProvider(new TestCommandContext());
+            var context = new TestCommandContext();
+            var provider = new AzureReposHostProvider(context);
 
-            var environment = new TestEnvironment();
-            var git = new TestGit();
+            await provider.ConfigureAsync(ConfigurationTarget.User);
 
-            await provider.ConfigureAsync(
-                environment, EnvironmentVariableTarget.User,
-                git, GitConfigurationLevel.Global);
-
-            Assert.Single(git.GlobalConfiguration.Dictionary);
-            Assert.True(git.GlobalConfiguration.Dictionary.TryGetValue(AzDevUseHttpPathKey, out IList<string> actualValues));
+            Assert.Single(context.Git.GlobalConfiguration.Dictionary);
+            Assert.True(context.Git.GlobalConfiguration.Dictionary.TryGetValue(AzDevUseHttpPathKey, out IList<string> actualValues));
             Assert.Single(actualValues);
             Assert.Equal("true", actualValues[0]);
         }
@@ -236,17 +226,14 @@ namespace Microsoft.AzureRepos.Tests
         [Fact]
         public async Task AzureReposHostProvider_UnconfigureAsync_UseHttpPathSet_RemovesEntry()
         {
-            var provider = new AzureReposHostProvider(new TestCommandContext());
+            var context = new TestCommandContext();
+            var provider = new AzureReposHostProvider(context);
 
-            var environment = new TestEnvironment();
-            var git = new TestGit();
-            git.GlobalConfiguration.Dictionary[AzDevUseHttpPathKey] = new List<string> {"true"};
+            context.Git.GlobalConfiguration.Dictionary[AzDevUseHttpPathKey] = new List<string> {"true"};
 
-            await provider.UnconfigureAsync(
-                environment, EnvironmentVariableTarget.User,
-                git, GitConfigurationLevel.Global);
+            await provider.UnconfigureAsync(ConfigurationTarget.User);
 
-            Assert.Empty(git.GlobalConfiguration.Dictionary);
+            Assert.Empty(context.Git.GlobalConfiguration.Dictionary);
         }
     }
 }

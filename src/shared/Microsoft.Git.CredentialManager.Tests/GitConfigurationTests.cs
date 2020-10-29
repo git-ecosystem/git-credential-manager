@@ -11,6 +11,39 @@ namespace Microsoft.Git.CredentialManager.Tests
 {
     public class GitConfigurationTests
     {
+        [Theory]
+        [InlineData(null, "\"\"")]
+        [InlineData("", "\"\"")]
+        [InlineData("hello", "hello")]
+        [InlineData("hello world", "\"hello world\"")]
+        [InlineData("C:\\app.exe", "C:\\app.exe")]
+        [InlineData("C:\\path with space\\app.exe", "\"C:\\path with space\\app.exe\"")]
+        [InlineData("''", "\"''\"")]
+        [InlineData("'hello'", "\"'hello'\"")]
+        [InlineData("'hello world'", "\"'hello world'\"")]
+        [InlineData("'C:\\app.exe'", "\"'C:\\app.exe'\"")]
+        [InlineData("'C:\\path with space\\app.exe'", "\"'C:\\path with space\\app.exe'\"")]
+        [InlineData("\"\"", "\"\\\"\\\"\"")]
+        [InlineData("\"hello\"", "\"\\\"hello\\\"\"")]
+        [InlineData("\"hello world\"", "\"\\\"hello world\\\"\"")]
+        [InlineData("\"C:\\app.exe\"", "\"\\\"C:\\app.exe\\\"\"")]
+        [InlineData("\"C:\\path with space\\app.exe\"", "\"\\\"C:\\path with space\\app.exe\\\"\"")]
+        [InlineData("\\", "\\")]
+        [InlineData("\\\\", "\\\\")]
+        [InlineData("\\\\\\", "\\\\\\")]
+        [InlineData("\"", "\"\\\"\"")]
+        [InlineData("\\\"", "\"\\\\\\\"\"")]
+        [InlineData("\\\\\"", "\"\\\\\\\\\\\"\"")]
+        [InlineData("\"\\", "\"\\\"\\\\\"")]
+        [InlineData("\"\\\\", "\"\\\"\\\\\\\\\"")]
+        [InlineData("ab\\", "ab\\")]
+        [InlineData("a b\\", "\"a b\\\\\"")]
+        public void GitConfiguration_QuoteCmdArg(string input, string expected)
+        {
+            string actual = GitProcessConfiguration.QuoteCmdArg(input);
+            Assert.Equal(expected, actual);
+        }
+
         [Fact]
         public void GitProcess_GetConfiguration_ReturnsConfiguration()
         {
