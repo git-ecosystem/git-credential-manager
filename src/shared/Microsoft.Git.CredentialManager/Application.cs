@@ -160,13 +160,15 @@ namespace Microsoft.Git.CredentialManager
             //     ...                # any number of helper entries (possibly none)
             //     helper =           # an empty value to reset/clear any previous entries (if applicable)
             //     helper = {appPath} # the expected executable value & directly following the empty value
-            //     ...                # any number of helper entries (possibly none)
+            //     ...                # any number of helper entries (possibly none, but not the empty value '')
             //
             string[] currentValues = config.GetAll(helperKey).ToArray();
 
-            // Try to locate an existing app entry with a blank reset/clear entry immediately preceding
+            // Try to locate an existing app entry with a blank reset/clear entry immediately preceding,
+            // and no other blank empty/clear entries following (which effectively disable us).
             int appIndex = Array.FindIndex(currentValues, x => Context.FileSystem.IsSamePath(x, appPath));
-            if (appIndex > 0 && string.IsNullOrWhiteSpace(currentValues[appIndex - 1]))
+            int lastEmptyIndex = Array.FindLastIndex(currentValues, string.IsNullOrWhiteSpace);
+            if (appIndex > 0 && string.IsNullOrWhiteSpace(currentValues[appIndex - 1]) && lastEmptyIndex < appIndex)
             {
                 Context.Trace.WriteLine("Credential helper configuration is already set correctly.");
             }
