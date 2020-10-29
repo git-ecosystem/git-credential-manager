@@ -40,14 +40,14 @@ namespace Microsoft.Git.CredentialManager
         /// <param name="name">Configuration entry name.</param>
         /// <param name="value">Configuration entry value.</param>
         /// <returns>True if the value was found, false otherwise.</returns>
-        bool TryGetValue(string name, out string value);
+        bool TryGet(string name, out string value);
 
         /// <summary>
         /// Set the value of a configuration entry.
         /// </summary>
         /// <param name="name">Configuration entry name.</param>
         /// <param name="value">Configuration entry value.</param>
-        void SetValue(string name, string value);
+        void Set(string name, string value);
 
         /// <summary>
         /// Add a new value for a configuration entry.
@@ -143,7 +143,7 @@ namespace Microsoft.Git.CredentialManager
             }
         }
 
-        public bool TryGetValue(string name, out string value)
+        public bool TryGet(string name, out string value)
         {
             string level = GetLevelFilterArg();
             using (Process git = _git.CreateProcess($"config {level} {QuoteCmdArg(name)}"))
@@ -178,7 +178,7 @@ namespace Microsoft.Git.CredentialManager
             }
         }
 
-        public void SetValue(string name, string value)
+        public void Set(string name, string value)
         {
             if (_filterLevel == GitConfigurationLevel.All)
             {
@@ -482,9 +482,9 @@ namespace Microsoft.Git.CredentialManager
         /// <param name="config">Configuration object.</param>
         /// <param name="name">Configuration entry name.</param>
         /// <returns>Configuration entry value.</returns>
-        public static string GetValue(this IGitConfiguration config, string name)
+        public static string Get(this IGitConfiguration config, string name)
         {
-            if (!config.TryGetValue(name, out string value))
+            if (!config.TryGet(name, out string value))
             {
                 throw new KeyNotFoundException($"Git configuration entry with the name '{name}' was not found.");
             }
@@ -500,9 +500,9 @@ namespace Microsoft.Git.CredentialManager
         /// <param name="property">Configuration property name.</param>
         /// <exception cref="System.Collections.Generic.KeyNotFoundException">A configuration entry with the specified key was not found.</exception>
         /// <returns>Configuration entry value.</returns>
-        public static string GetValue(this IGitConfiguration config, string section, string property)
+        public static string Get(this IGitConfiguration config, string section, string property)
         {
-            return GetValue(config, $"{section}.{property}");
+            return Get(config, $"{section}.{property}");
         }
 
         /// <summary>
@@ -514,14 +514,14 @@ namespace Microsoft.Git.CredentialManager
         /// <param name="property">Configuration property name.</param>
         /// <exception cref="System.Collections.Generic.KeyNotFoundException">A configuration entry with the specified key was not found.</exception>
         /// <returns>Configuration entry value.</returns>
-        public static string GetValue(this IGitConfiguration config, string section, string scope, string property)
+        public static string Get(this IGitConfiguration config, string section, string scope, string property)
         {
             if (scope is null)
             {
-                return GetValue(config, section, property);
+                return Get(config, section, property);
             }
 
-            return GetValue(config, $"{section}.{scope}.{property}");
+            return Get(config, $"{section}.{scope}.{property}");
         }
 
         /// <summary>
@@ -532,9 +532,9 @@ namespace Microsoft.Git.CredentialManager
         /// <param name="property">Configuration property name.</param>
         /// <param name="value">Configuration entry value.</param>
         /// <returns>True if the value was found, false otherwise.</returns>
-        public static bool TryGetValue(this IGitConfiguration config, string section, string property, out string value)
+        public static bool TryGet(this IGitConfiguration config, string section, string property, out string value)
         {
-            return config.TryGetValue($"{section}.{property}", out value);
+            return config.TryGet($"{section}.{property}", out value);
         }
 
         /// <summary>
@@ -546,14 +546,14 @@ namespace Microsoft.Git.CredentialManager
         /// <param name="property">Configuration property name.</param>
         /// <param name="value">Configuration entry value.</param>
         /// <returns>True if the value was found, false otherwise.</returns>
-        public static bool TryGetValue(this IGitConfiguration config, string section, string scope, string property, out string value)
+        public static bool TryGet(this IGitConfiguration config, string section, string scope, string property, out string value)
         {
             if (scope is null)
             {
-                return TryGetValue(config, section, property, out value);
+                return TryGet(config, section, property, out value);
             }
 
-            return config.TryGetValue($"{section}.{scope}.{property}", out value);
+            return config.TryGet($"{section}.{scope}.{property}", out value);
         }
     }
 }

@@ -260,14 +260,14 @@ namespace Microsoft.AzureRepos
 
             IGitConfiguration targetConfig = _context.Git.GetConfiguration(configurationLevel);
 
-            if (targetConfig.TryGetValue(useHttpPathKey, out string currentValue) && currentValue.IsTruthy())
+            if (targetConfig.TryGet(useHttpPathKey, out string currentValue) && currentValue.IsTruthy())
             {
                 _context.Trace.WriteLine("Git configuration 'credential.useHttpPath' is already set to 'true' for https://dev.azure.com.");
             }
             else
             {
                 _context.Trace.WriteLine("Setting Git configuration 'credential.useHttpPath' to 'true' for https://dev.azure.com...");
-                targetConfig.SetValue(useHttpPathKey, "true");
+                targetConfig.Set(useHttpPathKey, "true");
             }
 
             return Task.CompletedTask;

@@ -25,8 +25,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
         /// <param name="key"></param>
         public string this[string key]
         {
-            get => TryGetValue(key, out string value) ? value : null;
-            set => SetValue(key, value);
+            get => TryGet(key, out string value) ? value : null;
+            set => Set(key, value);
         }
 
         #region IGitConfiguration
@@ -45,7 +45,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
             }
         }
 
-        public bool TryGetValue(string name, out string value)
+        public bool TryGet(string name, out string value)
         {
             if (Dictionary.TryGetValue(name, out var values))
             {
@@ -66,7 +66,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
             return false;
         }
 
-        public void SetValue(string name, string value)
+        public void Set(string name, string value)
         {
             if (!Dictionary.TryGetValue(name, out IList<string> values))
             {
