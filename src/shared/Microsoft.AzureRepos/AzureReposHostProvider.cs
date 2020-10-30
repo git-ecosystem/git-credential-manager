@@ -2,6 +2,7 @@
 // Licensed under the MIT license.
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Git.CredentialManager;
 using Microsoft.Git.CredentialManager.Authentication;
@@ -275,6 +276,7 @@ namespace Microsoft.AzureRepos
 
         public Task UnconfigureAsync(ConfigurationTarget target)
         {
+            string helperKey = $"{Constants.GitConfiguration.Credential.SectionName}.{Constants.GitConfiguration.Credential.Helper}";
             string useHttpPathKey = $"{KnownGitCfg.Credential.SectionName}.https://dev.azure.com.{KnownGitCfg.Credential.UseHttpPath}";
 
             _context.Trace.WriteLine("Clearing Git configuration 'credential.useHttpPath' for https://dev.azure.com...");
@@ -284,7 +286,14 @@ namespace Microsoft.AzureRepos
                 : GitConfigurationLevel.Global;
 
             IGitConfiguration targetConfig = _context.Git.GetConfiguration(configurationLevel);
-            targetConfig.Unset(useHttpPathKey);
+
+            // On Windows, if there is a "manager-core" entry remaining in the system config then we must not clear
+            // the useHttpPath option otherwise this would break the bundled version of GCM Core in Git for Windows.
+            if (!PlatformUtils.IsWindows() || target != ConfigurationTarget.System ||
+                targetConfig.GetAll(helperKey).All(x => !string.Equals(x, "manager-core")))
+            {
+                targetConfig.Unset(useHttpPathKey);
+            }
 
             return Task.CompletedTask;
         }
