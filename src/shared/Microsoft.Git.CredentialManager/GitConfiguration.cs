@@ -126,8 +126,8 @@ namespace Microsoft.Git.CredentialManager
                     case 0: // OK
                         break;
                     default:
-                        throw new Exception(
-                            $"Failed to enumerate all Git configuration entries. Exit code '{git.ExitCode}' (level={_filterLevel})");
+                        _trace.WriteLine($"Failed to enumerate config entries (exit={git.ExitCode}, level={_filterLevel})");
+                        throw CreateGitException(git, "Failed to enumerate all Git configuration entries");
                 }
 
                 IEnumerable<string> entries = data.Split('\0').Where(x => !string.IsNullOrWhiteSpace(x));
@@ -159,8 +159,7 @@ namespace Microsoft.Git.CredentialManager
                         value = null;
                         return false;
                     default: // Error
-                        _trace.WriteLine(
-                            $"Failed to read Git configuration entry '{name}'. Exit code '{git.ExitCode}' (level={_filterLevel})");
+                        _trace.WriteLine($"Failed to read Git configuration entry '{name}'. (exit={git.ExitCode}, level={_filterLevel})");
                         value = null;
                         return false;
                 }
@@ -196,8 +195,8 @@ namespace Microsoft.Git.CredentialManager
                     case 0: // OK
                         break;
                     default:
-                        throw new Exception(
-                            $"Failed to set Git configuration entry '{name}' to '{value}'. Exit code '{git.ExitCode}' (level={_filterLevel})");
+                        _trace.WriteLine($"Failed to set config entry '{name}' to value '{value}' (exit={git.ExitCode}, level={_filterLevel})");
+                        throw CreateGitException(git, $"Failed to set Git configuration entry '{name}'");
                 }
             }
         }
@@ -220,8 +219,8 @@ namespace Microsoft.Git.CredentialManager
                     case 0: // OK
                         break;
                     default:
-                        throw new Exception(
-                            $"Failed to add Git configuration entry '{name}' with value '{value}'. Exit code '{git.ExitCode}' (level={_filterLevel})");
+                        _trace.WriteLine($"Failed to add config entry '{name}' with value '{value}' (exit={git.ExitCode}, level={_filterLevel})");
+                        throw CreateGitException(git, $"Failed to add Git configuration entry '{name}'");
                 }
             }
         }
@@ -242,10 +241,11 @@ namespace Microsoft.Git.CredentialManager
                 switch (git.ExitCode)
                 {
                     case 0: // OK
+                    case 5: // Trying to unset a value that does not exist
                         break;
                     default:
-                        throw new Exception(
-                           $"Failed to unset Git configuration entry '{name}'. Exit code '{git.ExitCode}' (level={_filterLevel})");
+                        _trace.WriteLine($"Failed to unset config entry '{name}' (exit={git.ExitCode}, level={_filterLevel})");
+                        throw CreateGitException(git, $"Failed to unset Git configuration entry '{name}'");
                 }
             }
         }
@@ -270,8 +270,8 @@ namespace Microsoft.Git.CredentialManager
                     case 1: // No results
                         break;
                     default:
-                        throw new Exception(
-                            $"Failed to get Git configuration multi-valued entry '{name}'. Exit code '{git.ExitCode}' (level={_filterLevel})");
+                        _trace.WriteLine($"Failed to get all config entries '{name}' (exit={git.ExitCode}, level={_filterLevel})");
+                        throw CreateGitException(git, $"Failed to get all Git configuration entries '{name}'");
                 }
 
                 string[] entries = data.Split('\0');
@@ -306,8 +306,8 @@ namespace Microsoft.Git.CredentialManager
                     case 1: // No results
                         break;
                     default:
-                        throw new Exception(
-                            $"Failed to get Git configuration multi-valued entry '{nameRegex}' with value regex '{valueRegex}'. Exit code '{git.ExitCode}' (level={_filterLevel})");
+                        _trace.WriteLine($"Failed to get all multivar regex '{nameRegex}' and value regex '{valueRegex}' (exit={git.ExitCode}, level={_filterLevel})");
+                        throw CreateGitException(git, $"Failed to get Git configuration multi-valued entries with name regex '{nameRegex}'");
                 }
 
                 string[] entries = data.Split('\0');
@@ -346,8 +346,8 @@ namespace Microsoft.Git.CredentialManager
                     case 0: // OK
                         break;
                     default:
-                        throw new Exception(
-                            $"Failed to set Git configuration multi-valued entry '{name}' with value regex '{valueRegex}' to value '{value}'. Exit code '{git.ExitCode}' (level={_filterLevel})");
+                        _trace.WriteLine($"Failed to replace all multivar '{name}' and value regex '{valueRegex}' with new value '{value}' (exit={git.ExitCode}, level={_filterLevel})");
+                        throw CreateGitException(git, $"Failed to replace all Git configuration multi-valued entries '{name}'");
                 }
             }
         }
@@ -377,10 +377,27 @@ namespace Microsoft.Git.CredentialManager
                     case 5: // Trying to unset a value that does not exist
                         break;
                     default:
-                        throw new Exception(
-                            $"Failed to unset all Git configuration multi-valued entries '{name}' with value regex '{valueRegex}'. Exit code '{git.ExitCode}' (level={_filterLevel})");
+                        _trace.WriteLine($"Failed to unset all multivar '{name}' with value regex '{valueRegex}' (exit={git.ExitCode}, level={_filterLevel})");
+                        throw CreateGitException(git, $"Failed to unset all Git configuration multi-valued entries '{name}'");
                 }
             }
+        }
+
+        private Exception CreateGitException(Process git, string message)
+        {
+            var exceptionMessage = new StringBuilder();
+            string gitMessage = git.StandardError.ReadToEnd();
+
+            if (!string.IsNullOrWhiteSpace(gitMessage))
+            {
+                exceptionMessage.AppendLine(gitMessage);
+            }
+
+            exceptionMessage.AppendLine(message);
+            exceptionMessage.AppendLine($"Exit code: '{git.ExitCode}'");
+            exceptionMessage.AppendLine($"Configuration level: {_filterLevel}");
+
+            throw new Exception(exceptionMessage.ToString());
         }
 
         private string GetLevelFilterArg()
