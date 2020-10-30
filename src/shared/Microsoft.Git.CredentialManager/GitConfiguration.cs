@@ -267,17 +267,22 @@ namespace Microsoft.Git.CredentialManager
                 switch (git.ExitCode)
                 {
                     case 0: // OK
+                        string[] entries = data.Split('\0');
+
+                        // Because each line terminates with the \0 character, splitting leaves us with one
+                        // bogus blank entry at the end of the array which we should ignore
+                        for (var i = 0; i < entries.Length - 1; i++)
+                        {
+                            yield return entries[i];
+                        }
+                        break;
+
                     case 1: // No results
                         break;
+
                     default:
                         _trace.WriteLine($"Failed to get all config entries '{name}' (exit={git.ExitCode}, level={_filterLevel})");
                         throw CreateGitException(git, $"Failed to get all Git configuration entries '{name}'");
-                }
-
-                string[] entries = data.Split('\0');
-                foreach (string entry in entries)
-                {
-                    yield return entry;
                 }
             }
         }
