@@ -1,6 +1,7 @@
 name: GCM-Core
 
 on:
+  workflow_dispatch:
   push:
     branches: [ master, linux ]
   pull_request:

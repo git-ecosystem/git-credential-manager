@@ -2,6 +2,7 @@
 // Licensed under the MIT license.
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Git.CredentialManager;
 using Microsoft.Git.CredentialManager.Authentication;
@@ -250,37 +251,49 @@ namespace Microsoft.AzureRepos
 
         string IConfigurableComponent.Name => "Azure Repos provider";
 
-        public Task ConfigureAsync(
-            IEnvironment environment, EnvironmentVariableTarget environmentTarget,
-            IGit git, GitConfigurationLevel configurationLevel)
+        public Task ConfigureAsync(ConfigurationTarget target)
         {
             string useHttpPathKey = $"{KnownGitCfg.Credential.SectionName}.https://dev.azure.com.{KnownGitCfg.Credential.UseHttpPath}";
 
-            IGitConfiguration targetConfig = git.GetConfiguration(configurationLevel);
+            GitConfigurationLevel configurationLevel = target == ConfigurationTarget.System
+                ? GitConfigurationLevel.System
+                : GitConfigurationLevel.Global;
 
-            if (targetConfig.TryGetValue(useHttpPathKey, out string currentValue) && currentValue.IsTruthy())
+            IGitConfiguration targetConfig = _context.Git.GetConfiguration(configurationLevel);
+
+            if (targetConfig.TryGet(useHttpPathKey, out string currentValue) && currentValue.IsTruthy())
             {
                 _context.Trace.WriteLine("Git configuration 'credential.useHttpPath' is already set to 'true' for https://dev.azure.com.");
             }
             else
             {
                 _context.Trace.WriteLine("Setting Git configuration 'credential.useHttpPath' to 'true' for https://dev.azure.com...");
-                targetConfig.SetValue(useHttpPathKey, "true");
+                targetConfig.Set(useHttpPathKey, "true");
             }
 
             return Task.CompletedTask;
         }
 
-        public Task UnconfigureAsync(
-            IEnvironment environment, EnvironmentVariableTarget environmentTarget,
-            IGit git, GitConfigurationLevel configurationLevel)
+        public Task UnconfigureAsync(ConfigurationTarget target)
         {
+            string helperKey = $"{Constants.GitConfiguration.Credential.SectionName}.{Constants.GitConfiguration.Credential.Helper}";
             string useHttpPathKey = $"{KnownGitCfg.Credential.SectionName}.https://dev.azure.com.{KnownGitCfg.Credential.UseHttpPath}";
 
             _context.Trace.WriteLine("Clearing Git configuration 'credential.useHttpPath' for https://dev.azure.com...");
 
-            IGitConfiguration targetConfig = git.GetConfiguration(configurationLevel);
-            targetConfig.Unset(useHttpPathKey);
+            GitConfigurationLevel configurationLevel = target == ConfigurationTarget.System
+                ? GitConfigurationLevel.System
+                : GitConfigurationLevel.Global;
+
+            IGitConfiguration targetConfig = _context.Git.GetConfiguration(configurationLevel);
+
+            // On Windows, if there is a "manager-core" entry remaining in the system config then we must not clear
+            // the useHttpPath option otherwise this would break the bundled version of GCM Core in Git for Windows.
+            if (!PlatformUtils.IsWindows() || target != ConfigurationTarget.System ||
+                targetConfig.GetAll(helperKey).All(x => !string.Equals(x, "manager-core")))
+            {
+                targetConfig.Unset(useHttpPathKey);
+            }
 
             return Task.CompletedTask;
         }

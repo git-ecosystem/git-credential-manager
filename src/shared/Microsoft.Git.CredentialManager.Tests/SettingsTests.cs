@@ -320,6 +320,115 @@ namespace Microsoft.Git.CredentialManager.Tests
         }
 
         [Fact]
+        public void Settings_IsWindowsIntegratedAuthenticationEnabled_EnvarUnset_ReturnsTrue()
+        {
+            var envars = new TestEnvironment();
+            var git = new TestGit();
+
+            var settings = new Settings(envars, git);
+
+            Assert.True(settings.IsWindowsIntegratedAuthenticationEnabled);
+        }
+
+        [Fact]
+        public void Settings_IsWindowsIntegratedAuthenticationEnabled_EnvarTruthy_ReturnsTrue()
+        {
+            var envars = new TestEnvironment
+            {
+                Variables = {[Constants.EnvironmentVariables.GcmAllowWia] = "1"}
+            };
+            var git = new TestGit();
+
+            var settings = new Settings(envars, git);
+
+            Assert.True(settings.IsWindowsIntegratedAuthenticationEnabled);
+        }
+
+        [Fact]
+        public void Settings_IsWindowsIntegratedAuthenticationEnabled_EnvarFalsey_ReturnsFalse()
+        {
+            var envars = new TestEnvironment
+            {
+                Variables = {[Constants.EnvironmentVariables.GcmAllowWia] = "0"},
+            };
+            var git = new TestGit();
+
+            var settings = new Settings(envars, git);
+
+            Assert.False(settings.IsWindowsIntegratedAuthenticationEnabled);
+        }
+
+        [Fact]
+        public void Settings_IsWindowsIntegratedAuthenticationEnabled_EnvarNonBooleanyValue_ReturnsTrue()
+        {
+            var envars = new TestEnvironment
+            {
+                Variables = {[Constants.EnvironmentVariables.GcmAllowWia] = Guid.NewGuid().ToString("N")},
+            };
+            var git = new TestGit();
+
+            var settings = new Settings(envars, git);
+
+            Assert.True(settings.IsWindowsIntegratedAuthenticationEnabled);
+        }
+
+        [Fact]
+        public void Settings_IsWindowsIntegratedAuthenticationEnabled_ConfigUnset_ReturnsTrue()
+        {
+            var envars = new TestEnvironment();
+            var git = new TestGit();
+
+            var settings = new Settings(envars, git);
+
+            Assert.True(settings.IsWindowsIntegratedAuthenticationEnabled);
+        }
+
+        [Fact]
+        public void Settings_IsWindowsIntegratedAuthenticationEnabled_ConfigTruthy_ReturnsTrue()
+        {
+            const string section = Constants.GitConfiguration.Credential.SectionName;
+            const string property = Constants.GitConfiguration.Credential.AllowWia;
+
+            var envars = new TestEnvironment();
+            var git = new TestGit();
+            git.GlobalConfiguration[$"{section}.{property}"] = "1";
+
+            var settings = new Settings(envars, git);
+
+            Assert.True(settings.IsWindowsIntegratedAuthenticationEnabled);
+        }
+
+        [Fact]
+        public void Settings_IsWindowsIntegratedAuthenticationEnabled_ConfigFalsey_ReturnsFalse()
+        {
+            const string section = Constants.GitConfiguration.Credential.SectionName;
+            const string property = Constants.GitConfiguration.Credential.AllowWia;
+
+            var envars = new TestEnvironment();
+            var git = new TestGit();
+            git.GlobalConfiguration[$"{section}.{property}"] = "0";
+
+            var settings = new Settings(envars, git);
+
+            Assert.False(settings.IsWindowsIntegratedAuthenticationEnabled);
+        }
+
+        [Fact]
+        public void Settings_IsWindowsIntegratedAuthenticationEnabled_ConfigNonBooleanyValue_ReturnsTrue()
+        {
+            const string section = Constants.GitConfiguration.Credential.SectionName;
+            const string property = Constants.GitConfiguration.Credential.AllowWia;
+
+            var envars = new TestEnvironment();
+            var git = new TestGit();
+            git.GlobalConfiguration[$"{section}.{property}"] = Guid.NewGuid().ToString();
+
+            var settings = new Settings(envars, git);
+
+            Assert.True(settings.IsWindowsIntegratedAuthenticationEnabled);
+        }
+
+        [Fact]
         public void Settings_ProxyConfiguration_Unset_ReturnsNull()
         {
             const string remoteUrl = "http://example.com/foo.git";
