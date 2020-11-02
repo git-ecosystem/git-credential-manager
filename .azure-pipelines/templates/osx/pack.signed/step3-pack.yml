@@ -18,8 +18,11 @@ steps:
   - script: nbgv cloud --common-vars
     displayName: Set version variables
 
-  - script: src/osx/Installer.Mac/pack.sh --payload='$(Build.StagingDirectory)/payload' --version='$(GitBuildVersion)' --output='$(Build.StagingDirectory)/pkg/gcmcore-osx-$(GitBuildVersion).pkg'
-    displayName: Pack installer payload
+  - script: src/osx/Installer.Mac/pack.sh --payload='$(Build.StagingDirectory)/payload' --version='$(GitBuildVersion)' --output='$(Build.StagingDirectory)/components/com.microsoft.gitcredentialmanager.component.pkg'
+    displayName: Create component package
+
+  - script: src/osx/Installer.Mac/dist.sh --package-path='$(Build.StagingDirectory)/components' --version='$(GitBuildVersion)' --output='$(Build.StagingDirectory)/pkg/gcmcore-osx-$(GitBuildVersion).pkg' || exit 1
+    displayName: Create product archive
 
   - task: PublishPipelineArtifact@0
     displayName: Upload unsigned package
