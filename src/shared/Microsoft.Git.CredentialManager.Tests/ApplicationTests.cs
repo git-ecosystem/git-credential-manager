@@ -153,6 +153,34 @@ namespace Microsoft.Git.CredentialManager.Tests
         }
 
         [Fact]
+        public async Task Application_ConfigureAsync_EmptyAndGcmWithEmptyAfter_RemovesExistingGcmAndAddsEmptyAndGcm()
+        {
+            const string emptyHelper = "";
+            const string afterHelper = "foo";
+            const string executablePath = "/usr/local/share/gcm-core/git-credential-manager-core";
+            string key = $"{Constants.GitConfiguration.Credential.SectionName}.{Constants.GitConfiguration.Credential.Helper}";
+
+            var context = new TestCommandContext();
+            IConfigurableComponent application = new Application(context, executablePath);
+
+            context.Git.GlobalConfiguration.Dictionary[key] = new List<string>
+            {
+                emptyHelper, executablePath, emptyHelper, afterHelper
+            };
+
+            await application.ConfigureAsync(ConfigurationTarget.User);
+
+            Assert.Single(context.Git.GlobalConfiguration.Dictionary);
+            Assert.True(context.Git.GlobalConfiguration.Dictionary.TryGetValue(key, out var actualValues));
+            Assert.Equal(5, actualValues.Count);
+            Assert.Equal(emptyHelper, actualValues[0]);
+            Assert.Equal(emptyHelper, actualValues[1]);
+            Assert.Equal(afterHelper, actualValues[2]);
+            Assert.Equal(emptyHelper, actualValues[3]);
+            Assert.Equal(executablePath, actualValues[4]);
+        }
+
+        [Fact]
         public async Task Application_UnconfigureAsync_NoHelpers_DoesNothing()
         {
             const string executablePath = "/usr/local/share/gcm-core/git-credential-manager-core";

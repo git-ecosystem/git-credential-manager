@@ -130,7 +130,7 @@ namespace Microsoft.Git.CredentialManager.Tests
         }
 
         [Fact]
-        public void GitConfiguration_TryGetValue_Name_Exists_ReturnsTrueOutString()
+        public void GitConfiguration_TryGet_Name_Exists_ReturnsTrueOutString()
         {
             string repoPath = CreateRepository(out string workDirPath);
             Git(repoPath, workDirPath, "config --local user.name john.doe").AssertSuccess();
@@ -140,14 +140,14 @@ namespace Microsoft.Git.CredentialManager.Tests
             var git = new GitProcess(trace, gitPath, repoPath);
             IGitConfiguration config = git.GetConfiguration();
 
-            bool result = config.TryGetValue("user.name", out string value);
+            bool result = config.TryGet("user.name", out string value);
             Assert.True(result);
             Assert.NotNull(value);
             Assert.Equal("john.doe", value);
         }
 
         [Fact]
-        public void GitConfiguration_TryGetValue_Name_DoesNotExists_ReturnsFalse()
+        public void GitConfiguration_TryGet_Name_DoesNotExists_ReturnsFalse()
         {
             string repoPath = CreateRepository();
 
@@ -157,13 +157,13 @@ namespace Microsoft.Git.CredentialManager.Tests
             IGitConfiguration config = git.GetConfiguration();
 
             string randomName = $"{Guid.NewGuid():N}.{Guid.NewGuid():N}";
-            bool result = config.TryGetValue(randomName, out string value);
+            bool result = config.TryGet(randomName, out string value);
             Assert.False(result);
             Assert.Null(value);
         }
 
         [Fact]
-        public void GitConfiguration_TryGetValue_SectionProperty_Exists_ReturnsTrueOutString()
+        public void GitConfiguration_TryGet_SectionProperty_Exists_ReturnsTrueOutString()
         {
             string repoPath = CreateRepository(out string workDirPath);
             Git(repoPath, workDirPath, "config --local user.name john.doe").AssertSuccess();
@@ -173,14 +173,14 @@ namespace Microsoft.Git.CredentialManager.Tests
             var git = new GitProcess(trace, gitPath, repoPath);
             IGitConfiguration config = git.GetConfiguration();
 
-            bool result = config.TryGetValue("user", "name", out string value);
+            bool result = config.TryGet("user", "name", out string value);
             Assert.True(result);
             Assert.NotNull(value);
             Assert.Equal("john.doe", value);
         }
 
         [Fact]
-        public void GitConfiguration_TryGetValue_SectionProperty_DoesNotExists_ReturnsFalse()
+        public void GitConfiguration_TryGet_SectionProperty_DoesNotExists_ReturnsFalse()
         {
             string repoPath = CreateRepository();
 
@@ -191,13 +191,13 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             string randomSection = Guid.NewGuid().ToString("N");
             string randomProperty = Guid.NewGuid().ToString("N");
-            bool result = config.TryGetValue(randomSection, randomProperty, out string value);
+            bool result = config.TryGet(randomSection, randomProperty, out string value);
             Assert.False(result);
             Assert.Null(value);
         }
 
         [Fact]
-        public void GitConfiguration_TryGetValue_SectionScopeProperty_Exists_ReturnsTrueOutString()
+        public void GitConfiguration_TryGet_SectionScopeProperty_Exists_ReturnsTrueOutString()
         {
             string repoPath = CreateRepository(out string workDirPath);
             Git(repoPath, workDirPath, "config --local user.example.com.name john.doe").AssertSuccess();
@@ -207,14 +207,14 @@ namespace Microsoft.Git.CredentialManager.Tests
             var git = new GitProcess(trace, gitPath, repoPath);
             IGitConfiguration config = git.GetConfiguration();
 
-            bool result = config.TryGetValue("user", "example.com", "name", out string value);
+            bool result = config.TryGet("user", "example.com", "name", out string value);
             Assert.True(result);
             Assert.NotNull(value);
             Assert.Equal("john.doe", value);
         }
 
         [Fact]
-        public void GitConfiguration_TryGetValue_SectionScopeProperty_NullScope_ReturnsTrueOutUnscopedString()
+        public void GitConfiguration_TryGet_SectionScopeProperty_NullScope_ReturnsTrueOutUnscopedString()
         {
             string repoPath = CreateRepository(out string workDirPath);
             Git(repoPath, workDirPath, "config --local user.name john.doe").AssertSuccess();
@@ -224,14 +224,14 @@ namespace Microsoft.Git.CredentialManager.Tests
             var git = new GitProcess(trace, gitPath, repoPath);
             IGitConfiguration config = git.GetConfiguration();
 
-            bool result = config.TryGetValue("user", null, "name", out string value);
+            bool result = config.TryGet("user", null, "name", out string value);
             Assert.True(result);
             Assert.NotNull(value);
             Assert.Equal("john.doe", value);
         }
 
         [Fact]
-        public void GitConfiguration_TryGetValue_SectionScopeProperty_DoesNotExists_ReturnsFalse()
+        public void GitConfiguration_TryGet_SectionScopeProperty_DoesNotExists_ReturnsFalse()
         {
             string repoPath = CreateRepository();
 
@@ -243,7 +243,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             string randomSection = Guid.NewGuid().ToString("N");
             string randomScope = Guid.NewGuid().ToString("N");
             string randomProperty = Guid.NewGuid().ToString("N");
-            bool result = config.TryGetValue(randomSection, randomScope, randomProperty, out string value);
+            bool result = config.TryGet(randomSection, randomScope, randomProperty, out string value);
             Assert.False(result);
             Assert.Null(value);
         }
@@ -259,7 +259,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             var git = new GitProcess(trace, gitPath, repoPath);
             IGitConfiguration config = git.GetConfiguration();
 
-            string value = config.GetValue("user.name");
+            string value = config.Get("user.name");
             Assert.NotNull(value);
             Assert.Equal("john.doe", value);
         }
@@ -275,7 +275,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             IGitConfiguration config = git.GetConfiguration();
 
             string randomName = $"{Guid.NewGuid():N}.{Guid.NewGuid():N}";
-            Assert.Throws<KeyNotFoundException>(() => config.GetValue(randomName));
+            Assert.Throws<KeyNotFoundException>(() => config.Get(randomName));
         }
 
         [Fact]
@@ -289,7 +289,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             var git = new GitProcess(trace, gitPath, repoPath);
             IGitConfiguration config = git.GetConfiguration();
 
-            string value = config.GetValue("user", "name");
+            string value = config.Get("user", "name");
             Assert.NotNull(value);
             Assert.Equal("john.doe", value);
         }
@@ -306,7 +306,7 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             string randomSection = Guid.NewGuid().ToString("N");
             string randomProperty = Guid.NewGuid().ToString("N");
-            Assert.Throws<KeyNotFoundException>(() => config.GetValue(randomSection, randomProperty));
+            Assert.Throws<KeyNotFoundException>(() => config.Get(randomSection, randomProperty));
         }
 
         [Fact]
@@ -320,7 +320,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             var git = new GitProcess(trace, gitPath, repoPath);
             IGitConfiguration config = git.GetConfiguration();
 
-            string value = config.GetValue("user", "example.com", "name");
+            string value = config.Get("user", "example.com", "name");
             Assert.NotNull(value);
             Assert.Equal("john.doe", value);
         }
@@ -336,7 +336,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             var git = new GitProcess(trace, gitPath, repoPath);
             IGitConfiguration config = git.GetConfiguration();
 
-            string value = config.GetValue("user", null, "name");
+            string value = config.Get("user", null, "name");
             Assert.NotNull(value);
             Assert.Equal("john.doe", value);
         }
@@ -354,11 +354,11 @@ namespace Microsoft.Git.CredentialManager.Tests
             string randomSection = Guid.NewGuid().ToString("N");
             string randomScope = Guid.NewGuid().ToString("N");
             string randomProperty = Guid.NewGuid().ToString("N");
-            Assert.Throws<KeyNotFoundException>(() => config.GetValue(randomSection, randomScope, randomProperty));
+            Assert.Throws<KeyNotFoundException>(() => config.Get(randomSection, randomScope, randomProperty));
         }
 
         [Fact]
-        public void GitConfiguration_SetValue_Local_SetsLocalConfig()
+        public void GitConfiguration_Set_Local_SetsLocalConfig()
         {
             string repoPath = CreateRepository(out string workDirPath);
 
@@ -367,7 +367,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             var git = new GitProcess(trace, gitPath, repoPath);
             IGitConfiguration config = git.GetConfiguration(GitConfigurationLevel.Local);
 
-            config.SetValue("core.foobar", "foo123");
+            config.Set("core.foobar", "foo123");
 
             GitResult localResult = Git(repoPath, workDirPath, "config --local core.foobar");
 
@@ -375,7 +375,7 @@ namespace Microsoft.Git.CredentialManager.Tests
         }
 
         [Fact]
-        public void GitConfiguration_SetValue_All_ThrowsException()
+        public void GitConfiguration_Set_All_ThrowsException()
         {
             string repoPath = CreateRepository(out _);
 
@@ -384,7 +384,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             var git = new GitProcess(trace, gitPath, repoPath);
             IGitConfiguration config = git.GetConfiguration(GitConfigurationLevel.All);
 
-            Assert.Throws<InvalidOperationException>(() => config.SetValue("core.foobar", "test123"));
+            Assert.Throws<InvalidOperationException>(() => config.Set("core.foobar", "test123"));
         }
 
         [Fact]

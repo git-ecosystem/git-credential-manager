@@ -40,20 +40,34 @@ namespace Microsoft.Git.CredentialManager
         /// <param name="name">Configuration entry name.</param>
         /// <param name="value">Configuration entry value.</param>
         /// <returns>True if the value was found, false otherwise.</returns>
-        bool TryGetValue(string name, out string value);
+        bool TryGet(string name, out string value);
 
         /// <summary>
         /// Set the value of a configuration entry.
         /// </summary>
         /// <param name="name">Configuration entry name.</param>
         /// <param name="value">Configuration entry value.</param>
-        void SetValue(string name, string value);
+        void Set(string name, string value);
+
+        /// <summary>
+        /// Add a new value for a configuration entry.
+        /// </summary>
+        /// <param name="name">Configuration entry name.</param>
+        /// <param name="value">Configuration entry value.</param>
+        void Add(string name, string value);
 
         /// <summary>
         /// Deletes a configuration entry from the highest level.
         /// </summary>
         /// <param name="name">Configuration entry name.</param>
         void Unset(string name);
+
+        /// <summary>
+        /// Get all value of a multivar configuration entry.
+        /// </summary>
+        /// <param name="name">Configuration entry name.</param>
+        /// <returns>All values of the multivar configuration entry.</returns>
+        IEnumerable<string> GetAll(string name);
 
         /// <summary>
         /// Get all values of a multivar configuration entry.
@@ -112,8 +126,8 @@ namespace Microsoft.Git.CredentialManager
                     case 0: // OK
                         break;
                     default:
-                        throw new Exception(
-                            $"Failed to enumerate all Git configuration entries. Exit code '{git.ExitCode}' (level={_filterLevel})");
+                        _trace.WriteLine($"Failed to enumerate config entries (exit={git.ExitCode}, level={_filterLevel})");
+                        throw CreateGitException(git, "Failed to enumerate all Git configuration entries");
                 }
 
                 IEnumerable<string> entries = data.Split('\0').Where(x => !string.IsNullOrWhiteSpace(x));
@@ -129,7 +143,7 @@ namespace Microsoft.Git.CredentialManager
             }
         }
 
-        public bool TryGetValue(string name, out string value)
+        public bool TryGet(string name, out string value)
         {
             string level = GetLevelFilterArg();
             using (Process git = _git.CreateProcess($"config {level} {QuoteCmdArg(name)}"))
@@ -145,8 +159,7 @@ namespace Microsoft.Git.CredentialManager
                         value = null;
                         return false;
                     default: // Error
-                        _trace.WriteLine(
-                            $"Failed to read Git configuration entry '{name}'. Exit code '{git.ExitCode}' (level={_filterLevel})");
+                        _trace.WriteLine($"Failed to read Git configuration entry '{name}'. (exit={git.ExitCode}, level={_filterLevel})");
                         value = null;
                         return false;
                 }
@@ -164,7 +177,7 @@ namespace Microsoft.Git.CredentialManager
             }
         }
 
-        public void SetValue(string name, string value)
+        public void Set(string name, string value)
         {
             if (_filterLevel == GitConfigurationLevel.All)
             {
@@ -182,8 +195,32 @@ namespace Microsoft.Git.CredentialManager
                     case 0: // OK
                         break;
                     default:
-                        throw new Exception(
-                            $"Failed to set Git configuration entry '{name}' to '{value}'. Exit code '{git.ExitCode}' (level={_filterLevel})");
+                        _trace.WriteLine($"Failed to set config entry '{name}' to value '{value}' (exit={git.ExitCode}, level={_filterLevel})");
+                        throw CreateGitException(git, $"Failed to set Git configuration entry '{name}'");
+                }
+            }
+        }
+
+        public void Add(string name, string value)
+        {
+            if (_filterLevel == GitConfigurationLevel.All)
+            {
+                throw new InvalidOperationException("Must have a specific configuration level filter to add values.");
+            }
+
+            string level = GetLevelFilterArg();
+            using (Process git = _git.CreateProcess($"config {level} --add {QuoteCmdArg(name)} {QuoteCmdArg(value)}"))
+            {
+                git.Start();
+                git.WaitForExit();
+
+                switch (git.ExitCode)
+                {
+                    case 0: // OK
+                        break;
+                    default:
+                        _trace.WriteLine($"Failed to add config entry '{name}' with value '{value}' (exit={git.ExitCode}, level={_filterLevel})");
+                        throw CreateGitException(git, $"Failed to add Git configuration entry '{name}'");
                 }
             }
         }
@@ -204,10 +241,48 @@ namespace Microsoft.Git.CredentialManager
                 switch (git.ExitCode)
                 {
                     case 0: // OK
+                    case 5: // Trying to unset a value that does not exist
                         break;
                     default:
-                        throw new Exception(
-                           $"Failed to unset Git configuration entry '{name}'. Exit code '{git.ExitCode}' (level={_filterLevel})");
+                        _trace.WriteLine($"Failed to unset config entry '{name}' (exit={git.ExitCode}, level={_filterLevel})");
+                        throw CreateGitException(git, $"Failed to unset Git configuration entry '{name}'");
+                }
+            }
+        }
+
+        public IEnumerable<string> GetAll(string name)
+        {
+            string level = GetLevelFilterArg();
+
+            var gitArgs = $"config --null {level} --get-all {QuoteCmdArg(name)}";
+
+            using (Process git = _git.CreateProcess(gitArgs))
+            {
+                git.Start();
+
+                // TODO: don't read in all the data at once; stream it
+                string data = git.StandardOutput.ReadToEnd();
+                git.WaitForExit();
+
+                switch (git.ExitCode)
+                {
+                    case 0: // OK
+                        string[] entries = data.Split('\0');
+
+                        // Because each line terminates with the \0 character, splitting leaves us with one
+                        // bogus blank entry at the end of the array which we should ignore
+                        for (var i = 0; i < entries.Length - 1; i++)
+                        {
+                            yield return entries[i];
+                        }
+                        break;
+
+                    case 1: // No results
+                        break;
+
+                    default:
+                        _trace.WriteLine($"Failed to get all config entries '{name}' (exit={git.ExitCode}, level={_filterLevel})");
+                        throw CreateGitException(git, $"Failed to get all Git configuration entries '{name}'");
                 }
             }
         }
@@ -236,8 +311,8 @@ namespace Microsoft.Git.CredentialManager
                     case 1: // No results
                         break;
                     default:
-                        throw new Exception(
-                            $"Failed to get Git configuration multi-valued entry '{nameRegex}' with value regex '{valueRegex}'. Exit code '{git.ExitCode}' (level={_filterLevel})");
+                        _trace.WriteLine($"Failed to get all multivar regex '{nameRegex}' and value regex '{valueRegex}' (exit={git.ExitCode}, level={_filterLevel})");
+                        throw CreateGitException(git, $"Failed to get Git configuration multi-valued entries with name regex '{nameRegex}'");
                 }
 
                 string[] entries = data.Split('\0');
@@ -276,8 +351,8 @@ namespace Microsoft.Git.CredentialManager
                     case 0: // OK
                         break;
                     default:
-                        throw new Exception(
-                            $"Failed to set Git configuration multi-valued entry '{name}' with value regex '{valueRegex}' to value '{value}'. Exit code '{git.ExitCode}' (level={_filterLevel})");
+                        _trace.WriteLine($"Failed to replace all multivar '{name}' and value regex '{valueRegex}' with new value '{value}' (exit={git.ExitCode}, level={_filterLevel})");
+                        throw CreateGitException(git, $"Failed to replace all Git configuration multi-valued entries '{name}'");
                 }
             }
         }
@@ -307,10 +382,27 @@ namespace Microsoft.Git.CredentialManager
                     case 5: // Trying to unset a value that does not exist
                         break;
                     default:
-                        throw new Exception(
-                            $"Failed to unset all Git configuration multi-valued entries '{name}' with value regex '{valueRegex}'. Exit code '{git.ExitCode}' (level={_filterLevel})");
+                        _trace.WriteLine($"Failed to unset all multivar '{name}' with value regex '{valueRegex}' (exit={git.ExitCode}, level={_filterLevel})");
+                        throw CreateGitException(git, $"Failed to unset all Git configuration multi-valued entries '{name}'");
                 }
             }
+        }
+
+        private Exception CreateGitException(Process git, string message)
+        {
+            var exceptionMessage = new StringBuilder();
+            string gitMessage = git.StandardError.ReadToEnd();
+
+            if (!string.IsNullOrWhiteSpace(gitMessage))
+            {
+                exceptionMessage.AppendLine(gitMessage);
+            }
+
+            exceptionMessage.AppendLine(message);
+            exceptionMessage.AppendLine($"Exit code: '{git.ExitCode}'");
+            exceptionMessage.AppendLine($"Configuration level: {_filterLevel}");
+
+            throw new Exception(exceptionMessage.ToString());
         }
 
         private string GetLevelFilterArg()
@@ -412,9 +504,9 @@ namespace Microsoft.Git.CredentialManager
         /// <param name="config">Configuration object.</param>
         /// <param name="name">Configuration entry name.</param>
         /// <returns>Configuration entry value.</returns>
-        public static string GetValue(this IGitConfiguration config, string name)
+        public static string Get(this IGitConfiguration config, string name)
         {
-            if (!config.TryGetValue(name, out string value))
+            if (!config.TryGet(name, out string value))
             {
                 throw new KeyNotFoundException($"Git configuration entry with the name '{name}' was not found.");
             }
@@ -430,9 +522,9 @@ namespace Microsoft.Git.CredentialManager
         /// <param name="property">Configuration property name.</param>
         /// <exception cref="System.Collections.Generic.KeyNotFoundException">A configuration entry with the specified key was not found.</exception>
         /// <returns>Configuration entry value.</returns>
-        public static string GetValue(this IGitConfiguration config, string section, string property)
+        public static string Get(this IGitConfiguration config, string section, string property)
         {
-            return GetValue(config, $"{section}.{property}");
+            return Get(config, $"{section}.{property}");
         }
 
         /// <summary>
@@ -444,14 +536,14 @@ namespace Microsoft.Git.CredentialManager
         /// <param name="property">Configuration property name.</param>
         /// <exception cref="System.Collections.Generic.KeyNotFoundException">A configuration entry with the specified key was not found.</exception>
         /// <returns>Configuration entry value.</returns>
-        public static string GetValue(this IGitConfiguration config, string section, string scope, string property)
+        public static string Get(this IGitConfiguration config, string section, string scope, string property)
         {
             if (scope is null)
             {
-                return GetValue(config, section, property);
+                return Get(config, section, property);
             }
 
-            return GetValue(config, $"{section}.{scope}.{property}");
+            return Get(config, $"{section}.{scope}.{property}");
         }
 
         /// <summary>
@@ -462,9 +554,9 @@ namespace Microsoft.Git.CredentialManager
         /// <param name="property">Configuration property name.</param>
         /// <param name="value">Configuration entry value.</param>
         /// <returns>True if the value was found, false otherwise.</returns>
-        public static bool TryGetValue(this IGitConfiguration config, string section, string property, out string value)
+        public static bool TryGet(this IGitConfiguration config, string section, string property, out string value)
         {
-            return config.TryGetValue($"{section}.{property}", out value);
+            return config.TryGet($"{section}.{property}", out value);
         }
 
         /// <summary>
@@ -476,14 +568,14 @@ namespace Microsoft.Git.CredentialManager
         /// <param name="property">Configuration property name.</param>
         /// <param name="value">Configuration entry value.</param>
         /// <returns>True if the value was found, false otherwise.</returns>
-        public static bool TryGetValue(this IGitConfiguration config, string section, string scope, string property, out string value)
+        public static bool TryGet(this IGitConfiguration config, string section, string scope, string property, out string value)
         {
             if (scope is null)
             {
-                return TryGetValue(config, section, property, out value);
+                return TryGet(config, section, property, out value);
             }
 
-            return config.TryGetValue($"{section}.{scope}.{property}", out value);
+            return config.TryGet($"{section}.{scope}.{property}", out value);
         }
     }
 }

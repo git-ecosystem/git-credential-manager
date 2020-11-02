@@ -25,8 +25,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
         /// <param name="key"></param>
         public string this[string key]
         {
-            get => TryGetValue(key, out string value) ? value : null;
-            set => SetValue(key, value);
+            get => TryGet(key, out string value) ? value : null;
+            set => Set(key, value);
         }
 
         #region IGitConfiguration
@@ -45,7 +45,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
             }
         }
 
-        public bool TryGetValue(string name, out string value)
+        public bool TryGet(string name, out string value)
         {
             if (Dictionary.TryGetValue(name, out var values))
             {
@@ -66,7 +66,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
             return false;
         }
 
-        public void SetValue(string name, string value)
+        public void Set(string name, string value)
         {
             if (!Dictionary.TryGetValue(name, out IList<string> values))
             {
@@ -90,6 +90,17 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
             }
         }
 
+        public void Add(string name, string value)
+        {
+            if (!Dictionary.TryGetValue(name, out IList<string> values))
+            {
+                values = new List<string>();
+                Dictionary[name] = values;
+            }
+
+            values.Add(value);
+        }
+
         public void Unset(string name)
         {
             // TODO: simulate git
@@ -101,11 +112,24 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
             Dictionary.Remove(name);
         }
 
+        public IEnumerable<string> GetAll(string name)
+        {
+            if (Dictionary.TryGetValue(name, out IList<string> values))
+            {
+                return values;
+            }
+
+            return Enumerable.Empty<string>();
+        }
+
         public IEnumerable<string> GetRegex(string nameRegex, string valueRegex)
         {
-            if (Dictionary.TryGetValue(nameRegex, out IList<string> values))
+            foreach (string key in Dictionary.Keys)
             {
-                return values.Where(x => Regex.IsMatch(x, valueRegex));
+                if (Regex.IsMatch(key, nameRegex))
+                {
+                    return Dictionary[key].Where(x => Regex.IsMatch(x, valueRegex));
+                }
             }
 
             return Enumerable.Empty<string>();
