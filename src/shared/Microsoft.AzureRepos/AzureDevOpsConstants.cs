@@ -13,9 +13,8 @@ namespace Microsoft.AzureRepos
         // We share this to be able to consume existing access tokens from the VS caches
         public const string AadClientId = "872cd9fa-d31f-45e0-9eab-6e460a02d1f1";
 
-        // Standard redirect URI for native client 'v1 protocol' applications
-        // https://docs.microsoft.com/en-us/azure/active-directory/develop/v1-protocols-oauth-code#request-an-authorization-code
-        public static readonly Uri AadRedirectUri = new Uri("urn:ietf:wg:oauth:2.0:oob");
+        // Redirect URI specified by the Visual Studio application configuration
+        public static readonly Uri AadRedirectUri = new Uri("http://localhost");
 
         public const string VstsHostSuffix = ".visualstudio.com";
         public const string AzureDevOpsHost = "dev.azure.com";
