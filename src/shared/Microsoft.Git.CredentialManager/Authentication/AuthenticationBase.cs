@@ -106,6 +106,13 @@ namespace Microsoft.Git.CredentialManager.Authentication
                 helperName = PlatformUtils.IsWindows() ? $"{defaultValue}.exe" : defaultValue;
             }
 
+            // If the user set the helper override to the empty string then they are signalling not to use a helper
+            if (string.IsNullOrEmpty(helperName))
+            {
+                path = null;
+                return false;
+            }
+
             if (Path.IsPathRooted(helperName))
             {
                 path = helperName;
