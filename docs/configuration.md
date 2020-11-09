@@ -226,3 +226,46 @@ git config --global credential.plaintextStorePath /mnt/external-drive/credential
 ```
 
 **Also see: [GCM_PLAINTEXT_STORE_PATH](environment.md#GCM_PLAINTEXT_STORE_PATH)**
+
+---
+
+### credential.msauthFlow
+
+Specify which authentication flow should be used when performing Microsoft authentication and an interactive flow is required.
+
+Defaults to the value `auto`.
+
+**Note:** This setting will be ignored if a native authentication helper is configured and available. See [`credential.msauthHelper`](#credentialmsauthhelper) for more information.
+
+Value|Credential Store
+-|-
+`auto` _(default)_|Select the best option depending on the current environment and platform.
+`embedded`|Show a window with embedded web view control.
+`system`|Open the user's default web browser.
+`devicecode`|Show a device code.
+
+#### Example
+
+```shell
+git config --global credential.msauthFlow devicecode
+```
+
+**Also see: [GCM_MSAUTH_FLOW](environment.md#GCM_MSAUTH_FLOW)**
+
+---
+
+### credential.msauthHelper
+
+Full path to an external 'helper' tool to which Microsoft authentication should be delegated.
+
+On macOS this defaults to the included native `Microsoft.Authentication.Helper` tool. On all other platforms this is not set.
+
+**Note:** If a helper is set and available then all Microsoft authentication will be delegated to this helper and the [`credential.msauthFlow`](#credentialmsauthflow) setting will be ignored. Setting the value to the empty string (`""`) will unset any default helper.
+
+#### Example
+
+```shell
+git config --global credential.msauthHelper "C:\path\to\helper.exe"
+```
+
+**Also see: [GCM_MSAUTH_HELPER](environment.md#GCM_MSAUTH_HELPER)**
