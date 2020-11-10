@@ -146,7 +146,7 @@ namespace Microsoft.Git.CredentialManager
         public bool TryGet(string name, out string value)
         {
             string level = GetLevelFilterArg();
-            using (Process git = _git.CreateProcess($"config {level} {QuoteCmdArg(name)}"))
+            using (Process git = _git.CreateProcess($"config --null {level} {QuoteCmdArg(name)}"))
             {
                 git.Start();
                 git.WaitForExit();
@@ -164,16 +164,16 @@ namespace Microsoft.Git.CredentialManager
                         return false;
                 }
 
-                string data = git.StandardOutput.ReadToEnd().TrimEnd('\n');
-
-                if (string.IsNullOrWhiteSpace(data))
+                string data = git.StandardOutput.ReadToEnd();
+                string[] entries = data.Split('\0');
+                if (entries.Length > 0)
                 {
-                    value = null;
-                    return false;
+                    value = entries[0];
+                    return true;
                 }
 
-                value = data;
-                return true;
+                value = null;
+                return false;
             }
         }
 
@@ -320,7 +320,8 @@ namespace Microsoft.Git.CredentialManager
                 {
                     string[] kvp = entry.Split(new[]{'\n'}, count: 2);
 
-                    if (kvp.Length == 2) {
+                    if (kvp.Length == 2)
+                    {
                         yield return kvp[1];
                     }
                 }
