@@ -120,8 +120,11 @@ namespace Microsoft.Git.CredentialManager
                 // Dictionary of proxy info for tracing
                 var dict = new Dictionary<string, string> {["uri"] = proxyUri.ToString()};
 
-                // Try to extract and configure proxy credentials from the configured URI
-                if (proxyConfig.TryGetUserInfo(out string userName, out string password))
+                // Try to extract and configure proxy credentials from the configured URI.
+                // For an empty username AND password we should use the system default credentials
+                // (for example for Windows Integrated Authentication-based proxies).
+                if (proxyConfig.TryGetUserInfo(out string userName, out string password) &&
+                    !(string.IsNullOrEmpty(userName) && string.IsNullOrEmpty(password)))
                 {
                     proxy = new WebProxy(proxyUri)
                     {
@@ -129,8 +132,8 @@ namespace Microsoft.Git.CredentialManager
                     };
 
                     // Add user/pass info to the trace dictionary
-                    if (!string.IsNullOrWhiteSpace(userName)) dict["username"] = userName;
-                    if (!string.IsNullOrEmpty(password))      dict["password"] = password;
+                    dict["username"] = userName;
+                    dict["password"] = password;
                 }
                 else
                 {
@@ -138,6 +141,9 @@ namespace Microsoft.Git.CredentialManager
                     {
                         UseDefaultCredentials = true
                     };
+
+                    // Trace the use of system default credentials
+                    dict["useDefaultCredentials"] = "true";
                 }
 
                 // Tracer out proxy info dictionary
