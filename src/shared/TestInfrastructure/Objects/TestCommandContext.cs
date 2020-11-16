@@ -20,7 +20,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
             CredentialStore = new TestCredentialStore();
             HttpClientFactory = new TestHttpClientFactory();
             Git = new TestGit();
-            Environment = new TestEnvironment();
+            Environment = new TestEnvironment(FileSystem);
             SystemPrompts = new TestSystemPrompts();
 
             Settings = new TestSettings {Environment = Environment, GitConfiguration = Git.GlobalConfiguration};
