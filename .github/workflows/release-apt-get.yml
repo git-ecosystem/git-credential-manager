@@ -28,7 +28,6 @@ jobs:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
     - name: 'Download Repo Client'
-      shell: pwsh
       env:
         AZ_SUB: ${{ secrets.AZURE_SUBSCRIPTION }}
       run: |
