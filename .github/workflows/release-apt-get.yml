@@ -35,5 +35,6 @@ jobs:
 
     - name: "Install Repo Client"
       run: |
+        sudo apt-get install python3-adal --yes
         sudo dpkg -i repoclient.deb
         repoclient --version
