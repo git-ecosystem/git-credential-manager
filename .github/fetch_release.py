@@ -36,6 +36,9 @@ try:
 
     print(f"Found asset {asset_name}")
     print(f"Writing asset URL: {asset_url} to asset_url.txt")
+    
+    with open('asset_name.txt', 'w') as f:
+        f.write(asset_name)
 
     with open('asset_url.txt', 'w') as f:
         f.write(asset_url)
