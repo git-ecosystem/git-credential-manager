@@ -1,0 +1,39 @@
+name: "release-apt-get"
+on:
+  release:
+    types: [released]
+
+  workflow_dispatch:
+    inputs:
+      name:
+        description: 'Release Tag'
+        required: true
+        default: 'latest'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+    - name: setup python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+
+    - uses: actions/checkout@v2
+
+    - uses: Azure/login@v1.1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: 'Download Repo Client'
+      shell: pwsh
+      env:
+        AZ_SUB: ${{ secrets.AZURE_SUBSCRIPTION }}
+      run: |
+        az storage blob download --subscription  "$env:AZ_SUB" --account-name gitcitoolstore -c tools -n azure-repoapi-client_2.0.1_amd64.deb -f repocli.deb
+
+    - name: "Install Repo Client"
+      shell: bash
+      run: |
+        dpkg -i repoclient.deb
+        repoclient --version
