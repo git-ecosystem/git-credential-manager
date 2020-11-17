@@ -42,6 +42,7 @@ jobs:
         sudo apt-get install python3-adal --yes
         sudo dpkg -i repoclient.deb
         python .github/configure_repoclient.py
+        rm repoclient.deb
 
     - name: "Publish to apt feed"
       env:
