@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.Identity.Client;
 using Microsoft.Identity.Client.Extensions.Msal;
@@ -15,6 +16,14 @@ namespace Microsoft.Git.CredentialManager.Authentication
     {
         Task<JsonWebToken> GetAccessTokenAsync(string authority, string clientId, Uri redirectUri, string resource,
             Uri remoteUri, string userName);
+    }
+
+    public enum MicrosoftAuthenticationFlowType
+    {
+        Auto = 0,
+        EmbeddedWebView = 1,
+        SystemWebView = 2,
+        DeviceCode = 3
     }
 
     public class MicrosoftAuthentication : AuthenticationBase, IMicrosoftAuthentication
@@ -97,7 +106,8 @@ namespace Microsoft.Git.CredentialManager.Authentication
             // If we failed to acquire an AT silently (either because we don't have an existing user, or the user's RT has expired)
             // we need to prompt the user for credentials.
             //
-            // Depending on the current platform and session type we try to show the most appropriate authentication interface:
+            // If the user has expressed a preference in how the want to perform the interactive authentication flows then we respect that.
+            // Otherwise, depending on the current platform and session type we try to show the most appropriate authentication interface:
             //
             // On .NET Framework MSAL supports the WinForms based 'embedded' webview UI. For Windows + .NET Framework this is the
             // best and natural experience.
@@ -111,41 +121,86 @@ namespace Microsoft.Git.CredentialManager.Authentication
             //
             // The device code flow has no limitations other than a way to communicate to the user the code required to authenticate.
             //
-
-            // If the user has disabled interaction all we can do is fail at this point
-            ThrowIfUserInteractionDisabled();
-
             if (result is null)
             {
-#if NETFRAMEWORK
-                // If we're in an interactive session and on .NET Framework, let MSAL show the WinForms-based embeded UI
-                if (Context.SessionManager.IsDesktopSession)
-                {
-                    result = await app.AcquireTokenInteractive(scopes)
-                        .WithPrompt(Prompt.SelectAccount)
-                        .WithUseEmbeddedWebView(true)
-                        .ExecuteAsync();
-                }
-#elif NETSTANDARD
-                // MSAL requires the application redirect URI is a loopback address to use the System WebView
-                if (Context.SessionManager.IsDesktopSession && app.IsSystemWebViewAvailable && redirectUri.IsLoopback)
-                {
-                    result = await app.AcquireTokenInteractive(scopes)
-                        .WithPrompt(Prompt.SelectAccount)
-                        .WithSystemWebViewOptions(GetSystemWebViewOptions())
-                        .ExecuteAsync();
-                }
-#endif
-                // If we do not have a way to show a GUI, use device code flow over the TTY
-                else
-                {
-                    ThrowIfTerminalPromptsDisabled();
+                // If the user has disabled interaction all we can do is fail at this point
+                ThrowIfUserInteractionDisabled();
 
-                    result = await app.AcquireTokenWithDeviceCode(scopes, ShowDeviceCodeInTty).ExecuteAsync();
+                // Check for a user flow preference
+                MicrosoftAuthenticationFlowType flowType = GetFlowType();
+                switch (flowType)
+                {
+                    case MicrosoftAuthenticationFlowType.Auto:
+                        if (CanUseEmbeddedWebView())
+                            goto case MicrosoftAuthenticationFlowType.EmbeddedWebView;
+
+                        if (CanUseSystemWebView(app, redirectUri))
+                            goto case MicrosoftAuthenticationFlowType.SystemWebView;
+
+                        // Fall back to device code flow
+                        goto case MicrosoftAuthenticationFlowType.DeviceCode;
+
+                    case MicrosoftAuthenticationFlowType.EmbeddedWebView:
+                        Context.Trace.WriteLine("Performing interactive auth with embedded web view...");
+                        EnsureCanUseEmbeddedWebView();
+                        result = await app.AcquireTokenInteractive(scopes)
+                            .WithPrompt(Prompt.SelectAccount)
+                            .WithUseEmbeddedWebView(true)
+                            .ExecuteAsync();
+                        break;
+
+                    case MicrosoftAuthenticationFlowType.SystemWebView:
+                        Context.Trace.WriteLine("Performing interactive auth with system web view...");
+                        EnsureCanUseSystemWebView(app, redirectUri);
+                        result = await app.AcquireTokenInteractive(scopes)
+                            .WithPrompt(Prompt.SelectAccount)
+                            .WithSystemWebViewOptions(GetSystemWebViewOptions())
+                            .ExecuteAsync();
+                        break;
+
+                    case MicrosoftAuthenticationFlowType.DeviceCode:
+                        Context.Trace.WriteLine("Performing interactive auth with device code...");
+                        // We don't have a way to display a device code without a terminal at the moment
+                        // TODO: introduce a small GUI window to show a code if no TTY exists
+                        ThrowIfTerminalPromptsDisabled();
+                        result = await app.AcquireTokenWithDeviceCode(scopes, ShowDeviceCodeInTty).ExecuteAsync();
+                        break;
+
+                    default:
+                        goto case MicrosoftAuthenticationFlowType.Auto;
                 }
             }
 
             return new JsonWebToken(result.AccessToken);
+        }
+
+        private MicrosoftAuthenticationFlowType GetFlowType()
+        {
+            if (Context.Settings.TryGetSetting(
+                Constants.EnvironmentVariables.MsAuthFlow,
+                Constants.GitConfiguration.Credential.SectionName,
+                Constants.GitConfiguration.Credential.MsAuthFlow,
+                out string valueStr))
+            {
+                Context.Trace.WriteLine($"Microsoft auth flow overriden to '{valueStr}'.");
+                switch (valueStr.ToLowerInvariant())
+                {
+                    case "auto":
+                        return MicrosoftAuthenticationFlowType.Auto;
+                    case "embedded":
+                        return MicrosoftAuthenticationFlowType.EmbeddedWebView;
+                    case "system":
+                        return MicrosoftAuthenticationFlowType.SystemWebView;
+                    default:
+                        if (Enum.TryParse(valueStr, ignoreCase: true, out MicrosoftAuthenticationFlowType value))
+                            return value;
+                        break;
+                }
+
+                Context.Streams.Error.WriteLine($"warning: unknown Microsoft Authentication flow type '{valueStr}'; using 'auto'");
+            }
+
+            return MicrosoftAuthenticationFlowType.Auto;
         }
 
         /// <summary>
@@ -270,6 +325,56 @@ namespace Microsoft.Git.CredentialManager.Authentication
                 // MSAL calls this method each time it wants to use an HTTP client.
                 // We ensure we only create a single instance to avoid socket exhaustion.
                 return _instance ?? (_instance = _factory.CreateClient());
+            }
+        }
+
+        #endregion
+
+        #region Auth flow capability detection
+
+        private bool CanUseEmbeddedWebView()
+        {
+            // If we're in an interactive session and on .NET Framework then MSAL can show the WinForms-based embedded UI
+#if NETFRAMEWORK
+            return Context.SessionManager.IsDesktopSession;
+#else
+            return false;
+#endif
+        }
+
+        private void EnsureCanUseEmbeddedWebView()
+        {
+#if NETFRAMEWORK
+            if (!Context.SessionManager.IsDesktopSession)
+            {
+                throw new InvalidOperationException("Embedded web view is not available without a desktop session.");
+            }
+#else
+            throw new InvalidOperationException("Embedded web view is not available on .NET Core.");
+#endif
+        }
+
+        private bool CanUseSystemWebView(IPublicClientApplication app, Uri redirectUri)
+        {
+            // MSAL requires the application redirect URI is a loopback address to use the System WebView
+            return Context.SessionManager.IsDesktopSession && app.IsSystemWebViewAvailable && redirectUri.IsLoopback;
+        }
+
+        private void EnsureCanUseSystemWebView(IPublicClientApplication app, Uri redirectUri)
+        {
+            if (!Context.SessionManager.IsDesktopSession)
+            {
+                throw new InvalidOperationException("System web view is not available without a desktop session.");
+            }
+
+            if (!app.IsSystemWebViewAvailable)
+            {
+                throw new InvalidOperationException("System web view is not available on this platform.");
+            }
+
+            if (!redirectUri.IsLoopback)
+            {
+                throw new InvalidOperationException("System web view is not available for this service configuration.");
             }
         }
 

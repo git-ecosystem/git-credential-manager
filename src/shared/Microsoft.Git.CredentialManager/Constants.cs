@@ -51,10 +51,12 @@ namespace Microsoft.Git.CredentialManager
             public const string GitSslNoVerify        = "GIT_SSL_NO_VERIFY";
             public const string GcmInteractive        = "GCM_INTERACTIVE";
             public const string GcmParentWindow       = "GCM_MODAL_PARENTHWND";
+            public const string MsAuthFlow            = "GCM_MSAUTH_FLOW";
             public const string MsAuthHelper          = "GCM_MSAUTH_HELPER";
             public const string GcmCredNamespace      = "GCM_NAMESPACE";
             public const string GcmCredentialStore    = "GCM_CREDENTIAL_STORE";
             public const string GcmPlaintextStorePath = "GCM_PLAINTEXT_STORE_PATH";
+            public const string GitExecutablePath     = "GIT_EXEC_PATH";
         }
 
         public static class Http
@@ -80,6 +82,7 @@ namespace Microsoft.Git.CredentialManager
                 public const string HttpsProxy  = "httpsProxy";
                 public const string UseHttpPath = "useHttpPath";
                 public const string Interactive = "interactive";
+                public const string MsAuthFlow  = "msauthFlow";
                 public const string MsAuthHelper = "msauthHelper";
                 public const string CredNamespace = "namespace";
                 public const string CredentialStore = "credentialStore";
