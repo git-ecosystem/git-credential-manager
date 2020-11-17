@@ -3,7 +3,11 @@ import requests
 import time
 import json
 
-release = env['RELEASE'] if 'RELEASE' in env else "latest"
+if 'RELEASE' in env and env['RELEASE']:
+    release = env['RELEASE'].strip()
+else:
+    release = "latest"
+
 release_arg = "latest" if release == "latest" else f"tags/{release}"
 
 print(f"release_arg set to {release_arg}")
