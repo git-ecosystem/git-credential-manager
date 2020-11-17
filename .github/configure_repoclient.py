@@ -1,4 +1,4 @@
-from os import enviorn as env
+from os import environ as env
 
 
 def check_var(name:str) -> bool:
