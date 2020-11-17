@@ -33,6 +33,8 @@ namespace Microsoft.Git.CredentialManager.Interop.Posix
 
         public override bool TryLocateExecutable(string program, out string path)
         {
+            // The "which" utility scans over the PATH and does not include the current working directory
+            // (unlike the equivalent "where.exe" on Windows), which is exactly what we want. Let's use it.
             const string whichPath = "/usr/bin/which";
             var psi = new ProcessStartInfo(whichPath, program)
             {

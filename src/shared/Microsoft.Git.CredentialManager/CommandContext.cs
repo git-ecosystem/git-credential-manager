@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
 using System;
+using System.IO;
 using Microsoft.Git.CredentialManager.Interop.Linux;
 using Microsoft.Git.CredentialManager.Interop.MacOS;
 using Microsoft.Git.CredentialManager.Interop.Posix;
@@ -86,9 +87,10 @@ namespace Microsoft.Git.CredentialManager
                 SystemPrompts     = new WindowsSystemPrompts();
                 Environment       = new WindowsEnvironment(FileSystem);
                 Terminal          = new WindowsTerminal(Trace);
+                string gitPath    = GetGitPath(Environment, FileSystem);
                 Git               = new GitProcess(
                                             Trace,
-                                            Environment.LocateExecutable("git.exe"),
+                                            gitPath,
                                             FileSystem.GetCurrentDirectory()
                                         );
                 Settings          = new Settings(Environment, Git);
@@ -101,9 +103,10 @@ namespace Microsoft.Git.CredentialManager
                 SystemPrompts     = new MacOSSystemPrompts();
                 Environment       = new PosixEnvironment(FileSystem);
                 Terminal          = new PosixTerminal(Trace);
+                string gitPath    = GetGitPath(Environment, FileSystem);
                 Git               = new GitProcess(
                                             Trace,
-                                            Environment.LocateExecutable("git"),
+                                            gitPath,
                                             FileSystem.GetCurrentDirectory()
                                         );
                 Settings          = new Settings(Environment, Git);
@@ -117,9 +120,10 @@ namespace Microsoft.Git.CredentialManager
                 SystemPrompts     = new LinuxSystemPrompts();
                 Environment       = new PosixEnvironment(FileSystem);
                 Terminal          = new PosixTerminal(Trace);
+                string gitPath    = GetGitPath(Environment, FileSystem);
                 Git               = new GitProcess(
                                             Trace,
-                                            Environment.LocateExecutable("git"),
+                                            gitPath,
                                             FileSystem.GetCurrentDirectory()
                                         );
                 Settings          = new Settings(Environment, Git);
@@ -138,6 +142,25 @@ namespace Microsoft.Git.CredentialManager
 
             // Set the parent window handle/ID
             SystemPrompts.ParentWindowId = Settings.ParentWindowId;
+        }
+
+        private static string GetGitPath(IEnvironment environment, IFileSystem fileSystem)
+        {
+            string programName = PlatformUtils.IsWindows() ? "git.exe" : "git";
+
+            // Use the GIT_EXEC_PATH environment variable if set
+            if (environment.Variables.TryGetValue(Constants.EnvironmentVariables.GitExecutablePath,
+                out string gitExecPath))
+            {
+                string candidatePath = Path.Combine(gitExecPath, programName);
+                if (fileSystem.FileExists(candidatePath))
+                {
+                    return candidatePath;
+                }
+            }
+
+            // Otherwise try to locate the git(.exe) on the current PATH
+            return environment.LocateExecutable(programName);
         }
 
         #region ICommandContext

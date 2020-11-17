@@ -56,6 +56,7 @@ namespace Microsoft.Git.CredentialManager
             public const string GcmCredNamespace      = "GCM_NAMESPACE";
             public const string GcmCredentialStore    = "GCM_CREDENTIAL_STORE";
             public const string GcmPlaintextStorePath = "GCM_PLAINTEXT_STORE_PATH";
+            public const string GitExecutablePath     = "GIT_EXEC_PATH";
         }
 
         public static class Http
