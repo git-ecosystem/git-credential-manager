@@ -48,7 +48,6 @@ jobs:
         RELEASE: ${{ github.event.inputs.release }}
       run: |
         pip install requests
-        python .github/fetch-release.py
+        python .github/fetch_release.py
         wget "$(cat asset_url.txt)"
         ls
-        
