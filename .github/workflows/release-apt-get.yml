@@ -37,5 +37,5 @@ jobs:
     - name: "Install Repo Client"
       shell: bash
       run: |
-        dpkg -i repoclient.deb
+        sudo dpkg -i repoclient.deb
         repoclient --version
