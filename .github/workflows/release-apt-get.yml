@@ -32,8 +32,10 @@ jobs:
         AZ_SUB: ${{ secrets.AZURE_SUBSCRIPTION }}
       run: |
         az storage blob download --subscription  "$AZ_SUB" --account-name gitcitoolstore -c tools -n azure-repoapi-client_2.0.1_amd64.deb -f repocli.deb --auth-mode login
+        ls
 
     - name: "Install Repo Client"
       run: |
+        ls
         sudo dpkg -i repoclient.deb
         repoclient --version
