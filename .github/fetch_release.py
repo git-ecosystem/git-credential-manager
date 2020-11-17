@@ -2,12 +2,7 @@ from os import environ as env
 import requests
 import time
 
-if 'RELEASE' not in env or not env['RELEASE']:
-    print("Require env var RELEASE is missing!")
-    exit(1)
-
-release = env['RELEASE']
-
+release = env['RELEASE'] if 'RELEASE' in env else "latest"
 release_arg = "latest" if release == "latest" else f"tags/{release}"
 release_url = f"https://api.github.com/repos/microsoft/git-credential-manager-core/releases/{release_arg}"
 
@@ -28,7 +23,7 @@ try:
 
     print(f"Found asset {asset_name}")
     print(f"Writing asset URL: {asset_url} to asset_url.txt")
-    
+
     with open('asset_url.txt', 'w') as f:
         f.write(asset_url)
 
