@@ -51,4 +51,4 @@ jobs:
         pip install requests
         python .github/fetch_release.py
         wget "$(cat asset_url.txt)"
-        repoclient -v v3 package add --check --wait 300 "$(cat asset_name.txt)" 
+        repoclient -v v3 -c config.json package add --check --wait 300 "$(cat asset_name.txt)" 
