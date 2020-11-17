@@ -7,7 +7,7 @@ on:
 
   workflow_dispatch:
     inputs:
-      name:
+      release:
         description: 'Release Tag'
         required: true
         default: 'latest'
@@ -41,5 +41,14 @@ jobs:
       run: |
         sudo apt-get install python3-adal --yes
         sudo dpkg -i repoclient.deb
+        python .github/configure_repoclient.py
+
+    - name: "Publish to apt feed"
+      env:
+        RELEASE: ${{ github.event.inputs.release }}
+      run: |
+        pip install requests
+        python .github/fetch-release.py
+        wget "$(cat asset_url.txt)"
+        ls
         
-        python .github/release-apt-cat.py

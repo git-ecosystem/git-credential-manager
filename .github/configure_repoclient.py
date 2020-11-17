@@ -2,9 +2,9 @@ from os import enviorn as env
 
 
 def check_var(name:str) -> bool:
-    if not env[name]:
+    if name not in env:
         print(f"Required env var {name} is missing!")
-
+        exit(1)
 
 for var in ['APT_REPO_ID', 'AZURE_AAD_ID', 'AAD_CLIENT_SECRET']:
     check_var(var)
