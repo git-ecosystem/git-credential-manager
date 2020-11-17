@@ -2,6 +2,8 @@ name: "release-apt-get"
 on:
   release:
     types: [released]
+  pull_request:
+    branches: [master]
 
   workflow_dispatch:
     inputs:
