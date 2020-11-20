@@ -97,23 +97,28 @@ namespace GitHub.Tests
         }
 
 
-
-        [Fact]
-        public async Task GitHubHostProvider_GetSupportedAuthenticationModes_NotDotCom_OldInstanceNoPassword_ReturnsNone()
+        [Theory]
+        [InlineData("https://example.com", null, "0.1", false, AuthenticationModes.None)]
+        [InlineData("https://example.com", null, "0.1", true, AuthenticationModes.Basic)]
+        [InlineData("https://example.com", null, "100.0", false, GitHubConstants.DotComAuthenticationModes)]
+        [InlineData("https://example.com", null, "100.0", true, AuthenticationModes.Basic | AuthenticationModes.OAuth)]
+        public async Task GitHubHostProvider_GetSupportedAuthenticationModes_WithMetadata(string uriString, string gitHubAuthModes,
+            string installedVersion, bool verifiablePasswordAuthentication, AuthenticationModes expectedModes)
         {
-            var targetUri = new Uri("https://ghe.io");
-            var metaInfo = new GitHubMetaInfo
-            {
-                InstalledVersion = "0.1",
-                VerifiablePasswordAuthentication = false
-            };
+            var targetUri = new Uri(uriString);
 
-            var expectedModes = AuthenticationModes.None;
-
-            var context = new TestCommandContext();
-            var ghAuthMock = new Mock<IGitHubAuthentication>(MockBehavior.Strict);
+            var context = new TestCommandContext { };
+            if (gitHubAuthModes != null)
+                context.Environment.Variables.Add(GitHubConstants.EnvironmentVariables.AuthenticationModes, gitHubAuthModes);
 
             var ghApiMock = new Mock<IGitHubRestApi>(MockBehavior.Strict);
+            var ghAuthMock = new Mock<IGitHubAuthentication>(MockBehavior.Strict);
+
+            var metaInfo = new GitHubMetaInfo
+            {
+                InstalledVersion = installedVersion,
+                VerifiablePasswordAuthentication = verifiablePasswordAuthentication
+            };
             ghApiMock.Setup(x => x.GetMetaInfoAsync(targetUri)).ReturnsAsync(metaInfo);
 
             var provider = new GitHubHostProvider(context, ghApiMock.Object, ghAuthMock.Object);
@@ -123,80 +128,7 @@ namespace GitHub.Tests
             Assert.Equal(expectedModes, actualModes);
         }
 
-        [Fact]
-        public async Task GitHubHostProvider_GetSupportedAuthenticationModes_NotDotCom_OldInstanceWithPassword_ReturnsBasic()
-        {
-            var targetUri = new Uri("https://ghe.io");
-            var metaInfo = new GitHubMetaInfo
-            {
-                InstalledVersion = "0.1",
-                VerifiablePasswordAuthentication = true
-            };
 
-            var expectedModes = AuthenticationModes.Basic;
-
-            var context = new TestCommandContext();
-            var ghAuthMock = new Mock<IGitHubAuthentication>(MockBehavior.Strict);
-
-            var ghApiMock = new Mock<IGitHubRestApi>(MockBehavior.Strict);
-            ghApiMock.Setup(x => x.GetMetaInfoAsync(targetUri)).ReturnsAsync(metaInfo);
-
-            var provider = new GitHubHostProvider(context, ghApiMock.Object, ghAuthMock.Object);
-
-            AuthenticationModes actualModes = await provider.GetSupportedAuthenticationModesAsync(targetUri);
-
-            Assert.Equal(expectedModes, actualModes);
-        }
-
-        [Fact]
-        public async Task GitHubHostProvider_GetSupportedAuthenticationModes_NotDotCom_NewInstanceNoPassword_ReturnsOAuth()
-        {
-            var targetUri = new Uri("https://ghe.io");
-            var metaInfo = new GitHubMetaInfo
-            {
-                InstalledVersion = "100.0",
-                VerifiablePasswordAuthentication = false
-            };
-
-            var expectedModes = AuthenticationModes.OAuth;
-
-            var context = new TestCommandContext();
-            var ghAuthMock = new Mock<IGitHubAuthentication>(MockBehavior.Strict);
-
-            var ghApiMock = new Mock<IGitHubRestApi>(MockBehavior.Strict);
-            ghApiMock.Setup(x => x.GetMetaInfoAsync(targetUri)).ReturnsAsync(metaInfo);
-
-            var provider = new GitHubHostProvider(context, ghApiMock.Object, ghAuthMock.Object);
-
-            AuthenticationModes actualModes = await provider.GetSupportedAuthenticationModesAsync(targetUri);
-
-            Assert.Equal(expectedModes, actualModes);
-        }
-
-        [Fact]
-        public async Task GitHubHostProvider_GetSupportedAuthenticationModes_NotDotCom_NewInstanceWithPassword_ReturnsBasicAndOAuth()
-        {
-            var targetUri = new Uri("https://ghe.io");
-            var metaInfo = new GitHubMetaInfo
-            {
-                InstalledVersion = "100.0",
-                VerifiablePasswordAuthentication = true
-            };
-
-            var expectedModes = AuthenticationModes.Basic | AuthenticationModes.OAuth;
-
-            var context = new TestCommandContext();
-            var ghAuthMock = new Mock<IGitHubAuthentication>(MockBehavior.Strict);
-
-            var ghApiMock = new Mock<IGitHubRestApi>(MockBehavior.Strict);
-            ghApiMock.Setup(x => x.GetMetaInfoAsync(targetUri)).ReturnsAsync(metaInfo);
-
-            var provider = new GitHubHostProvider(context, ghApiMock.Object, ghAuthMock.Object);
-
-            AuthenticationModes actualModes = await provider.GetSupportedAuthenticationModesAsync(targetUri);
-
-            Assert.Equal(expectedModes, actualModes);
-        }
 
         [Fact]
         public async Task GitHubHostProvider_GenerateCredentialAsync_UnencryptedHttp_ThrowsException()
