@@ -100,7 +100,7 @@ namespace GitHub.Tests
         [Theory]
         [InlineData("https://example.com", null, "0.1", false, AuthenticationModes.None)]
         [InlineData("https://example.com", null, "0.1", true, AuthenticationModes.Basic)]
-        [InlineData("https://example.com", null, "100.0", false, GitHubConstants.DotComAuthenticationModes)]
+        [InlineData("https://example.com", null, "100.0", false, AuthenticationModes.OAuth)]
         [InlineData("https://example.com", null, "100.0", true, AuthenticationModes.Basic | AuthenticationModes.OAuth)]
         public async Task GitHubHostProvider_GetSupportedAuthenticationModes_WithMetadata(string uriString, string gitHubAuthModes,
             string installedVersion, bool verifiablePasswordAuthentication, AuthenticationModes expectedModes)
