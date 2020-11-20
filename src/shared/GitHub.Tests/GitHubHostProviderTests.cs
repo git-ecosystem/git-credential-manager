@@ -52,35 +52,26 @@ namespace GitHub.Tests
         }
 
 
-        [Fact]
-        public void GitHubHostProvider_GetCredentialServiceUrl_GitHubHost_ReturnsCorrectKey()
+        [Theory]
+        [InlineData("https://github.com", "https://github.com")]
+        [InlineData("https://gist.github.com", "https://github.com")]
+        public void GitHubHostProvider_GetCredentialServiceUrl(string uriString, string expectedService)
         {
-            const string expectedService = "https://github.com";
+            Uri uri = new Uri(uriString);
+
             var input = new InputArguments(new Dictionary<string, string>
             {
-                ["protocol"] = "https",
-                ["host"] = "github.com",
+                ["protocol"] = uri.Scheme,
+                ["host"] = uri.Host,
             });
 
-            var provider = new GitHubHostProvider(new TestCommandContext());
-            string actualService = provider.GetServiceName(input);
-            Assert.Equal(expectedService, actualService);
-        }
-
-        [Fact]
-        public void GitHubHostProvider_GetCredentialServiceUrl_GistHost_ReturnsCorrectKey()
-        {
-            const string expectedService = "https://github.com";
-            var input = new InputArguments(new Dictionary<string, string>
-            {
-                ["protocol"] = "https",
-                ["host"] = "gist.github.com",
-            });
+            // Ensure nothing got lost during transformation
+            Assert.Equal(uriString, input.Protocol + "://" + input.Host);
 
             var provider = new GitHubHostProvider(new TestCommandContext());
-            string actualService = provider.GetServiceName(input);
-            Assert.Equal(expectedService, actualService);
+            Assert.Equal(expectedService, provider.GetServiceName(input));
         }
+
 
         [Fact]
         public async Task GitHubHostProvider_GetSupportedAuthenticationModes_Override_ReturnsOverrideValue()
