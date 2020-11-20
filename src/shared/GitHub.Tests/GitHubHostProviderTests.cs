@@ -73,25 +73,18 @@ namespace GitHub.Tests
         }
 
 
-        [Fact]
-        public async Task GitHubHostProvider_GetSupportedAuthenticationModes_Override_ReturnsOverrideValue()
+        [Theory]
+        [InlineData("https://example.com", "oauth", AuthenticationModes.OAuth)]
+        [InlineData("https://github.com", "NOT-A-REAL-VALUE", GitHubConstants.DotComAuthenticationModes)]
+        [InlineData("https://github.com", "none", GitHubConstants.DotComAuthenticationModes)]
+        [InlineData("https://github.com", null, GitHubConstants.DotComAuthenticationModes)]
+        public async Task GitHubHostProvider_GetSupportedAuthenticationModes(string uriString, string gitHubAuthModes, AuthenticationModes expectedModes)
         {
-            var targetUri = new Uri("https://example.com");
-            var expectedModes = AuthenticationModes.OAuth;
+            var targetUri = new Uri(uriString);
 
-            var context = new TestCommandContext
-            {
-                Settings =
-                {
-                    Environment =
-                    {
-                        Variables =
-                        {
-                            [GitHubConstants.EnvironmentVariables.AuthenticationModes] = expectedModes.ToString()
-                        }
-                    }
-                }
-            };
+            var context = new TestCommandContext { };
+            if (gitHubAuthModes != null)
+                context.Environment.Variables.Add(GitHubConstants.EnvironmentVariables.AuthenticationModes, gitHubAuthModes);
 
             var ghApiMock = new Mock<IGitHubRestApi>(MockBehavior.Strict);
             var ghAuthMock = new Mock<IGitHubAuthentication>(MockBehavior.Strict);
@@ -103,78 +96,7 @@ namespace GitHub.Tests
             Assert.Equal(expectedModes, actualModes);
         }
 
-        [Fact]
-        public async Task GitHubHostProvider_GetSupportedAuthenticationModes_OverrideInvalid_ReturnsDetectedValue()
-        {
-            var targetUri = new Uri("https://github.com");
-            var expectedModes = GitHubConstants.DotComAuthenticationModes;
 
-            var context = new TestCommandContext
-            {
-                Settings =
-                {
-                    Environment =
-                    {
-                        Variables =
-                        {
-                            [GitHubConstants.EnvironmentVariables.AuthenticationModes] = "NOT-A-REAL-VALUE"
-                        }
-                    }
-                }
-            };
-
-            var ghApiMock = new Mock<IGitHubRestApi>(MockBehavior.Strict);
-            var ghAuthMock = new Mock<IGitHubAuthentication>(MockBehavior.Strict);
-
-            var provider = new GitHubHostProvider(context, ghApiMock.Object, ghAuthMock.Object);
-
-            AuthenticationModes actualModes = await provider.GetSupportedAuthenticationModesAsync(targetUri);
-
-            Assert.Equal(expectedModes, actualModes);
-        }
-
-        [Fact]
-        public async Task GitHubHostProvider_GetSupportedAuthenticationModes_OverrideNone_ReturnsDetectedValue()
-        {
-            var targetUri = new Uri("https://github.com");
-            var expectedModes = GitHubConstants.DotComAuthenticationModes;
-
-            var context = new TestCommandContext
-            {
-                Settings =
-                {
-                    Environment =
-                    {
-                        Variables =
-                        {
-                            [GitHubConstants.EnvironmentVariables.AuthenticationModes] = AuthenticationModes.None.ToString()
-                        }
-                    }
-                }
-            };
-
-            var ghApiMock = new Mock<IGitHubRestApi>(MockBehavior.Strict);
-            var ghAuthMock = new Mock<IGitHubAuthentication>(MockBehavior.Strict);
-
-            var provider = new GitHubHostProvider(context, ghApiMock.Object, ghAuthMock.Object);
-
-            AuthenticationModes actualModes = await provider.GetSupportedAuthenticationModesAsync(targetUri);
-
-            Assert.Equal(expectedModes, actualModes);
-        }
-
-        [Fact]
-        public async Task GitHubHostProvider_GetSupportedAuthenticationModes_GitHubDotCom_ReturnsDotComModes()
-        {
-            var targetUri = new Uri("https://github.com");
-            var expectedModes = GitHubConstants.DotComAuthenticationModes;
-
-            var provider = new GitHubHostProvider(new TestCommandContext());
-
-            AuthenticationModes actualModes = await provider.GetSupportedAuthenticationModesAsync(targetUri);
-
-            Assert.Equal(expectedModes, actualModes);
-        }
 
         [Fact]
         public async Task GitHubHostProvider_GetSupportedAuthenticationModes_NotDotCom_OldInstanceNoPassword_ReturnsNone()
