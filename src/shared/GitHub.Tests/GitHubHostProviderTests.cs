@@ -24,92 +24,33 @@ namespace GitHub.Tests
             Assert.Equal(expected, GitHubHostProvider.IsGitHubDotCom(new Uri(input)));
         }
 
-        [Fact]
-        public void GitHubHostProvider_IsSupported_GitHubHost_UnencryptedHttp_ReturnsTrue()
+
+        [Theory]
+        // We report that we support unencrypted HTTP here so that we can fail and
+        // show a helpful error message in the call to `GenerateCredentialAsync` instead.
+        [InlineData("http://github.com", true)]
+        [InlineData("http://gist.github.com", true)]
+        [InlineData("https://github.com", true)]
+        [InlineData("https://gist.github.com", true)]
+        [InlineData("ssh://github.com", false)]
+        [InlineData("https://example.com", false)]
+        public void GitHubHostProvider_IsSupported(string uriString, bool expected)
         {
+            Uri uri = new Uri(uriString);
+
             var input = new InputArguments(new Dictionary<string, string>
             {
-                ["protocol"] = "http",
-                ["host"] = "github.com",
+                ["protocol"] = uri.Scheme,
+                ["host"] = uri.Host,
             });
 
-            var provider = new GitHubHostProvider(new TestCommandContext());
-
-            // We report that we support unencrypted HTTP here so that we can fail and
-            // show a helpful error message in the call to `GenerateCredentialAsync` instead.
-            Assert.True(provider.IsSupported(input));
-        }
-
-        [Fact]
-        public void GitHubHostProvider_IsSupported_GistHost_UnencryptedHttp_ReturnsTrue()
-        {
-            var input = new InputArguments(new Dictionary<string, string>
-            {
-                ["protocol"] = "http",
-                ["host"] = "gist.github.com",
-            });
+            // Ensure nothing got lost during transformation
+            Assert.Equal(uriString, input.Protocol + "://" + input.Host);
 
             var provider = new GitHubHostProvider(new TestCommandContext());
-
-            // We report that we support unencrypted HTTP here so that we can fail and
-            // show a helpful error message in the call to `GenerateCredentialAsync` instead.
-            Assert.True(provider.IsSupported(input));
+            Assert.Equal(expected, provider.IsSupported(input));
         }
 
-        [Fact]
-        public void GitHubHostProvider_IsSupported_GitHubHost_Https_ReturnsTrue()
-        {
-            var input = new InputArguments(new Dictionary<string, string>
-            {
-                ["protocol"] = "https",
-                ["host"] = "github.com",
-            });
-
-            var provider = new GitHubHostProvider(new TestCommandContext());
-
-            Assert.True(provider.IsSupported(input));
-        }
-
-        [Fact]
-        public void GitHubHostProvider_IsSupported_GistHost_Https_ReturnsTrue()
-        {
-            var input = new InputArguments(new Dictionary<string, string>
-            {
-                ["protocol"] = "https",
-                ["host"] = "gist.github.com",
-            });
-
-            var provider = new GitHubHostProvider(new TestCommandContext());
-
-            Assert.True(provider.IsSupported(input));
-        }
-
-        [Fact]
-        public void GitHubHostProvider_IsSupported_NonHttpHttps_ReturnsTrue()
-        {
-            var input = new InputArguments(new Dictionary<string, string>
-            {
-                ["protocol"] = "ssh",
-                ["host"] = "github.com",
-            });
-
-            var provider = new GitHubHostProvider(new TestCommandContext());
-
-            Assert.False(provider.IsSupported(input));
-        }
-
-        [Fact]
-        public void GitHubHostProvider_IsSupported_NonGitHub_ReturnsFalse()
-        {
-            var input = new InputArguments(new Dictionary<string, string>
-            {
-                ["protocol"] = "https",
-                ["host"] = "example.com",
-            });
-
-            var provider = new GitHubHostProvider(new TestCommandContext());
-            Assert.False(provider.IsSupported(input));
-        }
 
         [Fact]
         public void GitHubHostProvider_GetCredentialServiceUrl_GitHubHost_ReturnsCorrectKey()
