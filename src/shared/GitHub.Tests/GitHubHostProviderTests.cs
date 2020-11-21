@@ -435,7 +435,7 @@ namespace GitHub.Tests
 
             var ghAuthMock = new Mock<IGitHubAuthentication>(MockBehavior.Strict);
             ghAuthMock.Setup(x => x.GetAuthenticationAsync(expectedTargetUri, null, It.IsAny<AuthenticationModes>()))
-                      .ReturnsAsync(new AuthenticationPromptResult(new GitCredential(expectedUserName, expectedPassword)));
+                      .ReturnsAsync(new AuthenticationPromptResult(AuthenticationModes.Basic, new GitCredential(expectedUserName, expectedPassword)));
 
             var ghApiMock = new Mock<IGitHubRestApi>(MockBehavior.Strict);
             ghApiMock.Setup(x => x.CreatePersonalAccessTokenAsync(expectedTargetUri, expectedUserName, expectedPassword, null, It.IsAny<IEnumerable<string>>()))
@@ -484,7 +484,7 @@ namespace GitHub.Tests
 
             var ghAuthMock = new Mock<IGitHubAuthentication>(MockBehavior.Strict);
             ghAuthMock.Setup(x => x.GetAuthenticationAsync(expectedTargetUri, null, It.IsAny<AuthenticationModes>()))
-                      .ReturnsAsync(new AuthenticationPromptResult(new GitCredential(expectedUserName, expectedPassword)));
+                      .ReturnsAsync(new AuthenticationPromptResult(AuthenticationModes.Basic, new GitCredential(expectedUserName, expectedPassword)));
             ghAuthMock.Setup(x => x.GetTwoFactorCodeAsync(expectedTargetUri, false))
                       .ReturnsAsync(expectedAuthCode);
 
@@ -512,6 +512,56 @@ namespace GitHub.Tests
                 x => x.CreatePersonalAccessTokenAsync(
                     expectedTargetUri, expectedUserName, expectedPassword, expectedAuthCode, expectedPatScopes),
                 Times.Once);
+        }
+
+        [Theory]
+        [InlineData("password", AuthenticationModes.Basic, true, "GENERATED-PAT")]
+        [InlineData("password", AuthenticationModes.Password, true, "GENERATED-PAT")]
+        [InlineData("password", AuthenticationModes.PAT, false, "password")]
+        [InlineData("PAT3456789012345678901234567890123456789", AuthenticationModes.Basic, false, "PAT3456789012345678901234567890123456789")]
+        [InlineData("PAT3456789012345678901234567890123456789", AuthenticationModes.Password, true, "GENERATED-PAT")]
+        [InlineData("PAT3456789012345678901234567890123456789", AuthenticationModes.PAT, false, "PAT3456789012345678901234567890123456789")]
+        public async Task GitHubHostProvider_GenerateCredentialAsync_GeneratePAT_OnDemand(string password, AuthenticationModes modes, bool expectGeneratePAT, string expectedPat)
+        {
+            var input = new InputArguments(new Dictionary<string, string>
+            {
+                ["protocol"] = "https",
+                ["host"] = "github.com",
+            });
+
+            var targetUri = new Uri("https://github.com/");
+            var expectedUserName = "john.doe";
+
+            IEnumerable<string> expectedPatScopes = new[]
+{
+                GitHubConstants.TokenScopes.Gist,
+                GitHubConstants.TokenScopes.Repo,
+            };
+
+            ICredential credentialInput = new GitCredential("john.doe", password);
+
+            var context = new TestCommandContext();
+
+            var ghAuthMock = new Mock<IGitHubAuthentication>(MockBehavior.Strict);
+            var ghApiMock = new Mock<IGitHubRestApi>(MockBehavior.Strict);
+            if (expectGeneratePAT)
+            {
+                ghApiMock.Setup(x => x.CreatePersonalAccessTokenAsync(targetUri, expectedUserName, password, null, It.IsAny<IEnumerable<string>>()))
+                    .ReturnsAsync(new AuthenticationResult(GitHubAuthenticationResultType.Success, "GENERATED-PAT"));
+                ghApiMock.Setup(x => x.GetUserInfoAsync(targetUri, "GENERATED-PAT"))
+                    .ReturnsAsync(new GitHubUserInfo { Login = expectedUserName });
+            }
+
+            var provider = new GitHubHostProvider(context, ghApiMock.Object, ghAuthMock.Object);
+
+            ICredential credentialOutput = await provider.GeneratePersonalAccessTokenOnDemand(modes, credentialInput, targetUri);
+
+            Assert.Equal(expectedPat, credentialOutput.Password);
+
+            ghApiMock.Verify(
+                x => x.CreatePersonalAccessTokenAsync(
+                    targetUri, expectedUserName, password, null, expectedPatScopes),
+                expectGeneratePAT ? Times.Once : Times.Never);
         }
     }
 }

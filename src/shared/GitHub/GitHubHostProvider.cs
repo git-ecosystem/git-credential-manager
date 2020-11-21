@@ -75,8 +75,18 @@ namespace GitHub
             return url.TrimEnd('/');
         }
 
+        public async Task<GitCredential> GeneratePersonalAccessTokenOnDemand(AuthenticationModes modes, ICredential credential, Uri remoteUri)
+        {
+            // Assume PAT in case the password has exactly 40 characters.
+            if (modes == AuthenticationModes.PAT || (modes == AuthenticationModes.Basic && credential.Password.Length == 40))
+                return new GitCredential(credential.Account, credential.Password);
+
+            return await GeneratePersonalAccessTokenAsync(remoteUri, credential);
+        }
+
         public override async Task<ICredential> GenerateCredentialAsync(InputArguments input)
         {
+            Context.Trace.WriteLine($"GenerateCredentialAsync with '{input}' started");
             ThrowIfDisposed();
 
             // We should not allow unencrypted communication and should inform the user
@@ -90,13 +100,18 @@ namespace GitHub
             string service = GetServiceName(input);
 
             AuthenticationModes authModes = await GetSupportedAuthenticationModesAsync(remoteUri);
+            Context.Trace.WriteLine($"GenerateCredentialAsync authModes: '{authModes}'");
 
             AuthenticationPromptResult promptResult = await _gitHubAuth.GetAuthenticationAsync(remoteUri, input.UserName, authModes);
+            Context.Trace.WriteLine($"GenerateCredentialAsync promptResult: '{promptResult}'");
+            Context.Trace.WriteLine($"GenerateCredentialAsync BasicCredential: '{promptResult.BasicCredential}'");
 
             switch (promptResult.AuthenticationMode)
             {
                 case AuthenticationModes.Basic:
-                    GitCredential patCredential = await GeneratePersonalAccessTokenAsync(remoteUri, promptResult.BasicCredential);
+                case AuthenticationModes.Password:
+                case AuthenticationModes.PAT:
+                    GitCredential patCredential = await GeneratePersonalAccessTokenOnDemand(promptResult.AuthenticationMode, promptResult.BasicCredential, remoteUri);
 
                     // HACK: Store the PAT immediately in case this PAT is not valid for SSO.
                     // We don't know if this PAT is valid for SAML SSO and if it's not Git will fail
@@ -200,10 +215,10 @@ namespace GitHub
             {
                 GitHubMetaInfo metaInfo = await _gitHubApi.GetMetaInfoAsync(targetUri);
 
-                var modes = AuthenticationModes.None;
+                var modes = AuthenticationModes.PAT;
                 if (metaInfo.VerifiablePasswordAuthentication)
                 {
-                    modes |= AuthenticationModes.Basic;
+                    modes |= AuthenticationModes.Password;
                 }
                 if (Version.TryParse(metaInfo.InstalledVersion, out var version) && version >= GitHubConstants.MinimumEnterpriseOAuthVersion)
                 {

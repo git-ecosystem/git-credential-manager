@@ -16,28 +16,27 @@ namespace GitHub.UI
 
         private readonly IGui _gui;
 
-        public CredentialPromptResult ShowCredentialPrompt(string enterpriseUrl, bool showBasic, bool showOAuth, ref string username, out string password)
+        public CredentialPromptResult ShowCredentialPrompt(string enterpriseUrl, bool showPassword, bool showPAT, bool showOAuth, ref string username, out string password)
         {
             password = null;
 
-            var viewModel = new LoginCredentialsViewModel(showBasic, showOAuth)
-            {
-                GitHubEnterpriseUrl = enterpriseUrl,
-                UsernameOrEmail = username
-            };
+            var viewModel = new LoginCredentialsViewModel(enterpriseUrl, username, showPassword, showPAT, showOAuth);
 
             bool valid = _gui.ShowDialogWindow(viewModel, () => new LoginCredentialsView());
 
-            if (viewModel.UseBrowserLogin)
+            if (viewModel.HasUsedBrowserLogin)
             {
-                return CredentialPromptResult.OAuthAuthentication;
+                return CredentialPromptResult.OAuth;
             }
 
             if (valid)
             {
                 username = viewModel.UsernameOrEmail;
-                password = viewModel.Password.ToUnsecureString();
-                return CredentialPromptResult.BasicAuthentication;
+                // Trim because when copying PAT from browsers it's easy to copy an additional whitespace.
+                password = viewModel.Password.ToUnsecureString().Trim();
+                if (showPassword && !showPAT) return CredentialPromptResult.Password;
+                if (!showPassword && showPAT) return CredentialPromptResult.PAT;
+                return CredentialPromptResult.Basic;
             }
 
             return CredentialPromptResult.Cancel;
@@ -57,8 +56,10 @@ namespace GitHub.UI
 
     public enum CredentialPromptResult
     {
-        BasicAuthentication,
-        OAuthAuthentication,
+        Basic,
+        Password,
+        PAT,
+        OAuth,
         Cancel,
     }
 }

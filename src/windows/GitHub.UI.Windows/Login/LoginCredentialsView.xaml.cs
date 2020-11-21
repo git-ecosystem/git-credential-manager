@@ -31,6 +31,7 @@ namespace GitHub.UI.Login
                 return;
             }
 
+            // Set focus into first visible input box
             if (ViewModel.IsLoginUsingUsernameAndPasswordVisible)
             {
                 if (string.IsNullOrWhiteSpace(ViewModel.UsernameOrEmail))

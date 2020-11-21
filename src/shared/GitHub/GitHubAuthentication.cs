@@ -28,8 +28,8 @@ namespace GitHub
             AuthenticationMode = mode;
         }
 
-        public AuthenticationPromptResult(ICredential basicCredential)
-            : this(AuthenticationModes.Basic)
+        public AuthenticationPromptResult(AuthenticationModes mode, ICredential basicCredential)
+            : this(mode)
         {
             BasicCredential = basicCredential;
         }
@@ -43,8 +43,10 @@ namespace GitHub
     public enum AuthenticationModes
     {
         None  = 0,
-        Basic = 1,
-        OAuth = 1 << 1,
+        Password = 1,
+        PAT = 2,
+        Basic = 3,
+        OAuth = 4
     }
 
     public class GitHubAuthentication : AuthenticationBase, IGitHubAuthentication
@@ -69,8 +71,9 @@ namespace GitHub
             if (TryFindHelperExecutablePath(out string helperPath))
             {
                 var promptArgs = new StringBuilder("prompt");
-                if ((modes & AuthenticationModes.Basic) != 0) promptArgs.Append(" --basic");
-                if ((modes & AuthenticationModes.OAuth) != 0) promptArgs.Append(" --oauth");
+                if (modes.HasFlag(AuthenticationModes.Password)) promptArgs.Append(" --password");
+                if (modes.HasFlag(AuthenticationModes.PAT)) promptArgs.Append(" --pat");
+                if (modes.HasFlag(AuthenticationModes.OAuth)) promptArgs.Append(" --oauth");
                 if (!GitHubHostProvider.IsGitHubDotCom(targetUri)) promptArgs.AppendFormat(" --enterprise-url {0}", targetUri);
                 if (!string.IsNullOrWhiteSpace(userName)) promptArgs.AppendFormat(" --username {0}", userName);
 
@@ -80,13 +83,19 @@ namespace GitHub
                 {
                     throw new Exception("Missing 'mode' in response");
                 }
-
-                switch (responseMode.ToLowerInvariant())
+                if(!Enum.TryParse<AuthenticationModes>(responseMode, out AuthenticationModes mode))
                 {
-                    case "oauth":
+                    throw new Exception("Invalid 'mode' response");
+                }
+
+                switch (mode)
+                {
+                    case AuthenticationModes.OAuth:
                         return new AuthenticationPromptResult(AuthenticationModes.OAuth);
 
-                    case "basic":
+                    case AuthenticationModes.Basic:
+                    case AuthenticationModes.Password:
+                    case AuthenticationModes.PAT:
                         if (!resultDict.TryGetValue("username", out userName))
                         {
                             throw new Exception("Missing 'username' in response");
@@ -97,7 +106,7 @@ namespace GitHub
                             throw new Exception("Missing 'password' in response");
                         }
 
-                        return new AuthenticationPromptResult(new GitCredential(userName, password));
+                        return new AuthenticationPromptResult(mode, new GitCredential(userName, password));
 
                     default:
                         throw new Exception($"Unknown mode value in response '{responseMode}'");
@@ -107,14 +116,24 @@ namespace GitHub
             {
                 ThrowIfTerminalPromptsDisabled();
 
+                string selectedBasicModeString = modes.HasFlag(AuthenticationModes.Basic)
+                    ? "Password/PAT"
+                    : modes.HasFlag(AuthenticationModes.Password)
+                        ? "Password"
+                        : modes.HasFlag(AuthenticationModes.PAT)
+                        ? "PAT"
+                        : null;
+
                 switch (modes)
                 {
                     case AuthenticationModes.Basic | AuthenticationModes.OAuth:
+                    case AuthenticationModes.PAT | AuthenticationModes.OAuth:
+                    case AuthenticationModes.Password | AuthenticationModes.OAuth:
                         var menuTitle = $"Select an authentication method for '{targetUri}'";
                         var menu = new TerminalMenu(Context.Terminal, menuTitle)
                         {
-                            new TerminalMenuItem(1, "Web browser", isDefault: true),
-                            new TerminalMenuItem(2, "Username/password")
+                                    new TerminalMenuItem(1, "Web browser", isDefault: true),
+                                    new TerminalMenuItem(2, "Username and " + selectedBasicModeString)
                         };
 
                         int option = menu.Show();
@@ -125,6 +144,8 @@ namespace GitHub
                         throw new Exception();
 
                     case AuthenticationModes.Basic:
+                    case AuthenticationModes.PAT:
+                    case AuthenticationModes.Password:
                         Context.Terminal.WriteLine("Enter GitHub credentials for '{0}'...", targetUri);
 
                         if (string.IsNullOrWhiteSpace(userName))
@@ -136,9 +157,9 @@ namespace GitHub
                             Context.Terminal.WriteLine("Username: {0}", userName);
                         }
 
-                        string password = Context.Terminal.PromptSecret("Password");
+                        string password = Context.Terminal.PromptSecret(selectedBasicModeString);
 
-                        return new AuthenticationPromptResult(new GitCredential(userName, password));
+                        return new AuthenticationPromptResult((AuthenticationModes)((int)modes & (int)AuthenticationModes.Basic), new GitCredential(userName, password));
 
                     case AuthenticationModes.OAuth:
                         return new AuthenticationPromptResult(AuthenticationModes.OAuth);

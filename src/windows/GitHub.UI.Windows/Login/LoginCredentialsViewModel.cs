@@ -7,15 +7,26 @@ namespace GitHub.UI.Login
 {
     public class LoginCredentialsViewModel : WindowViewModel
     {
-        public LoginCredentialsViewModel(bool showUsernameAuth, bool showBrowserAuth)
+        public LoginCredentialsViewModel(string gitHubEnterpriseUrl, string usernameOrEmail, bool enablePasswordAuth, bool enablePatAuth, bool enableBrowserAuth)
         {
-            isLoginUsingUsernameAndPasswordVisible = showUsernameAuth;
-            isLoginUsingBrowserVisible = showBrowserAuth;
+            GitHubEnterpriseUrl = gitHubEnterpriseUrl;
+            UsernameOrEmail = usernameOrEmail;
 
-            LoginUsingUsernameAndPasswordCommand = new RelayCommand(LoginUsingUsernameAndPassword, CanLoginUsingUsernameAndPassword);
+            IsLoginUsingUsernameAndPasswordVisible = enablePasswordAuth | enablePatAuth;
+            IsLoginUsingBrowserVisible = enableBrowserAuth;
+
+            LoginUsingUsernameAndPasswordCommand = new RelayCommand(LoginUsingUsernameAndPasswordOrPat, CanLoginUsingUsernameAndPasswordOrPat);
             LoginUsingBrowserCommand = new RelayCommand(LoginUsingBrowser);
 
             PropertyChanged += LoginCredentialsViewModel_PropertyChanged;
+
+            PasswordOrPatString = enablePasswordAuth && enablePatAuth
+                ? "Password/PAT"
+                : enablePasswordAuth
+                    ? "Password"
+                    : enablePatAuth
+                        ? "PAT"
+                        : null;
         }
 
         private void LoginCredentialsViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -29,12 +40,12 @@ namespace GitHub.UI.Login
             }
         }
 
-        public override bool IsValid => IsLoginUsingBrowserVisible || CanLoginUsingUsernameAndPassword();
+        public override bool IsValid => IsLoginUsingBrowserVisible || CanLoginUsingUsernameAndPasswordOrPat();
 
         public override string Title => GitHubResources.LoginTitle;
 
         /// <summary>
-        /// The command that will be invoked when the user attempts to login with a username and password combination.
+        /// The command that will be invoked when the user attempts to login with a username and password/PAT combination.
         /// </summary>
         public RelayCommand LoginUsingUsernameAndPasswordCommand { get; }
 
@@ -46,12 +57,7 @@ namespace GitHub.UI.Login
         /// <summary>
         /// The URL of the GitHub Enterprise instance if this is a GHE authentication dialog.
         /// </summary>
-        public string GitHubEnterpriseUrl
-        {
-            get => gitHubEnterpriseUrl;
-            set => SetAndRaisePropertyChanged(ref gitHubEnterpriseUrl, value);
-        }
-        private string gitHubEnterpriseUrl = null;
+        public string GitHubEnterpriseUrl { get; }
 
         /// <summary>
         /// The value that is typed into the username textbox.
@@ -73,46 +79,33 @@ namespace GitHub.UI.Login
         }
         private SecureString password = null;
 
-        public bool IsLoginUsingUsernameAndPasswordVisible
-        {
-            get => isLoginUsingUsernameAndPasswordVisible;
-            set => SetAndRaisePropertyChanged(ref isLoginUsingUsernameAndPasswordVisible, value);
-        }
-        private bool isLoginUsingUsernameAndPasswordVisible;
+        public bool IsLoginUsingUsernameAndPasswordVisible { get; }
 
-        public bool IsLoginUsingBrowserVisible
-        {
-            get => isLoginUsingBrowserVisible;
-            set => SetAndRaisePropertyChanged(ref isLoginUsingBrowserVisible, value);
-        }
-        private bool isLoginUsingBrowserVisible;
+        public bool IsLoginUsingBrowserVisible { get; }
 
-        public string ErrorMessage
-        {
-            get => errorMessage;
-            private set => SetAndRaisePropertyChanged(ref errorMessage, value);
-        }
-        private string errorMessage;
+        public string ErrorMessage { get; }
 
-        public bool UseBrowserLogin { get; private set; }
+        public string PasswordOrPatString { get; }
+
+        public bool HasUsedBrowserLogin { get; private set; }
 
         /// <summary>
         /// Should the user be allowed to attempt to login with a username and password combination?
         /// </summary>
-        private bool CanLoginUsingUsernameAndPassword()
+        private bool CanLoginUsingUsernameAndPasswordOrPat()
         {
             return !string.IsNullOrEmpty(UsernameOrEmail) && password != null && password.Length > 0;
         }
 
-        private void LoginUsingUsernameAndPassword()
+        private void LoginUsingUsernameAndPasswordOrPat()
         {
-            UseBrowserLogin = false;
+            HasUsedBrowserLogin = false;
             Accept();
         }
 
         private void LoginUsingBrowser()
         {
-            UseBrowserLogin = true;
+            HasUsedBrowserLogin = true;
             Accept();
         }
     }

@@ -29,30 +29,31 @@ namespace GitHub.UI
                     if (StringComparer.OrdinalIgnoreCase.Equals(args[0], "prompt"))
                     {
                         string enterpriseUrl = CommandLineUtils.GetParameter(args, "--enterprise-url");
-                        bool basic = CommandLineUtils.TryGetSwitch(args, "--basic");
-                        bool oauth = CommandLineUtils.TryGetSwitch(args, "--oauth");
+                        bool passwordLogin = CommandLineUtils.TryGetSwitch(args, "--password");
+                        bool patLogin = CommandLineUtils.TryGetSwitch(args, "--pat");
+                        bool oauthLogin = CommandLineUtils.TryGetSwitch(args, "--oauth");
                         string username = CommandLineUtils.GetParameter(args, "--username");
 
-                        if (!basic && !oauth)
+                        if (!passwordLogin && !patLogin && !oauthLogin)
                         {
                             throw new Exception("at least one authentication mode must be specified");
                         }
 
                         var result = prompts.ShowCredentialPrompt(
-                            enterpriseUrl, basic, oauth,
+                            enterpriseUrl, passwordLogin, patLogin, oauthLogin,
                             ref username,
                             out string password);
 
                         switch (result)
                         {
-                            case CredentialPromptResult.BasicAuthentication:
-                                resultDict["mode"] = "basic";
+                            case CredentialPromptResult.Basic:
+                            case CredentialPromptResult.Password:
+                            case CredentialPromptResult.PAT:
                                 resultDict["username"] = username;
                                 resultDict["password"] = password;
                                 break;
 
-                            case CredentialPromptResult.OAuthAuthentication:
-                                resultDict["mode"] = "oauth";
+                            case CredentialPromptResult.OAuth:
                                 break;
 
                             case CredentialPromptResult.Cancel:
@@ -61,6 +62,8 @@ namespace GitHub.UI
                             default:
                                 throw new ArgumentOutOfRangeException();
                         }
+
+                        resultDict["mode"] = result.ToString().ToLower();
                     }
                     else if (StringComparer.OrdinalIgnoreCase.Equals(args[0], "2fa"))
                     {

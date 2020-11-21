@@ -10,9 +10,15 @@
         ResizeMode="NoResize"
         Title="GitHub Authentication Dialog Tester"
         Height="420"
-        Width="420">
-    <DockPanel>
-        <Button Content="Show Credentials Dialog" Padding="10" Click="ShowCredentials" />
+        Width="380">
+    <WrapPanel>
+        <Button Content="Show Credentials Dialog: Password" Padding="10" Click="ShowCredentials_Password" />
+        <Button Content="Show Credentials Dialog: Pat" Padding="10" Click="ShowCredentials_Pat" />
+        <Button Content="Show Credentials Dialog: Password and Pat" Padding="10" Click="ShowCredentials_Basic" />
+        <Button Content="Show Credentials Dialog: OAuth and Password" Padding="10" Click="ShowCredentials_OAuthPassword" />
+        <Button Content="Show Credentials Dialog: OAuth and Pat" Padding="10" Click="ShowCredentials_OAuthPat" />
+        <Button Content="Show Credentials Dialog: OAuth and Password and Pat" Padding="10" Click="ShowCredentials_OAuthBasic" />
+        <Button Content="Show Credentials Dialog: OAuth" Padding="10" Click="ShowCredentials_OAuth" />
         <Button Content="Show Authentication Code Dialog" Padding="10" Click="ShowAuthenticationCode" />
-    </DockPanel>
+    </WrapPanel>
 </Window>
