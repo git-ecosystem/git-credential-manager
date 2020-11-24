@@ -35,7 +35,11 @@ namespace GitHub
         /// <summary>
         /// Supported authentication modes for GitHub.com.
         /// </summary>
-        public const AuthenticationModes DotComAuthenticationModes = AuthenticationModes.OAuth;
+        /// <remarks>
+        /// As of 13th November 2020, GitHub.com does not support username/password (basic) authentication to the APIs.
+        /// See https://developer.github.com/changes/2020-02-14-deprecating-oauth-auth-endpoint for more information.
+        /// </remarks>
+        public const AuthenticationModes DotComAuthenticationModes = AuthenticationModes.OAuth | AuthenticationModes.Pat;
 
         public static class TokenScopes
         {
