@@ -29,19 +29,20 @@ namespace GitHub.UI
                     if (StringComparer.OrdinalIgnoreCase.Equals(args[0], "prompt"))
                     {
                         string enterpriseUrl = CommandLineUtils.GetParameter(args, "--enterprise-url");
-                        bool basic = CommandLineUtils.TryGetSwitch(args, "--basic");
-                        bool oauth = CommandLineUtils.TryGetSwitch(args, "--oauth");
+                        bool showAll    = CommandLineUtils.TryGetSwitch(args, "--all");
+                        bool showBasic  = CommandLineUtils.TryGetSwitch(args, "--basic") || showAll;
+                        bool showOAuth  = CommandLineUtils.TryGetSwitch(args, "--oauth") || showAll;
+                        bool showPat    = CommandLineUtils.TryGetSwitch(args, "--pat")   || showAll;
                         string username = CommandLineUtils.GetParameter(args, "--username");
 
-                        if (!basic && !oauth)
+                        if (!showBasic && !showOAuth && !showPat && !showAll)
                         {
                             throw new Exception("at least one authentication mode must be specified");
                         }
 
                         var result = prompts.ShowCredentialPrompt(
-                            enterpriseUrl, basic, oauth,
-                            ref username,
-                            out string password);
+                            enterpriseUrl, showBasic, showOAuth, showPat,
+                            ref username, out string password, out string token);
 
                         switch (result)
                         {
@@ -53,6 +54,11 @@ namespace GitHub.UI
 
                             case CredentialPromptResult.OAuthAuthentication:
                                 resultDict["mode"] = "oauth";
+                                break;
+
+                            case CredentialPromptResult.PersonalAccessToken:
+                                resultDict["mode"] = "pat";
+                                resultDict["pat"] = token;
                                 break;
 
                             case CredentialPromptResult.Cancel:

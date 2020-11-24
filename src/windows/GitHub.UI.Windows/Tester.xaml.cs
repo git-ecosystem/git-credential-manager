@@ -23,7 +23,17 @@ namespace GitHub.UI
 
         private void ShowCredentials(object sender, RoutedEventArgs e)
         {
-            var model = new LoginCredentialsViewModel(true, true);
+            var model = new LoginCredentialsViewModel(useBasic.IsChecked ?? false, useOAuth.IsChecked ?? false, usePat.IsChecked ?? false);
+            if (!string.IsNullOrWhiteSpace(enterpriseUrl.Text))
+            {
+                model.GitHubEnterpriseUrl = enterpriseUrl.Text;
+            }
+
+            if (!string.IsNullOrWhiteSpace(username.Text))
+            {
+                model.UsernameOrEmail = username.Text;
+            }
+
             var view = new LoginCredentialsView();
             var window = new DialogWindow(model, view);
             Gui.ShowDialog(window, Handle);
