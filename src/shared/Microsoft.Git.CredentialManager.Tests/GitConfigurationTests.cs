@@ -249,7 +249,7 @@ namespace Microsoft.Git.CredentialManager.Tests
         }
 
         [Fact]
-        public void GitConfiguration_GetString_Name_Exists_ReturnsString()
+        public void GitConfiguration_Get_Name_Exists_ReturnsString()
         {
             string repoPath = CreateRepository(out string workDirPath);
             Git(repoPath, workDirPath, "config --local user.name john.doe").AssertSuccess();
@@ -265,7 +265,7 @@ namespace Microsoft.Git.CredentialManager.Tests
         }
 
         [Fact]
-        public void GitConfiguration_GetString_Name_DoesNotExists_ThrowsException()
+        public void GitConfiguration_Get_Name_DoesNotExists_ThrowsException()
         {
             string repoPath = CreateRepository();
 
@@ -279,7 +279,7 @@ namespace Microsoft.Git.CredentialManager.Tests
         }
 
         [Fact]
-        public void GitConfiguration_GetString_SectionProperty_Exists_ReturnsString()
+        public void GitConfiguration_Get_SectionProperty_Exists_ReturnsString()
         {
             string repoPath = CreateRepository(out string workDirPath);
             Git(repoPath, workDirPath, "config --local user.name john.doe").AssertSuccess();
@@ -295,7 +295,7 @@ namespace Microsoft.Git.CredentialManager.Tests
         }
 
         [Fact]
-        public void GitConfiguration_GetString_SectionProperty_DoesNotExists_ThrowsException()
+        public void GitConfiguration_Get_SectionProperty_DoesNotExists_ThrowsException()
         {
             string repoPath = CreateRepository();
 
@@ -310,7 +310,7 @@ namespace Microsoft.Git.CredentialManager.Tests
         }
 
         [Fact]
-        public void GitConfiguration_GetString_SectionScopeProperty_Exists_ReturnsString()
+        public void GitConfiguration_Get_SectionScopeProperty_Exists_ReturnsString()
         {
             string repoPath = CreateRepository(out string workDirPath);
             Git(repoPath, workDirPath, "config --local user.example.com.name john.doe").AssertSuccess();
@@ -326,7 +326,7 @@ namespace Microsoft.Git.CredentialManager.Tests
         }
 
         [Fact]
-        public void GitConfiguration_GetString_SectionScopeProperty_NullScope_ReturnsUnscopedString()
+        public void GitConfiguration_Get_SectionScopeProperty_NullScope_ReturnsUnscopedString()
         {
             string repoPath = CreateRepository(out string workDirPath);
             Git(repoPath, workDirPath, "config --local user.name john.doe").AssertSuccess();
@@ -342,7 +342,7 @@ namespace Microsoft.Git.CredentialManager.Tests
         }
 
         [Fact]
-        public void GitConfiguration_GetString_SectionScopeProperty_DoesNotExists_ThrowsException()
+        public void GitConfiguration_Get_SectionScopeProperty_DoesNotExists_ThrowsException()
         {
             string repoPath = CreateRepository();
 
