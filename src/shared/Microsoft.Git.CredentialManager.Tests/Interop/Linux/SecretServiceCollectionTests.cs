@@ -18,7 +18,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop.Linux
             // Create a service that is guaranteed to be unique
             string service = $"https://example.com/{Guid.NewGuid():N}";
             const string userName = "john.doe";
-            const string password = "letmein123";
+            const string password = "letmein123"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
 
             try
             {

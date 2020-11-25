@@ -15,14 +15,14 @@ namespace Microsoft.Git.CredentialManager.Tests
         public async Task HostProvider_GetCredentialAsync_CredentialExists_ReturnsExistingCredential()
         {
             const string userName = "john.doe";
-            const string password = "letmein123";
+            const string password = "letmein123"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
             const string service = "https://example.com";
             var input = new InputArguments(new Dictionary<string, string>
             {
                 ["protocol"] = "https",
                 ["host"] = "example.com",
                 ["username"] = userName,
-                ["password"] = password,
+                ["password"] = password, // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
             });
 
             var context = new TestCommandContext();
@@ -47,13 +47,13 @@ namespace Microsoft.Git.CredentialManager.Tests
         public async Task HostProvider_GetCredentialAsync_CredentialDoesNotExist_ReturnsNewGeneratedCredential()
         {
             const string userName = "john.doe";
-            const string password = "letmein123";
+            const string password = "letmein123"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
             var input = new InputArguments(new Dictionary<string, string>
             {
                 ["protocol"] = "https",
                 ["host"] = "example.com",
                 ["username"] = userName,
-                ["password"] = password,
+                ["password"] = password, // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
             });
 
             bool generateWasCalled = false;
@@ -84,13 +84,13 @@ namespace Microsoft.Git.CredentialManager.Tests
         public async Task HostProvider_StoreCredentialAsync_EmptyCredential_DoesNotStoreCredential()
         {
             const string emptyUserName = "";
-            const string emptyPassword = "";
+            const string emptyPassword = ""; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
             var input = new InputArguments(new Dictionary<string, string>
             {
                 ["protocol"] = "https",
                 ["host"] = "example.com",
                 ["username"] = emptyUserName,
-                ["password"] = emptyPassword,
+                ["password"] = emptyPassword, // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
             });
 
             var context = new TestCommandContext();
@@ -105,14 +105,14 @@ namespace Microsoft.Git.CredentialManager.Tests
         public async Task HostProvider_StoreCredentialAsync_NonEmptyCredential_StoresCredential()
         {
             const string userName = "john.doe";
-            const string password = "letmein123";
+            const string password = "letmein123"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
             const string service = "https://example.com";
             var input = new InputArguments(new Dictionary<string, string>
             {
                 ["protocol"] = "https",
                 ["host"] = "example.com",
                 ["username"] = userName,
-                ["password"] = password,
+                ["password"] = password, // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
             });
 
             var context = new TestCommandContext();
@@ -130,15 +130,15 @@ namespace Microsoft.Git.CredentialManager.Tests
         public async Task HostProvider_StoreCredentialAsync_NonEmptyCredential_ExistingCredential_UpdatesCredential()
         {
             const string testUserName = "john.doe";
-            const string testPasswordOld = "letmein123-old";
-            const string testPasswordNew = "letmein123-new";
+            const string testPasswordOld = "letmein123-old"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
+            const string testPasswordNew = "letmein123-new"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
             const string testService = "https://example.com";
             var input = new InputArguments(new Dictionary<string, string>
             {
                 ["protocol"] = "https",
                 ["host"] = "example.com",
                 ["username"] = testUserName,
-                ["password"] = testPasswordNew,
+                ["password"] = testPasswordNew, // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
             });
 
             var context = new TestCommandContext();
@@ -186,14 +186,14 @@ namespace Microsoft.Git.CredentialManager.Tests
         {
             const string userName1 = "john.doe";
             const string userName2 = "alice";
-            const string password = "letmein123";
+            const string password = "letmein123"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
             const string service = "https://example.com";
             var input = new InputArguments(new Dictionary<string, string>
             {
                 ["protocol"] = "https",
                 ["host"] = "example.com",
                 ["username"] = userName1,
-                ["password"] = password,
+                ["password"] = password, // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
             });
 
             var context = new TestCommandContext();
@@ -210,14 +210,14 @@ namespace Microsoft.Git.CredentialManager.Tests
         public async Task HostProvider_EraseCredentialAsync_InputUser_CredentialExists_UserMatch_ErasesCredential()
         {
             const string userName = "john.doe";
-            const string password = "letmein123";
+            const string password = "letmein123"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
             const string service = "https://example.com";
             var input = new InputArguments(new Dictionary<string, string>
             {
                 ["protocol"] = "https",
                 ["host"] = "example.com",
                 ["username"] = userName,
-                ["password"] = password,
+                ["password"] = password, // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
             });
 
             var context = new TestCommandContext();

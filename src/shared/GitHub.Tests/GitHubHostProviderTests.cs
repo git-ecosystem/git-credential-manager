@@ -207,7 +207,7 @@ namespace GitHub.Tests
 
             var expectedTargetUri = new Uri("https://github.com/");
             var expectedUserName = "john.doe";
-            var expectedPassword = "letmein123";
+            var expectedPassword = "letmein123"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
             IEnumerable<string> expectedPatScopes = new[]
             {
                 GitHubConstants.TokenScopes.Gist,
@@ -254,7 +254,7 @@ namespace GitHub.Tests
 
             var expectedTargetUri = new Uri("https://github.com/");
             var expectedUserName = "john.doe";
-            var expectedPassword = "letmein123";
+            var expectedPassword = "letmein123";  // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
             var expectedAuthCode = "123456";
             IEnumerable<string> expectedPatScopes = new[]
             {

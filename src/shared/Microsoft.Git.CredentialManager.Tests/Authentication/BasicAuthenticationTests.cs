@@ -24,10 +24,10 @@ namespace Microsoft.Git.CredentialManager.Tests.Authentication
         {
             const string testResource = "https://example.com";
             const string testUserName = "john.doe";
-            const string testPassword = "letmein123";
+            const string testPassword = "letmein123"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
 
             var context = new TestCommandContext {SessionManager = {IsDesktopSession = false}};
-            context.Terminal.SecretPrompts["Password"] = testPassword;
+            context.Terminal.SecretPrompts["Password"] = testPassword; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
 
             var basicAuth = new BasicAuthentication(context);
 
@@ -42,11 +42,11 @@ namespace Microsoft.Git.CredentialManager.Tests.Authentication
         {
             const string testResource = "https://example.com";
             const string testUserName = "john.doe";
-            const string testPassword = "letmein123";
+            const string testPassword = "letmein123"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
 
             var context = new TestCommandContext {SessionManager = {IsDesktopSession = false}};
             context.Terminal.Prompts["Username"] = testUserName;
-            context.Terminal.SecretPrompts["Password"] = testPassword;
+            context.Terminal.SecretPrompts["Password"] = testPassword; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
 
             var basicAuth = new BasicAuthentication(context);
 
@@ -77,7 +77,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Authentication
         {
             const string testResource = "https://example.com";
             const string testUserName = "john.doe";
-            const string testPassword = "letmein123";
+            const string testPassword = "letmein123"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
 
             var context = new TestCommandContext
             {
@@ -108,7 +108,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Authentication
         {
             const string testResource = "https://example.com";
             const string testUserName = "john.doe";
-            const string testPassword = "letmein123";
+            const string testPassword = "letmein123"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
 
             var context = new TestCommandContext
             {
@@ -140,7 +140,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Authentication
             const string testResource = "https://example.com";
             const string testUserName = "john.doe";
             const string newUserName  = "jane.doe";
-            const string testPassword = "letmein123";
+            const string testPassword = "letmein123"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
 
             var context = new TestCommandContext
             {

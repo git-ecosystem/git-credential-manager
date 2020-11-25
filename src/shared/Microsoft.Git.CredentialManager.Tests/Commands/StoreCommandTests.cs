@@ -40,7 +40,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Commands
         public async Task StoreCommand_ExecuteAsync_CallsHostProvider()
         {
             const string testUserName = "john.doe";
-            const string testPassword = "letmein123";
+            const string testPassword = "letmein123"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
             var stdin = $"username={testUserName}\npassword={testPassword}\n\n";
             var expectedInput = new InputArguments(new Dictionary<string, string>
             {

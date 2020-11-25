@@ -12,6 +12,8 @@ namespace GitHub
         public const string DefaultAuthenticationHelper = "GitHub.UI";
 
         public const string OAuthClientId = "0120e057bd645470c1ed";
+
+        // [SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification="OAuth2 public client application 'secrets' are required and permitted to be public")]
         public const string OAuthClientSecret = "18867509d956965542b521a529a79bb883344c90";
         public static readonly Uri OAuthRedirectUri = new Uri("http://localhost/");
         public static readonly Uri OAuthAuthorizationEndpointRelativeUri = new Uri("/login/oauth/authorize", UriKind.Relative);
