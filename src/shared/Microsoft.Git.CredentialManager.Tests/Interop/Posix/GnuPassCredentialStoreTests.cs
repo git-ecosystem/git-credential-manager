@@ -26,7 +26,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop.Posix
             string uniqueGuid = Guid.NewGuid().ToString("N");
             string service = $"https://example.com/{uniqueGuid}";
             const string userName = "john.doe";
-            const string password = "letmein123";
+            const string password = "letmein123"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
 
             string expectedSlug = $"{TestNamespace}/https/example.com/{uniqueGuid}/{userName}.gpg";
             string expectedFilePath = Path.Combine(storeRoot, expectedSlug);

@@ -24,7 +24,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             string uniqueGuid = Guid.NewGuid().ToString("N");
             string service = $"https://example.com/{uniqueGuid}";
             const string userName = "john.doe";
-            const string password = "letmein123";
+            const string password = "letmein123"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
 
             string expectedSlug = Path.Combine(
                 TestNamespace,

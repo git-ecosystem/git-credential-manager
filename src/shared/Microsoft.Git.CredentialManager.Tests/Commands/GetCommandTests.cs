@@ -42,7 +42,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Commands
         public async Task GetCommand_ExecuteAsync_CallsHostProviderAndWritesCredential()
         {
             const string testUserName = "john.doe";
-            const string testPassword = "letmein123";
+            const string testPassword = "letmein123"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
             ICredential testCredential = new GitCredential(testUserName, testPassword);
             var expectedStdOutDict = new Dictionary<string, string>
             {
