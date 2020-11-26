@@ -10,7 +10,7 @@ steps:
     inputs:
       command: build
       projects: 'Git-Credential-Manager.sln'
-      arguments: '--configuration=Linux$(configuration) -r linux-amd64'
+      arguments: '--configuration=Linux$(configuration) -r linux-x64'
     
   - task: DotNetCoreCLI@2
     displayName: Compile common code (arm64)

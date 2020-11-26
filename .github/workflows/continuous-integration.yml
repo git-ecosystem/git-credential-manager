@@ -36,7 +36,7 @@ jobs:
     - name: Build Linux
       if: contains(matrix.os, 'ubuntu')
       run: |
-        dotnet build --configuration LinuxRelease -r linux-amd64
+        dotnet build --configuration LinuxRelease -r linux-x64
         dotnet build --configuration LinuxRelease -r linux-arm64
 
     - name: Build macOS

@@ -27,7 +27,7 @@ jobs:
 
     - name: Build Linux Payloads
       run: |
-        dotnet build -c Release -r linux-amd64 src/linux/Packaging.Linux/Packaging.Linux.csproj 
+        dotnet build -c Release -r linux-x64 src/linux/Packaging.Linux/Packaging.Linux.csproj 
         dotnet build -c Release -r linux-arm64 src/linux/Packaging.Linux/Packaging.Linux.csproj 
 
     - name: Upload Installers
