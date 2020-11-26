@@ -23,7 +23,9 @@ jobs:
       run: dotnet restore --force
 
     - name: Build Linux Payloads
-      run: dotnet build -c Release src/linux/Packaging.Linux/Packaging.Linux.csproj
+      run: |
+        dotnet build -c Release -r linux-amd64 src/linux/Packaging.Linux/Packaging.Linux.csproj
+        dotnet build -c Release -r linux-arm64 src/linux/Packaging.Linux/Packaging.Linux.csproj
 
     - name: Upload Installers
       uses: actions/upload-artifact@v2

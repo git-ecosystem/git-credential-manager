@@ -32,11 +32,32 @@ case "$i" in
     VERSION="${i#*=}"
     shift # past argument=value
     ;;
+    --runtime=*)
+    RUNTIME="${i#*=}"
+    shift # past argument=value
+    ;;
     *)
           # unknown option
     ;;
 esac
 done
+
+# Fall back to host architecture if no explicit runtime is given.
+if test -z "$RUNTIME"; then
+    HOST_ARCH="`dpkg-architecture -q DEB_HOST_ARCH`"
+
+    case $HOST_ARCH in
+        amd64)
+            RUNTIME="linux-x64"
+            ;;
+        arm64)
+            RUNTIME="linux-arm64"
+            ;;
+        *)
+            die "Could not determine host architecture!"
+            ;;
+    esac
+fi
 
 # Directories
 THISDIR="$( cd "$(dirname "$0")" ; pwd -P )"
@@ -48,17 +69,24 @@ PROJ_OUT="$OUT/linux/Packaging.Linux"
 
 # Build parameters
 FRAMEWORK=netcoreapp3.1
-RUNTIME=linux-x64
+case $RUNTIME in
+    linux-x64)
+        ARCH="x64"
+        ;;
+    linux-arm64)
+        ARCH="arm64"
+        ;;
+    *)
+        die "Incompatible runtime architecture given for build.sh"
+		;;
+esac
+
+echo "Building for runtime ${RUNTIME} and arch ${ARCH}"
 
 # Perform pre-execution checks
 CONFIGURATION="${CONFIGURATION:=Debug}"
 if [ -z "$VERSION" ]; then
     die "--version was not set"
-fi
-
-ARCH="`dpkg-architecture -q DEB_HOST_ARCH`"
-if test -z "$ARCH"; then
-  die "Could not determine host architecture!"
 fi
 
 # Outputs

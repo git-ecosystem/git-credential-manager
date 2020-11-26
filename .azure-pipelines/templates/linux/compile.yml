@@ -6,11 +6,18 @@ steps:
       version: 3.1.x
 
   - task: DotNetCoreCLI@2
-    displayName: Compile common code
+    displayName: Compile common code (amd64)
     inputs:
       command: build
       projects: 'Git-Credential-Manager.sln'
-      arguments: '--configuration=Linux$(configuration)'
+      arguments: '--configuration=Linux$(configuration) -r linux-amd64'
+    
+  - task: DotNetCoreCLI@2
+    displayName: Compile common code (arm64)
+    inputs:
+      command: build
+      projects: 'Git-Credential-Manager.sln'
+      arguments: '--configuration=Linux$(configuration) -r linux-arm64'
 
   - task: DotNetCoreCLI@2
     displayName: Run common unit tests

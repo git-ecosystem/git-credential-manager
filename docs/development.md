@@ -49,6 +49,12 @@ To build from the command line, run:
 dotnet build -c LinuxDebug
 ```
 
+If you want to build for a specific architecture, you can provide `linux-amd64` or `linux-arm64` as the runtime:
+
+```shell
+dotnet build -c LinuxDebug -r linux-arm64
+```
+
 You can find a copy of the Debian package (.deb) file in `out/linux/Packaging.Linux/deb/Debug`.
 
 The flat binaries can also be found in `out/linux/Packaging.Linux/payload/Debug`.
