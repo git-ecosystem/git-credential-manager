@@ -71,7 +71,7 @@ PROJ_OUT="$OUT/linux/Packaging.Linux"
 FRAMEWORK=netcoreapp3.1
 case $RUNTIME in
     linux-x64)
-        ARCH="x64"
+        ARCH="amd64"
         ;;
     linux-arm64)
         ARCH="arm64"
