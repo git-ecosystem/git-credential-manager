@@ -82,8 +82,8 @@ namespace GitHub
                     if ((modes & AuthenticationModes.OAuth) != 0) promptArgs.Append(" --oauth");
                     if ((modes & AuthenticationModes.Pat)   != 0) promptArgs.Append(" --pat");
                 }
-                if (!GitHubHostProvider.IsGitHubDotCom(targetUri)) promptArgs.AppendFormat(" --enterprise-url \"{0}\"", targetUri);
-                if (!string.IsNullOrWhiteSpace(userName)) promptArgs.AppendFormat(" --username \"{0}\"", userName);
+                if (!GitHubHostProvider.IsGitHubDotCom(targetUri)) promptArgs.AppendFormat(" --enterprise-url {0}", QuoteCmdArg(targetUri.ToString()));
+                if (!string.IsNullOrWhiteSpace(userName)) promptArgs.AppendFormat(" --username {0}", QuoteCmdArg(userName));
 
                 IDictionary<string, string> resultDict = await InvokeHelperAsync(helperPath, promptArgs.ToString(), null);
 
