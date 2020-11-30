@@ -52,16 +52,35 @@ namespace GitHub
                 return false;
             }
 
-            // Split port number and hostname from host input argument
-            input.TryGetHostAndPort(out string hostName, out _);
-
             // We do not support unencrypted HTTP communications to GitHub,
             // but we report `true` here for HTTP so that we can show a helpful
             // error message for the user in `CreateCredentialAsync`.
-            return (StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "http") ||
-                    StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "https")) &&
-                   (StringComparer.OrdinalIgnoreCase.Equals(hostName, GitHubConstants.GitHubBaseUrlHost) ||
-                    StringComparer.OrdinalIgnoreCase.Equals(hostName, GitHubConstants.GistBaseUrlHost));
+            if (!StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "http") &&
+                !StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "https"))
+            {
+                return false;
+            }
+
+            // Split port number and hostname from host input argument
+            input.TryGetHostAndPort(out string hostName, out _);
+
+            if (StringComparer.OrdinalIgnoreCase.Equals(hostName, GitHubConstants.GitHubBaseUrlHost) ||
+                StringComparer.OrdinalIgnoreCase.Equals(hostName, GitHubConstants.GistBaseUrlHost))
+            {
+                return true;
+            }
+
+            string[] domains = hostName.Split(new char[] { '.' });
+
+            // github[.subdomain].domain.tld
+            if (domains.Length >= 3 && domains[0] == "github")
+                return true;
+
+            // gist.github[.subdomain].domain.tld
+            if (domains.Length >= 4 && domains[0] == "gist" && domains[1] == "github")
+                return true;
+
+            return false;
         }
 
         public override string GetServiceName(InputArguments input)
@@ -264,10 +283,11 @@ namespace GitHub
             }
 
             // Special case for gist.github.com which are git backed repositories under the hood.
-            // Credentials for these repositories are the same as the one stored with "github.com"
-            if (uri.DnsSafeHost.Equals(GitHubConstants.GistBaseUrlHost, StringComparison.OrdinalIgnoreCase))
-            {
-                return new Uri("https://" + GitHubConstants.GitHubBaseUrlHost);
+            // Credentials for these repositories are the same as the one stored with "github.com".
+            // Same for gist.github[.subdomain].domain.tld. The general form was already checked via IsSupported.
+            int firstDot = uri.DnsSafeHost.IndexOf(".");
+            if (uri.DnsSafeHost.Substring(0, firstDot).Equals("gist", StringComparison.OrdinalIgnoreCase)) {
+                return new Uri("https://" + uri.DnsSafeHost.Substring(firstDot+1));
             }
 
             return uri;

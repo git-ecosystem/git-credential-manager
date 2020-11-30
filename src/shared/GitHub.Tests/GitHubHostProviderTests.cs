@@ -30,10 +30,26 @@ namespace GitHub.Tests
         // show a helpful error message in the call to `GenerateCredentialAsync` instead.
         [InlineData("http://github.com", true)]
         [InlineData("http://gist.github.com", true)]
-        [InlineData("https://github.com", true)]
-        [InlineData("https://gist.github.com", true)]
         [InlineData("ssh://github.com", false)]
         [InlineData("https://example.com", false)]
+
+        [InlineData("https://github.com", true)]
+        [InlineData("https://github.con", false)] // No support of phony similar tld.
+        [InlineData("https://gist.github.con", false)] // No support of phony similar tld.
+        [InlineData("https://foogithub.com", false)] // No support of non github.com domains.
+        [InlineData("https://api.github.com", false)] // No support of github.com subdomains.
+        [InlineData("https://gist.github.com", true)] // Except gists.
+
+        [InlineData("http://github.my-company-server.com", true)]
+        [InlineData("http://gist.github.my-company-server.com", true)]
+        [InlineData("https://github.my-company-server.com", true)]
+        [InlineData("https://gist.github.my-company-server.com", true)]
+        [InlineData("https://gist.my-company-server.com", false)]
+        [InlineData("https://my-company-server.com", false)]
+        [InlineData("https://github.my.company.server.com", true)]
+        [InlineData("https://foogithub.my-company-server.com", false)]
+        [InlineData("https://api.github.my-company-server.com", false)]
+        [InlineData("https://gist.github.my.company.server.com", true)]
         public void GitHubHostProvider_IsSupported(string uriString, bool expected)
         {
             Uri uri = new Uri(uriString);
@@ -55,6 +71,10 @@ namespace GitHub.Tests
         [Theory]
         [InlineData("https://github.com", "https://github.com")]
         [InlineData("https://gist.github.com", "https://github.com")]
+        [InlineData("https://github.my-company-server.com", "https://github.my-company-server.com")]
+        [InlineData("https://gist.github.my-company-server.com", "https://github.my-company-server.com")]
+        [InlineData("https://github.my.company.server.com", "https://github.my.company.server.com")]
+        [InlineData("https://gist.github.my.company.server.com", "https://github.my.company.server.com")]
         public void GitHubHostProvider_GetCredentialServiceUrl(string uriString, string expectedService)
         {
             Uri uri = new Uri(uriString);
