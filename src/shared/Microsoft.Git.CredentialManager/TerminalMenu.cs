@@ -1,10 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
-using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace Microsoft.Git.CredentialManager
 {
@@ -19,22 +16,22 @@ namespace Microsoft.Git.CredentialManager
             Title = title;
         }
 
-        public string Title { get; }
+        public string Title { get; set; }
 
-        public void Add(TerminalMenuItem item)
+        public TerminalMenuItem Add(string name)
         {
-            if (item.IsDefault && _items.Any(x => x.IsDefault))
-            {
-                throw new ArgumentException("A default menu item has already been added.");
-            }
-
+            var item = new TerminalMenuItem(name);
             _items.Add(item);
+            return item;
         }
 
-        public int Show()
+        public TerminalMenuItem Show(int? defaultOption = null)
         {
-            TerminalMenuItem defaultItem = _items.FirstOrDefault(x => x.IsDefault);
-            bool hasDefault = !(defaultItem is null);
+            bool hasDefault = defaultOption.HasValue && defaultOption.Value > -1;
+            if (hasDefault)
+            {
+                EnsureArgument.InRange(defaultOption.Value, nameof(defaultOption), 0, _items.Count, upperInclusive: false);
+            }
 
             string title = $"{Title ?? "Select an option"}:";
 
@@ -45,10 +42,12 @@ namespace Microsoft.Git.CredentialManager
             {
                 _terminal.WriteLine(title);
 
-                foreach (TerminalMenuItem item in _items)
+                for (var i = 0; i < _items.Count; i++)
                 {
-                    string itemDefaultTag = item.IsDefault ? " (default)" : string.Empty;
-                    _terminal.WriteLine($"  {item.Id}. {item.Name}{itemDefaultTag}");
+                    string itemDefaultTag = i == defaultOption ? " (default)" : string.Empty;
+
+                    // Use 1-based numbers for the UI
+                    _terminal.WriteLine($"  {i + 1}. {_items[i].Name}{itemDefaultTag}");
                 }
 
                 string optionStr = _terminal.Prompt(prompt);
@@ -57,7 +56,7 @@ namespace Microsoft.Git.CredentialManager
                 {
                     if (hasDefault)
                     {
-                        return defaultItem.Id;
+                        return _items[defaultOption.Value];
                     }
 
                     _terminal.WriteLine("No default option is configured.\n");
@@ -70,13 +69,17 @@ namespace Microsoft.Git.CredentialManager
                     continue;
                 }
 
-                if (_items.All(x => x.Id != option))
+                // The option as the user enters it is using a 1-based index
+                // so we must subtract one to get to the 0-based index we use here.
+                option--;
+
+                if (option < 0 || option >= _items.Count)
                 {
                     _terminal.WriteLine($"Invalid option '{optionStr}'.\n");
                     continue;
                 }
 
-                return option;
+                return _items[option];
             }
         }
 
@@ -93,17 +96,11 @@ namespace Microsoft.Git.CredentialManager
 
     public class TerminalMenuItem
     {
-        public TerminalMenuItem(int id, string name, bool isDefault = false)
+        public TerminalMenuItem(string name)
         {
-            Id = id;
             Name = name;
-            IsDefault = isDefault;
         }
 
-        public int Id { get; }
-
         public string Name { get; }
-
-        public bool IsDefault { get; }
     }
 }

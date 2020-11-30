@@ -7,12 +7,14 @@ namespace GitHub.UI.Login
 {
     public class LoginCredentialsViewModel : WindowViewModel
     {
-        public LoginCredentialsViewModel(bool showUsernameAuth, bool showBrowserAuth)
+        public LoginCredentialsViewModel(bool showUsernameAuth, bool showBrowserAuth, bool showPatAuth)
         {
             isLoginUsingUsernameAndPasswordVisible = showUsernameAuth;
             isLoginUsingBrowserVisible = showBrowserAuth;
+            isLoginUsingTokenVisible = showPatAuth;
 
             LoginUsingUsernameAndPasswordCommand = new RelayCommand(LoginUsingUsernameAndPassword, CanLoginUsingUsernameAndPassword);
+            LoginUsingTokenCommand = new RelayCommand(LoginUsingToken, CanLoginUsingToken);
             LoginUsingBrowserCommand = new RelayCommand(LoginUsingBrowser);
 
             PropertyChanged += LoginCredentialsViewModel_PropertyChanged;
@@ -26,10 +28,14 @@ namespace GitHub.UI.Login
                 case nameof(Password):
                     LoginUsingUsernameAndPasswordCommand.RaiseCanExecuteChanged();
                     break;
+
+                case nameof(Token):
+                    LoginUsingTokenCommand.RaiseCanExecuteChanged();
+                    break;
             }
         }
 
-        public override bool IsValid => IsLoginUsingBrowserVisible || CanLoginUsingUsernameAndPassword();
+        public override bool IsValid => IsLoginUsingBrowserVisible || CanLoginUsingToken() || CanLoginUsingUsernameAndPassword();
 
         public override string Title => GitHubResources.LoginTitle;
 
@@ -37,6 +43,11 @@ namespace GitHub.UI.Login
         /// The command that will be invoked when the user attempts to login with a username and password combination.
         /// </summary>
         public RelayCommand LoginUsingUsernameAndPasswordCommand { get; }
+
+        /// <summary>
+        /// The command that will be invoked when the user attempts to login with an access token.
+        /// </summary>
+        public RelayCommand LoginUsingTokenCommand { get; }
 
         /// <summary>
         /// The command that will be invoked when the user clicks on the "Sign in with your browser" link
@@ -73,6 +84,16 @@ namespace GitHub.UI.Login
         }
         private SecureString password = null;
 
+        /// <summary>
+        /// The value that is typed into the token textbox.
+        /// </summary>
+        public SecureString Token
+        {
+            get => token;
+            set => SetAndRaisePropertyChanged(ref token, value);
+        }
+        private SecureString token = null;
+
         public bool IsLoginUsingUsernameAndPasswordVisible
         {
             get => isLoginUsingUsernameAndPasswordVisible;
@@ -87,6 +108,23 @@ namespace GitHub.UI.Login
         }
         private bool isLoginUsingBrowserVisible;
 
+        public bool IsLoginUsingTokenVisible
+        {
+            get => isLoginUsingTokenVisible;
+            set => SetAndRaisePropertyChanged(ref isLoginUsingTokenVisible, value);
+        }
+        private bool isLoginUsingTokenVisible;
+        
+        public bool IsBrowserSeparatorVisible
+        {
+            get => IsLoginUsingBrowserVisible && (IsLoginUsingUsernameAndPasswordVisible || IsLoginUsingTokenVisible);
+        }
+        
+        public bool IsTokenSeparatorVisible
+        {
+            get => IsLoginUsingUsernameAndPasswordVisible && IsLoginUsingTokenVisible;
+        }
+
         public string ErrorMessage
         {
             get => errorMessage;
@@ -94,7 +132,7 @@ namespace GitHub.UI.Login
         }
         private string errorMessage;
 
-        public bool UseBrowserLogin { get; private set; }
+        public CredentialPromptResult SelectedAuthType { get; private set; }
 
         /// <summary>
         /// Should the user be allowed to attempt to login with a username and password combination?
@@ -104,15 +142,26 @@ namespace GitHub.UI.Login
             return !string.IsNullOrEmpty(UsernameOrEmail) && password != null && password.Length > 0;
         }
 
+        private bool CanLoginUsingToken()
+        {
+            return token != null && token.Length > 0;
+        }
+
         private void LoginUsingUsernameAndPassword()
         {
-            UseBrowserLogin = false;
+            SelectedAuthType = CredentialPromptResult.BasicAuthentication;
+            Accept();
+        }
+
+        private void LoginUsingToken()
+        {
+            SelectedAuthType = CredentialPromptResult.PersonalAccessToken;
             Accept();
         }
 
         private void LoginUsingBrowser()
         {
-            UseBrowserLogin = true;
+            SelectedAuthType = CredentialPromptResult.OAuthAuthentication;
             Accept();
         }
     }

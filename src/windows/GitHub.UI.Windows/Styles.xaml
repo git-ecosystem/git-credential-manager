@@ -13,7 +13,6 @@
 
     <Style x:Key="DialogContainerDockPanel" TargetType="DockPanel">
         <Setter Property="LastChildFill" Value="True" />
-        <Setter Property="Margin" Value="0,0,0,30" />
         <Setter Property="FocusVisualStyle" Value="{x:Null}" />
         <Setter Property="FocusManager.IsFocusScope" Value="True" />
     </Style>

@@ -221,7 +221,8 @@ namespace GitHub.Tests
 
             var ghAuthMock = new Mock<IGitHubAuthentication>(MockBehavior.Strict);
             ghAuthMock.Setup(x => x.GetAuthenticationAsync(expectedTargetUri, null, It.IsAny<AuthenticationModes>()))
-                      .ReturnsAsync(new AuthenticationPromptResult(new GitCredential(expectedUserName, expectedPassword)));
+                      .ReturnsAsync(new AuthenticationPromptResult(
+                          AuthenticationModes.Basic, new GitCredential(expectedUserName, expectedPassword)));
 
             var ghApiMock = new Mock<IGitHubRestApi>(MockBehavior.Strict);
             ghApiMock.Setup(x => x.CreatePersonalAccessTokenAsync(expectedTargetUri, expectedUserName, expectedPassword, null, It.IsAny<IEnumerable<string>>()))
@@ -270,7 +271,8 @@ namespace GitHub.Tests
 
             var ghAuthMock = new Mock<IGitHubAuthentication>(MockBehavior.Strict);
             ghAuthMock.Setup(x => x.GetAuthenticationAsync(expectedTargetUri, null, It.IsAny<AuthenticationModes>()))
-                      .ReturnsAsync(new AuthenticationPromptResult(new GitCredential(expectedUserName, expectedPassword)));
+                      .ReturnsAsync(new AuthenticationPromptResult(
+                          AuthenticationModes.Basic, new GitCredential(expectedUserName, expectedPassword)));
             ghAuthMock.Setup(x => x.GetTwoFactorCodeAsync(expectedTargetUri, false))
                       .ReturnsAsync(expectedAuthCode);
 

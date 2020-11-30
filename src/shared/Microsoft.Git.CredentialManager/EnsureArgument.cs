@@ -75,5 +75,28 @@ namespace Microsoft.Git.CredentialManager
                 throw new ArgumentOutOfRangeException(name, "Argument must be negative.");
             }
         }
+
+        public static void InRange(int arg, string name, int lower, int upper, bool lowerInclusive = true, bool upperInclusive = true)
+        {
+            if (lowerInclusive && arg < lower)
+            {
+                throw new ArgumentOutOfRangeException(name, $"Argument must be greater than or equal to {lower}.");
+            }
+
+            if (!lowerInclusive && arg <= lower)
+            {
+                throw new ArgumentOutOfRangeException(name, $"Argument must be strictly greater than {lower}.");
+            }
+
+            if (upperInclusive && arg > upper)
+            {
+                throw new ArgumentOutOfRangeException(name, $"Argument must be less than or equal to {upper}.");
+            }
+
+            if (!upperInclusive && arg >= upper)
+            {
+                throw new ArgumentOutOfRangeException(name, $"Argument must be strictly less than {upper}.");
+            }
+        }
     }
 }

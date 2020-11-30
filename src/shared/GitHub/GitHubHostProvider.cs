@@ -96,7 +96,7 @@ namespace GitHub
             switch (promptResult.AuthenticationMode)
             {
                 case AuthenticationModes.Basic:
-                    GitCredential patCredential = await GeneratePersonalAccessTokenAsync(remoteUri, promptResult.BasicCredential);
+                    GitCredential patCredential = await GeneratePersonalAccessTokenAsync(remoteUri, promptResult.Credential);
 
                     // HACK: Store the PAT immediately in case this PAT is not valid for SSO.
                     // We don't know if this PAT is valid for SAML SSO and if it's not Git will fail
@@ -110,6 +110,22 @@ namespace GitHub
 
                 case AuthenticationModes.OAuth:
                     return await GenerateOAuthCredentialAsync(remoteUri);
+
+                case AuthenticationModes.Pat:
+                    // The token returned by the user should be good to use directly as the password for Git
+                    string token = promptResult.Credential.Password;
+
+                    // Resolve the GitHub user handle if we don't have a specific username already from the
+                    // initial request. The reason for this is GitHub requires a (any?) value for the username
+                    // when Git makes calls to GitHub.
+                    string userName = promptResult.Credential.Account;
+                    if (userName is null)
+                    {
+                        GitHubUserInfo userInfo = await _gitHubApi.GetUserInfoAsync(remoteUri, token);
+                        userName = userInfo.Login;
+                    }
+
+                    return new GitCredential(userName, token);
 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(promptResult));
@@ -186,7 +202,8 @@ namespace GitHub
                 }
             }
 
-            // GitHub.com should use OAuth authentication only
+            // GitHub.com should use OAuth or manual PAT based authentication only, never basic auth as of 13th November 2020
+            // https://developer.github.com/changes/2020-02-14-deprecating-oauth-auth-endpoint
             if (IsGitHubDotCom(targetUri))
             {
                 Context.Trace.WriteLine($"{targetUri} is github.com - authentication schemes: '{GitHubConstants.DotComAuthenticationModes}'");
@@ -194,7 +211,7 @@ namespace GitHub
             }
 
             // For GitHub Enterprise we must do some detection of supported modes
-            Context.Trace.WriteLine($"{targetUri} is GitHub Enterprise - checking for supporting authentication schemes...");
+            Context.Trace.WriteLine($"{targetUri} is GitHub Enterprise - checking for supported authentication schemes...");
 
             try
             {
@@ -219,7 +236,9 @@ namespace GitHub
                 Context.Trace.WriteException(ex);
 
                 Context.Terminal.WriteLine($"warning: failed to query '{targetUri}' for supported authentication schemes.");
-                return AuthenticationModes.Basic | AuthenticationModes.OAuth;
+
+                // Fall-back to offering all modes so the user is never blocked from authenticating by at least one mode
+                return AuthenticationModes.All;
             }
         }
 

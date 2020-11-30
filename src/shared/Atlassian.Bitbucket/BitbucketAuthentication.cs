@@ -50,7 +50,7 @@ namespace Atlassian.Bitbucket
                 var cmdArgs = new StringBuilder("userpass");
                 if (!string.IsNullOrWhiteSpace(userName))
                 {
-                    cmdArgs.AppendFormat(" --username {0}", userName);
+                    cmdArgs.AppendFormat(" --username {0}", QuoteCmdArg(userName));
                 }
 
                 IDictionary<string, string> output = await InvokeHelperAsync(helperPath, cmdArgs.ToString());
