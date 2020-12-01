@@ -72,9 +72,9 @@ namespace Microsoft.Git.CredentialManager
             if (!_settings.IsCertificateVerificationEnabled)
             {
                 _trace.WriteLine("TLS certificate verification has been disabled.");
-                _streams.Error.WriteLine("warning: ┌──────────────── SECURITY WARNING ───────────────┐");
-                _streams.Error.WriteLine("warning: │ TLS certificate verification has been disabled! │");
-                _streams.Error.WriteLine("warning: └─────────────────────────────────────────────────┘");
+                _streams.Error.WriteLine("warning: ----------------- SECURITY WARNING ----------------");
+                _streams.Error.WriteLine("warning: | TLS certificate verification has been disabled! |");
+                _streams.Error.WriteLine("warning: ---------------------------------------------------");
                 _streams.Error.WriteLine($"warning: HTTPS connections may not be secure. See {Constants.HelpUrls.GcmTlsVerification} for more information.");
 
 #if NETFRAMEWORK
