@@ -277,18 +277,18 @@ namespace Microsoft.Git.CredentialManager
                      * We've slightly changed the behaviour of this setting in GCM Core to essentially
                      * remove the 'always' option. The table below outlines the changes:
                      *
-                     * ┌──────────┬───────────────────────────┬────────────────────┐
-                     * │ Value(s) │ Old meaning               │ New meaning        │
-                     * ┝━━━━━━━━━━┿━━━━━━━━━━━━━━━━━━━━━━━━━━━┿━━━━━━━━━━━━━━━━━━━━┥
-                     * │ auto     │ Prompt if required        │ [unchanged]        │
-                     * ├──────────┼───────────────────────────┼────────────────────┤
-                     * │ never    │ Never prompt ─ fail if    │ [unchanged]        │
-                     * │ false    │ interaction is required   │                    │
-                     * ├──────────┼───────────────────────────┼────────────────────┤
-                     * │ always   │ Always prompt ─ don't use │ Prompt if required │
-                     * │ force    │ cached credentials        │                    │
-                     * │ true     │                           │                    │
-                     * └──────────┴───────────────────────────┴────────────────────┘
+                     * -------------------------------------------------------------
+                     * | Value(s) | Old meaning               | New meaning        |
+                     * |-----------------------------------------------------------|
+                     * | auto     | Prompt if required        | [unchanged]        |
+                     * |-----------------------------------------------------------|
+                     * | never    | Never prompt ─ fail if    | [unchanged]        |
+                     * | false    | interaction is required   |                    |
+                     * |-----------------------------------------------------------|
+                     * | always   | Always prompt ─ don't use | Prompt if required |
+                     * | force    | cached credentials        |                    |
+                     * | true     |                           |                    |
+                     * -------------------------------------------------------------
                      */
                     if (StringComparer.OrdinalIgnoreCase.Equals("never", value))
                     {
