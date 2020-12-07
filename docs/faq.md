@@ -47,11 +47,17 @@ Yes. Usage of Git Credential Manager for Mac and Linux (Java GCM) should be repl
 
 ### Q: I want to use SSH
 
-GCM Core is for HTTPS only. To use SSH please follow the below links:
+GCM Core is only useful for HTTP(S)-based remotes. Git supports SSH out-of-the box so you shouldn't need to install anything else.
+
+To use SSH please follow the below links:
 
 - [Azure DevOps](https://docs.microsoft.com/en-us/azure/devops/repos/git/use-ssh-keys-to-authenticate?view=azure-devops)
 - [GitHub](https://help.github.com/en/articles/connecting-to-github-with-ssh)
 - [Bitbucket](https://confluence.atlassian.com/bitbucket/ssh-keys-935365775.html)
+
+### Q: Are HTTP(S) remotes preferred over SSH?
+
+No, neither are "preferred". SSH isn't going away, and is supported "natively" in Git.
 
 ### Q: Why did you not just port the existing GCM Windows codebase from .NET Framework to .NET Core?
 
