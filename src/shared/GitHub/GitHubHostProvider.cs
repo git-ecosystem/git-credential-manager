@@ -73,12 +73,19 @@ namespace GitHub
             string[] domains = hostName.Split(new char[] { '.' });
 
             // github[.subdomain].domain.tld
-            if (domains.Length >= 3 && domains[0] == "github")
+            if (domains.Length >= 3 &&
+                StringComparer.OrdinalIgnoreCase.Equals(domains[0], "github"))
+            {
                 return true;
+            }
 
             // gist.github[.subdomain].domain.tld
-            if (domains.Length >= 4 && domains[0] == "gist" && domains[1] == "github")
+            if (domains.Length >= 4 &&
+                StringComparer.OrdinalIgnoreCase.Equals(domains[0], "gist") &&
+                StringComparer.OrdinalIgnoreCase.Equals(domains[1], "github"))
+            {
                 return true;
+            }
 
             return false;
         }
@@ -286,7 +293,7 @@ namespace GitHub
             // Credentials for these repositories are the same as the one stored with "github.com".
             // Same for gist.github[.subdomain].domain.tld. The general form was already checked via IsSupported.
             int firstDot = uri.DnsSafeHost.IndexOf(".");
-            if (uri.DnsSafeHost.Substring(0, firstDot).Equals("gist", StringComparison.OrdinalIgnoreCase)) {
+            if (firstDot > -1 && uri.DnsSafeHost.Substring(0, firstDot).Equals("gist", StringComparison.OrdinalIgnoreCase)) {
                 return new Uri("https://" + uri.DnsSafeHost.Substring(firstDot+1));
             }
 

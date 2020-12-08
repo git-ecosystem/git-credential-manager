@@ -39,6 +39,8 @@ namespace GitHub.Tests
         [InlineData("https://foogithub.com", false)] // No support of non github.com domains.
         [InlineData("https://api.github.com", false)] // No support of github.com subdomains.
         [InlineData("https://gist.github.com", true)] // Except gists.
+        [InlineData("https://GiST.GitHub.Com", true)]
+        [InlineData("https://GitHub.Com", true)]
 
         [InlineData("http://github.my-company-server.com", true)]
         [InlineData("http://gist.github.my-company-server.com", true)]
@@ -50,6 +52,8 @@ namespace GitHub.Tests
         [InlineData("https://foogithub.my-company-server.com", false)]
         [InlineData("https://api.github.my-company-server.com", false)]
         [InlineData("https://gist.github.my.company.server.com", true)]
+        [InlineData("https://GitHub.My-Company-Server.Com", true)]
+        [InlineData("https://GiST.GitHub.My-Company-Server.com", true)]
         public void GitHubHostProvider_IsSupported(string uriString, bool expected)
         {
             Uri uri = new Uri(uriString);
@@ -61,7 +65,7 @@ namespace GitHub.Tests
             });
 
             // Ensure nothing got lost during transformation
-            Assert.Equal(uriString, input.Protocol + "://" + input.Host);
+            Assert.Equal(uriString.ToLower(), input.Protocol + "://" + input.Host);
 
             var provider = new GitHubHostProvider(new TestCommandContext());
             Assert.Equal(expected, provider.IsSupported(input));
@@ -70,11 +74,17 @@ namespace GitHub.Tests
 
         [Theory]
         [InlineData("https://github.com", "https://github.com")]
+        [InlineData("https://GitHub.Com", "https://github.com")]
         [InlineData("https://gist.github.com", "https://github.com")]
+        [InlineData("https://GiST.GitHub.Com", "https://github.com")]
         [InlineData("https://github.my-company-server.com", "https://github.my-company-server.com")]
+        [InlineData("https://GitHub.My-Company-Server.Com", "https://github.my-company-server.com")]
         [InlineData("https://gist.github.my-company-server.com", "https://github.my-company-server.com")]
+        [InlineData("https://GiST.GitHub.My-Company-Server.Com", "https://github.my-company-server.com")]
         [InlineData("https://github.my.company.server.com", "https://github.my.company.server.com")]
+        [InlineData("https://GitHub.My.Company.Server.Com", "https://github.my.company.server.com")]
         [InlineData("https://gist.github.my.company.server.com", "https://github.my.company.server.com")]
+        [InlineData("https://GiST.GitHub.My.Company.Server.Com", "https://github.my.company.server.com")]
         public void GitHubHostProvider_GetCredentialServiceUrl(string uriString, string expectedService)
         {
             Uri uri = new Uri(uriString);
@@ -86,7 +96,7 @@ namespace GitHub.Tests
             });
 
             // Ensure nothing got lost during transformation
-            Assert.Equal(uriString, input.Protocol + "://" + input.Host);
+            Assert.Equal(uriString.ToLower(), input.Protocol + "://" + input.Host);
 
             var provider = new GitHubHostProvider(new TestCommandContext());
             Assert.Equal(expectedService, provider.GetServiceName(input));
@@ -96,8 +106,11 @@ namespace GitHub.Tests
         [Theory]
         [InlineData("https://example.com", "oauth", AuthenticationModes.OAuth)]
         [InlineData("https://github.com", "NOT-A-REAL-VALUE", GitHubConstants.DotComAuthenticationModes)]
+        [InlineData("https://GitHub.Com", "NOT-A-REAL-VALUE", GitHubConstants.DotComAuthenticationModes)]
         [InlineData("https://github.com", "none", GitHubConstants.DotComAuthenticationModes)]
+        [InlineData("https://GitHub.Com", "none", GitHubConstants.DotComAuthenticationModes)]
         [InlineData("https://github.com", null, GitHubConstants.DotComAuthenticationModes)]
+        [InlineData("https://GitHub.Com", null, GitHubConstants.DotComAuthenticationModes)]
         public async Task GitHubHostProvider_GetSupportedAuthenticationModes(string uriString, string gitHubAuthModes, AuthenticationModes expectedModes)
         {
             var targetUri = new Uri(uriString);
