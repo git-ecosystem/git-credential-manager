@@ -11,9 +11,14 @@ namespace Microsoft.Git.CredentialManager.Interop.Windows
 {
     public class WindowsEnvironment : EnvironmentBase
     {
-        public WindowsEnvironment(IFileSystem fileSystem) : base(fileSystem)
+        public WindowsEnvironment(IFileSystem fileSystem)
+            : this(fileSystem, GetCurrentVariables()) { }
+
+        internal WindowsEnvironment(IFileSystem fileSystem, IReadOnlyDictionary<string, string> variables)
+            : base(fileSystem)
         {
-            Variables = GetCurrentVariables();
+            EnsureArgument.NotNull(variables, nameof(variables));
+            Variables = variables;
         }
 
         #region EnvironmentBase
@@ -67,34 +72,24 @@ namespace Microsoft.Git.CredentialManager.Interop.Windows
 
         public override bool TryLocateExecutable(string program, out string path)
         {
-            string wherePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "where.exe");
-            var psi = new ProcessStartInfo(wherePath, program)
+            // Don't use "where.exe" on Windows as this includes the current working directory
+            // and we don't want to enumerate this location; only the PATH.
+            if (Variables.TryGetValue("PATH", out string pathValue))
             {
-                UseShellExecute = false,
-                RedirectStandardOutput = true
-            };
-
-            using (var where = new Process {StartInfo = psi})
-            {
-                where.Start();
-                where.WaitForExit();
-
-                switch (where.ExitCode)
+                string[] paths = SplitPathVariable(pathValue);
+                foreach (var basePath in paths)
                 {
-                    case 0: // found
-                        string stdout = where.StandardOutput.ReadToEnd();
-                        string[] results = stdout.Split(new[] {'\r', '\n'}, StringSplitOptions.RemoveEmptyEntries);
-                        path = results.First();
+                    string candidatePath = Path.Combine(basePath, program);
+                    if (FileSystem.FileExists(candidatePath))
+                    {
+                        path = candidatePath;
                         return true;
-
-                    case 1: // not found
-                        path = null;
-                        return false;
-
-                    default:
-                        throw new Exception($"Unknown error locating '{program}' using where.exe. Exit code: {where.ExitCode}.");
+                    }
                 }
             }
+
+            path = null;
+            return false;
         }
 
         #endregion
