@@ -51,7 +51,7 @@ To install, run the following:
 
 ```shell
 brew tap microsoft/git
-brew cask install git-credential-manager-core
+brew install --cask git-credential-manager-core
 ```
 
 After installing you can stay up-to-date with new releases by running:
