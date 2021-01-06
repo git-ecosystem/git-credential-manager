@@ -243,7 +243,7 @@ namespace GitHub
             {
                 GitHubMetaInfo metaInfo = await _gitHubApi.GetMetaInfoAsync(targetUri);
 
-                var modes = AuthenticationModes.None;
+                var modes = AuthenticationModes.Pat;
                 if (metaInfo.VerifiablePasswordAuthentication)
                 {
                     modes |= AuthenticationModes.Basic;
