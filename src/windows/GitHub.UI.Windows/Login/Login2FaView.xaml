@@ -45,7 +45,7 @@
 
         <StackPanel Orientation="Horizontal"
                     HorizontalAlignment="Center"
-                    Margin="0,40,0,60">
+                    Margin="0,40">
             <Button x:Name="okButton"
                     TabIndex="2"
                     IsDefault="True"

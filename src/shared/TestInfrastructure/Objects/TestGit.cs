@@ -42,7 +42,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
 
         private static IDictionary<string, IList<string>> MergeDictionaries(params IDictionary<string, IList<string>>[] dictionaries)
         {
-            var result = new Dictionary<string, IList<string>>();
+            var result = new Dictionary<string, IList<string>>(GitConfigurationKeyComparer.Instance);
 
             foreach (IDictionary<string, IList<string>> dict in dictionaries)
             {

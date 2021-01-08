@@ -50,7 +50,7 @@ jobs:
       with:
         name: LinuxInstallers
 
-    - uses: Azure/login@v1.1
+    - uses: azure/login@v1
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 

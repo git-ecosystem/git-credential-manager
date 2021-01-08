@@ -19,7 +19,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop.Windows
             string uniqueGuid = Guid.NewGuid().ToString("N");
             string service = $"https://example.com/{uniqueGuid}";
             const string userName = "john.doe";
-            const string password = "letmein123";
+            const string password = "letmein123"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
 
             string expectedTargetName = $"{TestNamespace}:https://example.com/{uniqueGuid}";
 
@@ -55,7 +55,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop.Windows
             string uniqueGuid = Guid.NewGuid().ToString("N");
             string service = $"https://example.com/{uniqueGuid}";
             const string userName = "john.doe@auth.com";
-            const string password = "letmein123";
+            const string password = "letmein123"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
 
             string expectedTargetName = $"{TestNamespace}:https://example.com/{uniqueGuid}";
 
@@ -116,8 +116,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop.Windows
             string service = $"https://example.com/{uniqueGuid}";
             const string userName1 = "john.doe";
             const string userName2 = "jane.doe";
-            const string password1 = "letmein123";
-            const string password2 = "password123";
+            const string password1 = "letmein123";  // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
+            const string password2 = "password123"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
 
             string expectedTargetName1 = $"{TestNamespace}:https://example.com/{uniqueGuid}";
             string expectedTargetName2 = $"{TestNamespace}:https://{userName2}@example.com/{uniqueGuid}";
@@ -167,8 +167,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Interop.Windows
             const string userName1 = "john.doe@auth.com";
             const string userName2 = "jane.doe@auth.com";
             const string escapedUserName2 = "jane.doe_auth.com";
-            const string password1 = "letmein123";
-            const string password2 = "password123";
+            const string password1 = "letmein123";  // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
+            const string password2 = "password123"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
 
             string expectedTargetName1 = $"{TestNamespace}:https://example.com/{uniqueGuid}";
             string expectedTargetName2 = $"{TestNamespace}:https://{escapedUserName2}@example.com/{uniqueGuid}";

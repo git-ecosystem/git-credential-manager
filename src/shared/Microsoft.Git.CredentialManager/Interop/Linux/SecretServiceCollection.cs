@@ -245,6 +245,7 @@ namespace Microsoft.Git.CredentialManager.Interop.Linux
             GHashTable* secretAttrs = null;
             IntPtr serviceKeyPtr = IntPtr.Zero;
             IntPtr accountKeyPtr = IntPtr.Zero;
+            SecretValue* value = null;
             IntPtr passwordPtr = IntPtr.Zero;
             GError* error = null;
 
@@ -264,14 +265,14 @@ namespace Microsoft.Git.CredentialManager.Interop.Linux
 
                 // Load the secret value
                 secret_item_load_secret_sync(item, IntPtr.Zero, out error);
-                SecretValue* value = secret_item_get_secret(item);
+                value = secret_item_get_secret(item);
                 if (value == null)
                 {
                     throw new InteropException("Failed to load secret", -1);
                 }
 
                 // Extract the secret/password
-                passwordPtr = secret_value_unref_to_password(value, out int passwordLength);
+                passwordPtr = secret_value_get(value, out int passwordLength);
                 string password = Marshal.PtrToStringAuto(passwordPtr, passwordLength);
 
                 return new SecretServiceCredential(service, account, password);
@@ -281,6 +282,7 @@ namespace Microsoft.Git.CredentialManager.Interop.Linux
                 if (secretAttrs != null) g_hash_table_unref(secretAttrs);
                 if (accountKeyPtr != IntPtr.Zero) Marshal.FreeHGlobal(accountKeyPtr);
                 if (serviceKeyPtr != IntPtr.Zero) Marshal.FreeHGlobal(serviceKeyPtr);
+                if (value != null) secret_value_unref(value);
                 if (passwordPtr != IntPtr.Zero) secret_password_free(passwordPtr);
                 if (error != null) g_error_free(error);
             }

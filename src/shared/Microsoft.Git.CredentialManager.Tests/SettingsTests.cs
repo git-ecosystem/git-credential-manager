@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Git.CredentialManager.Tests.Objects;
 using Xunit;
@@ -1036,6 +1037,94 @@ namespace Microsoft.Git.CredentialManager.Tests
             };
             string[] actualValues = settings.GetSettingValues(envarName, section, property).ToArray();
 
+            Assert.Equal(expectedValues, actualValues);
+        }
+
+        [Fact]
+        public void Settings_GetSettingValues_ReturnsAllMatchingValues()
+        {
+            const string remoteUrl = "http://example.com/foo/bar/bazz.git";
+            const string broadScope = "example.com";
+            const string tightScope = "example.com/foo/bar";
+            const string otherScope1 = "test.com";
+            const string otherScope2 = "sub.test.com";
+            const string envarName = "GCM_TESTVAR";
+            const string envarValue = "envar-value";
+            const string section = "gcmtest";
+            const string property = "bar";
+            var remoteUri = new Uri(remoteUrl);
+
+            const string tightScopeValue = "value-scope1";
+            const string broadScopeValue = "value-scope2";
+            const string noScopeValue = "value-no-scope";
+            const string otherValue1 = "other-scope1";
+            const string otherValue2 = "other-scope2";
+
+            string[] expectedValues = {envarValue, tightScopeValue, broadScopeValue, noScopeValue};
+
+            var envars = new TestEnvironment
+            {
+                Variables = {[envarName] = envarValue}
+            };
+
+            var git = new TestGit();
+            git.LocalConfiguration[$"{section}.{property}"] = noScopeValue;
+            git.LocalConfiguration[$"{section}.{broadScope}.{property}"] = broadScopeValue;
+            git.LocalConfiguration[$"{section}.{tightScope}.{property}"] = tightScopeValue;
+            git.LocalConfiguration[$"{section}.{otherScope1}.{property}"] = otherValue1;
+            git.LocalConfiguration[$"{section}.{otherScope2}.{property}"] = otherValue2;
+
+            var settings = new Settings(envars, git)
+            {
+                RemoteUri = remoteUri
+            };
+
+            string[] actualValues = settings.GetSettingValues(envarName, section, property).ToArray();
+
+            Assert.NotNull(actualValues);
+            Assert.Equal(expectedValues, actualValues);
+        }
+
+        [Fact]
+        public void Settings_GetSettingValues_IgnoresSectionAndPropertyCase_ScopeIsCaseSensitive()
+        {
+            const string remoteUrl = "http://example.com/foo/bar/bazz.git";
+            const string scopeLo = "example.com";
+            const string scopeHi = "EXAMPLE.COM";
+            const string envarName = "GCM_TESTVAR";
+            const string envarValue = "envar-value";
+            const string sectionLo = "gcmtest";
+            const string sectionHi = "GCMTEST";
+            const string sectionMix = "GcMtEsT";
+            const string propertyLo = "bar";
+            const string propertyHi = "BAR";
+            const string propertyMix = "bAr";
+            var remoteUri = new Uri(remoteUrl);
+
+            const string noScopeValue = "the-value";
+            const string lowScopeValue = "value-scope-lo";
+            const string highScopeValue = "value-scope-hi";
+
+            string[] expectedValues = {envarValue, lowScopeValue, noScopeValue};
+
+            var envars = new TestEnvironment
+            {
+                Variables = {[envarName] = envarValue}
+            };
+
+            var git = new TestGit();
+            git.LocalConfiguration[$"{sectionLo}.{propertyHi}"] = noScopeValue;
+            git.LocalConfiguration[$"{sectionHi}.{scopeLo}.{propertyHi}"] = lowScopeValue;
+            git.LocalConfiguration[$"{sectionLo}.{scopeHi}.{propertyLo}"] = highScopeValue;
+
+            var settings = new Settings(envars, git)
+            {
+                RemoteUri = remoteUri
+            };
+
+            string[] actualValues = settings.GetSettingValues(envarName, sectionMix, propertyMix).ToArray();
+
+            Assert.NotNull(actualValues);
             Assert.Equal(expectedValues, actualValues);
         }
     }

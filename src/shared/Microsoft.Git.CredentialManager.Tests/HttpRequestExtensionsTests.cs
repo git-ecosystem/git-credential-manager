@@ -12,7 +12,7 @@ namespace Microsoft.Git.CredentialManager.Tests
         {
             const string expected = "aGVsbG8tbXlfbmFtZSBpczpqb2huLmRvZTp0aGlzIWlzQVA0U1NXMFJEOiB3aXRoPyBfbG90cyBvZi8gY2hhcnM=";
             const string testUserName = "hello-my_name is:john.doe";
-            const string testPassword = "this!isAP4SSW0RD: with? _lots of/ chars";
+            const string testPassword = "this!isAP4SSW0RD: with? _lots of/ chars"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
 
             TestAddBasicAuthenticationHeader(testUserName, testPassword, expected);
         }
@@ -22,7 +22,7 @@ namespace Microsoft.Git.CredentialManager.Tests
         {
             const string expected = "OmxldG1laW4xMjM=";
             const string testUserName = "";
-            const string testPassword = "letmein123";
+            const string testPassword = "letmein123"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
 
             TestAddBasicAuthenticationHeader(testUserName, testPassword, expected);
         }
@@ -32,7 +32,7 @@ namespace Microsoft.Git.CredentialManager.Tests
         {
             const string expected = "am9obi5kb2U6";
             const string testUserName = "john.doe";
-            const string testPassword = "";
+            const string testPassword = ""; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
 
             TestAddBasicAuthenticationHeader(testUserName, testPassword, expected);
         }
@@ -42,7 +42,7 @@ namespace Microsoft.Git.CredentialManager.Tests
         {
             const string expected = "Og==";
             const string testUserName = "";
-            const string testPassword = "";
+            const string testPassword = ""; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
 
             TestAddBasicAuthenticationHeader(testUserName, testPassword, expected);
         }

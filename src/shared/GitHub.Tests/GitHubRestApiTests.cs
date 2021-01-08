@@ -18,7 +18,7 @@ namespace GitHub.Tests
         public async Task GitHubRestApi_AcquireTokenAsync_NullUri_ThrowsException()
         {
             const string testUserName = "john.doe";
-            const string testPassword = "letmein123";
+            const string testPassword = "letmein123"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
             const string testAuthCode = "1234";
             string[] testScopes = { "scope1", "scope2" };
 
@@ -34,7 +34,7 @@ namespace GitHub.Tests
         public async Task GitHubRestApi_AcquireTokenAsync_NoNetwork_ThrowsException()
         {
             const string testUserName = "john.doe";
-            const string testPassword = "letmein123";
+            const string testPassword = "letmein123"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
             const string testAuthCode = "1234";
             string[] testScopes = { "scope1", "scope2" };
 
@@ -55,7 +55,7 @@ namespace GitHub.Tests
         public async Task GitHubRestApi_AcquireTokenAsync_ValidRequestOK_ReturnsToken()
         {
             const string testUserName = "john.doe";
-            const string testPassword = "letmein123";
+            const string testPassword = "letmein123"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
             const string testAuthCode = "1234";
             string[] testScopes = { "scope1", "scope2" };
 
@@ -95,7 +95,7 @@ namespace GitHub.Tests
         public async Task GitHubRestApi_AcquireTokenAsync_ValidRequestOKBadJson_ReturnsFailure()
         {
             const string testUserName = "john.doe";
-            const string testPassword = "letmein123";
+            const string testPassword = "letmein123"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
             const string testAuthCode = "1234";
             string[] testScopes = { "scope1", "scope2" };
 
@@ -132,7 +132,7 @@ namespace GitHub.Tests
         public async Task GitHubRestApi_AcquireTokenAsync_ValidRequestCreated_ReturnsToken()
         {
             const string testUserName = "john.doe";
-            const string testPassword = "letmein123";
+            const string testPassword = "letmein123"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
             const string testAuthCode = "1234";
             string[] testScopes = { "scope1", "scope2" };
 
@@ -172,7 +172,7 @@ namespace GitHub.Tests
         public async Task GitHubRestApi_AcquireTokenAsync_Valid1FANoAppAuthCode_ReturnsApp2FARequired()
         {
             const string testUserName = "john.doe";
-            const string testPassword = "letmein123";
+            const string testPassword = "letmein123"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
             string[] testScopes = { "scope1", "scope2" };
 
             var context = new TestCommandContext();
@@ -204,7 +204,7 @@ namespace GitHub.Tests
         public async Task GitHubRestApi_AcquireTokenAsync_Valid1FANoSmsAuthCode_ReturnsSms2FARequired()
         {
             const string testUserName = "john.doe";
-            const string testPassword = "letmein123";
+            const string testPassword = "letmein123"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
             string[] testScopes = { "scope1", "scope2" };
 
             var context = new TestCommandContext();
@@ -236,7 +236,7 @@ namespace GitHub.Tests
         public async Task GitHubRestApi_AcquireTokenAsync_ValidOAuthToken_ReturnsOAuthToken()
         {
             const string testUserName = "john.doe";
-            const string testOAuthToken = "TestOAuthToken";
+            const string testOAuthToken = "TestOAuthToken"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
             string[] testScopes = { "scope1", "scope2" };
 
             var context = new TestCommandContext();
@@ -272,7 +272,7 @@ namespace GitHub.Tests
         public async Task GitHubRestApi_AcquireTokenAsync_Unauthorized_ReturnsFailure()
         {
             const string testUserName = "john.doe";
-            const string testPassword = "letmein123";
+            const string testPassword = "letmein123"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
             const string testAuthCode = "1234";
             string[] testScopes = { "scope1", "scope2" };
 
@@ -307,7 +307,7 @@ namespace GitHub.Tests
         public async Task GitHubRestApi_AcquireTokenAsync_Forbidden_ReturnsFailure()
         {
             const string testUserName = "john.doe";
-            const string testPassword = "letmein123";
+            const string testPassword = "letmein123"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
             const string testAuthCode = "1234";
             string[] testScopes = { "scope1", "scope2" };
 
@@ -342,7 +342,7 @@ namespace GitHub.Tests
         public async Task GitHubRestApi_AcquireTokenAsync_UnknownResponse_ReturnsFailure()
         {
             const string testUserName = "john.doe";
-            const string testPassword = "letmein123";
+            const string testPassword = "letmein123"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
             const string testAuthCode = "1234";
             string[] testScopes = { "scope1", "scope2" };
 

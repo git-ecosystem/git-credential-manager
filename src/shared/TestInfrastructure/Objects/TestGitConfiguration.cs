@@ -11,7 +11,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
     {
         public TestGitConfiguration(IDictionary<string, IList<string>> config = null)
         {
-            Dictionary = config ?? new Dictionary<string, IList<string>>();
+            Dictionary = config ?? new Dictionary<string, IList<string>>(GitConfigurationKeyComparer.Instance);
         }
 
         /// <summary>

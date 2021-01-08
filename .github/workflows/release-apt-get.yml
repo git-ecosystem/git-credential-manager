@@ -1,0 +1,52 @@
+name: "release-apt-get"
+on:
+  release:
+    types: [released]
+
+  workflow_dispatch:
+    inputs:
+      release:
+        description: 'Release Tag'
+        required: true
+        default: 'latest'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+    - name: setup python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+
+    - uses: actions/checkout@v2
+
+    - uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: 'Download Repo Client'
+      env:
+        AZ_SUB: ${{ secrets.AZURE_SUBSCRIPTION }}
+      run: |
+        az storage blob download --subscription  "$AZ_SUB" --account-name gitcitoolstore -c tools -n azure-repoapi-client_2.0.1_amd64.deb -f repoclient.deb --auth-mode login
+
+    - name: "Install Repo Client"
+      env:
+        APT_REPO_ID: ${{ secrets.APT_REPO_ID }}
+        AZURE_AAD_ID: ${{ secrets.AZURE_AAD_ID }}
+        AAD_CLIENT_SECRET: ${{ secrets.AAD_CLIENT_SECRET }}
+      run: |
+        sudo apt-get install python3-adal --yes
+        sudo dpkg -i repoclient.deb
+        python .github/configure_repoclient.py
+        rm repoclient.deb
+
+    - name: "Publish to apt feed"
+      env:
+        RELEASE: ${{ github.event.inputs.release }}
+      run: |
+        pip install requests
+        python .github/fetch_release.py
+        wget "$(cat asset_url.txt)"
+        repoclient -v v3 -c config.json package add --check --wait 300 "$(cat asset_name.txt)" 

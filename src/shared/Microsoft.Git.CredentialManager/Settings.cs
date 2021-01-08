@@ -200,12 +200,16 @@ namespace Microsoft.Git.CredentialManager
                      *   4b. [section "example.com"]
                      *          property = value
                      *
+                     * It is also important to note that although the section and property names are NOT case
+                     * sensitive, the "scope" part IS case sensitive! We must be careful when searching to ensure
+                     * we follow Git's rules.
+                     *
                      */
 
                     // Enumerate all configuration entries with the correct section and property name
                     // and make a local copy of them here to avoid needing to call `TryGetValue` on the
                     // IGitConfiguration object multiple times in a loop below.
-                    var configEntries = new Dictionary<string, string>();
+                    var configEntries = new Dictionary<string, string>(GitConfigurationKeyComparer.Instance);
                     config.Enumerate((entryName, entryValue) =>
                     {
                         string entrySection = entryName.TruncateFromIndexOf('.');
@@ -273,18 +277,18 @@ namespace Microsoft.Git.CredentialManager
                      * We've slightly changed the behaviour of this setting in GCM Core to essentially
                      * remove the 'always' option. The table below outlines the changes:
                      *
-                     * ┌──────────┬───────────────────────────┬────────────────────┐
-                     * │ Value(s) │ Old meaning               │ New meaning        │
-                     * ┝━━━━━━━━━━┿━━━━━━━━━━━━━━━━━━━━━━━━━━━┿━━━━━━━━━━━━━━━━━━━━┥
-                     * │ auto     │ Prompt if required        │ [unchanged]        │
-                     * ├──────────┼───────────────────────────┼────────────────────┤
-                     * │ never    │ Never prompt ─ fail if    │ [unchanged]        │
-                     * │ false    │ interaction is required   │                    │
-                     * ├──────────┼───────────────────────────┼────────────────────┤
-                     * │ always   │ Always prompt ─ don't use │ Prompt if required │
-                     * │ force    │ cached credentials        │                    │
-                     * │ true     │                           │                    │
-                     * └──────────┴───────────────────────────┴────────────────────┘
+                     * -------------------------------------------------------------
+                     * | Value(s) | Old meaning               | New meaning        |
+                     * |-----------------------------------------------------------|
+                     * | auto     | Prompt if required        | [unchanged]        |
+                     * |-----------------------------------------------------------|
+                     * | never    | Never prompt ─ fail if    | [unchanged]        |
+                     * | false    | interaction is required   |                    |
+                     * |-----------------------------------------------------------|
+                     * | always   | Always prompt ─ don't use | Prompt if required |
+                     * | force    | cached credentials        |                    |
+                     * | true     |                           |                    |
+                     * -------------------------------------------------------------
                      */
                     if (StringComparer.OrdinalIgnoreCase.Equals("never", value))
                     {

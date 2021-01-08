@@ -5,9 +5,10 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d"
         xmlns:viewModels="clr-namespace:Microsoft.Git.CredentialManager.UI.ViewModels"
         Width="414"
-        Height="460"
-        MinWidth="414"
-        MinHeight="460"
+        SizeToContent="Height"
+        MinHeight="320"
+        MaxWidth="414"
+        MaxHeight="520"
         Background="{DynamicResource WindowPanelBrush}"
         Foreground="{DynamicResource WindowPanelTextBrush}"
         FontFamily="Segoe UI"
@@ -120,7 +121,7 @@
 
             </DockPanel>
 
-            <ContentControl x:Name="ContentHolder" Margin="30,30,30,0"/>
+            <ContentControl x:Name="ContentHolder" Margin="30"/>
         </DockPanel>
     </Border>
 </Window>

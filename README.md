@@ -51,7 +51,7 @@ To install, run the following:
 
 ```shell
 brew tap microsoft/git
-brew cask install git-credential-manager-core
+brew install --cask git-credential-manager-core
 ```
 
 After installing you can stay up-to-date with new releases by running:
@@ -114,7 +114,23 @@ git-credential-manager-core configure
 
 ### Windows
 
-You can download the [latest installer](https://github.com/microsoft/Git-Credential-Manager-Core/releases/latest) for Windows. To install, double-click the installation package and follow the instructions presented.
+You can download the [latest installer](https://github.com/microsoft/Git-Credential-Manager-Core/releases/latest) for Windows to install GCM Core standalone.
+
+**:warning: Important :warning:**
+
+Installing GCM Core as a standalone package on Windows will forcably override the version of GCM Core that is bundled with Git for Windows, **even if the version bundled with Git for Windows is a later version**.
+
+There are two flavors of standalone installation on Windows:
+
+- User (preferred) (`gcmcoreuser-win*`):
+
+  Does not require administrator rights. Will install only for the current user and updates only the current user's Git configuration.
+
+- System (`gcmcore-win*`):
+
+  Requires administrator rights. Will install for all users on the system and update the system-wide Git configuration.
+
+To install, double-click the desired installation package and follow the instructions presented.
 
 #### Git Credential Manager for Windows
 

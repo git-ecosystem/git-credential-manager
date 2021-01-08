@@ -27,6 +27,7 @@ then
 fi
 
 # Create symlink to GCM in /usr/local/bin
+mkdir -p /usr/local/bin
 /bin/ln -Fs "$INSTALL_DESTINATION/git-credential-manager-core" /usr/local/bin/git-credential-manager-core
 
 # Configure GCM for the current user
