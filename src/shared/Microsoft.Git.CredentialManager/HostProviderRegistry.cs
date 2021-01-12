@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Microsoft.Git.CredentialManager
 {
@@ -28,7 +29,7 @@ namespace Microsoft.Git.CredentialManager
         /// </summary>
         /// <param name="input">Input arguments of a Git credential query.</param>
         /// <returns>A host provider that can service the given query.</returns>
-        IHostProvider GetProvider(InputArguments input);
+        Task<IHostProvider> GetProviderAsync(InputArguments input);
     }
 
     /// <summary>
@@ -72,7 +73,7 @@ namespace Microsoft.Git.CredentialManager
             _hostProviders.AddRange(hostProviders);
         }
 
-        public IHostProvider GetProvider(InputArguments input)
+        public Task<IHostProvider> GetProviderAsync(InputArguments input)
         {
             IHostProvider provider;
 
@@ -94,7 +95,7 @@ namespace Microsoft.Git.CredentialManager
                     }
                     else
                     {
-                        return provider;
+                        return Task.FromResult(provider);
                     }
                 }
             }
@@ -118,7 +119,7 @@ namespace Microsoft.Git.CredentialManager
                     }
                     else
                     {
-                        return provider;
+                        return Task.FromResult(provider);
                     }
                 }
             }
@@ -134,7 +135,7 @@ namespace Microsoft.Git.CredentialManager
                 throw new Exception("No host provider available to service this request.");
             }
 
-            return provider;
+            return Task.FromResult(provider);
         }
 
         public void Dispose()

@@ -1,5 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
+using System.Threading.Tasks;
+
 namespace Microsoft.Git.CredentialManager.Tests.Objects
 {
     public class TestHostProviderRegistry : IHostProviderRegistry
@@ -12,9 +14,9 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
         {
         }
 
-        IHostProvider IHostProviderRegistry.GetProvider(InputArguments input)
+        Task<IHostProvider> IHostProviderRegistry.GetProviderAsync(InputArguments input)
         {
-            return Provider;
+            return Task.FromResult(Provider);
         }
 
         #endregion

@@ -19,8 +19,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Commands
             var mockProvider = new Mock<IHostProvider>();
             var mockHostRegistry = new Mock<IHostProviderRegistry>();
 
-            mockHostRegistry.Setup(x => x.GetProvider(It.IsAny<InputArguments>()))
-                .Returns(mockProvider.Object)
+            mockHostRegistry.Setup(x => x.GetProviderAsync(It.IsAny<InputArguments>()))
+                .ReturnsAsync(mockProvider.Object)
                 .Verifiable();
 
             mockProvider.Setup(x => x.IsSupported(It.IsAny<InputArguments>()))
@@ -58,8 +58,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Commands
             var mockSettings = new Mock<ISettings>();
             var mockHostRegistry = new Mock<IHostProviderRegistry>();
 
-            mockHostRegistry.Setup(x => x.GetProvider(It.IsAny<InputArguments>()))
-                .Returns(mockProvider.Object);
+            mockHostRegistry.Setup(x => x.GetProviderAsync(It.IsAny<InputArguments>()))
+                .ReturnsAsync(mockProvider.Object);
 
             string standardIn = "protocol=test\nhost=example.com\npath=a/b/c\n\n";
             TextReader standardInReader = new StringReader(standardIn);

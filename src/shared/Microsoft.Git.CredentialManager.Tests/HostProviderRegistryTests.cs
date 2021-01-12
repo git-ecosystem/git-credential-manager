@@ -2,6 +2,7 @@
 // Licensed under the MIT license.
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.Git.CredentialManager.Tests.Objects;
 using Moq;
 using Xunit;
@@ -39,11 +40,11 @@ namespace Microsoft.Git.CredentialManager.Tests
             var registry = new HostProviderRegistry(context);
             var input = new InputArguments(new Dictionary<string, string>());
 
-            Assert.Throws<Exception>(() => registry.GetProvider(input));
+            Assert.ThrowsAsync<Exception>(() => registry.GetProviderAsync(input));
         }
 
         [Fact]
-        public void HostProviderRegistry_GetProvider_Auto_HasProviders_ReturnsSupportedProvider()
+        public async Task HostProviderRegistry_GetProvider_Auto_HasProviders_ReturnsSupportedProvider()
         {
             var context = new TestCommandContext();
             var registry = new HostProviderRegistry(context);
@@ -58,13 +59,13 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             registry.Register(provider1Mock.Object, provider2Mock.Object, provider3Mock.Object);
 
-            IHostProvider result = registry.GetProvider(input);
+            IHostProvider result = await registry.GetProviderAsync(input);
 
             Assert.Same(provider2Mock.Object, result);
         }
 
         [Fact]
-        public void HostProviderRegistry_GetProvider_Auto_MultipleValidProviders_ReturnsFirstRegistered()
+        public async Task HostProviderRegistry_GetProvider_Auto_MultipleValidProviders_ReturnsFirstRegistered()
         {
             var context = new TestCommandContext();
             var registry = new HostProviderRegistry(context);
@@ -79,13 +80,13 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             registry.Register(provider1Mock.Object, provider2Mock.Object, provider3Mock.Object);
 
-            IHostProvider result = registry.GetProvider(input);
+            IHostProvider result = await registry.GetProviderAsync(input);
 
             Assert.Same(provider1Mock.Object, result);
         }
 
         [Fact]
-        public void HostProviderRegistry_GetProvider_ProviderSpecified_ReturnsProvider()
+        public async Task HostProviderRegistry_GetProvider_ProviderSpecified_ReturnsProvider()
         {
             var context = new TestCommandContext
             {
@@ -106,13 +107,13 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             registry.Register(provider1Mock.Object, provider2Mock.Object, provider3Mock.Object);
 
-            IHostProvider result = registry.GetProvider(input);
+            IHostProvider result = await registry.GetProviderAsync(input);
 
             Assert.Same(provider3Mock.Object, result);
         }
 
         [Fact]
-        public void HostProviderRegistry_GetProvider_AutoProviderSpecified_ReturnsFirstSupportedProvider()
+        public async Task HostProviderRegistry_GetProvider_AutoProviderSpecified_ReturnsFirstSupportedProvider()
         {
             var context = new TestCommandContext
             {
@@ -133,13 +134,13 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             registry.Register(provider1Mock.Object, provider2Mock.Object, provider3Mock.Object);
 
-            IHostProvider result = registry.GetProvider(input);
+            IHostProvider result = await registry.GetProviderAsync(input);
 
             Assert.Same(provider2Mock.Object, result);
         }
 
         [Fact]
-        public void HostProviderRegistry_GetProvider_UnknownProviderSpecified_ReturnsFirstSupportedProvider()
+        public async Task HostProviderRegistry_GetProvider_UnknownProviderSpecified_ReturnsFirstSupportedProvider()
         {
             var context = new TestCommandContext
             {
@@ -160,13 +161,13 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             registry.Register(provider1Mock.Object, provider2Mock.Object, provider3Mock.Object);
 
-            IHostProvider result = registry.GetProvider(input);
+            IHostProvider result = await registry.GetProviderAsync(input);
 
             Assert.Same(provider2Mock.Object, result);
         }
 
         [Fact]
-        public void HostProviderRegistry_GetProvider_LegacyAuthoritySpecified_ReturnsProvider()
+        public async Task HostProviderRegistry_GetProvider_LegacyAuthoritySpecified_ReturnsProvider()
         {
             var context = new TestCommandContext
             {
@@ -187,13 +188,13 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             registry.Register(provider1Mock.Object, provider2Mock.Object, provider3Mock.Object);
 
-            IHostProvider result = registry.GetProvider(input);
+            IHostProvider result = await registry.GetProviderAsync(input);
 
             Assert.Same(provider2Mock.Object, result);
         }
 
         [Fact]
-        public void HostProviderRegistry_GetProvider_AutoLegacyAuthoritySpecified_ReturnsFirstSupportedProvider()
+        public async Task HostProviderRegistry_GetProvider_AutoLegacyAuthoritySpecified_ReturnsFirstSupportedProvider()
         {
             var context = new TestCommandContext
             {
@@ -214,7 +215,7 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             registry.Register(provider1Mock.Object, provider2Mock.Object, provider3Mock.Object);
 
-            IHostProvider result = registry.GetProvider(input);
+            IHostProvider result = await registry.GetProviderAsync(input);
 
             Assert.Same(provider2Mock.Object, result);
         }
