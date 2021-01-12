@@ -10,7 +10,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
 
         #region IHostProviderRegistry
 
-        void IHostProviderRegistry.Register(params IHostProvider[] hostProviders)
+        void IHostProviderRegistry.Register(IHostProvider hostProvider, HostProviderPriority priority)
         {
         }
 

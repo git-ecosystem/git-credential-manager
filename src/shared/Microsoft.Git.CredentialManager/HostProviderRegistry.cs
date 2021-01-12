@@ -8,6 +8,16 @@ using System.Threading.Tasks;
 namespace Microsoft.Git.CredentialManager
 {
     /// <summary>
+    /// Priority in which host providers are queried during auto-detection.
+    /// </summary>
+    public enum HostProviderPriority
+    {
+        Low = 0,
+        Normal = 1,
+        High = 2,
+    }
+
+    /// <summary>
     /// Represents a collection of <see cref="IHostProvider"/>s which are selected based on Git credential query
     /// <see cref="InputArguments"/>.
     /// </summary>
@@ -17,11 +27,12 @@ namespace Microsoft.Git.CredentialManager
     public interface IHostProviderRegistry : IDisposable
     {
         /// <summary>
-        /// Add the given <see cref="IHostProvider"/>(s) to this registry.
+        /// Add the given <see cref="IHostProvider"/> to this registry.
         /// </summary>
-        /// <param name="hostProviders">A collection of providers to register.</param>
+        /// <param name="hostProvider">Host provider to register.</param>
+        /// <param name="priority">Priority at which the provider will be considered when auto-detecting.</param>
         /// <remarks>Providers will be disposed of when this registry instance is disposed itself.</remarks>
-        void Register(params IHostProvider[] hostProviders);
+        void Register(IHostProvider hostProvider, HostProviderPriority priority);
 
         /// <summary>
         /// Select a <see cref="IHostProvider"/> that can service the Git credential query based on the
@@ -33,44 +44,47 @@ namespace Microsoft.Git.CredentialManager
     }
 
     /// <summary>
-    /// A simple host provider registry where each provider is queried in registration order until the first
+    /// Host provider registry where each provider is queried by priority order until the first
     /// provider that supports the credential query is found.
     /// </summary>
     public class HostProviderRegistry : IHostProviderRegistry
     {
         private readonly ICommandContext _context;
-        private readonly List<IHostProvider> _hostProviders;
+        private readonly IDictionary<HostProviderPriority, ICollection<IHostProvider>> _hostProviders;
 
         public HostProviderRegistry(ICommandContext context)
         {
             EnsureArgument.NotNull(context, nameof(context));
 
             _context = context;
-            _hostProviders = new List<IHostProvider>();
+            _hostProviders = new Dictionary<HostProviderPriority, ICollection<IHostProvider>>();
         }
 
-        public void Register(params IHostProvider[] hostProviders)
+        public void Register(IHostProvider hostProvider, HostProviderPriority priority)
         {
-            if (hostProviders == null)
-            {
-                throw new ArgumentNullException(nameof(hostProviders));
-            }
+            EnsureArgument.NotNull(hostProvider, nameof(hostProvider));
 
-            if (hostProviders.Any(x => StringComparer.OrdinalIgnoreCase.Equals(x.Id, Constants.ProviderIdAuto)))
+            if (StringComparer.OrdinalIgnoreCase.Equals(hostProvider.Id, Constants.ProviderIdAuto))
             {
                 throw new ArgumentException(
                     $"A host provider cannot be registered with the ID '{Constants.ProviderIdAuto}'",
-                    nameof(hostProviders));
+                    nameof(hostProvider));
             }
 
-            if (hostProviders.SelectMany(x => x.SupportedAuthorityIds).Any(y => StringComparer.OrdinalIgnoreCase.Equals(y, Constants.AuthorityIdAuto)))
+            if (hostProvider.SupportedAuthorityIds.Any(y => StringComparer.OrdinalIgnoreCase.Equals(y, Constants.AuthorityIdAuto)))
             {
                 throw new ArgumentException(
                     $"A host provider cannot be registered with the legacy authority ID '{Constants.AuthorityIdAuto}'",
-                    nameof(hostProviders));
+                    nameof(hostProvider));
             }
 
-            _hostProviders.AddRange(hostProviders);
+            if (!_hostProviders.TryGetValue(priority, out ICollection<IHostProvider> providers))
+            {
+                providers = new List<IHostProvider>();
+                _hostProviders[priority] = providers;
+            }
+
+            providers.Add(hostProvider);
         }
 
         public Task<IHostProvider> GetProviderAsync(InputArguments input)
@@ -86,7 +100,9 @@ namespace Microsoft.Git.CredentialManager
 
                 if (!StringComparer.OrdinalIgnoreCase.Equals(Constants.ProviderIdAuto, providerId))
                 {
-                    provider = _hostProviders.FirstOrDefault(x => StringComparer.OrdinalIgnoreCase.Equals(x.Id, providerId));
+                    provider = _hostProviders
+                        .SelectMany(x => x.Value)
+                        .FirstOrDefault(x => StringComparer.OrdinalIgnoreCase.Equals(x.Id, providerId));
 
                     if (provider is null)
                     {
@@ -110,7 +126,9 @@ namespace Microsoft.Git.CredentialManager
 
                 if (!StringComparer.OrdinalIgnoreCase.Equals(Constants.AuthorityIdAuto, authority))
                 {
-                    provider = _hostProviders.FirstOrDefault(x => x.SupportedAuthorityIds.Contains(authority, StringComparer.OrdinalIgnoreCase));
+                    provider = _hostProviders
+                        .SelectMany(x => x.Value)
+                        .FirstOrDefault(x => x.SupportedAuthorityIds.Contains(authority, StringComparer.OrdinalIgnoreCase));
 
                     if (provider is null)
                     {
@@ -128,7 +146,25 @@ namespace Microsoft.Git.CredentialManager
             // Auto-detection
             //
             _context.Trace.WriteLine("Performing auto-detection of host provider.");
-            provider = _hostProviders.FirstOrDefault(x => x.IsSupported(input));
+
+            IHostProvider MatchProvider(HostProviderPriority priority)
+            {
+                if (_hostProviders.TryGetValue(priority, out ICollection<IHostProvider> providers))
+                {
+                    _context.Trace.WriteLine($"Checking against {providers.Count} host providers registered with priority '{priority}'.");
+
+                    if (providers.TryGetFirst(x => x.IsSupported(input), out IHostProvider match))
+                    {
+                        return match;
+                    }
+                }
+
+                return null;
+            }
+
+            provider = MatchProvider(HostProviderPriority.High) ??
+                       MatchProvider(HostProviderPriority.Normal) ??
+                       MatchProvider(HostProviderPriority.Low);
 
             if (provider is null)
             {
@@ -141,7 +177,7 @@ namespace Microsoft.Git.CredentialManager
         public void Dispose()
         {
             // Dispose of all registered providers to give them a chance to clean up and release any resources
-            foreach (IHostProvider provider in _hostProviders)
+            foreach (IHostProvider provider in _hostProviders.Values)
             {
                 provider.Dispose();
             }

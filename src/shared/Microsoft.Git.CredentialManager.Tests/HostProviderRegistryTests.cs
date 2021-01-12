@@ -19,7 +19,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             var provider = new Mock<IHostProvider>();
             provider.Setup(x => x.Id).Returns(Constants.ProviderIdAuto);
 
-            Assert.Throws<ArgumentException>(() => registry.Register(provider.Object));
+            Assert.Throws<ArgumentException>(() => registry.Register(provider.Object, HostProviderPriority.Normal));
         }
 
         [Fact]
@@ -30,7 +30,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             var provider = new Mock<IHostProvider>();
             provider.Setup(x => x.SupportedAuthorityIds).Returns(new[]{"foo", Constants.AuthorityIdAuto, "bar"});
 
-            Assert.Throws<ArgumentException>(() => registry.Register(provider.Object));
+            Assert.Throws<ArgumentException>(() => registry.Register(provider.Object, HostProviderPriority.Normal));
         }
 
         [Fact]
@@ -57,7 +57,9 @@ namespace Microsoft.Git.CredentialManager.Tests
             provider2Mock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(true);
             provider3Mock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(false);
 
-            registry.Register(provider1Mock.Object, provider2Mock.Object, provider3Mock.Object);
+            registry.Register(provider1Mock.Object, HostProviderPriority.Normal);
+            registry.Register(provider2Mock.Object, HostProviderPriority.Normal);
+            registry.Register(provider3Mock.Object, HostProviderPriority.Normal);
 
             IHostProvider result = await registry.GetProviderAsync(input);
 
@@ -78,11 +80,39 @@ namespace Microsoft.Git.CredentialManager.Tests
             provider2Mock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(true);
             provider3Mock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(true);
 
-            registry.Register(provider1Mock.Object, provider2Mock.Object, provider3Mock.Object);
+            registry.Register(provider1Mock.Object, HostProviderPriority.Normal);
+            registry.Register(provider2Mock.Object, HostProviderPriority.Normal);
+            registry.Register(provider3Mock.Object, HostProviderPriority.Normal);
 
             IHostProvider result = await registry.GetProviderAsync(input);
 
             Assert.Same(provider1Mock.Object, result);
+        }
+
+        [Fact]
+        public async Task HostProviderRegistry_GetProvider_Auto_MultipleValidProvidersMultipleLevels_ReturnsFirstHighestRegistered()
+        {
+            var context = new TestCommandContext();
+            var registry = new HostProviderRegistry(context);
+            var input = new InputArguments(new Dictionary<string, string>());
+
+            var provider1Mock = new Mock<IHostProvider>();
+            var provider2Mock = new Mock<IHostProvider>();
+            var provider3Mock = new Mock<IHostProvider>();
+            var provider4Mock = new Mock<IHostProvider>();
+            provider1Mock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(true);
+            provider2Mock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(true);
+            provider3Mock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(true);
+            provider4Mock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(true);
+
+            registry.Register(provider1Mock.Object, HostProviderPriority.Low);
+            registry.Register(provider2Mock.Object, HostProviderPriority.Normal);
+            registry.Register(provider3Mock.Object, HostProviderPriority.High);
+            registry.Register(provider4Mock.Object, HostProviderPriority.Low);
+
+            IHostProvider result = await registry.GetProviderAsync(input);
+
+            Assert.Same(provider3Mock.Object, result);
         }
 
         [Fact]
@@ -105,7 +135,9 @@ namespace Microsoft.Git.CredentialManager.Tests
             provider3Mock.Setup(x => x.Id).Returns("provider3");
             provider3Mock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(false);
 
-            registry.Register(provider1Mock.Object, provider2Mock.Object, provider3Mock.Object);
+            registry.Register(provider1Mock.Object, HostProviderPriority.Normal);
+            registry.Register(provider2Mock.Object, HostProviderPriority.Normal);
+            registry.Register(provider3Mock.Object, HostProviderPriority.Normal);
 
             IHostProvider result = await registry.GetProviderAsync(input);
 
@@ -132,7 +164,9 @@ namespace Microsoft.Git.CredentialManager.Tests
             provider3Mock.Setup(x => x.Id).Returns("provider3");
             provider3Mock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(false);
 
-            registry.Register(provider1Mock.Object, provider2Mock.Object, provider3Mock.Object);
+            registry.Register(provider1Mock.Object, HostProviderPriority.Normal);
+            registry.Register(provider2Mock.Object, HostProviderPriority.Normal);
+            registry.Register(provider3Mock.Object, HostProviderPriority.Normal);
 
             IHostProvider result = await registry.GetProviderAsync(input);
 
@@ -159,7 +193,9 @@ namespace Microsoft.Git.CredentialManager.Tests
             provider3Mock.Setup(x => x.Id).Returns("provider3");
             provider3Mock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(false);
 
-            registry.Register(provider1Mock.Object, provider2Mock.Object, provider3Mock.Object);
+            registry.Register(provider1Mock.Object, HostProviderPriority.Normal);
+            registry.Register(provider2Mock.Object, HostProviderPriority.Normal);
+            registry.Register(provider3Mock.Object, HostProviderPriority.Normal);
 
             IHostProvider result = await registry.GetProviderAsync(input);
 
@@ -186,7 +222,9 @@ namespace Microsoft.Git.CredentialManager.Tests
             provider3Mock.Setup(x => x.SupportedAuthorityIds).Returns(new[]{"authorityD"});
             provider3Mock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(false);
 
-            registry.Register(provider1Mock.Object, provider2Mock.Object, provider3Mock.Object);
+            registry.Register(provider1Mock.Object, HostProviderPriority.Normal);
+            registry.Register(provider2Mock.Object, HostProviderPriority.Normal);
+            registry.Register(provider3Mock.Object, HostProviderPriority.Normal);
 
             IHostProvider result = await registry.GetProviderAsync(input);
 
@@ -213,7 +251,9 @@ namespace Microsoft.Git.CredentialManager.Tests
             provider3Mock.Setup(x => x.SupportedAuthorityIds).Returns(new[]{"authorityD"});
             provider3Mock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(false);
 
-            registry.Register(provider1Mock.Object, provider2Mock.Object, provider3Mock.Object);
+            registry.Register(provider1Mock.Object, HostProviderPriority.Normal);
+            registry.Register(provider2Mock.Object, HostProviderPriority.Normal);
+            registry.Register(provider3Mock.Object, HostProviderPriority.Normal);
 
             IHostProvider result = await registry.GetProviderAsync(input);
 
