@@ -69,7 +69,7 @@ If you have an existing installation of the 'Java GCM' on macOS and you have ins
 To uninstall, run the following:
 
 ```shell
-brew cask uninstall git-credential-manager-core
+brew uninstall --cask git-credential-manager-core
 ```
 
 ---
