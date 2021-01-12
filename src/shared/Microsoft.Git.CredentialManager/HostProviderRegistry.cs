@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace Microsoft.Git.CredentialManager
@@ -45,7 +46,7 @@ namespace Microsoft.Git.CredentialManager
 
     /// <summary>
     /// Host provider registry where each provider is queried by priority order until the first
-    /// provider that supports the credential query is found.
+    /// provider that supports the credential query or matches the endpoint query is found.
     /// </summary>
     public class HostProviderRegistry : IHostProviderRegistry
     {
@@ -87,7 +88,7 @@ namespace Microsoft.Git.CredentialManager
             providers.Add(hostProvider);
         }
 
-        public Task<IHostProvider> GetProviderAsync(InputArguments input)
+        public async Task<IHostProvider> GetProviderAsync(InputArguments input)
         {
             IHostProvider provider;
 
@@ -111,7 +112,7 @@ namespace Microsoft.Git.CredentialManager
                     }
                     else
                     {
-                        return Task.FromResult(provider);
+                        return provider;
                     }
                 }
             }
@@ -137,7 +138,7 @@ namespace Microsoft.Git.CredentialManager
                     }
                     else
                     {
-                        return Task.FromResult(provider);
+                        return provider;
                     }
                 }
             }
@@ -147,13 +148,29 @@ namespace Microsoft.Git.CredentialManager
             //
             _context.Trace.WriteLine("Performing auto-detection of host provider.");
 
-            IHostProvider MatchProvider(HostProviderPriority priority)
+            var uri = input.GetRemoteUri();
+            var queryResponse = new Lazy<Task<HttpResponseMessage>>(() =>
+            {
+                _context.Trace.WriteLine("Querying remote URL for host provider auto-detection.");
+                return HttpClient.HeadAsync(uri);
+            });
+
+            async Task<IHostProvider> MatchProviderAsync(HostProviderPriority priority)
             {
                 if (_hostProviders.TryGetValue(priority, out ICollection<IHostProvider> providers))
                 {
                     _context.Trace.WriteLine($"Checking against {providers.Count} host providers registered with priority '{priority}'.");
 
+                    // Try matching using the static Git input arguments first (cheap)
                     if (providers.TryGetFirst(x => x.IsSupported(input), out IHostProvider match))
+                    {
+                        return match;
+                    }
+
+                    HttpResponseMessage response = await queryResponse.Value;
+
+                    // Try matching using the HTTP response from a query to the remote URL (expensive)
+                    if (providers.TryGetFirst(x => x.IsSupported(response), out match))
                     {
                         return match;
                     }
@@ -162,20 +179,20 @@ namespace Microsoft.Git.CredentialManager
                 return null;
             }
 
-            provider = MatchProvider(HostProviderPriority.High) ??
-                       MatchProvider(HostProviderPriority.Normal) ??
-                       MatchProvider(HostProviderPriority.Low);
-
-            if (provider is null)
-            {
-                throw new Exception("No host provider available to service this request.");
-            }
-
-            return Task.FromResult(provider);
+            // Match providers starting with the highest priority
+            return await MatchProviderAsync(HostProviderPriority.High) ??
+                   await MatchProviderAsync(HostProviderPriority.Normal) ??
+                   await MatchProviderAsync(HostProviderPriority.Low) ??
+                   throw new Exception("No host provider available to service this request.");
         }
+
+        private HttpClient _httpClient;
+        private HttpClient HttpClient => _httpClient ??= _context.HttpClientFactory.CreateClient();
 
         public void Dispose()
         {
+            _httpClient?.Dispose();
+
             // Dispose of all registered providers to give them a chance to clean up and release any resources
             foreach (IHostProvider provider in _hostProviders.Values)
             {

@@ -2,6 +2,7 @@
 // Licensed under the MIT license.
 using System;
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Git.CredentialManager;
 using Microsoft.Git.CredentialManager.Authentication.OAuth;
@@ -88,6 +89,17 @@ namespace GitHub
             }
 
             return false;
+        }
+
+        public override bool IsSupported(HttpResponseMessage response)
+        {
+            if (response is null)
+            {
+                return false;
+            }
+
+            // Look for a known GitHub.com/GHES header
+            return response.Headers.Contains("X-GitHub-Request-Id");
         }
 
         public override string GetServiceName(InputArguments input)
