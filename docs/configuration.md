@@ -10,7 +10,7 @@ URL-specific settings or overrides can be applied to any value in the `credentia
 
 Additionally, GCM Core respects several GCM-specific [environment variables](environment.md) **which take precedence over configuration options.**
 
-GCM Core will only be used by Git if it is installed and configured (`git config --global credential.helper manager-core`).
+GCM Core will only be used by Git if it is installed and configured. Use `git config --global credential.helper manager-core` to assign GCM Core as your credential helper. Use `git config credential.helper` to see the current configuration.
 
 **Example:**
 
