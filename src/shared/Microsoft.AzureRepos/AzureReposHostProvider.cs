@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Git.CredentialManager;
 using Microsoft.Git.CredentialManager.Authentication;
@@ -58,6 +59,12 @@ namespace Microsoft.AzureRepos
                    UriHelpers.IsAzureDevOpsHost(hostName);
         }
 
+        public bool IsSupported(HttpResponseMessage response)
+        {
+            // Azure DevOps Server (TFS) is handled by the generic provider, which supports basic auth, and WIA detection.
+            return false;
+        }
+
         public async Task<ICredential> GetCredentialAsync(InputArguments input)
         {
             string service = GetServiceName(input);
@@ -83,7 +90,7 @@ namespace Microsoft.AzureRepos
             return credential;
         }
 
-        public virtual Task StoreCredentialAsync(InputArguments input)
+        public Task StoreCredentialAsync(InputArguments input)
         {
             string service = GetServiceName(input);
 

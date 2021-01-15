@@ -17,13 +17,12 @@ namespace Microsoft.Git.CredentialManager
             using (var context = new CommandContext())
             using (var app = new Application(context, appPath))
             {
-                // Register all supported host providers
-                app.RegisterProviders(
-                    new AzureReposHostProvider(context),
-                    new BitbucketHostProvider(context),
-                    new GitHubHostProvider(context),
-                    new GenericHostProvider(context)
-                );
+                // Register all supported host providers at the normal priority.
+                // The generic provider should never win against a more specific one, so register it with low priority.
+                app.RegisterProvider(new AzureReposHostProvider(context), HostProviderPriority.Normal);
+                app.RegisterProvider(new BitbucketHostProvider(context),  HostProviderPriority.Normal);
+                app.RegisterProvider(new GitHubHostProvider(context),     HostProviderPriority.Normal);
+                app.RegisterProvider(new GenericHostProvider(context),    HostProviderPriority.Low);
 
                 // Run!
                 int exitCode = app.RunAsync(args)

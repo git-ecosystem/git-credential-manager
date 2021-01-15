@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -24,6 +25,12 @@ namespace Microsoft.Git.CredentialManager
             }
 
             return result;
+        }
+
+        public static bool TryGetFirst<TSource>(this IEnumerable<TSource> collection, Func<TSource, bool> predicate, out TSource result)
+        {
+            result = collection.FirstOrDefault(predicate);
+            return !(result is null);
         }
     }
 }

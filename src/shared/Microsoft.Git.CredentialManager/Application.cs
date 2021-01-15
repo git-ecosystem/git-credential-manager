@@ -38,12 +38,12 @@ namespace Microsoft.Git.CredentialManager
             _configurationService.AddComponent(this);
         }
 
-        public void RegisterProviders(params IHostProvider[] providers)
+        public void RegisterProvider(IHostProvider provider, HostProviderPriority priority)
         {
-            _providerRegistry.Register(providers);
+            _providerRegistry.Register(provider, priority);
 
-            // Add any providers that are also configurable components to the configuration service
-            foreach (IConfigurableComponent configurableProvider in providers.OfType<IConfigurableComponent>())
+            // If the provider is also a configurable component, add that to the configuration service
+            if (provider is IConfigurableComponent configurableProvider)
             {
                 _configurationService.AddComponent(configurableProvider);
             }
