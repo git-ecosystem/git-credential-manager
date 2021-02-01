@@ -6,6 +6,9 @@ namespace Microsoft.AzureRepos
 {
     internal static class AzureDevOpsConstants
     {
+        public const string AzReposDataDirectoryName = "azure-repos";
+        public const string AzReposDataStoreName = "store.ini";
+
         // AAD environment authority base URL
         public const string AadAuthorityBaseUrl = "https://login.microsoftonline.com";
 
