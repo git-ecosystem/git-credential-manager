@@ -28,8 +28,7 @@
       <InProject>false</InProject>
     </FilesToSign>
     <MacFilesToSign Include="
-      $(OutDir)\git-credential-manager-core;
-      $(OutDir)\Microsoft.Authentication.Helper;">
+      $(OutDir)\git-credential-manager-core;">
       <InProject>false</InProject>
     </MacFilesToSign>
   </ItemGroup>
