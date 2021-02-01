@@ -2,6 +2,8 @@
 // Licensed under the MIT license.
 using System;
 using System.Collections.Generic;
+using System.CommandLine;
+using System.CommandLine.Invocation;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -12,7 +14,7 @@ using KnownGitCfg = Microsoft.Git.CredentialManager.Constants.GitConfiguration;
 
 namespace Microsoft.AzureRepos
 {
-    public class AzureReposHostProvider : DisposableObject, IHostProvider, IConfigurableComponent
+    public class AzureReposHostProvider : DisposableObject, IHostProvider, IConfigurableComponent, ICommandProvider
     {
         private readonly ICommandContext _context;
         private readonly IAzureDevOpsRestApi _azDevOps;
@@ -413,6 +415,174 @@ namespace Microsoft.AzureRepos
             }
 
             return Task.CompletedTask;
+        }
+
+        #endregion
+
+        #region ICommandProvider
+
+        ProviderCommand ICommandProvider.CreateCommand()
+        {
+            var orgArg = new Argument("org")
+            {
+                Arity = ArgumentArity.ExactlyOne,
+                Description = "Azure DevOps organization name"
+            };
+            var urlArg = new Argument("url")
+            {
+                Arity = ArgumentArity.ExactlyOne,
+                Description = "Git remote URL"
+            };
+            var userArg = new Argument("username")
+            {
+                Arity = ArgumentArity.ExactlyOne,
+                Description = "Username or email (e.g.: alice@example.com)"
+            };
+
+            var listCmd = new Command("list-bindings", "List all user account bindings")
+            {
+                Handler = CommandHandler.Create(ListBindingsCmd)
+            };
+
+            var bindOrgCmd = new Command("bind-org")
+            {
+                Description = "Bind a user account to an Azure DevOps organization",
+                Handler = CommandHandler.Create<string, string>(BindOrgCmd),
+            };
+            bindOrgCmd.AddArgument(orgArg);
+            bindOrgCmd.AddArgument(userArg);
+
+            var bindRemoteCmd = new Command("bind-url")
+            {
+                Description = "Bind a user account to a remote URL",
+                Handler = CommandHandler.Create<string, string>(BindRemoteCmd),
+            };
+            bindRemoteCmd.AddArgument(urlArg);
+            bindRemoteCmd.AddArgument(userArg);
+
+            var unbindOrgCmd = new Command("unbind-org")
+            {
+                Description = "Remove user account binding for an Azure DevOps organization",
+                Handler = CommandHandler.Create<string>(UnbindOrgCmd),
+            };
+            unbindOrgCmd.AddArgument(orgArg);
+
+            var unbindRemoteCmd = new Command("unbind-url")
+            {
+                Description = "Remove user account binding for a remote URL",
+                Handler = CommandHandler.Create<string, bool>(UnbindRemoteCmd),
+            };
+            unbindRemoteCmd.AddArgument(urlArg);
+            unbindRemoteCmd.AddOption(
+                new Option(
+                    new[] {"--explicit", "-e"},
+                    "Explicitly mark the remote URL as unbound to prevent any inheritance of an organization binding"
+                )
+            );
+
+            var rootCmd = new ProviderCommand(this);
+            rootCmd.AddCommand(listCmd);
+            rootCmd.AddCommand(bindOrgCmd);
+            rootCmd.AddCommand(bindRemoteCmd);
+            rootCmd.AddCommand(unbindOrgCmd);
+            rootCmd.AddCommand(unbindRemoteCmd);
+            return rootCmd;
+        }
+
+        private int ListBindingsCmd()
+        {
+            IDictionary<string, string> orgBinds = _userManager.GetOrganizationBindings();
+            IDictionary<Uri, string> remoteBinds = _userManager.GetRemoteBindings();
+            ISet<string> orgNames = new HashSet<string>(orgBinds.Keys);
+
+            // Build a mapping of remotes to organization names so we can display bindings hierarchically
+            IDictionary<string, IList<Uri>> orgMap = new Dictionary<string, IList<Uri>>();
+            foreach (Uri remoteUri in remoteBinds.Keys)
+            {
+                string org = UriHelpers.GetOrganizationName(remoteUri);
+                if (!orgMap.TryGetValue(org, out var orgRemotes))
+                {
+                    orgRemotes = new List<Uri>();
+                    orgMap[org] = orgRemotes;
+                }
+                orgRemotes.Add(remoteUri);
+                orgNames.Add(org);
+            }
+
+            foreach (var org in orgNames)
+            {
+                _context.Streams.Out.WriteLine($"{org}");
+                if (orgBinds.TryGetValue(org, out string orgUser))
+                {
+                    _context.Streams.Out.WriteLine($"  (default) -> {orgUser}");
+                }
+
+                if (orgMap.TryGetValue(org, out IList<Uri> remotes))
+                {
+                    foreach (Uri remote in remotes)
+                    {
+                        if (remoteBinds.TryGetValue(remote, out string remoteUser))
+                        {
+                            if (string.IsNullOrEmpty(remoteUser))
+                            {
+                                _context.Streams.Out.WriteLine($"  {remote} -> (unbound)");
+                            }
+                            else
+                            {
+                                _context.Streams.Out.WriteLine($"  {remote} -> {remoteUser}");
+                            }
+                        }
+                    }
+                }
+            }
+
+            return 0;
+        }
+
+        private int BindOrgCmd(string org, string userName)
+        {
+            _userManager.BindOrganization(org, userName);
+            _context.Streams.Out.WriteLine("Assigned {0} to organization {1}", userName, org);
+            return 0;
+        }
+
+        private int BindRemoteCmd(string url, string userName)
+        {
+            if (!Uri.TryCreate(url, UriKind.Absolute, out Uri remoteUri))
+            {
+                _context.Streams.Error.WriteLine("error: invalid remote URL '{0}'", url);
+                return -1;
+            }
+
+            _userManager.BindRemote(remoteUri, userName);
+            _context.Streams.Out.WriteLine("Assigned {0} to remote URL {1}", userName, remoteUri);
+
+            return 0;
+        }
+
+        private int UnbindOrgCmd(string org)
+        {
+            _userManager.UnbindOrganization(org);
+            _context.Streams.Out.WriteLine("Cleared user assignment for organization {0}", org);
+
+            return 0;
+        }
+
+        private int UnbindRemoteCmd(string url, bool @explicit)
+        {
+            if (!Uri.TryCreate(url, UriKind.Absolute, out Uri remoteUri))
+            {
+                _context.Streams.Error.WriteLine("error: invalid remote URL '{0}'", url);
+                return -1;
+            }
+
+            _userManager.UnbindRemote(remoteUri, @explicit);
+            _context.Streams.Out.WriteLine(
+                @explicit
+                    ? "Explicitly cleared user assignment for remote URL {0}"
+                    : "Cleared user assignment for remote URL {0}", remoteUri);
+
+            return 0;
         }
 
         #endregion
