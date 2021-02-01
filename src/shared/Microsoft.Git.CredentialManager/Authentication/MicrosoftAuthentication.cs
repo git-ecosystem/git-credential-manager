@@ -199,8 +199,8 @@ namespace Microsoft.Git.CredentialManager.Authentication
 
             IPublicClientApplication app = appBuilder.Build();
 
-            // Try to register the application with the VS token cache
-            await RegisterVisualStudioTokenCacheAsync(app);
+            // Register the application token cache
+            await RegisterTokenCacheAsync(app);
 
             return app;
         }
@@ -209,33 +209,96 @@ namespace Microsoft.Git.CredentialManager.Authentication
 
         #region Helpers
 
-        private async Task RegisterVisualStudioTokenCacheAsync(IPublicClientApplication app)
+        private async Task RegisterTokenCacheAsync(IPublicClientApplication app)
         {
-            Context.Trace.WriteLine("Configuring Visual Studio token cache...");
+            Context.Trace.WriteLine(
+                "Configuring Microsoft Authentication token cache to instance shared with Microsoft developer tools...");
 
-            // We currently only support Visual Studio on Windows
-            if (PlatformUtils.IsWindows())
+            if (!PlatformUtils.IsWindows() && !PlatformUtils.IsPosix())
             {
-                // The Visual Studio MSAL cache is located at "%LocalAppData%\.IdentityService\msal.cache" on Windows.
-                // We use the MSAL extension library to provide us consistent cache file access semantics (synchronisation, etc)
-                // as Visual Studio itself follows, as well as other Microsoft developer tools such as the Azure PowerShell CLI.
-                const string cacheFileName = "msal.cache";
-                string appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-                string cacheDirectory = Path.Combine(appData, ".IdentityService");
+                string osType = PlatformUtils.GetPlatformInformation().OperatingSystemType;
+                Context.Trace.WriteLine($"Token cache integration is not supported on {osType}.");
+                return;
+            }
 
-                var storageProps = new StorageCreationPropertiesBuilder(cacheFileName, cacheDirectory, app.AppConfig.ClientId).Build();
+            string clientId = app.AppConfig.ClientId;
 
-                var helper = await MsalCacheHelper.CreateAsync(storageProps);
-                helper.RegisterCache(app.UserTokenCache);
+            // We use the MSAL extension library to provide us consistent cache file access semantics (synchronisation, etc)
+            // as other Microsoft developer tools such as the Azure PowerShell CLI.
+            MsalCacheHelper helper = null;
+            try
+            {
+                var storageProps = CreateTokenCacheProps(clientId, useLinuxFallback: false);
+                helper = await MsalCacheHelper.CreateAsync(storageProps);
 
-                Context.Trace.WriteLine("Visual Studio token cache configured.");
+                // Test that cache access is working correctly
+                helper.VerifyPersistence();
+            }
+            catch (MsalCachePersistenceException ex)
+            {
+                Context.Streams.Error.WriteLine("warning: cannot persist Microsoft Authentication data securely!");
+                Context.Trace.WriteLine("Cannot persist Microsoft Authentication data securely!");
+                Context.Trace.WriteException(ex);
+
+                // On Linux the SecretService/keyring might not be available so we must fall-back to a plaintext file.
+                if (PlatformUtils.IsLinux())
+                {
+                    Context.Trace.WriteLine("Using fall-back plaintext token cache on Linux.");
+                    var storageProps = CreateTokenCacheProps(clientId, useLinuxFallback: true);
+                    helper = await MsalCacheHelper.CreateAsync(storageProps);
+                }
+            }
+
+            if (helper is null)
+            {
+                Context.Streams.Error.WriteLine("error: failed to set up Microsoft Authentication token cache!");
+                Context.Trace.WriteLine("Failed to integrate with shared token cache!");
             }
             else
             {
-                string osType = PlatformUtils.GetPlatformInformation().OperatingSystemType;
-                Context.Trace.WriteLine($"Visual Studio token cache integration is not supported on {osType}.");
+                helper.RegisterCache(app.UserTokenCache);
+                Context.Trace.WriteLine("Microsoft developer tools token cache configured.");
             }
         }
+
+        private StorageCreationProperties CreateTokenCacheProps(string clientId, bool useLinuxFallback)
+        {
+            const string cacheFileName = "msal.cache";
+            string cacheDirectory;
+            if (PlatformUtils.IsWindows())
+            {
+                // The shared MSAL cache is located at "%LocalAppData%\.IdentityService\msal.cache" on Windows.
+                cacheDirectory = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    ".IdentityService"
+                );
+            }
+            else
+            {
+                // The shared MSAL cache metadata is located at "~/.local/.IdentityService/msal.cache" on UNIX.
+                cacheDirectory = Path.Combine(Context.FileSystem.UserHomePath, ".local", ".IdentityService");
+            }
+
+            // The keychain is used on macOS with the following service & account names
+            var builder = new StorageCreationPropertiesBuilder(cacheFileName, cacheDirectory, clientId)
+                .WithMacKeyChain("Microsoft.Developer.IdentityService", "MSALCache");
+
+            if (useLinuxFallback)
+            {
+                builder.WithLinuxUnprotectedFile();
+            }
+            else
+            {
+                // The SecretService/keyring is used on Linux with the following collection name and attributes
+                builder.WithLinuxKeyring(cacheFileName,
+                    "default", "MSALCache",
+                    new KeyValuePair<string, string>("MsalClientID", "Microsoft.Developer.IdentityService"),
+                    new KeyValuePair<string, string>("Microsoft.Developer.IdentityService", "1.0.0.0"));
+            }
+
+            return builder.Build();
+        }
+
 
         private static SystemWebViewOptions GetSystemWebViewOptions()
         {
