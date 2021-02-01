@@ -132,9 +132,10 @@ namespace Microsoft.AzureRepos.Tests
             var context = new TestCommandContext();
             var azDevOps = Mock.Of<IAzureDevOpsRestApi>();
             var msAuth = Mock.Of<IMicrosoftAuthentication>();
+            var userMgr = Mock.Of<IAzureReposUserManager>();
             var authorityCache = Mock.Of<IAzureDevOpsAuthorityCache>();
 
-            var provider = new AzureReposHostProvider(context, azDevOps, msAuth, authorityCache);
+            var provider = new AzureReposHostProvider(context, azDevOps, msAuth, authorityCache, userMgr);
 
             await Assert.ThrowsAsync<Exception>(() => provider.GetCredentialAsync(input));
         }
@@ -171,11 +172,12 @@ namespace Microsoft.AzureRepos.Tests
             msAuthMock.Setup(x => x.GetTokenAsync(authorityUrl, expectedClientId, expectedRedirectUri, expectedScopes, null))
                       .ReturnsAsync(authResult);
 
+            var userMgr = Mock.Of<IAzureReposUserManager>();
 
             var authorityCacheMock = new Mock<IAzureDevOpsAuthorityCache>();
             authorityCacheMock.Setup(x => x.GetAuthority("org")).Returns(authorityUrl);
 
-            var provider = new AzureReposHostProvider(context, azDevOpsMock.Object, msAuthMock.Object, authorityCacheMock.Object);
+            var provider = new AzureReposHostProvider(context, azDevOpsMock.Object, msAuthMock.Object, authorityCacheMock.Object, userMgr);
 
             ICredential credential = await provider.GetCredentialAsync(input);
 

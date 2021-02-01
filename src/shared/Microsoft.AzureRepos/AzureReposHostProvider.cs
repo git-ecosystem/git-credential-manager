@@ -18,25 +18,29 @@ namespace Microsoft.AzureRepos
         private readonly IAzureDevOpsRestApi _azDevOps;
         private readonly IMicrosoftAuthentication _msAuth;
         private readonly IAzureDevOpsAuthorityCache _authorityCache;
+        private readonly IAzureReposUserManager _userManager;
 
         public AzureReposHostProvider(ICommandContext context)
             : this(context, new AzureDevOpsRestApi(context), new MicrosoftAuthentication(context),
-                new AzureDevOpsAuthorityCache(context))
+                new AzureDevOpsAuthorityCache(context), new AzureReposUserManager(context))
         {
         }
 
         public AzureReposHostProvider(ICommandContext context, IAzureDevOpsRestApi azDevOps,
-            IMicrosoftAuthentication msAuth, IAzureDevOpsAuthorityCache authorityCache)
+            IMicrosoftAuthentication msAuth, IAzureDevOpsAuthorityCache authorityCache,
+            IAzureReposUserManager userManager)
         {
             EnsureArgument.NotNull(context, nameof(context));
             EnsureArgument.NotNull(azDevOps, nameof(azDevOps));
             EnsureArgument.NotNull(msAuth, nameof(msAuth));
             EnsureArgument.NotNull(authorityCache, nameof(authorityCache));
+            EnsureArgument.NotNull(userManager, nameof(userManager));
 
             _context = context;
             _azDevOps = azDevOps;
             _msAuth = msAuth;
             _authorityCache = authorityCache;
+            _userManager = userManager;
         }
 
         #region IHostProvider
@@ -125,7 +129,9 @@ namespace Microsoft.AzureRepos
             }
             else
             {
-                _context.Trace.WriteLine("Not using PATs - nothing to store");
+                // Bind the user to this remote
+                Uri remoteUri = input.GetRemoteUri();
+                _userManager.Bind(remoteUri, input.UserName);
             }
 
             return Task.CompletedTask;
@@ -133,6 +139,8 @@ namespace Microsoft.AzureRepos
 
         public Task EraseCredentialAsync(InputArguments input)
         {
+            Uri remoteUri = input.GetRemoteUri();
+
             if (IsPersonalAccessTokenMode())
             {
                 string service = GetServiceName(input);
@@ -151,11 +159,11 @@ namespace Microsoft.AzureRepos
             }
             else
             {
-                _context.Trace.WriteLine("Not using PATs - nothing to erase");
+                // Unbind this remote
+                _userManager.Unbind(remoteUri);
             }
 
             // Clear the authority cache in case this was the reason for failure
-            Uri remoteUri = input.GetRemoteUri();
             string orgName = UriHelpers.GetOrganizationName(remoteUri);
             _authorityCache.EraseAuthority(orgName);
 
@@ -207,13 +215,19 @@ namespace Microsoft.AzureRepos
             }
             _context.Trace.WriteLine($"Authority is '{authAuthority}'.");
 
+            // Get the currently bound user for this remote, if one exists
+            _context.Trace.WriteLine($"Looking up user for remote '{remoteUri}'...");
+            string userName = _userManager.GetUser(remoteUri);
+            _context.Trace.WriteLine(string.IsNullOrWhiteSpace(userName) ? "No user found." : $"User is '{userName}'.");
+
+            // Get an AAD access token for the Azure DevOps SPS
             _context.Trace.WriteLine("Getting Azure AD access token...");
             IMicrosoftAuthenticationResult result = await _msAuth.GetTokenAsync(
                 authAuthority,
                 GetClientId(),
                 GetRedirectUri(),
                 AzureDevOpsConstants.AzureDevOpsDefaultScopes,
-                null);
+                userName);
             _context.Trace.WriteLineSecrets(
                 $"Acquired Azure access token. Account='{result.AccountUpn}' Token='{{0}}'", new object[] {result.AccessToken});
 
