@@ -258,6 +258,10 @@ Specify which authentication flow should be used when performing Microsoft authe
 
 Defaults to the value `auto`.
 
+**Note:** If [`credential.msauthUseBroker`](#credentialmsauthusebroker) is set
+to `true` and the operating system authentication broker is available, all flows
+will be delegated to the broker; this setting has no effect.
+
 Value|Authentication Flow
 -|-
 `auto` _(default)_|Select the best option depending on the current environment and platform.
@@ -272,6 +276,27 @@ git config --global credential.msauthFlow devicecode
 ```
 
 **Also see: [GCM_MSAUTH_FLOW](environment.md#GCM_MSAUTH_FLOW)**
+
+---
+
+### credential.msauthUseBroker
+
+Use the operating system account manager where available.
+
+Defaults to the value `true`.
+
+Value|Description
+-|-
+`true` _(default)_|Use the operating system account manager as an authentication broker.
+`false`|Do not use the broker.
+
+#### Example
+
+```shell
+git config --global credential.msauthUseBroker false
+```
+
+**Also see: [GCM_MSAUTH_USEBROKER](environment.md#GCM_MSAUTH_USEBROKER)**
 
 ---
 

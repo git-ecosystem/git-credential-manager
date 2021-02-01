@@ -20,6 +20,26 @@ namespace Microsoft.Git.CredentialManager
             return new PlatformInformation(osType, cpuArch, clrVersion);
         }
 
+        public static bool IsWindows10()
+        {
+            if (!IsWindows())
+            {
+                return false;
+            }
+
+            // Implementation of version checking was taken from:
+            // https://github.com/dotnet/runtime/blob/6578f257e3be2e2144a65769706e981961f0130c/src/libraries/System.Private.CoreLib/src/System/Environment.Windows.cs#L110-L122
+            //
+            // Note that we cannot use Environment.OSVersion in .NET Framework (or Core versions less than 5.0) as
+            // The implementation in those versions "lies" about Windows versions > 8.1 if there is no application manifest.
+            if (RtlGetVersionEx(out RTL_OSVERSIONINFOEX osvi) != 0)
+            {
+                return false;
+            }
+
+            return (int) osvi.dwMajorVersion == 10;
+        }
+
         /// <summary>
         /// Check if the current Operating System is macOS.
         /// </summary>
@@ -166,6 +186,34 @@ namespace Microsoft.Git.CredentialManager
 #elif NETSTANDARD
             return RuntimeInformation.FrameworkDescription;
 #endif
+        }
+
+        #endregion
+
+        #region Windows Native Version APIs
+
+        // Interop code sourced from the .NET Runtime as of version 5.0:
+        // https://github.com/dotnet/runtime/blob/6578f257e3be2e2144a65769706e981961f0130c/src/libraries/Common/src/Interop/Windows/NtDll/Interop.RtlGetVersion.cs
+
+        [DllImport("ntdll.dll", ExactSpelling = true)]
+        private static extern int RtlGetVersion(ref RTL_OSVERSIONINFOEX lpVersionInformation);
+
+        private static unsafe int RtlGetVersionEx(out RTL_OSVERSIONINFOEX osvi)
+        {
+            osvi = default;
+            osvi.dwOSVersionInfoSize = (uint)sizeof(RTL_OSVERSIONINFOEX);
+            return RtlGetVersion(ref osvi);
+        }
+
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+        private unsafe struct RTL_OSVERSIONINFOEX
+        {
+            internal uint dwOSVersionInfoSize;
+            internal uint dwMajorVersion;
+            internal uint dwMinorVersion;
+            internal uint dwBuildNumber;
+            internal uint dwPlatformId;
+            internal fixed char szCSDVersion[128];
         }
 
         #endregion

@@ -52,6 +52,7 @@ namespace Microsoft.Git.CredentialManager
             public const string GcmInteractive        = "GCM_INTERACTIVE";
             public const string GcmParentWindow       = "GCM_MODAL_PARENTHWND";
             public const string MsAuthFlow            = "GCM_MSAUTH_FLOW";
+            public const string MsAuthUseBroker       = "GCM_MSAUTH_USEBROKER";
             public const string GcmCredNamespace      = "GCM_NAMESPACE";
             public const string GcmCredentialStore    = "GCM_CREDENTIAL_STORE";
             public const string GcmCredCacheOptions   = "GCM_CREDENTIAL_CACHE_OPTIONS";
@@ -83,6 +84,7 @@ namespace Microsoft.Git.CredentialManager
                 public const string UseHttpPath = "useHttpPath";
                 public const string Interactive = "interactive";
                 public const string MsAuthFlow  = "msauthFlow";
+                public const string MsAuthUseBroker = "msauthUseBroker";
                 public const string CredNamespace = "namespace";
                 public const string CredentialStore = "credentialStore";
                 public const string CredCacheOptions = "cacheOptions";
