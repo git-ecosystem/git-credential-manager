@@ -7,7 +7,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Git.CredentialManager;
 using Microsoft.Git.CredentialManager.Authentication;
-using Microsoft.IdentityModel.JsonWebTokens;
+using Microsoft.Git.CredentialManager.Commands;
 using KnownGitCfg = Microsoft.Git.CredentialManager.Constants.GitConfiguration;
 
 namespace Microsoft.AzureRepos
@@ -151,15 +151,15 @@ namespace Microsoft.AzureRepos
 
             // Get an AAD access token for the Azure DevOps SPS
             _context.Trace.WriteLine("Getting Azure AD access token...");
-            JsonWebToken accessToken = await _msAuth.GetAccessTokenAsync(
+            IMicrosoftAuthenticationResult result = await _msAuth.GetTokenAsync(
                 authAuthority,
                 AzureDevOpsConstants.AadClientId,
                 AzureDevOpsConstants.AadRedirectUri,
                 AzureDevOpsConstants.AadResourceId,
                 remoteUri,
                 null);
-            string atUser = accessToken.GetAzureUserName();
-            _context.Trace.WriteLineSecrets($"Acquired Azure access token. User='{atUser}' Token='{{0}}'", new object[] {accessToken.EncodedToken});
+            _context.Trace.WriteLineSecrets(
+                $"Acquired Azure access token. Account='{result.AccountUpn}' Token='{{0}}'", new object[] {result.AccessToken});
 
             // Ask the Azure DevOps instance to create a new PAT
             var patScopes = new[]
@@ -170,11 +170,11 @@ namespace Microsoft.AzureRepos
             _context.Trace.WriteLine($"Creating Azure DevOps PAT with scopes '{string.Join(", ", patScopes)}'...");
             string pat = await _azDevOps.CreatePersonalAccessTokenAsync(
                 orgUri,
-                accessToken,
+                result.AccessToken,
                 patScopes);
             _context.Trace.WriteLineSecrets("PAT created. PAT='{0}'", new object[] {pat});
 
-            return new GitCredential(atUser, pat);
+            return new GitCredential(result.AccountUpn, pat);
         }
 
         /// <remarks>

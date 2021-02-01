@@ -9,7 +9,6 @@ using Microsoft.Git.CredentialManager.Tests;
 using Microsoft.Git.CredentialManager.Tests.Objects;
 using Moq;
 using Xunit;
-using static Microsoft.Git.CredentialManager.Tests.TestHelpers;
 
 namespace Microsoft.AzureRepos.Tests
 {
@@ -155,8 +154,9 @@ namespace Microsoft.AzureRepos.Tests
             var expectedClientId = AzureDevOpsConstants.AadClientId;
             var expectedRedirectUri = AzureDevOpsConstants.AadRedirectUri;
             var expectedResource = AzureDevOpsConstants.AadResourceId;
-            var accessToken = CreateJwt("john.doe");
+            var accessToken = "ACCESS-TOKEN";
             var personalAccessToken = "PERSONAL-ACCESS-TOKEN";
+            var authResult = CreateAuthResult("john.doe", accessToken);
 
             var context = new TestCommandContext();
 
@@ -167,8 +167,8 @@ namespace Microsoft.AzureRepos.Tests
                         .ReturnsAsync(personalAccessToken);
 
             var msAuthMock = new Mock<IMicrosoftAuthentication>();
-            msAuthMock.Setup(x => x.GetAccessTokenAsync(authorityUrl, expectedClientId, expectedRedirectUri, expectedResource, remoteUri, null))
-                      .ReturnsAsync(accessToken);
+            msAuthMock.Setup(x => x.GetTokenAsync(authorityUrl, expectedClientId, expectedRedirectUri, expectedResource, remoteUri, null))
+                      .ReturnsAsync(authResult);
 
             var provider = new AzureReposHostProvider(context, azDevOpsMock.Object, msAuthMock.Object);
 
@@ -279,6 +279,22 @@ namespace Microsoft.AzureRepos.Tests
             await provider.UnconfigureAsync(ConfigurationTarget.User);
 
             Assert.False(context.Git.GlobalConfiguration.Dictionary.TryGetValue(AzDevUseHttpPathKey, out _));
+        }
+
+        private static IMicrosoftAuthenticationResult CreateAuthResult(string upn, string token)
+        {
+            return new MockMsAuthResult
+            {
+                AccountUpn = upn,
+                AccessToken = token,
+            };
+        }
+
+        private class MockMsAuthResult : IMicrosoftAuthenticationResult
+        {
+            public string AccessToken { get; set; }
+            public string AccountUpn { get; set; }
+            public string TokenSource { get; set; }
         }
     }
 }

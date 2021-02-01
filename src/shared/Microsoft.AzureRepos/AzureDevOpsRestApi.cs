@@ -9,14 +9,13 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Git.CredentialManager;
-using Microsoft.IdentityModel.JsonWebTokens;
 
 namespace Microsoft.AzureRepos
 {
     public interface IAzureDevOpsRestApi : IDisposable
     {
         Task<string> GetAuthorityAsync(Uri organizationUri);
-        Task<string> CreatePersonalAccessTokenAsync(Uri organizationUri, JsonWebToken accessToken, IEnumerable<string> scopes);
+        Task<string> CreatePersonalAccessTokenAsync(Uri organizationUri, string accessToken, IEnumerable<string> scopes);
     }
 
     public class AzureDevOpsRestApi : IAzureDevOpsRestApi
@@ -91,7 +90,7 @@ namespace Microsoft.AzureRepos
             return commonAuthority;
         }
 
-        public async Task<string> CreatePersonalAccessTokenAsync(Uri organizationUri, JsonWebToken accessToken, IEnumerable<string> scopes)
+        public async Task<string> CreatePersonalAccessTokenAsync(Uri organizationUri, string accessToken, IEnumerable<string> scopes)
         {
             const string sessionTokenUrl = "_apis/token/sessiontokens?api-version=1.0&tokentype=compact";
 
@@ -141,7 +140,7 @@ namespace Microsoft.AzureRepos
 
         #region Private Methods
 
-        private async Task<Uri> GetIdentityServiceUriAsync(Uri organizationUri, JsonWebToken accessToken)
+        private async Task<Uri> GetIdentityServiceUriAsync(Uri organizationUri, string accessToken)
         {
             const string locationServicePath = "_apis/ServiceDefinitions/LocationService2/951917AC-A960-4999-8464-E3F0AA25B381";
             const string locationServiceQuery = "api-version=1.0";
@@ -280,7 +279,7 @@ namespace Microsoft.AzureRepos
         /// <param name="content">Optional request content.</param>
         /// <param name="bearerToken">Optional bearer token for authorization.</param>
         /// <returns>HTTP request message.</returns>
-        private static HttpRequestMessage CreateRequestMessage(HttpMethod method, Uri uri, HttpContent content = null, JsonWebToken bearerToken = null)
+        private static HttpRequestMessage CreateRequestMessage(HttpMethod method, Uri uri, HttpContent content = null, string bearerToken = null)
         {
             var request = new HttpRequestMessage(method, uri);
 
@@ -291,7 +290,7 @@ namespace Microsoft.AzureRepos
 
             if (bearerToken != null)
             {
-                request.Headers.Authorization = new AuthenticationHeaderValue(Constants.Http.WwwAuthenticateBearerScheme, bearerToken.EncodedToken);
+                request.Headers.Authorization = new AuthenticationHeaderValue(Constants.Http.WwwAuthenticateBearerScheme, bearerToken);
             }
 
             return request;

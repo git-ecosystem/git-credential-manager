@@ -9,10 +9,8 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Microsoft.Git.CredentialManager;
 using Microsoft.Git.CredentialManager.Tests.Objects;
-using Microsoft.IdentityModel.JsonWebTokens;
 using Newtonsoft.Json;
 using Xunit;
-using static Microsoft.Git.CredentialManager.Tests.TestHelpers;
 
 namespace Microsoft.AzureRepos.Tests
 {
@@ -228,7 +226,7 @@ namespace Microsoft.AzureRepos.Tests
             var orgUri = new Uri("https://dev.azure.com/org/");
 
             const string expectedPat = "PERSONAL-ACCESS-TOKEN";
-            JsonWebToken accessToken = CreateJwt();
+            string accessToken = "ACCESS-TOKEN";
             IEnumerable<string> scopes = new[] {AzureDevOpsConstants.PersonalAccessTokenScopes.ReposWrite};
 
             var identityServiceUri = new Uri("https://identity.example.com/");
@@ -267,7 +265,7 @@ namespace Microsoft.AzureRepos.Tests
             var context = new TestCommandContext();
             var orgUri = new Uri("https://dev.azure.com/org/");
 
-            JsonWebToken accessToken = CreateJwt();
+            string accessToken = "ACCESS-TOKEN";
             IEnumerable<string> scopes = new[] {AzureDevOpsConstants.PersonalAccessTokenScopes.ReposWrite};
 
             var locSvcRequestUri = new Uri(orgUri, ExpectedLocationServicePath);
@@ -287,7 +285,7 @@ namespace Microsoft.AzureRepos.Tests
             var context = new TestCommandContext();
             var orgUri = new Uri("https://dev.azure.com/org/");
 
-            JsonWebToken accessToken = CreateJwt();
+            string accessToken = "ACCESS-TOKEN";
             IEnumerable<string> scopes = new[] {AzureDevOpsConstants.PersonalAccessTokenScopes.ReposWrite};
 
             var identityServiceUri = new Uri("https://identity.example.com/");
@@ -320,7 +318,7 @@ namespace Microsoft.AzureRepos.Tests
             var context = new TestCommandContext();
             var orgUri = new Uri("https://dev.azure.com/org/");
 
-            JsonWebToken accessToken = CreateJwt();
+            string accessToken = "ACCESS-TOKEN";
             IEnumerable<string> scopes = new[] {AzureDevOpsConstants.PersonalAccessTokenScopes.ReposWrite};
 
             var identityServiceUri = new Uri("https://identity.example.com/");
@@ -405,12 +403,12 @@ namespace Microsoft.AzureRepos.Tests
             Assert.Contains(Constants.Http.MimeTypeJson, acceptMimeTypes);
         }
 
-        private static void AssertBearerToken(HttpRequestMessage request, JsonWebToken bearerToken)
+        private static void AssertBearerToken(HttpRequestMessage request, string bearerToken)
         {
             AuthenticationHeaderValue authHeader = request.Headers.Authorization;
             Assert.NotNull(authHeader);
             Assert.Equal("Bearer", authHeader.Scheme);
-            Assert.Equal(bearerToken.EncodedToken, authHeader.Parameter);
+            Assert.Equal(bearerToken, authHeader.Parameter);
         }
 
         private static HttpResponseMessage CreateLocationServiceResponse(Uri identityServiceUri)
