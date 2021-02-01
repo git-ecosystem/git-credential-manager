@@ -155,8 +155,7 @@ namespace Microsoft.AzureRepos
                 authAuthority,
                 AzureDevOpsConstants.AadClientId,
                 AzureDevOpsConstants.AadRedirectUri,
-                AzureDevOpsConstants.AadResourceId,
-                remoteUri,
+                AzureDevOpsConstants.AzureDevOpsDefaultScopes,
                 null);
             _context.Trace.WriteLineSecrets(
                 $"Acquired Azure access token. Account='{result.AccountUpn}' Token='{{0}}'", new object[] {result.AccessToken});

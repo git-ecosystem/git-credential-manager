@@ -15,8 +15,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Authentication
             const string authority = "https://login.microsoftonline.com/common";
             const string clientId = "C9E8FDA6-1D46-484C-917C-3DBD518F27C3";
             Uri redirectUri = new Uri("https://localhost");
-            const string resource = "https://graph.microsoft.com";
-            Uri remoteUri = new Uri("https://example.com");
+            string[] scopes = {"user.read"};
             const string userName = null; // No user to ensure we do not use an existing token
 
             var context = new TestCommandContext
@@ -27,7 +26,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Authentication
             var msAuth = new MicrosoftAuthentication(context);
 
             await Assert.ThrowsAsync<InvalidOperationException>(
-                () => msAuth.GetTokenAsync(authority, clientId, redirectUri, resource, remoteUri, userName));
+                () => msAuth.GetTokenAsync(authority, clientId, redirectUri, scopes, userName));
         }
     }
 }

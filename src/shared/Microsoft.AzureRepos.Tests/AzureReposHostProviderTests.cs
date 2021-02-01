@@ -153,7 +153,7 @@ namespace Microsoft.AzureRepos.Tests
             var authorityUrl = "https://login.microsoftonline.com/common";
             var expectedClientId = AzureDevOpsConstants.AadClientId;
             var expectedRedirectUri = AzureDevOpsConstants.AadRedirectUri;
-            var expectedResource = AzureDevOpsConstants.AadResourceId;
+            var expectedScopes = AzureDevOpsConstants.AzureDevOpsDefaultScopes;
             var accessToken = "ACCESS-TOKEN";
             var personalAccessToken = "PERSONAL-ACCESS-TOKEN";
             var authResult = CreateAuthResult("john.doe", accessToken);
@@ -167,7 +167,7 @@ namespace Microsoft.AzureRepos.Tests
                         .ReturnsAsync(personalAccessToken);
 
             var msAuthMock = new Mock<IMicrosoftAuthentication>();
-            msAuthMock.Setup(x => x.GetTokenAsync(authorityUrl, expectedClientId, expectedRedirectUri, expectedResource, remoteUri, null))
+            msAuthMock.Setup(x => x.GetTokenAsync(authorityUrl, expectedClientId, expectedRedirectUri, expectedScopes, null))
                       .ReturnsAsync(authResult);
 
             var provider = new AzureReposHostProvider(context, azDevOpsMock.Object, msAuthMock.Object);
