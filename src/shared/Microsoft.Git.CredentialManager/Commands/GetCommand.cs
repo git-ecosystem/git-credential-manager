@@ -8,14 +8,12 @@ namespace Microsoft.Git.CredentialManager.Commands
     /// <summary>
     /// Acquire a new <see cref="GitCredential"/> from a <see cref="IHostProvider"/>.
     /// </summary>
-    public class GetCommand : HostProviderCommandBase
+    public class GetCommand : GitCommandBase
     {
-        public GetCommand(IHostProviderRegistry hostProviderRegistry)
-            : base(hostProviderRegistry) { }
+        public GetCommand(ICommandContext context, IHostProviderRegistry hostProviderRegistry)
+            : base(context, "get", "[Git] Return a stored credential", hostProviderRegistry) { }
 
-        protected override string Name => "get";
-
-        protected override async Task ExecuteInternalAsync(ICommandContext context, InputArguments input, IHostProvider provider)
+        protected override async Task ExecuteInternalAsync(InputArguments input, IHostProvider provider)
         {
             ICredential credential = await provider.GetCredentialAsync(input);
 
@@ -40,7 +38,7 @@ namespace Microsoft.Git.CredentialManager.Commands
             output["password"] = credential.Password;
 
             // Write the values to standard out
-            context.Streams.Out.WriteDictionary(output);
+            Context.Streams.Out.WriteDictionary(output);
         }
     }
 }

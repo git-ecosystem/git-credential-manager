@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
 using System;
+using System.Collections.Generic;
+using System.CommandLine;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -51,58 +53,36 @@ namespace Microsoft.Git.CredentialManager
 
         protected override async Task<int> RunInternalAsync(string[] args)
         {
-            string appName = Path.GetFileNameWithoutExtension(_appPath);
+            var rootCommand = new RootCommand();
 
-            // Construct all supported commands
-            var commands = new CommandBase[]
-            {
-                new GetCommand(_providerRegistry),
-                new StoreCommand(_providerRegistry),
-                new EraseCommand(_providerRegistry),
-                new ConfigureCommand(_configurationService),
-                new UnconfigureCommand(_configurationService),
-                new VersionCommand(),
-                new HelpCommand(appName),
-            };
+            // Add standard commands
+            rootCommand.AddCommand(new GetCommand(Context, _providerRegistry));
+            rootCommand.AddCommand(new StoreCommand(Context, _providerRegistry));
+            rootCommand.AddCommand(new EraseCommand(Context, _providerRegistry));
+            rootCommand.AddCommand(new ConfigureCommand(Context, _configurationService));
+            rootCommand.AddCommand(new UnconfigureCommand(Context, _configurationService));
+
 
             // Trace the current version and program arguments
             Context.Trace.WriteLine($"{Constants.GetProgramHeader()} '{string.Join(" ", args)}'");
 
-            if (args.Length == 0)
+            try
             {
-                Context.Streams.Error.WriteLine("Missing command.");
-                HelpCommand.PrintUsage(Context.Streams.Error, appName);
+                return await rootCommand.InvokeAsync(args);
+            }
+            catch (Exception e)
+            {
+                if (e is AggregateException ae)
+                {
+                    ae.Handle(WriteException);
+                }
+                else
+                {
+                    WriteException(e);
+                }
+
                 return -1;
             }
-
-            foreach (var cmd in commands)
-            {
-                if (cmd.CanExecute(args))
-                {
-                    try
-                    {
-                        await cmd.ExecuteAsync(Context, args);
-                        return 0;
-                    }
-                    catch (Exception e)
-                    {
-                        if (e is AggregateException ae)
-                        {
-                            ae.Handle(WriteException);
-                        }
-                        else
-                        {
-                            WriteException(e);
-                        }
-
-                        return -1;
-                    }
-                }
-            }
-
-            Context.Streams.Error.WriteLine("Unrecognized command '{0}'.", args[0]);
-            HelpCommand.PrintUsage(Context.Streams.Error, appName);
-            return -1;
         }
 
         protected override void Dispose(bool disposing)

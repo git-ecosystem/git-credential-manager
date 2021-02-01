@@ -13,31 +13,6 @@ namespace Microsoft.Git.CredentialManager.Tests.Commands
 {
     public class GetCommandTests
     {
-        [Theory]
-        [InlineData("get", true)]
-        [InlineData("GET", true)]
-        [InlineData("gEt", true)]
-        [InlineData("erase", false)]
-        [InlineData("store", false)]
-        [InlineData("foobar", false)]
-        [InlineData("", false)]
-        [InlineData(null, false)]
-        public void GetCommand_CanExecuteAsync(string argString, bool expected)
-        {
-            var command = new GetCommand(Mock.Of<IHostProviderRegistry>());
-
-            bool result = command.CanExecute(argString?.Split(null));
-
-            if (expected)
-            {
-                Assert.True(result);
-            }
-            else
-            {
-                Assert.False(result);
-            }
-        }
-
         [Fact]
         public async Task GetCommand_ExecuteAsync_CallsHostProviderAndWritesCredential()
         {
@@ -56,10 +31,9 @@ namespace Microsoft.Git.CredentialManager.Tests.Commands
             var providerRegistry = new TestHostProviderRegistry {Provider = providerMock.Object};
             var context = new TestCommandContext();
 
-            string[] cmdArgs = {"get"};
-            var command = new GetCommand(providerRegistry);
+            var command = new GetCommand(context, providerRegistry);
 
-            await command.ExecuteAsync(context, cmdArgs);
+            await command.ExecuteAsync();
 
             IDictionary<string, string> actualStdOutDict = ParseDictionary(context.Streams.Out);
 
