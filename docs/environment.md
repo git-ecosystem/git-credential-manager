@@ -382,8 +382,6 @@ Specify which authentication flow should be used when performing Microsoft authe
 
 Defaults to the value `auto`.
 
-**Note:** This setting will be ignored if a native authentication helper is configured and available. See [`GCM_MSAUTH_HELPER`](#gcm_msauth_helper) for more information.
-
 Value|Credential Store
 -|-
 `auto` _(default)_|Select the best option depending on the current environment and platform.
@@ -404,27 +402,3 @@ export GCM_MSAUTH_FLOW="devicecode"
 ```
 
 **Also see: [credential.msauthFlow](configuration.md#credentialmsauthflow)**
-
----
-
-### GCM_MSAUTH_HELPER
-
-Full path to an external 'helper' tool to which Microsoft authentication should be delegated.
-
-On macOS this defaults to the included native `Microsoft.Authentication.Helper` tool. On all other platforms this is not set.
-
-**Note:** If a helper is set and available then all Microsoft authentication will be delegated to this helper and the [`GCM_MSAUTH_FLOW`](#gcm_msauth_flow) setting will be ignored. Setting the value to the empty string (`""`) will unset any default helper.
-
-##### Windows
-
-```batch
-SET GCM_MSAUTH_HELPER="C:\path\to\helper.exe"
-```
-
-##### macOS/Linux
-
-```bash
-export GCM_MSAUTH_HELPER="/usr/local/bin/msauth-helper"
-```
-
-**Also see: [credential.msauthHelper](configuration.md#credentialmsauthhelper)**
