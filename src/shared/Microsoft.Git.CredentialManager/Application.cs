@@ -17,6 +17,7 @@ namespace Microsoft.Git.CredentialManager
         private readonly string _appPath;
         private readonly IHostProviderRegistry _providerRegistry;
         private readonly IConfigurationService _configurationService;
+        private readonly IList<ProviderCommand> _providerCommands = new List<ProviderCommand>();
 
         public Application(ICommandContext context, string appPath)
             : this(context, new HostProviderRegistry(context), new ConfigurationService(context), appPath)
@@ -49,6 +50,13 @@ namespace Microsoft.Git.CredentialManager
             {
                 _configurationService.AddComponent(configurableProvider);
             }
+
+            // If the provider has custom commands to offer then create them here
+            if (provider is ICommandProvider cmdProvider)
+            {
+                ProviderCommand providerCommand = cmdProvider.CreateCommand();
+                _providerCommands.Add(providerCommand);
+            }
         }
 
         protected override async Task<int> RunInternalAsync(string[] args)
@@ -62,6 +70,11 @@ namespace Microsoft.Git.CredentialManager
             rootCommand.AddCommand(new ConfigureCommand(Context, _configurationService));
             rootCommand.AddCommand(new UnconfigureCommand(Context, _configurationService));
 
+            // Add any custom provider commands
+            foreach (ProviderCommand providerCommand in _providerCommands)
+            {
+                rootCommand.AddCommand(providerCommand);
+            }
 
             // Trace the current version and program arguments
             Context.Trace.WriteLine($"{Constants.GetProgramHeader()} '{string.Join(" ", args)}'");
