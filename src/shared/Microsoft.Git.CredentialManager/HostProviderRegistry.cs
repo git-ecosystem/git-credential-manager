@@ -194,7 +194,7 @@ namespace Microsoft.Git.CredentialManager
             _httpClient?.Dispose();
 
             // Dispose of all registered providers to give them a chance to clean up and release any resources
-            foreach (IHostProvider provider in _hostProviders.Values)
+            foreach (IHostProvider provider in _hostProviders.Values.SelectMany(x => x))
             {
                 provider.Dispose();
             }
