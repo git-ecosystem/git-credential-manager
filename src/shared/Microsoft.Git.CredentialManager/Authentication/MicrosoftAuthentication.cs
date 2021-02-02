@@ -43,14 +43,6 @@ namespace Microsoft.Git.CredentialManager.Authentication
         public async Task<JsonWebToken> GetAccessTokenAsync(
             string authority, string clientId, Uri redirectUri, string resource, Uri remoteUri, string userName)
         {
-            // If we find an external authentication helper we should delegate everything to it.
-            // Assume the external helper can provide the best authentication experience.
-            if (TryFindHelperExecutablePath(out string helperPath))
-            {
-                return await GetAccessTokenViaHelperAsync(helperPath,
-                    authority, clientId, redirectUri, resource, remoteUri, userName);
-            }
-
             // Try to acquire an access token in the current process
             string[] scopes = { $"{resource}/.default" };
             return await GetAccessTokenInProcAsync(authority, clientId, redirectUri, scopes, userName);
@@ -59,33 +51,6 @@ namespace Microsoft.Git.CredentialManager.Authentication
         #endregion
 
         #region Authentication strategies
-
-        /// <summary>
-        /// Start an authentication helper process to obtain an access token.
-        /// </summary>
-        private async Task<JsonWebToken> GetAccessTokenViaHelperAsync(string helperPath,
-            string authority, string clientId, Uri redirectUri, string resource, Uri remoteUri, string userName)
-        {
-            var inputDict = new Dictionary<string, string>
-            {
-                ["authority"] = authority,
-                ["clientId"] = clientId,
-                ["redirectUri"] = redirectUri.AbsoluteUri,
-                ["resource"] = resource,
-                ["remoteUrl"] = remoteUri.ToString(),
-                ["username"] = userName,
-                ["interactive"] = Context.Settings.IsInteractionAllowed.ToString()
-            };
-
-            IDictionary<string, string> resultDict = await InvokeHelperAsync(helperPath, null, inputDict);
-
-            if (!resultDict.TryGetValue("accessToken", out string accessToken))
-            {
-                throw new Exception("Missing access token in response");
-            }
-
-            return new JsonWebToken(accessToken);
-        }
 
         /// <summary>
         /// Obtain an access token using MSAL running inside the current process.
@@ -252,15 +217,6 @@ namespace Microsoft.Git.CredentialManager.Authentication
         #endregion
 
         #region Helpers
-
-        private bool TryFindHelperExecutablePath(out string path)
-        {
-            return TryFindHelperExecutablePath(
-                Constants.EnvironmentVariables.MsAuthHelper,
-                Constants.GitConfiguration.Credential.MsAuthHelper,
-                Constants.DefaultMsAuthHelper,
-                out path);
-        }
 
         private async Task RegisterVisualStudioTokenCacheAsync(IPublicClientApplication app)
         {

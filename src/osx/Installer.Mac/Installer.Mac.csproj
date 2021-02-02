@@ -12,7 +12,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../Microsoft.Authentication.Helper.Mac/Microsoft.Authentication.Helper.Mac.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="../../shared/Git-Credential-Manager/Git-Credential-Manager.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
