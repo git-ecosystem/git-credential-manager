@@ -164,7 +164,7 @@ _(unset)_|Automatically detect modes
 #### Example
 
 ```shell
-git config --global credential.gitHubAuthModes "oauth basic"
+git config --global credential.gitHubAuthModes "oauth,basic"
 ```
 
 **Also see: [GCM_GITHUB_AUTHMODES](environment.md#GCM_GITHUB_AUTHMODES)**
