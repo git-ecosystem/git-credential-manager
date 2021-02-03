@@ -13,7 +13,7 @@ namespace Microsoft.Git.CredentialManager
         public const string ProviderIdAuto  = "auto";
         public const string AuthorityIdAuto = "auto";
 
-        public const string GcmConfigDirectoryName = ".gcm";
+        public const string GcmDataDirectoryName = ".gcm";
 
         public static class RegexPatterns
         {

@@ -152,7 +152,7 @@ namespace Microsoft.Git.CredentialManager.Interop.Linux
                 out storeRoot))
             {
                 // Use default store root at ~/.gcm/store
-                storeRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), Constants.GcmConfigDirectoryName, "store");
+                storeRoot = Path.Combine(_fileSystem.UserDataDirectoryPath, "store");
             }
         }
     }
