@@ -67,59 +67,87 @@ namespace Microsoft.AzureRepos
 
         public async Task<ICredential> GetCredentialAsync(InputArguments input)
         {
-            string service = GetServiceName(input);
-            string account = GetAccountNameForCredentialQuery(input);
-
-            _context.Trace.WriteLine($"Looking for existing credential in store with service={service} account={account}...");
-
-            ICredential credential = _context.CredentialStore.Get(service, account);
-            if (credential == null)
+            // We should not allow unencrypted communication and should inform the user
+            if (StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "http"))
             {
-                _context.Trace.WriteLine("No existing credentials found.");
-
-                // No existing credential was found, create a new one
-                _context.Trace.WriteLine("Creating new credential...");
-                credential = await GenerateCredentialAsync(input);
-                _context.Trace.WriteLine("Credential created.");
-            }
-            else
-            {
-                _context.Trace.WriteLine("Existing credential found.");
+                throw new Exception("Unencrypted HTTP is not supported for Azure Repos. Ensure the repository remote URL is using HTTPS.");
             }
 
-            return credential;
+            Uri remoteUri = input.GetRemoteUri();
+
+            if (IsPersonalAccessTokenMode())
+            {
+                string service = GetServiceName(input);
+                string account = GetAccountNameForCredentialQuery(input);
+
+                _context.Trace.WriteLine($"Looking for existing PAT in store with service={service} account={account}...");
+
+                ICredential credential = _context.CredentialStore.Get(service, account);
+                if (credential == null)
+                {
+                    _context.Trace.WriteLine("No existing PAT found.");
+
+                    // No existing credential was found, create a new one
+                    _context.Trace.WriteLine("Creating new PAT...");
+                    credential = await GeneratePersonalAccessTokenAsync(remoteUri);
+                    _context.Trace.WriteLine("PAT created.");
+                }
+                else
+                {
+                    _context.Trace.WriteLine("Existing PAT found.");
+                }
+
+                return credential;
+            }
+
+            var azureResult = await GetAzureAccessTokenAsync(remoteUri);
+            return new GitCredential(azureResult.AccountUpn, azureResult.AccessToken);
         }
 
         public Task StoreCredentialAsync(InputArguments input)
         {
-            string service = GetServiceName(input);
+            if (IsPersonalAccessTokenMode())
+            {
+                string service = GetServiceName(input);
 
-            // We always store credentials against the given username argument for
-            // both vs.com and dev.azure.com-style URLs.
-            string account = input.UserName;
+                // We always store credentials against the given username argument for
+                // both vs.com and dev.azure.com-style URLs.
+                string account = input.UserName;
 
-            // Add or update the credential in the store.
-            _context.Trace.WriteLine($"Storing credential with service={service} account={account}...");
-            _context.CredentialStore.AddOrUpdate(service, account, input.Password);
-            _context.Trace.WriteLine("Credential was successfully stored.");
+                // Add or update the credential in the store.
+                _context.Trace.WriteLine($"Storing credential with service={service} account={account}...");
+                _context.CredentialStore.AddOrUpdate(service, account, input.Password);
+                _context.Trace.WriteLine("Credential was successfully stored.");
+            }
+            else
+            {
+                _context.Trace.WriteLine("Not using PATs - nothing to store");
+            }
 
             return Task.CompletedTask;
         }
 
         public Task EraseCredentialAsync(InputArguments input)
         {
-            string service = GetServiceName(input);
-            string account = GetAccountNameForCredentialQuery(input);
-
-            // Try to locate an existing credential
-            _context.Trace.WriteLine($"Erasing stored credential in store with service={service} account={account}...");
-            if (_context.CredentialStore.Remove(service, account))
+            if (IsPersonalAccessTokenMode())
             {
-                _context.Trace.WriteLine("Credential was successfully erased.");
+                string service = GetServiceName(input);
+                string account = GetAccountNameForCredentialQuery(input);
+
+                // Try to locate an existing credential
+                _context.Trace.WriteLine($"Erasing stored credential in store with service={service} account={account}...");
+                if (_context.CredentialStore.Remove(service, account))
+                {
+                    _context.Trace.WriteLine("Credential was successfully erased.");
+                }
+                else
+                {
+                    _context.Trace.WriteLine("No credential was erased.");
+                }
             }
             else
             {
-                _context.Trace.WriteLine("No credential was erased.");
+                _context.Trace.WriteLine("Not using PATs - nothing to erase");
             }
 
             return Task.CompletedTask;
@@ -131,34 +159,13 @@ namespace Microsoft.AzureRepos
             base.ReleaseManagedResources();
         }
 
-        private async Task<ICredential> GenerateCredentialAsync(InputArguments input)
+        private async Task<ICredential> GeneratePersonalAccessTokenAsync(Uri remoteUri)
         {
             ThrowIfDisposed();
 
-            // We should not allow unencrypted communication and should inform the user
-            if (StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "http"))
-            {
-                throw new Exception("Unencrypted HTTP is not supported for Azure Repos. Ensure the repository remote URL is using HTTPS.");
-            }
+            IMicrosoftAuthenticationResult azureResult = await GetAzureAccessTokenAsync(remoteUri);
 
-            Uri remoteUri = input.GetRemoteUri();
             Uri orgUri = UriHelpers.CreateOrganizationUri(remoteUri, out _);
-
-            // Determine the MS authentication authority for this organization
-            _context.Trace.WriteLine("Determining Microsoft Authentication Authority...");
-            string authAuthority = await _azDevOps.GetAuthorityAsync(orgUri);
-            _context.Trace.WriteLine($"Authority is '{authAuthority}'.");
-
-            // Get an AAD access token for the Azure DevOps SPS
-            _context.Trace.WriteLine("Getting Azure AD access token...");
-            IMicrosoftAuthenticationResult result = await _msAuth.GetTokenAsync(
-                authAuthority,
-                GetClientId(),
-                GetRedirectUri(),
-                AzureDevOpsConstants.AzureDevOpsDefaultScopes,
-                null);
-            _context.Trace.WriteLineSecrets(
-                $"Acquired Azure access token. Account='{result.AccountUpn}' Token='{{0}}'", new object[] {result.AccessToken});
 
             // Ask the Azure DevOps instance to create a new PAT
             var patScopes = new[]
@@ -169,11 +176,32 @@ namespace Microsoft.AzureRepos
             _context.Trace.WriteLine($"Creating Azure DevOps PAT with scopes '{string.Join(", ", patScopes)}'...");
             string pat = await _azDevOps.CreatePersonalAccessTokenAsync(
                 orgUri,
-                result.AccessToken,
+                azureResult.AccessToken,
                 patScopes);
             _context.Trace.WriteLineSecrets("PAT created. PAT='{0}'", new object[] {pat});
 
-            return new GitCredential(result.AccountUpn, pat);
+            return new GitCredential(azureResult.AccountUpn, pat);
+        }
+
+        private async Task<IMicrosoftAuthenticationResult> GetAzureAccessTokenAsync(Uri remoteUri)
+        {
+            Uri orgUri = UriHelpers.CreateOrganizationUri(remoteUri, out _);
+
+            _context.Trace.WriteLine("Determining Microsoft Authentication Authority...");
+            string authAuthority = await _azDevOps.GetAuthorityAsync(orgUri);
+            _context.Trace.WriteLine($"Authority is '{authAuthority}'.");
+
+            _context.Trace.WriteLine("Getting Azure AD access token...");
+            IMicrosoftAuthenticationResult result = await _msAuth.GetTokenAsync(
+                authAuthority,
+                GetClientId(),
+                GetRedirectUri(),
+                AzureDevOpsConstants.AzureDevOpsDefaultScopes,
+                null);
+            _context.Trace.WriteLineSecrets(
+                $"Acquired Azure access token. Account='{result.AccountUpn}' Token='{{0}}'", new object[] {result.AccessToken});
+
+            return result;
         }
 
         private string GetClientId()
@@ -281,6 +309,27 @@ namespace Microsoft.AzureRepos
             }
 
             throw new InvalidOperationException("Host is not Azure DevOps.");
+        }
+
+        /// <summary>
+        /// Check if Azure DevOps Personal Access Tokens should be used or not.
+        /// </summary>
+        /// <returns>True if Personal Access Tokens should be used, false otherwise.</returns>
+        private bool IsPersonalAccessTokenMode()
+        {
+            // Keep PAT mode on by default whilst AT mode is being tested
+            const bool defaultValue = true;
+
+            if (_context.Settings.TryGetSetting(
+                AzureDevOpsConstants.EnvironmentVariables.PatMode,
+                KnownGitCfg.Credential.SectionName,
+                AzureDevOpsConstants.GitConfiguration.Credential.PatMode,
+                out string valueStr))
+            {
+                return valueStr.ToBooleanyOrDefault(defaultValue);
+            }
+
+            return defaultValue;
         }
 
         #endregion

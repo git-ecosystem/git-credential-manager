@@ -402,3 +402,31 @@ export GCM_MSAUTH_FLOW="devicecode"
 ```
 
 **Also see: [credential.msauthFlow](configuration.md#credentialmsauthflow)**
+
+---
+
+### GCM_AZREPOS_PATMODE
+
+Specify if the Azure Repos host provider should use Azure DevOps Personal Access Tokens
+as credentials, or use underlying Azure Active Directory/Microsoft Account access tokens instead.
+
+Defaults to the value `true`.
+
+Value|Description
+-|-
+`true` _(default)_|Use Azure DevOps Personal Access Tokens.
+`false`|Do not use Personal Access Tokens; use Azure access tokens directly.
+
+##### Windows
+
+```batch
+SET GCM_AZREPOS_PATMODE="false"
+```
+
+##### macOS/Linux
+
+```bash
+export GCM_AZREPOS_PATMODE="false"
+```
+
+**Also see: [credential.azreposPATMode](configuration.md#azrepospatmode)**

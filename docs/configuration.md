@@ -249,3 +249,25 @@ git config --global credential.msauthFlow devicecode
 ```
 
 **Also see: [GCM_MSAUTH_FLOW](environment.md#GCM_MSAUTH_FLOW)**
+
+---
+
+### credential.azreposPATMode
+
+Specify if the Azure Repos host provider should use Azure DevOps Personal Access Tokens
+as credentials, or use underlying Azure Active Directory/Microsoft Account access tokens instead.
+
+Defaults to the value `true`.
+
+Value|Description
+-|-
+`true` _(default)_|Use Azure DevOps Personal Access Tokens.
+`false`|Do not use Personal Access Tokens; use Azure access tokens directly.
+
+#### Example
+
+```shell
+git config --global credential.azreposPATMode false
+```
+
+**Also see: [GCM_AZREPOS_PATMODE](environment.md#GCM_AZREPOS_PATMODE)**
