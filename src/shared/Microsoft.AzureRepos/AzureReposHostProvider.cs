@@ -153,8 +153,8 @@ namespace Microsoft.AzureRepos
             _context.Trace.WriteLine("Getting Azure AD access token...");
             IMicrosoftAuthenticationResult result = await _msAuth.GetTokenAsync(
                 authAuthority,
-                AzureDevOpsConstants.AadClientId,
-                AzureDevOpsConstants.AadRedirectUri,
+                GetClientId(),
+                GetRedirectUri(),
                 AzureDevOpsConstants.AzureDevOpsDefaultScopes,
                 null);
             _context.Trace.WriteLineSecrets(
@@ -174,6 +174,36 @@ namespace Microsoft.AzureRepos
             _context.Trace.WriteLineSecrets("PAT created. PAT='{0}'", new object[] {pat});
 
             return new GitCredential(result.AccountUpn, pat);
+        }
+
+        private string GetClientId()
+        {
+            // Check for developer override value
+            if (_context.Settings.TryGetSetting(
+                    AzureDevOpsConstants.EnvironmentVariables.DevAadClientId,
+                    Constants.GitConfiguration.Credential.SectionName,
+                    AzureDevOpsConstants.GitConfiguration.Credential.DevAadClientId,
+                    out string clientId))
+            {
+                return clientId;
+            }
+
+            return AzureDevOpsConstants.AadClientId;
+        }
+
+        private Uri GetRedirectUri()
+        {
+            // Check for developer override value
+            if (_context.Settings.TryGetSetting(
+                    AzureDevOpsConstants.EnvironmentVariables.DevAadRedirectUri,
+                    Constants.GitConfiguration.Credential.SectionName, AzureDevOpsConstants.GitConfiguration.Credential.DevAadRedirectUri,
+                    out string redirectUriStr) &&
+                Uri.TryCreate(redirectUriStr, UriKind.Absolute, out Uri redirectUri))
+            {
+                return redirectUri;
+            }
+
+            return AzureDevOpsConstants.AadRedirectUri;
         }
 
         /// <remarks>
