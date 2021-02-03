@@ -153,7 +153,7 @@ git config --global credential.httpsProxy http://john.doe:password@proxy.contoso
 Override the available authentication modes presented during GitHub authentication.
 If this option is not set, then the available authentication modes will be automatically detected.
 
-**Note:** This setting supports multiple values separated by spaces.
+**Note:** This setting supports multiple values separated by commas.
 
 Value|Authentication Mode
 -|-
