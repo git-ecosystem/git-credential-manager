@@ -8,14 +8,19 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.Identity.Client;
 using Microsoft.Identity.Client.Extensions.Msal;
-using Microsoft.IdentityModel.JsonWebTokens;
 
 namespace Microsoft.Git.CredentialManager.Authentication
 {
     public interface IMicrosoftAuthentication
     {
-        Task<JsonWebToken> GetAccessTokenAsync(string authority, string clientId, Uri redirectUri, string resource,
-            Uri remoteUri, string userName);
+        Task<IMicrosoftAuthenticationResult> GetTokenAsync(string authority, string clientId, Uri redirectUri,
+            string[] scopes, string userName);
+    }
+
+    public interface IMicrosoftAuthenticationResult
+    {
+        string AccessToken { get; }
+        string AccountUpn { get; }
     }
 
     public enum MicrosoftAuthenticationFlowType
@@ -40,22 +45,8 @@ namespace Microsoft.Git.CredentialManager.Authentication
 
         #region IMicrosoftAuthentication
 
-        public async Task<JsonWebToken> GetAccessTokenAsync(
-            string authority, string clientId, Uri redirectUri, string resource, Uri remoteUri, string userName)
-        {
-            // Try to acquire an access token in the current process
-            string[] scopes = { $"{resource}/.default" };
-            return await GetAccessTokenInProcAsync(authority, clientId, redirectUri, scopes, userName);
-        }
-
-        #endregion
-
-        #region Authentication strategies
-
-        /// <summary>
-        /// Obtain an access token using MSAL running inside the current process.
-        /// </summary>
-        private async Task<JsonWebToken> GetAccessTokenInProcAsync(string authority, string clientId, Uri redirectUri, string[] scopes, string userName)
+        public async Task<IMicrosoftAuthenticationResult> GetTokenAsync(
+            string authority, string clientId, Uri redirectUri, string[] scopes, string userName)
         {
             IPublicClientApplication app = await CreatePublicClientApplicationAsync(authority, clientId, redirectUri);
 
@@ -136,7 +127,7 @@ namespace Microsoft.Git.CredentialManager.Authentication
                 }
             }
 
-            return new JsonWebToken(result.AccessToken);
+            return new MsalResult(result);
         }
 
         private MicrosoftAuthenticationFlowType GetFlowType()
@@ -335,5 +326,18 @@ namespace Microsoft.Git.CredentialManager.Authentication
         }
 
         #endregion
+
+        private class MsalResult : IMicrosoftAuthenticationResult
+        {
+            private readonly AuthenticationResult _msalResult;
+
+            public MsalResult(AuthenticationResult msalResult)
+            {
+                _msalResult = msalResult;
+            }
+
+            public string AccessToken => _msalResult.AccessToken;
+            public string AccountUpn => _msalResult.Account.Username;
+        }
     }
 }

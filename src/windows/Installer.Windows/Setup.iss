@@ -114,9 +114,6 @@ Source: "{#PayloadDir}\Microsoft.Git.CredentialManager.dll";           DestDir: 
 Source: "{#PayloadDir}\Microsoft.Git.CredentialManager.UI.dll";        DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PayloadDir}\Microsoft.Identity.Client.dll";                 DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PayloadDir}\Microsoft.Identity.Client.Extensions.Msal.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#PayloadDir}\Microsoft.IdentityModel.JsonWebTokens.dll";     DestDir: "{app}"; Flags: ignoreversion
-Source: "{#PayloadDir}\Microsoft.IdentityModel.Logging.dll";           DestDir: "{app}"; Flags: ignoreversion
-Source: "{#PayloadDir}\Microsoft.IdentityModel.Tokens.dll";            DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PayloadDir}\Newtonsoft.Json.dll";                           DestDir: "{app}"; Flags: ignoreversion
 
 [Code]
