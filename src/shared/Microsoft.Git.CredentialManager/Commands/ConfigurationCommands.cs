@@ -1,25 +1,34 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
-using System;
-using System.Linq;
+using System.CommandLine;
+using System.CommandLine.Invocation;
 using System.Threading.Tasks;
 
 namespace Microsoft.Git.CredentialManager.Commands
 {
-    public abstract class ConfigurationCommandBase : VerbCommandBase
+    public abstract class ConfigurationCommandBase : Command
     {
-        protected ConfigurationCommandBase(IConfigurationService configurationService)
+        protected ConfigurationCommandBase(ICommandContext context, string name, string description, IConfigurationService configurationService)
+            : base(name, description)
         {
+            EnsureArgument.NotNull(context, nameof(context));
             EnsureArgument.NotNull(configurationService, nameof(configurationService));
 
+            Context = context;
             ConfigurationService = configurationService;
+
+            AddOption(new Option<bool>("--system", "Modify the system-wide Git configuration instead of the current user"));
+
+            Handler = CommandHandler.Create<bool>(ExecuteAsync);
         }
+
+        protected ICommandContext Context { get; }
 
         protected IConfigurationService ConfigurationService { get; }
 
-        public override Task ExecuteAsync(ICommandContext context, string[] args)
+        internal Task ExecuteAsync(bool system)
         {
-            var target = args.Any(x => StringComparer.OrdinalIgnoreCase.Equals("--system", x))
+            var target = system
                 ? ConfigurationTarget.System
                 : ConfigurationTarget.User;
 
@@ -31,10 +40,8 @@ namespace Microsoft.Git.CredentialManager.Commands
 
     public class ConfigureCommand : ConfigurationCommandBase
     {
-        public ConfigureCommand(IConfigurationService configurationService)
-            : base(configurationService) { }
-
-        protected override string Name => "configure";
+        public ConfigureCommand(ICommandContext context, IConfigurationService configurationService)
+            : base(context, "configure", "Configure Git Credential Manager as the Git credential helper", configurationService) { }
 
         protected override Task ExecuteInternalAsync(ConfigurationTarget target)
         {
@@ -44,10 +51,8 @@ namespace Microsoft.Git.CredentialManager.Commands
 
     public class UnconfigureCommand : ConfigurationCommandBase
     {
-        public UnconfigureCommand(IConfigurationService configurationService)
-            : base(configurationService) { }
-
-        protected override string Name => "unconfigure";
+        public UnconfigureCommand(ICommandContext context, IConfigurationService configurationService)
+            : base(context, "unconfigure", "Unconfigure Git Credential Manager as the Git credential helper", configurationService) { }
 
         protected override Task ExecuteInternalAsync(ConfigurationTarget target)
         {

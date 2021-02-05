@@ -10,24 +10,6 @@ namespace Microsoft.Git.CredentialManager.Tests.Commands
 {
     public class ConfigureCommandTests
     {
-        [Theory]
-        [InlineData("configure", true)]
-        [InlineData("CONFIGURE", true)]
-        [InlineData("cOnFiGuRe", true)]
-        [InlineData("get", false)]
-        [InlineData("store", false)]
-        [InlineData("unconfigure", false)]
-        [InlineData("", false)]
-        [InlineData(null, false)]
-        public void ConfigureCommand_CanExecuteAsync(string argString, bool expected)
-        {
-            var command = new ConfigureCommand(Mock.Of<IConfigurationService>());
-
-            bool result = command.CanExecute(argString?.Split(null));
-
-            Assert.Equal(expected, result);
-        }
-
         [Fact]
         public async Task ConfigureCommand_ExecuteAsync_User_InvokesConfigurationServiceConfigureUser()
         {
@@ -37,11 +19,9 @@ namespace Microsoft.Git.CredentialManager.Tests.Commands
                 .Verifiable();
 
             var context = new TestCommandContext();
+            var command = new ConfigureCommand(context, configService.Object);
 
-            string[] cmdArgs = {"configure"};
-            var command = new ConfigureCommand(configService.Object);
-
-            await command.ExecuteAsync(context, cmdArgs);
+            await command.ExecuteAsync(false);
 
             configService.Verify(x => x.ConfigureAsync(ConfigurationTarget.User), Times.Once);
         }
@@ -55,11 +35,9 @@ namespace Microsoft.Git.CredentialManager.Tests.Commands
                 .Verifiable();
 
             var context = new TestCommandContext();
+            var command = new ConfigureCommand(context, configService.Object);
 
-            string[] cmdArgs = {"configure", "--system"};
-            var command = new ConfigureCommand(configService.Object);
-
-            await command.ExecuteAsync(context, cmdArgs);
+            await command.ExecuteAsync(true);
 
             configService.Verify(x => x.ConfigureAsync(ConfigurationTarget.System), Times.Once);
         }

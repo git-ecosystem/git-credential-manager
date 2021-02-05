@@ -9,10 +9,10 @@ using Xunit;
 
 namespace Microsoft.Git.CredentialManager.Tests.Commands
 {
-    public class HostProviderCommandBaseTests
+    public class GitCommandBaseTests
     {
         [Fact]
-        public async Task HostProviderCommandBase_ExecuteAsync_CallsExecuteInternalAsyncWithCorrectArgs()
+        public async Task GitCommandBase_ExecuteAsync_CallsExecuteInternalAsyncWithCorrectArgs()
         {
             var mockContext = new Mock<ICommandContext>();
             var mockStreams = new Mock<IStandardStreams>();
@@ -34,11 +34,10 @@ namespace Microsoft.Git.CredentialManager.Tests.Commands
             mockContext.Setup(x => x.Trace).Returns(Mock.Of<ITrace>());
             mockContext.Setup(x => x.Settings).Returns(Mock.Of<ISettings>());
 
-            HostProviderCommandBase testCommand = new TestCommand(mockHostRegistry.Object)
+            GitCommandBase testCommand = new TestCommand(mockContext.Object, mockHostRegistry.Object)
             {
-                VerifyExecuteInternalAsync = (context, input, provider) =>
+                VerifyExecuteInternalAsync = (input, provider) =>
                 {
-                    Assert.Same(mockContext.Object, context);
                     Assert.Same(mockProvider.Object, provider);
                     Assert.Equal("test", input.Protocol);
                     Assert.Equal("example.com", input.Host);
@@ -46,11 +45,11 @@ namespace Microsoft.Git.CredentialManager.Tests.Commands
                 }
             };
 
-            await testCommand.ExecuteAsync(mockContext.Object, new string[0]);
+            await testCommand.ExecuteAsync();
         }
 
         [Fact]
-        public async Task HostProviderCommandBase_ExecuteAsync_ConfiguresSettingsRemoteUri()
+        public async Task GitCommandBase_ExecuteAsync_ConfiguresSettingsRemoteUri()
         {
             var mockContext = new Mock<ICommandContext>();
             var mockStreams = new Mock<IStandardStreams>();
@@ -73,29 +72,27 @@ namespace Microsoft.Git.CredentialManager.Tests.Commands
             mockContext.Setup(x => x.Trace).Returns(Mock.Of<ITrace>());
             mockContext.Setup(x => x.Settings).Returns(mockSettings.Object);
 
-            HostProviderCommandBase testCommand = new TestCommand(mockHostRegistry.Object);
+            GitCommandBase testCommand = new TestCommand(mockContext.Object, mockHostRegistry.Object);
 
-            await testCommand.ExecuteAsync(mockContext.Object, new string[0]);
+            await testCommand.ExecuteAsync();
 
             Assert.Equal(remoteUri, mockSettings.Object.RemoteUri);
         }
 
-        private class TestCommand : HostProviderCommandBase
+        private class TestCommand : GitCommandBase
         {
-            public TestCommand(IHostProviderRegistry hostProviderRegistry)
-                : base(hostProviderRegistry)
+            public TestCommand(ICommandContext context, IHostProviderRegistry hostProviderRegistry)
+                : base(context, "test", null, hostProviderRegistry)
             {
             }
 
-            protected override string Name { get; }
-
-            protected override Task ExecuteInternalAsync(ICommandContext context, InputArguments input, IHostProvider provider)
+            protected override Task ExecuteInternalAsync(InputArguments input, IHostProvider provider)
             {
-                VerifyExecuteInternalAsync?.Invoke(context, input, provider);
+                VerifyExecuteInternalAsync?.Invoke(input, provider);
                 return Task.CompletedTask;
             }
 
-            public Action<ICommandContext, InputArguments, IHostProvider> VerifyExecuteInternalAsync { get; set; }
+            public Action<InputArguments, IHostProvider> VerifyExecuteInternalAsync { get; set; }
         }
     }
 }

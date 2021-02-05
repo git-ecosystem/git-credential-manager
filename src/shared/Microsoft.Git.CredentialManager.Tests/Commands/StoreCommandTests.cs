@@ -10,33 +10,7 @@ using Xunit;
 namespace Microsoft.Git.CredentialManager.Tests.Commands
 {
     public class StoreCommandTests
-    {
-        [Theory]
-        [InlineData("store", true)]
-        [InlineData("STORE", true)]
-        [InlineData("sToRe", true)]
-        [InlineData("get", false)]
-        [InlineData("erase", false)]
-        [InlineData("foobar", false)]
-        [InlineData("", false)]
-        [InlineData(null, false)]
-        public void StoreCommand_CanExecuteAsync(string argString, bool expected)
-        {
-            var command = new StoreCommand(Mock.Of<IHostProviderRegistry>());
-
-            bool result = command.CanExecute(argString?.Split(null));
-
-            if (expected)
-            {
-                Assert.True(result);
-            }
-            else
-            {
-                Assert.False(result);
-            }
-        }
-
-        [Fact]
+    {[Fact]
         public async Task StoreCommand_ExecuteAsync_CallsHostProvider()
         {
             const string testUserName = "john.doe";
@@ -57,10 +31,9 @@ namespace Microsoft.Git.CredentialManager.Tests.Commands
                 Streams = {In = stdin}
             };
 
-            string[] cmdArgs = {"store"};
-            var command = new StoreCommand(providerRegistry);
+            var command = new StoreCommand(context, providerRegistry);
 
-            await command.ExecuteAsync(context, cmdArgs);
+            await command.ExecuteAsync();
 
             providerMock.Verify(
                 x => x.StoreCredentialAsync(It.Is<InputArguments>(y => AreInputArgumentsEquivalent(expectedInput, y))),

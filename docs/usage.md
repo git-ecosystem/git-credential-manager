@@ -11,11 +11,11 @@ git credential-manager-core [<command> [<args>]]
 
 ## Commands
 
-### help / --help
+### --help / -h / -?
 
 Displays a list of available commands.
 
-### version / --version
+### --version
 
 Displays the current version.
 

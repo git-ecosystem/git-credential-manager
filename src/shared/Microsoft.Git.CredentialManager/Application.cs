@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
 using System;
+using System.Collections.Generic;
+using System.CommandLine;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -15,6 +17,7 @@ namespace Microsoft.Git.CredentialManager
         private readonly string _appPath;
         private readonly IHostProviderRegistry _providerRegistry;
         private readonly IConfigurationService _configurationService;
+        private readonly IList<ProviderCommand> _providerCommands = new List<ProviderCommand>();
 
         public Application(ICommandContext context, string appPath)
             : this(context, new HostProviderRegistry(context), new ConfigurationService(context), appPath)
@@ -47,62 +50,52 @@ namespace Microsoft.Git.CredentialManager
             {
                 _configurationService.AddComponent(configurableProvider);
             }
+
+            // If the provider has custom commands to offer then create them here
+            if (provider is ICommandProvider cmdProvider)
+            {
+                ProviderCommand providerCommand = cmdProvider.CreateCommand();
+                _providerCommands.Add(providerCommand);
+            }
         }
 
         protected override async Task<int> RunInternalAsync(string[] args)
         {
-            string appName = Path.GetFileNameWithoutExtension(_appPath);
+            var rootCommand = new RootCommand();
 
-            // Construct all supported commands
-            var commands = new CommandBase[]
+            // Add standard commands
+            rootCommand.AddCommand(new GetCommand(Context, _providerRegistry));
+            rootCommand.AddCommand(new StoreCommand(Context, _providerRegistry));
+            rootCommand.AddCommand(new EraseCommand(Context, _providerRegistry));
+            rootCommand.AddCommand(new ConfigureCommand(Context, _configurationService));
+            rootCommand.AddCommand(new UnconfigureCommand(Context, _configurationService));
+
+            // Add any custom provider commands
+            foreach (ProviderCommand providerCommand in _providerCommands)
             {
-                new GetCommand(_providerRegistry),
-                new StoreCommand(_providerRegistry),
-                new EraseCommand(_providerRegistry),
-                new ConfigureCommand(_configurationService),
-                new UnconfigureCommand(_configurationService),
-                new VersionCommand(),
-                new HelpCommand(appName),
-            };
+                rootCommand.AddCommand(providerCommand);
+            }
 
             // Trace the current version and program arguments
             Context.Trace.WriteLine($"{Constants.GetProgramHeader()} '{string.Join(" ", args)}'");
 
-            if (args.Length == 0)
+            try
             {
-                Context.Streams.Error.WriteLine("Missing command.");
-                HelpCommand.PrintUsage(Context.Streams.Error, appName);
+                return await rootCommand.InvokeAsync(args);
+            }
+            catch (Exception e)
+            {
+                if (e is AggregateException ae)
+                {
+                    ae.Handle(WriteException);
+                }
+                else
+                {
+                    WriteException(e);
+                }
+
                 return -1;
             }
-
-            foreach (var cmd in commands)
-            {
-                if (cmd.CanExecute(args))
-                {
-                    try
-                    {
-                        await cmd.ExecuteAsync(Context, args);
-                        return 0;
-                    }
-                    catch (Exception e)
-                    {
-                        if (e is AggregateException ae)
-                        {
-                            ae.Handle(WriteException);
-                        }
-                        else
-                        {
-                            WriteException(e);
-                        }
-
-                        return -1;
-                    }
-                }
-            }
-
-            Context.Streams.Error.WriteLine("Unrecognized command '{0}'.", args[0]);
-            HelpCommand.PrintUsage(Context.Streams.Error, appName);
-            return -1;
         }
 
         protected override void Dispose(bool disposing)
