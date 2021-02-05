@@ -423,6 +423,12 @@ namespace Microsoft.AzureRepos
 
         ProviderCommand ICommandProvider.CreateCommand()
         {
+            var clearCacheCmd = new Command("clear-cache")
+            {
+                Description = "Clear the authority cache",
+                Handler = CommandHandler.Create(ClearCacheCmd),
+            };
+
             var orgArg = new Argument("org")
             {
                 Arity = ArgumentArity.ExactlyOne,
@@ -486,9 +492,16 @@ namespace Microsoft.AzureRepos
             rootCmd.AddCommand(bindRemoteCmd);
             rootCmd.AddCommand(unbindOrgCmd);
             rootCmd.AddCommand(unbindRemoteCmd);
+            rootCmd.AddCommand(clearCacheCmd);
             return rootCmd;
         }
 
+        private int ClearCacheCmd()
+        {
+            _authorityCache.Clear();
+            _context.Streams.Out.WriteLine("Authority cache cleared");
+            return 0;
+        }
         private int ListBindingsCmd()
         {
             IDictionary<string, string> orgBinds = _userManager.GetOrganizationBindings();
