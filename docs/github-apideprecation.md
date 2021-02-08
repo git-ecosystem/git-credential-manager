@@ -56,15 +56,20 @@ compatibility issue we'd [like to know why](https://github.com/microsoft/Git-Cre
 ## Help! I cannot make any changes to my Windows machine without an Administrator!
 
 If you do not have permission to change your installation (for example in a
-corporate environment) there is a workaround which should work and does not
-require administrator permissions.
+corporate environment) you can use the per-user installer. Check out the [latest
+release](https://aka.ms/gcmcore-latest) and download the `gcmcoreuser-win-*.exe`
+executable.
 
-0. Tell your system administrator they should start planning to upgrade the
+### Help! I still cannot or don't want to install anything!
+
+There is a workaround which should work and doesn't require installing anything.
+
+1. Tell your system administrator they should start planning to upgrade the
    installed version of Git for Windows to at least 2.29! 😁
 
-1. [Create a new personal access token](https://github.com/settings/tokens/new?scopes=repo,gist,workflow) (see official [documentation](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token))
+2. [Create a new personal access token](https://github.com/settings/tokens/new?scopes=repo,gist,workflow) (see official [documentation](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token))
 
-2. Enter a name ("note") for the token and ensure the `repo`, `gist`, and
+3. Enter a name ("note") for the token and ensure the `repo`, `gist`, and
    `workflow` scopes are selected:
 ![image](https://user-images.githubusercontent.com/5658207/95448332-1beb2000-095b-11eb-9a48-9c05b1926a6b.png)
 ...

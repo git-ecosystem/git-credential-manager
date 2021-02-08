@@ -382,7 +382,7 @@ Specify which authentication flow should be used when performing Microsoft authe
 
 Defaults to the value `auto`.
 
-Value|Credential Store
+Value|Authentication Flow
 -|-
 `auto` _(default)_|Select the best option depending on the current environment and platform.
 `embedded`|Show a window with embedded web view control.
