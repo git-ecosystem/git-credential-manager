@@ -3,9 +3,9 @@
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
 
   <PropertyGroup>
-    <TargetFramework>net461</TargetFramework>
+    <TargetFramework>net472</TargetFramework>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <PayloadPath>$(PlatformOutPath)Payload.Windows\bin\$(Configuration)\net461\win-x86</PayloadPath>
+    <PayloadPath>$(PlatformOutPath)Payload.Windows\bin\$(Configuration)\net472\win-x86</PayloadPath>
     <EnableDefaultItems>false</EnableDefaultItems>
   </PropertyGroup>
 
