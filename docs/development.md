@@ -35,9 +35,9 @@ msbuild /t:restore /p:Configuration=WindowsDebug
 msbuild /p:Configuration=WindowsDebug
 ```
 
-You can find a copy of the installer .exe file in `out\windows\Installer.Windows\bin\Debug\net461`.
+You can find a copy of the installer .exe file in `out\windows\Installer.Windows\bin\Debug\net472`.
 
-The flat binaries can also be found in `out\windows\Payload.Windows\bin\Debug\net461\win-x86`.
+The flat binaries can also be found in `out\windows\Payload.Windows\bin\Debug\net472\win-x86`.
 
 ### Linux
 

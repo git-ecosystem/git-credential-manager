@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
-    <TargetFrameworks Condition="'$(OSPlatform)'=='windows'">netstandard2.0;net461</TargetFrameworks>
+    <TargetFrameworks Condition="'$(OSPlatform)'=='windows'">netstandard2.0;net472</TargetFrameworks>
     <AssemblyName>Atlassian.Bitbucket</AssemblyName>
     <RootNamespace>Atlassian.Bitbucket</RootNamespace>
     <IsTestProject>false</IsTestProject>
@@ -13,7 +13,7 @@
     <ProjectReference Include="..\Microsoft.Git.CredentialManager\Microsoft.Git.CredentialManager.csproj" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net461'">
+  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
     <Reference Include="System.Net.Http" />
   </ItemGroup>
 
