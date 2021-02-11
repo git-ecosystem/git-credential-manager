@@ -83,7 +83,9 @@ namespace Microsoft.AzureRepos
                 throw new Exception("Unencrypted HTTP is not supported for Azure Repos. Ensure the repository remote URL is using HTTPS.");
             }
 
-            Uri remoteUri = input.GetRemoteUri();
+            // Include any user from the URL/request here so that we may use it as an override
+            // for user account lookups when getting Azure Access Tokens.
+            Uri remoteUri = input.GetRemoteUri(includeUser: true);
 
             if (IsPersonalAccessTokenMode())
             {
@@ -217,9 +219,29 @@ namespace Microsoft.AzureRepos
             }
             _context.Trace.WriteLine($"Authority is '{authAuthority}'.");
 
-            // Get the currently bound user for this remote, if one exists
-            _context.Trace.WriteLine($"Looking up user for remote '{remoteUri}'...");
-            string userName = _userManager.GetUser(remoteUri);
+            //
+            // If the remote URI is a classic "*.visualstudio.com" remote and we have a user specified in the URI
+            // then take that as the current AAD/MSA user in the first instance.
+            //
+            // For "dev.azure.com" style remote we cannot use the user info part of the URI because this has been
+            // hacked to be the Azure DevOps organization name instead (not an actual username).
+            //
+            // If we have no specified user from the URL (or this is dev.azure.com) then query the user manager for
+            // a bound user for this remote, if one exists...
+            //
+            string userName;
+            if (UriHelpers.IsVisualStudioComHost(remoteUri.Host) &&
+                remoteUri.TryGetUserInfo(out userName, out _) &&
+                !string.IsNullOrWhiteSpace(userName))
+            {
+                _context.Trace.WriteLine($"Using username as specified in remote URL '{remoteUri}'.");
+            }
+            else
+            {
+                _context.Trace.WriteLine($"Looking up user for remote '{remoteUri}'...");
+                userName = _userManager.GetUser(remoteUri);
+            }
+
             _context.Trace.WriteLine(string.IsNullOrWhiteSpace(userName) ? "No user found." : $"User is '{userName}'.");
 
             // Get an AAD access token for the Azure DevOps SPS

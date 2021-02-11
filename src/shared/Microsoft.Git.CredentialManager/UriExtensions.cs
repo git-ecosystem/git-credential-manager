@@ -74,6 +74,11 @@ namespace Microsoft.Git.CredentialManager
             return TryGetUserInfo(uri, out string userName, out _) ? userName : null;
         }
 
+        public static Uri WithoutUserInfo(this Uri uri)
+        {
+            return new UriBuilder(uri) {UserName = string.Empty, Password = string.Empty}.Uri;
+        }
+
         public static IEnumerable<string> GetGitConfigurationScopes(this Uri uri)
         {
             EnsureArgument.NotNull(uri, nameof(uri));

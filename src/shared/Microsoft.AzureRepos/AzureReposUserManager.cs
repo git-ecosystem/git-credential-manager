@@ -359,7 +359,8 @@ namespace Microsoft.AzureRepos
 
         private static string GetRemoteUserKey(Uri uri)
         {
-            return $"remote.{uri}.user";
+            // Trim any userinfo that may be present on the URI.. we only scope to the authority & path
+            return $"remote.{uri.WithoutUserInfo()}.user";
         }
     }
 }
