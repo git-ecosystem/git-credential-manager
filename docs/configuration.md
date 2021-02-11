@@ -249,3 +249,58 @@ git config --global credential.msauthFlow devicecode
 ```
 
 **Also see: [GCM_MSAUTH_FLOW](environment.md#GCM_MSAUTH_FLOW)**
+
+---
+
+### credential.useHttpPath
+
+Tells Git to pass the entire repository URL, rather than just the hostname, when calling out to a credential provider. (This setting [comes from Git itself](https://git-scm.com/docs/gitcredentials/#Documentation/gitcredentials.txt-useHttpPath), not GCM Core.)
+
+Defaults to `false`.
+
+Value|Authentication Flow
+-|-
+`false` _(default)_|Git will use only `user` and `hostname` to look up credentials.
+`true`|Git will use the full repository URL to look up credentials.
+
+#### Example
+
+For a user whose login is `alice`, and with `credential.useHttpPath` set to `false` (or not set), the following remote URLs will use the same credentials:
+
+```text
+Credential: "git:https://github.com" (user = alice) 
+
+   https://github.com/foo/bar
+   https://github.com/contoso/widgets
+   https://alice@github.com/contoso/widgets
+```
+```text
+Credential: "git:https://bob@github.com" (user = bob)
+
+   https://bob@github.com/foo/bar
+   https://bob@github.com/example/myrepo
+```
+
+Under the same user but with `credential.useHttpPath` set to `true`, these credentials would be used:
+
+```text
+Credential: "git:https://github.com/foo/bar" (user = alice)
+
+   https://github.com/foo/bar
+```
+```text
+Credential: "git:https://github.com/contoso/widgets" (user = alice)
+
+   https://github.com/contoso/widgets
+   https://alice@github.com/contoso/widgets
+```
+```text
+Credential: "git:https://bob@github.com/foo/bar" (user = bob)
+
+   https://bob@github.com/foo/bar
+```
+```text
+Credential: "git:https://bob@github.com/example/myrepo" (user = bob)
+
+   https://bob@github.com/example/myrepo
+```
