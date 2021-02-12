@@ -60,6 +60,11 @@ namespace Microsoft.Git.CredentialManager
         IGit Git { get; }
 
         /// <summary>
+        /// Helper process invoker.
+        /// </summary>
+        IHelperProcess HelperProcess { get; }
+
+        /// <summary>
         /// The current process environment.
         /// </summary>
         IEnvironment Environment { get; }
@@ -93,6 +98,7 @@ namespace Microsoft.Git.CredentialManager
                                             gitPath,
                                             FileSystem.GetCurrentDirectory()
                                         );
+                HelperProcess     = new HelperProcess(Trace);
                 Settings          = new Settings(Environment, Git);
                 CredentialStore   = new WindowsCredentialManager(Settings.CredentialNamespace);
             }
@@ -109,6 +115,7 @@ namespace Microsoft.Git.CredentialManager
                                             gitPath,
                                             FileSystem.GetCurrentDirectory()
                                         );
+                HelperProcess     = new HelperProcess(Trace);
                 Settings          = new Settings(Environment, Git);
                 CredentialStore   = new MacOSKeychain(Settings.CredentialNamespace);
             }
@@ -126,6 +133,7 @@ namespace Microsoft.Git.CredentialManager
                                             gitPath,
                                             FileSystem.GetCurrentDirectory()
                                         );
+                HelperProcess     = new HelperProcess(Trace);
                 Settings          = new Settings(Environment, Git);
                 IGpg gpg          = new Gpg(
                                             Environment.LocateExecutable("gpg"),
@@ -182,6 +190,8 @@ namespace Microsoft.Git.CredentialManager
         public IHttpClientFactory HttpClientFactory { get; }
 
         public IGit Git { get; }
+
+        public IHelperProcess HelperProcess { get; }
 
         public IEnvironment Environment { get; }
 

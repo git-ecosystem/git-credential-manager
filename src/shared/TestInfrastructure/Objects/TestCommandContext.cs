@@ -20,6 +20,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
             CredentialStore = new TestCredentialStore();
             HttpClientFactory = new TestHttpClientFactory();
             Git = new TestGit();
+            HelperProcess = new TestHelperProcess();
             Environment = new TestEnvironment(FileSystem);
             SystemPrompts = new TestSystemPrompts();
 
@@ -35,6 +36,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
         public TestCredentialStore CredentialStore { get; set; }
         public TestHttpClientFactory HttpClientFactory { get; set; }
         public TestGit Git { get; set; }
+        public TestHelperProcess HelperProcess { get; set; }
         public TestEnvironment Environment { get; set; }
         public TestSystemPrompts SystemPrompts { get; set; }
 
@@ -57,6 +59,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
         IHttpClientFactory ICommandContext.HttpClientFactory => HttpClientFactory;
 
         IGit ICommandContext.Git => Git;
+
+        IHelperProcess ICommandContext.HelperProcess => HelperProcess;
 
         IEnvironment ICommandContext.Environment => Environment;
 
