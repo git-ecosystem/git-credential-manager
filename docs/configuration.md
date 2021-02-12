@@ -258,7 +258,7 @@ Tells Git to pass the entire repository URL, rather than just the hostname, when
 
 Defaults to `false`.
 
-Value|Authentication Flow
+Value|Git Behavior
 -|-
 `false` _(default)_|Git will use only `user` and `hostname` to look up credentials.
 `true`|Git will use the full repository URL to look up credentials.
