@@ -258,6 +258,12 @@ Tells Git to pass the entire repository URL, rather than just the hostname, when
 
 Defaults to `false`.
 
+**Note:** GCM Core sets this value to `true` for `dev.azure.com` (Azure Repos) hosts after installation by default.
+
+This is because `dev.azure.com` alone is not enough information to determine the correct Azure authentication authority - we require a part of the path. The fallout of this is that for `dev.azure.com` remote URLs we do not support storing credentials against the full-path. We always store against the `dev.azure.com/org-name` stub.
+
+In order to use Azure Repos and store credentials against a full-path URL, you must use the `org-name.visualstudio.com` remote URL format instead.
+
 Value|Git Behavior
 -|-
 `false` _(default)_|Git will use only `user` and `hostname` to look up credentials.
