@@ -24,46 +24,11 @@ namespace Microsoft.Git.CredentialManager.Authentication
 
         protected async Task<IDictionary<string, string>> InvokeHelperAsync(string path, string args, IDictionary<string, string> standardInput = null)
         {
-            var procStartInfo = new ProcessStartInfo(path)
-            {
-                Arguments = args,
-                RedirectStandardInput = true,
-                RedirectStandardOutput = true,
-                RedirectStandardError = false, // Do not redirect stderr as tracing might be enabled
-                UseShellExecute = false
-            };
-
             // We flush the trace writers here so that the we don't stomp over the
             // authentication helper's messages.
             Context.Trace.Flush();
 
-            var process = Process.Start(procStartInfo);
-            if (process is null)
-            {
-                throw new Exception($"Failed to start helper process '{path}'");
-            }
-
-            if (!(standardInput is null))
-            {
-                await process.StandardInput.WriteDictionaryAsync(standardInput);
-            }
-
-            IDictionary<string, string> resultDict = await process.StandardOutput.ReadDictionaryAsync(StringComparer.OrdinalIgnoreCase);
-
-            await Task.Run(() => process.WaitForExit());
-            int exitCode = process.ExitCode;
-
-            if (exitCode != 0)
-            {
-                if (!resultDict.TryGetValue("error", out string errorMessage))
-                {
-                    errorMessage = "Unknown";
-                }
-
-                throw new Exception($"helper error ({exitCode}): {errorMessage}");
-            }
-
-            return resultDict;
+            return await Context.HelperProcess.InvokeAsync(path, args, standardInput);
         }
 
         protected void ThrowIfUserInteractionDisabled()
