@@ -271,7 +271,7 @@ Value|Git Behavior
 
 #### Example
 
-For a user whose login is `alice`, and with `credential.useHttpPath` set to `false` (or not set), the following remote URLs will use the same credentials:
+On Windows using GitHub, for a user whose login is `alice`, and with `credential.useHttpPath` set to `false` (or not set), the following remote URLs will use the same credentials:
 
 ```text
 Credential: "git:https://github.com" (user = alice) 
