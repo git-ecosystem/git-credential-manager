@@ -12,6 +12,12 @@ namespace Microsoft.Git.CredentialManager
         /// <param name="level">Configuration level filter.</param>
         /// <returns>Git configuration.</returns>
         IGitConfiguration GetConfiguration(GitConfigurationLevel level);
+
+        /// <summary>
+        /// Get the Git instance in use.
+        /// </summary>
+        /// <returns>Path to Git.</returns>
+        string GitPath { get; }
     }
 
     public class GitProcess : IGit
@@ -47,6 +53,8 @@ namespace Microsoft.Git.CredentialManager
 
             return new Process {StartInfo = psi};
         }
+
+        public string GitPath => _gitPath;
     }
 
     public static class GitExtensions

@@ -38,6 +38,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
             }
         }
 
+        string IGit.GitPath => "test-git";
+
         #endregion
 
         private static IDictionary<string, IList<string>> MergeDictionaries(params IDictionary<string, IList<string>>[] dictionaries)
