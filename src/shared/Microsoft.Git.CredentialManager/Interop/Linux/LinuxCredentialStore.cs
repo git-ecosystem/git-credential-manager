@@ -96,7 +96,6 @@ namespace Microsoft.Git.CredentialManager.Interop.Linux
                     ValidatePlaintext(out string plainStoreRoot);
                     _backingStore = new PlaintextCredentialStore(_fileSystem, plainStoreRoot, ns);
                     break;
-                
                 default:
                     var sb = new StringBuilder();
                     sb.AppendLine("No credential backing store has been selected.");
