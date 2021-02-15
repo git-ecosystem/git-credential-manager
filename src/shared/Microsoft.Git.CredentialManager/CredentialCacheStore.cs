@@ -73,7 +73,7 @@ namespace Microsoft.Git.CredentialManager
             var result = new Dictionary<string, string>();
 
             result["url"] = service;
-            // TODO: "account" is unused, is that right?
+            result["username"] = account;
 
             return result;
         }
