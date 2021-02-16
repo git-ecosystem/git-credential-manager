@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace Microsoft.Git.CredentialManager.Tests.Objects
 {
@@ -41,7 +42,10 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
 
         Process IGit.CreateProcess(string args) => new Process();
 
-        string IGit.GitPath => "test-git";
+        Task<IDictionary<string, string>> IGit.InvokeHelperAsync(string args, IDictionary<string, string> standardInput)
+        {
+            throw new NotImplementedException();
+        }
 
         #endregion
 

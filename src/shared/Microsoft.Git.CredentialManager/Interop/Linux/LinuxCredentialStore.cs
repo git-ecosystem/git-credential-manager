@@ -20,11 +20,10 @@ namespace Microsoft.Git.CredentialManager.Interop.Linux
         private readonly IGpg _gpg;
         private readonly IEnvironment _environment;
         private readonly IGit _git;
-        private readonly IHelperProcess _helper;
 
         private ICredentialStore _backingStore;
 
-        public LinuxCredentialStore(IFileSystem fileSystem, ISettings settings, ISessionManager sessionManager, IGpg gpg, IEnvironment environment, IGit git, IHelperProcess helper)
+        public LinuxCredentialStore(IFileSystem fileSystem, ISettings settings, ISessionManager sessionManager, IGpg gpg, IEnvironment environment, IGit git)
         {
             EnsureArgument.NotNull(fileSystem, nameof(fileSystem));
             EnsureArgument.NotNull(settings, nameof(settings));
@@ -32,7 +31,6 @@ namespace Microsoft.Git.CredentialManager.Interop.Linux
             EnsureArgument.NotNull(gpg, nameof(gpg));
             EnsureArgument.NotNull(environment, nameof(environment));
             EnsureArgument.NotNull(git, nameof(git));
-            EnsureArgument.NotNull(helper, nameof(helper));
 
             _fileSystem = fileSystem;
             _settings = settings;
@@ -40,7 +38,6 @@ namespace Microsoft.Git.CredentialManager.Interop.Linux
             _gpg = gpg;
             _environment = environment;
             _git = git;
-            _helper = helper;
         }
 
         #region ICredentialStore
@@ -89,7 +86,7 @@ namespace Microsoft.Git.CredentialManager.Interop.Linux
 
                 case CredentialCacheOption:
                     ValidateCredentialCache();
-                    _backingStore = new CredentialCacheStore(_git, _helper);
+                    _backingStore = new CredentialCacheStore(_git);
                     break;
 
                 case PlaintextStoreOption:

@@ -1,6 +1,9 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace Microsoft.Git.CredentialManager
 {
@@ -20,10 +23,12 @@ namespace Microsoft.Git.CredentialManager
         Process CreateProcess(string args);
 
         /// <summary>
-        /// Get the Git instance in use.
+        /// Run a Git helper process which expects and returns key-value maps
         /// </summary>
-        /// <returns>Path to Git.</returns>
-        string GitPath { get; }
+        /// <param name="args">Arguments to the executable</param>
+        /// <param name="standardInput">key-value map to pipe into stdin</param>
+        /// <returns>stdout from helper executable as key-value map</returns>
+        Task<IDictionary<string, string>> InvokeHelperAsync(string args, IDictionary<string, string> standardInput);
     }
 
     public class GitProcess : IGit
@@ -60,7 +65,51 @@ namespace Microsoft.Git.CredentialManager
             return new Process {StartInfo = psi};
         }
 
-        public string GitPath => _gitPath;
+        // This code was originally copied from 
+        // src/shared/Microsoft.Git.CredentialManager/Authentication/AuthenticationBase.cs
+        // That code is for GUI helpers in this codebase, while the below is for
+        // communicating over Git's stdin/stdout helper protocol. The GUI helper
+        // protocol will one day use a different IPC mechanism, whereas this code
+        // has to follow what upstream Git does.
+        public async Task<IDictionary<string, string>> InvokeHelperAsync(string args, IDictionary<string, string> standardInput = null)
+        {
+            var procStartInfo = new ProcessStartInfo(_gitPath)
+            {
+                Arguments = args,
+                RedirectStandardInput = true,
+                RedirectStandardOutput = true,
+                RedirectStandardError = false, // Do not redirect stderr as tracing might be enabled
+                UseShellExecute = false
+            };
+
+            var process = Process.Start(procStartInfo);
+            if (process is null)
+            {
+                throw new Exception($"Failed to start Git helper '{args}'");
+            }
+
+            if (!(standardInput is null))
+            {
+                await process.StandardInput.WriteDictionaryAsync(standardInput);
+            }
+
+            IDictionary<string, string> resultDict = await process.StandardOutput.ReadDictionaryAsync(StringComparer.OrdinalIgnoreCase);
+
+            await Task.Run(() => process.WaitForExit());
+            int exitCode = process.ExitCode;
+
+            if (exitCode != 0)
+            {
+                if (!resultDict.TryGetValue("error", out string errorMessage))
+                {
+                    errorMessage = "Unknown";
+                }
+
+                throw new Exception($"helper error ({exitCode}): {errorMessage}");
+            }
+
+            return resultDict;
+        }
     }
 
     public static class GitExtensions
