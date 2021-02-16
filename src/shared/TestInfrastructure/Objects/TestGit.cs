@@ -2,6 +2,7 @@
 // Licensed under the MIT license.
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Microsoft.Git.CredentialManager.Tests.Objects
 {
@@ -37,6 +38,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
                     throw new ArgumentOutOfRangeException(nameof(level), level, $"Unknown {nameof(GitConfigurationLevel)}");
             }
         }
+
+        Process IGit.CreateProcess(string args) => new Process();
 
         string IGit.GitPath => "test-git";
 

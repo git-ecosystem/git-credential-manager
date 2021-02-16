@@ -97,10 +97,10 @@ namespace Microsoft.Git.CredentialManager
     public class GitProcessConfiguration : IGitConfiguration
     {
         private readonly ITrace _trace;
-        private readonly GitProcess _git;
+        private readonly IGit _git;
         private readonly GitConfigurationLevel? _filterLevel;
 
-        internal GitProcessConfiguration(ITrace trace, GitProcess git, GitConfigurationLevel filterLevel = GitConfigurationLevel.All)
+        internal GitProcessConfiguration(ITrace trace, IGit git, GitConfigurationLevel filterLevel = GitConfigurationLevel.All)
         {
             EnsureArgument.NotNull(trace, nameof(trace));
             EnsureArgument.NotNull(git, nameof(git));

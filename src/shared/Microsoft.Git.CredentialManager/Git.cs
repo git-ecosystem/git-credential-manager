@@ -14,6 +14,12 @@ namespace Microsoft.Git.CredentialManager
         IGitConfiguration GetConfiguration(GitConfigurationLevel level);
 
         /// <summary>
+        /// Create a Git process that's ready to run.
+        /// </summary>
+        /// <returns>The Git process.</returns>
+        Process CreateProcess(string args);
+
+        /// <summary>
         /// Get the Git instance in use.
         /// </summary>
         /// <returns>Path to Git.</returns>
