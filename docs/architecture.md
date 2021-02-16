@@ -49,14 +49,14 @@ library (C#). The library targets .NET Standard as well as .NET Framework.
 > browser auth pop-up on Windows platforms.
 >
 > There are extension points that now exist in MSAL.NET meaning we can plug-in
-> our own browser pop-up handling code on .NET Core meaning both Windows and
+> our own browser pop-up handling code on .NET meaning both Windows and
 > Mac. We haven't yet gotten around to exploring this.
 >
 > See [this](https://github.com/microsoft/Git-Credential-Manager-Core/issues/113)
 > issue for more information.
 
 The entry-point for GCM Core can be found in the `Git-Credential-Manager`
-project, a console application that targets both .NET Core and .NET Framework.
+project, a console application that targets both .NET and .NET Framework.
 This project emits the `git-credential-manager-core(.exe)` executable, and
 contains very little code - registration of all supported host providers and
 running the `Application` object found in `Microsoft.Git.CredentialManager`.

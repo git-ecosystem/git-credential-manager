@@ -47,7 +47,7 @@ GCM_SRC="$SRC/shared/Git-Credential-Manager"
 PROJ_OUT="$OUT/linux/Packaging.Linux"
 
 # Build parameters
-FRAMEWORK=netcoreapp3.1
+FRAMEWORK=net5.0
 RUNTIME=linux-x64
 
 # Perform pre-execution checks
