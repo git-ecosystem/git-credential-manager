@@ -19,11 +19,10 @@ namespace Microsoft.Git.CredentialManager
     public enum GitConfigurationLevel
     {
         All,
-        ProgramData,
         System,
-        Xdg,
         Global,
         Local,
+        Unknown,
     }
 
     public interface IGitConfiguration
@@ -410,15 +409,13 @@ namespace Microsoft.Git.CredentialManager
         {
             switch (_filterLevel)
             {
-                case GitConfigurationLevel.ProgramData:
-                case GitConfigurationLevel.Xdg:
-                    return null;
                 case GitConfigurationLevel.System:
                     return "--system";
                 case GitConfigurationLevel.Global:
                     return "--global";
                 case GitConfigurationLevel.Local:
                     return "--local";
+                case GitConfigurationLevel.Unknown:
                 default:
                     return null;
             }

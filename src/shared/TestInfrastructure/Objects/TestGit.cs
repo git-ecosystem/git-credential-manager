@@ -26,8 +26,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
                             GlobalConfiguration.Dictionary,
                             LocalConfiguration.Dictionary);
                     return new TestGitConfiguration(mergedConfigDict);
-                case GitConfigurationLevel.ProgramData:
-                case GitConfigurationLevel.Xdg:
+                case GitConfigurationLevel.Unknown:
                     return new TestGitConfiguration();
                 case GitConfigurationLevel.System:
                     return SystemConfiguration;
