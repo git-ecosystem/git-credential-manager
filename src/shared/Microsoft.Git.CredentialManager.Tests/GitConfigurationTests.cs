@@ -76,11 +76,11 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             var actualVisitedEntries = new List<(string name, string value)>();
 
-            bool cb(string name, string value)
+            bool cb(GitConfigurationEntry entry)
             {
-                if (name.StartsWith("foo."))
+                if (entry.Key.StartsWith("foo."))
                 {
-                    actualVisitedEntries.Add((name, value));
+                    actualVisitedEntries.Add((entry.Key, entry.Value));
                 }
 
                 // Continue enumeration
@@ -113,11 +113,11 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             var actualVisitedEntries = new List<(string name, string value)>();
 
-            bool cb(string name, string value)
+            bool cb(GitConfigurationEntry entry)
             {
-                if (name.StartsWith("foo."))
+                if (entry.Key.StartsWith("foo."))
                 {
-                    actualVisitedEntries.Add((name, value));
+                    actualVisitedEntries.Add((entry.Key, entry.Value));
                 }
 
                 // Stop enumeration after 2 'foo' entries

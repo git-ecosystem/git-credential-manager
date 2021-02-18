@@ -11,10 +11,9 @@ namespace Microsoft.Git.CredentialManager
     /// <summary>
     /// Invoked for each Git configuration entry during an enumeration (<see cref="IGitConfiguration.Enumerate"/>).
     /// </summary>
-    /// <param name="name">Name of the current configuration entry.</param>
-    /// <param name="value">Value of the current configuration entry.</param>
+    /// <param name="entry">Current configuration entry.</param>
     /// <returns>True to continue enumeration, false to stop enumeration.</returns>
-    public delegate bool GitConfigurationEnumerationCallback(string name, string value);
+    public delegate bool GitConfigurationEnumerationCallback(GitConfigurationEntry entry);
 
     public enum GitConfigurationLevel
     {
@@ -134,7 +133,7 @@ namespace Microsoft.Git.CredentialManager
                 {
                     string[] kvp = entry.Split(new[]{'\n'}, count: 2);
 
-                    if (kvp.Length == 2 && !cb(kvp[0], kvp[1]))
+                    if (kvp.Length == 2 && !cb(new GitConfigurationEntry(kvp[0], kvp[1])))
                     {
                         break;
                     }

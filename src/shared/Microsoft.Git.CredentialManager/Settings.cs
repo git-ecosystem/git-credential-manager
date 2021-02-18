@@ -251,15 +251,15 @@ namespace Microsoft.Git.CredentialManager
                     // and make a local copy of them here to avoid needing to call `TryGetValue` on the
                     // IGitConfiguration object multiple times in a loop below.
                     var configEntries = new Dictionary<string, string>(GitConfigurationKeyComparer.Instance);
-                    config.Enumerate((entryName, entryValue) =>
+                    config.Enumerate(entry =>
                     {
-                        string entrySection = entryName.TruncateFromIndexOf('.');
-                        string entryProperty = entryName.TrimUntilLastIndexOf('.');
+                        string entrySection = entry.Key.TruncateFromIndexOf('.');
+                        string entryProperty = entry.Key.TrimUntilLastIndexOf('.');
 
                         if (StringComparer.OrdinalIgnoreCase.Equals(entrySection, section) &&
                             StringComparer.OrdinalIgnoreCase.Equals(entryProperty, property))
                         {
-                            configEntries[entryName] = entryValue;
+                            configEntries[entry.Key] = entry.Value;
                         }
 
                         // Continue the enumeration

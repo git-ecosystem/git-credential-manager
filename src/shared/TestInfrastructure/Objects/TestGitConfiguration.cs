@@ -37,7 +37,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
             {
                 foreach (var value in kvp.Value)
                 {
-                    if (!cb(kvp.Key, value))
+                    if (!cb(new GitConfigurationEntry(kvp.Key, value)))
                     {
                         break;
                     }
