@@ -10,11 +10,10 @@ namespace Microsoft.Git.CredentialManager
     public interface IGit
     {
         /// <summary>
-        /// Get the configuration for the specific configuration level.
+        /// Get the configuration object.
         /// </summary>
-        /// <param name="level">Configuration level filter.</param>
         /// <returns>Git configuration.</returns>
-        IGitConfiguration GetConfiguration(GitConfigurationLevel level);
+        IGitConfiguration GetConfiguration();
 
         /// <summary>
         /// Run a Git helper process which expects and returns key-value maps
@@ -41,9 +40,9 @@ namespace Microsoft.Git.CredentialManager
             _workingDirectory = workingDirectory;
         }
 
-        public IGitConfiguration GetConfiguration(GitConfigurationLevel level)
+        public IGitConfiguration GetConfiguration()
         {
-            return new GitProcessConfiguration(_trace, this, level);
+            return new GitProcessConfiguration(_trace, this);
         }
 
         public Process CreateProcess(string args)
@@ -107,15 +106,29 @@ namespace Microsoft.Git.CredentialManager
 
             return resultDict;
         }
+
+        public static GitException CreateGitException(Process git, string message)
+        {
+            string gitMessage = git.StandardError.ReadToEnd();
+            throw new GitException(message, gitMessage, git.ExitCode);
+        }
+    }
+
+    public class GitException : Exception
+    {
+        public string GitErrorMessage { get; }
+
+        public int ExitCode { get; }
+
+        public GitException(string message, string gitErrorMessage, int exitCode)
+            : base(message)
+        {
+            GitErrorMessage = gitErrorMessage;
+            ExitCode = exitCode;
+        }
     }
 
     public static class GitExtensions
     {
-        /// <summary>
-        /// Get the configuration.
-        /// </summary>
-        /// <param name="git">Git object.</param>
-        /// <returns>Git configuration.</returns>
-        public static IGitConfiguration GetConfiguration(this IGit git) => git.GetConfiguration(GitConfigurationLevel.All);
     }
 }

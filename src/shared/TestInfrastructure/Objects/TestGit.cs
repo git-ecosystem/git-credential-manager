@@ -9,35 +9,11 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
 {
     public class TestGit : IGit
     {
-        public TestGitConfiguration SystemConfiguration { get; } = new TestGitConfiguration();
-        public TestGitConfiguration GlobalConfiguration { get; } = new TestGitConfiguration();
-        public TestGitConfiguration LocalConfiguration { get; } = new TestGitConfiguration();
+        public readonly TestGitConfiguration Configuration = new TestGitConfiguration();
 
         #region IGit
 
-        IGitConfiguration IGit.GetConfiguration(GitConfigurationLevel level)
-        {
-            switch (level)
-            {
-                case GitConfigurationLevel.All:
-                    IDictionary<string, IList<string>> mergedConfigDict =
-                        MergeDictionaries(
-                            SystemConfiguration.Dictionary,
-                            GlobalConfiguration.Dictionary,
-                            LocalConfiguration.Dictionary);
-                    return new TestGitConfiguration(mergedConfigDict);
-                case GitConfigurationLevel.Unknown:
-                    return new TestGitConfiguration();
-                case GitConfigurationLevel.System:
-                    return SystemConfiguration;
-                case GitConfigurationLevel.Global:
-                    return GlobalConfiguration;
-                case GitConfigurationLevel.Local:
-                    return LocalConfiguration;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(level), level, $"Unknown {nameof(GitConfigurationLevel)}");
-            }
-        }
+        IGitConfiguration IGit.GetConfiguration() => Configuration;
 
         Task<IDictionary<string, string>> IGit.InvokeHelperAsync(string args, IDictionary<string, string> standardInput)
         {

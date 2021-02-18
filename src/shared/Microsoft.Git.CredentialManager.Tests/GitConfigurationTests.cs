@@ -200,9 +200,9 @@ namespace Microsoft.Git.CredentialManager.Tests
             string gitPath = GetGitPath();
             var trace = new NullTrace();
             var git = new GitProcess(trace, gitPath, repoPath);
-            IGitConfiguration config = git.GetConfiguration(GitConfigurationLevel.Local);
+            IGitConfiguration config = git.GetConfiguration();
 
-            config.Set("core.foobar", "foo123");
+            config.Set(GitConfigurationLevel.Local, "core.foobar", "foo123");
 
             GitResult localResult = Git(repoPath, workDirPath, "config --local core.foobar");
 
@@ -217,9 +217,9 @@ namespace Microsoft.Git.CredentialManager.Tests
             string gitPath = GetGitPath();
             var trace = new NullTrace();
             var git = new GitProcess(trace, gitPath, repoPath);
-            IGitConfiguration config = git.GetConfiguration(GitConfigurationLevel.All);
+            IGitConfiguration config = git.GetConfiguration();
 
-            Assert.Throws<InvalidOperationException>(() => config.Set("core.foobar", "test123"));
+            Assert.Throws<InvalidOperationException>(() => config.Set(GitConfigurationLevel.All, "core.foobar", "test123"));
         }
 
         [Fact]
@@ -235,9 +235,9 @@ namespace Microsoft.Git.CredentialManager.Tests
                 string gitPath = GetGitPath();
                 var trace = new NullTrace();
                 var git = new GitProcess(trace, gitPath, repoPath);
-                IGitConfiguration config = git.GetConfiguration(GitConfigurationLevel.Global);
+                IGitConfiguration config = git.GetConfiguration();
 
-                config.Unset("core.foobar");
+                config.Unset(GitConfigurationLevel.Global, "core.foobar");
 
                 GitResult globalResult = Git(repoPath, workDirPath, "config --global core.foobar");
                 GitResult localResult = Git(repoPath, workDirPath, "config --local core.foobar");
@@ -265,9 +265,9 @@ namespace Microsoft.Git.CredentialManager.Tests
                 string gitPath = GetGitPath();
                 var trace = new NullTrace();
                 var git = new GitProcess(trace, gitPath, repoPath);
-                IGitConfiguration config = git.GetConfiguration(GitConfigurationLevel.Local);
+                IGitConfiguration config = git.GetConfiguration();
 
-                config.Unset("core.foobar");
+                config.Unset(GitConfigurationLevel.Local, "core.foobar");
 
                 GitResult globalResult = Git(repoPath, workDirPath, "config --global core.foobar");
                 GitResult localResult = Git(repoPath, workDirPath, "config --local core.foobar");
@@ -290,9 +290,9 @@ namespace Microsoft.Git.CredentialManager.Tests
             string gitPath = GetGitPath();
             var trace = new NullTrace();
             var git = new GitProcess(trace, gitPath, repoPath);
-            IGitConfiguration config = git.GetConfiguration(GitConfigurationLevel.All);
+            IGitConfiguration config = git.GetConfiguration();
 
-            Assert.Throws<InvalidOperationException>(() => config.Unset("core.foobar"));
+            Assert.Throws<InvalidOperationException>(() => config.Unset(GitConfigurationLevel.All, "core.foobar"));
         }
 
         [Fact]
@@ -306,9 +306,9 @@ namespace Microsoft.Git.CredentialManager.Tests
             string gitPath = GetGitPath();
             var trace = new NullTrace();
             var git = new GitProcess(trace, gitPath, repoPath);
-            IGitConfiguration config = git.GetConfiguration(GitConfigurationLevel.Local);
+            IGitConfiguration config = git.GetConfiguration();
 
-            config.UnsetAll("core.foobar", "foo*");
+            config.UnsetAll(GitConfigurationLevel.Local, "core.foobar", "foo*");
 
             GitResult result = Git(repoPath, workDirPath, "config --local --get-all core.foobar");
 
@@ -323,9 +323,9 @@ namespace Microsoft.Git.CredentialManager.Tests
             string gitPath = GetGitPath();
             var trace = new NullTrace();
             var git = new GitProcess(trace, gitPath, repoPath);
-            IGitConfiguration config = git.GetConfiguration(GitConfigurationLevel.All);
+            IGitConfiguration config = git.GetConfiguration();
 
-            Assert.Throws<InvalidOperationException>(() => config.UnsetAll("core.foobar", Constants.RegexPatterns.Any));
+            Assert.Throws<InvalidOperationException>(() => config.UnsetAll(GitConfigurationLevel.All, "core.foobar", Constants.RegexPatterns.Any));
         }
 
         #region Test helpers

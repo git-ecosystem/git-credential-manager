@@ -9,72 +9,68 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
 {
     public class TestGitConfiguration : IGitConfiguration
     {
-        public TestGitConfiguration(IDictionary<string, IList<string>> config = null)
-        {
-            Dictionary = config ?? new Dictionary<string, IList<string>>(GitConfigurationKeyComparer.Instance);
-        }
-
-        /// <summary>
-        /// Backing dictionary for the test configuration entries.
-        /// </summary>
-        public IDictionary<string, IList<string>> Dictionary { get; }
-
-        /// <summary>
-        /// Convenience accessor for the backing <see cref="Dictionary"/> of configuration entries.
-        /// </summary>
-        /// <param name="key"></param>
-        public string this[string key]
-        {
-            get => TryGet(key, out string value) ? value : null;
-            set => Set(key, value);
-        }
+        public IDictionary<string, IList<string>> System { get; set; } =
+            new Dictionary<string, IList<string>>(GitConfigurationKeyComparer.Instance);
+        public IDictionary<string, IList<string>> Global { get; set; } =
+            new Dictionary<string, IList<string>>(GitConfigurationKeyComparer.Instance);
+        public IDictionary<string, IList<string>> Local { get; set; } =
+            new Dictionary<string, IList<string>>(GitConfigurationKeyComparer.Instance);
 
         #region IGitConfiguration
 
-        public void Enumerate(GitConfigurationEnumerationCallback cb)
+        public void Enumerate(GitConfigurationLevel level, GitConfigurationEnumerationCallback cb)
         {
-            foreach (var kvp in Dictionary)
+            foreach (var (dictLevel, dict) in GetDictionaries(level))
             {
-                foreach (var value in kvp.Value)
+                foreach (var kvp in dict)
                 {
-                    if (!cb(new GitConfigurationEntry(GitConfigurationLevel.Unknown, kvp.Key, value)))
+                    foreach (var value in kvp.Value)
                     {
-                        break;
+                        var entry = new GitConfigurationEntry(dictLevel, kvp.Key, value);
+                        if (!cb(entry))
+                        {
+                            break;
+                        }
                     }
                 }
             }
         }
 
-        public bool TryGet(string name, out string value)
+        public bool TryGet(GitConfigurationLevel level, string name, out string value)
         {
-            if (Dictionary.TryGetValue(name, out var values))
-            {
-                // TODO: simulate git
-                if (values.Count > 1)
-                {
-                    throw new Exception("Configuration entry is a multivar");
-                }
+            value = null;
 
-                if (values.Count == 1)
+            // Proceed in order from least to most specific level and read the entry value
+            foreach (var (_, dict) in GetDictionaries(level))
+            {
+                if (dict.TryGetValue(name, out var values))
                 {
-                    value = values[0];
-                    return true;
+                    if (values.Count > 1)
+                    {
+                        throw new Exception("Configuration entry is a multivar");
+                    }
+
+                    if (values.Count == 1)
+                    {
+                        value = values[0];
+                    }
                 }
             }
 
-            value = null;
-            return false;
+            return value != null;
         }
 
-        public void Set(string name, string value)
+        public void Set(GitConfigurationLevel level, string name, string value)
         {
-            if (!Dictionary.TryGetValue(name, out IList<string> values))
+            IDictionary<string, IList<string>> dict = GetDictionary(level);
+
+            if (!dict.TryGetValue(name, out var values))
             {
                 values = new List<string>();
-                Dictionary[name] = values;
+                dict[name] = values;
             }
 
-            // TODO: simulate git
+            // Simulate git
             if (values.Count > 1)
             {
                 throw new Exception("Configuration entry is a multivar");
@@ -90,57 +86,72 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
             }
         }
 
-        public void Add(string name, string value)
+        public void Add(GitConfigurationLevel level, string name, string value)
         {
-            if (!Dictionary.TryGetValue(name, out IList<string> values))
+            IDictionary<string, IList<string>> dict = GetDictionary(level);
+
+            if (!dict.TryGetValue(name, out IList<string> values))
             {
                 values = new List<string>();
-                Dictionary[name] = values;
+                dict[name] = values;
             }
 
             values.Add(value);
         }
 
-        public void Unset(string name)
+        public void Unset(GitConfigurationLevel level, string name)
         {
-            // TODO: simulate git
-            if (Dictionary.TryGetValue(name, out var values) && values.Count > 1)
+            IDictionary<string, IList<string>> dict = GetDictionary(level);
+
+            // Simulate git
+            if (dict.TryGetValue(name, out var values) && values.Count > 1)
             {
                 throw new Exception("Configuration entry is a multivar");
             }
 
-            Dictionary.Remove(name);
+            dict.Remove(name);
         }
 
-        public IEnumerable<string> GetAll(string name)
+        public IEnumerable<string> GetAll(GitConfigurationLevel level, string name)
         {
-            if (Dictionary.TryGetValue(name, out IList<string> values))
+            foreach (var (_, dict) in GetDictionaries(level))
             {
-                return values;
-            }
-
-            return Enumerable.Empty<string>();
-        }
-
-        public IEnumerable<string> GetRegex(string nameRegex, string valueRegex)
-        {
-            foreach (string key in Dictionary.Keys)
-            {
-                if (Regex.IsMatch(key, nameRegex))
+                if (dict.TryGetValue(name, out IList<string> values))
                 {
-                    return Dictionary[key].Where(x => Regex.IsMatch(x, valueRegex));
+                    foreach (string value in values)
+                    {
+                        yield return value;
+                    }
                 }
             }
-
-            return Enumerable.Empty<string>();
         }
 
-        public void ReplaceAll(string nameRegex, string valueRegex, string value)
+        public IEnumerable<string> GetRegex(GitConfigurationLevel level, string nameRegex, string valueRegex)
         {
-            if (!Dictionary.TryGetValue(nameRegex, out IList<string> values))
+            foreach (var (_, dict) in GetDictionaries(level))
+            {
+                foreach (string key in dict.Keys)
+                {
+                    if (Regex.IsMatch(key, nameRegex))
+                    {
+                        var values = dict[key].Where(x => Regex.IsMatch(x, valueRegex));
+                        foreach (string value in values)
+                        {
+                            yield return value;
+                        }
+                    }
+                }
+            }
+        }
+
+        public void ReplaceAll(GitConfigurationLevel level, string nameRegex, string valueRegex, string value)
+        {
+            IDictionary<string, IList<string>> dict = GetDictionary(level);
+
+            if (!dict.TryGetValue(nameRegex, out IList<string> values))
             {
                 values = new List<string>();
-                Dictionary[nameRegex] = values;
+                dict[nameRegex] = values;
             }
 
             bool updated = false;
@@ -161,9 +172,11 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
             }
         }
 
-        public void UnsetAll(string name, string valueRegex)
+        public void UnsetAll(GitConfigurationLevel level, string name, string valueRegex)
         {
-            if (Dictionary.TryGetValue(name, out IList<string> values))
+            IDictionary<string, IList<string>> dict = GetDictionary(level);
+
+            if (dict.TryGetValue(name, out IList<string> values))
             {
                 for (int i = 0; i < values.Count;)
                 {
@@ -182,11 +195,52 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
                 // If we've removed all values, remove the top-level list from the multivar dictionary
                 if (values.Count == 0)
                 {
-                    Dictionary.Remove(name);
+                    dict.Remove(name);
                 }
             }
         }
 
         #endregion
+
+        private IDictionary<string, IList<string>> GetDictionary(GitConfigurationLevel level)
+        {
+            switch (level)
+            {
+                case GitConfigurationLevel.System:
+                    return System;
+                case GitConfigurationLevel.Global:
+                    return Global;
+                case GitConfigurationLevel.Local:
+                    return Local;
+                case GitConfigurationLevel.All:
+                    throw new ArgumentException("Must specify a specific level");
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(level), level, "Unsupported level");
+            }
+        }
+
+        private IEnumerable<(GitConfigurationLevel level, IDictionary<string, IList<string>> dict)> GetDictionaries(
+            GitConfigurationLevel level)
+        {
+            switch (level)
+            {
+                case GitConfigurationLevel.System:
+                    yield return (GitConfigurationLevel.System, System);
+                    break;
+                case GitConfigurationLevel.Global:
+                    yield return (GitConfigurationLevel.Global, Global);
+                    break;
+                case GitConfigurationLevel.Local:
+                    yield return (GitConfigurationLevel.Local, Local);
+                    break;
+                case GitConfigurationLevel.All:
+                    yield return (GitConfigurationLevel.System, System);
+                    yield return (GitConfigurationLevel.Global, Global);
+                    yield return (GitConfigurationLevel.Local, Local);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(level), level, "Unsupported level");
+            }
+        }
     }
 }

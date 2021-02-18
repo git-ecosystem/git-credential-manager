@@ -70,13 +70,10 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
             {
                 string key = $"{section}.{scope}.{property}";
 
-                IList<string> configValues = null;
-                if (GitConfiguration?.Dictionary.TryGetValue(key, out configValues) ?? false)
+                IEnumerable<string> configValues = GitConfiguration.GetAll(key);
+                foreach (string value in configValues)
                 {
-                    if (configValues.Count > 0)
-                    {
-                        yield return configValues[0];
-                    }
+                    yield return value;
                 }
             }
         }

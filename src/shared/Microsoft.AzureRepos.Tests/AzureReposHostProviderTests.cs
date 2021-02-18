@@ -185,12 +185,12 @@ namespace Microsoft.AzureRepos.Tests
             var context = new TestCommandContext();
             var provider = new AzureReposHostProvider(context);
 
-            context.Git.GlobalConfiguration.Dictionary[AzDevUseHttpPathKey] = new List<string> {"true"};
+            context.Git.Configuration.Global[AzDevUseHttpPathKey] = new List<string> {"true"};
 
             await provider.ConfigureAsync(ConfigurationTarget.User);
 
-            Assert.Single(context.Git.GlobalConfiguration.Dictionary);
-            Assert.True(context.Git.GlobalConfiguration.Dictionary.TryGetValue(AzDevUseHttpPathKey, out IList<string> actualValues));
+            Assert.Single(context.Git.Configuration.Global);
+            Assert.True(context.Git.Configuration.Global.TryGetValue(AzDevUseHttpPathKey, out IList<string> actualValues));
             Assert.Single(actualValues);
             Assert.Equal("true", actualValues[0]);
         }
@@ -201,12 +201,12 @@ namespace Microsoft.AzureRepos.Tests
             var context = new TestCommandContext();
             var provider = new AzureReposHostProvider(context);
 
-            context.Git.GlobalConfiguration.Dictionary[AzDevUseHttpPathKey] = new List<string> {"false"};
+            context.Git.Configuration.Global[AzDevUseHttpPathKey] = new List<string> {"false"};
 
             await provider.ConfigureAsync(ConfigurationTarget.User);
 
-            Assert.Single(context.Git.GlobalConfiguration.Dictionary);
-            Assert.True(context.Git.GlobalConfiguration.Dictionary.TryGetValue(AzDevUseHttpPathKey, out IList<string> actualValues));
+            Assert.Single(context.Git.Configuration.Global);
+            Assert.True(context.Git.Configuration.Global.TryGetValue(AzDevUseHttpPathKey, out IList<string> actualValues));
             Assert.Single(actualValues);
             Assert.Equal("true", actualValues[0]);
         }
@@ -219,8 +219,8 @@ namespace Microsoft.AzureRepos.Tests
 
             await provider.ConfigureAsync(ConfigurationTarget.User);
 
-            Assert.Single(context.Git.GlobalConfiguration.Dictionary);
-            Assert.True(context.Git.GlobalConfiguration.Dictionary.TryGetValue(AzDevUseHttpPathKey, out IList<string> actualValues));
+            Assert.Single(context.Git.Configuration.Global);
+            Assert.True(context.Git.Configuration.Global.TryGetValue(AzDevUseHttpPathKey, out IList<string> actualValues));
             Assert.Single(actualValues);
             Assert.Equal("true", actualValues[0]);
         }
@@ -231,11 +231,11 @@ namespace Microsoft.AzureRepos.Tests
             var context = new TestCommandContext();
             var provider = new AzureReposHostProvider(context);
 
-            context.Git.GlobalConfiguration.Dictionary[AzDevUseHttpPathKey] = new List<string> {"true"};
+            context.Git.Configuration.Global[AzDevUseHttpPathKey] = new List<string> {"true"};
 
             await provider.UnconfigureAsync(ConfigurationTarget.User);
 
-            Assert.Empty(context.Git.GlobalConfiguration.Dictionary);
+            Assert.Empty(context.Git.Configuration.Global);
         }
 
         [PlatformFact(Platforms.Windows)]
@@ -244,12 +244,12 @@ namespace Microsoft.AzureRepos.Tests
             var context = new TestCommandContext();
             var provider = new AzureReposHostProvider(context);
 
-            context.Git.SystemConfiguration.Dictionary[HelperKey] = new List<string> {"manager-core"};
-            context.Git.SystemConfiguration.Dictionary[AzDevUseHttpPathKey] = new List<string> {"true"};
+            context.Git.Configuration.System[HelperKey] = new List<string> {"manager-core"};
+            context.Git.Configuration.System[AzDevUseHttpPathKey] = new List<string> {"true"};
 
             await provider.UnconfigureAsync(ConfigurationTarget.System);
 
-            Assert.True(context.Git.SystemConfiguration.Dictionary.TryGetValue(AzDevUseHttpPathKey, out IList<string> actualValues));
+            Assert.True(context.Git.Configuration.System.TryGetValue(AzDevUseHttpPathKey, out IList<string> actualValues));
             Assert.Single(actualValues);
             Assert.Equal("true", actualValues[0]);
         }
@@ -260,11 +260,11 @@ namespace Microsoft.AzureRepos.Tests
             var context = new TestCommandContext();
             var provider = new AzureReposHostProvider(context);
 
-            context.Git.SystemConfiguration.Dictionary[AzDevUseHttpPathKey] = new List<string> {"true"};
+            context.Git.Configuration.System[AzDevUseHttpPathKey] = new List<string> {"true"};
 
             await provider.UnconfigureAsync(ConfigurationTarget.System);
 
-            Assert.Empty(context.Git.SystemConfiguration.Dictionary);
+            Assert.Empty(context.Git.Configuration.System);
         }
 
         [PlatformFact(Platforms.Windows)]
@@ -273,12 +273,12 @@ namespace Microsoft.AzureRepos.Tests
             var context = new TestCommandContext();
             var provider = new AzureReposHostProvider(context);
 
-            context.Git.GlobalConfiguration.Dictionary[HelperKey] = new List<string> {"manager-core"};
-            context.Git.GlobalConfiguration.Dictionary[AzDevUseHttpPathKey] = new List<string> {"true"};
+            context.Git.Configuration.Global[HelperKey] = new List<string> {"manager-core"};
+            context.Git.Configuration.Global[AzDevUseHttpPathKey] = new List<string> {"true"};
 
             await provider.UnconfigureAsync(ConfigurationTarget.User);
 
-            Assert.False(context.Git.GlobalConfiguration.Dictionary.TryGetValue(AzDevUseHttpPathKey, out _));
+            Assert.False(context.Git.Configuration.Global.TryGetValue(AzDevUseHttpPathKey, out _));
         }
 
         private static IMicrosoftAuthenticationResult CreateAuthResult(string upn, string token)

@@ -295,7 +295,7 @@ namespace Microsoft.AzureRepos
                 ? GitConfigurationLevel.System
                 : GitConfigurationLevel.Global;
 
-            IGitConfiguration targetConfig = _context.Git.GetConfiguration(configurationLevel);
+            IGitConfiguration targetConfig = _context.Git.GetConfiguration();
 
             if (targetConfig.TryGet(useHttpPathKey, out string currentValue) && currentValue.IsTruthy())
             {
@@ -304,7 +304,7 @@ namespace Microsoft.AzureRepos
             else
             {
                 _context.Trace.WriteLine("Setting Git configuration 'credential.useHttpPath' to 'true' for https://dev.azure.com...");
-                targetConfig.Set(useHttpPathKey, "true");
+                targetConfig.Set(configurationLevel, useHttpPathKey, "true");
             }
 
             return Task.CompletedTask;
@@ -321,14 +321,14 @@ namespace Microsoft.AzureRepos
                 ? GitConfigurationLevel.System
                 : GitConfigurationLevel.Global;
 
-            IGitConfiguration targetConfig = _context.Git.GetConfiguration(configurationLevel);
+            IGitConfiguration targetConfig = _context.Git.GetConfiguration();
 
             // On Windows, if there is a "manager-core" entry remaining in the system config then we must not clear
             // the useHttpPath option otherwise this would break the bundled version of GCM Core in Git for Windows.
             if (!PlatformUtils.IsWindows() || target != ConfigurationTarget.System ||
                 targetConfig.GetAll(helperKey).All(x => !string.Equals(x, "manager-core")))
             {
-                targetConfig.Unset(useHttpPathKey);
+                targetConfig.Unset(configurationLevel, useHttpPathKey);
             }
 
             return Task.CompletedTask;
