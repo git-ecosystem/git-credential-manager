@@ -18,12 +18,16 @@ namespace Microsoft.Git.CredentialManager
     {
         public static readonly GitConfigurationKeyComparer Instance = new GitConfigurationKeyComparer();
 
+        public static readonly StringComparer SectionComparer = OrdinalIgnoreCase;
+        public static readonly StringComparer ScopeComparer = Ordinal;
+        public static readonly StringComparer PropertyComparer = OrdinalIgnoreCase;
+
         private GitConfigurationKeyComparer() { }
 
         public override int Compare(string x, string y)
         {
-            Split(x, out string xSection, out string xScope, out string xProperty);
-            Split(y, out string ySection, out string yScope, out string yProperty);
+            TrySplit(x, out string xSection, out string xScope, out string xProperty);
+            TrySplit(y, out string ySection, out string yScope, out string yProperty);
 
             int cmpSection = OrdinalIgnoreCase.Compare(xSection, ySection);
             if (cmpSection != 0) return cmpSection;
@@ -39,8 +43,8 @@ namespace Microsoft.Git.CredentialManager
             if (ReferenceEquals(x, y)) return true;
             if (x is null || y is null) return false;
 
-            Split(x, out string xSection, out string xScope, out string xProperty);
-            Split(y, out string ySection, out string yScope, out string yProperty);
+            TrySplit(x, out string xSection, out string xScope, out string xProperty);
+            TrySplit(y, out string ySection, out string yScope, out string yProperty);
 
             // Section and property names are not case sensitive, but the inner 'scope' IS case sensitive!
             return OrdinalIgnoreCase.Equals(xSection, ySection) &&
@@ -50,7 +54,7 @@ namespace Microsoft.Git.CredentialManager
 
         public override int GetHashCode(string obj)
         {
-            Split(obj, out string section, out string scope, out string property);
+            TrySplit(obj, out string section, out string scope, out string property);
 
             int code = OrdinalIgnoreCase.GetHashCode(section) ^
                        OrdinalIgnoreCase.GetHashCode(property);
@@ -60,7 +64,7 @@ namespace Microsoft.Git.CredentialManager
                 : code ^ Ordinal.GetHashCode(scope);
         }
 
-        private static void Split(string str, out string section, out string scope, out string property)
+        public static bool TrySplit(string str, out string section, out string scope, out string property)
         {
             section = null;
             scope = null;
@@ -68,13 +72,15 @@ namespace Microsoft.Git.CredentialManager
 
             if (string.IsNullOrWhiteSpace(str))
             {
-                return;
+                return false;
             }
 
             section = str.TruncateFromIndexOf('.');
             property = str.TrimUntilLastIndexOf('.');
             int scopeLength = str.Length - (section.Length + property.Length + 2);
             scope = scopeLength > 0 ? str.Substring(section.Length + 1, scopeLength) : null;
+
+            return true;
         }
     }
 }

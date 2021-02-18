@@ -546,6 +546,29 @@ namespace Microsoft.Git.CredentialManager
     public static class GitConfigurationExtensions
     {
         /// <summary>
+        /// Enumerate all configuration entries invoking the specified callback for each entry.
+        /// </summary>
+        /// <param name="config">Configuration object.</param>
+        /// <param name="section">Optional section name to filter; use null for any.</param>
+        /// <param name="property">Optional property name to filter; use null for any.</param>
+        /// <param name="cb">Callback to invoke for each matching configuration entry.</param>
+        public static void Enumerate(this IGitConfiguration config,
+            string section, string property, GitConfigurationEnumerationCallback cb)
+        {
+            config.Enumerate(entry =>
+            {
+                if (GitConfigurationKeyComparer.TrySplit(entry.Key, out string entrySection, out _, out string entryProperty) &&
+                    (section  is null || GitConfigurationKeyComparer.SectionComparer.Equals(section, entrySection)) &&
+                    (property is null || GitConfigurationKeyComparer.PropertyComparer.Equals(property, entryProperty)))
+                {
+                    return cb(entry);
+                }
+
+                return true;
+            });
+        }
+
+        /// <summary>
         /// Get the value of a configuration entry as a string.
         /// </summary>
         /// <exception cref="System.Collections.Generic.KeyNotFoundException">A configuration entry with the specified key was not found.</exception>
