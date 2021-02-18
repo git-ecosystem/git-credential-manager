@@ -85,8 +85,8 @@ namespace Microsoft.Git.CredentialManager.Interop.Linux
                     break;
 
                 case CredentialCacheOption:
-                    ValidateCredentialCache();
-                    _backingStore = new CredentialCacheStore(_git);
+                    ValidateCredentialCache(out string options);
+                    _backingStore = new CredentialCacheStore(_git, options);
                     break;
 
                 case PlaintextStoreOption:
@@ -152,9 +152,16 @@ namespace Microsoft.Git.CredentialManager.Interop.Linux
             }
         }
 
-        private void ValidateCredentialCache()
+        private void ValidateCredentialCache(out string options)
         {
-            // no-op for now; in the future, allow for --timeout and --socket options
+            // allow for --timeout and --socket options
+            if (!_settings.TryGetSetting(
+                Constants.EnvironmentVariables.GcmCredCacheOptions,
+                Constants.GitConfiguration.Credential.SectionName, Constants.GitConfiguration.Credential.CredCacheOptions,
+                out options))
+            {
+                options = string.Empty;
+            }
         }
 
         private void ValidatePlaintext(out string storeRoot)

@@ -7,10 +7,19 @@ namespace Microsoft.Git.CredentialManager
     public class CredentialCacheStore : ICredentialStore
     {
         readonly IGit _git;
+        readonly string _options;
 
-        public CredentialCacheStore(IGit git)
+        public CredentialCacheStore(IGit git, string options)
         {
             _git = git;
+            if (string.IsNullOrEmpty(options))
+            {
+                _options = string.Empty;
+            }
+            else
+            {
+                _options = options;
+            }
         }
 
         #region ICredentialStore
@@ -20,7 +29,7 @@ namespace Microsoft.Git.CredentialManager
             var input = MakeGitCredentialsEntry(service, account);
 
             var result = _git.InvokeHelperAsync(
-                "credential-cache get",
+                $"credential-cache get {_options}",
                 input
             ).GetAwaiter().GetResult();
 
@@ -40,7 +49,7 @@ namespace Microsoft.Git.CredentialManager
             // per https://git-scm.com/docs/gitcredentials :
             // For a store or erase operation, the helper’s output is ignored.
             _git.InvokeHelperAsync(
-                "credential-cache store",
+                $"credential-cache store {_options}",
                 input
             ).GetAwaiter().GetResult();
         }
@@ -52,7 +61,7 @@ namespace Microsoft.Git.CredentialManager
             // per https://git-scm.com/docs/gitcredentials :
             // For a store or erase operation, the helper’s output is ignored.
             _git.InvokeHelperAsync(
-                "credential-cache erase",
+                $"credential-cache erase {_options}",
                 input
             ).GetAwaiter().GetResult();
 

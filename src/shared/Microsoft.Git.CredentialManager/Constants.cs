@@ -53,6 +53,7 @@ namespace Microsoft.Git.CredentialManager
             public const string MsAuthFlow            = "GCM_MSAUTH_FLOW";
             public const string GcmCredNamespace      = "GCM_NAMESPACE";
             public const string GcmCredentialStore    = "GCM_CREDENTIAL_STORE";
+            public const string GcmCredCacheOptions   = "GCM_CREDENTIAL_CACHE_OPTIONS";
             public const string GcmPlaintextStorePath = "GCM_PLAINTEXT_STORE_PATH";
             public const string GitExecutablePath     = "GIT_EXEC_PATH";
         }
@@ -83,6 +84,7 @@ namespace Microsoft.Git.CredentialManager
                 public const string MsAuthFlow  = "msauthFlow";
                 public const string CredNamespace = "namespace";
                 public const string CredentialStore = "credentialStore";
+                public const string CredCacheOptions = "credentialCacheOptions";
                 public const string PlaintextStorePath = "plaintextStorePath";
             }
 
