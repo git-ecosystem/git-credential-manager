@@ -50,7 +50,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
                 return true;
             }
 
-            if (GitConfiguration?.TryGet(section, property, out value) ?? false)
+            if (GitConfiguration?.TryGet($"{section}.{property}", out value) ?? false)
             {
                 return true;
             }
