@@ -91,6 +91,9 @@ namespace Microsoft.Git.CredentialManager
             if (!(standardInput is null))
             {
                 await process.StandardInput.WriteDictionaryAsync(standardInput);
+                // some helpers won't continue until they see EOF
+                // cf git-credential-cache
+                process.StandardInput.Close();
             }
 
             IDictionary<string, string> resultDict = await process.StandardOutput.ReadDictionaryAsync(StringComparer.OrdinalIgnoreCase);

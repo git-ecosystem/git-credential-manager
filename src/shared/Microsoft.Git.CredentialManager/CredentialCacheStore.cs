@@ -68,7 +68,10 @@ namespace Microsoft.Git.CredentialManager
             var result = new Dictionary<string, string>();
 
             result["url"] = service;
-            result["username"] = account;
+            if (!string.IsNullOrEmpty(account))
+            {
+                result["username"] = account;
+            }
 
             return result;
         }
