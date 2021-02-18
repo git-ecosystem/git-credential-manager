@@ -1,11 +1,12 @@
 # Credential stores on Linux
 
-There are currently three options for storing credentials that Git Credential
+There are four options for storing credentials that Git Credential
 Manager Core (GCM Core) manages on Linux platforms:
 
 1. [freedesktop.org Secret Service API](https://specifications.freedesktop.org/secret-service/)
 2. GPG/[`pass`](https://www.passwordstore.org/) compatible files
-3. Plaintext files
+3. Git's built-in [credential cache](https://git-scm.com/docs/git-credential-cache)
+4. Plaintext files
 
 By default, GCM Core comes unconfigured. You can select which credential store
 to use by setting the [`GCM_CREDENTIAL_STORE`](environment.md#GCM_CREDENTIAL_STORE)
@@ -87,7 +88,37 @@ export GPG_TTY=$(tty)
 **Note:** Using `/dev/tty` does not appear to work here - you must use the real
 TTY device path, as returned by the `tty` utility.
 
-## 3. Plaintext files
+## 3. Git's built-in [credential cache](https://git-scm.com/docs/git-credential-cache)
+
+```shell
+export GCM_CREDENTIAL_STORE=credentialcache
+# or
+git config --global credential.credentialStore credentialcache
+```
+
+This credential store uses Git's built-in ephemeral
+[in-memory credential cache](https://git-scm.com/docs/git-credential-cache).
+This helps you reduce the number of times you have to authenticate but
+doesn't require storing credentials on persistent storage. It's good for
+scenarios like [Azure Cloud Shell](https://docs.microsoft.com/azure/cloud-shell/overview) or [AWS CloudShell](https://aws.amazon.com/cloudshell/), where you
+don't want to leave credentials on disk but also don't want to re-authenticate
+on every Git operation.
+
+By default, `git credential-cache` stores your credentials for 900 seconds.
+That, and any other
+[options it accepts](https://git-scm.com/docs/git-credential-cache#_options),
+may be altered by setting them in the environment variable
+`GCM_CREDENTIAL_CACHE_OPTIONS` or the Git config value
+`credential.credentialCacheOptions`. (Using the `--socket` option is untested
+and unsupported, but there's no reason it shouldn't work.)
+
+```shell
+export GCM_CREDENTIAL_CACHE_OPTIONS="--timeout 300"
+# or
+git config --global credential.credentialCacheOptions "--timeout 300"
+```
+
+## 4. Plaintext files
 
 ```shell
 export GCM_CREDENTIAL_STORE=plaintext
