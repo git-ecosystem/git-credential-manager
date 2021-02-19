@@ -95,6 +95,13 @@ namespace Microsoft.Git.CredentialManager
                 public const string Proxy = "proxy";
                 public const string SslVerify = "sslVerify";
             }
+
+            public static class Remote
+            {
+                public const string SectionName = "remote";
+                public const string FetchUrl = "url";
+                public const string PushUrl = "pushUrl";
+            }
         }
 
         public static class HelpUrls

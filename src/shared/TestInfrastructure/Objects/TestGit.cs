@@ -2,16 +2,32 @@
 // Licensed under the MIT license.
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace Microsoft.Git.CredentialManager.Tests.Objects
 {
     public class TestGit : IGit
     {
+        public string CurrentRepository { get; set; }
+
+        public IList<GitRemote> Remotes { get; set; } = new List<GitRemote>();
+
         public readonly TestGitConfiguration Configuration = new TestGitConfiguration();
 
+        public TestGit(bool insideRepo = true)
+        {
+            if (insideRepo)
+            {
+                CurrentRepository = GetFakeRepositoryPath();
+            }
+        }
+
         #region IGit
+
+        string IGit.GetCurrentRepository() => CurrentRepository;
+
+        IEnumerable<GitRemote> IGit.GetRemotes() => Remotes;
 
         IGitConfiguration IGit.GetConfiguration() => Configuration;
 
@@ -35,6 +51,13 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
             }
 
             return result;
+        }
+
+        public static string GetFakeRepositoryPath(string name = null)
+        {
+            name ??= Guid.NewGuid().ToString("N").Substring(8);
+            var basePath = Path.GetTempPath();
+            return Path.Combine(basePath, "fake-repo", name);
         }
     }
 }

@@ -2,10 +2,9 @@
 // Licensed under the MIT license.
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using Microsoft.Git.CredentialManager.Tests.Objects;
 using Xunit;
+using static Microsoft.Git.CredentialManager.Tests.GitTestUtilities;
 
 namespace Microsoft.Git.CredentialManager.Tests
 {
@@ -58,9 +57,9 @@ namespace Microsoft.Git.CredentialManager.Tests
         public void GitConfiguration_Enumerate_CallbackReturnsTrue_InvokesCallbackForEachEntry()
         {
             string repoPath = CreateRepository(out string workDirPath);
-            Git(repoPath, workDirPath, "config --local foo.name lancelot").AssertSuccess();
-            Git(repoPath, workDirPath, "config --local foo.quest seek-holy-grail").AssertSuccess();
-            Git(repoPath, workDirPath, "config --local foo.favcolor blue").AssertSuccess();
+            ExecGit(repoPath, workDirPath, "config --local foo.name lancelot").AssertSuccess();
+            ExecGit(repoPath, workDirPath, "config --local foo.quest seek-holy-grail").AssertSuccess();
+            ExecGit(repoPath, workDirPath, "config --local foo.favcolor blue").AssertSuccess();
 
             var expectedVisitedEntries = new List<(string name, string value)>
             {
@@ -96,9 +95,9 @@ namespace Microsoft.Git.CredentialManager.Tests
         public void GitConfiguration_Enumerate_CallbackReturnsFalse_InvokesCallbackForEachEntryUntilReturnsFalse()
         {
             string repoPath = CreateRepository(out string workDirPath);
-            Git(repoPath, workDirPath, "config --local foo.name lancelot").AssertSuccess();
-            Git(repoPath, workDirPath, "config --local foo.quest seek-holy-grail").AssertSuccess();
-            Git(repoPath, workDirPath, "config --local foo.favcolor blue").AssertSuccess();
+            ExecGit(repoPath, workDirPath, "config --local foo.name lancelot").AssertSuccess();
+            ExecGit(repoPath, workDirPath, "config --local foo.quest seek-holy-grail").AssertSuccess();
+            ExecGit(repoPath, workDirPath, "config --local foo.favcolor blue").AssertSuccess();
 
             var expectedVisitedEntries = new List<(string name, string value)>
             {
@@ -133,7 +132,7 @@ namespace Microsoft.Git.CredentialManager.Tests
         public void GitConfiguration_TryGet_Name_Exists_ReturnsTrueOutString()
         {
             string repoPath = CreateRepository(out string workDirPath);
-            Git(repoPath, workDirPath, "config --local user.name john.doe").AssertSuccess();
+            ExecGit(repoPath, workDirPath, "config --local user.name john.doe").AssertSuccess();
 
             string gitPath = GetGitPath();
             var trace = new NullTrace();
@@ -166,7 +165,7 @@ namespace Microsoft.Git.CredentialManager.Tests
         public void GitConfiguration_Get_Name_Exists_ReturnsString()
         {
             string repoPath = CreateRepository(out string workDirPath);
-            Git(repoPath, workDirPath, "config --local user.name john.doe").AssertSuccess();
+            ExecGit(repoPath, workDirPath, "config --local user.name john.doe").AssertSuccess();
 
             string gitPath = GetGitPath();
             var trace = new NullTrace();
@@ -204,7 +203,7 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             config.Set(GitConfigurationLevel.Local, "core.foobar", "foo123");
 
-            GitResult localResult = Git(repoPath, workDirPath, "config --local core.foobar");
+            GitResult localResult = ExecGit(repoPath, workDirPath, "config --local core.foobar");
 
             Assert.Equal("foo123",     localResult.StandardOutput.Trim());
         }
@@ -229,8 +228,8 @@ namespace Microsoft.Git.CredentialManager.Tests
             try
             {
 
-                Git(repoPath, workDirPath, "config --global core.foobar alice").AssertSuccess();
-                Git(repoPath, workDirPath, "config --local core.foobar bob").AssertSuccess();
+                ExecGit(repoPath, workDirPath, "config --global core.foobar alice").AssertSuccess();
+                ExecGit(repoPath, workDirPath, "config --local core.foobar bob").AssertSuccess();
 
                 string gitPath = GetGitPath();
                 var trace = new NullTrace();
@@ -239,8 +238,8 @@ namespace Microsoft.Git.CredentialManager.Tests
 
                 config.Unset(GitConfigurationLevel.Global, "core.foobar");
 
-                GitResult globalResult = Git(repoPath, workDirPath, "config --global core.foobar");
-                GitResult localResult = Git(repoPath, workDirPath, "config --local core.foobar");
+                GitResult globalResult = ExecGit(repoPath, workDirPath, "config --global core.foobar");
+                GitResult localResult = ExecGit(repoPath, workDirPath, "config --local core.foobar");
 
                 Assert.Equal(string.Empty, globalResult.StandardOutput.Trim());
                 Assert.Equal("bob", localResult.StandardOutput.Trim());
@@ -248,7 +247,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             finally
             {
                 // Cleanup global config changes
-                Git(repoPath, workDirPath, "config --global --unset core.foobar");
+                ExecGit(repoPath, workDirPath, "config --global --unset core.foobar");
             }
         }
 
@@ -259,8 +258,8 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             try
             {
-                Git(repoPath, workDirPath, "config --global core.foobar alice").AssertSuccess();
-                Git(repoPath, workDirPath, "config --local core.foobar bob").AssertSuccess();
+                ExecGit(repoPath, workDirPath, "config --global core.foobar alice").AssertSuccess();
+                ExecGit(repoPath, workDirPath, "config --local core.foobar bob").AssertSuccess();
 
                 string gitPath = GetGitPath();
                 var trace = new NullTrace();
@@ -269,8 +268,8 @@ namespace Microsoft.Git.CredentialManager.Tests
 
                 config.Unset(GitConfigurationLevel.Local, "core.foobar");
 
-                GitResult globalResult = Git(repoPath, workDirPath, "config --global core.foobar");
-                GitResult localResult = Git(repoPath, workDirPath, "config --local core.foobar");
+                GitResult globalResult = ExecGit(repoPath, workDirPath, "config --global core.foobar");
+                GitResult localResult = ExecGit(repoPath, workDirPath, "config --local core.foobar");
 
                 Assert.Equal("alice", globalResult.StandardOutput.Trim());
                 Assert.Equal(string.Empty, localResult.StandardOutput.Trim());
@@ -278,7 +277,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             finally
             {
                 // Cleanup global config changes
-                Git(repoPath, workDirPath, "config --global --unset core.foobar");
+                ExecGit(repoPath, workDirPath, "config --global --unset core.foobar");
             }
         }
 
@@ -299,9 +298,9 @@ namespace Microsoft.Git.CredentialManager.Tests
         public void GitConfiguration_UnsetAll_UnsetsAllConfig()
         {
             string repoPath = CreateRepository(out string workDirPath);
-            Git(repoPath, workDirPath, "config --local --add core.foobar foo1").AssertSuccess();
-            Git(repoPath, workDirPath, "config --local --add core.foobar foo2").AssertSuccess();
-            Git(repoPath, workDirPath, "config --local --add core.foobar bar1").AssertSuccess();
+            ExecGit(repoPath, workDirPath, "config --local --add core.foobar foo1").AssertSuccess();
+            ExecGit(repoPath, workDirPath, "config --local --add core.foobar foo2").AssertSuccess();
+            ExecGit(repoPath, workDirPath, "config --local --add core.foobar bar1").AssertSuccess();
 
             string gitPath = GetGitPath();
             var trace = new NullTrace();
@@ -310,7 +309,7 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             config.UnsetAll(GitConfigurationLevel.Local, "core.foobar", "foo*");
 
-            GitResult result = Git(repoPath, workDirPath, "config --local --get-all core.foobar");
+            GitResult result = ExecGit(repoPath, workDirPath, "config --local --get-all core.foobar");
 
             Assert.Equal("bar1", result.StandardOutput.Trim());
         }
@@ -327,111 +326,5 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             Assert.Throws<InvalidOperationException>(() => config.UnsetAll(GitConfigurationLevel.All, "core.foobar", Constants.RegexPatterns.Any));
         }
-
-        #region Test helpers
-
-        private static string GetGitPath()
-        {
-            ProcessStartInfo psi;
-            if (PlatformUtils.IsWindows())
-            {
-                psi = new ProcessStartInfo(
-                    Path.Combine(
-                        Environment.GetFolderPath(Environment.SpecialFolder.System),
-                        "where.exe"),
-                    "git.exe"
-                );
-            }
-            else
-            {
-                psi = new ProcessStartInfo("/usr/bin/which", "git");
-            }
-
-            psi.RedirectStandardOutput = true;
-
-            using (var which = new Process {StartInfo = psi})
-            {
-                which.Start();
-                which.WaitForExit();
-
-                if (which.ExitCode != 0)
-                {
-                    throw new Exception("Failed to locate Git");
-                }
-
-                string data = which.StandardOutput.ReadLine();
-
-                if (string.IsNullOrWhiteSpace(data))
-                {
-                    throw new Exception("Failed to locate Git on the PATH");
-                }
-
-                return data;
-            }
-        }
-
-        private static string CreateRepository() => CreateRepository(out _);
-
-        private static string CreateRepository(out string workDirPath)
-        {
-            string tempDirectory = Path.GetTempPath();
-            string repoName = $"repo-{Guid.NewGuid().ToString("N").Substring(0, 8)}";
-            workDirPath = Path.Combine(tempDirectory, repoName);
-            string gitDirPath = Path.Combine(workDirPath, ".git");
-
-            if (Directory.Exists(workDirPath))
-            {
-                Directory.Delete(workDirPath);
-            }
-
-            Directory.CreateDirectory(workDirPath);
-
-            Git(gitDirPath, workDirPath, "init").AssertSuccess();
-
-            return gitDirPath;
-        }
-
-        private static GitResult Git(string repositoryPath, string workingDirectory, string command)
-        {
-            var procInfo = new ProcessStartInfo("git", command)
-            {
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                WorkingDirectory = workingDirectory
-            };
-
-            procInfo.Environment["GIT_DIR"] = repositoryPath;
-
-            Process proc = Process.Start(procInfo);
-            if (proc is null)
-            {
-                throw new Exception("Failed to start Git process");
-            }
-
-            proc.WaitForExit();
-
-            var result = new GitResult
-            {
-                ExitCode = proc.ExitCode,
-                StandardOutput = proc.StandardOutput.ReadToEnd(),
-                StandardError = proc.StandardError.ReadToEnd()
-            };
-
-            return result;
-        }
-
-        private struct GitResult
-        {
-            public int ExitCode;
-            public string StandardOutput;
-            public string StandardError;
-
-            public void AssertSuccess()
-            {
-                Assert.Equal(0, ExitCode);
-            }
-        }
-
-        #endregion
     }
 }
