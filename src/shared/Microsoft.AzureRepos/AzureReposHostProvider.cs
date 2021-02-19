@@ -67,7 +67,8 @@ namespace Microsoft.AzureRepos
 
         public async Task<ICredential> GetCredentialAsync(InputArguments input)
         {
-            string service = GetServiceName(input);
+            Uri remoteUri = input.GetRemoteUri();
+            string service = GetServiceName(remoteUri);
             string account = GetAccountNameForCredentialQuery(input);
 
             _context.Trace.WriteLine($"Looking for existing credential in store with service={service} account={account}...");
@@ -92,7 +93,8 @@ namespace Microsoft.AzureRepos
 
         public Task StoreCredentialAsync(InputArguments input)
         {
-            string service = GetServiceName(input);
+            Uri remoteUri = input.GetRemoteUri();
+            string service = GetServiceName(remoteUri);
 
             // We always store credentials against the given username argument for
             // both vs.com and dev.azure.com-style URLs.
@@ -108,7 +110,8 @@ namespace Microsoft.AzureRepos
 
         public Task EraseCredentialAsync(InputArguments input)
         {
-            string service = GetServiceName(input);
+            Uri remoteUri = input.GetRemoteUri();
+            string service = GetServiceName(remoteUri);
             string account = GetAccountNameForCredentialQuery(input);
 
             // Try to locate an existing credential
@@ -141,8 +144,8 @@ namespace Microsoft.AzureRepos
                 throw new Exception("Unencrypted HTTP is not supported for Azure Repos. Ensure the repository remote URL is using HTTPS.");
             }
 
-            Uri orgUri = UriHelpers.CreateOrganizationUri(input);
             Uri remoteUri = input.GetRemoteUri();
+            Uri orgUri = UriHelpers.CreateOrganizationUri(remoteUri, out _);
 
             // Determine the MS authentication authority for this organization
             _context.Trace.WriteLine("Determining Microsoft Authentication Authority...");
@@ -224,28 +227,22 @@ namespace Microsoft.AzureRepos
         /// Users that need to clone a repository from Azure Repos against the full path therefore must
         /// use the vs.com-style remote URL and not the dev.azure.com one.
         /// </remarks>
-        private static string GetServiceName(InputArguments input)
+        private static string GetServiceName(Uri remoteUri)
         {
-            if (!input.TryGetHostAndPort(out string hostName, out _))
-            {
-                throw new InvalidOperationException("Failed to parse host name and/or port");
-            }
-
-            // dev.azure.com
-            if (UriHelpers.IsDevAzureComHost(hostName))
+            if (UriHelpers.IsDevAzureComHost(remoteUri.Host))
             {
                 // We can never store the new dev.azure.com-style URLs against the full path because
                 // we have forced the useHttpPath option to true to in order to retrieve the AzDevOps
                 // organization name from Git.
-                return UriHelpers.CreateOrganizationUri(input).AbsoluteUri.TrimEnd('/');
+                return UriHelpers.CreateOrganizationUri(remoteUri, out _).AbsoluteUri.TrimEnd('/');
             }
 
             // *.visualstudio.com
-            if (UriHelpers.IsVisualStudioComHost(hostName))
+            if (UriHelpers.IsVisualStudioComHost(remoteUri.Host))
             {
                 // If we're given the full path for an older *.visualstudio.com-style URL then we should
                 // respect that in the service name.
-                return input.GetRemoteUri().AbsoluteUri.TrimEnd('/');
+                return remoteUri.AbsoluteUri.TrimEnd('/');
             }
 
             throw new InvalidOperationException("Host is not Azure DevOps.");
