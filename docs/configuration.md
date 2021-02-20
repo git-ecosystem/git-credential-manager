@@ -201,7 +201,7 @@ Value|Credential Store
 _(unset)_|(error)
 `secretservice`|[freedesktop.org Secret Service API](https://specifications.freedesktop.org/secret-service/) via [libsecret](https://wiki.gnome.org/Projects/Libsecret) (requires a graphical interface to unlock secret collections).
 `gpg`|Use GPG to store encrypted files that are compatible with the [`pass` utility](https://www.passwordstore.org/) (requires GPG and `pass` to initialize the store).
-`credentialcache`|Git's built-in [credential cache](https://git-scm.com/docs/git-credential-cache).
+`cache`|Git's built-in [credential cache](https://git-scm.com/docs/git-credential-cache).
 `plaintext`|Store credentials in plaintext files (**UNSECURE**). Customize the plaintext store location with [`credential.plaintextStorePath`](#credentialplaintextstorepath).
 
 ##### Example
@@ -214,12 +214,12 @@ git config --global credential.credentialStore gpg
 
 ---
 
-### credential.credentialCacheOptions
+### credential.cacheOptions
 
 Pass [options](https://git-scm.com/docs/git-credential-cache#_options)
 to the Git credential cache when
-[`credential.credentialCacheOptions`](#credentialcredentialcacheoptions)
-is set to `credentialcache`. This allows you to select a different amount
+[`credential.cacheOptions`](#credentialcacheoptions)
+is set to `cache`. This allows you to select a different amount
 of time to cache credentials (the default is 900 seconds) by passing
 `"--timeout <seconds>"`. Use of other options like `--socket` is untested
 and unsupported, but there's no reason it shouldn't work.
@@ -229,7 +229,7 @@ Defaults to empty.
 #### Example
 
 ```shell
-git config --global credential.credentialCacheOptions "--timeout 300"
+git config --global credential.cacheOptions "--timeout 300"
 ```
 
 **Also see: [GCM_CREDENTIAL_CACHE_OPTIONS](environment.md#GCM_CREDENTIAL_CACHE_OPTIONS)**

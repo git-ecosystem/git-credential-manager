@@ -11,7 +11,7 @@ namespace Microsoft.Git.CredentialManager.Interop.Linux
     {
         private const string SecretServiceStoreOption = "secretservice";
         private const string GpgStoreOption = "gpg";
-        private const string CredentialCacheOption = "credentialcache";
+        private const string CredentialCacheOption = "cache";
         private const string PlaintextStoreOption = "plaintext";
 
         private readonly IFileSystem _fileSystem;

@@ -84,7 +84,7 @@ namespace Microsoft.Git.CredentialManager
                 public const string MsAuthFlow  = "msauthFlow";
                 public const string CredNamespace = "namespace";
                 public const string CredentialStore = "credentialStore";
-                public const string CredCacheOptions = "credentialCacheOptions";
+                public const string CredCacheOptions = "cacheOptions";
                 public const string PlaintextStorePath = "plaintextStorePath";
             }
 

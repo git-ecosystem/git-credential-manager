@@ -91,9 +91,9 @@ TTY device path, as returned by the `tty` utility.
 ## 3. Git's built-in [credential cache](https://git-scm.com/docs/git-credential-cache)
 
 ```shell
-export GCM_CREDENTIAL_STORE=credentialcache
+export GCM_CREDENTIAL_STORE=cache
 # or
-git config --global credential.credentialStore credentialcache
+git config --global credential.credentialStore cache
 ```
 
 This credential store uses Git's built-in ephemeral
@@ -109,13 +109,13 @@ That, and any other
 [options it accepts](https://git-scm.com/docs/git-credential-cache#_options),
 may be altered by setting them in the environment variable
 `GCM_CREDENTIAL_CACHE_OPTIONS` or the Git config value
-`credential.credentialCacheOptions`. (Using the `--socket` option is untested
+`credential.cacheOptions`. (Using the `--socket` option is untested
 and unsupported, but there's no reason it shouldn't work.)
 
 ```shell
 export GCM_CREDENTIAL_CACHE_OPTIONS="--timeout 300"
 # or
-git config --global credential.credentialCacheOptions "--timeout 300"
+git config --global credential.cacheOptions "--timeout 300"
 ```
 
 ## 4. Plaintext files
