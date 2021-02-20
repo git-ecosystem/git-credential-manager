@@ -40,12 +40,6 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
             }
         }
 
-        Process IGit.CreateProcess(string args)
-        {
-            throw new NotImplementedException();
-        }
-
-
         Task<IDictionary<string, string>> IGit.InvokeHelperAsync(string args, IDictionary<string, string> standardInput)
         {
             throw new NotImplementedException();

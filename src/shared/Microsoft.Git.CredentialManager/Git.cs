@@ -17,12 +17,6 @@ namespace Microsoft.Git.CredentialManager
         IGitConfiguration GetConfiguration(GitConfigurationLevel level);
 
         /// <summary>
-        /// Create a Git process that's ready to run.
-        /// </summary>
-        /// <returns>The Git process.</returns>
-        Process CreateProcess(string args);
-
-        /// <summary>
         /// Run a Git helper process which expects and returns key-value maps
         /// </summary>
         /// <param name="args">Arguments to the executable</param>
