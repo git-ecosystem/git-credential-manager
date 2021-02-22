@@ -2,6 +2,8 @@
 // Licensed under the MIT license.
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace Microsoft.Git.CredentialManager.Tests.Objects
 {
@@ -36,6 +38,11 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
                 default:
                     throw new ArgumentOutOfRangeException(nameof(level), level, $"Unknown {nameof(GitConfigurationLevel)}");
             }
+        }
+
+        Task<IDictionary<string, string>> IGit.InvokeHelperAsync(string args, IDictionary<string, string> standardInput)
+        {
+            throw new NotImplementedException();
         }
 
         #endregion
