@@ -218,7 +218,7 @@ git config --global credential.credentialStore gpg
 
 Pass [options](https://git-scm.com/docs/git-credential-cache#_options)
 to the Git credential cache when
-[`credential.cacheOptions`](#credentialcacheoptions)
+[`credential.credentialStore`](#credentialcredentialstore)
 is set to `cache`. This allows you to select a different amount
 of time to cache credentials (the default is 900 seconds) by passing
 `"--timeout <seconds>"`. Use of other options like `--socket` is untested
