@@ -3,6 +3,9 @@
 using System;
 using System.Collections.Generic;
 using System.CommandLine;
+using System.CommandLine.Builder;
+using System.CommandLine.Invocation;
+using System.CommandLine.Parsing;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -84,23 +87,12 @@ namespace Microsoft.Git.CredentialManager
             Context.Trace.WriteLine($"AppPath: {_appPath}");
             Context.Trace.WriteLine($"Arguments: {string.Join(" ", args)}");
 
-            try
-            {
-                return await rootCommand.InvokeAsync(args);
-            }
-            catch (Exception e)
-            {
-                if (e is AggregateException ae)
-                {
-                    ae.Handle(WriteException);
-                }
-                else
-                {
-                    WriteException(e);
-                }
+            var parser = new CommandLineBuilder(rootCommand)
+                .UseDefaults()
+                .UseExceptionHandler(OnException)
+                .Build();
 
-                return -1;
-            }
+            return await parser.InvokeAsync(args);
         }
 
         protected override void Dispose(bool disposing)
@@ -113,7 +105,19 @@ namespace Microsoft.Git.CredentialManager
             base.Dispose(disposing);
         }
 
-        protected bool WriteException(Exception ex)
+        private void OnException(Exception ex, InvocationContext invocationContext)
+        {
+            if (ex is AggregateException aex)
+            {
+                aex.Handle(WriteException);
+            }
+            else
+            {
+                WriteException(ex);
+            }
+        }
+
+        private bool WriteException(Exception ex)
         {
             // Try and use a nicer format for some well-known exception types
             switch (ex)
