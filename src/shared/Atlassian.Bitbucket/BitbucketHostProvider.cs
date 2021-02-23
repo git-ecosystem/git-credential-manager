@@ -46,7 +46,10 @@ namespace Atlassian.Bitbucket
             }
 
             // Split port number and hostname from host input argument
-            input.TryGetHostAndPort(out string hostName, out _);
+            if (!input.TryGetHostAndPort(out string hostName, out _))
+            {
+                return false;
+            }
 
             // We do not support unencrypted HTTP communications to Bitbucket,
             // but we report `true` here for HTTP so that we can show a helpful

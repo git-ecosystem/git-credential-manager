@@ -39,6 +39,9 @@ namespace Microsoft.Git.CredentialManager.Commands
             IDictionary<string, string> inputDict = await Context.Streams.In.ReadDictionaryAsync(StringComparer.Ordinal);
             var input = new InputArguments(inputDict);
 
+            // Validate minimum arguments are present
+            EnsureMinimumInputArguments(input);
+
             // Set the remote URI to scope settings to throughout the process from now on
             Context.Settings.RemoteUri = input.GetRemoteUri();
 
@@ -51,6 +54,29 @@ namespace Microsoft.Git.CredentialManager.Commands
             await ExecuteInternalAsync(input, provider);
 
             Context.Trace.WriteLine($"End '{Name}' command...");
+        }
+
+        protected virtual void EnsureMinimumInputArguments(InputArguments input)
+        {
+            if (input.Protocol is null)
+            {
+                throw new InvalidOperationException("Missing 'protocol' input argument");
+            }
+
+            if (string.IsNullOrWhiteSpace(input.Protocol))
+            {
+                throw new InvalidOperationException("Invalid 'protocol' input argument (cannot be empty)");
+            }
+
+            if (input.Host is null)
+            {
+                throw new InvalidOperationException("Missing 'host' input argument");
+            }
+
+            if (string.IsNullOrWhiteSpace(input.Host))
+            {
+                throw new InvalidOperationException("Invalid 'host' input argument (cannot be empty)");
+            }
         }
 
         /// <summary>

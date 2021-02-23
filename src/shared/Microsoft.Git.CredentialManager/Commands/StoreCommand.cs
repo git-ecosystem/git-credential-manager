@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
+using System;
 using System.Threading.Tasks;
 
 namespace Microsoft.Git.CredentialManager.Commands
@@ -15,6 +16,22 @@ namespace Microsoft.Git.CredentialManager.Commands
         protected override Task ExecuteInternalAsync(InputArguments input, IHostProvider provider)
         {
             return provider.StoreCredentialAsync(input);
+        }
+
+        protected override void EnsureMinimumInputArguments(InputArguments input)
+        {
+            base.EnsureMinimumInputArguments(input);
+
+            // An empty string username/password are valid inputs, so only check for `null` (not provided)
+            if (input.UserName is null)
+            {
+                throw new InvalidOperationException("Missing 'username' input argument");
+            }
+
+            if (input.Password is null)
+            {
+                throw new InvalidOperationException("Missing 'password' input argument");
+            }
         }
     }
 }
