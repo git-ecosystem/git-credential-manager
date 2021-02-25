@@ -6,10 +6,10 @@ steps:
       signType: '$(SignType)'
 
   - task: UseDotNet@2
-    displayName: Use .NET Core SDK 3.1.x
+    displayName: Use .NET SDK 5.0.x
     inputs:
       packageType: sdk
-      version: 3.1.x
+      version: 5.0.x
 
   - task: NuGetToolInstaller@0
     displayName: Install NuGet tool >=4.3.0

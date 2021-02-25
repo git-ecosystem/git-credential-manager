@@ -17,10 +17,10 @@ jobs:
       with:
         fetch-depth: 0 # Indicate full history so Nerdbank.GitVersioning works.
 
-    - name: Setup .NET Core
+    - name: Setup .NET
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 3.1.302
+        dotnet-version: 5.0.103
 
     - name: Install dependencies
       run: dotnet restore --force

@@ -23,7 +23,7 @@ INSTALLER_SRC="$SRC/osx/Installer.Mac"
 GCM_SRC="$SRC/shared/Git-Credential-Manager"
 
 # Build parameters
-FRAMEWORK=netcoreapp3.1
+FRAMEWORK=net5.0
 RUNTIME=osx-x64
 
 # Parse script arguments
