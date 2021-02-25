@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
-using System.Diagnostics;
+using System;
 using System.Reflection;
 
 namespace Microsoft.Git.CredentialManager
@@ -105,33 +105,33 @@ namespace Microsoft.Git.CredentialManager
             public const string GcmLinuxCredStores     = "https://aka.ms/gcmcore-linuxcredstores";
         }
 
-        private static string _gcmVersion;
+        private static Version _gcmVersion;
 
-        /// <summary>
-        /// The current version of Git Credential Manager.
-        /// </summary>
-        public static string GcmVersion
+        public static Version GcmVersion
         {
             get
             {
                 if (_gcmVersion is null)
                 {
-                    _gcmVersion = FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).ProductVersion;
+                    var assembly = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
+                    var attr = assembly.GetCustomAttribute<AssemblyFileVersionAttribute>();
+                    if (attr is null)
+                    {
+                        _gcmVersion = assembly.GetName().Version;
+                    }
+                    else if (Version.TryParse(attr.Version, out Version asmVersion))
+                    {
+                        _gcmVersion = asmVersion;
+                    }
+                    else
+                    {
+                        // Unknown version!
+                        _gcmVersion = new Version(0, 0);
+                    }
                 }
 
                 return _gcmVersion;
             }
-        }
-
-        /// <summary>
-        /// Get standard program header title for Git Credential Manager, including the current version and OS information.
-        /// </summary>
-        /// <returns>Standard program header.</returns>
-        public static string GetProgramHeader()
-        {
-            PlatformInformation info = PlatformUtils.GetPlatformInformation();
-
-            return $"Git Credential Manager version {GcmVersion} ({info.OperatingSystemType}, {info.ClrVersion})";
         }
 
         /// <summary>

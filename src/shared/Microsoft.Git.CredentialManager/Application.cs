@@ -76,8 +76,13 @@ namespace Microsoft.Git.CredentialManager
                 rootCommand.AddCommand(providerCommand);
             }
 
-            // Trace the current version and program arguments
-            Context.Trace.WriteLine($"{Constants.GetProgramHeader()} '{string.Join(" ", args)}'");
+            // Trace the current version, OS, runtime, and program arguments
+            PlatformInformation info = PlatformUtils.GetPlatformInformation();
+            Context.Trace.WriteLine($"Version: {Constants.GcmVersion}");
+            Context.Trace.WriteLine($"Runtime: {info.ClrVersion}");
+            Context.Trace.WriteLine($"Platform: {info.OperatingSystemType} ({info.CpuArchitecture})");
+            Context.Trace.WriteLine($"AppPath: {_appPath}");
+            Context.Trace.WriteLine($"Arguments: {string.Join(" ", args)}");
 
             try
             {

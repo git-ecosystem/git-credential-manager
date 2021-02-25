@@ -3,6 +3,7 @@
 using System;
 using System.IO;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using Atlassian.Bitbucket;
 using GitHub;
 using Microsoft.AzureRepos;
@@ -36,16 +37,19 @@ namespace Microsoft.Git.CredentialManager
 
         private static string GetApplicationPath()
         {
-            Assembly entryAssembly = Assembly.GetExecutingAssembly();
-            if (entryAssembly is null)
-            {
-                throw new InvalidOperationException();
-            }
+            // Assembly::Location always returns an empty string if the application was published as a single file
+#pragma warning disable IL3000
+            bool isSingleFile = string.IsNullOrEmpty(Assembly.GetEntryAssembly()?.Location);
+#pragma warning restore IL3000
 
-            string candidatePath = entryAssembly.Location;
+            // Use "argv[0]" to get the full path to the entry executable - this is consistent across
+            // .NET Framework and .NET >= 5 when published as a single file.
+            string[] args = Environment.GetCommandLineArgs();
+            string candidatePath = args[0];
 
-            // Strip the .dll from assembly name on Mac and Linux
-            if (!PlatformUtils.IsWindows() && Path.HasExtension(candidatePath))
+            // If we have not been published as a single file on .NET 5 then we must strip the ".dll" file extension
+            // to get the default AppHost/SuperHost name.
+            if (!isSingleFile && Path.HasExtension(candidatePath))
             {
                 return Path.ChangeExtension(candidatePath, null);
             }
