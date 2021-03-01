@@ -397,6 +397,8 @@ namespace Microsoft.Git.CredentialManager
                 return false;
             }
 
+            char[] bypassListSeparators = {',', ' '};
+
             ProxyConfiguration CreateConfiguration(Uri uri, bool isLegacy = false)
             {
                 // Strip the userinfo, query, and fragment parts of the Uri retaining only the scheme, host, port, and path
@@ -413,9 +415,9 @@ namespace Microsoft.Git.CredentialManager
 
                 // Get the proxy bypass host names
                 var bypassHosts = new List<string>();
-                if (_environment.Variables.TryGetValue(KnownEnvars.CurlNoProxy, out string noProxyStr))
+                if (_environment.Variables.TryGetValue(KnownEnvars.CurlNoProxy, out string noProxyStr) && noProxyStr != null)
                 {
-                    bypassHosts = noProxyStr.Split(',').ToList();
+                    bypassHosts.AddRange(noProxyStr.Split(bypassListSeparators, StringSplitOptions.RemoveEmptyEntries));
                 }
 
                 return new ProxyConfiguration(address, userName, password, bypassHosts, isLegacy);

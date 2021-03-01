@@ -557,6 +557,42 @@ namespace Microsoft.Git.CredentialManager.Tests
         }
 
         [Fact]
+        public void Settings_ProxyConfiguration_NoProxyMixedSplitChar_ReturnsValue()
+        {
+            const string remoteUrl = "http://example.com/foo.git";
+            const string section = Constants.GitConfiguration.Http.SectionName;
+            const string property = Constants.GitConfiguration.Http.Proxy;
+            var remoteUri = new Uri(remoteUrl);
+
+            const string expectedUserName = "john.doe";
+            const string expectedPassword = "letmein123";
+            var expectedAddress = new Uri("http://proxy.example.com");
+            var settingValue = new Uri("http://john.doe:letmein123@proxy.example.com");
+            var bypassList = new List<string> {"contoso.com", "fabrikam.com", "example.com"};
+
+            var envars = new TestEnvironment
+            {
+                Variables = {[Constants.EnvironmentVariables.CurlNoProxy] = "contoso.com, fabrikam.com example.com,"}
+            };
+            var git = new TestGit();
+            git.GlobalConfiguration[$"{section}.{property}"] = settingValue.ToString();
+
+            var settings = new Settings(envars, git)
+            {
+                RemoteUri = remoteUri
+            };
+
+            ProxyConfiguration actualConfig = settings.GetProxyConfiguration();
+
+            Assert.NotNull(actualConfig);
+            Assert.Equal(expectedAddress, actualConfig.Address);
+            Assert.Equal(expectedUserName, actualConfig.UserName);
+            Assert.Equal(expectedPassword, actualConfig.Password);
+            Assert.Equal(bypassList, actualConfig.BypassHosts);
+            Assert.False(actualConfig.IsDeprecatedSource);
+        }
+
+        [Fact]
         public void Settings_ProxyConfiguration_CurlHttpEnvar_ReturnsValue()
         {
             const string remoteUrl = "http://example.com/foo.git";
