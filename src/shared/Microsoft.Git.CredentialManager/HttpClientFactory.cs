@@ -2,6 +2,7 @@
 // Licensed under the MIT license.
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -105,41 +106,41 @@ namespace Microsoft.Git.CredentialManager
         public bool TryCreateProxy(out IWebProxy proxy)
         {
             // Try to extract the proxy URI from the environment or Git config
-            if (_settings.GetProxyConfiguration(out bool isDeprecatedConfiguration) is Uri proxyConfig)
+            ProxyConfiguration proxyConfig = _settings.GetProxyConfiguration();
+            if (proxyConfig != null)
             {
                 // Inform the user if they are using a deprecated proxy configuration
-                if (isDeprecatedConfiguration)
+                if (proxyConfig.IsDeprecatedSource)
                 {
                     _trace.WriteLine("Using a deprecated proxy configuration.");
                     _streams.Error.WriteLine($"warning: Using a deprecated proxy configuration. See {Constants.HelpUrls.GcmHttpProxyGuide} for more information.");
                 }
 
-                // Strip the userinfo, query, and fragment parts of the Uri retaining only the scheme, host, port, and path.
-                Uri proxyUri = GetProxyUri(proxyConfig);
-
                 // Dictionary of proxy info for tracing
-                var dict = new Dictionary<string, string> {["uri"] = proxyUri.ToString()};
+                var dict = new Dictionary<string, string> {["address"] = proxyConfig.Address.ToString()};
+                if (proxyConfig.BypassHosts.Any()) dict["bypass"] = string.Join(",", proxyConfig.BypassHosts);
 
-                // Try to extract and configure proxy credentials from the configured URI.
+                // Try to configure proxy credentials.
                 // For an empty username AND password we should use the system default credentials
                 // (for example for Windows Integrated Authentication-based proxies).
-                if (proxyConfig.TryGetUserInfo(out string userName, out string password) &&
-                    !(string.IsNullOrEmpty(userName) && string.IsNullOrEmpty(password)))
+                if (!(string.IsNullOrEmpty(proxyConfig.UserName) && string.IsNullOrEmpty(proxyConfig.Password)))
                 {
-                    proxy = new WebProxy(proxyUri)
+                    proxy = new WebProxy(proxyConfig.Address)
                     {
-                        Credentials = new NetworkCredential(userName, password)
+                        Credentials = new NetworkCredential(proxyConfig.UserName, proxyConfig.Password),
+                        BypassList = proxyConfig.BypassHosts.ToArray()
                     };
 
                     // Add user/pass info to the trace dictionary
-                    dict["username"] = userName;
-                    dict["password"] = password;
+                    dict["username"] = proxyConfig.UserName;
+                    dict["password"] = proxyConfig.Password;
                 }
                 else
                 {
-                    proxy = new WebProxy(proxyUri)
+                    proxy = new WebProxy(proxyConfig.Address)
                     {
-                        UseDefaultCredentials = true
+                        UseDefaultCredentials = true,
+                        BypassList = proxyConfig.BypassHosts.ToArray()
                     };
 
                     // Trace the use of system default credentials
@@ -155,17 +156,6 @@ namespace Microsoft.Git.CredentialManager
 
             proxy = null;
             return false;
-        }
-
-        private static Uri GetProxyUri(Uri uri)
-        {
-            return new UriBuilder(uri)
-            {
-                UserName = string.Empty,
-                Password = string.Empty,
-                Query    = string.Empty,
-                Fragment = string.Empty,
-            }.Uri;
         }
     }
 }

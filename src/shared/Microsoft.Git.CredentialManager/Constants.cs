@@ -43,6 +43,7 @@ namespace Microsoft.Git.CredentialManager
             public const string GcmAuthority          = "GCM_AUTHORITY";
             public const string GitTerminalPrompts    = "GIT_TERMINAL_PROMPT";
             public const string GcmAllowWia           = "GCM_ALLOW_WINDOWSAUTH";
+            public const string CurlNoProxy           = "NO_PROXY";
             public const string CurlAllProxy          = "ALL_PROXY";
             public const string CurlHttpProxy         = "HTTP_PROXY";
             public const string CurlHttpsProxy        = "HTTPS_PROXY";
