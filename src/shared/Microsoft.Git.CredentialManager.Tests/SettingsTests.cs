@@ -442,9 +442,10 @@ namespace Microsoft.Git.CredentialManager.Tests
             {
                 RemoteUri = remoteUri
             };
-            Uri value = settings.GetProxyConfiguration(out _);
 
-            Assert.Null(value);
+            ProxyConfiguration config = settings.GetProxyConfiguration();
+
+            Assert.Null(config);
         }
 
         [Fact]
@@ -455,20 +456,32 @@ namespace Microsoft.Git.CredentialManager.Tests
             const string property = Constants.GitConfiguration.Credential.HttpProxy;
             var remoteUri = new Uri(remoteUrl);
 
-            var expectedValue = new Uri("http://john.doe:letmein123@proxy.example.com");
+            const string expectedUserName = "john.doe";
+            const string expectedPassword = "letmein123";
+            var expectedAddress = new Uri("http://proxy.example.com");
+            var settingValue = new Uri("http://john.doe:letmein123@proxy.example.com");
+            var bypassList = new List<string> {"contoso.com", "fabrikam.com"};
 
-            var envars = new TestEnvironment();
+            var envars = new TestEnvironment
+            {
+                Variables = {[Constants.EnvironmentVariables.CurlNoProxy] = string.Join(',', bypassList)}
+            };
             var git = new TestGit();
-            git.GlobalConfiguration[$"{section}.{property}"] = expectedValue.ToString();
+            git.GlobalConfiguration[$"{section}.{property}"] = settingValue.ToString();
 
             var settings = new Settings(envars, git)
             {
                 RemoteUri = remoteUri
             };
-            Uri actualValue = settings.GetProxyConfiguration(out bool actualIsDeprecated);
 
-            Assert.Equal(expectedValue, actualValue);
-            Assert.True(actualIsDeprecated);
+            ProxyConfiguration actualConfig = settings.GetProxyConfiguration();
+
+            Assert.NotNull(actualConfig);
+            Assert.Equal(expectedAddress, actualConfig.Address);
+            Assert.Equal(expectedUserName, actualConfig.UserName);
+            Assert.Equal(expectedPassword, actualConfig.Password);
+            Assert.Equal(bypassList, actualConfig.BypassHosts);
+            Assert.True(actualConfig.IsDeprecatedSource);
         }
 
         [Fact]
@@ -479,20 +492,32 @@ namespace Microsoft.Git.CredentialManager.Tests
             const string property = Constants.GitConfiguration.Credential.HttpsProxy;
             var remoteUri = new Uri(remoteUrl);
 
-            var expectedValue = new Uri("http://john.doe:letmein123@proxy.example.com");
+            const string expectedUserName = "john.doe";
+            const string expectedPassword = "letmein123";
+            var expectedAddress = new Uri("http://proxy.example.com");
+            var settingValue = new Uri("http://john.doe:letmein123@proxy.example.com");
+            var bypassList = new List<string> {"contoso.com", "fabrikam.com"};
 
-            var envars = new TestEnvironment();
+            var envars = new TestEnvironment
+            {
+                Variables = {[Constants.EnvironmentVariables.CurlNoProxy] = string.Join(',', bypassList)}
+            };
             var git = new TestGit();
-            git.GlobalConfiguration[$"{section}.{property}"] = expectedValue.ToString();
+            git.GlobalConfiguration[$"{section}.{property}"] = settingValue.ToString();
 
             var settings = new Settings(envars, git)
             {
                 RemoteUri = remoteUri
             };
-            Uri actualValue = settings.GetProxyConfiguration(out bool actualIsDeprecated);
 
-            Assert.Equal(expectedValue, actualValue);
-            Assert.True(actualIsDeprecated);
+            ProxyConfiguration actualConfig = settings.GetProxyConfiguration();
+
+            Assert.NotNull(actualConfig);
+            Assert.Equal(expectedAddress, actualConfig.Address);
+            Assert.Equal(expectedUserName, actualConfig.UserName);
+            Assert.Equal(expectedPassword, actualConfig.Password);
+            Assert.Equal(bypassList, actualConfig.BypassHosts);
+            Assert.True(actualConfig.IsDeprecatedSource);
         }
 
         [Fact]
@@ -503,20 +528,32 @@ namespace Microsoft.Git.CredentialManager.Tests
             const string property = Constants.GitConfiguration.Http.Proxy;
             var remoteUri = new Uri(remoteUrl);
 
-            var expectedValue = new Uri("http://john.doe:letmein123@proxy.example.com");
+            const string expectedUserName = "john.doe";
+            const string expectedPassword = "letmein123";
+            var expectedAddress = new Uri("http://proxy.example.com");
+            var settingValue = new Uri("http://john.doe:letmein123@proxy.example.com");
+            var bypassList = new List<string> {"contoso.com", "fabrikam.com"};
 
-            var envars = new TestEnvironment();
+            var envars = new TestEnvironment
+            {
+                Variables = {[Constants.EnvironmentVariables.CurlNoProxy] = string.Join(',', bypassList)}
+            };
             var git = new TestGit();
-            git.GlobalConfiguration[$"{section}.{property}"] = expectedValue.ToString();
+            git.GlobalConfiguration[$"{section}.{property}"] = settingValue.ToString();
 
             var settings = new Settings(envars, git)
             {
                 RemoteUri = remoteUri
             };
-            Uri actualValue = settings.GetProxyConfiguration(out bool actualIsDeprecated);
 
-            Assert.Equal(expectedValue, actualValue);
-            Assert.False(actualIsDeprecated);
+            ProxyConfiguration actualConfig = settings.GetProxyConfiguration();
+
+            Assert.NotNull(actualConfig);
+            Assert.Equal(expectedAddress, actualConfig.Address);
+            Assert.Equal(expectedUserName, actualConfig.UserName);
+            Assert.Equal(expectedPassword, actualConfig.Password);
+            Assert.Equal(bypassList, actualConfig.BypassHosts);
+            Assert.False(actualConfig.IsDeprecatedSource);
         }
 
         [Fact]
@@ -525,11 +562,19 @@ namespace Microsoft.Git.CredentialManager.Tests
             const string remoteUrl = "http://example.com/foo.git";
             var remoteUri = new Uri(remoteUrl);
 
-            var expectedValue = new Uri("http://john.doe:letmein123@proxy.example.com");
+            const string expectedUserName = "john.doe";
+            const string expectedPassword = "letmein123";
+            var expectedAddress = new Uri("http://proxy.example.com");
+            var settingValue = new Uri("http://john.doe:letmein123@proxy.example.com");
+            var bypassList = new List<string> {"contoso.com", "fabrikam.com"};
 
             var envars = new TestEnvironment
             {
-                Variables = {[Constants.EnvironmentVariables.CurlHttpProxy] = expectedValue.ToString()}
+                Variables =
+                {
+                    [Constants.EnvironmentVariables.CurlHttpProxy] = settingValue.ToString(),
+                    [Constants.EnvironmentVariables.CurlNoProxy] = string.Join(',', bypassList)
+                }
             };
             var git = new TestGit();
 
@@ -537,10 +582,15 @@ namespace Microsoft.Git.CredentialManager.Tests
             {
                 RemoteUri = remoteUri
             };
-            Uri actualValue = settings.GetProxyConfiguration(out bool actualIsDeprecated);
 
-            Assert.Equal(expectedValue, actualValue);
-            Assert.False(actualIsDeprecated);
+            ProxyConfiguration actualConfig = settings.GetProxyConfiguration();
+
+            Assert.NotNull(actualConfig);
+            Assert.Equal(expectedAddress, actualConfig.Address);
+            Assert.Equal(expectedUserName, actualConfig.UserName);
+            Assert.Equal(expectedPassword, actualConfig.Password);
+            Assert.Equal(bypassList, actualConfig.BypassHosts);
+            Assert.False(actualConfig.IsDeprecatedSource);
         }
 
         [Fact]
@@ -549,11 +599,19 @@ namespace Microsoft.Git.CredentialManager.Tests
             const string remoteUrl = "https://example.com/foo.git";
             var remoteUri = new Uri(remoteUrl);
 
-            var expectedValue = new Uri("http://john.doe:letmein123@proxy.example.com");
+            const string expectedUserName = "john.doe";
+            const string expectedPassword = "letmein123";
+            var expectedAddress = new Uri("http://proxy.example.com");
+            var settingValue = new Uri("http://john.doe:letmein123@proxy.example.com");
+            var bypassList = new List<string> {"contoso.com", "fabrikam.com"};
 
             var envars = new TestEnvironment
             {
-                Variables = {[Constants.EnvironmentVariables.CurlHttpsProxy] = expectedValue.ToString()}
+                Variables =
+                {
+                    [Constants.EnvironmentVariables.CurlHttpsProxy] = settingValue.ToString(),
+                    [Constants.EnvironmentVariables.CurlNoProxy] = string.Join(',', bypassList)
+                }
             };
             var git = new TestGit();
 
@@ -561,10 +619,15 @@ namespace Microsoft.Git.CredentialManager.Tests
             {
                 RemoteUri = remoteUri
             };
-            Uri actualValue = settings.GetProxyConfiguration(out bool actualIsDeprecated);
 
-            Assert.Equal(expectedValue, actualValue);
-            Assert.False(actualIsDeprecated);
+            ProxyConfiguration actualConfig = settings.GetProxyConfiguration();
+
+            Assert.NotNull(actualConfig);
+            Assert.Equal(expectedAddress, actualConfig.Address);
+            Assert.Equal(expectedUserName, actualConfig.UserName);
+            Assert.Equal(expectedPassword, actualConfig.Password);
+            Assert.Equal(bypassList, actualConfig.BypassHosts);
+            Assert.False(actualConfig.IsDeprecatedSource);
         }
 
         [Fact]
@@ -573,11 +636,19 @@ namespace Microsoft.Git.CredentialManager.Tests
             const string remoteUrl = "https://example.com/foo.git";
             var remoteUri = new Uri(remoteUrl);
 
-            var expectedValue = new Uri("http://john.doe:letmein123@proxy.example.com");
+            const string expectedUserName = "john.doe";
+            const string expectedPassword = "letmein123";
+            var expectedAddress = new Uri("http://proxy.example.com");
+            var settingValue = new Uri("http://john.doe:letmein123@proxy.example.com");
+            var bypassList = new List<string> {"contoso.com", "fabrikam.com"};
 
             var envars = new TestEnvironment
             {
-                Variables = {[Constants.EnvironmentVariables.CurlAllProxy] = expectedValue.ToString()}
+                Variables =
+                {
+                    [Constants.EnvironmentVariables.CurlAllProxy] = settingValue.ToString(),
+                    [Constants.EnvironmentVariables.CurlNoProxy] = string.Join(',', bypassList)
+                }
             };
             var git = new TestGit();
 
@@ -585,10 +656,15 @@ namespace Microsoft.Git.CredentialManager.Tests
             {
                 RemoteUri = remoteUri
             };
-            Uri actualValue = settings.GetProxyConfiguration(out bool actualIsDeprecated);
 
-            Assert.Equal(expectedValue, actualValue);
-            Assert.False(actualIsDeprecated);
+            ProxyConfiguration actualConfig = settings.GetProxyConfiguration();
+
+            Assert.NotNull(actualConfig);
+            Assert.Equal(expectedAddress, actualConfig.Address);
+            Assert.Equal(expectedUserName, actualConfig.UserName);
+            Assert.Equal(expectedPassword, actualConfig.Password);
+            Assert.Equal(bypassList, actualConfig.BypassHosts);
+            Assert.False(actualConfig.IsDeprecatedSource);
         }
 
         [Fact]
@@ -597,11 +673,19 @@ namespace Microsoft.Git.CredentialManager.Tests
             const string remoteUrl = "http://example.com/foo.git";
             var remoteUri = new Uri(remoteUrl);
 
-            var expectedValue = new Uri("http://john.doe:letmein123@proxy.example.com");
+            const string expectedUserName = "john.doe";
+            const string expectedPassword = "letmein123";
+            var expectedAddress = new Uri("http://proxy.example.com");
+            var settingValue = new Uri("http://john.doe:letmein123@proxy.example.com");
+            var bypassList = new List<string> {"https://contoso.com", ".*fabrikam\\.com"};
 
             var envars = new TestEnvironment
             {
-                Variables = {[Constants.EnvironmentVariables.GcmHttpProxy] = expectedValue.ToString()}
+                Variables =
+                {
+                    [Constants.EnvironmentVariables.GcmHttpProxy] = settingValue.ToString(),
+                    [Constants.EnvironmentVariables.CurlNoProxy] = string.Join(',', bypassList)
+                }
             };
             var git = new TestGit();
 
@@ -609,10 +693,15 @@ namespace Microsoft.Git.CredentialManager.Tests
             {
                 RemoteUri = remoteUri
             };
-            Uri actualValue = settings.GetProxyConfiguration(out bool actualIsDeprecated);
 
-            Assert.Equal(expectedValue, actualValue);
-            Assert.True(actualIsDeprecated);
+            ProxyConfiguration actualConfig = settings.GetProxyConfiguration();
+
+            Assert.NotNull(actualConfig);
+            Assert.Equal(expectedAddress, actualConfig.Address);
+            Assert.Equal(expectedUserName, actualConfig.UserName);
+            Assert.Equal(expectedPassword, actualConfig.Password);
+            Assert.Equal(bypassList, actualConfig.BypassHosts);
+            Assert.True(actualConfig.IsDeprecatedSource);
         }
 
         [Fact]
@@ -647,8 +736,8 @@ namespace Microsoft.Git.CredentialManager.Tests
                 {
                     RemoteUri = remoteUri
                 };
-                Uri actualValue = settings.GetProxyConfiguration(out bool actualIsDeprecated);
-                Assert.Equal(expectedValue, actualValue);
+                ProxyConfiguration actualConfig = settings.GetProxyConfiguration();
+                Assert.Equal(expectedValue, actualConfig.Address);
             }
 
              // Test case 1: cURL environment variables > GCM_HTTP_PROXY

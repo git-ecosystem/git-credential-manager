@@ -55,6 +55,22 @@ GCM Core supports other ways of configuring a proxy for convenience and compatib
    - `ALL_PROXY`
 1. `GCM_HTTP_PROXY` environment variable (_**only** respected by GCM; **deprecated**_)
 
+### Bypassing addresses
+
+In some circumstances you may wish to bypass a configured proxy for specific
+addresses. GCM Core supports the cURL environment variable `NO_PROXY` for this
+scenariom, as does Git itself.
+
+The `NO_PROXY` environment variable should contain a comma (`,`) seperated list
+of regular expressions to match hosts that should not be proxied (should connect
+directly).
+
+**Example:**
+
+```text
+NO_PROXY="contoso.com,www.fabrikam.com"
+```
+
 ## TLS Verification
 
 If you are using self-signed TLS (SSL) certificates with a self-hosted host provider such as GitHub Enterprise Server or Azure DevOps Server (previously TFS), you may see the following error message when attempting to connect using Git and/or GCM:
