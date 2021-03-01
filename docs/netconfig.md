@@ -61,7 +61,7 @@ In some circumstances you may wish to bypass a configured proxy for specific
 addresses. GCM Core supports the cURL environment variable `NO_PROXY` for this
 scenariom, as does Git itself.
 
-The `NO_PROXY` environment variable should contain a comma (`,`) seperated list
+The `NO_PROXY` environment variable should contain a comma (`,`) separated list
 of regular expressions to match hosts that should not be proxied (should connect
 directly).
 
