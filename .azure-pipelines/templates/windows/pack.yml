@@ -6,8 +6,8 @@ steps:
     displayName: Set version variables
 
   - script: |
-      xcopy "out\windows\Installer.Windows\bin\$(configuration)\net461"       "$(Build.StagingDirectory)\publish\"
-      xcopy "out\windows\Payload.Windows\bin\$(configuration)\net461\win-x86" "$(Build.StagingDirectory)\publish\payload\"
+      xcopy "out\windows\Installer.Windows\bin\$(configuration)\net472"       "$(Build.StagingDirectory)\publish\"
+      xcopy "out\windows\Payload.Windows\bin\$(configuration)\net472\win-x86" "$(Build.StagingDirectory)\publish\payload\"
       mkdir "$(Build.StagingDirectory)\publish\payload.sym\"
       move  "$(Build.StagingDirectory)\publish\payload\*.pdb"                 "$(Build.StagingDirectory)\publish\payload.sym\"
     displayName: Prepare final build artifacts

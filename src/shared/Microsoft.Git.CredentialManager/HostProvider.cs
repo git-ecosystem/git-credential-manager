@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace Microsoft.Git.CredentialManager
@@ -33,6 +34,13 @@ namespace Microsoft.Git.CredentialManager
         /// <param name="input">Input arguments of a Git credential query.</param>
         /// <returns>True if the provider supports the Git credential request, false otherwise.</returns>
         bool IsSupported(InputArguments input);
+
+        /// <summary>
+        /// Determine if the <see cref="HttpResponseMessage"/> identifies a recognized Git hosting provider.
+        /// </summary>
+        /// <param name="response">Response message of an endpoint query.</param>
+        /// <returns>True if the provider supports the host provider at the endpoint, false otherwise.</returns>
+        bool IsSupported(HttpResponseMessage response);
 
         /// <summary>
         /// Get a credential for accessing the remote Git repository on this hosting service.
@@ -77,6 +85,11 @@ namespace Microsoft.Git.CredentialManager
         public virtual IEnumerable<string> SupportedAuthorityIds => Enumerable.Empty<string>();
 
         public abstract bool IsSupported(InputArguments input);
+
+        public virtual bool IsSupported(HttpResponseMessage response)
+        {
+            return false;
+        }
 
         /// <summary>
         /// Return a string that uniquely identifies the service that a credential should be stored against.

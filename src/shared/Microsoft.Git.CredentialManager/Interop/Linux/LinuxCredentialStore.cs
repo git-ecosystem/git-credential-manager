@@ -11,6 +11,7 @@ namespace Microsoft.Git.CredentialManager.Interop.Linux
     {
         private const string SecretServiceStoreOption = "secretservice";
         private const string GpgStoreOption = "gpg";
+        private const string CredentialCacheOption = "cache";
         private const string PlaintextStoreOption = "plaintext";
 
         private readonly IFileSystem _fileSystem;
@@ -18,22 +19,25 @@ namespace Microsoft.Git.CredentialManager.Interop.Linux
         private readonly ISessionManager _sessionManager;
         private readonly IGpg _gpg;
         private readonly IEnvironment _environment;
+        private readonly IGit _git;
 
         private ICredentialStore _backingStore;
 
-        public LinuxCredentialStore(IFileSystem fileSystem, ISettings settings, ISessionManager sessionManager, IGpg gpg, IEnvironment environment)
+        public LinuxCredentialStore(IFileSystem fileSystem, ISettings settings, ISessionManager sessionManager, IGpg gpg, IEnvironment environment, IGit git)
         {
             EnsureArgument.NotNull(fileSystem, nameof(fileSystem));
             EnsureArgument.NotNull(settings, nameof(settings));
             EnsureArgument.NotNull(sessionManager, nameof(sessionManager));
             EnsureArgument.NotNull(gpg, nameof(gpg));
             EnsureArgument.NotNull(environment, nameof(environment));
+            EnsureArgument.NotNull(git, nameof(git));
 
             _fileSystem = fileSystem;
             _settings = settings;
             _sessionManager = sessionManager;
             _gpg = gpg;
             _environment = environment;
+            _git = git;
         }
 
         #region ICredentialStore
@@ -80,11 +84,15 @@ namespace Microsoft.Git.CredentialManager.Interop.Linux
                     _backingStore = new GpgPassCredentialStore(_fileSystem, _gpg, gpgStoreRoot, ns);
                     break;
 
+                case CredentialCacheOption:
+                    ValidateCredentialCache(out string options);
+                    _backingStore = new CredentialCacheStore(_git, options);
+                    break;
+
                 case PlaintextStoreOption:
                     ValidatePlaintext(out string plainStoreRoot);
                     _backingStore = new PlaintextCredentialStore(_fileSystem, plainStoreRoot, ns);
                     break;
-
                 default:
                     var sb = new StringBuilder();
                     sb.AppendLine("No credential backing store has been selected.");
@@ -96,6 +104,7 @@ namespace Microsoft.Git.CredentialManager.Interop.Linux
                         Environment.NewLine);
                     sb.AppendFormat("  {0,-13} : freedesktop.org Secret Service (requires graphical interface){1}", SecretServiceStoreOption, Environment.NewLine);
                     sb.AppendFormat("  {0,-13} : GNU `pass` compatible credential storage (requires GPG and `pass`){1}", GpgStoreOption, Environment.NewLine);
+                    sb.AppendFormat("  {0,-13} : Git's in-memory credential cache{1}", CredentialCacheOption, Environment.NewLine);
                     sb.AppendFormat("  {0,-13} : store credentials in plain-text files (UNSECURE){1}", PlaintextStoreOption, Environment.NewLine);
                     sb.AppendLine();
                     sb.AppendLine($"See {Constants.HelpUrls.GcmLinuxCredStores} for more information.");
@@ -143,6 +152,18 @@ namespace Microsoft.Git.CredentialManager.Interop.Linux
             }
         }
 
+        private void ValidateCredentialCache(out string options)
+        {
+            // allow for --timeout and other options
+            if (!_settings.TryGetSetting(
+                Constants.EnvironmentVariables.GcmCredCacheOptions,
+                Constants.GitConfiguration.Credential.SectionName, Constants.GitConfiguration.Credential.CredCacheOptions,
+                out options))
+            {
+                options = string.Empty;
+            }
+        }
+
         private void ValidatePlaintext(out string storeRoot)
         {
             // Check for a redirected credential store location
@@ -152,7 +173,7 @@ namespace Microsoft.Git.CredentialManager.Interop.Linux
                 out storeRoot))
             {
                 // Use default store root at ~/.gcm/store
-                storeRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), Constants.GcmConfigDirectoryName, "store");
+                storeRoot = Path.Combine(_fileSystem.UserDataDirectoryPath, "store");
             }
         }
     }

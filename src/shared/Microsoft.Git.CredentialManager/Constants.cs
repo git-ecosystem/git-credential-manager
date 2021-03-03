@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
-using System.Diagnostics;
+using System;
 using System.Reflection;
 
 namespace Microsoft.Git.CredentialManager
@@ -8,13 +8,12 @@ namespace Microsoft.Git.CredentialManager
     public static class Constants
     {
         public const string PersonalAccessTokenUserName = "PersonalAccessToken";
-        public const string DefaultMsAuthHelper = "Microsoft.Authentication.Helper";
         public const string DefaultCredentialNamespace = "git";
 
         public const string ProviderIdAuto  = "auto";
         public const string AuthorityIdAuto = "auto";
 
-        public const string GcmConfigDirectoryName = ".gcm";
+        public const string GcmDataDirectoryName = ".gcm";
 
         public static class RegexPatterns
         {
@@ -44,6 +43,7 @@ namespace Microsoft.Git.CredentialManager
             public const string GcmAuthority          = "GCM_AUTHORITY";
             public const string GitTerminalPrompts    = "GIT_TERMINAL_PROMPT";
             public const string GcmAllowWia           = "GCM_ALLOW_WINDOWSAUTH";
+            public const string CurlNoProxy           = "NO_PROXY";
             public const string CurlAllProxy          = "ALL_PROXY";
             public const string CurlHttpProxy         = "HTTP_PROXY";
             public const string CurlHttpsProxy        = "HTTPS_PROXY";
@@ -52,9 +52,9 @@ namespace Microsoft.Git.CredentialManager
             public const string GcmInteractive        = "GCM_INTERACTIVE";
             public const string GcmParentWindow       = "GCM_MODAL_PARENTHWND";
             public const string MsAuthFlow            = "GCM_MSAUTH_FLOW";
-            public const string MsAuthHelper          = "GCM_MSAUTH_HELPER";
             public const string GcmCredNamespace      = "GCM_NAMESPACE";
             public const string GcmCredentialStore    = "GCM_CREDENTIAL_STORE";
+            public const string GcmCredCacheOptions   = "GCM_CREDENTIAL_CACHE_OPTIONS";
             public const string GcmPlaintextStorePath = "GCM_PLAINTEXT_STORE_PATH";
             public const string GitExecutablePath     = "GIT_EXEC_PATH";
         }
@@ -83,9 +83,9 @@ namespace Microsoft.Git.CredentialManager
                 public const string UseHttpPath = "useHttpPath";
                 public const string Interactive = "interactive";
                 public const string MsAuthFlow  = "msauthFlow";
-                public const string MsAuthHelper = "msauthHelper";
                 public const string CredNamespace = "namespace";
                 public const string CredentialStore = "credentialStore";
+                public const string CredCacheOptions = "cacheOptions";
                 public const string PlaintextStorePath = "plaintextStorePath";
             }
 
@@ -106,33 +106,33 @@ namespace Microsoft.Git.CredentialManager
             public const string GcmLinuxCredStores     = "https://aka.ms/gcmcore-linuxcredstores";
         }
 
-        private static string _gcmVersion;
+        private static Version _gcmVersion;
 
-        /// <summary>
-        /// The current version of Git Credential Manager.
-        /// </summary>
-        public static string GcmVersion
+        public static Version GcmVersion
         {
             get
             {
                 if (_gcmVersion is null)
                 {
-                    _gcmVersion = FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).ProductVersion;
+                    var assembly = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
+                    var attr = assembly.GetCustomAttribute<AssemblyFileVersionAttribute>();
+                    if (attr is null)
+                    {
+                        _gcmVersion = assembly.GetName().Version;
+                    }
+                    else if (Version.TryParse(attr.Version, out Version asmVersion))
+                    {
+                        _gcmVersion = asmVersion;
+                    }
+                    else
+                    {
+                        // Unknown version!
+                        _gcmVersion = new Version(0, 0);
+                    }
                 }
 
                 return _gcmVersion;
             }
-        }
-
-        /// <summary>
-        /// Get standard program header title for Git Credential Manager, including the current version and OS information.
-        /// </summary>
-        /// <returns>Standard program header.</returns>
-        public static string GetProgramHeader()
-        {
-            PlatformInformation info = PlatformUtils.GetPlatformInformation();
-
-            return $"Git Credential Manager version {GcmVersion} ({info.OperatingSystemType}, {info.ClrVersion})";
         }
 
         /// <summary>

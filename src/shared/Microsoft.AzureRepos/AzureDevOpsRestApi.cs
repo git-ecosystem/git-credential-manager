@@ -9,14 +9,13 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Git.CredentialManager;
-using Microsoft.IdentityModel.JsonWebTokens;
 
 namespace Microsoft.AzureRepos
 {
     public interface IAzureDevOpsRestApi : IDisposable
     {
         Task<string> GetAuthorityAsync(Uri organizationUri);
-        Task<string> CreatePersonalAccessTokenAsync(Uri organizationUri, JsonWebToken accessToken, IEnumerable<string> scopes);
+        Task<string> CreatePersonalAccessTokenAsync(Uri organizationUri, string accessToken, IEnumerable<string> scopes);
     }
 
     public class AzureDevOpsRestApi : IAzureDevOpsRestApi
@@ -34,14 +33,14 @@ namespace Microsoft.AzureRepos
         {
             EnsureArgument.AbsoluteUri(organizationUri, nameof(organizationUri));
 
-            const string authorityBase = "https://login.microsoftonline.com/";
-            const string commonAuthority = authorityBase + "common";
+            Uri authorityBase = GetAuthorityBaseUri();
+            var commonAuthority = new Uri(authorityBase, "common");
 
             // We should be using "/common" or "/consumer" as the authority for MSA but since
             // Azure DevOps uses MSA pass-through (an internal hack to support MSA and AAD
             // accounts in the same auth stack), which actually need to consult the "/organizations"
             // authority instead.
-            const string msaAuthority = authorityBase + "organizations";
+            var msaAuthority = new Uri(authorityBase, "organizations");
 
             _context.Trace.WriteLine($"HTTP: HEAD {organizationUri}");
             using (HttpResponseMessage response = await HttpClient.HeadAsync(organizationUri))
@@ -73,14 +72,14 @@ namespace Microsoft.AzureRepos
                         if (tenantId != null)
                         {
                             _context.Trace.WriteLine($"Found {AzureDevOpsConstants.VssResourceTenantHeader} header with AAD tenant ID '{tenantId}'.");
-                            return authorityBase + tenantId;
+                            return new Uri(authorityBase, tenantId).ToString();
                         }
 
                         // If we have exactly one empty GUID then this is a MSA backed organization
                         if (tenantIds.Length == 1 && Guid.TryParse(tenantIds[0], out guid) && guid == Guid.Empty)
                         {
                             _context.Trace.WriteLine($"Found {AzureDevOpsConstants.VssResourceTenantHeader} header with MSA tenant ID (empty GUID).");
-                            return msaAuthority;
+                            return msaAuthority.ToString();
                         }
                     }
                 }
@@ -88,10 +87,25 @@ namespace Microsoft.AzureRepos
 
             // Use the common authority if we can't determine a specific one
             _context.Trace.WriteLine($"Unable to determine AAD/MSA tenant - falling back to common authority");
-            return commonAuthority;
+            return commonAuthority.ToString();
         }
 
-        public async Task<string> CreatePersonalAccessTokenAsync(Uri organizationUri, JsonWebToken accessToken, IEnumerable<string> scopes)
+        private Uri GetAuthorityBaseUri()
+        {
+            // Check for developer override value
+            if (_context.Settings.TryGetSetting(
+                    AzureDevOpsConstants.EnvironmentVariables.DevAadAuthorityBaseUri,
+                    Constants.GitConfiguration.Credential.SectionName, AzureDevOpsConstants.GitConfiguration.Credential.DevAadAuthorityBaseUri,
+                    out string redirectUriStr) &&
+                Uri.TryCreate(redirectUriStr, UriKind.Absolute, out Uri authorityBase))
+            {
+                return authorityBase;
+            }
+
+            return new Uri(AzureDevOpsConstants.AadAuthorityBaseUrl);
+        }
+
+        public async Task<string> CreatePersonalAccessTokenAsync(Uri organizationUri, string accessToken, IEnumerable<string> scopes)
         {
             const string sessionTokenUrl = "_apis/token/sessiontokens?api-version=1.0&tokentype=compact";
 
@@ -141,7 +155,7 @@ namespace Microsoft.AzureRepos
 
         #region Private Methods
 
-        private async Task<Uri> GetIdentityServiceUriAsync(Uri organizationUri, JsonWebToken accessToken)
+        private async Task<Uri> GetIdentityServiceUriAsync(Uri organizationUri, string accessToken)
         {
             const string locationServicePath = "_apis/ServiceDefinitions/LocationService2/951917AC-A960-4999-8464-E3F0AA25B381";
             const string locationServiceQuery = "api-version=1.0";
@@ -280,7 +294,7 @@ namespace Microsoft.AzureRepos
         /// <param name="content">Optional request content.</param>
         /// <param name="bearerToken">Optional bearer token for authorization.</param>
         /// <returns>HTTP request message.</returns>
-        private static HttpRequestMessage CreateRequestMessage(HttpMethod method, Uri uri, HttpContent content = null, JsonWebToken bearerToken = null)
+        private static HttpRequestMessage CreateRequestMessage(HttpMethod method, Uri uri, HttpContent content = null, string bearerToken = null)
         {
             var request = new HttpRequestMessage(method, uri);
 
@@ -291,7 +305,7 @@ namespace Microsoft.AzureRepos
 
             if (bearerToken != null)
             {
-                request.Headers.Authorization = new AuthenticationHeaderValue(Constants.Http.WwwAuthenticateBearerScheme, bearerToken.EncodedToken);
+                request.Headers.Authorization = new AuthenticationHeaderValue(Constants.Http.WwwAuthenticateBearerScheme, bearerToken);
             }
 
             return request;

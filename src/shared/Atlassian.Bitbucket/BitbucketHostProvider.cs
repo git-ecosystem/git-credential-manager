@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Git.CredentialManager;
 using Microsoft.Git.CredentialManager.Authentication.OAuth;
@@ -53,7 +54,17 @@ namespace Atlassian.Bitbucket
             return (StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "http") ||
                     StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "https")) &&
                    hostName.EndsWith(BitbucketConstants.BitbucketBaseUrlHost, StringComparison.OrdinalIgnoreCase);
+        }
 
+        public bool IsSupported(HttpResponseMessage response)
+        {
+            if (response is null)
+            {
+                return false;
+            }
+
+            // TODO: identify Bitbucket on-prem instances from the HTTP response
+            return false;
         }
 
         public async Task<ICredential> GetCredentialAsync(InputArguments input)

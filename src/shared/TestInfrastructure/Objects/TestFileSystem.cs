@@ -9,10 +9,19 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
 {
     public class TestFileSystem : IFileSystem
     {
+        public string UserHomePath { get; set; }
+        public string UserDataDirectoryPath { get; set; }
         public IDictionary<string, byte[]> Files { get; set; } = new Dictionary<string, byte[]>();
         public ISet<string> Directories { get; set; } = new HashSet<string>();
         public string CurrentDirectory { get; set; } = Path.GetTempPath();
         public bool IsCaseSensitive { get; set; } = false;
+
+        public TestFileSystem()
+        {
+            var gcmTestRoot = Path.Combine(Path.GetTempPath(), $"gcmtest-{Guid.NewGuid():N}");
+            UserHomePath = Path.Combine(gcmTestRoot, "HOME");
+            UserDataDirectoryPath = Path.Combine(UserHomePath, ".gcm");
+        }
 
         #region IFileSystem
 

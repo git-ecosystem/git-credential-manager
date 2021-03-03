@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
+using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -10,6 +11,16 @@ namespace Microsoft.Git.CredentialManager
     /// </summary>
     public interface IFileSystem
     {
+        /// <summary>
+        /// Get the path to the user's home profile directory (Unix: $HOME, Windows: %USERPROFILE%).
+        /// </summary>
+        string UserHomePath { get; }
+
+        /// <summary>
+        /// Get the path the the user's Git Credential Manager data directory.
+        /// </summary>
+        string UserDataDirectoryPath { get; }
+
         /// <summary>
         /// Check if two paths are the same for the current platform and file system. Symbolic links are not followed.
         /// </summary>
@@ -82,6 +93,10 @@ namespace Microsoft.Git.CredentialManager
     /// </summary>
     public abstract class FileSystem : IFileSystem
     {
+        public string UserHomePath => Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+
+        public string UserDataDirectoryPath => Path.Combine(UserHomePath, Constants.GcmDataDirectoryName);
+
         public abstract bool IsSamePath(string a, string b);
 
         public bool FileExists(string path) => File.Exists(path);

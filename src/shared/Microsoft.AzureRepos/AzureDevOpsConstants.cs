@@ -6,8 +6,11 @@ namespace Microsoft.AzureRepos
 {
     internal static class AzureDevOpsConstants
     {
-        // Azure DevOps's resource ID
-        public const string AadResourceId = "499b84ac-1321-427f-aa17-267ca6975798";
+        // AAD environment authority base URL
+        public const string AadAuthorityBaseUrl = "https://login.microsoftonline.com";
+
+        // Azure DevOps's app ID + default scopes
+        public static readonly string[] AzureDevOpsDefaultScopes = {"499b84ac-1321-427f-aa17-267ca6975798/.default"};
 
         // Visual Studio's client ID
         // We share this to be able to consume existing access tokens from the VS caches
@@ -25,6 +28,23 @@ namespace Microsoft.AzureRepos
         {
             public const string ReposWrite = "vso.code_write";
             public const string ArtifactsRead = "vso.packaging";
+        }
+
+        public static class EnvironmentVariables
+        {
+            public const string DevAadClientId = "GCM_DEV_AZREPOS_CLIENTID";
+            public const string DevAadRedirectUri = "GCM_DEV_AZREPOS_REDIRECTURI";
+            public const string DevAadAuthorityBaseUri = "GCM_DEV_AZREPOS_AUTHORITYBASEURI";
+        }
+
+        public static class GitConfiguration
+        {
+            public static class Credential
+            {
+                public const string DevAadClientId = "azreposDevClientId";
+                public const string DevAadRedirectUri = "azreposDevRedirectUri";
+                public const string DevAadAuthorityBaseUri = "azreposDevAuthorityBaseUri";
+            }
         }
     }
 }

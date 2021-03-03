@@ -288,7 +288,7 @@ export GCM_HTTP_PROXY=http://john.doe:password@proxy.contoso.com
 Override the available authentication modes presented during GitHub authentication.
 If this option is not set, then the available authentication modes will be automatically detected.
 
-**Note:** This setting supports multiple values separated by spaces.
+**Note:** This setting supports multiple values separated by commas.
 
 Value|Authentication Mode
 -|-
@@ -299,13 +299,13 @@ _(unset)_|Automatically detect modes
 ##### Windows
 
 ```batch
-SET GCM_GITHUB_AUTHMODES="oauth basic"
+SET GCM_GITHUB_AUTHMODES="oauth,basic"
 ```
 
 ##### macOS/Linux
 
 ```bash
-export GCM_GITHUB_AUTHMODES="oauth basic"
+export GCM_GITHUB_AUTHMODES="oauth,basic"
 ```
 
 **Also see: [credential.gitHubAuthModes](configuration.md#credentialgitHubAuthModes)**
@@ -348,6 +348,7 @@ Value|Credential Store
 _(unset)_|(error)
 `secretservice`|[freedesktop.org Secret Service API](https://specifications.freedesktop.org/secret-service/) via [libsecret](https://wiki.gnome.org/Projects/Libsecret) (requires a graphical interface to unlock secret collections).
 `gpg`|Use GPG to store encrypted files that are compatible with the [`pass` utility](https://www.passwordstore.org/) (requires GPG and `pass` to initialize the store).
+`cache`|Git's built-in [credential cache](https://git-scm.com/docs/git-credential-cache).
 `plaintext`|Store credentials in plaintext files (**UNSECURE**). Customize the plaintext store location with [`GCM_PLAINTEXT_STORE_PATH`](#GCM_PLAINTEXT_STORE_PATH).
 
 ##### Linux
@@ -357,6 +358,27 @@ export GCM_CREDENTIAL_STORE="gpg"
 ```
 
 **Also see: [credential.credentialStore](configuration.md#credentialcredentialstore)**
+
+---
+
+### GCM_CREDENTIAL_CACHE_OPTIONS
+
+Pass [options](https://git-scm.com/docs/git-credential-cache#_options)
+to the Git credential cache when [`GCM_CREDENTIAL_STORE`](#GCM_CREDENTIAL_STORE)
+is set to `cache`. This allows you to select a different amount
+of time to cache credentials (the default is 900 seconds) by passing
+`"--timeout <seconds>"`. Use of other options like `--socket` is untested
+and unsupported, but there's no reason it shouldn't work.
+
+Defaults to empty.
+
+#### Linux
+
+```shell
+export GCM_CREDENTIAL_CACHE_OPTIONS="--timeout 300"
+```
+
+**Also see: [credential.cacheOptions](configuration.md#credentialcacheoptions)**
 
 ---
 
@@ -382,9 +404,7 @@ Specify which authentication flow should be used when performing Microsoft authe
 
 Defaults to the value `auto`.
 
-**Note:** This setting will be ignored if a native authentication helper is configured and available. See [`GCM_MSAUTH_HELPER`](#gcm_msauth_helper) for more information.
-
-Value|Credential Store
+Value|Authentication Flow
 -|-
 `auto` _(default)_|Select the best option depending on the current environment and platform.
 `embedded`|Show a window with embedded web view control.
@@ -404,27 +424,3 @@ export GCM_MSAUTH_FLOW="devicecode"
 ```
 
 **Also see: [credential.msauthFlow](configuration.md#credentialmsauthflow)**
-
----
-
-### GCM_MSAUTH_HELPER
-
-Full path to an external 'helper' tool to which Microsoft authentication should be delegated.
-
-On macOS this defaults to the included native `Microsoft.Authentication.Helper` tool. On all other platforms this is not set.
-
-**Note:** If a helper is set and available then all Microsoft authentication will be delegated to this helper and the [`GCM_MSAUTH_FLOW`](#gcm_msauth_flow) setting will be ignored. Setting the value to the empty string (`""`) will unset any default helper.
-
-##### Windows
-
-```batch
-SET GCM_MSAUTH_HELPER="C:\path\to\helper.exe"
-```
-
-##### macOS/Linux
-
-```bash
-export GCM_MSAUTH_HELPER="/usr/local/bin/msauth-helper"
-```
-
-**Also see: [credential.msauthHelper](configuration.md#credentialmsauthhelper)**

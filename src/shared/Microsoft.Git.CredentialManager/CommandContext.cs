@@ -131,7 +131,7 @@ namespace Microsoft.Git.CredentialManager
                                             Environment.LocateExecutable("gpg"),
                                             SessionManager
                                         );
-                CredentialStore   = new LinuxCredentialStore(FileSystem, Settings, SessionManager, gpg, Environment);
+                CredentialStore   = new LinuxCredentialStore(FileSystem, Settings, SessionManager, gpg, Environment, Git);
             }
             else
             {

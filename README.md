@@ -6,7 +6,7 @@ master|[![Build Status](https://mseng.visualstudio.com/AzureDevOps/_apis/build/s
 
 ---
 
-[Git Credential Manager Core](https://github.com/microsoft/Git-Credential-Manager-Core) (GCM Core) is a secure Git credential helper built on [.NET Core](https://microsoft.com/dotnet) that runs on Windows and macOS. Linux support is in an early preview.
+[Git Credential Manager Core](https://github.com/microsoft/Git-Credential-Manager-Core) (GCM Core) is a secure Git credential helper built on [.NET](https://dotnet.microsoft.com) that runs on Windows and macOS. Linux support is in an early preview.
 
 Compared to Git's [built-in credential helpers]((https://git-scm.com/book/en/v2/Git-Tools-Credential-Storage)) (Windows: wincred, macOS: osxkeychain, Linux: gnome-keyring) which provides single-factor authentication support working on any HTTP-enabled Git repository, GCM Core provides multi-factor authentication support for [Azure DevOps](https://dev.azure.com/), Azure DevOps Server (formerly Team Foundation Server), GitHub, and Bitbucket.
 
@@ -69,7 +69,7 @@ If you have an existing installation of the 'Java GCM' on macOS and you have ins
 To uninstall, run the following:
 
 ```shell
-brew cask uninstall git-credential-manager-core
+brew uninstall --cask git-credential-manager-core
 ```
 
 ---
@@ -148,6 +148,8 @@ To uninstall, open Control Panel and navigate to the Programs and Features scree
 
 Git Credential Manager Core is called implicitly by Git, when so configured. It is not intended to be called directly by the user.
 For example, when pushing (`git push`) to [Azure DevOps](https://dev.azure.com), a window is automatically opened and an OAuth2 flow is started to get your personal access token.
+
+Read full command line usage [here](docs/usage.md).
 
 ### Configuring a proxy
 

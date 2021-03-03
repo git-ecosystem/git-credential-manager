@@ -8,14 +8,19 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.Identity.Client;
 using Microsoft.Identity.Client.Extensions.Msal;
-using Microsoft.IdentityModel.JsonWebTokens;
 
 namespace Microsoft.Git.CredentialManager.Authentication
 {
     public interface IMicrosoftAuthentication
     {
-        Task<JsonWebToken> GetAccessTokenAsync(string authority, string clientId, Uri redirectUri, string resource,
-            Uri remoteUri, string userName);
+        Task<IMicrosoftAuthenticationResult> GetTokenAsync(string authority, string clientId, Uri redirectUri,
+            string[] scopes, string userName);
+    }
+
+    public interface IMicrosoftAuthenticationResult
+    {
+        string AccessToken { get; }
+        string AccountUpn { get; }
     }
 
     public enum MicrosoftAuthenticationFlowType
@@ -40,57 +45,8 @@ namespace Microsoft.Git.CredentialManager.Authentication
 
         #region IMicrosoftAuthentication
 
-        public async Task<JsonWebToken> GetAccessTokenAsync(
-            string authority, string clientId, Uri redirectUri, string resource, Uri remoteUri, string userName)
-        {
-            // If we find an external authentication helper we should delegate everything to it.
-            // Assume the external helper can provide the best authentication experience.
-            if (TryFindHelperExecutablePath(out string helperPath))
-            {
-                return await GetAccessTokenViaHelperAsync(helperPath,
-                    authority, clientId, redirectUri, resource, remoteUri, userName);
-            }
-
-            // Try to acquire an access token in the current process
-            string[] scopes = { $"{resource}/.default" };
-            return await GetAccessTokenInProcAsync(authority, clientId, redirectUri, scopes, userName);
-        }
-
-        #endregion
-
-        #region Authentication strategies
-
-        /// <summary>
-        /// Start an authentication helper process to obtain an access token.
-        /// </summary>
-        private async Task<JsonWebToken> GetAccessTokenViaHelperAsync(string helperPath,
-            string authority, string clientId, Uri redirectUri, string resource, Uri remoteUri, string userName)
-        {
-            var inputDict = new Dictionary<string, string>
-            {
-                ["authority"] = authority,
-                ["clientId"] = clientId,
-                ["redirectUri"] = redirectUri.AbsoluteUri,
-                ["resource"] = resource,
-                ["remoteUrl"] = remoteUri.ToString(),
-                ["username"] = userName,
-                ["interactive"] = Context.Settings.IsInteractionAllowed.ToString()
-            };
-
-            IDictionary<string, string> resultDict = await InvokeHelperAsync(helperPath, null, inputDict);
-
-            if (!resultDict.TryGetValue("accessToken", out string accessToken))
-            {
-                throw new Exception("Missing access token in response");
-            }
-
-            return new JsonWebToken(accessToken);
-        }
-
-        /// <summary>
-        /// Obtain an access token using MSAL running inside the current process.
-        /// </summary>
-        private async Task<JsonWebToken> GetAccessTokenInProcAsync(string authority, string clientId, Uri redirectUri, string[] scopes, string userName)
+        public async Task<IMicrosoftAuthenticationResult> GetTokenAsync(
+            string authority, string clientId, Uri redirectUri, string[] scopes, string userName)
         {
             IPublicClientApplication app = await CreatePublicClientApplicationAsync(authority, clientId, redirectUri);
 
@@ -171,7 +127,7 @@ namespace Microsoft.Git.CredentialManager.Authentication
                 }
             }
 
-            return new JsonWebToken(result.AccessToken);
+            return new MsalResult(result);
         }
 
         private MicrosoftAuthenticationFlowType GetFlowType()
@@ -243,8 +199,8 @@ namespace Microsoft.Git.CredentialManager.Authentication
 
             IPublicClientApplication app = appBuilder.Build();
 
-            // Try to register the application with the VS token cache
-            await RegisterVisualStudioTokenCacheAsync(app);
+            // Register the application token cache
+            await RegisterTokenCacheAsync(app);
 
             return app;
         }
@@ -253,42 +209,96 @@ namespace Microsoft.Git.CredentialManager.Authentication
 
         #region Helpers
 
-        private bool TryFindHelperExecutablePath(out string path)
+        private async Task RegisterTokenCacheAsync(IPublicClientApplication app)
         {
-            return TryFindHelperExecutablePath(
-                Constants.EnvironmentVariables.MsAuthHelper,
-                Constants.GitConfiguration.Credential.MsAuthHelper,
-                Constants.DefaultMsAuthHelper,
-                out path);
-        }
+            Context.Trace.WriteLine(
+                "Configuring Microsoft Authentication token cache to instance shared with Microsoft developer tools...");
 
-        private async Task RegisterVisualStudioTokenCacheAsync(IPublicClientApplication app)
-        {
-            Context.Trace.WriteLine("Configuring Visual Studio token cache...");
-
-            // We currently only support Visual Studio on Windows
-            if (PlatformUtils.IsWindows())
+            if (!PlatformUtils.IsWindows() && !PlatformUtils.IsPosix())
             {
-                // The Visual Studio MSAL cache is located at "%LocalAppData%\.IdentityService\msal.cache" on Windows.
-                // We use the MSAL extension library to provide us consistent cache file access semantics (synchronisation, etc)
-                // as Visual Studio itself follows, as well as other Microsoft developer tools such as the Azure PowerShell CLI.
-                const string cacheFileName = "msal.cache";
-                string appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-                string cacheDirectory = Path.Combine(appData, ".IdentityService");
+                string osType = PlatformUtils.GetPlatformInformation().OperatingSystemType;
+                Context.Trace.WriteLine($"Token cache integration is not supported on {osType}.");
+                return;
+            }
 
-                var storageProps = new StorageCreationPropertiesBuilder(cacheFileName, cacheDirectory, app.AppConfig.ClientId).Build();
+            string clientId = app.AppConfig.ClientId;
 
-                var helper = await MsalCacheHelper.CreateAsync(storageProps);
-                helper.RegisterCache(app.UserTokenCache);
+            // We use the MSAL extension library to provide us consistent cache file access semantics (synchronisation, etc)
+            // as other Microsoft developer tools such as the Azure PowerShell CLI.
+            MsalCacheHelper helper = null;
+            try
+            {
+                var storageProps = CreateTokenCacheProps(clientId, useLinuxFallback: false);
+                helper = await MsalCacheHelper.CreateAsync(storageProps);
 
-                Context.Trace.WriteLine("Visual Studio token cache configured.");
+                // Test that cache access is working correctly
+                helper.VerifyPersistence();
+            }
+            catch (MsalCachePersistenceException ex)
+            {
+                Context.Streams.Error.WriteLine("warning: cannot persist Microsoft Authentication data securely!");
+                Context.Trace.WriteLine("Cannot persist Microsoft Authentication data securely!");
+                Context.Trace.WriteException(ex);
+
+                // On Linux the SecretService/keyring might not be available so we must fall-back to a plaintext file.
+                if (PlatformUtils.IsLinux())
+                {
+                    Context.Trace.WriteLine("Using fall-back plaintext token cache on Linux.");
+                    var storageProps = CreateTokenCacheProps(clientId, useLinuxFallback: true);
+                    helper = await MsalCacheHelper.CreateAsync(storageProps);
+                }
+            }
+
+            if (helper is null)
+            {
+                Context.Streams.Error.WriteLine("error: failed to set up Microsoft Authentication token cache!");
+                Context.Trace.WriteLine("Failed to integrate with shared token cache!");
             }
             else
             {
-                string osType = PlatformUtils.GetPlatformInformation().OperatingSystemType;
-                Context.Trace.WriteLine($"Visual Studio token cache integration is not supported on {osType}.");
+                helper.RegisterCache(app.UserTokenCache);
+                Context.Trace.WriteLine("Microsoft developer tools token cache configured.");
             }
         }
+
+        private StorageCreationProperties CreateTokenCacheProps(string clientId, bool useLinuxFallback)
+        {
+            const string cacheFileName = "msal.cache";
+            string cacheDirectory;
+            if (PlatformUtils.IsWindows())
+            {
+                // The shared MSAL cache is located at "%LocalAppData%\.IdentityService\msal.cache" on Windows.
+                cacheDirectory = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    ".IdentityService"
+                );
+            }
+            else
+            {
+                // The shared MSAL cache metadata is located at "~/.local/.IdentityService/msal.cache" on UNIX.
+                cacheDirectory = Path.Combine(Context.FileSystem.UserHomePath, ".local", ".IdentityService");
+            }
+
+            // The keychain is used on macOS with the following service & account names
+            var builder = new StorageCreationPropertiesBuilder(cacheFileName, cacheDirectory, clientId)
+                .WithMacKeyChain("Microsoft.Developer.IdentityService", "MSALCache");
+
+            if (useLinuxFallback)
+            {
+                builder.WithLinuxUnprotectedFile();
+            }
+            else
+            {
+                // The SecretService/keyring is used on Linux with the following collection name and attributes
+                builder.WithLinuxKeyring(cacheFileName,
+                    "default", "MSALCache",
+                    new KeyValuePair<string, string>("MsalClientID", "Microsoft.Developer.IdentityService"),
+                    new KeyValuePair<string, string>("Microsoft.Developer.IdentityService", "1.0.0.0"));
+            }
+
+            return builder.Build();
+        }
+
 
         private static SystemWebViewOptions GetSystemWebViewOptions()
         {
@@ -379,5 +389,18 @@ namespace Microsoft.Git.CredentialManager.Authentication
         }
 
         #endregion
+
+        private class MsalResult : IMicrosoftAuthenticationResult
+        {
+            private readonly AuthenticationResult _msalResult;
+
+            public MsalResult(AuthenticationResult msalResult)
+            {
+                _msalResult = msalResult;
+            }
+
+            public string AccessToken => _msalResult.AccessToken;
+            public string AccountUpn => _msalResult.Account.Username;
+        }
     }
 }

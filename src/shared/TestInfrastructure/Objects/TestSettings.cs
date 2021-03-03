@@ -31,9 +31,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
 
         public bool IsCertificateVerificationEnabled { get; set; } = true;
 
-        public Uri ProxyConfiguration { get; set; }
-
-        public bool IsDeprecatedProxyConfiguration { get; set; }
+        public ProxyConfiguration ProxyConfiguration { get; set; }
 
         public string ParentWindowId { get; set; }
 
@@ -111,9 +109,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
 
         bool ISettings.IsCertificateVerificationEnabled => IsCertificateVerificationEnabled;
 
-        Uri ISettings.GetProxyConfiguration(out bool isDeprecatedConfiguration)
+        ProxyConfiguration ISettings.GetProxyConfiguration()
         {
-            isDeprecatedConfiguration = IsDeprecatedProxyConfiguration;
             return ProxyConfiguration;
         }
 

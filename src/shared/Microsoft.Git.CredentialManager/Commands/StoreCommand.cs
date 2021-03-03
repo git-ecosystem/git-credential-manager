@@ -7,14 +7,12 @@ namespace Microsoft.Git.CredentialManager.Commands
     /// <summary>
     /// Store a previously created <see cref="GitCredential"/> in the OS secure credential store.
     /// </summary>
-    public class StoreCommand : HostProviderCommandBase
+    public class StoreCommand : GitCommandBase
     {
-        public StoreCommand(IHostProviderRegistry hostProviderRegistry)
-            : base(hostProviderRegistry) { }
+        public StoreCommand(ICommandContext context, IHostProviderRegistry hostProviderRegistry)
+            : base(context, "store", "[Git] Store a credential", hostProviderRegistry) { }
 
-        protected override string Name => "store";
-
-        protected override Task ExecuteInternalAsync(ICommandContext context, InputArguments input, IHostProvider provider)
+        protected override Task ExecuteInternalAsync(InputArguments input, IHostProvider provider)
         {
             return provider.StoreCredentialAsync(input);
         }

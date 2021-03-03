@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using Moq;
@@ -39,8 +40,8 @@ namespace Microsoft.Git.CredentialManager.Tests
         {
             const string repoPath = "/tmp/repos/foo";
             const string repoRemote  = "https://remote.example.com/foo.git";
-            var repoRemoteUri = new Uri(repoRemote);
 
+            var repoRemoteUri = new Uri(repoRemote);
             var settings = new TestSettings
             {
                 RemoteUri = repoRemoteUri,
@@ -57,18 +58,18 @@ namespace Microsoft.Git.CredentialManager.Tests
         [Fact]
         public void HttpClientFactory_TryCreateProxy_ProxyNoCredentials_ReturnsTrueOutProxyWithUrlDefaultCredentials()
         {
+            const string proxyUrl = "https://proxy.example.com/git";
             const string repoPath = "/tmp/repos/foo";
             const string repoRemote = "https://remote.example.com/foo.git";
-            var repoRemoteUri = new Uri(repoRemote);
 
-            string proxyConfigString = "https://proxy.example.com/git";
-            string expectedProxyUrl = proxyConfigString;
+            var repoRemoteUri = new Uri(repoRemote);
+            var proxyConfig = new ProxyConfiguration(new Uri(proxyUrl));
 
             var settings = new TestSettings
             {
                 RemoteUri = repoRemoteUri,
                 RepositoryPath = repoPath,
-                ProxyConfiguration = new Uri(proxyConfigString)
+                ProxyConfiguration = proxyConfig
             };
             var httpFactory = new HttpClientFactory(Mock.Of<ITrace>(), settings, Mock.Of<IStandardStreams>());
 
@@ -76,31 +77,32 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             Assert.True(result);
             Assert.NotNull(proxy);
-            var configuredProxyUrl = proxy.GetProxy(repoRemoteUri);
-            Assert.Equal(expectedProxyUrl, configuredProxyUrl.ToString());
+            Uri configuredProxyUrl = proxy.GetProxy(repoRemoteUri);
+            Assert.Equal(proxyUrl, configuredProxyUrl?.ToString());
 
             AssertDefaultCredentials(proxy.Credentials);
         }
 
         [Fact]
-        public void HttpClientFactory_TryCreateProxy_ProxyWithCredentials_ReturnsTrueOutProxyWithUrlConfiguredCredentials()
+        public void HttpClientFactory_TryCreateProxy_ProxyWithBypass_ReturnsTrueOutProxyWithBypassedHosts()
         {
-            const string proxyScheme = "https";
-            const string proxyUser   = "john.doe";
-            const string proxyPass   = "letmein";
-            const string proxyHost   = "proxy.example.com/git";
-            const string repoPath    = "/tmp/repos/foo";
-            const string repoRemote  = "https://remote.example.com/foo.git";
+            const string proxyUrl = "https://proxy.example.com/git";
+            const string repoPath = "/tmp/repos/foo";
+            const string repoRemote = "https://remote.example.com/foo.git";
 
-            string proxyConfigString = $"{proxyScheme}://{proxyUser}:{proxyPass}@{proxyHost}";
-            string expectedProxyUrl  = $"{proxyScheme}://{proxyHost}";
+            var bypassList = new List<string> {"https://contoso.com", ".*fabrikam\\.com"};
             var repoRemoteUri = new Uri(repoRemote);
+            var proxyConfig = new ProxyConfiguration(
+                new Uri(proxyUrl),
+                userName: null,
+                password: null,
+                bypassHosts: bypassList);
 
             var settings = new TestSettings
             {
                 RemoteUri = repoRemoteUri,
                 RepositoryPath = repoPath,
-                ProxyConfiguration = new Uri(proxyConfigString)
+                ProxyConfiguration = proxyConfig
             };
             var httpFactory = new HttpClientFactory(Mock.Of<ITrace>(), settings, Mock.Of<IStandardStreams>());
 
@@ -108,8 +110,44 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             Assert.True(result);
             Assert.NotNull(proxy);
-            var configuredProxyUrl = proxy.GetProxy(repoRemoteUri);
-            Assert.Equal(expectedProxyUrl, configuredProxyUrl.ToString());
+            Uri configuredProxyUrl = proxy.GetProxy(repoRemoteUri);
+            Assert.Equal(proxyUrl, configuredProxyUrl?.ToString());
+
+            Assert.True(proxy.IsBypassed(new Uri("https://contoso.com")));
+            Assert.True(proxy.IsBypassed(new Uri("http://fabrikam.com")));
+            Assert.True(proxy.IsBypassed(new Uri("https://subdomain.fabrikam.com")));
+            Assert.False(proxy.IsBypassed(repoRemoteUri));
+        }
+
+        [Fact]
+        public void HttpClientFactory_TryCreateProxy_ProxyWithCredentials_ReturnsTrueOutProxyWithUrlConfiguredCredentials()
+        {
+            const string proxyUser   = "john.doe";
+            const string proxyPass   = "letmein";
+            const string proxyUrl    = "https://proxy.example.com/git";
+            const string repoPath    = "/tmp/repos/foo";
+            const string repoRemote  = "https://remote.example.com/foo.git";
+
+            var repoRemoteUri = new Uri(repoRemote);
+            var proxyConfig = new ProxyConfiguration(
+                new Uri(proxyUrl),
+                proxyUser,
+                proxyPass);
+
+            var settings = new TestSettings
+            {
+                RemoteUri = repoRemoteUri,
+                RepositoryPath = repoPath,
+                ProxyConfiguration = proxyConfig
+            };
+            var httpFactory = new HttpClientFactory(Mock.Of<ITrace>(), settings, Mock.Of<IStandardStreams>());
+
+            bool result = httpFactory.TryCreateProxy(out IWebProxy proxy);
+
+            Assert.True(result);
+            Assert.NotNull(proxy);
+            Uri configuredProxyUrl = proxy.GetProxy(repoRemoteUri);
+            Assert.Equal(proxyUrl, configuredProxyUrl?.ToString());
 
             Assert.NotNull(proxy.Credentials);
             Assert.IsType<NetworkCredential>(proxy.Credentials);
@@ -121,21 +159,22 @@ namespace Microsoft.Git.CredentialManager.Tests
         [Fact]
         public void HttpClientFactory_TryCreateProxy_ProxyWithNonEmptyUserAndEmptyPass_ReturnsTrueOutProxyWithUrlConfiguredCredentials()
         {
-            const string proxyScheme = "https";
+            const string proxyUrl    = "https://proxy.example.com/git";
             const string proxyUser   = "john.doe";
-            const string proxyHost   = "proxy.example.com/git";
             const string repoPath    = "/tmp/repos/foo";
             const string repoRemote  = "https://remote.example.com/foo.git";
 
-            string proxyConfigString = $"{proxyScheme}://{proxyUser}:@{proxyHost}";
-            string expectedProxyUrl  = $"{proxyScheme}://{proxyHost}";
             var repoRemoteUri = new Uri(repoRemote);
+            var proxyConfig = new ProxyConfiguration(
+                new Uri(proxyUrl),
+                proxyUser,
+                password: null);
 
             var settings = new TestSettings
             {
                 RemoteUri = repoRemoteUri,
                 RepositoryPath = repoPath,
-                ProxyConfiguration = new Uri(proxyConfigString)
+                ProxyConfiguration = proxyConfig
             };
             var httpFactory = new HttpClientFactory(Mock.Of<ITrace>(), settings, Mock.Of<IStandardStreams>());
 
@@ -143,8 +182,8 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             Assert.True(result);
             Assert.NotNull(proxy);
-            var configuredProxyUrl = proxy.GetProxy(repoRemoteUri);
-            Assert.Equal(expectedProxyUrl, configuredProxyUrl.ToString());
+            Uri configuredProxyUrl = proxy.GetProxy(repoRemoteUri);
+            Assert.Equal(proxyUrl, configuredProxyUrl?.ToString());
 
             Assert.NotNull(proxy.Credentials);
             Assert.IsType<NetworkCredential>(proxy.Credentials);
@@ -156,21 +195,22 @@ namespace Microsoft.Git.CredentialManager.Tests
         [Fact]
         public void HttpClientFactory_TryCreateProxy_ProxyWithEmptyUserAndNonEmptyPass_ReturnsTrueOutProxyWithUrlConfiguredCredentials()
         {
-            const string proxyScheme = "https";
+            const string proxyUrl    = "https://proxy.example.com/git";
             const string proxyPass   = "letmein";
-            const string proxyHost   = "proxy.example.com/git";
             const string repoPath    = "/tmp/repos/foo";
             const string repoRemote  = "https://remote.example.com/foo.git";
 
-            string proxyConfigString = $"{proxyScheme}://:{proxyPass}@{proxyHost}";
-            string expectedProxyUrl  = $"{proxyScheme}://{proxyHost}";
             var repoRemoteUri = new Uri(repoRemote);
+            var proxyConfig = new ProxyConfiguration(
+                new Uri(proxyUrl),
+                userName: null,
+                password: proxyPass);
 
             var settings = new TestSettings
             {
                 RemoteUri = repoRemoteUri,
                 RepositoryPath = repoPath,
-                ProxyConfiguration = new Uri(proxyConfigString)
+                ProxyConfiguration = proxyConfig
             };
             var httpFactory = new HttpClientFactory(Mock.Of<ITrace>(), settings, Mock.Of<IStandardStreams>());
 
@@ -178,8 +218,8 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             Assert.True(result);
             Assert.NotNull(proxy);
-            var configuredProxyUrl = proxy.GetProxy(repoRemoteUri);
-            Assert.Equal(expectedProxyUrl, configuredProxyUrl.ToString());
+            Uri configuredProxyUrl = proxy.GetProxy(repoRemoteUri);
+            Assert.Equal(proxyUrl, configuredProxyUrl?.ToString());
 
             Assert.NotNull(proxy.Credentials);
             Assert.IsType<NetworkCredential>(proxy.Credentials);
@@ -191,18 +231,21 @@ namespace Microsoft.Git.CredentialManager.Tests
         [Fact]
         public void HttpClientFactory_TryCreateProxy_ProxyEmptyUserAndEmptyPass_ReturnsTrueOutProxyWithUrlDefaultCredentials()
         {
+            const string proxyUrl    = "https://proxy.example.com/git";
             const string repoPath = "/tmp/repos/foo";
             const string repoRemote = "https://remote.example.com/foo.git";
             var repoRemoteUri = new Uri(repoRemote);
 
-            string proxyConfigString = "https://:@proxy.example.com/git";
-            string expectedProxyUrl = "https://proxy.example.com/git";
+            var proxyConfig = new ProxyConfiguration(
+                new Uri(proxyUrl),
+                userName: string.Empty,
+                password: string.Empty);
 
             var settings = new TestSettings
             {
                 RemoteUri = repoRemoteUri,
                 RepositoryPath = repoPath,
-                ProxyConfiguration = new Uri(proxyConfigString)
+                ProxyConfiguration = proxyConfig
             };
             var httpFactory = new HttpClientFactory(Mock.Of<ITrace>(), settings, Mock.Of<IStandardStreams>());
 
@@ -210,8 +253,8 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             Assert.True(result);
             Assert.NotNull(proxy);
-            var configuredProxyUrl = proxy.GetProxy(repoRemoteUri);
-            Assert.Equal(expectedProxyUrl, configuredProxyUrl.ToString());
+            Uri configuredProxyUrl = proxy.GetProxy(repoRemoteUri);
+            Assert.Equal(proxyUrl, configuredProxyUrl?.ToString());
 
             AssertDefaultCredentials(proxy.Credentials);
         }

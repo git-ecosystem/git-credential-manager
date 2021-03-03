@@ -3,7 +3,7 @@
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
 
@@ -12,7 +12,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../Microsoft.Authentication.Helper.Mac/Microsoft.Authentication.Helper.Mac.csproj" ReferenceOutputAssembly="false" />
     <ProjectReference Include="../../shared/Git-Credential-Manager/Git-Credential-Manager.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
 

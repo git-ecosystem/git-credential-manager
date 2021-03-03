@@ -3,13 +3,15 @@
 Property|Value
 -|-
 Author(s)|Matthew John Cheetham ([@mjcheetham](https://github.com/mjcheetham))
-Revision|1.1
-Last updated|2020-09-04
+Revision|1.2
+Last updated|2021-01-08
 
 ## Revision Summary
 
 - 1.0. Initial revision.
 - 1.1. Replaced `GetCredentialKey` with `GetServiceName`.
+- 1.2. Added new `IsSupported(HttpResponseMessage)` overload, the optional
+       `ICommandProvider` interface, and registration priorities.
 
 ## Abstract
 
@@ -39,6 +41,8 @@ authentication to secured Git repositories by implementing and registering a
 - [3. Helpers](#3-helpers)
   - [3.1. Discovery](#31-discovery)
 - [4. Error Handling](#4-error-handling)
+- [5. Custom Commands](#5-custom-commands)
+- [References](#references)
 
 ## 1. Introduction
 
@@ -113,31 +117,46 @@ register providers with by calling the `RegisterProvider` method.
 
 #### 2.1.2. Ordering
 
-The default host provider registry in GCM Core will call each host provider in
-the order they were registered in, unless the user has overridden the provider
-selection process.
+The default host provider registry in GCM Core has multiple priority levels that
+host providers can be registered at: High, Normal, and Low.
+
+For each priority level (starting with High, then Normal, then Low), the
+registry will call each host provider in the order they were registered in,
+unless the user has overridden the provider selection process.
 
 There are no rules or restrictions on the ordering of host providers, except
-that the `GenericHostProvider` MUST be registered last. The generic provider is
-a catch-all provider implementation that will handle any request in a standard
-way.
+that the `GenericHostProvider` MUST be registered last and at the Low priority.
+The generic provider is a catch-all provider implementation that will handle any
+request in a standard way.
 
 ### 2.2. Handling Requests
 
-The `IsSupported` method will be called on all registered host providers in-turn
-on the invocation of a `get`, `store`, or `erase` request. The first host
-provider to return `true` will be called upon to handle the specific request.
-If the user has overridden the host provider selection process, a specific host
-provider may be selected instead, and the `IsSupported` method will NOT be
-called.
+The `IsSupported(InputArguments)` method will be called on all registered host
+providers in-turn on the invocation of a `get`, `store`, or `erase` request. The
+first host provider to return `true` will be called upon to handle the specific
+request. If the user has overridden the host provider selection process, a
+specific host provider may be selected instead, and the
+`IsSupported(InputArguments)` method will NOT be called.
 
 This method MUST return `true` if and only if the provider understands the
 request and can serve or handle the request. If the provider does not know how
 to handle the request it MUST return `false` instead.
 
+If no host provider returns `true` to a call to the `IsSupported(InputArguments)`
+method for a each host provider priority level, then a HTTP HEAD request will be
+made to the remote URL and each host provider will be be called via the
+`IsSupported(HttpResponseMessage)` method. A host provider SHOULD use this call
+to check for recognised on-premises instances (for example, by inspecting
+response headers) and return `true` if it wishes to be called upon to handle the
+credential request, otherwise it MUST return `false`.
+
+Host providers SHOULD NOT make further network calls if possible during any of
+the `IsSupported` method overloads to avoid degrading the performance of the
+overall application.
+
 #### 2.2.1. Rejecting Requests
 
-The `IsSupported` method MUST return `true` if the host provider would like to
+The `IsSupported` methods MUST return `true` if the host provider would like to
 cancel the authentication operation based on the current context or input.
 For example, if provider requires a secure protocol but the requested protocol
 for a supported hostname is `http` and not `https`.
@@ -344,3 +363,19 @@ the recovery steps take in the trace log.
 In the case of an authentication error, providers SHOULD attempt to prompt the
 user again with a message indicating the incorrect authentication details have
 been entered.
+
+## 5. Custom Commands
+
+If a host provider wishes to surface custom commands the SHOULD implement the
+`ICommandProvider` interface.
+
+Each provider is given the opportunity to create a single `ProviderCommand`
+instance to which further sub-commands can be parented to. Commanding is
+provided by the `System.CommandLine` API library [[1](#references)].
+
+There are no limitations on what format sub-commands, arguments, or options must
+take, but implementors SHOULD attempt to follow existing practices and styles.
+
+## References
+
+1. `System.CommandLine` API (<https://github.com/dotnet/command-line-api>)

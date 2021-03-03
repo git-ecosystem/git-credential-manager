@@ -3,10 +3,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Git.CredentialManager;
 using Microsoft.Git.CredentialManager.Authentication;
-using Microsoft.IdentityModel.JsonWebTokens;
+using Microsoft.Git.CredentialManager.Commands;
 using KnownGitCfg = Microsoft.Git.CredentialManager.Constants.GitConfiguration;
 
 namespace Microsoft.AzureRepos
@@ -58,6 +59,12 @@ namespace Microsoft.AzureRepos
                    UriHelpers.IsAzureDevOpsHost(hostName);
         }
 
+        public bool IsSupported(HttpResponseMessage response)
+        {
+            // Azure DevOps Server (TFS) is handled by the generic provider, which supports basic auth, and WIA detection.
+            return false;
+        }
+
         public async Task<ICredential> GetCredentialAsync(InputArguments input)
         {
             string service = GetServiceName(input);
@@ -83,7 +90,7 @@ namespace Microsoft.AzureRepos
             return credential;
         }
 
-        public virtual Task StoreCredentialAsync(InputArguments input)
+        public Task StoreCredentialAsync(InputArguments input)
         {
             string service = GetServiceName(input);
 
@@ -144,15 +151,14 @@ namespace Microsoft.AzureRepos
 
             // Get an AAD access token for the Azure DevOps SPS
             _context.Trace.WriteLine("Getting Azure AD access token...");
-            JsonWebToken accessToken = await _msAuth.GetAccessTokenAsync(
+            IMicrosoftAuthenticationResult result = await _msAuth.GetTokenAsync(
                 authAuthority,
-                AzureDevOpsConstants.AadClientId,
-                AzureDevOpsConstants.AadRedirectUri,
-                AzureDevOpsConstants.AadResourceId,
-                remoteUri,
+                GetClientId(),
+                GetRedirectUri(),
+                AzureDevOpsConstants.AzureDevOpsDefaultScopes,
                 null);
-            string atUser = accessToken.GetAzureUserName();
-            _context.Trace.WriteLineSecrets($"Acquired Azure access token. User='{atUser}' Token='{{0}}'", new object[] {accessToken.EncodedToken});
+            _context.Trace.WriteLineSecrets(
+                $"Acquired Azure access token. Account='{result.AccountUpn}' Token='{{0}}'", new object[] {result.AccessToken});
 
             // Ask the Azure DevOps instance to create a new PAT
             var patScopes = new[]
@@ -163,11 +169,41 @@ namespace Microsoft.AzureRepos
             _context.Trace.WriteLine($"Creating Azure DevOps PAT with scopes '{string.Join(", ", patScopes)}'...");
             string pat = await _azDevOps.CreatePersonalAccessTokenAsync(
                 orgUri,
-                accessToken,
+                result.AccessToken,
                 patScopes);
             _context.Trace.WriteLineSecrets("PAT created. PAT='{0}'", new object[] {pat});
 
-            return new GitCredential(atUser, pat);
+            return new GitCredential(result.AccountUpn, pat);
+        }
+
+        private string GetClientId()
+        {
+            // Check for developer override value
+            if (_context.Settings.TryGetSetting(
+                    AzureDevOpsConstants.EnvironmentVariables.DevAadClientId,
+                    Constants.GitConfiguration.Credential.SectionName,
+                    AzureDevOpsConstants.GitConfiguration.Credential.DevAadClientId,
+                    out string clientId))
+            {
+                return clientId;
+            }
+
+            return AzureDevOpsConstants.AadClientId;
+        }
+
+        private Uri GetRedirectUri()
+        {
+            // Check for developer override value
+            if (_context.Settings.TryGetSetting(
+                    AzureDevOpsConstants.EnvironmentVariables.DevAadRedirectUri,
+                    Constants.GitConfiguration.Credential.SectionName, AzureDevOpsConstants.GitConfiguration.Credential.DevAadRedirectUri,
+                    out string redirectUriStr) &&
+                Uri.TryCreate(redirectUriStr, UriKind.Absolute, out Uri redirectUri))
+            {
+                return redirectUri;
+            }
+
+            return AzureDevOpsConstants.AadRedirectUri;
         }
 
         /// <remarks>
