@@ -17,22 +17,26 @@ namespace Microsoft.AzureRepos
         private readonly ICommandContext _context;
         private readonly IAzureDevOpsRestApi _azDevOps;
         private readonly IMicrosoftAuthentication _msAuth;
+        private readonly IAzureDevOpsAuthorityCache _authorityCache;
 
         public AzureReposHostProvider(ICommandContext context)
-            : this(context, new AzureDevOpsRestApi(context), new MicrosoftAuthentication(context))
+            : this(context, new AzureDevOpsRestApi(context), new MicrosoftAuthentication(context),
+                new AzureDevOpsAuthorityCache(context))
         {
         }
 
         public AzureReposHostProvider(ICommandContext context, IAzureDevOpsRestApi azDevOps,
-            IMicrosoftAuthentication msAuth)
+            IMicrosoftAuthentication msAuth, IAzureDevOpsAuthorityCache authorityCache)
         {
             EnsureArgument.NotNull(context, nameof(context));
             EnsureArgument.NotNull(azDevOps, nameof(azDevOps));
             EnsureArgument.NotNull(msAuth, nameof(msAuth));
+            EnsureArgument.NotNull(authorityCache, nameof(authorityCache));
 
             _context = context;
             _azDevOps = azDevOps;
             _msAuth = msAuth;
+            _authorityCache = authorityCache;
         }
 
         #region IHostProvider
@@ -143,6 +147,12 @@ namespace Microsoft.AzureRepos
                     _context.Trace.WriteLine("No credential was erased.");
                 }
             }
+            else
+            {
+                // Clear the authority cache in case this was the reason for failure
+                string orgName = UriHelpers.GetOrganizationName(remoteUri);
+                _authorityCache.EraseAuthority(orgName);
+            }
 
             return Task.CompletedTask;
         }
@@ -209,7 +219,14 @@ namespace Microsoft.AzureRepos
             Uri orgUri = UriHelpers.CreateOrganizationUri(remoteUri, out string orgName);
 
             _context.Trace.WriteLine($"Determining Microsoft Authentication authority for Azure DevOps organization '{orgName}'...");
-            string authAuthority = await _azDevOps.GetAuthorityAsync(orgUri);
+            string authAuthority = _authorityCache.GetAuthority(orgName);
+            if (authAuthority is null)
+            {
+                // If there is no cached value we must query for it and cache it for future use
+                _context.Trace.WriteLine($"No cached authority value - querying {orgUri} for authority...");
+                authAuthority = await _azDevOps.GetAuthorityAsync(orgUri);
+                _authorityCache.UpdateAuthority(orgName, authAuthority);
+            }
             _context.Trace.WriteLine($"Authority is '{authAuthority}'.");
 
             //

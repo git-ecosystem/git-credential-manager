@@ -27,6 +27,9 @@ namespace Microsoft.AzureRepos
         public const string PatCredentialType = "pat";
         public const string OAuthCredentialType = "oauth";
 
+        public const string UrnScheme = "azrepos";
+        public const string UrnOrgPrefix = "org";
+
         public static class PersonalAccessTokenScopes
         {
             public const string ReposWrite = "vso.code_write";
@@ -49,6 +52,7 @@ namespace Microsoft.AzureRepos
                 public const string DevAadRedirectUri = "azreposDevRedirectUri";
                 public const string DevAadAuthorityBaseUri = "azreposDevAuthorityBaseUri";
                 public const string CredentialType = "azreposCredentialType";
+                public const string AzureAuthority = "azureAuthority";
             }
         }
     }
