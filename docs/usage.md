@@ -33,5 +33,7 @@ Set your user-level Git configuration (`~/.gitconfig`) to use GCM Core. If you p
 
 ### azure-repos (experimental)
 
-Interact with the Azure Repos host provider to manage the authentication
-authority cache.
+Interact with the Azure Repos host provider to bind/unbind user accounts to Azure DevOps
+organizations or specific remote URLs, and manage the authentication authority cache.
+
+For more information about managing user account bindings see [here](azrepos-users-and-tokens.md#useraccounts).

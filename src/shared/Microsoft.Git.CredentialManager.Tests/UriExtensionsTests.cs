@@ -79,5 +79,22 @@ namespace Microsoft.Git.CredentialManager.Tests
             Assert.Equal(expectedUser, actualUser);
             Assert.Equal(expectedPass, actualPass);
         }
+
+        [Theory]
+        [InlineData("http://example.com", "http://example.com")]
+        [InlineData("http://john.doe:password123@example.com", "http://example.com")]
+        [InlineData("http://john.doe@example.com", "http://example.com")]
+        [InlineData("http://john.doe:@example.com", "http://example.com")]
+        [InlineData("http://:password123@example.com", "http://example.com")]
+        [InlineData("http://john.doe:::password123@example.com", "http://example.com")]
+        [InlineData("http://john%20doe:password%20123@example.com", "http://example.com")]
+        public void UriExtensions_WithoutUserInfo(string input, string expected)
+        {
+            var uri = new Uri(input);
+
+            Uri result = UriExtensions.WithoutUserInfo(uri);
+
+            Assert.Equal(expected, result.ToString().TrimEnd('/'));
+        }
     }
 }
