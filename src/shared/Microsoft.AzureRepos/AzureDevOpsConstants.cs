@@ -24,6 +24,9 @@ namespace Microsoft.AzureRepos
 
         public const string VssResourceTenantHeader = "X-VSS-ResourceTenant";
 
+        public const string PatCredentialType = "pat";
+        public const string OAuthCredentialType = "oauth";
+
         public static class PersonalAccessTokenScopes
         {
             public const string ReposWrite = "vso.code_write";
@@ -35,6 +38,7 @@ namespace Microsoft.AzureRepos
             public const string DevAadClientId = "GCM_DEV_AZREPOS_CLIENTID";
             public const string DevAadRedirectUri = "GCM_DEV_AZREPOS_REDIRECTURI";
             public const string DevAadAuthorityBaseUri = "GCM_DEV_AZREPOS_AUTHORITYBASEURI";
+            public const string CredentialType = "GCM_AZREPOS_CREDENTIALTYPE";
         }
 
         public static class GitConfiguration
@@ -44,6 +48,7 @@ namespace Microsoft.AzureRepos
                 public const string DevAadClientId = "azreposDevClientId";
                 public const string DevAadRedirectUri = "azreposDevRedirectUri";
                 public const string DevAadAuthorityBaseUri = "azreposDevAuthorityBaseUri";
+                public const string CredentialType = "azreposCredentialType";
             }
         }
     }
