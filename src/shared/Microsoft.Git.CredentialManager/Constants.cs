@@ -87,6 +87,7 @@ namespace Microsoft.Git.CredentialManager
                 public const string CredentialStore = "credentialStore";
                 public const string CredCacheOptions = "cacheOptions";
                 public const string PlaintextStorePath = "plaintextStorePath";
+                public const string UserName = "username";
             }
 
             public static class Http

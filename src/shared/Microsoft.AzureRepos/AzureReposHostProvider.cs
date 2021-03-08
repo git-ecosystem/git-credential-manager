@@ -20,25 +20,29 @@ namespace Microsoft.AzureRepos
         private readonly IAzureDevOpsRestApi _azDevOps;
         private readonly IMicrosoftAuthentication _msAuth;
         private readonly IAzureDevOpsAuthorityCache _authorityCache;
+        private readonly IAzureReposBindingManager _bindingManager;
 
         public AzureReposHostProvider(ICommandContext context)
             : this(context, new AzureDevOpsRestApi(context), new MicrosoftAuthentication(context),
-                new AzureDevOpsAuthorityCache(context))
+                new AzureDevOpsAuthorityCache(context), new AzureReposBindingManager(context))
         {
         }
 
         public AzureReposHostProvider(ICommandContext context, IAzureDevOpsRestApi azDevOps,
-            IMicrosoftAuthentication msAuth, IAzureDevOpsAuthorityCache authorityCache)
+            IMicrosoftAuthentication msAuth, IAzureDevOpsAuthorityCache authorityCache,
+            IAzureReposBindingManager bindingManager)
         {
             EnsureArgument.NotNull(context, nameof(context));
             EnsureArgument.NotNull(azDevOps, nameof(azDevOps));
             EnsureArgument.NotNull(msAuth, nameof(msAuth));
             EnsureArgument.NotNull(authorityCache, nameof(authorityCache));
+            EnsureArgument.NotNull(bindingManager, nameof(bindingManager));
 
             _context = context;
             _azDevOps = azDevOps;
             _msAuth = msAuth;
             _authorityCache = authorityCache;
+            _bindingManager = bindingManager;
         }
 
         #region IHostProvider
@@ -125,6 +129,12 @@ namespace Microsoft.AzureRepos
                 _context.CredentialStore.AddOrUpdate(service, account, input.Password);
                 _context.Trace.WriteLine("Credential was successfully stored.");
             }
+            else
+            {
+                string orgName = UriHelpers.GetOrganizationName(remoteUri);
+                _context.Trace.WriteLine($"Signing user {input.UserName} in to organization '{orgName}'...");
+                _bindingManager.SignIn(orgName, input.UserName);
+            }
 
             return Task.CompletedTask;
         }
@@ -151,8 +161,12 @@ namespace Microsoft.AzureRepos
             }
             else
             {
-                // Clear the authority cache in case this was the reason for failure
                 string orgName = UriHelpers.GetOrganizationName(remoteUri);
+
+                _context.Trace.WriteLine($"Signing out of organization '{orgName}'...");
+                _bindingManager.SignOut(orgName);
+
+                // Clear the authority cache in case this was the reason for failure
                 _authorityCache.EraseAuthority(orgName);
             }
 
@@ -239,14 +253,20 @@ namespace Microsoft.AzureRepos
             // match the Azure DevOps organization name. Our friends in Azure DevOps decided "borrow" the username
             // part of the remote URL to include the organization name (not an actual username).
             //
-            if (UriHelpers.IsAzureDevOpsHost(remoteUri.Host) && StringComparer.OrdinalIgnoreCase.Equals(orgName, userName))
-            {
-                _context.Trace.WriteLine("Cannot use username from dev.azure.com remote URL because this is the Azure DevOps organization name.");
-                userName = null;
-            }
-            else if (!string.IsNullOrWhiteSpace(userName))
+            // If we have no specified user from the remote (or this is org@dev.azure.com/org/..) then query the
+            // user manager for a bound user for this organization, if one exists...
+            //
+            var icmp = StringComparer.OrdinalIgnoreCase;
+            if (!string.IsNullOrWhiteSpace(userName) &&
+                (UriHelpers.IsVisualStudioComHost(remoteUri.Host) ||
+                 (UriHelpers.IsAzureDevOpsHost(remoteUri.Host) && !icmp.Equals(orgName, userName))))
             {
                 _context.Trace.WriteLine("Using username as specified in remote.");
+            }
+            else
+            {
+                _context.Trace.WriteLine($"Looking up user for organization '{orgName}'...");
+                userName = _bindingManager.GetUser(orgName);
             }
 
             _context.Trace.WriteLine(string.IsNullOrWhiteSpace(userName) ? "No user found." : $"User is '{userName}'.");

@@ -154,7 +154,7 @@ namespace Microsoft.Git.CredentialManager
             return new Process {StartInfo = psi};
         }
 
-        // This code was originally copied from 
+        // This code was originally copied from
         // src/shared/Microsoft.Git.CredentialManager/Authentication/AuthenticationBase.cs
         // That code is for GUI helpers in this codebase, while the below is for
         // communicating over Git's stdin/stdout helper protocol. The GUI helper
@@ -221,6 +221,19 @@ namespace Microsoft.Git.CredentialManager
         {
             GitErrorMessage = gitErrorMessage;
             ExitCode = exitCode;
+        }
+    }
+
+    public static class GitExtensions
+    {
+        /// <summary>
+        /// Returns true if the current Git instance is scoped to a local repository.
+        /// </summary>
+        /// <param name="git">Git object.</param>
+        /// <returns>True if inside a local Git repository, false otherwise.</returns>
+        public static bool IsInsideRepository(this IGit git)
+        {
+            return !string.IsNullOrWhiteSpace(git.GetCurrentRepository());
         }
     }
 }
