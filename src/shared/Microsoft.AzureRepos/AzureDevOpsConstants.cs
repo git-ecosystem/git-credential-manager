@@ -36,7 +36,8 @@ namespace Microsoft.AzureRepos
             public const string DevAadClientId = "GCM_DEV_AZREPOS_CLIENTID";
             public const string DevAadRedirectUri = "GCM_DEV_AZREPOS_REDIRECTURI";
             public const string DevAadAuthorityBaseUri = "GCM_DEV_AZREPOS_AUTHORITYBASEURI";
-            public const string GcmVstsScope          = "GCM_VSTS_SCOPE";
+            public const string GcmVstsScope = "GCM_VSTS_SCOPE";
+            public const string GcmDevOpsScope = "GCM_DEVOPS_SCOPE";
         }
 
         public static class GitConfiguration

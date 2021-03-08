@@ -176,7 +176,7 @@ namespace Microsoft.AzureRepos
         {
             string @namespace;
             if (_context.Settings.TryGetSetting(
-                    AzureDevOpsConstants.EnvironmentVariables.GcmVstsScope,
+                    AzureDevOpsConstants.EnvironmentVariables.GcmDevOpsScope,
                     Constants.GitConfiguration.Credential.SectionName,
                     AzureDevOpsConstants.GitConfiguration.Credential.DevOpsScope,
                     out @namespace) 
