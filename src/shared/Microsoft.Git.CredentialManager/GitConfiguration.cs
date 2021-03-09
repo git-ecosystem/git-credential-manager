@@ -145,27 +145,45 @@ namespace Microsoft.Git.CredentialManager
                     value.Clear();
 
                     // Read config scope (null terminated)
-                    while (data[i] != '\0')
+                    while (i < data.Length && data[i] != '\0')
                     {
                         scope.Append(data[i++]);
+                    }
+
+                    if (i >= data.Length)
+                    {
+                        _trace.WriteLine("Invalid Git configuration output. Expected null terminator (\\0) after scope.");
+                        break;
                     }
 
                     // Skip the null terminator
                     i++;
 
                     // Read key name (LF terminated)
-                    while (data[i] != '\n')
+                    while (i < data.Length && data[i] != '\n')
                     {
                         name.Append(data[i++]);
+                    }
+
+                    if (i >= data.Length)
+                    {
+                        _trace.WriteLine("Invalid Git configuration output. Expected newline terminator (\\n) after key.");
+                        break;
                     }
 
                     // Skip the LF terminator
                     i++;
 
                     // Read value (null terminated)
-                    while (data[i] != '\0')
+                    while (i < data.Length && data[i] != '\0')
                     {
                         value.Append(data[i++]);
+                    }
+
+                    if (i >= data.Length)
+                    {
+                        _trace.WriteLine("Invalid Git configuration output. Expected null terminator (\\0) after value.");
+                        break;
                     }
 
                     // Skip the null terminator
