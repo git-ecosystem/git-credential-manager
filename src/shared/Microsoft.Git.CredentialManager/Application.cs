@@ -3,6 +3,9 @@
 using System;
 using System.Collections.Generic;
 using System.CommandLine;
+using System.CommandLine.Builder;
+using System.CommandLine.Invocation;
+using System.CommandLine.Parsing;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -84,23 +87,12 @@ namespace Microsoft.Git.CredentialManager
             Context.Trace.WriteLine($"AppPath: {_appPath}");
             Context.Trace.WriteLine($"Arguments: {string.Join(" ", args)}");
 
-            try
-            {
-                return await rootCommand.InvokeAsync(args);
-            }
-            catch (Exception e)
-            {
-                if (e is AggregateException ae)
-                {
-                    ae.Handle(WriteException);
-                }
-                else
-                {
-                    WriteException(e);
-                }
+            var parser = new CommandLineBuilder(rootCommand)
+                .UseDefaults()
+                .UseExceptionHandler(OnException)
+                .Build();
 
-                return -1;
-            }
+            return await parser.InvokeAsync(args);
         }
 
         protected override void Dispose(bool disposing)
@@ -113,11 +105,27 @@ namespace Microsoft.Git.CredentialManager
             base.Dispose(disposing);
         }
 
-        protected bool WriteException(Exception ex)
+        private void OnException(Exception ex, InvocationContext invocationContext)
+        {
+            if (ex is AggregateException aex)
+            {
+                aex.Handle(WriteException);
+            }
+            else
+            {
+                WriteException(ex);
+            }
+        }
+
+        private bool WriteException(Exception ex)
         {
             // Try and use a nicer format for some well-known exception types
             switch (ex)
             {
+                case GitException gitEx:
+                    Context.Streams.Error.WriteLine("fatal: {0} [{1}]", gitEx.Message, gitEx.ExitCode);
+                    Context.Streams.Error.WriteLine(gitEx.GitErrorMessage);
+                    break;
                 case InteropException interopEx:
                     Context.Streams.Error.WriteLine("fatal: {0} [0x{1:x}]", interopEx.Message, interopEx.ErrorCode);
                     break;
@@ -150,7 +158,7 @@ namespace Microsoft.Git.CredentialManager
 
             Context.Trace.WriteLine($"Configuring for config level '{configLevel}'.");
 
-            IGitConfiguration config = Context.Git.GetConfiguration(configLevel);
+            IGitConfiguration config = Context.Git.GetConfiguration();
 
             // We are looking for the following to be set in the config:
             //
@@ -160,7 +168,7 @@ namespace Microsoft.Git.CredentialManager
             //     helper = {appPath} # the expected executable value & directly following the empty value
             //     ...                # any number of helper entries (possibly none, but not the empty value '')
             //
-            string[] currentValues = config.GetAll(helperKey).ToArray();
+            string[] currentValues = config.GetAll(configLevel, helperKey).ToArray();
 
             // Try to locate an existing app entry with a blank reset/clear entry immediately preceding,
             // and no other blank empty/clear entries following (which effectively disable us).
@@ -175,12 +183,12 @@ namespace Microsoft.Git.CredentialManager
                 Context.Trace.WriteLine("Updating Git credential helper configuration...");
 
                 // Clear any existing app entries in the configuration
-                config.UnsetAll(helperKey, Regex.Escape(appPath));
+                config.UnsetAll(configLevel, helperKey, Regex.Escape(appPath));
 
                 // Add an empty value for `credential.helper`, which has the effect of clearing any helper value
                 // from any lower-level Git configuration, then add a second value which is the actual executable path.
-                config.Add(helperKey, string.Empty);
-                config.Add(helperKey, appPath);
+                config.Add(configLevel, helperKey, string.Empty);
+                config.Add(configLevel, helperKey, appPath);
             }
 
             return Task.CompletedTask;
@@ -197,7 +205,7 @@ namespace Microsoft.Git.CredentialManager
 
             Context.Trace.WriteLine($"Unconfiguring for config level '{configLevel}'.");
 
-            IGitConfiguration config = Context.Git.GetConfiguration(configLevel);
+            IGitConfiguration config = Context.Git.GetConfiguration();
 
             // We are looking for the following to be set in the config:
             //
@@ -211,7 +219,7 @@ namespace Microsoft.Git.CredentialManager
             //
             Context.Trace.WriteLine("Removing Git credential helper configuration...");
 
-            string[] currentValues = config.GetAll(helperKey).ToArray();
+            string[] currentValues = config.GetAll(configLevel, helperKey).ToArray();
 
             int appIndex = Array.FindIndex(currentValues, x => Context.FileSystem.IsSamePath(x, appPath));
             if (appIndex > -1)
@@ -221,11 +229,11 @@ namespace Microsoft.Git.CredentialManager
                     string.IsNullOrWhiteSpace(currentValues[appIndex - 1]))
                 {
                     // Clear the blank entry
-                    config.UnsetAll(helperKey, Constants.RegexPatterns.Empty);
+                    config.UnsetAll(configLevel, helperKey, Constants.RegexPatterns.Empty);
                 }
 
                 // Clear app entry
-                config.UnsetAll(helperKey, Regex.Escape(appPath));
+                config.UnsetAll(configLevel, helperKey, Regex.Escape(appPath));
             }
 
             return Task.CompletedTask;

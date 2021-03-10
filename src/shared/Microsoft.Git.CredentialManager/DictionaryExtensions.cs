@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Web;
 
@@ -49,6 +50,32 @@ namespace Microsoft.Git.CredentialManager
             }
 
             return sb.ToString();
+        }
+
+        public static void Append<TKey, TValue>(this IDictionary<TKey, ICollection<TValue>> dict, TKey key, TValue value)
+        {
+            if (!dict.TryGetValue(key, out var values))
+            {
+                values = new List<TValue>();
+                dict[key] = values;
+            }
+
+            values.Add(value);
+        }
+
+        public static IEnumerable<TValue> GetValues<TKey, TValue>(this IDictionary<TKey, IEnumerable<TValue>> dict, TKey key)
+        {
+            return dict.TryGetValue(key, out var values) ? values : Enumerable.Empty<TValue>();
+        }
+        
+        public static IEnumerable<TValue> GetValues<TKey, TValue>(this IDictionary<TKey, ICollection<TValue>> dict, TKey key)
+        {
+            return dict.TryGetValue(key, out var values) ? values : Enumerable.Empty<TValue>();
+        }
+
+        public static IDictionary<TKey, IEnumerable<TValue>> ToDictionary<TKey, TValue>(this IEnumerable<IGrouping<TKey, TValue>> grouping)
+        {
+            return grouping.ToDictionary(x => x.Key, x => (IEnumerable<TValue>) x);
         }
     }
 }

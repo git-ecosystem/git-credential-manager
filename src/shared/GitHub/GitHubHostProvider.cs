@@ -63,7 +63,10 @@ namespace GitHub
             }
 
             // Split port number and hostname from host input argument
-            input.TryGetHostAndPort(out string hostName, out _);
+            if (!input.TryGetHostAndPort(out string hostName, out _))
+            {
+                return false;
+            }
 
             if (StringComparer.OrdinalIgnoreCase.Equals(hostName, GitHubConstants.GitHubBaseUrlHost) ||
                 StringComparer.OrdinalIgnoreCase.Equals(hostName, GitHubConstants.GistBaseUrlHost))

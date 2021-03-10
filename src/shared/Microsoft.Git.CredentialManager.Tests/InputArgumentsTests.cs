@@ -141,6 +141,25 @@ namespace Microsoft.Git.CredentialManager.Tests
         }
 
         [Fact]
+        public void InputArguments_GetRemoteUri_IncludeUserNoUser_Authority_ReturnsUriWithAuthority()
+        {
+            var expectedUri = new Uri("https://example.com/");
+
+            var dict = new Dictionary<string, string>
+            {
+                ["protocol"] = "https",
+                ["host"]     = "example.com",
+            };
+
+            var inputArgs = new InputArguments(dict);
+
+            Uri actualUri = inputArgs.GetRemoteUri(includeUser: true);
+
+            Assert.NotNull(actualUri);
+            Assert.Equal(expectedUri, actualUri);
+        }
+
+        [Fact]
         public void InputArguments_GetRemoteUri_AuthorityAndPort_ReturnsUriWithAuthorityAndPort()
         {
             var expectedUri = new Uri("https://example.com:456/");

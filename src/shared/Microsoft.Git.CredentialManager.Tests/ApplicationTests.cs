@@ -20,8 +20,8 @@ namespace Microsoft.Git.CredentialManager.Tests
             IConfigurableComponent application = new Application(context, executablePath);
             await application.ConfigureAsync(ConfigurationTarget.User);
 
-            Assert.Single(context.Git.GlobalConfiguration.Dictionary);
-            Assert.True(context.Git.GlobalConfiguration.Dictionary.TryGetValue(key, out var actualValues));
+            Assert.Single(context.Git.Configuration.Global);
+            Assert.True(context.Git.Configuration.Global.TryGetValue(key, out var actualValues));
             Assert.Equal(2, actualValues.Count);
             Assert.Equal(emptyHelper, actualValues[0]);
             Assert.Equal(executablePath, actualValues[1]);
@@ -37,12 +37,12 @@ namespace Microsoft.Git.CredentialManager.Tests
             var context = new TestCommandContext();
             IConfigurableComponent application = new Application(context, executablePath);
 
-            context.Git.GlobalConfiguration.Dictionary[key] = new List<string> {executablePath};
+            context.Git.Configuration.Global[key] = new List<string> {executablePath};
 
             await application.ConfigureAsync(ConfigurationTarget.User);
 
-            Assert.Single(context.Git.GlobalConfiguration.Dictionary);
-            Assert.True(context.Git.GlobalConfiguration.Dictionary.TryGetValue(key, out var actualValues));
+            Assert.Single(context.Git.Configuration.Global);
+            Assert.True(context.Git.Configuration.Global.TryGetValue(key, out var actualValues));
             Assert.Equal(2, actualValues.Count);
             Assert.Equal(emptyHelper, actualValues[0]);
             Assert.Equal(executablePath, actualValues[1]);
@@ -58,15 +58,15 @@ namespace Microsoft.Git.CredentialManager.Tests
             var context = new TestCommandContext();
             IConfigurableComponent application = new Application(context, executablePath);
 
-            context.Git.GlobalConfiguration.Dictionary[key] = new List<string>
+            context.Git.Configuration.Global[key] = new List<string>
             {
                 emptyHelper, executablePath
             };
 
             await application.ConfigureAsync(ConfigurationTarget.User);
 
-            Assert.Single(context.Git.GlobalConfiguration.Dictionary);
-            Assert.True(context.Git.GlobalConfiguration.Dictionary.TryGetValue(key, out var actualValues));
+            Assert.Single(context.Git.Configuration.Global);
+            Assert.True(context.Git.Configuration.Global.TryGetValue(key, out var actualValues));
             Assert.Equal(2, actualValues.Count);
             Assert.Equal(emptyHelper, actualValues[0]);
             Assert.Equal(executablePath, actualValues[1]);
@@ -83,15 +83,15 @@ namespace Microsoft.Git.CredentialManager.Tests
             var context = new TestCommandContext();
             IConfigurableComponent application = new Application(context, executablePath);
 
-            context.Git.GlobalConfiguration.Dictionary[key] = new List<string>
+            context.Git.Configuration.Global[key] = new List<string>
             {
                 beforeHelper, emptyHelper, executablePath
             };
 
             await application.ConfigureAsync(ConfigurationTarget.User);
 
-            Assert.Single(context.Git.GlobalConfiguration.Dictionary);
-            Assert.True(context.Git.GlobalConfiguration.Dictionary.TryGetValue(key, out var actualValues));
+            Assert.Single(context.Git.Configuration.Global);
+            Assert.True(context.Git.Configuration.Global.TryGetValue(key, out var actualValues));
             Assert.Equal(3, actualValues.Count);
             Assert.Equal(beforeHelper, actualValues[0]);
             Assert.Equal(emptyHelper, actualValues[1]);
@@ -109,15 +109,15 @@ namespace Microsoft.Git.CredentialManager.Tests
             var context = new TestCommandContext();
             IConfigurableComponent application = new Application(context, executablePath);
 
-            context.Git.GlobalConfiguration.Dictionary[key] = new List<string>
+            context.Git.Configuration.Global[key] = new List<string>
             {
                 emptyHelper, executablePath, afterHelper
             };
 
             await application.ConfigureAsync(ConfigurationTarget.User);
 
-            Assert.Single(context.Git.GlobalConfiguration.Dictionary);
-            Assert.True(context.Git.GlobalConfiguration.Dictionary.TryGetValue(key, out var actualValues));
+            Assert.Single(context.Git.Configuration.Global);
+            Assert.True(context.Git.Configuration.Global.TryGetValue(key, out var actualValues));
             Assert.Equal(3, actualValues.Count);
             Assert.Equal(emptyHelper, actualValues[0]);
             Assert.Equal(executablePath, actualValues[1]);
@@ -136,15 +136,15 @@ namespace Microsoft.Git.CredentialManager.Tests
             var context = new TestCommandContext();
             IConfigurableComponent application = new Application(context, executablePath);
 
-            context.Git.GlobalConfiguration.Dictionary[key] = new List<string>
+            context.Git.Configuration.Global[key] = new List<string>
             {
                 beforeHelper, emptyHelper, executablePath, afterHelper
             };
 
             await application.ConfigureAsync(ConfigurationTarget.User);
 
-            Assert.Single(context.Git.GlobalConfiguration.Dictionary);
-            Assert.True(context.Git.GlobalConfiguration.Dictionary.TryGetValue(key, out var actualValues));
+            Assert.Single(context.Git.Configuration.Global);
+            Assert.True(context.Git.Configuration.Global.TryGetValue(key, out var actualValues));
             Assert.Equal(4, actualValues.Count);
             Assert.Equal(beforeHelper, actualValues[0]);
             Assert.Equal(emptyHelper, actualValues[1]);
@@ -163,15 +163,15 @@ namespace Microsoft.Git.CredentialManager.Tests
             var context = new TestCommandContext();
             IConfigurableComponent application = new Application(context, executablePath);
 
-            context.Git.GlobalConfiguration.Dictionary[key] = new List<string>
+            context.Git.Configuration.Global[key] = new List<string>
             {
                 emptyHelper, executablePath, emptyHelper, afterHelper
             };
 
             await application.ConfigureAsync(ConfigurationTarget.User);
 
-            Assert.Single(context.Git.GlobalConfiguration.Dictionary);
-            Assert.True(context.Git.GlobalConfiguration.Dictionary.TryGetValue(key, out var actualValues));
+            Assert.Single(context.Git.Configuration.Global);
+            Assert.True(context.Git.Configuration.Global.TryGetValue(key, out var actualValues));
             Assert.Equal(5, actualValues.Count);
             Assert.Equal(emptyHelper, actualValues[0]);
             Assert.Equal(emptyHelper, actualValues[1]);
@@ -190,7 +190,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             IConfigurableComponent application = new Application(context, executablePath);
             await application.UnconfigureAsync(ConfigurationTarget.User);
 
-            Assert.Empty(context.Git.GlobalConfiguration.Dictionary);
+            Assert.Empty(context.Git.Configuration.Global);
         }
 
         [Fact]
@@ -202,11 +202,11 @@ namespace Microsoft.Git.CredentialManager.Tests
             var context = new TestCommandContext();
             IConfigurableComponent application = new Application(context, executablePath);
 
-            context.Git.GlobalConfiguration.Dictionary[key] = new List<string> {executablePath};
+            context.Git.Configuration.Global[key] = new List<string> {executablePath};
 
             await application.UnconfigureAsync(ConfigurationTarget.User);
 
-            Assert.Empty(context.Git.GlobalConfiguration.Dictionary);
+            Assert.Empty(context.Git.Configuration.Global);
         }
 
         [Fact]
@@ -219,11 +219,11 @@ namespace Microsoft.Git.CredentialManager.Tests
             var context = new TestCommandContext();
             IConfigurableComponent application = new Application(context, executablePath);
 
-            context.Git.GlobalConfiguration.Dictionary[key] = new List<string> {emptyHelper, executablePath};
+            context.Git.Configuration.Global[key] = new List<string> {emptyHelper, executablePath};
 
             await application.UnconfigureAsync(ConfigurationTarget.User);
 
-            Assert.Empty(context.Git.GlobalConfiguration.Dictionary);
+            Assert.Empty(context.Git.Configuration.Global);
         }
 
         [Fact]
@@ -237,15 +237,15 @@ namespace Microsoft.Git.CredentialManager.Tests
             var context = new TestCommandContext();
             IConfigurableComponent application = new Application(context, executablePath);
 
-            context.Git.GlobalConfiguration.Dictionary[key] = new List<string>
+            context.Git.Configuration.Global[key] = new List<string>
             {
                 beforeHelper, emptyHelper, executablePath
             };
 
             await application.UnconfigureAsync(ConfigurationTarget.User);
 
-            Assert.Single(context.Git.GlobalConfiguration.Dictionary);
-            Assert.True(context.Git.GlobalConfiguration.Dictionary.TryGetValue(key, out var actualValues));
+            Assert.Single(context.Git.Configuration.Global);
+            Assert.True(context.Git.Configuration.Global.TryGetValue(key, out var actualValues));
             Assert.Equal(1, actualValues.Count);
             Assert.Equal(beforeHelper, actualValues[0]);
         }
@@ -261,15 +261,15 @@ namespace Microsoft.Git.CredentialManager.Tests
             var context = new TestCommandContext();
             IConfigurableComponent application = new Application(context, executablePath);
 
-            context.Git.GlobalConfiguration.Dictionary[key] = new List<string>
+            context.Git.Configuration.Global[key] = new List<string>
             {
                 emptyHelper, executablePath, afterHelper
             };
 
             await application.UnconfigureAsync(ConfigurationTarget.User);
 
-            Assert.Single(context.Git.GlobalConfiguration.Dictionary);
-            Assert.True(context.Git.GlobalConfiguration.Dictionary.TryGetValue(key, out var actualValues));
+            Assert.Single(context.Git.Configuration.Global);
+            Assert.True(context.Git.Configuration.Global.TryGetValue(key, out var actualValues));
             Assert.Equal(2, actualValues.Count);
             Assert.Equal(emptyHelper, actualValues[0]);
             Assert.Equal(afterHelper, actualValues[1]);
@@ -287,15 +287,15 @@ namespace Microsoft.Git.CredentialManager.Tests
             var context = new TestCommandContext();
             IConfigurableComponent application = new Application(context, executablePath);
 
-            context.Git.GlobalConfiguration.Dictionary[key] = new List<string>
+            context.Git.Configuration.Global[key] = new List<string>
             {
                 beforeHelper, emptyHelper, executablePath, afterHelper
             };
 
             await application.UnconfigureAsync(ConfigurationTarget.User);
 
-            Assert.Single(context.Git.GlobalConfiguration.Dictionary);
-            Assert.True(context.Git.GlobalConfiguration.Dictionary.TryGetValue(key, out var actualValues));
+            Assert.Single(context.Git.Configuration.Global);
+            Assert.True(context.Git.Configuration.Global.TryGetValue(key, out var actualValues));
             Assert.Equal(3, actualValues.Count);
             Assert.Equal(beforeHelper, actualValues[0]);
             Assert.Equal(emptyHelper, actualValues[1]);

@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Text;
 
 namespace Microsoft.Git.CredentialManager
@@ -11,19 +10,17 @@ namespace Microsoft.Git.CredentialManager
     /// <summary>
     /// Invoked for each Git configuration entry during an enumeration (<see cref="IGitConfiguration.Enumerate"/>).
     /// </summary>
-    /// <param name="name">Name of the current configuration entry.</param>
-    /// <param name="value">Value of the current configuration entry.</param>
+    /// <param name="entry">Current configuration entry.</param>
     /// <returns>True to continue enumeration, false to stop enumeration.</returns>
-    public delegate bool GitConfigurationEnumerationCallback(string name, string value);
+    public delegate bool GitConfigurationEnumerationCallback(GitConfigurationEntry entry);
 
     public enum GitConfigurationLevel
     {
         All,
-        ProgramData,
         System,
-        Xdg,
         Global,
         Local,
+        Unknown,
     }
 
     public interface IGitConfiguration
@@ -31,89 +28,96 @@ namespace Microsoft.Git.CredentialManager
         /// <summary>
         /// Enumerate all configuration entries invoking the specified callback for each entry.
         /// </summary>
+        /// <param name="level">Filter to the specific configuration level.</param>
         /// <param name="cb">Callback to invoke for each configuration entry.</param>
-        void Enumerate(GitConfigurationEnumerationCallback cb);
+        void Enumerate(GitConfigurationLevel level, GitConfigurationEnumerationCallback cb);
 
         /// <summary>
         /// Try and get the value of a configuration entry as a string.
         /// </summary>
+        /// <param name="level">Filter to the specific configuration level.</param>
         /// <param name="name">Configuration entry name.</param>
         /// <param name="value">Configuration entry value.</param>
         /// <returns>True if the value was found, false otherwise.</returns>
-        bool TryGet(string name, out string value);
+        bool TryGet(GitConfigurationLevel level, string name, out string value);
 
         /// <summary>
         /// Set the value of a configuration entry.
         /// </summary>
+        /// <param name="level">Filter to the specific configuration level.</param>
         /// <param name="name">Configuration entry name.</param>
         /// <param name="value">Configuration entry value.</param>
-        void Set(string name, string value);
+        void Set(GitConfigurationLevel level, string name, string value);
 
         /// <summary>
         /// Add a new value for a configuration entry.
         /// </summary>
+        /// <param name="level">Filter to the specific configuration level.</param>
         /// <param name="name">Configuration entry name.</param>
         /// <param name="value">Configuration entry value.</param>
-        void Add(string name, string value);
+        void Add(GitConfigurationLevel level, string name, string value);
 
         /// <summary>
         /// Deletes a configuration entry from the highest level.
         /// </summary>
+        /// <param name="level">Filter to the specific configuration level.</param>
         /// <param name="name">Configuration entry name.</param>
-        void Unset(string name);
+        void Unset(GitConfigurationLevel level, string name);
 
         /// <summary>
         /// Get all value of a multivar configuration entry.
         /// </summary>
+        /// <param name="level">Filter to the specific configuration level.</param>
         /// <param name="name">Configuration entry name.</param>
         /// <returns>All values of the multivar configuration entry.</returns>
-        IEnumerable<string> GetAll(string name);
+        IEnumerable<string> GetAll(GitConfigurationLevel level, string name);
 
         /// <summary>
         /// Get all values of a multivar configuration entry.
         /// </summary>
+        /// <param name="level">Filter to the specific configuration level.</param>
         /// <param name="nameRegex">Configuration entry name regular expression.</param>
         /// <param name="valueRegex">Regular expression to filter which variables we're interested in. Use null to indicate all.</param>
         /// <returns>All values of the multivar configuration entry.</returns>
-        IEnumerable<string> GetRegex(string nameRegex, string valueRegex);
+        IEnumerable<string> GetRegex(GitConfigurationLevel level, string nameRegex, string valueRegex);
 
         /// <summary>
         /// Set a multivar configuration entry value.
         /// </summary>
+        /// <param name="level">Filter to the specific configuration level.</param>
         /// <param name="nameRegex">Configuration entry name regular expression.</param>
         /// <param name="valueRegex">Regular expression to indicate which values to replace.</param>
         /// <param name="value">Configuration entry value.</param>
         /// <remarks>If the regular expression does not match any existing entry, a new entry is created.</remarks>
-        void ReplaceAll(string nameRegex, string valueRegex, string value);
+        void ReplaceAll(GitConfigurationLevel level, string nameRegex, string valueRegex, string value);
 
         /// <summary>
         /// Deletes one or several entries from a multivar.
         /// </summary>
+        /// <param name="level">Filter to the specific configuration level.</param>
         /// <param name="name">Configuration entry name.</param>
         /// <param name="valueRegex">Regular expression to indicate which values to delete.</param>
-        void UnsetAll(string name, string valueRegex);
+        void UnsetAll(GitConfigurationLevel level, string name, string valueRegex);
     }
 
     public class GitProcessConfiguration : IGitConfiguration
     {
         private readonly ITrace _trace;
         private readonly GitProcess _git;
-        private readonly GitConfigurationLevel? _filterLevel;
 
-        internal GitProcessConfiguration(ITrace trace, GitProcess git, GitConfigurationLevel filterLevel = GitConfigurationLevel.All)
+        internal GitProcessConfiguration(ITrace trace, GitProcess git)
         {
             EnsureArgument.NotNull(trace, nameof(trace));
             EnsureArgument.NotNull(git, nameof(git));
 
             _trace = trace;
             _git = git;
-            _filterLevel = filterLevel;
         }
 
-        public void Enumerate(GitConfigurationEnumerationCallback cb)
+        public void Enumerate(GitConfigurationLevel level, GitConfigurationEnumerationCallback cb)
         {
-            string level = GetLevelFilterArg();
-            using (Process git = _git.CreateProcess($"config --null {level} --list"))
+            string levelArg = GetLevelFilterArg(level);
+            using (Process git = _git.CreateProcess($"config --null {levelArg} --list --show-scope"))
             {
                 git.Start();
                 // To avoid deadlocks, always read the output stream first and then wait
@@ -126,16 +130,85 @@ namespace Microsoft.Git.CredentialManager
                     case 0: // OK
                         break;
                     default:
-                        _trace.WriteLine($"Failed to enumerate config entries (exit={git.ExitCode}, level={_filterLevel})");
-                        throw CreateGitException(git, "Failed to enumerate all Git configuration entries");
+                        _trace.WriteLine($"Failed to enumerate config entries (exit={git.ExitCode}, level={level})");
+                        throw GitProcess.CreateGitException(git, "Failed to enumerate all Git configuration entries");
                 }
 
-                IEnumerable<string> entries = data.Split('\0').Where(x => !string.IsNullOrWhiteSpace(x));
-                foreach (string entry in entries)
+                var scope = new StringBuilder();
+                var name  = new StringBuilder();
+                var value = new StringBuilder();
+                int i = 0;
+                while (i < data.Length)
                 {
-                    string[] kvp = entry.Split(new[]{'\n'}, count: 2);
+                    scope.Clear();
+                    name.Clear();
+                    value.Clear();
 
-                    if (kvp.Length == 2 && !cb(kvp[0], kvp[1]))
+                    // Read config scope (null terminated)
+                    while (i < data.Length && data[i] != '\0')
+                    {
+                        scope.Append(data[i++]);
+                    }
+
+                    if (i >= data.Length)
+                    {
+                        _trace.WriteLine("Invalid Git configuration output. Expected null terminator (\\0) after scope.");
+                        break;
+                    }
+
+                    // Skip the null terminator
+                    i++;
+
+                    // Read key name (LF terminated)
+                    while (i < data.Length && data[i] != '\n')
+                    {
+                        name.Append(data[i++]);
+                    }
+
+                    if (i >= data.Length)
+                    {
+                        _trace.WriteLine("Invalid Git configuration output. Expected newline terminator (\\n) after key.");
+                        break;
+                    }
+
+                    // Skip the LF terminator
+                    i++;
+
+                    // Read value (null terminated)
+                    while (i < data.Length && data[i] != '\0')
+                    {
+                        value.Append(data[i++]);
+                    }
+
+                    if (i >= data.Length)
+                    {
+                        _trace.WriteLine("Invalid Git configuration output. Expected null terminator (\\0) after value.");
+                        break;
+                    }
+
+                    // Skip the null terminator
+                    i++;
+
+                    GitConfigurationLevel entryLevel;
+                    switch (scope.ToString())
+                    {
+                        case "system":
+                            entryLevel = GitConfigurationLevel.System;
+                            break;
+                        case "global":
+                            entryLevel = GitConfigurationLevel.Global;
+                            break;
+                        case "local":
+                            entryLevel = GitConfigurationLevel.Local;
+                            break;
+                        default:
+                            entryLevel = GitConfigurationLevel.Unknown;
+                            break;
+                    }
+
+                    var entry = new GitConfigurationEntry(entryLevel, name.ToString(), value.ToString());
+
+                    if (!cb(entry))
                     {
                         break;
                     }
@@ -143,10 +216,10 @@ namespace Microsoft.Git.CredentialManager
             }
         }
 
-        public bool TryGet(string name, out string value)
+        public bool TryGet(GitConfigurationLevel level, string name, out string value)
         {
-            string level = GetLevelFilterArg();
-            using (Process git = _git.CreateProcess($"config --null {level} {QuoteCmdArg(name)}"))
+            string levelArg = GetLevelFilterArg(level);
+            using (Process git = _git.CreateProcess($"config --null {levelArg} {QuoteCmdArg(name)}"))
             {
                 git.Start();
                 git.WaitForExit();
@@ -159,7 +232,7 @@ namespace Microsoft.Git.CredentialManager
                         value = null;
                         return false;
                     default: // Error
-                        _trace.WriteLine($"Failed to read Git configuration entry '{name}'. (exit={git.ExitCode}, level={_filterLevel})");
+                        _trace.WriteLine($"Failed to read Git configuration entry '{name}'. (exit={git.ExitCode}, level={level})");
                         value = null;
                         return false;
                 }
@@ -177,15 +250,12 @@ namespace Microsoft.Git.CredentialManager
             }
         }
 
-        public void Set(string name, string value)
+        public void Set(GitConfigurationLevel level, string name, string value)
         {
-            if (_filterLevel == GitConfigurationLevel.All)
-            {
-                throw new InvalidOperationException("Must have a specific configuration level filter to modify values.");
-            }
+            EnsureSpecificLevel(level);
 
-            string level = GetLevelFilterArg();
-            using (Process git = _git.CreateProcess($"config {level} {QuoteCmdArg(name)} {QuoteCmdArg(value)}"))
+            string levelArg = GetLevelFilterArg(level);
+            using (Process git = _git.CreateProcess($"config {levelArg} {QuoteCmdArg(name)} {QuoteCmdArg(value)}"))
             {
                 git.Start();
                 git.WaitForExit();
@@ -195,21 +265,18 @@ namespace Microsoft.Git.CredentialManager
                     case 0: // OK
                         break;
                     default:
-                        _trace.WriteLine($"Failed to set config entry '{name}' to value '{value}' (exit={git.ExitCode}, level={_filterLevel})");
-                        throw CreateGitException(git, $"Failed to set Git configuration entry '{name}'");
+                        _trace.WriteLine($"Failed to set config entry '{name}' to value '{value}' (exit={git.ExitCode}, level={level})");
+                        throw GitProcess.CreateGitException(git, $"Failed to set Git configuration entry '{name}'");
                 }
             }
         }
 
-        public void Add(string name, string value)
+        public void Add(GitConfigurationLevel level, string name, string value)
         {
-            if (_filterLevel == GitConfigurationLevel.All)
-            {
-                throw new InvalidOperationException("Must have a specific configuration level filter to add values.");
-            }
+            EnsureSpecificLevel(level);
 
-            string level = GetLevelFilterArg();
-            using (Process git = _git.CreateProcess($"config {level} --add {QuoteCmdArg(name)} {QuoteCmdArg(value)}"))
+            string levelArg = GetLevelFilterArg(level);
+            using (Process git = _git.CreateProcess($"config {levelArg} --add {QuoteCmdArg(name)} {QuoteCmdArg(value)}"))
             {
                 git.Start();
                 git.WaitForExit();
@@ -219,21 +286,18 @@ namespace Microsoft.Git.CredentialManager
                     case 0: // OK
                         break;
                     default:
-                        _trace.WriteLine($"Failed to add config entry '{name}' with value '{value}' (exit={git.ExitCode}, level={_filterLevel})");
-                        throw CreateGitException(git, $"Failed to add Git configuration entry '{name}'");
+                        _trace.WriteLine($"Failed to add config entry '{name}' with value '{value}' (exit={git.ExitCode}, level={level})");
+                        throw GitProcess.CreateGitException(git, $"Failed to add Git configuration entry '{name}'");
                 }
             }
         }
 
-        public void Unset(string name)
+        public void Unset(GitConfigurationLevel level, string name)
         {
-            if (_filterLevel == GitConfigurationLevel.All)
-            {
-                throw new InvalidOperationException("Must have a specific configuration level filter to modify values.");
-            }
+            EnsureSpecificLevel(level);
 
-            string level = GetLevelFilterArg();
-            using (Process git = _git.CreateProcess($"config {level} --unset {QuoteCmdArg(name)}"))
+            string levelArg = GetLevelFilterArg(level);
+            using (Process git = _git.CreateProcess($"config {levelArg} --unset {QuoteCmdArg(name)}"))
             {
                 git.Start();
                 git.WaitForExit();
@@ -244,17 +308,17 @@ namespace Microsoft.Git.CredentialManager
                     case 5: // Trying to unset a value that does not exist
                         break;
                     default:
-                        _trace.WriteLine($"Failed to unset config entry '{name}' (exit={git.ExitCode}, level={_filterLevel})");
-                        throw CreateGitException(git, $"Failed to unset Git configuration entry '{name}'");
+                        _trace.WriteLine($"Failed to unset config entry '{name}' (exit={git.ExitCode}, level={level})");
+                        throw GitProcess.CreateGitException(git, $"Failed to unset Git configuration entry '{name}'");
                 }
             }
         }
 
-        public IEnumerable<string> GetAll(string name)
+        public IEnumerable<string> GetAll(GitConfigurationLevel level, string name)
         {
-            string level = GetLevelFilterArg();
+            string levelArg = GetLevelFilterArg(level);
 
-            var gitArgs = $"config --null {level} --get-all {QuoteCmdArg(name)}";
+            var gitArgs = $"config --null {levelArg} --get-all {QuoteCmdArg(name)}";
 
             using (Process git = _git.CreateProcess(gitArgs))
             {
@@ -281,17 +345,17 @@ namespace Microsoft.Git.CredentialManager
                         break;
 
                     default:
-                        _trace.WriteLine($"Failed to get all config entries '{name}' (exit={git.ExitCode}, level={_filterLevel})");
-                        throw CreateGitException(git, $"Failed to get all Git configuration entries '{name}'");
+                        _trace.WriteLine($"Failed to get all config entries '{name}' (exit={git.ExitCode}, level={level})");
+                        throw GitProcess.CreateGitException(git, $"Failed to get all Git configuration entries '{name}'");
                 }
             }
         }
 
-        public IEnumerable<string> GetRegex(string nameRegex, string valueRegex)
+        public IEnumerable<string> GetRegex(GitConfigurationLevel level, string nameRegex, string valueRegex)
         {
-            string level = GetLevelFilterArg();
+            string levelArg = GetLevelFilterArg(level);
 
-            var gitArgs = $"config --null {level} --get-regex {QuoteCmdArg(nameRegex)}";
+            var gitArgs = $"config --null {levelArg} --get-regex {QuoteCmdArg(nameRegex)}";
             if (valueRegex != null)
             {
                 gitArgs += $" {QuoteCmdArg(valueRegex)}";
@@ -311,8 +375,8 @@ namespace Microsoft.Git.CredentialManager
                     case 1: // No results
                         break;
                     default:
-                        _trace.WriteLine($"Failed to get all multivar regex '{nameRegex}' and value regex '{valueRegex}' (exit={git.ExitCode}, level={_filterLevel})");
-                        throw CreateGitException(git, $"Failed to get Git configuration multi-valued entries with name regex '{nameRegex}'");
+                        _trace.WriteLine($"Failed to get all multivar regex '{nameRegex}' and value regex '{valueRegex}' (exit={git.ExitCode}, level={level})");
+                        throw GitProcess.CreateGitException(git, $"Failed to get Git configuration multi-valued entries with name regex '{nameRegex}'");
                 }
 
                 string[] entries = data.Split('\0');
@@ -328,15 +392,12 @@ namespace Microsoft.Git.CredentialManager
             }
         }
 
-        public void ReplaceAll(string name, string valueRegex, string value)
+        public void ReplaceAll(GitConfigurationLevel level, string name, string valueRegex, string value)
         {
-            if (_filterLevel == GitConfigurationLevel.All)
-            {
-                throw new InvalidOperationException("Must have a specific configuration level filter to modify values.");
-            }
+            EnsureSpecificLevel(level);
 
-            string level = GetLevelFilterArg();
-            var gitArgs = $"config {level} --replace-all {QuoteCmdArg(name)} {QuoteCmdArg(value)}";
+            string levelArg = GetLevelFilterArg(level);
+            var gitArgs = $"config {levelArg} --replace-all {QuoteCmdArg(name)} {QuoteCmdArg(value)}";
             if (valueRegex != null)
             {
                 gitArgs += $" {QuoteCmdArg(valueRegex)}";
@@ -352,21 +413,18 @@ namespace Microsoft.Git.CredentialManager
                     case 0: // OK
                         break;
                     default:
-                        _trace.WriteLine($"Failed to replace all multivar '{name}' and value regex '{valueRegex}' with new value '{value}' (exit={git.ExitCode}, level={_filterLevel})");
-                        throw CreateGitException(git, $"Failed to replace all Git configuration multi-valued entries '{name}'");
+                        _trace.WriteLine($"Failed to replace all multivar '{name}' and value regex '{valueRegex}' with new value '{value}' (exit={git.ExitCode}, level={level})");
+                        throw GitProcess.CreateGitException(git, $"Failed to replace all Git configuration multi-valued entries '{name}'");
                 }
             }
         }
 
-        public void UnsetAll(string name, string valueRegex)
+        public void UnsetAll(GitConfigurationLevel level, string name, string valueRegex)
         {
-            if (_filterLevel == GitConfigurationLevel.All)
-            {
-                throw new InvalidOperationException("Must have a specific configuration level filter to modify values.");
-            }
+            EnsureSpecificLevel(level);
 
-            string level = GetLevelFilterArg();
-            var gitArgs = $"config {level} --unset-all {QuoteCmdArg(name)}";
+            string levelArg = GetLevelFilterArg(level);
+            var gitArgs = $"config {levelArg} --unset-all {QuoteCmdArg(name)}";
             if (valueRegex != null)
             {
                 gitArgs += $" {QuoteCmdArg(valueRegex)}";
@@ -383,42 +441,31 @@ namespace Microsoft.Git.CredentialManager
                     case 5: // Trying to unset a value that does not exist
                         break;
                     default:
-                        _trace.WriteLine($"Failed to unset all multivar '{name}' with value regex '{valueRegex}' (exit={git.ExitCode}, level={_filterLevel})");
-                        throw CreateGitException(git, $"Failed to unset all Git configuration multi-valued entries '{name}'");
+                        _trace.WriteLine($"Failed to unset all multivar '{name}' with value regex '{valueRegex}' (exit={git.ExitCode}, level={level})");
+                        throw GitProcess.CreateGitException(git, $"Failed to unset all Git configuration multi-valued entries '{name}'");
                 }
             }
         }
 
-        private Exception CreateGitException(Process git, string message)
+        private static void EnsureSpecificLevel(GitConfigurationLevel level)
         {
-            var exceptionMessage = new StringBuilder();
-            string gitMessage = git.StandardError.ReadToEnd();
-
-            if (!string.IsNullOrWhiteSpace(gitMessage))
+            if (level == GitConfigurationLevel.All)
             {
-                exceptionMessage.AppendLine(gitMessage);
+                throw new InvalidOperationException("Must have a specific configuration level filter to modify values.");
             }
-
-            exceptionMessage.AppendLine(message);
-            exceptionMessage.AppendLine($"Exit code: '{git.ExitCode}'");
-            exceptionMessage.AppendLine($"Configuration level: {_filterLevel}");
-
-            throw new Exception(exceptionMessage.ToString());
         }
 
-        private string GetLevelFilterArg()
+        private static string GetLevelFilterArg(GitConfigurationLevel level)
         {
-            switch (_filterLevel)
+            switch (level)
             {
-                case GitConfigurationLevel.ProgramData:
-                case GitConfigurationLevel.Xdg:
-                    return null;
                 case GitConfigurationLevel.System:
                     return "--system";
                 case GitConfigurationLevel.Global:
                     return "--global";
                 case GitConfigurationLevel.Local:
                     return "--local";
+                case GitConfigurationLevel.Unknown:
                 default:
                     return null;
             }
@@ -499,15 +546,62 @@ namespace Microsoft.Git.CredentialManager
     public static class GitConfigurationExtensions
     {
         /// <summary>
+        /// Enumerate all configuration entries invoking the specified callback for each entry.
+        /// </summary>
+        /// <param name="config">Configuration object.</param>
+        /// <param name="cb">Callback to invoke for each matching configuration entry.</param>
+        public static void Enumerate(this IGitConfiguration config, GitConfigurationEnumerationCallback cb)
+        {
+            config.Enumerate(GitConfigurationLevel.All, cb);
+        }
+
+        /// <summary>
+        /// Enumerate all configuration entries invoking the specified callback for each entry.
+        /// </summary>
+        /// <param name="config">Configuration object.</param>
+        /// <param name="level">Filter to the specific configuration level.</param>
+        /// <param name="section">Optional section name to filter; use null for any.</param>
+        /// <param name="property">Optional property name to filter; use null for any.</param>
+        /// <param name="cb">Callback to invoke for each matching configuration entry.</param>
+        public static void Enumerate(this IGitConfiguration config,
+            GitConfigurationLevel level, string section, string property, GitConfigurationEnumerationCallback cb)
+        {
+            config.Enumerate(level, entry =>
+            {
+                if (GitConfigurationKeyComparer.TrySplit(entry.Key, out string entrySection, out _, out string entryProperty) &&
+                    (section  is null || GitConfigurationKeyComparer.SectionComparer.Equals(section, entrySection)) &&
+                    (property is null || GitConfigurationKeyComparer.PropertyComparer.Equals(property, entryProperty)))
+                {
+                    return cb(entry);
+                }
+
+                return true;
+            });
+        }
+
+        /// <summary>
+        /// Enumerate all configuration entries invoking the specified callback for each entry.
+        /// </summary>
+        /// <param name="config">Configuration object.</param>
+        /// <param name="section">Optional section name to filter; use null for any.</param>
+        /// <param name="property">Optional property name to filter; use null for any.</param>
+        /// <param name="cb">Callback to invoke for each matching configuration entry.</param>
+        public static void Enumerate(this IGitConfiguration config, string section, string property, GitConfigurationEnumerationCallback cb)
+        {
+            Enumerate(config, GitConfigurationLevel.All, section, property, cb);
+        }
+
+        /// <summary>
         /// Get the value of a configuration entry as a string.
         /// </summary>
         /// <exception cref="System.Collections.Generic.KeyNotFoundException">A configuration entry with the specified key was not found.</exception>
         /// <param name="config">Configuration object.</param>
+        /// <param name="level">Filter to the specific configuration level.</param>
         /// <param name="name">Configuration entry name.</param>
         /// <returns>Configuration entry value.</returns>
-        public static string Get(this IGitConfiguration config, string name)
+        public static string Get(this IGitConfiguration config, GitConfigurationLevel level, string name)
         {
-            if (!config.TryGet(name, out string value))
+            if (!config.TryGet(level, name, out string value))
             {
                 throw new KeyNotFoundException($"Git configuration entry with the name '{name}' was not found.");
             }
@@ -518,65 +612,48 @@ namespace Microsoft.Git.CredentialManager
         /// <summary>
         /// Get the value of a configuration entry as a string.
         /// </summary>
-        /// <param name="config">Configuration object.</param>
-        /// <param name="section">Configuration section name.</param>
-        /// <param name="property">Configuration property name.</param>
         /// <exception cref="System.Collections.Generic.KeyNotFoundException">A configuration entry with the specified key was not found.</exception>
-        /// <returns>Configuration entry value.</returns>
-        public static string Get(this IGitConfiguration config, string section, string property)
-        {
-            return Get(config, $"{section}.{property}");
-        }
-
-        /// <summary>
-        /// Get the value of a scoped configuration entry as a string.
-        /// </summary>
         /// <param name="config">Configuration object.</param>
-        /// <param name="section">Configuration section name.</param>
-        /// <param name="scope">Configuration section scope.</param>
-        /// <param name="property">Configuration property name.</param>
-        /// <exception cref="System.Collections.Generic.KeyNotFoundException">A configuration entry with the specified key was not found.</exception>
+        /// <param name="name">Configuration entry name.</param>
         /// <returns>Configuration entry value.</returns>
-        public static string Get(this IGitConfiguration config, string section, string scope, string property)
+        public static string Get(this IGitConfiguration config, string name)
         {
-            if (scope is null)
-            {
-                return Get(config, section, property);
-            }
-
-            return Get(config, $"{section}.{scope}.{property}");
+            return Get(config, GitConfigurationLevel.All, name);
         }
 
         /// <summary>
         /// Try and get the value of a configuration entry as a string.
         /// </summary>
         /// <param name="config">Configuration object.</param>
-        /// <param name="section">Configuration section name.</param>
-        /// <param name="property">Configuration property name.</param>
+        /// <param name="name">Configuration entry name.</param>
         /// <param name="value">Configuration entry value.</param>
         /// <returns>True if the value was found, false otherwise.</returns>
-        public static bool TryGet(this IGitConfiguration config, string section, string property, out string value)
+        public static bool TryGet(this IGitConfiguration config, string name, out string value)
         {
-            return config.TryGet($"{section}.{property}", out value);
+            return config.TryGet(GitConfigurationLevel.All, name, out value);
         }
 
         /// <summary>
-        /// Try and get the value of a configuration entry as a string.
+        /// Get all value of a multivar configuration entry.
         /// </summary>
         /// <param name="config">Configuration object.</param>
-        /// <param name="section">Configuration section name.</param>
-        /// <param name="scope">Configuration section scope.</param>
-        /// <param name="property">Configuration property name.</param>
-        /// <param name="value">Configuration entry value.</param>
-        /// <returns>True if the value was found, false otherwise.</returns>
-        public static bool TryGet(this IGitConfiguration config, string section, string scope, string property, out string value)
+        /// <param name="name">Configuration entry name.</param>
+        /// <returns>All values of the multivar configuration entry.</returns>
+        public static IEnumerable<string> GetAll(this IGitConfiguration config, string name)
         {
-            if (scope is null)
-            {
-                return TryGet(config, section, property, out value);
-            }
+            return config.GetAll(GitConfigurationLevel.All, name);
+        }
 
-            return config.TryGet($"{section}.{scope}.{property}", out value);
+        /// <summary>
+        /// Get all values of a multivar configuration entry.
+        /// </summary>
+        /// <param name="config">Configuration object.</param>
+        /// <param name="nameRegex">Configuration entry name regular expression.</param>
+        /// <param name="valueRegex">Regular expression to filter which variables we're interested in. Use null to indicate all.</param>
+        /// <returns>All values of the multivar configuration entry.</returns>
+        public static IEnumerable<string> GetRegex(this IGitConfiguration config, string nameRegex, string valueRegex)
+        {
+            return config.GetRegex(GitConfigurationLevel.All, nameRegex, valueRegex);
         }
     }
 }
