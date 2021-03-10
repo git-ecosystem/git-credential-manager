@@ -236,13 +236,23 @@ namespace Microsoft.Git.CredentialManager.Authentication
             }
             catch (MsalCachePersistenceException ex)
             {
-                Context.Streams.Error.WriteLine("warning: cannot persist Microsoft Authentication data securely!");
+                Context.Streams.Error.WriteLine("warning: cannot persist Microsoft authentication token cache securely!");
                 Context.Trace.WriteLine("Cannot persist Microsoft Authentication data securely!");
                 Context.Trace.WriteException(ex);
 
-                // On Linux the SecretService/keyring might not be available so we must fall-back to a plaintext file.
-                if (PlatformUtils.IsLinux())
+                if (PlatformUtils.IsMacOS())
                 {
+                    // On macOS sometimes the Keychain returns the "errSecAuthFailed" error - we don't know why
+                    // but it appears to be something to do with not being able to access the keychain.
+                    // Locking and unlocking (or restarting) often fixes this.
+                    Context.Streams.Error.WriteLine(
+                        "warning: there is a problem accessing the login Keychain - either manually lock and unlock the " +
+                        "login Keychain, or restart the computer to remedy this");
+                }
+                else if (PlatformUtils.IsLinux())
+                {
+                    // On Linux the SecretService/keyring might not be available so we must fall-back to a plaintext file.
+                    Context.Streams.Error.WriteLine("warning: using plain-text fallback token cache");
                     Context.Trace.WriteLine("Using fall-back plaintext token cache on Linux.");
                     var storageProps = CreateTokenCacheProps(clientId, useLinuxFallback: true);
                     helper = await MsalCacheHelper.CreateAsync(storageProps);
