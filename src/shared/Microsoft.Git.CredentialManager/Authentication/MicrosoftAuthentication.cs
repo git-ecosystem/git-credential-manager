@@ -197,6 +197,14 @@ namespace Microsoft.Git.CredentialManager.Authentication
                 appBuilder.WithLogging(OnMsalLogMessage, LogLevel.Verbose, enablePiiLogging, false);
             }
 
+            // If we have a parent window ID we should tell MSAL about it so it can parent any authentication dialogs
+            // correctly. We only support this on Windows right now as MSAL only supports embedded/dialogs on Windows.
+            if (PlatformUtils.IsWindows() && !string.IsNullOrWhiteSpace(Context.Settings.ParentWindowId) &&
+                int.TryParse(Context.Settings.ParentWindowId, out int hWndInt) && hWndInt > 0)
+            {
+                appBuilder.WithParentActivityOrWindow(() => new IntPtr(hWndInt));
+            }
+
             IPublicClientApplication app = appBuilder.Build();
 
             // Register the application token cache
