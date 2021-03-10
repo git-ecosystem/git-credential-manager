@@ -87,6 +87,7 @@ namespace Microsoft.Git.CredentialManager
                 public const string CredentialStore = "credentialStore";
                 public const string CredCacheOptions = "cacheOptions";
                 public const string PlaintextStorePath = "plaintextStorePath";
+                public const string UserName = "username";
             }
 
             public static class Http
@@ -94,6 +95,13 @@ namespace Microsoft.Git.CredentialManager
                 public const string SectionName = "http";
                 public const string Proxy = "proxy";
                 public const string SslVerify = "sslVerify";
+            }
+
+            public static class Remote
+            {
+                public const string SectionName = "remote";
+                public const string FetchUrl = "url";
+                public const string PushUrl = "pushUrl";
             }
         }
 

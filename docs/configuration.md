@@ -333,3 +333,26 @@ Credential: "git:https://bob@github.com/example/myrepo" (user = bob)
 
    https://bob@github.com/example/myrepo
 ```
+
+---
+
+### credential.azreposCredentialType _(experimental)_
+
+Specify the type of credential the Azure Repos host provider should return.
+
+Defaults to the value `pat`.
+
+Value|Description
+-|-
+`pat` _(default)_|Azure DevOps personal access tokens
+`oauth`|Microsoft identity OAuth tokens (AAD or MSA tokens)
+
+More information about Azure Access tokens can be found [here](azrepos-azuretokens.md).
+
+#### Example
+
+```shell
+git config --global credential.azreposCredentialType oauth
+```
+
+**Also see: [GCM_AZREPOS_CREDENTIALTYPE](environment.md#GCM_AZREPOS_CREDENTIALTYPE-experimental)**

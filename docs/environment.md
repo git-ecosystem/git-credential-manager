@@ -424,3 +424,32 @@ export GCM_MSAUTH_FLOW="devicecode"
 ```
 
 **Also see: [credential.msauthFlow](configuration.md#credentialmsauthflow)**
+
+---
+
+### GCM_AZREPOS_CREDENTIALTYPE _(experimental)_
+
+Specify the type of credential the Azure Repos host provider should return.
+
+Defaults to the value `pat`.
+
+Value|Description
+-|-
+`pat` _(default)_|Azure DevOps personal access tokens
+`oauth`|Microsoft identity OAuth tokens (AAD or MSA tokens)
+
+More information about Azure Access tokens can be found [here](azrepos-azuretokens.md).
+
+##### Windows
+
+```batch
+SET GCM_AZREPOS_CREDENTIALTYPE="oauth"
+```
+
+##### macOS/Linux
+
+```bash
+export GCM_AZREPOS_CREDENTIALTYPE="oauth"
+```
+
+**Also see: [credential.azreposCredentialType](configuration.md#azreposcredentialtype-experimental)**

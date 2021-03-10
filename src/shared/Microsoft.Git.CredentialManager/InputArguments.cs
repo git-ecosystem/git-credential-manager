@@ -106,7 +106,7 @@ namespace Microsoft.Git.CredentialManager
                     ub.Port = port;
                 }
 
-                if (includeUser)
+                if (includeUser && !string.IsNullOrEmpty(UserName))
                 {
                     ub.UserName = Uri.EscapeDataString(UserName);
                 }

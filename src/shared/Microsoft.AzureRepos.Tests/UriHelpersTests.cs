@@ -76,159 +76,96 @@ namespace Microsoft.AzureRepos.Tests
         [Fact]
         public void UriHelpers_CreateOrganizationUri_Null_ThrowsException()
         {
-            Assert.Throws<ArgumentNullException>(() => UriHelpers.CreateOrganizationUri(null));
-        }
-
-        [Fact]
-        public void UriHelpers_CreateOrganizationUri_InputArgsMissingProtocol_ThrowsException()
-        {
-            var input = new InputArguments(new Dictionary<string, string>
-            {
-                ["host"] = "dev.azure.com"
-            });
-
-            Assert.Throws<InvalidOperationException>(() => UriHelpers.CreateOrganizationUri(input));
-        }
-
-        [Fact]
-        public void UriHelpers_CreateOrganizationUri_InputArgsMissingHost_ThrowsException()
-        {
-            var input = new InputArguments(new Dictionary<string, string>
-            {
-                ["protocol"] = "https"
-            });
-
-            Assert.Throws<InvalidOperationException>(() => UriHelpers.CreateOrganizationUri(input));
+            Assert.Throws<ArgumentNullException>(() => UriHelpers.CreateOrganizationUri(null, out _));
         }
 
         [Fact]
         public void UriHelpers_CreateOrganizationUri_AzureHost_ReturnsCorrectUri()
         {
             var expected = new Uri("https://dev.azure.com/myorg");
-            var input = new InputArguments(new Dictionary<string, string>
-            {
-                ["protocol"] = "https",
-                ["host"]     = "dev.azure.com",
-                ["path"]     = "myorg/myproject/_git/myrepo"
-            });
+            var input =  new Uri("https://dev.azure.com/myorg/myproject/_git/myrepo");
+            const string expectedOrg = "myorg";
 
-            Uri actual = UriHelpers.CreateOrganizationUri(input);
+            Uri actual = UriHelpers.CreateOrganizationUri(input, out string actualOrg);
 
             Assert.Equal(expected, actual);
+            Assert.Equal(expectedOrg, actualOrg);
         }
 
         [Fact]
         public void UriHelpers_CreateOrganizationUri_AzureHost_WithPort_ReturnsCorrectUri()
         {
             var expected = new Uri("https://dev.azure.com:456/myorg");
-            var input = new InputArguments(new Dictionary<string, string>
-            {
-                ["protocol"] = "https",
-                ["host"]     = "dev.azure.com:456",
-                ["path"]     = "myorg/myproject/_git/myrepo"
-            });
+            var input = new Uri("https://dev.azure.com:456/myorg/myproject/_git/myrepo");
+            const string expectedOrg = "myorg";
 
-            Uri actual = UriHelpers.CreateOrganizationUri(input);
+            Uri actual = UriHelpers.CreateOrganizationUri(input, out string actualOrg);
 
             Assert.Equal(expected, actual);
-        }
-
-        [Fact]
-        public void UriHelpers_CreateOrganizationUri_AzureHost_WithBadPort_ThrowsException()
-        {
-            var expected = new Uri("https://dev.azure.com:456/myorg");
-            var input = new InputArguments(new Dictionary<string, string>
-            {
-                ["protocol"] = "https",
-                ["host"]     = "dev.azure.com:not-a-port",
-                ["path"]     = "myorg/myproject/_git/myrepo"
-            });
-
-            Assert.Throws<InvalidOperationException>(() => UriHelpers.CreateOrganizationUri(input));
+            Assert.Equal(expectedOrg, actualOrg);
         }
 
         [Fact]
         public void UriHelpers_CreateOrganizationUri_AzureHost_OrgAlsoInUser_PrefersPathOrg()
         {
             var expected = new Uri("https://dev.azure.com/myorg-path");
-            var input = new InputArguments(new Dictionary<string, string>
-            {
-                ["protocol"] = "https",
-                ["host"]     = "dev.azure.com",
-                ["path"]     = "myorg-path",
-                ["username"] = "myorg-user"
-            });
+            var input = new Uri("https://myorg-user@dev.azure.com/myorg-path");
+            const string expectedOrg = "myorg-path";
 
-            Uri actual = UriHelpers.CreateOrganizationUri(input);
+            Uri actual = UriHelpers.CreateOrganizationUri(input, out string actualOrg);
 
             Assert.Equal(expected, actual);
+            Assert.Equal(expectedOrg, actualOrg);
         }
 
         [Fact]
         public void UriHelpers_CreateOrganizationUri_AzureHost_InputArgsMissingPath_HasUser_UsesUserOrg()
         {
             var expected = new Uri("https://dev.azure.com/myorg-user");
-            var input = new InputArguments(new Dictionary<string, string>
-            {
-                ["protocol"] = "https",
-                ["host"]     = "dev.azure.com",
-                ["username"] = "myorg-user"
-            });
+            var input = new Uri("https://myorg-user@dev.azure.com");
+            const string expectedOrg = "myorg-user";
 
-            Uri actual = UriHelpers.CreateOrganizationUri(input);
+            Uri actual = UriHelpers.CreateOrganizationUri(input, out string actualOrg);
 
             Assert.Equal(expected, actual);
+            Assert.Equal(expectedOrg, actualOrg);
         }
 
         [Fact]
         public void UriHelpers_CreateOrganizationUri_AzureHost_InputArgsMissingPathAndUser_ThrowsException()
         {
-            var input = new InputArguments(new Dictionary<string, string>
-            {
-                ["protocol"] = "https",
-                ["host"]     = "dev.azure.com"
-            });
+            var input = new Uri("https://dev.azure.com");
 
-            Assert.Throws<InvalidOperationException>(() => UriHelpers.CreateOrganizationUri(input));
+            Assert.Throws<InvalidOperationException>(() => UriHelpers.CreateOrganizationUri(input, out _));
         }
 
         [Fact]
         public void UriHelpers_CreateOrganizationUri_VisualStudioHost_ReturnsCorrectUri()
         {
-            var expected = new Uri("https://myorg.visualstudio.com/");
-            var input = new InputArguments(new Dictionary<string, string>
-            {
-                ["protocol"] = "https",
-                ["host"]     = "myorg.visualstudio.com",
-            });
+            var expected = new Uri("https://myorg.visualstudio.com");
+            var input = new Uri("https://myorg.visualstudio.com");
+            const string expectedOrg = "myorg";
 
-            Uri actual = UriHelpers.CreateOrganizationUri(input);
+            Uri actual = UriHelpers.CreateOrganizationUri(input, out string actualOrg);
 
             Assert.Equal(expected, actual);
+            Assert.Equal(expectedOrg, actualOrg);
         }
 
         [Fact]
         public void UriHelpers_CreateOrganizationUri_VisualStudioHost_MissingOrgInHost_ThrowsException()
         {
-            var input = new InputArguments(new Dictionary<string, string>
-            {
-                ["protocol"] = "https",
-                ["host"] = "visualstudio.com",
-            });
+            var input = new Uri("https://visualstudio.com");
 
-            Assert.Throws<InvalidOperationException>(() => UriHelpers.CreateOrganizationUri(input));
+            Assert.Throws<InvalidOperationException>(() => UriHelpers.CreateOrganizationUri(input, out _));
         }
 
         [Fact]
         public void UriHelpers_CreateOrganizationUri_NonAzureDevOpsHost_ThrowsException()
         {
-            var input = new InputArguments(new Dictionary<string, string>
-            {
-                ["protocol"] = "https",
-                ["host"] = "example.com",
-            });
+            var input = new Uri("https://example.com");
 
-            Assert.Throws<InvalidOperationException>(() => UriHelpers.CreateOrganizationUri(input));
+            Assert.Throws<InvalidOperationException>(() => UriHelpers.CreateOrganizationUri(input, out _));
         }
     }
 }

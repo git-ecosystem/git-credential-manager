@@ -15,9 +15,11 @@ namespace Microsoft.Git.CredentialManager.Tests.Commands
         {
             const string testUserName = "john.doe";
             const string testPassword = "letmein123"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
-            var stdin = $"username={testUserName}\npassword={testPassword}\n\n";
+            var stdin = $"protocol=http\nhost=example.com\nusername={testUserName}\npassword={testPassword}\n\n";
             var expectedInput = new InputArguments(new Dictionary<string, string>
             {
+                ["protocol"] = "http",
+                ["host"]     = "example.com",
                 ["username"] = testUserName,
                 ["password"] = testPassword
             });
