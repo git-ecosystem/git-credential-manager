@@ -121,7 +121,7 @@ namespace Microsoft.Git.CredentialManager.Authentication
             }
             else
             {
-                string executableDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+                string executableDirectory = Path.GetDirectoryName(Context.ApplicationPath);
                 path = Path.Combine(executableDirectory!, helperName);
             }
 

@@ -16,8 +16,8 @@ namespace Microsoft.Git.CredentialManager.Tests
             const string executablePath = "/usr/local/share/gcm-core/git-credential-manager-core";
             string key = $"{Constants.GitConfiguration.Credential.SectionName}.{Constants.GitConfiguration.Credential.Helper}";
 
-            var context = new TestCommandContext();
-            IConfigurableComponent application = new Application(context, executablePath);
+            var context = new TestCommandContext {AppPath = executablePath};
+            IConfigurableComponent application = new Application(context);
             await application.ConfigureAsync(ConfigurationTarget.User);
 
             Assert.Single(context.Git.Configuration.Global);
@@ -34,8 +34,8 @@ namespace Microsoft.Git.CredentialManager.Tests
             const string executablePath = "/usr/local/share/gcm-core/git-credential-manager-core";
             string key = $"{Constants.GitConfiguration.Credential.SectionName}.{Constants.GitConfiguration.Credential.Helper}";
 
-            var context = new TestCommandContext();
-            IConfigurableComponent application = new Application(context, executablePath);
+            var context = new TestCommandContext {AppPath = executablePath};
+            IConfigurableComponent application = new Application(context);
 
             context.Git.Configuration.Global[key] = new List<string> {executablePath};
 
@@ -55,8 +55,8 @@ namespace Microsoft.Git.CredentialManager.Tests
             const string executablePath = "/usr/local/share/gcm-core/git-credential-manager-core";
             string key = $"{Constants.GitConfiguration.Credential.SectionName}.{Constants.GitConfiguration.Credential.Helper}";
 
-            var context = new TestCommandContext();
-            IConfigurableComponent application = new Application(context, executablePath);
+            var context = new TestCommandContext {AppPath = executablePath};
+            IConfigurableComponent application = new Application(context);
 
             context.Git.Configuration.Global[key] = new List<string>
             {
@@ -80,8 +80,8 @@ namespace Microsoft.Git.CredentialManager.Tests
             const string executablePath = "/usr/local/share/gcm-core/git-credential-manager-core";
             string key = $"{Constants.GitConfiguration.Credential.SectionName}.{Constants.GitConfiguration.Credential.Helper}";
 
-            var context = new TestCommandContext();
-            IConfigurableComponent application = new Application(context, executablePath);
+            var context = new TestCommandContext {AppPath = executablePath};
+            IConfigurableComponent application = new Application(context);
 
             context.Git.Configuration.Global[key] = new List<string>
             {
@@ -106,8 +106,8 @@ namespace Microsoft.Git.CredentialManager.Tests
             const string executablePath = "/usr/local/share/gcm-core/git-credential-manager-core";
             string key = $"{Constants.GitConfiguration.Credential.SectionName}.{Constants.GitConfiguration.Credential.Helper}";
 
-            var context = new TestCommandContext();
-            IConfigurableComponent application = new Application(context, executablePath);
+            var context = new TestCommandContext {AppPath = executablePath};
+            IConfigurableComponent application = new Application(context);
 
             context.Git.Configuration.Global[key] = new List<string>
             {
@@ -133,8 +133,8 @@ namespace Microsoft.Git.CredentialManager.Tests
             const string executablePath = "/usr/local/share/gcm-core/git-credential-manager-core";
             string key = $"{Constants.GitConfiguration.Credential.SectionName}.{Constants.GitConfiguration.Credential.Helper}";
 
-            var context = new TestCommandContext();
-            IConfigurableComponent application = new Application(context, executablePath);
+            var context = new TestCommandContext {AppPath = executablePath};
+            IConfigurableComponent application = new Application(context);
 
             context.Git.Configuration.Global[key] = new List<string>
             {
@@ -160,8 +160,8 @@ namespace Microsoft.Git.CredentialManager.Tests
             const string executablePath = "/usr/local/share/gcm-core/git-credential-manager-core";
             string key = $"{Constants.GitConfiguration.Credential.SectionName}.{Constants.GitConfiguration.Credential.Helper}";
 
-            var context = new TestCommandContext();
-            IConfigurableComponent application = new Application(context, executablePath);
+            var context = new TestCommandContext {AppPath = executablePath};
+            IConfigurableComponent application = new Application(context);
 
             context.Git.Configuration.Global[key] = new List<string>
             {
@@ -186,8 +186,8 @@ namespace Microsoft.Git.CredentialManager.Tests
             const string executablePath = "/usr/local/share/gcm-core/git-credential-manager-core";
             string key = $"{Constants.GitConfiguration.Credential.SectionName}.{Constants.GitConfiguration.Credential.Helper}";
 
-            var context = new TestCommandContext();
-            IConfigurableComponent application = new Application(context, executablePath);
+            var context = new TestCommandContext {AppPath = executablePath};
+            IConfigurableComponent application = new Application(context);
             await application.UnconfigureAsync(ConfigurationTarget.User);
 
             Assert.Empty(context.Git.Configuration.Global);
@@ -199,8 +199,8 @@ namespace Microsoft.Git.CredentialManager.Tests
             const string executablePath = "/usr/local/share/gcm-core/git-credential-manager-core";
             string key = $"{Constants.GitConfiguration.Credential.SectionName}.{Constants.GitConfiguration.Credential.Helper}";
 
-            var context = new TestCommandContext();
-            IConfigurableComponent application = new Application(context, executablePath);
+            var context = new TestCommandContext {AppPath = executablePath};
+            IConfigurableComponent application = new Application(context);
 
             context.Git.Configuration.Global[key] = new List<string> {executablePath};
 
@@ -216,8 +216,8 @@ namespace Microsoft.Git.CredentialManager.Tests
             const string executablePath = "/usr/local/share/gcm-core/git-credential-manager-core";
             string key = $"{Constants.GitConfiguration.Credential.SectionName}.{Constants.GitConfiguration.Credential.Helper}";
 
-            var context = new TestCommandContext();
-            IConfigurableComponent application = new Application(context, executablePath);
+            var context = new TestCommandContext {AppPath = executablePath};
+            IConfigurableComponent application = new Application(context);
 
             context.Git.Configuration.Global[key] = new List<string> {emptyHelper, executablePath};
 
@@ -234,8 +234,8 @@ namespace Microsoft.Git.CredentialManager.Tests
             const string executablePath = "/usr/local/share/gcm-core/git-credential-manager-core";
             string key = $"{Constants.GitConfiguration.Credential.SectionName}.{Constants.GitConfiguration.Credential.Helper}";
 
-            var context = new TestCommandContext();
-            IConfigurableComponent application = new Application(context, executablePath);
+            var context = new TestCommandContext {AppPath = executablePath};
+            IConfigurableComponent application = new Application(context);
 
             context.Git.Configuration.Global[key] = new List<string>
             {
@@ -258,8 +258,8 @@ namespace Microsoft.Git.CredentialManager.Tests
             const string executablePath = "/usr/local/share/gcm-core/git-credential-manager-core";
             string key = $"{Constants.GitConfiguration.Credential.SectionName}.{Constants.GitConfiguration.Credential.Helper}";
 
-            var context = new TestCommandContext();
-            IConfigurableComponent application = new Application(context, executablePath);
+            var context = new TestCommandContext {AppPath = executablePath};
+            IConfigurableComponent application = new Application(context);
 
             context.Git.Configuration.Global[key] = new List<string>
             {
@@ -284,8 +284,8 @@ namespace Microsoft.Git.CredentialManager.Tests
             const string executablePath = "/usr/local/share/gcm-core/git-credential-manager-core";
             string key = $"{Constants.GitConfiguration.Credential.SectionName}.{Constants.GitConfiguration.Credential.Helper}";
 
-            var context = new TestCommandContext();
-            IConfigurableComponent application = new Application(context, executablePath);
+            var context = new TestCommandContext {AppPath = executablePath};
+            IConfigurableComponent application = new Application(context);
 
             context.Git.Configuration.Global[key] = new List<string>
             {

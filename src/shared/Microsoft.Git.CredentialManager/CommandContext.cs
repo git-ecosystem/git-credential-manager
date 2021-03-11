@@ -15,6 +15,11 @@ namespace Microsoft.Git.CredentialManager
     public interface ICommandContext : IDisposable
     {
         /// <summary>
+        /// Absolute path the application entry executable.
+        /// </summary>
+        string ApplicationPath { get; }
+
+        /// <summary>
         /// Settings and configuration for Git Credential Manager.
         /// </summary>
         ISettings Settings { get; }
@@ -75,8 +80,11 @@ namespace Microsoft.Git.CredentialManager
     /// </summary>
     public class CommandContext : DisposableObject, ICommandContext
     {
-        public CommandContext()
+        public CommandContext(string appPath)
         {
+            EnsureArgument.NotNullOrWhiteSpace(appPath, nameof (appPath));
+
+            ApplicationPath = appPath;
             Streams = new StandardStreams();
             Trace   = new Trace();
 
@@ -164,6 +172,8 @@ namespace Microsoft.Git.CredentialManager
         }
 
         #region ICommandContext
+
+        public string ApplicationPath { get; }
 
         public ISettings Settings { get; }
 
