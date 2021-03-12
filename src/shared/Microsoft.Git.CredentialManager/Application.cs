@@ -17,27 +17,23 @@ namespace Microsoft.Git.CredentialManager
 {
     public class Application : ApplicationBase, IConfigurableComponent
     {
-        private readonly string _appPath;
         private readonly IHostProviderRegistry _providerRegistry;
         private readonly IConfigurationService _configurationService;
         private readonly IList<ProviderCommand> _providerCommands = new List<ProviderCommand>();
 
-        public Application(ICommandContext context, string appPath)
-            : this(context, new HostProviderRegistry(context), new ConfigurationService(context), appPath)
+        public Application(ICommandContext context)
+            : this(context, new HostProviderRegistry(context), new ConfigurationService(context))
         {
         }
 
         internal Application(ICommandContext context,
                              IHostProviderRegistry providerRegistry,
-                             IConfigurationService configurationService,
-                             string appPath)
+                             IConfigurationService configurationService)
             : base(context)
         {
             EnsureArgument.NotNull(providerRegistry, nameof(providerRegistry));
             EnsureArgument.NotNull(configurationService, nameof(configurationService));
-            EnsureArgument.NotNullOrWhiteSpace(appPath, nameof(appPath));
 
-            _appPath = appPath;
             _providerRegistry = providerRegistry;
             _configurationService = configurationService;
 
@@ -84,7 +80,7 @@ namespace Microsoft.Git.CredentialManager
             Context.Trace.WriteLine($"Version: {Constants.GcmVersion}");
             Context.Trace.WriteLine($"Runtime: {info.ClrVersion}");
             Context.Trace.WriteLine($"Platform: {info.OperatingSystemType} ({info.CpuArchitecture})");
-            Context.Trace.WriteLine($"AppPath: {_appPath}");
+            Context.Trace.WriteLine($"AppPath: {Context.ApplicationPath}");
             Context.Trace.WriteLine($"Arguments: {string.Join(" ", args)}");
 
             var parser = new CommandLineBuilder(rootCommand)
@@ -243,18 +239,18 @@ namespace Microsoft.Git.CredentialManager
         {
             const string gitCredentialPrefix = "git-credential-";
 
-            string appName = Path.GetFileNameWithoutExtension(_appPath);
+            string appName = Path.GetFileNameWithoutExtension(Context.ApplicationPath);
             if (appName != null && appName.StartsWith(gitCredentialPrefix, StringComparison.OrdinalIgnoreCase))
             {
                 return appName.Substring(gitCredentialPrefix.Length);
             }
 
-            return _appPath;
+            return Context.ApplicationPath;
         }
 
         private string GetGitConfigAppPath()
         {
-            string path = _appPath;
+            string path = Context.ApplicationPath;
 
             // On Windows we must use UNIX style path separators
             if (PlatformUtils.IsWindows())

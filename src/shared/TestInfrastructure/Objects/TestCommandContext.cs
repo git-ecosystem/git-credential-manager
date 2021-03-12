@@ -12,6 +12,10 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
     {
         public TestCommandContext()
         {
+            AppPath = PlatformUtils.IsWindows()
+                ? @"C:\Program Files\Git Credential Manager Core\git-credential-manager-core.exe"
+                : "/usr/local/bin/git-credential-manager-core";
+
             Streams = new TestStandardStreams();
             Terminal = new TestTerminal();
             SessionManager = new TestSessionManager();
@@ -26,6 +30,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
             Settings = new TestSettings {Environment = Environment, GitConfiguration = Git.Configuration};
         }
 
+        public string AppPath { get; set; }
         public TestSettings Settings { get; set; }
         public TestStandardStreams Streams { get; set; }
         public TestTerminal Terminal { get; set; }
@@ -39,6 +44,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
         public TestSystemPrompts SystemPrompts { get; set; }
 
         #region ICommandContext
+
+        string ICommandContext.ApplicationPath => AppPath;
 
         IStandardStreams ICommandContext.Streams => Streams;
 
