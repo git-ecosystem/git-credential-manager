@@ -7,6 +7,11 @@ The Azure Repos host provider supports creating multiple types of credential:
 - Azure DevOps personal access tokens
 - Microsoft identity OAuth tokens (experimental)
 
+To select which type of credential the Azure Repos host provider will create
+and use, you can set the [`credential.azreposCredentialType`](https://github.com/microsoft/Git-Credential-Manager-Core/blob/master/docs/configuration.md#credentialazreposcredentialtype-experimental)
+configuration entry (or [`GCM_AZREPOS_CREDENTIALTYPE`](https://github.com/microsoft/Git-Credential-Manager-Core/blob/master/docs/environment.md#GCM_AZREPOS_CREDENTIALTYPE-experimental)
+environment variable).
+
 ### Azure DevOps personal access tokens
 
 Historically, the only option supported by the Azure Repos host provider was
