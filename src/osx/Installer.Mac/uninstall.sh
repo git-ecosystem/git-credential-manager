@@ -10,9 +10,9 @@ then
 	exit $?
 fi
 
-# Unconfigure
+# Unconfigure (as the current user)
 echo "Unconfiguring credential helper..."
-"$GCMBIN" unconfigure
+sudo -u `/usr/bin/logname` "$GCMBIN" unconfigure
 
 # Remove symlink
 if [ -L /usr/local/bin/git-credential-manager-core ]
