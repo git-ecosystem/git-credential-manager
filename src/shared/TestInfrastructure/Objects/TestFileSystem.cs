@@ -3,18 +3,17 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text.RegularExpressions;
+using System.Text;
 
 namespace Microsoft.Git.CredentialManager.Tests.Objects
 {
     public class TestFileSystem : IFileSystem
     {
+        public IDictionary<string, MemoryStream> Files { get; set; } = new Dictionary<string, MemoryStream>();
+        public ISet<string> Directories { get; set; } = new HashSet<string>();
+        public string CurrentDirectory { get; set; }
         public string UserHomePath { get; set; }
         public string UserDataDirectoryPath { get; set; }
-        public IDictionary<string, byte[]> Files { get; set; } = new Dictionary<string, byte[]>();
-        public ISet<string> Directories { get; set; } = new HashSet<string>();
-        public string CurrentDirectory { get; set; } = Path.GetTempPath();
-        public bool IsCaseSensitive { get; set; } = false;
 
         public TestFileSystem()
         {
@@ -24,13 +23,6 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
         }
 
         #region IFileSystem
-
-        bool IFileSystem.IsSamePath(string a, string b)
-        {
-            return IsCaseSensitive
-                ? StringComparer.Ordinal.Equals(a, b)
-                : StringComparer.OrdinalIgnoreCase.Equals(a, b);
-        }
 
         bool IFileSystem.FileExists(string path)
         {
@@ -49,14 +41,68 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
 
         Stream IFileSystem.OpenFileStream(string path, FileMode fileMode, FileAccess fileAccess, FileShare fileShare)
         {
-            bool writable = fileAccess != FileAccess.Read;
+            MemoryStream stream;
 
-            if (fileMode == FileMode.Create)
+            bool writable = fileAccess == FileAccess.Write || fileAccess == FileAccess.ReadWrite;
+
+            // Simulate System.IO.FileStream
+            switch (fileMode)
             {
-                return new TestFileStream(this, path);
+                case FileMode.Append:
+                    if (!writable) throw new IOException();
+                    stream = Files[path];
+                    stream.Seek(0, SeekOrigin.End);
+                    break;
+
+                case FileMode.Create:
+                    Files[path] = new MemoryStream();
+                    stream = Files[path];
+                    break;
+
+                case FileMode.CreateNew:
+                    if (Files.ContainsKey(path)) throw new IOException();
+                    Files[path] = new MemoryStream();
+                    stream = Files[path];
+                    break;
+
+                case FileMode.Open:
+                    if (!Files.ContainsKey(path)) throw new FileNotFoundException();
+                    stream = Files[path];
+                    stream.Seek(0, SeekOrigin.Begin);
+                    break;
+
+                case FileMode.OpenOrCreate:
+                    if (!Files.TryGetValue(path, out stream))
+                    {
+                        Files[path] = new MemoryStream();
+                        stream = Files[path];
+                    }
+                    stream.Seek(0, SeekOrigin.Begin);
+                    break;
+
+                case FileMode.Truncate:
+                    Files[path] = new MemoryStream();
+                    stream = Files[path];
+                    break;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(fileMode), fileMode, "Unknown FileMode");
             }
 
-            return new MemoryStream(Files[path], writable);
+            return stream;
+        }
+
+        public string ReadAllText(string path)
+        {
+            var bytes = Files[path].ToArray();
+            return Encoding.UTF8.GetString(bytes);
+        }
+
+        public void WriteAllText(string path, string contents)
+        {
+            var bytes = Encoding.UTF8.GetBytes(contents);
+            Files[path] = new MemoryStream();
+            Files[path].Write(bytes, 0, bytes.Length);
         }
 
         void IFileSystem.CreateDirectory(string path)
@@ -69,49 +115,6 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
             Files.Remove(path);
         }
 
-        IEnumerable<string> IFileSystem.EnumerateFiles(string path, string searchPattern)
-        {
-            bool IsPatternMatch(string s, string p)
-            {
-                var options = IsCaseSensitive ? RegexOptions.None : RegexOptions.IgnoreCase;
-                string regex = p
-                    .Replace(".", "\\.")
-                    .Replace("*", ".*");
-
-                return Regex.IsMatch(s, regex, options);
-            }
-
-            StringComparison comparer = IsCaseSensitive
-                ? StringComparison.Ordinal
-                : StringComparison.OrdinalIgnoreCase;
-
-            foreach (var filePath in Files.Keys)
-            {
-                if (filePath.StartsWith(path, comparer) && IsPatternMatch(filePath, searchPattern))
-                {
-                    yield return filePath;
-                }
-            }
-        }
-
         #endregion
-    }
-
-    public class TestFileStream : MemoryStream
-    {
-        private readonly TestFileSystem _fs;
-        private readonly string _path;
-
-        public TestFileStream(TestFileSystem fs, string path)
-        {
-            _fs = fs;
-            _path = path;
-        }
-
-        public override void Flush()
-        {
-            base.Flush();
-            _fs.Files[_path] = base.ToArray();
-        }
     }
 }

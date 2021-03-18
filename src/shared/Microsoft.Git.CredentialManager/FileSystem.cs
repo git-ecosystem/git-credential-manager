@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
 using System;
-using System.Collections.Generic;
 using System.IO;
 
 namespace Microsoft.Git.CredentialManager
@@ -12,7 +11,7 @@ namespace Microsoft.Git.CredentialManager
     public interface IFileSystem
     {
         /// <summary>
-        /// Get the path to the user's home profile directory (Unix: $HOME, Windows: %USERPROFILE%).
+        /// Get the path to the user's home profile directory ($HOME, %USERPROFILE%).
         /// </summary>
         string UserHomePath { get; }
 
@@ -20,14 +19,6 @@ namespace Microsoft.Git.CredentialManager
         /// Get the path the the user's Git Credential Manager data directory.
         /// </summary>
         string UserDataDirectoryPath { get; }
-
-        /// <summary>
-        /// Check if two paths are the same for the current platform and file system. Symbolic links are not followed.
-        /// </summary>
-        /// <param name="a">File path.</param>
-        /// <param name="b">File path.</param>
-        /// <returns>True if both file paths are the same, false otherwise.</returns>
-        bool IsSamePath(string a, string b);
 
         /// <summary>
         /// Check if a file exists at the specified path.
@@ -60,7 +51,22 @@ namespace Microsoft.Git.CredentialManager
         Stream OpenFileStream(string path, FileMode fileMode, FileAccess fileAccess, FileShare fileShare);
 
         /// <summary>
-        /// Creates all directories and subdirectories in the specified path unless they already exist.
+        /// Opens a text file, reads all lines of the file, and then closes the file.
+        /// </summary>
+        /// <param name="path">The file to open for reading.</param>
+        /// <returns>A string containing all lines of the file.</returns>
+        string ReadAllText(string path);
+
+        /// <summary>
+        /// Creates a new file, writes the specified string to the file, and then closes the file.
+        /// If the target file already exists, it is overwritten.
+        /// </summary>
+        /// <param name="path">The file to write to.</param>
+        /// <param name="contents">The string to write to the file</param>
+        void WriteAllText(string path, string contents);
+
+        /// <summary>
+        /// Creates directories and subdirectories in the specified path unless they already exist.
         /// </summary>
         /// <param name="path">The directory to create.</param>
         void CreateDirectory(string path);
@@ -68,36 +74,18 @@ namespace Microsoft.Git.CredentialManager
         /// <summary>
         /// Deletes the specified file.
         /// </summary>
-        /// <param name="path">Name of the file to be deleted.</param>
+        /// <param name="path">The file to delete.</param>
         void DeleteFile(string path);
-
-        /// <summary>
-        /// Returns an enumerable collection of full file names that match a search pattern in a specified path.
-        /// </summary>
-        /// <param name="path">The relative or absolute path to the directory to search.</param>
-        /// <param name="searchPattern">
-        /// The search string to match against the names of files in path.
-        /// This parameter can contain a combination of valid literal path and wildcard (* and ?) characters,
-        /// but it doesn't support regular expressions.
-        /// </param>
-        /// <returns>
-        /// An enumerable collection of the full names (including paths) for the files in the directory
-        /// specified by path and that match the specified search pattern.
-        /// </returns>
-        IEnumerable<string> EnumerateFiles(string path, string searchPattern);
-
     }
 
     /// <summary>
     /// The real file system.
     /// </summary>
-    public abstract class FileSystem : IFileSystem
+    public class FileSystem : IFileSystem
     {
         public string UserHomePath => Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
 
-        public string UserDataDirectoryPath => Path.Combine(UserHomePath, Constants.GcmDataDirectoryName);
-
-        public abstract bool IsSamePath(string a, string b);
+        public string UserDataDirectoryPath => Path.Combine(UserHomePath, ".gcm");
 
         public bool FileExists(string path) => File.Exists(path);
 
@@ -108,10 +96,12 @@ namespace Microsoft.Git.CredentialManager
         public Stream OpenFileStream(string path, FileMode fileMode, FileAccess fileAccess, FileShare fileShare)
             => File.Open(path, fileMode, fileAccess, fileShare);
 
+        public string ReadAllText(string path) => File.ReadAllText(path);
+
+        public void WriteAllText(string path, string contents) => File.WriteAllText(path, contents);
+
         public void CreateDirectory(string path) => Directory.CreateDirectory(path);
 
         public void DeleteFile(string path) => File.Delete(path);
-
-        public IEnumerable<string> EnumerateFiles(string path, string searchPattern) => Directory.EnumerateFiles(path, searchPattern);
     }
 }

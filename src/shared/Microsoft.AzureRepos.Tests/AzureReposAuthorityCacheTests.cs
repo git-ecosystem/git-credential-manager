@@ -2,8 +2,6 @@
 // Licensed under the MIT license.
 using System;
 using System.Collections.Generic;
-using System.Globalization;
-using Microsoft.Git.CredentialManager;
 using Microsoft.Git.CredentialManager.Tests.Objects;
 using Xunit;
 
@@ -14,9 +12,11 @@ namespace Microsoft.AzureRepos.Tests
         [Fact]
         public void AzureReposAuthorityCache_GetAuthority_Null_ThrowException()
         {
+            var dict  = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
             var trace = new NullTrace();
-            var git = new TestGit();
-            var cache = new AzureDevOpsAuthorityCache(trace, git);
+            var store = new InMemoryValueStore<string, string>(dict);
+            var cache = new AzureReposAuthorityCache(trace, store);
 
             Assert.Throws<ArgumentNullException>(() => cache.GetAuthority(null));
         }
@@ -24,11 +24,11 @@ namespace Microsoft.AzureRepos.Tests
         [Fact]
         public void AzureReposAuthorityCache_GetAuthority_NoCachedAuthority_ReturnsNull()
         {
-            string key = CreateKey("contoso");
+            const string key = "org.contoso.authority";
 
             var trace = new NullTrace();
-            var git = new TestGit();
-            var cache = new AzureDevOpsAuthorityCache(trace, git);
+            var store = new InMemoryValueStore<string, string>(StringComparer.OrdinalIgnoreCase);
+            var cache = new AzureReposAuthorityCache(trace, store);
 
             string authority = cache.GetAuthority(key);
 
@@ -39,22 +39,17 @@ namespace Microsoft.AzureRepos.Tests
         public void AzureReposAuthorityCache_GetAuthority_CachedAuthority_ReturnsAuthority()
         {
             const string orgName = "contoso";
-            string key = CreateKey(orgName);
+            const string key = "org.contoso.authority";
             const string expectedAuthority = "https://login.contoso.com";
 
-            var git = new TestGit
+            var dict  = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
-                Configuration =
-                {
-                    Global =
-                    {
-                        [key] = new[] {expectedAuthority}
-                    }
-                }
+                [key] = expectedAuthority
             };
 
             var trace = new NullTrace();
-            var cache = new AzureDevOpsAuthorityCache(trace, git);
+            var store = new InMemoryValueStore<string, string>(dict);
+            var cache = new AzureReposAuthorityCache(trace, store);
 
             string actualAuthority = cache.GetAuthority(orgName);
 
@@ -62,21 +57,47 @@ namespace Microsoft.AzureRepos.Tests
         }
 
         [Fact]
-        public void AzureReposAuthorityCache_UpdateAuthority_NoCachedAuthority_SetsAuthority()
+        public void AzureReposAuthorityCache_GetAuthority_CachedAuthority_PersistedStoreChanged_ReturnsPersistedAuthority()
         {
             const string orgName = "contoso";
-            string key = CreateKey(orgName);
+            const string key = "org.contoso.authority";
+            const string oldAuthority = "https://old-login.contoso.com";
+            const string expectedAuthority = "https://login.contoso.com";
+
+            var dict  = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                [key] = oldAuthority
+            };
+
+            var trace = new NullTrace();
+            var store = new InMemoryValueStore<string, string>(dict);
+            var cache = new AzureReposAuthorityCache(trace, store);
+
+            // Update persisted store after creation of the authority cache
+            store.PersistedStore[key] = expectedAuthority;
+            // The in-memory value should be stale
+            Assert.Equal(oldAuthority, store.MemoryStore[key]);
+
+            string actualAuthority = cache.GetAuthority(orgName);
+
+            // Should have reloaded from the persisted store
+            Assert.Equal(expectedAuthority, actualAuthority);
+        }
+
+        [Fact]
+        public void AzureReposAuthorityCache_UpdateAuthority_NoCachedAuthority_SetsAuthorityInPersistedStore()
+        {
+            const string orgName = "contoso";
+            const string key = "org.contoso.authority";
             const string expectedAuthority = "https://login.contoso.com";
 
             var trace = new NullTrace();
-            var git = new TestGit();
-            var cache = new AzureDevOpsAuthorityCache(trace, git);
+            var store = new InMemoryValueStore<string, string>(StringComparer.OrdinalIgnoreCase);
+            var cache = new AzureReposAuthorityCache(trace, store);
 
             cache.UpdateAuthority(orgName, expectedAuthority);
 
-            Assert.True(git.Configuration.Global.TryGetValue(key, out IList<string> values));
-            Assert.Single(values);
-            string actualAuthority = values[0];
+            Assert.True(store.PersistedStore.TryGetValue(key, out string actualAuthority));
             Assert.Equal(expectedAuthority, actualAuthority);
         }
 
@@ -84,29 +105,43 @@ namespace Microsoft.AzureRepos.Tests
         public void AzureReposAuthorityCache_UpdateAuthority_CachedAuthority_UpdatesAuthority()
         {
             const string orgName = "contoso";
-            string key = CreateKey(orgName);
+            const string key = "org.contoso.authority";
             const string oldAuthority = "https://old-login.contoso.com";
             const string expectedAuthority = "https://login.contoso.com";
 
-            var git = new TestGit
+            var dict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
-                Configuration =
-                {
-                    Global =
-                    {
-                        [key] = new[] {oldAuthority}
-                    }
-                }
+                [key] = oldAuthority
             };
 
             var trace = new NullTrace();
-            var cache = new AzureDevOpsAuthorityCache(trace, git);
+            var store = new InMemoryValueStore<string, string>(dict);
+            var cache = new AzureReposAuthorityCache(trace, store);
 
             cache.UpdateAuthority(orgName, expectedAuthority);
 
-            Assert.True(git.Configuration.Global.TryGetValue(key, out IList<string> values));
-            Assert.Single(values);
-            string actualAuthority = values[0];
+            Assert.True(store.PersistedStore.TryGetValue(key, out string actualAuthority));
+            Assert.Equal(expectedAuthority, actualAuthority);
+        }
+
+        [Fact]
+        public void AzureReposAuthorityCache_UpdateAuthority_CachedAuthority_PersistedStoreChanged_OverwritesPersistedAuthority()
+        {
+            const string orgName = "contoso";
+            const string key = "org.contoso.authority";
+            const string otherAuthority = "https://alt-login.contoso.com";
+            const string expectedAuthority = "https://login.contoso.com";
+
+            var trace = new NullTrace();
+            var store = new InMemoryValueStore<string, string>(StringComparer.OrdinalIgnoreCase);
+            var cache = new AzureReposAuthorityCache(trace, store);
+
+            // Persisted store is updated after the authority cache is created
+            store.PersistedStore[key] = otherAuthority;
+
+            cache.UpdateAuthority(orgName, expectedAuthority);
+
+            Assert.True(store.PersistedStore.TryGetValue(key, out string actualAuthority));
             Assert.Equal(expectedAuthority, actualAuthority);
         }
 
@@ -114,32 +149,25 @@ namespace Microsoft.AzureRepos.Tests
         public void AzureReposAuthorityCache_EraseAuthority_NoCachedAuthority_DoesNothing()
         {
             const string orgName = "contoso";
-            string key = CreateKey(orgName);
-            string otherKey = CreateKey("org.fabrikam.authority");
+            const string key = "org.contoso.authority";
+            const string otherKey = "org.fabrikam.authority";
             const string otherAuthority = "https://fabrikam.com/login";
 
-            var git = new TestGit
+            var dict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
-                Configuration =
-                {
-                    Global =
-                    {
-                        [otherKey] = new[] {otherAuthority}
-                    }
-                }
+                [otherKey] = otherAuthority
             };
 
             var trace = new NullTrace();
-            var cache = new AzureDevOpsAuthorityCache(trace, git);
+            var store = new InMemoryValueStore<string, string>(dict);
+            var cache = new AzureReposAuthorityCache(trace, store);
 
             cache.EraseAuthority(orgName);
 
-            // Other entries should remain
-            Assert.False(git.Configuration.Global.ContainsKey(key));
-            Assert.Single(git.Configuration.Global);
-            Assert.True(git.Configuration.Global.TryGetValue(otherKey, out IList<string> values));
-            Assert.Single(values);
-            string actualOtherAuthority = values[0];
+            // Other entries should remain in the persisted store
+            Assert.False(store.PersistedStore.ContainsKey(key));
+            Assert.Single(store.PersistedStore);
+            Assert.True(store.PersistedStore.TryGetValue(otherKey, out string actualOtherAuthority));
             Assert.Equal(otherAuthority, actualOtherAuthority);
         }
 
@@ -147,43 +175,28 @@ namespace Microsoft.AzureRepos.Tests
         public void AzureReposAuthorityCache_EraseAuthority_CachedAuthority_RemovesAuthority()
         {
             const string orgName = "contoso";
-            string key = CreateKey(orgName);
+            const string key = "org.contoso.authority";
             const string authority = "https://login.contoso.com";
-            string otherKey = CreateKey("fabrikam");
+            const string otherKey = "org.fabrikam.authority";
             const string otherAuthority = "https://fabrikam.com/login";
 
-            var git = new TestGit
+            var dict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
-                Configuration =
-                {
-                    Global =
-                    {
-                        [key] = new[] {authority},
-                        [otherKey] = new[] {otherAuthority}
-                    }
-                }
+                [key] = authority,
+                [otherKey] = otherAuthority
             };
 
             var trace = new NullTrace();
-            var cache = new AzureDevOpsAuthorityCache(trace, git);
+            var store = new InMemoryValueStore<string, string>(dict);
+            var cache = new AzureReposAuthorityCache(trace, store);
 
             cache.EraseAuthority(orgName);
 
-            // Only the other entries should remain
-            Assert.False(git.Configuration.Global.ContainsKey(key));
-            Assert.Single(git.Configuration.Global);
-            Assert.True(git.Configuration.Global.TryGetValue(otherKey, out IList<string> values));
-            Assert.Single(values);
-            string actualOtherAuthority = values[0];
+            // Only the other entries should remain in the persisted store
+            Assert.False(store.PersistedStore.ContainsKey(key));
+            Assert.Single(store.PersistedStore);
+            Assert.True(store.PersistedStore.TryGetValue(otherKey, out string actualOtherAuthority));
             Assert.Equal(otherAuthority, actualOtherAuthority);
-        }
-
-        private static string CreateKey(string orgName)
-        {
-            return string.Format(CultureInfo.InvariantCulture, "{0}.{1}:{2}/{3}.{4}",
-                Constants.GitConfiguration.Credential.SectionName,
-                AzureDevOpsConstants.UrnScheme, AzureDevOpsConstants.UrnOrgPrefix, orgName,
-                AzureDevOpsConstants.GitConfiguration.Credential.AzureAuthority);
         }
     }
 }

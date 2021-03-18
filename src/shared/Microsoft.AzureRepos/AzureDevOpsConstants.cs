@@ -1,34 +1,31 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
 using System;
+using System.IO;
+using Microsoft.Git.CredentialManager;
 
 namespace Microsoft.AzureRepos
 {
     internal static class AzureDevOpsConstants
     {
-        // AAD environment authority base URL
-        public const string AadAuthorityBaseUrl = "https://login.microsoftonline.com";
+        public const string AzReposDataDirectoryName = "azure-repos";
+        public const string AzReposDataStoreName = "store.ini";
 
-        // Azure DevOps's app ID + default scopes
-        public static readonly string[] AzureDevOpsDefaultScopes = {"499b84ac-1321-427f-aa17-267ca6975798/.default"};
+        // Azure DevOps's resource ID
+        public const string AadResourceId = "499b84ac-1321-427f-aa17-267ca6975798";
 
         // Visual Studio's client ID
         // We share this to be able to consume existing access tokens from the VS caches
         public const string AadClientId = "872cd9fa-d31f-45e0-9eab-6e460a02d1f1";
 
-        // Redirect URI specified by the Visual Studio application configuration
-        public static readonly Uri AadRedirectUri = new Uri("http://localhost");
+        // Standard redirect URI for native client 'v1 protocol' applications
+        // https://docs.microsoft.com/en-us/azure/active-directory/develop/v1-protocols-oauth-code#request-an-authorization-code
+        public static readonly Uri AadRedirectUri = new Uri("urn:ietf:wg:oauth:2.0:oob");
 
         public const string VstsHostSuffix = ".visualstudio.com";
         public const string AzureDevOpsHost = "dev.azure.com";
 
         public const string VssResourceTenantHeader = "X-VSS-ResourceTenant";
-
-        public const string PatCredentialType = "pat";
-        public const string OAuthCredentialType = "oauth";
-
-        public const string UrnScheme = "azrepos";
-        public const string UrnOrgPrefix = "org";
 
         public static class PersonalAccessTokenScopes
         {
@@ -36,24 +33,16 @@ namespace Microsoft.AzureRepos
             public const string ArtifactsRead = "vso.packaging";
         }
 
-        public static class EnvironmentVariables
+        public static IniFileValueStore CreateIniDataStore(IFileSystem fs)
         {
-            public const string DevAadClientId = "GCM_DEV_AZREPOS_CLIENTID";
-            public const string DevAadRedirectUri = "GCM_DEV_AZREPOS_REDIRECTURI";
-            public const string DevAadAuthorityBaseUri = "GCM_DEV_AZREPOS_AUTHORITYBASEURI";
-            public const string CredentialType = "GCM_AZREPOS_CREDENTIALTYPE";
-        }
+            EnsureArgument.NotNull(fs, nameof(fs));
 
-        public static class GitConfiguration
-        {
-            public static class Credential
-            {
-                public const string DevAadClientId = "azreposDevClientId";
-                public const string DevAadRedirectUri = "azreposDevRedirectUri";
-                public const string DevAadAuthorityBaseUri = "azreposDevAuthorityBaseUri";
-                public const string CredentialType = "azreposCredentialType";
-                public const string AzureAuthority = "azureAuthority";
-            }
+            string storePath = Path.Combine(
+                fs.UserDataDirectoryPath,
+                AzReposDataDirectoryName,
+                AzReposDataStoreName);
+
+            return new IniFileValueStore(fs, new IniSerializer(), storePath);
         }
     }
 }
