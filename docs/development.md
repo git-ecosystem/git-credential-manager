@@ -6,6 +6,8 @@ Start by cloning this repository:
 git clone https://github.com/microsoft/Git-Credential-Manager-Core
 ```
 
+You also need the latest version of the .NET SDK which can be downloaded and installed from [here](https://dotnet.microsoft.com/).
+
 ## Building
 
 The `Git-Credential-Manager.sln` solution can be opened and built in Visual Studio, Visual Studio for Mac, Visual Studio Code, or JetBrains Rider.
