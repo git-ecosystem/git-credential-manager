@@ -33,8 +33,7 @@ To build from inside an IDE, make sure to select the `WindowsDebug` or `WindowsR
 To build from the command line, run:
 
 ```powershell
-msbuild /t:restore /p:Configuration=WindowsDebug
-msbuild /p:Configuration=WindowsDebug
+dotnet build -c WindowsDebug
 ```
 
 You can find a copy of the installer .exe file in `out\windows\Installer.Windows\bin\Debug\net472`.
