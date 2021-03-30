@@ -2,7 +2,7 @@
 name: Authentication failure
 about: An authentication problem occurred when running a Git command.
 title: ''
-labels: 'auth-failure'
+labels: 'auth-issue'
 assignees: ''
 ---
 
