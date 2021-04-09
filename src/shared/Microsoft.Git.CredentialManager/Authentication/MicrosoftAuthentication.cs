@@ -400,26 +400,29 @@ namespace Microsoft.Git.CredentialManager.Authentication
 
         private bool CanUseBroker()
         {
-            // We only support the broker on Windows 10 and .NET Framework
 #if NETFRAMEWORK
-            if (Context.SessionManager.IsDesktopSession && PlatformUtils.IsWindows10())
+            // We only support the broker on Windows 10 and require an interactive session
+            if (!Context.SessionManager.IsDesktopSession || !PlatformUtils.IsWindows10())
             {
-                // Default to using the OS broker
-                const bool defaultValue = true;
+                return false;
+            }
 
-                if (Context.Settings.TryGetSetting(Constants.EnvironmentVariables.MsAuthUseBroker,
+            // Default to using the OS broker
+            const bool defaultValue = true;
+
+            if (Context.Settings.TryGetSetting(Constants.EnvironmentVariables.MsAuthUseBroker,
                     Constants.GitConfiguration.Credential.SectionName,
                     Constants.GitConfiguration.Credential.MsAuthUseBroker,
                     out string valueStr))
-                {
-                    return valueStr.ToBooleanyOrDefault(defaultValue);
-                }
-
-                return defaultValue;
+            {
+                return valueStr.ToBooleanyOrDefault(defaultValue);
             }
-#endif
 
+            return defaultValue;
+#else
+            // OS broker requires .NET Framework right now until we migrate to .NET 5.0 (net5.0-windows10.x.y.z)
             return false;
+#endif
         }
 
         private bool CanUseEmbeddedWebView()
