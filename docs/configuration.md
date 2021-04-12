@@ -284,17 +284,17 @@ git config --global credential.msauthFlow devicecode
 
 Use the operating system account manager where available.
 
-Defaults to `true`.
+Defaults to `false`. This default is subject to change in the future.
 
 Value|Description
 -|-
-`true` _(default)_|Use the operating system account manager as an authentication broker.
-`false`|Do not use the broker.
+`true`|Use the operating system account manager as an authentication broker.
+`false` _(default)_|Do not use the broker.
 
 #### Example
 
 ```shell
-git config --global credential.msauthUseBroker false
+git config --global credential.msauthUseBroker true
 ```
 
 **Also see: [GCM_MSAUTH_USEBROKER](environment.md#GCM_MSAUTH_USEBROKER)**

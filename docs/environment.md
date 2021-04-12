@@ -436,17 +436,17 @@ export GCM_MSAUTH_FLOW="devicecode"
 
 Use the operating system account manager where available.
 
-Defaults to `true`.
+Defaults to `false`. This default is subject to change in the future.
 
 Value|Description
 -|-
-`true` _(default)_|Use the operating system account manager as an authentication broker.
-`false`|Do not use the broker.
+`true`|Use the operating system account manager as an authentication broker.
+`false` _(default)_|Do not use the broker.
 
 ##### Windows
 
 ```batch
-SET GCM_MSAUTH_USEBROKER="false"
+SET GCM_MSAUTH_USEBROKER="true"
 ```
 
 ##### macOS/Linux

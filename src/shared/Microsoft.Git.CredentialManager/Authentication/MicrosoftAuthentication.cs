@@ -405,8 +405,8 @@ namespace Microsoft.Git.CredentialManager.Authentication
                 return false;
             }
 
-            // Default to using the OS broker
-            const bool defaultValue = true;
+            // Default to not using the OS broker
+            const bool defaultValue = false;
 
             if (Context.Settings.TryGetSetting(Constants.EnvironmentVariables.MsAuthUseBroker,
                     Constants.GitConfiguration.Credential.SectionName,
