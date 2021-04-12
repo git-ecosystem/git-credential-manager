@@ -31,7 +31,7 @@ namespace Microsoft.Git.CredentialManager
             // https://github.com/dotnet/runtime/blob/6578f257e3be2e2144a65769706e981961f0130c/src/libraries/System.Private.CoreLib/src/System/Environment.Windows.cs#L110-L122
             //
             // Note that we cannot use Environment.OSVersion in .NET Framework (or Core versions less than 5.0) as
-            // The implementation in those versions "lies" about Windows versions > 8.1 if there is no application manifest.
+            // the implementation in those versions "lies" about Windows versions > 8.1 if there is no application manifest.
             if (RtlGetVersionEx(out RTL_OSVERSIONINFOEX osvi) != 0)
             {
                 return false;

@@ -32,7 +32,7 @@ namespace Microsoft.Git.CredentialManager.Authentication
         Auto = 0,
         EmbeddedWebView = 1,
         SystemWebView = 2,
-        DeviceCode = 3,
+        DeviceCode = 3
     }
 
     public class MicrosoftAuthentication : AuthenticationBase, IMicrosoftAuthentication
