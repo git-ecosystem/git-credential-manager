@@ -267,14 +267,12 @@ namespace Microsoft.Git.CredentialManager.Authentication
                 return;
             }
 
-            string clientId = app.AppConfig.ClientId;
-
             // We use the MSAL extension library to provide us consistent cache file access semantics (synchronisation, etc)
             // as other Microsoft developer tools such as the Azure PowerShell CLI.
             MsalCacheHelper helper = null;
             try
             {
-                var storageProps = CreateTokenCacheProps(clientId, useLinuxFallback: false);
+                var storageProps = CreateTokenCacheProps(useLinuxFallback: false);
                 helper = await MsalCacheHelper.CreateAsync(storageProps);
 
                 // Test that cache access is working correctly
@@ -300,7 +298,7 @@ namespace Microsoft.Git.CredentialManager.Authentication
                     // On Linux the SecretService/keyring might not be available so we must fall-back to a plaintext file.
                     Context.Streams.Error.WriteLine("warning: using plain-text fallback token cache");
                     Context.Trace.WriteLine("Using fall-back plaintext token cache on Linux.");
-                    var storageProps = CreateTokenCacheProps(clientId, useLinuxFallback: true);
+                    var storageProps = CreateTokenCacheProps(useLinuxFallback: true);
                     helper = await MsalCacheHelper.CreateAsync(storageProps);
                 }
             }
@@ -317,7 +315,7 @@ namespace Microsoft.Git.CredentialManager.Authentication
             }
         }
 
-        private StorageCreationProperties CreateTokenCacheProps(string clientId, bool useLinuxFallback)
+        private StorageCreationProperties CreateTokenCacheProps(bool useLinuxFallback)
         {
             const string cacheFileName = "msal.cache";
             string cacheDirectory;
@@ -336,7 +334,7 @@ namespace Microsoft.Git.CredentialManager.Authentication
             }
 
             // The keychain is used on macOS with the following service & account names
-            var builder = new StorageCreationPropertiesBuilder(cacheFileName, cacheDirectory, clientId)
+            var builder = new StorageCreationPropertiesBuilder(cacheFileName, cacheDirectory)
                 .WithMacKeyChain("Microsoft.Developer.IdentityService", "MSALCache");
 
             if (useLinuxFallback)
