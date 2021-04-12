@@ -402,11 +402,12 @@ export GCM_PLAINTEXT_STORE_PATH=/mnt/external-drive/credentials
 
 Specify which authentication flow should be used when performing Microsoft authentication and an interactive flow is required.
 
-Defaults to the value `auto`.
+Defaults to `auto`.
 
 **Note:** If [`GCM_MSAUTH_USEBROKER`](#gcm_msauth_usebroker) is set to `true`
 and the operating system authentication broker is available, all flows will be
-delegated to the broker; this setting has no effect.
+delegated to the broker. If both of those things are true, then the value of
+`GCM_MSAUTH_FLOW` has no effect.
 
 Value|Authentication Flow
 -|-
@@ -435,7 +436,7 @@ export GCM_MSAUTH_FLOW="devicecode"
 
 Use the operating system account manager where available.
 
-Defaults to the value `true`.
+Defaults to `true`.
 
 Value|Description
 -|-
