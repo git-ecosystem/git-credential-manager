@@ -256,7 +256,12 @@ git config --global credential.plaintextStorePath /mnt/external-drive/credential
 
 Specify which authentication flow should be used when performing Microsoft authentication and an interactive flow is required.
 
-Defaults to the value `auto`.
+Defaults to `auto`.
+
+**Note:** If [`credential.msauthUseBroker`](#credentialmsauthusebroker) is set
+to `true` and the operating system authentication broker is available, all flows
+will be delegated to the broker. If both of those things are true, then the
+value of `credential.msauthFlow` has no effect.
 
 Value|Authentication Flow
 -|-
@@ -272,6 +277,27 @@ git config --global credential.msauthFlow devicecode
 ```
 
 **Also see: [GCM_MSAUTH_FLOW](environment.md#GCM_MSAUTH_FLOW)**
+
+---
+
+### credential.msauthUseBroker
+
+Use the operating system account manager where available.
+
+Defaults to `false`. This default is subject to change in the future.
+
+Value|Description
+-|-
+`true`|Use the operating system account manager as an authentication broker.
+`false` _(default)_|Do not use the broker.
+
+#### Example
+
+```shell
+git config --global credential.msauthUseBroker true
+```
+
+**Also see: [GCM_MSAUTH_USEBROKER](environment.md#GCM_MSAUTH_USEBROKER)**
 
 ---
 

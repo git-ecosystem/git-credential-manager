@@ -9,6 +9,10 @@ using System.Threading.Tasks;
 using Microsoft.Identity.Client;
 using Microsoft.Identity.Client.Extensions.Msal;
 
+#if NETFRAMEWORK
+using Microsoft.Identity.Client.Desktop;
+#endif
+
 namespace Microsoft.Git.CredentialManager.Authentication
 {
     public interface IMicrosoftAuthentication
@@ -48,7 +52,15 @@ namespace Microsoft.Git.CredentialManager.Authentication
         public async Task<IMicrosoftAuthenticationResult> GetTokenAsync(
             string authority, string clientId, Uri redirectUri, string[] scopes, string userName)
         {
-            IPublicClientApplication app = await CreatePublicClientApplicationAsync(authority, clientId, redirectUri);
+            // Check if we can and should use OS broker authentication
+            bool useBroker = CanUseBroker();
+            if (useBroker)
+            {
+                Context.Trace.WriteLine("OS broker is available and enabled.");
+            }
+
+            // Create the public client application for authentication
+            IPublicClientApplication app = await CreatePublicClientApplicationAsync(authority, clientId, redirectUri, useBroker);
 
             AuthenticationResult result = null;
 
@@ -64,6 +76,9 @@ namespace Microsoft.Git.CredentialManager.Authentication
             //
             // If the user has expressed a preference in how the want to perform the interactive authentication flows then we respect that.
             // Otherwise, depending on the current platform and session type we try to show the most appropriate authentication interface:
+            //
+            // On Windows 10 & .NET Framework, MSAL supports the Web Account Manager (WAM) broker - we try to use that if possible
+            // in the first instance.
             //
             // On .NET Framework MSAL supports the WinForms based 'embedded' webview UI. For Windows + .NET Framework this is the
             // best and natural experience.
@@ -82,48 +97,61 @@ namespace Microsoft.Git.CredentialManager.Authentication
                 // If the user has disabled interaction all we can do is fail at this point
                 ThrowIfUserInteractionDisabled();
 
-                // Check for a user flow preference
-                MicrosoftAuthenticationFlowType flowType = GetFlowType();
-                switch (flowType)
+                // If we're using the OS broker then delegate everything to that
+                if (useBroker)
                 {
-                    case MicrosoftAuthenticationFlowType.Auto:
-                        if (CanUseEmbeddedWebView())
-                            goto case MicrosoftAuthenticationFlowType.EmbeddedWebView;
+                    Context.Trace.WriteLine("Performing interactive auth with broker...");
+                    result = await app.AcquireTokenInteractive(scopes)
+                        .WithPrompt(Prompt.SelectAccount)
+                        // We must configure the system webview as a fallback
+                        .WithSystemWebViewOptions(GetSystemWebViewOptions())
+                        .ExecuteAsync();
+                }
+                else
+                {
+                    // Check for a user flow preference if they've specified one
+                    MicrosoftAuthenticationFlowType flowType = GetFlowType();
+                    switch (flowType)
+                    {
+                        case MicrosoftAuthenticationFlowType.Auto:
+                            if (CanUseEmbeddedWebView())
+                                goto case MicrosoftAuthenticationFlowType.EmbeddedWebView;
 
-                        if (CanUseSystemWebView(app, redirectUri))
-                            goto case MicrosoftAuthenticationFlowType.SystemWebView;
+                            if (CanUseSystemWebView(app, redirectUri))
+                                goto case MicrosoftAuthenticationFlowType.SystemWebView;
 
-                        // Fall back to device code flow
-                        goto case MicrosoftAuthenticationFlowType.DeviceCode;
+                            // Fall back to device code flow
+                            goto case MicrosoftAuthenticationFlowType.DeviceCode;
 
-                    case MicrosoftAuthenticationFlowType.EmbeddedWebView:
-                        Context.Trace.WriteLine("Performing interactive auth with embedded web view...");
-                        EnsureCanUseEmbeddedWebView();
-                        result = await app.AcquireTokenInteractive(scopes)
-                            .WithPrompt(Prompt.SelectAccount)
-                            .WithUseEmbeddedWebView(true)
-                            .ExecuteAsync();
-                        break;
+                        case MicrosoftAuthenticationFlowType.EmbeddedWebView:
+                            Context.Trace.WriteLine("Performing interactive auth with embedded web view...");
+                            EnsureCanUseEmbeddedWebView();
+                            result = await app.AcquireTokenInteractive(scopes)
+                                .WithPrompt(Prompt.SelectAccount)
+                                .WithUseEmbeddedWebView(true)
+                                .ExecuteAsync();
+                            break;
 
-                    case MicrosoftAuthenticationFlowType.SystemWebView:
-                        Context.Trace.WriteLine("Performing interactive auth with system web view...");
-                        EnsureCanUseSystemWebView(app, redirectUri);
-                        result = await app.AcquireTokenInteractive(scopes)
-                            .WithPrompt(Prompt.SelectAccount)
-                            .WithSystemWebViewOptions(GetSystemWebViewOptions())
-                            .ExecuteAsync();
-                        break;
+                        case MicrosoftAuthenticationFlowType.SystemWebView:
+                            Context.Trace.WriteLine("Performing interactive auth with system web view...");
+                            EnsureCanUseSystemWebView(app, redirectUri);
+                            result = await app.AcquireTokenInteractive(scopes)
+                                .WithPrompt(Prompt.SelectAccount)
+                                .WithSystemWebViewOptions(GetSystemWebViewOptions())
+                                .ExecuteAsync();
+                            break;
 
-                    case MicrosoftAuthenticationFlowType.DeviceCode:
-                        Context.Trace.WriteLine("Performing interactive auth with device code...");
-                        // We don't have a way to display a device code without a terminal at the moment
-                        // TODO: introduce a small GUI window to show a code if no TTY exists
-                        ThrowIfTerminalPromptsDisabled();
-                        result = await app.AcquireTokenWithDeviceCode(scopes, ShowDeviceCodeInTty).ExecuteAsync();
-                        break;
+                        case MicrosoftAuthenticationFlowType.DeviceCode:
+                            Context.Trace.WriteLine("Performing interactive auth with device code...");
+                            // We don't have a way to display a device code without a terminal at the moment
+                            // TODO: introduce a small GUI window to show a code if no TTY exists
+                            ThrowIfTerminalPromptsDisabled();
+                            result = await app.AcquireTokenWithDeviceCode(scopes, ShowDeviceCodeInTty).ExecuteAsync();
+                            break;
 
-                    default:
-                        goto case MicrosoftAuthenticationFlowType.Auto;
+                        default:
+                            goto case MicrosoftAuthenticationFlowType.Auto;
+                    }
                 }
             }
 
@@ -179,7 +207,8 @@ namespace Microsoft.Git.CredentialManager.Authentication
             }
         }
 
-        private async Task<IPublicClientApplication> CreatePublicClientApplicationAsync(string authority, string clientId, Uri redirectUri)
+        private async Task<IPublicClientApplication> CreatePublicClientApplicationAsync(
+            string authority, string clientId, Uri redirectUri, bool enableBroker)
         {
             var httpFactoryAdaptor = new MsalHttpClientFactoryAdaptor(Context.HttpClientFactory);
 
@@ -203,6 +232,15 @@ namespace Microsoft.Git.CredentialManager.Authentication
                 int.TryParse(Context.Settings.ParentWindowId, out int hWndInt) && hWndInt > 0)
             {
                 appBuilder.WithParentActivityOrWindow(() => new IntPtr(hWndInt));
+            }
+
+            // On Windows 10 & .NET Framework try and use the WAM broker
+            if (enableBroker && PlatformUtils.IsWindows10())
+            {
+#if NETFRAMEWORK
+                appBuilder.WithExperimentalFeatures();
+                appBuilder.WithWindowsBroker();
+#endif
             }
 
             IPublicClientApplication app = appBuilder.Build();
@@ -229,14 +267,12 @@ namespace Microsoft.Git.CredentialManager.Authentication
                 return;
             }
 
-            string clientId = app.AppConfig.ClientId;
-
             // We use the MSAL extension library to provide us consistent cache file access semantics (synchronisation, etc)
             // as other Microsoft developer tools such as the Azure PowerShell CLI.
             MsalCacheHelper helper = null;
             try
             {
-                var storageProps = CreateTokenCacheProps(clientId, useLinuxFallback: false);
+                var storageProps = CreateTokenCacheProps(useLinuxFallback: false);
                 helper = await MsalCacheHelper.CreateAsync(storageProps);
 
                 // Test that cache access is working correctly
@@ -262,7 +298,7 @@ namespace Microsoft.Git.CredentialManager.Authentication
                     // On Linux the SecretService/keyring might not be available so we must fall-back to a plaintext file.
                     Context.Streams.Error.WriteLine("warning: using plain-text fallback token cache");
                     Context.Trace.WriteLine("Using fall-back plaintext token cache on Linux.");
-                    var storageProps = CreateTokenCacheProps(clientId, useLinuxFallback: true);
+                    var storageProps = CreateTokenCacheProps(useLinuxFallback: true);
                     helper = await MsalCacheHelper.CreateAsync(storageProps);
                 }
             }
@@ -279,7 +315,7 @@ namespace Microsoft.Git.CredentialManager.Authentication
             }
         }
 
-        private StorageCreationProperties CreateTokenCacheProps(string clientId, bool useLinuxFallback)
+        private StorageCreationProperties CreateTokenCacheProps(bool useLinuxFallback)
         {
             const string cacheFileName = "msal.cache";
             string cacheDirectory;
@@ -298,7 +334,7 @@ namespace Microsoft.Git.CredentialManager.Authentication
             }
 
             // The keychain is used on macOS with the following service & account names
-            var builder = new StorageCreationPropertiesBuilder(cacheFileName, cacheDirectory, clientId)
+            var builder = new StorageCreationPropertiesBuilder(cacheFileName, cacheDirectory)
                 .WithMacKeyChain("Microsoft.Developer.IdentityService", "MSALCache");
 
             if (useLinuxFallback)
@@ -359,6 +395,33 @@ namespace Microsoft.Git.CredentialManager.Authentication
         #endregion
 
         #region Auth flow capability detection
+
+        private bool CanUseBroker()
+        {
+#if NETFRAMEWORK
+            // We only support the broker on Windows 10 and require an interactive session
+            if (!Context.SessionManager.IsDesktopSession || !PlatformUtils.IsWindows10())
+            {
+                return false;
+            }
+
+            // Default to not using the OS broker
+            const bool defaultValue = false;
+
+            if (Context.Settings.TryGetSetting(Constants.EnvironmentVariables.MsAuthUseBroker,
+                    Constants.GitConfiguration.Credential.SectionName,
+                    Constants.GitConfiguration.Credential.MsAuthUseBroker,
+                    out string valueStr))
+            {
+                return valueStr.ToBooleanyOrDefault(defaultValue);
+            }
+
+            return defaultValue;
+#else
+            // OS broker requires .NET Framework right now until we migrate to .NET 5.0 (net5.0-windows10.x.y.z)
+            return false;
+#endif
+        }
 
         private bool CanUseEmbeddedWebView()
         {
