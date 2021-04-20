@@ -18,7 +18,7 @@ Historically, the only option supported by the Azure Repos host provider was
 Azure DevOps Personal Access Tokens (PATs).
 
 These PATs are only used by Azure DevOps, and must be [managed through the Azure
-DevOps user settings page](https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate?view=azure-devops&tabs=preview-page).
+DevOps user settings page](https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate?view=azure-devops&tabs=preview-page) or [REST API](https://docs.microsoft.com/en-gb/rest/api/azure/devops/tokens/pats).
 
 PATs have a limited lifetime and new tokens must be created once they expire. In
 Git Credential Manager, when a PAT expired (or was manually revoked) this
