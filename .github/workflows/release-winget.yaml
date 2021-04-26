@@ -18,7 +18,7 @@ jobs:
         token: ${{ secrets.WINGET_TOKEN }}   
         releaseAsset: gcmcore-win-x86-(.*)\.exe
         repo: ldennington/winget-playground
-        branch: master
+        branch: main
         manifestText: |
           PackageIdentifier: {{id}}
           PackageVersion: {{version}}
