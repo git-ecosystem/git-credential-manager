@@ -15,6 +15,7 @@ jobs:
       uses: mjcheetham/update-winget@v1.1
       with:
         id: Microsoft.GitCredentialManagerCore
+        version: 2.0.194.40577
         token: ${{ secrets.WINGET_TOKEN }}   
         releaseAsset: gcmcore-win-x86-(.*)\.exe
         repo: ldennington/winget-playground
