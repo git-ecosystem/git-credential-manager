@@ -15,7 +15,6 @@ jobs:
       uses: mjcheetham/update-winget@v1.1
       with:
         id: Microsoft.GitCredentialManagerCore
-        version: 2.0.194.40577
         token: ${{ secrets.WINGET_TOKEN }}   
         releaseAsset: gcmcore-win-x86-(.*)\.exe
         repo: ldennington/winget-playground
@@ -31,9 +30,9 @@ jobs:
           ShortDescription: Secure, cross-platform Git credential storage with authentication to GitHub, Azure Repos, and other popular Git hosting services.
           Installers:
           - Arch: x86
-            Url: https://github.com/microsoft/Git-Credential-Manager-Core/releases/download/v2.0.194-beta/gcmcore-win-x86-2.0.194.40577.exe
+            Url: {{url}}
             InstallerType: Inno
-            Sha256: 26D3662F66E6AEC76C3BF155028D22D30ED8D1F1AFFA7C676F8DB0426939E8AD
+            Sha256: {{sha256}}
           PackageLocale: en-US
           ManifestType: singleton
           ManifestVersion: 1.0.0
