@@ -9,11 +9,12 @@ jobs:
     steps:
     - id: update winget
       name: Update winget repository
-      uses: mjcheetham/update-winget@v1.1
+      uses: mjcheetham/update-winget@v1.2
       with:
         id: Microsoft.GitCredentialManagerCore
         token: ${{ secrets.WINGET_TOKEN }}   
         releaseAsset: gcmcore-win-x86-(.*)\.exe
+        repo: ldennington/winget-playground
         manifestText: |
           PackageIdentifier: {{id}}
           PackageVersion: {{version}}
@@ -33,3 +34,5 @@ jobs:
           ManifestType: singleton
           ManifestVersion: 1.0.0
         alwaysUsePullRequest: true
+        releaseRepo: 'microsoft/Git-Credential-Manager-Core'
+        releaseTag: 'v2.0.194-beta'
