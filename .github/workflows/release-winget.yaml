@@ -10,7 +10,7 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-    - id: update winget
+    - id: update-winget
       name: Update winget repository
       uses: mjcheetham/update-winget@v1.1
       with:
