@@ -12,7 +12,7 @@ jobs:
     steps:
     - id: update winget
       name: Update winget repository
-      uses: mjcheetham/update-winget@v1.2
+      uses: mjcheetham/update-winget@v1.1
       with:
         id: Microsoft.GitCredentialManagerCore
         token: ${{ secrets.WINGET_TOKEN }}   
