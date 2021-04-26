@@ -12,13 +12,13 @@ jobs:
     steps:
     - id: update-winget
       name: Update winget repository
-      branch: master
       uses: mjcheetham/update-winget@v1.1
       with:
         id: Microsoft.GitCredentialManagerCore
         token: ${{ secrets.WINGET_TOKEN }}   
         releaseAsset: gcmcore-win-x86-(.*)\.exe
         repo: ldennington/winget-playground
+        branch: master
         manifestText: |
           PackageIdentifier: {{id}}
           PackageVersion: {{version}}
