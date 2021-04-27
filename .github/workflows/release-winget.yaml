@@ -25,14 +25,14 @@ jobs:
           Publisher: Microsoft Corporation
           Moniker: git-credential-manager-core
           PackageUrl: https://aka.ms/gcmcore
-          Tags: "gcm, gcmcore, git, credential"
+          Tags: [ gcm, gcmcore, git, credential ]
           License: Copyright (C) Microsoft Corporation
           ShortDescription: Secure, cross-platform Git credential storage with authentication to GitHub, Azure Repos, and other popular Git hosting services.
           Installers:
-          - Arch: x86
-            Url: {{url}}
-            InstallerType: Inno
-            Sha256: {{sha256}}
+          - Architecture: x86
+            InstallerUrl: {{url}}
+            InstallerType: inno
+            InstallerSha256: {{sha256}}
           PackageLocale: en-US
           ManifestType: singleton
           ManifestVersion: 1.0.0
