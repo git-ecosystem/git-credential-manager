@@ -20,15 +20,20 @@
 
   <ItemGroup>
     <FilesToSign Include="
+      $(OutDir)\Atlassian.Bitbucket.dll;
+      $(OutDir)\Atlassian.Bitbucket.UI.dll;
       $(OutDir)\git-credential-manager-core.dll;
       $(OutDir)\GitHub.dll;
+      $(OutDir)\GitHub.UI.dll;
       $(OutDir)\Microsoft.AzureRepos.dll;
       $(OutDir)\Microsoft.Git.CredentialManager.dll;">
       <Authenticode>Microsoft400</Authenticode>
       <InProject>false</InProject>
     </FilesToSign>
     <MacFilesToSign Include="
-      $(OutDir)\git-credential-manager-core;">
+      $(OutDir)\git-credential-manager-core;
+      $(OutDir)\GitHub.UI;
+      $(OutDir)\Atlassian.Bitbucket.UI;">
       <InProject>false</InProject>
     </MacFilesToSign>
   </ItemGroup>
