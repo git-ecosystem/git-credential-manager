@@ -19,7 +19,7 @@
   #define GcmAppId "{{aa76d31d-432c-42ee-844c-bc0bc801cef3}}"
   #define GcmLongName "Git Credential Manager Core (User)"
   #define GcmSetupExe "gcmcoreuser"
-  #define GcmConfigureCmdArgs "--user"
+  #define GcmConfigureCmdArgs ""
 #elif InstallTarget == "system"
   #define GcmAppId "{{fdfae50a-1bc1-4ead-9228-1e1c275e8d12}}"
   #define GcmLongName "Git Credential Manager Core"
