@@ -46,5 +46,19 @@
                 <Button Classes="accent" Content="Show" Click="ShowCredentials" />
             </StackPanel>
         </TabItem>
+
+        <TabItem Header="Two-factor">
+            <StackPanel>
+                <Grid RowDefinitions="Auto" ColumnDefinitions="Auto,*">
+                    <Label Grid.Row="0" Grid.Column="0"
+                           Content="Options" />
+                    <StackPanel Grid.Row="0" Grid.Column="1"
+                                Orientation="Horizontal" VerticalAlignment="Center">
+                        <CheckBox Content="SMS" x:Name="2faSms" MinWidth="80" />
+                    </StackPanel>
+                </Grid>
+                <Button Classes="accent" Content="Show" Click="ShowTwoFactorCode" />
+            </StackPanel>
+        </TabItem>
     </TabControl>
 </Window>

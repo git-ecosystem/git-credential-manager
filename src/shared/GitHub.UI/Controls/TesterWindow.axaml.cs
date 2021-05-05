@@ -55,13 +55,23 @@ namespace GitHub.UI.Controls
             var vm = new CredentialsViewModel(_environment)
             {
                 ShowBrowserLogin = this.FindControl<CheckBox>("useBrowser").IsChecked ?? false,
-                ShowDeviceLogin = this.FindControl<CheckBox>("useDevice").IsChecked ?? false,
                 ShowTokenLogin = this.FindControl<CheckBox>("usePat").IsChecked ?? false,
                 ShowBasicLogin = this.FindControl<CheckBox>("useBasic").IsChecked ?? false,
                 EnterpriseUrl = this.FindControl<TextBox>("enterpriseUrl").Text,
                 UserName = this.FindControl<TextBox>("username").Text
             };
             var view = new CredentialsView();
+            var window = new DialogWindow(view) {DataContext = vm};
+            window.ShowDialog(this);
+        }
+
+        private void ShowTwoFactorCode(object sender, RoutedEventArgs e)
+        {
+            var vm = new TwoFactorViewModel(_environment)
+            {
+                IsSms = this.FindControl<CheckBox>("2faSms").IsChecked ?? false,
+            };
+            var view = new TwoFactorView();
             var window = new DialogWindow(view) {DataContext = vm};
             window.ShowDialog(this);
         }
