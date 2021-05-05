@@ -2,6 +2,7 @@
 using System.Threading;
 using Avalonia;
 using GitHub.UI.Controls;
+using GitHub.UI.Commands;
 using Microsoft.Git.CredentialManager;
 using Microsoft.Git.CredentialManager.UI;
 
