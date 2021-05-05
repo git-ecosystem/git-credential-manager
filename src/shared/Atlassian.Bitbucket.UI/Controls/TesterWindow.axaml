@@ -1,0 +1,13 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="Atlassian.Bitbucket.UI.Controls.TesterWindow"
+        Title="Bitbucket Authentication Dialog Tester"
+        Height="240" Width="420" CanResize="False">
+    <DockPanel>
+        <Button Content="Show Credentials Dialog" Padding="10" Click="ShowCredentials" />
+        <Button Content="Show OAuth Dialog" Padding="10" Click="ShowOAuth" />
+    </DockPanel>
+</Window>
