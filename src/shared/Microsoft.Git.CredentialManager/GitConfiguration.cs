@@ -117,7 +117,7 @@ namespace Microsoft.Git.CredentialManager
         public void Enumerate(GitConfigurationLevel level, GitConfigurationEnumerationCallback cb)
         {
             string levelArg = GetLevelFilterArg(level);
-            using (Process git = _git.CreateProcess($"config --null {levelArg} --list --show-scope"))
+            using (Process git = _git.CreateProcess($"config --null {levelArg} --list"))
             {
                 git.Start();
                 // To avoid deadlocks, always read the output stream first and then wait
@@ -134,30 +134,13 @@ namespace Microsoft.Git.CredentialManager
                         throw GitProcess.CreateGitException(git, "Failed to enumerate all Git configuration entries");
                 }
 
-                var scope = new StringBuilder();
                 var name  = new StringBuilder();
                 var value = new StringBuilder();
                 int i = 0;
                 while (i < data.Length)
                 {
-                    scope.Clear();
                     name.Clear();
                     value.Clear();
-
-                    // Read config scope (null terminated)
-                    while (i < data.Length && data[i] != '\0')
-                    {
-                        scope.Append(data[i++]);
-                    }
-
-                    if (i >= data.Length)
-                    {
-                        _trace.WriteLine("Invalid Git configuration output. Expected null terminator (\\0) after scope.");
-                        break;
-                    }
-
-                    // Skip the null terminator
-                    i++;
 
                     // Read key name (LF terminated)
                     while (i < data.Length && data[i] != '\n')
@@ -189,24 +172,7 @@ namespace Microsoft.Git.CredentialManager
                     // Skip the null terminator
                     i++;
 
-                    GitConfigurationLevel entryLevel;
-                    switch (scope.ToString())
-                    {
-                        case "system":
-                            entryLevel = GitConfigurationLevel.System;
-                            break;
-                        case "global":
-                            entryLevel = GitConfigurationLevel.Global;
-                            break;
-                        case "local":
-                            entryLevel = GitConfigurationLevel.Local;
-                            break;
-                        default:
-                            entryLevel = GitConfigurationLevel.Unknown;
-                            break;
-                    }
-
-                    var entry = new GitConfigurationEntry(entryLevel, name.ToString(), value.ToString());
+                    var entry = new GitConfigurationEntry(name.ToString(), value.ToString());
 
                     if (!cb(entry))
                     {

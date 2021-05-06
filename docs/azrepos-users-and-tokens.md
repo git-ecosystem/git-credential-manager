@@ -7,13 +7,18 @@ The Azure Repos host provider supports creating multiple types of credential:
 - Azure DevOps personal access tokens
 - Microsoft identity OAuth tokens (experimental)
 
+To select which type of credential the Azure Repos host provider will create
+and use, you can set the [`credential.azreposCredentialType`](https://github.com/microsoft/Git-Credential-Manager-Core/blob/master/docs/configuration.md#credentialazreposcredentialtype-experimental)
+configuration entry (or [`GCM_AZREPOS_CREDENTIALTYPE`](https://github.com/microsoft/Git-Credential-Manager-Core/blob/master/docs/environment.md#GCM_AZREPOS_CREDENTIALTYPE-experimental)
+environment variable).
+
 ### Azure DevOps personal access tokens
 
 Historically, the only option supported by the Azure Repos host provider was
 Azure DevOps Personal Access Tokens (PATs).
 
 These PATs are only used by Azure DevOps, and must be [managed through the Azure
-DevOps user settings page](https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate?view=azure-devops&tabs=preview-page).
+DevOps user settings page](https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate?view=azure-devops&tabs=preview-page) or [REST API](https://docs.microsoft.com/en-gb/rest/api/azure/devops/tokens/pats).
 
 PATs have a limited lifetime and new tokens must be created once they expire. In
 Git Credential Manager, when a PAT expired (or was manually revoked) this

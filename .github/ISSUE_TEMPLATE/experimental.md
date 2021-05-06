@@ -1,8 +1,8 @@
 ---
-name: Authentication failure
-about: An authentication problem occurred when running a Git command.
+name: Experimental feature issues
+about: A problem or issue occurred when using an experimental feature.
 title: ''
-labels: 'auth-issue'
+labels: 'experimental'
 assignees: ''
 ---
 

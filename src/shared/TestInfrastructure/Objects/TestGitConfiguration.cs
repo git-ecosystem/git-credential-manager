@@ -26,7 +26,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
                 {
                     foreach (var value in kvp.Value)
                     {
-                        var entry = new GitConfigurationEntry(dictLevel, kvp.Key, value);
+                        var entry = new GitConfigurationEntry(kvp.Key, value);
                         if (!cb(entry))
                         {
                             break;

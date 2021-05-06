@@ -174,31 +174,33 @@ namespace Microsoft.AzureRepos
 
             string orgPrefix = $"{AzureDevOpsConstants.UrnOrgPrefix}/";
 
+            bool ExtractUserBinding(GitConfigurationEntry entry, IDictionary<string, string> dict)
+            {
+                if (GitConfigurationKeyComparer.TrySplit(entry.Key, out _, out string scope, out _) &&
+                    Uri.TryCreate(scope, UriKind.Absolute, out Uri uri) &&
+                    uri.Scheme == AzureDevOpsConstants.UrnScheme && uri.AbsolutePath.StartsWith(orgPrefix))
+                {
+                    string entryOrgName = uri.AbsolutePath.Substring(orgPrefix.Length);
+                    if (orgName is null || StringComparer.OrdinalIgnoreCase.Equals(entryOrgName, orgName))
+                    {
+                        dict[entryOrgName] = entry.Value;
+                    }
+                }
+
+                return true;
+            }
+
             config.Enumerate(
+                GitConfigurationLevel.Local,
                 Constants.GitConfiguration.Credential.SectionName,
                 Constants.GitConfiguration.Credential.UserName,
-                entry =>
-                {
-                    if (GitConfigurationKeyComparer.TrySplit(entry.Key, out _, out string scope, out _) &&
-                        Uri.TryCreate(scope, UriKind.Absolute, out Uri uri) &&
-                        uri.Scheme == AzureDevOpsConstants.UrnScheme && uri.AbsolutePath.StartsWith(orgPrefix))
-                    {
-                        string entryOrgName = uri.AbsolutePath.Substring(orgPrefix.Length);
-                        if (orgName is null || StringComparer.OrdinalIgnoreCase.Equals(entryOrgName, orgName))
-                        {
-                            if (entry.Level == GitConfigurationLevel.Local)
-                            {
-                                localUsers[entryOrgName] = entry.Value;
-                            }
-                            else
-                            {
-                                globalUsers[entryOrgName] = entry.Value;
-                            }
-                        }
-                    }
+                entry => ExtractUserBinding(entry, localUsers));
 
-                    return true;
-                });
+            config.Enumerate(
+                GitConfigurationLevel.Global,
+                Constants.GitConfiguration.Credential.SectionName,
+                Constants.GitConfiguration.Credential.UserName,
+                entry => ExtractUserBinding(entry, globalUsers));
 
             foreach (string org in globalUsers.Keys.Union(localUsers.Keys))
             {
