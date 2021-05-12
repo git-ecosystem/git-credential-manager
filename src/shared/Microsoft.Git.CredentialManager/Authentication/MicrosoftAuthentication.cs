@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.Identity.Client;
 using Microsoft.Identity.Client.Extensions.Msal;
@@ -44,8 +43,48 @@ namespace Microsoft.Git.CredentialManager.Authentication
             "live", "liveconnect", "liveid",
         };
 
+        #region Broker Initialization
+
+        public static bool IsBrokerInitialized { get; private set; }
+
+        public static void InitializeBroker()
+        {
+            if (IsBrokerInitialized) return;
+
+            IsBrokerInitialized = true;
+
+            // Broker is only supported on Windows 10
+            if (!PlatformUtils.IsWindows10()) return;
+
+            // Nothing to do when not an elevated user
+            if (!PlatformUtils.IsElevatedUser()) return;
+
+            // Lower COM security so that MSAL can make the calls to WAM
+            int result = Interop.Windows.Native.Ole32.CoInitializeSecurity(
+                IntPtr.Zero,
+                -1,
+                IntPtr.Zero,
+                IntPtr.Zero,
+                Interop.Windows.Native.Ole32.RpcAuthnLevel.None,
+                Interop.Windows.Native.Ole32.RpcImpLevel.Impersonate,
+                IntPtr.Zero,
+                Interop.Windows.Native.Ole32.EoAuthnCap.None,
+                IntPtr.Zero
+            );
+
+            if (result != 0)
+            {
+                throw new Exception(
+                    $"Failed to set COM process security to allow Windows broker from an elevated process (0x{result:x})." +
+                    Environment.NewLine +
+                    $"See {Constants.HelpUrls.GcmWamComSecurity} for more information.");
+            }
+        }
+
+        #endregion
+
         public MicrosoftAuthentication(ICommandContext context)
-            : base(context) {}
+            : base(context) { }
 
         #region IMicrosoftAuthentication
 
@@ -53,10 +92,16 @@ namespace Microsoft.Git.CredentialManager.Authentication
             string authority, string clientId, Uri redirectUri, string[] scopes, string userName)
         {
             // Check if we can and should use OS broker authentication
-            bool useBroker = CanUseBroker();
-            if (useBroker)
+            bool useBroker = false;
+            if (CanUseBroker(Context))
             {
-                Context.Trace.WriteLine("OS broker is available and enabled.");
+                // Can only use the broker if it has been initialized
+                useBroker = IsBrokerInitialized;
+
+                if (IsBrokerInitialized)
+                    Context.Trace.WriteLine("OS broker is available and enabled.");
+                else
+                    Context.Trace.WriteLine("OS broker has not been initialized and cannot not be used.");
             }
 
             // Create the public client application for authentication
@@ -396,11 +441,11 @@ namespace Microsoft.Git.CredentialManager.Authentication
 
         #region Auth flow capability detection
 
-        private bool CanUseBroker()
+        public static bool CanUseBroker(ICommandContext context)
         {
 #if NETFRAMEWORK
             // We only support the broker on Windows 10 and require an interactive session
-            if (!Context.SessionManager.IsDesktopSession || !PlatformUtils.IsWindows10())
+            if (!context.SessionManager.IsDesktopSession || !PlatformUtils.IsWindows10())
             {
                 return false;
             }
@@ -408,7 +453,7 @@ namespace Microsoft.Git.CredentialManager.Authentication
             // Default to not using the OS broker
             const bool defaultValue = false;
 
-            if (Context.Settings.TryGetSetting(Constants.EnvironmentVariables.MsAuthUseBroker,
+            if (context.Settings.TryGetSetting(Constants.EnvironmentVariables.MsAuthUseBroker,
                     Constants.GitConfiguration.Credential.SectionName,
                     Constants.GitConfiguration.Credential.MsAuthUseBroker,
                     out string valueStr))
