@@ -20,7 +20,11 @@ namespace Microsoft.Git.CredentialManager
             {
                 // Workaround for https://github.com/AzureAD/microsoft-authentication-library-for-dotnet/issues/2560
                 if (MicrosoftAuthentication.CanUseBroker(context))
-                    try { MicrosoftAuthentication.InitializeBroker(); }
+                {
+                    try
+                    {
+                        MicrosoftAuthentication.InitializeBroker();
+                    }
                     catch (Exception ex)
                     {
                         context.Streams.Error.WriteLine(
@@ -28,6 +32,7 @@ namespace Microsoft.Git.CredentialManager
                             Environment.NewLine, ex.Message
                         );
                     }
+                }
 
                 // Register all supported host providers at the normal priority.
                 // The generic provider should never win against a more specific one, so register it with low priority.

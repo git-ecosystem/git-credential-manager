@@ -49,15 +49,24 @@ namespace Microsoft.Git.CredentialManager.Authentication
 
         public static void InitializeBroker()
         {
-            if (IsBrokerInitialized) return;
+            if (IsBrokerInitialized)
+            {
+                return;
+            }
 
             IsBrokerInitialized = true;
 
             // Broker is only supported on Windows 10
-            if (!PlatformUtils.IsWindows10()) return;
+            if (!PlatformUtils.IsWindows10())
+            {
+                return;
+            }
 
             // Nothing to do when not an elevated user
-            if (!PlatformUtils.IsElevatedUser()) return;
+            if (!PlatformUtils.IsElevatedUser())
+            {
+                return;
+            }
 
             // Lower COM security so that MSAL can make the calls to WAM
             int result = Interop.Windows.Native.Ole32.CoInitializeSecurity(
