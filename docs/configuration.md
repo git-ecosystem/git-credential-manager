@@ -299,7 +299,7 @@ Value|Description
 git config --global credential.msauthUseBroker true
 ```
 
-**Also see: [GCM_MSAUTH_USEBROKER](environment.md#GCM_MSAUTH_USEBROKER)**
+**Also see: [GCM_MSAUTH_USEBROKER](environment.md#GCM_MSAUTH_USEBROKER-experimental)**
 
 ---
 
