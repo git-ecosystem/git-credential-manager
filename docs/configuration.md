@@ -258,7 +258,7 @@ Specify which authentication flow should be used when performing Microsoft authe
 
 Defaults to `auto`.
 
-**Note:** If [`credential.msauthUseBroker`](#credentialmsauthusebroker) is set
+**Note:** If [`credential.msauthUseBroker`](#credentialmsauthusebroker-experimental) is set
 to `true` and the operating system authentication broker is available, all flows
 will be delegated to the broker. If both of those things are true, then the
 value of `credential.msauthFlow` has no effect.
