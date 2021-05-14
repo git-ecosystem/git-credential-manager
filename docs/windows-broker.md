@@ -5,7 +5,7 @@ Authentication requests are said to be "brokered" to the operating system.
 Currently, GCM will share authentication state with a few other Microsoft developer tools like Visual Studio and the Azure CLI, meaning fewer authentication prompts.
 Integration with the WAM broker comes with several additional benefits, but it also has some potential drawbacks that you should be aware of before enabling it.
 
-Note that this only affects Azure DevOps.
+Note that this only affects [Azure DevOps](https://dev.azure.com).
 It doesn't impact authentication with GitHub, Bitbucket, or any other Git host.
 
 ## Features
@@ -60,6 +60,7 @@ If you've connected your MSA to Windows or signed-in to other Microsoft applicat
 For any connected MSA, you can control whether or not the account is available to other Microsoft applications in **Settings**, **Accounts**, **Emails & accounts**:
 
 ![Allow all Microsoft apps to access your identity](img/all-microsoft.png)
+
 ![Microsoft apps must ask to access your identity](img/apps-must-ask.png)
 
 Two very important things to note:
