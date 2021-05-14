@@ -183,6 +183,7 @@ namespace Microsoft.Git.CredentialManager.Authentication
                             result = await app.AcquireTokenInteractive(scopes)
                                 .WithPrompt(Prompt.SelectAccount)
                                 .WithUseEmbeddedWebView(true)
+                                .WithEmbeddedWebViewOptions(GetEmbeddedWebViewOptions())
                                 .ExecuteAsync();
                             break;
 
@@ -407,6 +408,13 @@ namespace Microsoft.Git.CredentialManager.Authentication
             return builder.Build();
         }
 
+        private static EmbeddedWebViewOptions GetEmbeddedWebViewOptions()
+        {
+            return new EmbeddedWebViewOptions
+            {
+                Title = "Git Credential Manager"
+            };
+        }
 
         private static SystemWebViewOptions GetSystemWebViewOptions()
         {
