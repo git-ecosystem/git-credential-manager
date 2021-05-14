@@ -457,7 +457,7 @@ SET GCM_MSAUTH_USEBROKER="true"
 export GCM_MSAUTH_USEBROKER="false"
 ```
 
-**Also see: [credential.msauthUseBroker](configuration.md#credentialmsauthusebroker)**
+**Also see: [credential.msauthUseBroker](configuration.md#credentialmsauthusebroker-experimental)**
 
 ---
 
