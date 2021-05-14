@@ -67,3 +67,34 @@ Two very important things to note:
 * In addition, you can't change the usage preference for the first Microsoft account connected to Windows: all Microsoft apps will be able to sign you in with that account.
 
 As far as we can tell, there are no workarounds for either of these behaviors (other than to not use the WAM broker).
+
+## Running as administrator
+
+The Windows broker ("WAM") makes heavy use of [COM](https://docs.microsoft.com/en-us/windows/win32/com/the-component-object-model), a remote procedure call (RPC) technology built into Windows.
+In order to integrate with WAM, Git Credential Manager and the underlying [Microsoft Authentication Library (MSAL)](https://aka.ms/msal-net) must use COM interfaces and RPCs.
+When you run Git Credential Manager as an elevated process, some of the calls made between GCM and WAM may fail due to differing process security levels.
+This can happen when you run `git` from an Administrator command-prompt or perform Git operations from Visual Studio running as Administrator.
+
+If you've enabled using the broker, GCM will check whether it's running in an
+elevated process.
+If it is, GCM will automatically attempt to modify the COM security settings for the running process so that GCM and WAM can work together.
+However, this automatic process security change is not guaranteed to succeed.
+Various external factors like registry or system-wide COM settings may cause it to fail.
+If GCM can't modify the process's COM security settings, GCM prints a warning message and won't be able to use the broker.
+
+```text
+warning: broker initialization failed
+Failed to set COM process security to allow Windows broker from an elevated process (0x80010119).
+See https://aka.ms/gcmcore-wamadmin for more information.
+```
+
+### Possible solutions
+
+In order to fix the problem, there are a few options:
+
+1. Run Git or Git Credential Manager from non-elevated processes.
+2. Disable the broker by setting the
+   [`GCM_MSAUTH_USEBROKER`](environment.md#gcm_msauth_usebroker)
+   environment variable or the
+   [`credential.msauthUseBroker`](configuration.md#credentialmsauthusebroker)
+   Git configuration setting to `false`.
