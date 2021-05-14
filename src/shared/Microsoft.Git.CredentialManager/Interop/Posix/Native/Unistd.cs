@@ -21,5 +21,8 @@ namespace Microsoft.Git.CredentialManager.Interop.Posix.Native
 
         [DllImport("libc", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         public static extern int getppid();
+
+        [DllImport("libc", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        public static extern int geteuid();
     }
 }
