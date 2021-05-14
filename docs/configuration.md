@@ -280,11 +280,13 @@ git config --global credential.msauthFlow devicecode
 
 ---
 
-### credential.msauthUseBroker
+### credential.msauthUseBroker _(experimental)_
 
 Use the operating system account manager where available.
 
 Defaults to `false`. This default is subject to change in the future.
+
+_**Note:** before you enable this option on Windows, please [review the details](windows-broker.md) about what this means to your local Windows user account._
 
 Value|Description
 -|-
