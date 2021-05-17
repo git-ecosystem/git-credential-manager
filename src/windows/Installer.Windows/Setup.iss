@@ -35,7 +35,7 @@
 #define GcmPublisherUrl "https://www.microsoft.com"
 #define GcmCopyright "Copyright (c) Microsoft 2020"
 #define GcmUrl "https://aka.ms/gcmcore"
-#define GcmReadme "https://github.com/microsoft/Git-Credential-Manager-Core/blob/master/README.md"
+#define GcmReadme "https://github.com/microsoft/Git-Credential-Manager-Core/blob/main/README.md"
 #define GcmRepoRoot "..\..\.."
 #define GcmAssets GcmRepoRoot + "\assets"
 #define GcmExe "git-credential-manager-core.exe"
