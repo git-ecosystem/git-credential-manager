@@ -3,9 +3,9 @@ name: GCM-Core
 on:
   workflow_dispatch:
   push:
-    branches: [ master, linux ]
+    branches: [ main, linux ]
   pull_request:
-    branches: [ master, linux ]
+    branches: [ main, linux ]
 
 jobs:
   validate_gcm:

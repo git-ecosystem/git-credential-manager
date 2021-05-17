@@ -404,7 +404,7 @@ Specify which authentication flow should be used when performing Microsoft authe
 
 Defaults to `auto`.
 
-**Note:** If [`GCM_MSAUTH_USEBROKER`](#gcm_msauth_usebroker) is set to `true`
+**Note:** If [`GCM_MSAUTH_USEBROKER`](#gcm_msauth_usebroker-experimental) is set to `true`
 and the operating system authentication broker is available, all flows will be
 delegated to the broker. If both of those things are true, then the value of
 `GCM_MSAUTH_FLOW` has no effect.
@@ -432,11 +432,13 @@ export GCM_MSAUTH_FLOW="devicecode"
 
 ---
 
-### GCM_MSAUTH_USEBROKER
+### GCM_MSAUTH_USEBROKER _(experimental)_
 
 Use the operating system account manager where available.
 
 Defaults to `false`. This default is subject to change in the future.
+
+_**Note:** before you enable this option on Windows, please [review the details](windows-broker.md) about what this means to your local Windows user account._
 
 Value|Description
 -|-
@@ -455,7 +457,7 @@ SET GCM_MSAUTH_USEBROKER="true"
 export GCM_MSAUTH_USEBROKER="false"
 ```
 
-**Also see: [credential.msauthUseBroker](configuration.md#credentialmsauthusebroker)**
+**Also see: [credential.msauthUseBroker](configuration.md#credentialmsauthusebroker-experimental)**
 
 ---
 
