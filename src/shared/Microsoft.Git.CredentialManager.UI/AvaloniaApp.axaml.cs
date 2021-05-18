@@ -2,6 +2,7 @@ using System;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using Microsoft.Git.CredentialManager.UI.Controls;
 
 namespace Microsoft.Git.CredentialManager.UI
 {
@@ -33,7 +34,8 @@ namespace Microsoft.Git.CredentialManager.UI
 
         private void About(object sender, EventArgs e)
         {
-            // TODO
+            var window = new AboutWindow();
+            window.Show();
         }
     }
 }
