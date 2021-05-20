@@ -1,5 +1,5 @@
 pr:
-  - master
+  - main
   - release
 
 variables:

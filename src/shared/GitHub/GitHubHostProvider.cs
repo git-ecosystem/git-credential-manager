@@ -263,8 +263,15 @@ namespace GitHub
                 {
                     modes |= AuthenticationModes.Basic;
                 }
-                if (Version.TryParse(metaInfo.InstalledVersion, out var version) && version >= GitHubConstants.MinimumEnterpriseOAuthVersion)
+
+                if (StringComparer.OrdinalIgnoreCase.Equals(metaInfo.InstalledVersion, GitHubConstants.GitHubAeVersionString))
                 {
+                    // Assume all GHAE instances have the GCM OAuth application deployed
+                    modes |= AuthenticationModes.OAuth;
+                }
+                else if (Version.TryParse(metaInfo.InstalledVersion, out var version) && version >= GitHubConstants.MinimumEnterpriseOAuthVersion)
+                {
+                    // Only GHES versions beyond the minimum version have the GCM OAuth application deployed
                     modes |= AuthenticationModes.OAuth;
                 }
 

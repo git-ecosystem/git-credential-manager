@@ -2,6 +2,7 @@
 // Licensed under the MIT license.
 using System;
 using System.Runtime.InteropServices;
+using Microsoft.Git.CredentialManager.Interop.Posix.Native;
 
 namespace Microsoft.Git.CredentialManager
 {
@@ -134,6 +135,24 @@ namespace Microsoft.Git.CredentialManager
             {
                 throw new PlatformNotSupportedException();
             }
+        }
+
+        public static bool IsElevatedUser()
+        {
+            if (IsWindows())
+            {
+#if NETFRAMEWORK
+                var identity = System.Security.Principal.WindowsIdentity.GetCurrent();
+                var principal = new System.Security.Principal.WindowsPrincipal(identity);
+                return principal.IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator);
+#endif
+            }
+            else if (IsPosix())
+            {
+                return Unistd.geteuid() == 0;
+            }
+
+            return false;
         }
 
         #region Platform information helper methods
