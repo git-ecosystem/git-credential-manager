@@ -39,7 +39,6 @@ namespace Microsoft.Git.CredentialManager
                 app.RegisterProvider(new GitHubHostProvider(context),     HostProviderPriority.Normal);
                 app.RegisterProvider(new GenericHostProvider(context),    HostProviderPriority.Low);
 
-                // Run!
                 int exitCode = app.RunAsync(args)
                                   .ConfigureAwait(false)
                                   .GetAwaiter()
