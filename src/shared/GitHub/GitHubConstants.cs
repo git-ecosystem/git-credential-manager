@@ -27,10 +27,9 @@ namespace GitHub
         public const string GitHubOptHeader = "X-GitHub-OTP";
 
         /// <summary>
-        /// Minimum GitHub Enterprise version that supports OAuth authentication with GCM Core.
+        /// Minimum GitHub Enterprise Server version that supports OAuth authentication with GCM Core.
         /// </summary>
-        // TODO: update this with a real version number once the GCM OAuth application has been deployed to GHE
-        public static readonly Version MinimumEnterpriseOAuthVersion = new Version("99.99.99");
+        public static readonly Version MinimumOnPremOAuthVersion = new Version("3.2");
 
         /// <summary>
         /// The version string returned from the meta API endpoint for GitHub AE instances.
