@@ -21,6 +21,8 @@ SRC="$ROOT/src"
 OUT="$ROOT/out"
 INSTALLER_SRC="$SRC/osx/Installer.Mac"
 GCM_SRC="$SRC/shared/Git-Credential-Manager"
+BITBUCKET_UI_SRC="$SRC/shared/Atlassian.Bitbucket.UI"
+GITHUB_UI_SRC="$SRC/shared/GitHub.UI"
 
 # Build parameters
 FRAMEWORK=net5.0
@@ -72,6 +74,20 @@ cp "$INSTALLER_SRC/uninstall.sh" "$PAYLOAD" || exit 1
 # Publish core application executables
 echo "Publishing core application..."
 dotnet publish "$GCM_SRC" \
+	--configuration="$CONFIGURATION" \
+	--framework="$FRAMEWORK" \
+	--runtime="$RUNTIME" \
+	--output="$(make_absolute "$PAYLOAD")" || exit 1
+
+echo "Publishing Bitbucket UI helper..."
+dotnet publish "$BITBUCKET_UI_SRC" \
+	--configuration="$CONFIGURATION" \
+	--framework="$FRAMEWORK" \
+	--runtime="$RUNTIME" \
+	--output="$(make_absolute "$PAYLOAD")" || exit 1
+
+echo "Publishing GitHub UI helper..."
+dotnet publish "$GITHUB_UI_SRC" \
 	--configuration="$CONFIGURATION" \
 	--framework="$FRAMEWORK" \
 	--runtime="$RUNTIME" \

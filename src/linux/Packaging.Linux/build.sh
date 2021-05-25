@@ -44,6 +44,8 @@ ROOT="$( cd "$THISDIR"/../../.. ; pwd -P )"
 SRC="$ROOT/src"
 OUT="$ROOT/out"
 GCM_SRC="$SRC/shared/Git-Credential-Manager"
+BITBUCKET_UI_SRC="$SRC/shared/Atlassian.Bitbucket.UI"
+GITHUB_UI_SRC="$SRC/shared/GitHub.UI"
 PROJ_OUT="$OUT/linux/Packaging.Linux"
 
 # Build parameters
@@ -94,8 +96,26 @@ dotnet publish "$GCM_SRC" \
 	--configuration="$CONFIGURATION" \
 	--framework="$FRAMEWORK" \
 	--runtime="$RUNTIME" \
-    --self-contained=true \
-    "/p:PublishSingleFile=True" \
+	--self-contained=true \
+	-p:PublishSingleFile=true \
+	--output="$(make_absolute "$PAYLOAD")" || exit 1
+
+echo "Publishing Bitbucket UI helper..."
+dotnet publish "$BITBUCKET_UI_SRC" \
+	--configuration="$CONFIGURATION" \
+	--framework="$FRAMEWORK" \
+	--runtime="$RUNTIME" \
+	--self-contained=true \
+	-p:PublishSingleFile=true \
+	--output="$(make_absolute "$PAYLOAD")" || exit 1
+
+echo "Publishing GitHub UI helper..."
+dotnet publish "$GITHUB_UI_SRC" \
+	--configuration="$CONFIGURATION" \
+	--framework="$FRAMEWORK" \
+	--runtime="$RUNTIME" \
+	--self-contained=true \
+	-p:PublishSingleFile=true \
 	--output="$(make_absolute "$PAYLOAD")" || exit 1
 
 # Collect symbols

@@ -299,7 +299,12 @@ namespace GitHub
 
         #region Private Methods
 
-        internal static bool IsGitHubDotCom(Uri targetUri)
+        public static bool IsGitHubDotCom(string targetUrl)
+        {
+            return Uri.TryCreate(targetUrl, UriKind.Absolute, out Uri uri) && IsGitHubDotCom(uri);
+        }
+
+        public static bool IsGitHubDotCom(Uri targetUri)
         {
             return StringComparer.OrdinalIgnoreCase.Equals(targetUri.Host, GitHubConstants.GitHubBaseUrlHost);
         }

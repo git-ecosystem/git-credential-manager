@@ -13,6 +13,8 @@
 
   <ItemGroup>
     <ProjectReference Include="../../shared/Git-Credential-Manager/Git-Credential-Manager.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="../../shared/Atlassian.Bitbucket.UI/Atlassian.Bitbucket.UI.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="../../shared/GitHub.UI/GitHub.UI.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <!-- Implicit SDK targets import (so we can override the default targets below) -->
