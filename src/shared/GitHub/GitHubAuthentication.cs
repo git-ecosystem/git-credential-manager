@@ -189,7 +189,10 @@ namespace GitHub
 
             if (TryFindHelperExecutablePath(out string helperPath))
             {
-                IDictionary<string, string> resultDict = await InvokeHelperAsync(helperPath, "2fa", null);
+                var args = new StringBuilder("2fa");
+                if (isSms) args.Append(" --sms");
+
+                IDictionary<string, string> resultDict = await InvokeHelperAsync(helperPath, args.ToString(), null);
 
                 if (!resultDict.TryGetValue("code", out string authCode))
                 {

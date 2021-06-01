@@ -269,7 +269,7 @@ namespace GitHub
                     // Assume all GHAE instances have the GCM OAuth application deployed
                     modes |= AuthenticationModes.OAuth;
                 }
-                else if (Version.TryParse(metaInfo.InstalledVersion, out var version) && version >= GitHubConstants.MinimumEnterpriseOAuthVersion)
+                else if (Version.TryParse(metaInfo.InstalledVersion, out var version) && version >= GitHubConstants.MinimumOnPremOAuthVersion)
                 {
                     // Only GHES versions beyond the minimum version have the GCM OAuth application deployed
                     modes |= AuthenticationModes.OAuth;
@@ -299,7 +299,12 @@ namespace GitHub
 
         #region Private Methods
 
-        internal static bool IsGitHubDotCom(Uri targetUri)
+        public static bool IsGitHubDotCom(string targetUrl)
+        {
+            return Uri.TryCreate(targetUrl, UriKind.Absolute, out Uri uri) && IsGitHubDotCom(uri);
+        }
+
+        public static bool IsGitHubDotCom(Uri targetUri)
         {
             return StringComparer.OrdinalIgnoreCase.Equals(targetUri.Host, GitHubConstants.GitHubBaseUrlHost);
         }

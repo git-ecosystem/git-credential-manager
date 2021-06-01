@@ -1,0 +1,28 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="GitHub.UI.Controls.SixDigitInput">
+    <UserControl.Styles>
+        <Style Selector="TextBox">
+            <Setter Property="Width" Value="36"/>
+            <Setter Property="Height" Value="46"/>
+            <Setter Property="MinWidth" Value="36"/>
+            <Setter Property="Padding" Value="6"/>
+            <Setter Property="Margin" Value="0,0,8,0"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="FontSize" Value="20"/>
+            <Setter Property="MaxLength" Value="1"/>
+        </Style>
+    </UserControl.Styles>
+    <StackPanel Orientation="Horizontal">
+        <TextBox x:Name="one"/>
+        <TextBox x:Name="two"/>
+        <TextBox x:Name="three"/>
+        <TextBox x:Name="four"/>
+        <TextBox x:Name="five"/>
+        <TextBox x:Name="six" Margin="0"/>
+    </StackPanel>
+</UserControl>
