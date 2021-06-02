@@ -39,11 +39,11 @@ namespace GitHub.UI.Commands
             Handler = CommandHandler.Create<string, string, bool, bool, bool>(ExecuteAsync);
         }
 
-        private async Task<int> ExecuteAsync(string enterpriseUrl, string userName, bool basic, bool browser, bool pat)
+        private async Task<int> ExecuteAsync(string enterpriseUrl, string userName, bool basic, bool oauth, bool pat)
         {
             var viewModel = new CredentialsViewModel(Context.Environment)
             {
-                ShowBrowserLogin = browser,
+                ShowBrowserLogin = oauth,
                 ShowTokenLogin   = pat,
                 ShowBasicLogin   = basic,
             };
