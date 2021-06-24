@@ -144,8 +144,11 @@ To uninstall, open Control Panel and navigate to the Programs and Features scree
 
 ## How to use
 
-Git Credential Manager Core is called implicitly by Git, when so configured. It is not intended to be called directly by the user.
-For example, when pushing (`git push`) to [Azure DevOps](https://dev.azure.com), a window is automatically opened and an OAuth2 flow is started to get your personal access token.
+Once it's installed and configured, Git Credential Manager Core is called implicitly by Git.
+You don't have to do anything special, and GCM Core isn't intended to be called directly by the user.
+For example, when pushing (`git push`) to [Azure DevOps](https://dev.azure.com), [Bitbucket](https://bitbucket.org), or [GitHub](https://github.com), a window will automatically open and walk you through the sign-in process.
+(This process will look slightly different for each Git host, and even in some cases, whether you've connected to an on-premises or cloud-hosted Git host.)
+Later Git commands in the same repository will re-use existing credentials or tokens that GCM Core has stored for as long as they're valid.
 
 Read full command line usage [here](docs/usage.md).
 
