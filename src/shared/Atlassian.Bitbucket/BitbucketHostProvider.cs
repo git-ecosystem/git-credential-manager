@@ -66,8 +66,12 @@ namespace Atlassian.Bitbucket
                 return false;
             }
 
-            // TODO: identify Bitbucket on-prem instances from the HTTP response
-            return false;
+            // Identify Bitbucket on-prem instances from the HTTP response using the Atlassian specific header X-AREQUESTID
+            var supported =  response.Headers.Contains("X-AREQUESTID");
+
+            _context.Trace.WriteLine($"Host is{(supported ? null : "n't")} supported as Bitbucket");
+
+            return supported;
         }
 
         public async Task<ICredential> GetCredentialAsync(InputArguments input)
