@@ -14,39 +14,82 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-    - name: setup python
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.8
-
     - uses: actions/checkout@v2
 
     - uses: azure/login@v1
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    - name: 'Download Repo Client'
+    - name: "Download Repo Client"
       env:
         AZ_SUB: ${{ secrets.AZURE_SUBSCRIPTION }}
       run: |
         az storage blob download --subscription  "$AZ_SUB" --account-name gitcitoolstore -c tools -n azure-repoapi-client_2.0.1_amd64.deb -f repoclient.deb --auth-mode login
 
     - name: "Install Repo Client"
-      env:
-        APT_REPO_ID: ${{ secrets.APT_REPO_ID }}
-        AZURE_AAD_ID: ${{ secrets.AZURE_AAD_ID }}
-        AAD_CLIENT_SECRET: ${{ secrets.AAD_CLIENT_SECRET }}
       run: |
         sudo apt-get install python3-adal --yes
         sudo dpkg -i repoclient.deb
-        python .github/configure_repoclient.py
         rm repoclient.deb
+
+    - name: "Configure Repo Client"
+      uses: actions/github-script@v3
+      env:
+        AZURE_AAD_ID: ${{ secrets.AZURE_AAD_ID }}
+        AAD_CLIENT_SECRET: ${{ secrets.AAD_CLIENT_SECRET }}
+      with:
+        script: |
+          for (const key of ['AZURE_AAD_ID', 'AAD_CLIENT_SECRET']) {
+            if (!process.env[key]) throw new Error(`Required env var ${key} is missing!`)
+          }
+          const config = {
+            AADResource: 'https://microsoft.onmicrosoft.com/945999e9-da09-4b5b-878f-b66c414602c0',
+            AADTenant: '72f988bf-86f1-41af-91ab-2d7cd011db47',
+            AADAuthorityUrl: 'https://login.microsoftonline.com',
+            server: 'azure-apt-cat.cloudapp.net',
+            port: '443',
+            AADClientId: process.env.AZURE_AAD_ID,
+            AADClientSecret: process.env.AAD_CLIENT_SECRET,
+            repositoryId: ''
+          }
+          const fs = require('fs')
+          fs.writeFileSync('config.json', JSON.stringify(config, null, 2))
+
+    - name: "Get Release Asset"
+      id: get-asset
+      env:
+        RELEASE: ${{ github.event.inputs.release }}
+      uses: actions/github-script@v3
+      with:
+        github-token: ${{secrets.GITHUB_TOKEN}}
+        script: |
+          const { data } = await github.repos.getRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: process.env.RELEASE || 'latest'
+            })
+          const assets = data.assets.filter(asset => asset.name.endsWith('.deb'))
+          if (assets.length !== 1) {
+            throw new Error(`Unexpected number of .deb assets: ${assets.length}`)
+          }
+          const fs = require('fs')
+          const buffer = await github.repos.getReleaseAsset({
+              headers: {
+                accept: 'application/octet-stream'
+              },
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              asset_id: assets[0].id
+            })
+          console.log(buffer)
+          fs.writeFileSync(assets[0].name, Buffer.from(buffer.data))
+          core.setOutput('name', assets[0].name)
 
     - name: "Publish to apt feed"
       env:
         RELEASE: ${{ github.event.inputs.release }}
       run: |
-        pip install requests
-        python .github/fetch_release.py
-        wget "$(cat asset_url.txt)"
-        repoclient -v v3 -c config.json package add --check --wait 300 "$(cat asset_name.txt)" 
+        for id in ${{ secrets.BIONIC_REPO_ID }} ${{ secrets.HIRSUTE_REPO_ID }}
+        do
+          repoclient -v v3 -c config.json package add --check --wait 300 "${{steps.get-asset.outputs.name}}" -r $id
+        done
