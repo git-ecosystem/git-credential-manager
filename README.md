@@ -88,6 +88,30 @@ sudo /usr/local/share/gcm-core/uninstall.sh
 
 ### Linux Debian package (.deb)
 
+`apt-get` support is available for Ubuntu Bionic Beaver (18.04) and Hirsute 
+Hippo (21.04). Take the following steps to set up and install based on the
+version you are running:
+
+#### Ubuntu 18.04 (Bionic)
+
+```shell
+curl -sSL https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+sudo apt-add-repository https://packages.microsoft.com/ubuntu/18.04/prod
+sudo apt-get update
+sudo apt-get install gcmcore
+```
+
+#### Ubuntu 21.04 (Hirsute)
+
+```shell
+curl -sSL https://packages.microsoft.com/config/ubuntu/21.04/prod.list | sudo tee /etc/apt/sources.list.d/microsoft-prod.list
+curl -sSL https://packages.microsoft.com/keys/microsoft.asc | sudo tee /etc/apt/trusted.gpg.d/microsoft.asc
+sudo apt-get update
+sudo apt-get install gcmcore
+```
+
+#### Other Ubuntu/Debian distributions
+
 Download the latest [.deb package](https://github.com/microsoft/Git-Credential-Manager-Core/releases/latest), and run the following:
 
 ```shell
@@ -97,9 +121,7 @@ git-credential-manager-core configure
 
 Note that Linux distributions [require additional configuration](https://aka.ms/gcmcore-linuxcredstores) to use GCM Core.
 
----
-
-### Linux tarball (.tar.gz)
+#### Other distributions
 
 Download the latest [tarball](https://github.com/microsoft/Git-Credential-Manager-Core/releases/latest), and run the following:
 
