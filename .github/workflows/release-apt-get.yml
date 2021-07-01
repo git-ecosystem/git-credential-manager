@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       release:
-        description: 'Release Tag'
+        description: 'Release Id'
         required: true
         default: 'latest'
 
