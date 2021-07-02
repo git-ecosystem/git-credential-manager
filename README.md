@@ -86,7 +86,11 @@ sudo /usr/local/share/gcm-core/uninstall.sh
 
 ---
 
-### Linux Debian package (.deb)
+<!-- this explicit anchor should stay stable so that external docs can link here -->
+<a name="linux-install-instructions"></a>
+### Linux
+
+#### Debian package (.deb)
 
 `apt-get` support is available for Ubuntu Bionic Beaver (18.04) and Hirsute 
 Hippo (21.04). Take the following steps to set up and install based on the
