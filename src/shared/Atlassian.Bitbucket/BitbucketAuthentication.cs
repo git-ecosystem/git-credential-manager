@@ -12,6 +12,17 @@ using Microsoft.Git.CredentialManager.Authentication.OAuth;
 
 namespace Atlassian.Bitbucket
 {
+
+    [Flags]
+    public enum AuthenticationModes
+    {
+        None = 0,
+        Basic = 1,
+        OAuth = 1 << 1,
+        //Pat = 1 << 2,
+
+        All = Basic | OAuth //| Pat
+    }
     public interface IBitbucketAuthentication : IDisposable
     {
         Task<ICredential> GetBasicCredentialsAsync(Uri targetUri, string userName);
