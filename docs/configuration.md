@@ -148,6 +148,32 @@ git config --global credential.httpsProxy http://john.doe:password@proxy.contoso
 
 ---
 
+### credential.bitbucketAuthModes
+
+Override the available authentication modes presented during Bitbucket authentication.
+If this option is not set, then the available authentication modes will be automatically detected.
+
+
+**Note:** This setting only applies to Bitbucket.org not Server or DC instances.
+
+**Note:** This setting supports multiple values separated by commas.
+
+Value|Authentication Mode
+-|-
+_(unset)_|Automatically detect modes
+`oauth`|OAuth-based authentication
+`basic`|Basic/PAT-based authentication
+
+#### Example
+
+```shell
+git config --global credential.bitbucketAuthModes "oauth,basic"
+```
+
+**Also see: [GCM_BITBUCKET_AUTHMODES](environment.md#GCM_BITBUCKET_AUTHMODES)**
+
+---
+
 ### credential.gitHubAuthModes
 
 Override the available authentication modes presented during GitHub authentication.
