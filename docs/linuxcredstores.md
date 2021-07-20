@@ -8,7 +8,7 @@ Manager Core (GCM Core) manages on Linux platforms:
 3. Git's built-in [credential cache](https://git-scm.com/docs/git-credential-cache)
 4. Plaintext files
 
-By default, GCM Core comes unconfigured. You can select which credential store
+By default, GCM Core comes unconfigured. After running `git-credential-manager-core configure`, you can select which credential store
 to use by setting the [`GCM_CREDENTIAL_STORE`](environment.md#GCM_CREDENTIAL_STORE)
 environment variable, or the [`credential.credentialStore`](configuration.md#credentialcredentialstore)
 Git configuration setting.
