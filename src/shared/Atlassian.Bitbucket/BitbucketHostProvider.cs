@@ -224,6 +224,12 @@ namespace Atlassian.Bitbucket
 
         public async Task<AuthenticationModes> GetSupportedAuthenticationModesAsync(Uri targetUri)
         {
+            if(!IsBitbucketOrg(targetUri))
+            {
+                // Bitbucket.org should use Basic only
+                return BitbucketConstants.ServerAuthenticationModes;
+            }
+
             // Check for an explicit override for supported authentication modes
             if (_context.Settings.TryGetSetting(
                 BitbucketConstants.EnvironmentVariables.AuthenticationModes,
@@ -242,13 +248,9 @@ namespace Atlassian.Bitbucket
             }
 
             // Bitbucket.org should use Basic, OAuth or manual PAT based authentication only
-            if (IsBitbucketOrg(targetUri))
-            {
-                _context.Trace.WriteLine($"{targetUri} is bitbucket.org - authentication schemes: '{BitbucketConstants.DotOrgAuthenticationModes}'");
-                return BitbucketConstants.DotOrgAuthenticationModes;
-            }
+            _context.Trace.WriteLine($"{targetUri} is bitbucket.org - authentication schemes: '{BitbucketConstants.DotOrgAuthenticationModes}'");
+            return BitbucketConstants.DotOrgAuthenticationModes;
 
-            return BitbucketConstants.ServerAuthenticationModes;
         }
 
         public Task StoreCredentialAsync(InputArguments input)
