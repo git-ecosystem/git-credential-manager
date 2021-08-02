@@ -8,6 +8,10 @@ Integration with the WAM broker comes with several additional benefits, but it a
 Note that this only affects [Azure DevOps](https://dev.azure.com).
 It doesn't impact authentication with GitHub, Bitbucket, or any other Git host.
 
+## How to enable
+
+You can opt-in to WAM support by setting the environment variable [`GCM_MSAUTH_USEBROKER`](https://github.com/microsoft/Git-Credential-Manager-Core/blob/main/docs/environment.md#gcm_msauth_usebroker-experimental) or setting the Git configuration value [`credential.msauthUseBroker`](https://github.com/microsoft/Git-Credential-Manager-Core/blob/main/docs/configuration.md#credentialmsauthusebroker-experimental).
+
 ## Features
 
 When you turn on WAM support, GCM Core can cooperate with Windows and with other WAM-enabled software on your machine.
