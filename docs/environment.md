@@ -2,7 +2,7 @@
 
 [Git Credential Manager Core](usage.md) works out of the box for most users. Configuration options are available to customize or tweak behavior.
 
-Git Credential Manager Core (GCM Core) can be configured using environment variables. **Environment variables take precedence over [configuration](configuration.md) options.**
+Git Credential Manager Core (GCM Core) can be configured using environment variables. **Environment variables take precedence over [configuration](configuration.md) options**. System administrators may also configure [default values](enterprise-config.md) for many settings used by GCM Core.
 
 For the complete list of environment variables GCM Core understands, see the list below.
 

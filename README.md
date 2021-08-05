@@ -189,6 +189,7 @@ See detailed information [here](https://aka.ms/gcmcore-httpproxy).
 - [Command-line usage](docs/usage.md)
 - [Configuration options](docs/configuration.md)
 - [Environment variables](docs/environment.md)
+- [Enterprise configuration](docs/enterprise-config.md)
 - [Network and HTTP configuration](docs/netconfig.md)
 - [Architectural overview](docs/architecture.md)
 - [Host provider specification](docs/hostprovider.md)
