@@ -58,6 +58,7 @@ namespace Microsoft.Git.CredentialManager
             public const string GcmCredCacheOptions   = "GCM_CREDENTIAL_CACHE_OPTIONS";
             public const string GcmPlaintextStorePath = "GCM_PLAINTEXT_STORE_PATH";
             public const string GitExecutablePath     = "GIT_EXEC_PATH";
+            public const string GpgExecutablePath     = "GCM_GPG_PATH";
         }
 
         public static class Http
