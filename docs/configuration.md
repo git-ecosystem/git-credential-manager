@@ -3,6 +3,7 @@
 [Git Credential Manager Core](usage.md) works out of the box for most users.
 
 Git Credential Manager Core (GCM Core) can be configured using Git's configuration files, and follows all of the same rules Git does when consuming the files.
+
 Global configuration settings override system configuration settings, and local configuration settings override global settings; and because the configuration details exist within Git's configuration files you can use Git's `git config` utility to set, unset, and alter the setting values. All of GCM Core's configuration settings begin with the term `credential`.
 
 GCM Core honors several levels of settings, in addition to the standard local \> global \> system tiering Git uses.
