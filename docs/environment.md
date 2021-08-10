@@ -410,6 +410,8 @@ If not specified, GCM Core defaults to using the version of `gpg2` on the `$PATH
 export GCM_GPG_PATH="/usr/local/bin/gpg2"
 ```
 
+_No configuration equivalent._
+
 ---
 
 ### GCM_MSAUTH_FLOW
