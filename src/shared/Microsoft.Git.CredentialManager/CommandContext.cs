@@ -101,7 +101,7 @@ namespace Microsoft.Git.CredentialManager
                                             gitPath,
                                             FileSystem.GetCurrentDirectory()
                                         );
-                Settings          = new Settings(Environment, Git);
+                Settings          = new WindowsSettings(Environment, Git, Trace);
                 CredentialStore   = new WindowsCredentialManager(Settings.CredentialNamespace);
             }
             else if (PlatformUtils.IsMacOS())

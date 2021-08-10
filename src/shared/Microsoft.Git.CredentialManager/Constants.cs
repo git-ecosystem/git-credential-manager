@@ -107,6 +107,12 @@ namespace Microsoft.Git.CredentialManager
             }
         }
 
+        public static class WindowsRegistry
+        {
+            public const string HKAppBasePath = @"SOFTWARE\GitCredentialManager";
+            public const string HKConfigurationPath = HKAppBasePath + @"\Configuration";
+        }
+
         public static class HelpUrls
         {
             public const string GcmProjectUrl          = "https://aka.ms/gcmcore";
