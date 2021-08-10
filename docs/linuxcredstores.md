@@ -134,6 +134,10 @@ the environment variable `GCM_PLAINTEXT_STORE_PATH` environment variable.
 
 If the directory does not exist is will be created.
 
+On POSIX platforms the newly created store directory will have permissions set
+such that only the owner can `r`ead/`w`rite/e`x`ecute (`700` or `drwx---`).
+Permissions on existing directories will not be modified.
+
 ---
 
 <p align="center">
