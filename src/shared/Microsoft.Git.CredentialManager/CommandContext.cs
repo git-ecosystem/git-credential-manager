@@ -119,7 +119,6 @@ namespace Microsoft.Git.CredentialManager
                                         );
                 Settings          = new Settings(Environment, Git);
                 CredentialStore   = new MacOSKeychain(Settings.CredentialNamespace);
-
             }
             else if (PlatformUtils.IsLinux())
             {
@@ -136,7 +135,6 @@ namespace Microsoft.Git.CredentialManager
                                             FileSystem.GetCurrentDirectory()
                                         );
                 Settings          = new Settings(Environment, Git);
-
                 string gpgPath    = GetGpgPath(Environment, FileSystem, Trace);
                 IGpg gpg          = new Gpg(gpgPath, SessionManager);
                 CredentialStore   = new LinuxCredentialStore(FileSystem, Settings, SessionManager, gpg, Environment, Git);
