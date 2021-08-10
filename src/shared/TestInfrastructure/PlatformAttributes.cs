@@ -28,6 +28,28 @@ namespace Microsoft.Git.CredentialManager.Tests
         }
     }
 
+    public class SkippablePlatformFactAttribute : SkippableFactAttribute
+    {
+        public SkippablePlatformFactAttribute(Platforms platforms)
+        {
+            Xunit.Skip.IfNot(
+                XunitHelpers.IsSupportedPlatform(platforms),
+                "Test not supported on this platform."
+            );
+        }
+    }
+
+    public class SkippablePlatformTheoryAttribute : SkippableTheoryAttribute
+    {
+        public SkippablePlatformTheoryAttribute(Platforms platforms)
+        {
+            Xunit.Skip.IfNot(
+                XunitHelpers.IsSupportedPlatform(platforms),
+                "Test not supported on this platform."
+            );
+        }
+    }
+
     internal static class XunitHelpers
     {
         public static bool IsSupportedPlatform(Platforms platforms)
