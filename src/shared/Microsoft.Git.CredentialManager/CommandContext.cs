@@ -144,7 +144,7 @@ namespace Microsoft.Git.CredentialManager
                 throw new PlatformNotSupportedException();
             }
 
-            HttpClientFactory = new HttpClientFactory(Trace, Settings, Streams);
+            HttpClientFactory = new HttpClientFactory(FileSystem, Trace, Settings, Streams);
 
             // Set the parent window handle/ID
             SystemPrompts.ParentWindowId = Settings.ParentWindowId;

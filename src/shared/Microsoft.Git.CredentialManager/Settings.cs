@@ -119,6 +119,25 @@ namespace Microsoft.Git.CredentialManager
         /// Credential backing store override.
         /// </summary>
         string CredentialBackingStore { get; }
+
+        /// <summary>
+        /// Optional path to a file containing one or more certificates that should
+        /// be used *exclusively* when verifying server certificate chains.
+        /// </summary>
+        /// <remarks>The default value is null if unset.</remarks>
+        string CustomCertificateBundlePath { get; }
+
+        /// <summary>
+        /// The SSL/TLS backend.
+        /// </summary>
+        TlsBackend TlsBackend { get; }
+
+        /// <summary>
+        /// True if, when using an schannel backend, using certificates from the
+        /// CustomCertificateBundlePath is allowed.
+        /// </summary>
+        /// <remarks>The default value is false if unset.</remarks>
+        bool UseCustomCertificateBundleWithSchannel { get; }
     }
 
     public class ProxyConfiguration
@@ -161,6 +180,13 @@ namespace Microsoft.Git.CredentialManager
         /// List of host names that should not be proxied.
         /// </summary>
         public ICollection<string> BypassHosts { get; }
+    }
+
+    public enum TlsBackend
+    {
+        OpenSsl,
+        Schannel,
+        Other,
     }
 
     public class Settings : ISettings
@@ -391,6 +417,18 @@ namespace Microsoft.Git.CredentialManager
                 return true;
             }
         }
+
+        public string CustomCertificateBundlePath =>
+            TryGetSetting(KnownEnvars.GitSslCaInfo, KnownGitCfg.Http.SectionName, KnownGitCfg.Http.SslCaInfo, out string value) ? value : null;
+
+        public TlsBackend TlsBackend =>
+            TryGetSetting(null, KnownGitCfg.Http.SectionName, KnownGitCfg.Http.SslBackend, out string config)
+                ? (Enum.TryParse(config, true, out TlsBackend backend) ? backend : CredentialManager.TlsBackend.Other)
+                : default(TlsBackend);
+
+        public bool UseCustomCertificateBundleWithSchannel =>
+            TryGetSetting(null, KnownGitCfg.Http.SectionName, KnownGitCfg.Http.SchannelUseSslCaInfo, out string schannelUseSslCaInfo) &&
+                schannelUseSslCaInfo.ToBooleanyOrDefault(false);
 
         public ProxyConfiguration GetProxyConfiguration()
         {
