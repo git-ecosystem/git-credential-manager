@@ -2,7 +2,7 @@
 
 [Git Credential Manager Core](usage.md) works out of the box for most users. Configuration options are available to customize or tweak behavior.
 
-Git Credential Manager Core (GCM Core) can be configured using environment variables. **Environment variables take precedence over [configuration](configuration.md) options.**
+Git Credential Manager Core (GCM Core) can be configured using environment variables. **Environment variables take precedence over [configuration](configuration.md) options and enterprise system administrator [default values](enterprise-config.md)**.
 
 For the complete list of environment variables GCM Core understands, see the list below.
 
@@ -395,6 +395,22 @@ export GCM_PLAINTEXT_STORE_PATH=/mnt/external-drive/credentials
 ```
 
 **Also see: [credential.plaintextStorePath](configuration.md#credentialplaintextstorepath)**
+
+---
+
+### GCM_GPG_PATH
+
+Specify the path (_including_ the executable name) to the version of `gpg` used by `pass` (`gpg2` if present, otherwise `gpg`). This is primarily meant to allow manual resolution of the conflict that occurs on legacy Linux systems with parallel installs of `gpg` and `gpg2`.
+
+If not specified, GCM Core defaults to using the version of `gpg2` on the `$PATH`, falling back on `gpg` if `gpg2` is not found.
+
+##### Linux
+
+```bash
+export GCM_GPG_PATH="/usr/local/bin/gpg2"
+```
+
+_No configuration equivalent._
 
 ---
 

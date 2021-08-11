@@ -3,12 +3,13 @@
 [Git Credential Manager Core](usage.md) works out of the box for most users.
 
 Git Credential Manager Core (GCM Core) can be configured using Git's configuration files, and follows all of the same rules Git does when consuming the files.
+
 Global configuration settings override system configuration settings, and local configuration settings override global settings; and because the configuration details exist within Git's configuration files you can use Git's `git config` utility to set, unset, and alter the setting values. All of GCM Core's configuration settings begin with the term `credential`.
 
 GCM Core honors several levels of settings, in addition to the standard local \> global \> system tiering Git uses.
 URL-specific settings or overrides can be applied to any value in the `credential` namespace with the syntax below.
 
-Additionally, GCM Core respects several GCM-specific [environment variables](environment.md) **which take precedence over configuration options.**
+Additionally, GCM Core respects several GCM-specific [environment variables](environment.md) **which take precedence over configuration options**. System administrators may also configure [default values](enterprise-config.md) for many settings used by GCM Core.
 
 GCM Core will only be used by Git if it is installed and configured. Use `git config --global credential.helper manager-core` to assign GCM Core as your credential helper. Use `git config credential.helper` to see the current configuration.
 

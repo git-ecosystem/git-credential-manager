@@ -58,6 +58,7 @@ namespace Microsoft.Git.CredentialManager
             public const string GcmCredCacheOptions   = "GCM_CREDENTIAL_CACHE_OPTIONS";
             public const string GcmPlaintextStorePath = "GCM_PLAINTEXT_STORE_PATH";
             public const string GitExecutablePath     = "GIT_EXEC_PATH";
+            public const string GpgExecutablePath     = "GCM_GPG_PATH";
         }
 
         public static class Http
@@ -105,6 +106,12 @@ namespace Microsoft.Git.CredentialManager
                 public const string FetchUrl = "url";
                 public const string PushUrl = "pushUrl";
             }
+        }
+
+        public static class WindowsRegistry
+        {
+            public const string HKAppBasePath = @"SOFTWARE\GitCredentialManager";
+            public const string HKConfigurationPath = HKAppBasePath + @"\Configuration";
         }
 
         public static class HelpUrls

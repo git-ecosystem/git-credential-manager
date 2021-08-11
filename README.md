@@ -86,7 +86,35 @@ sudo /usr/local/share/gcm-core/uninstall.sh
 
 ---
 
-### Linux Debian package (.deb)
+<!-- this explicit anchor should stay stable so that external docs can link here -->
+<a name="linux-install-instructions"></a>
+### Linux
+
+#### Debian package (.deb)
+
+`apt-get` support is available for Ubuntu Bionic Beaver (18.04) and Hirsute 
+Hippo (21.04). Take the following steps to set up and install based on the
+version you are running:
+
+#### Ubuntu 18.04 (Bionic)
+
+```shell
+curl -sSL https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+sudo apt-add-repository https://packages.microsoft.com/ubuntu/18.04/prod
+sudo apt-get update
+sudo apt-get install gcmcore
+```
+
+#### Ubuntu 21.04 (Hirsute)
+
+```shell
+curl -sSL https://packages.microsoft.com/config/ubuntu/21.04/prod.list | sudo tee /etc/apt/sources.list.d/microsoft-prod.list
+curl -sSL https://packages.microsoft.com/keys/microsoft.asc | sudo tee /etc/apt/trusted.gpg.d/microsoft.asc
+sudo apt-get update
+sudo apt-get install gcmcore
+```
+
+#### Other Ubuntu/Debian distributions
 
 Download the latest [.deb package](https://github.com/microsoft/Git-Credential-Manager-Core/releases/latest), and run the following:
 
@@ -97,9 +125,7 @@ git-credential-manager-core configure
 
 Note that Linux distributions [require additional configuration](https://aka.ms/gcmcore-linuxcredstores) to use GCM Core.
 
----
-
-### Linux tarball (.tar.gz)
+#### Other distributions
 
 Download the latest [tarball](https://github.com/microsoft/Git-Credential-Manager-Core/releases/latest), and run the following:
 
@@ -144,8 +170,11 @@ To uninstall, open Control Panel and navigate to the Programs and Features scree
 
 ## How to use
 
-Git Credential Manager Core is called implicitly by Git, when so configured. It is not intended to be called directly by the user.
-For example, when pushing (`git push`) to [Azure DevOps](https://dev.azure.com), a window is automatically opened and an OAuth2 flow is started to get your personal access token.
+Once it's installed and configured, Git Credential Manager Core is called implicitly by Git.
+You don't have to do anything special, and GCM Core isn't intended to be called directly by the user.
+For example, when pushing (`git push`) to [Azure DevOps](https://dev.azure.com), [Bitbucket](https://bitbucket.org), or [GitHub](https://github.com), a window will automatically open and walk you through the sign-in process.
+(This process will look slightly different for each Git host, and even in some cases, whether you've connected to an on-premises or cloud-hosted Git host.)
+Later Git commands in the same repository will re-use existing credentials or tokens that GCM Core has stored for as long as they're valid.
 
 Read full command line usage [here](docs/usage.md).
 
@@ -160,6 +189,7 @@ See detailed information [here](https://aka.ms/gcmcore-httpproxy).
 - [Command-line usage](docs/usage.md)
 - [Configuration options](docs/configuration.md)
 - [Environment variables](docs/environment.md)
+- [Enterprise configuration](docs/enterprise-config.md)
 - [Network and HTTP configuration](docs/netconfig.md)
 - [Architectural overview](docs/architecture.md)
 - [Host provider specification](docs/hostprovider.md)

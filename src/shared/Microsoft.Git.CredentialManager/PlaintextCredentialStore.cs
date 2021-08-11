@@ -59,6 +59,9 @@ namespace Microsoft.Git.CredentialManager
 
         public void AddOrUpdate(string service, string account, string secret)
         {
+            // Ensure the store root exists and permissions are set
+            EnsureStoreRoot();
+
             string serviceSlug = CreateServiceSlug(service);
             string servicePath = Path.Combine(StoreRoot, serviceSlug);
 
@@ -159,6 +162,36 @@ namespace Microsoft.Git.CredentialManager
                 writer.WriteLine("account={0}", credential.Account);
                 writer.Flush();
             }
+        }
+
+        /// <summary>
+        /// Ensure the store root directory exists. If it does not, create a new directory with
+        /// permissions that only permit the owner to read/write/execute. Permissions on an existing
+        /// directory are not modified.
+        /// </summary>
+        private void EnsureStoreRoot()
+        {
+            if (FileSystem.DirectoryExists(StoreRoot))
+            {
+                // Don't touch the permissions on the existing directory
+                return;
+            }
+
+            FileSystem.CreateDirectory(StoreRoot);
+
+            // We only set file system permissions on POSIX platforms
+            if (!PlatformUtils.IsPosix())
+            {
+                return;
+            }
+
+            // Set store root permissions such that only the owner can read/write/execute
+            var mode = Interop.Posix.Native.NativeFileMode.S_IRUSR |
+                       Interop.Posix.Native.NativeFileMode.S_IWUSR |
+                       Interop.Posix.Native.NativeFileMode.S_IXUSR;
+
+            // Ignore the return code.. this is a best effort only
+            Interop.Posix.Native.Stat.chmod(StoreRoot, mode);
         }
 
         private string CreateServiceSlug(string service)

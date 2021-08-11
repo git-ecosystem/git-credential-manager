@@ -289,7 +289,27 @@ namespace Microsoft.Git.CredentialManager
                 {
                     yield return value;
                 }
+
+                // Check for an externally specified default value
+                if (TryGetExternalDefault(section, property, out string defaultValue))
+                {
+                    yield return defaultValue;
+                }
             }
+        }
+
+        /// <summary>
+        /// Try to get the default value for a configuration setting.
+        /// This may come from external policies or the Operating System.
+        /// </summary>
+        /// <param name="section">Configuration section name.</param>
+        /// <param name="property">Configuration property name.</param>
+        /// <param name="value">Value of the configuration setting, or null.</param>
+        /// <returns>True if a default setting has been set, false otherwise.</returns>
+        protected virtual bool TryGetExternalDefault(string section, string property, out string value)
+        {
+            value = null;
+            return false;
         }
 
         public Uri RemoteUri { get; set; }

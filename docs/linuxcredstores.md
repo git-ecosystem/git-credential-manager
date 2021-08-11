@@ -8,7 +8,7 @@ Manager Core (GCM Core) manages on Linux platforms:
 3. Git's built-in [credential cache](https://git-scm.com/docs/git-credential-cache)
 4. Plaintext files
 
-By default, GCM Core comes unconfigured. You can select which credential store
+By default, GCM Core comes unconfigured. After running `git-credential-manager-core configure`, you can select which credential store
 to use by setting the [`GCM_CREDENTIAL_STORE`](environment.md#GCM_CREDENTIAL_STORE)
 environment variable, or the [`credential.credentialStore`](configuration.md#credentialcredentialstore)
 Git configuration setting.
@@ -133,6 +133,10 @@ By default files are stored in `~/.gcm/store` but this can be configured using
 the environment variable `GCM_PLAINTEXT_STORE_PATH` environment variable.
 
 If the directory does not exist is will be created.
+
+On POSIX platforms the newly created store directory will have permissions set
+such that only the owner can `r`ead/`w`rite/e`x`ecute (`700` or `drwx---`).
+Permissions on existing directories will not be modified.
 
 ---
 

@@ -74,6 +74,8 @@ cp "$INSTALLER_SRC/uninstall.sh" "$PAYLOAD" || exit 1
 # Publish core application executables
 echo "Publishing core application..."
 dotnet publish "$GCM_SRC" \
+	--no-restore \
+	-m:1 \
 	--configuration="$CONFIGURATION" \
 	--framework="$FRAMEWORK" \
 	--runtime="$RUNTIME" \
@@ -81,6 +83,8 @@ dotnet publish "$GCM_SRC" \
 
 echo "Publishing Bitbucket UI helper..."
 dotnet publish "$BITBUCKET_UI_SRC" \
+	--no-restore \
+	-m:1 \
 	--configuration="$CONFIGURATION" \
 	--framework="$FRAMEWORK" \
 	--runtime="$RUNTIME" \
@@ -88,6 +92,8 @@ dotnet publish "$BITBUCKET_UI_SRC" \
 
 echo "Publishing GitHub UI helper..."
 dotnet publish "$GITHUB_UI_SRC" \
+	--no-restore \
+	-m:1 \
 	--configuration="$CONFIGURATION" \
 	--framework="$FRAMEWORK" \
 	--runtime="$RUNTIME" \
