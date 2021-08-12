@@ -19,9 +19,8 @@ namespace Atlassian.Bitbucket
         None = 0,
         Basic = 1,
         OAuth = 1 << 1,
-        //Pat = 1 << 2,
 
-        All = Basic | OAuth //| Pat
+        All = Basic | OAuth
     }
     public interface IBitbucketAuthentication : IDisposable
     {
@@ -29,6 +28,7 @@ namespace Atlassian.Bitbucket
         Task<bool> ShowOAuthRequiredPromptAsync();
         Task<OAuth2TokenResult> CreateOAuthCredentialsAsync(Uri targetUri);
         Task<OAuth2TokenResult> RefreshOAuthCredentialsAsync(string refreshToken);
+        void ThrowIfUserInteractionDisabled();
     }
 
     public class BitbucketAuthentication : AuthenticationBase, IBitbucketAuthentication
@@ -179,5 +179,10 @@ namespace Atlassian.Bitbucket
         }
 
         #endregion
+
+        public void ThrowIfUserInteractionDisabled()
+        {
+            base.ThrowIfUserInteractionDisabled();
+        }
     }
 }

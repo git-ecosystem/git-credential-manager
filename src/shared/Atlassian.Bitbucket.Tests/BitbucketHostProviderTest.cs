@@ -224,7 +224,7 @@ namespace Atlassian.Bitbucket.Tests
 
             var provider = new BitbucketHostProvider(context, bitbucketAuthentication.Object, bitbucketApi.Object);
 
-            AuthenticationModes actualModes = await provider.GetSupportedAuthenticationModesAsync(targetUri);
+            AuthenticationModes actualModes = provider.GetSupportedAuthenticationModesAsync(targetUri);
 
             Assert.Equal(expectedModes, actualModes);
         }

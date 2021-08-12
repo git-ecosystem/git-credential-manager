@@ -52,7 +52,7 @@ namespace Atlassian.Bitbucket
         /// <summary>
         /// Supported authentication modes for Bitbucket.org
         /// </summary>
-        public const AuthenticationModes DotOrgAuthenticationModes = AuthenticationModes.Basic | AuthenticationModes.OAuth; //| AuthenticationModes.Pat;
+        public const AuthenticationModes DotOrgAuthenticationModes = AuthenticationModes.Basic | AuthenticationModes.OAuth;
 
         /// <summary>
         /// Supported authentication modes for Bitbucket Server/DC

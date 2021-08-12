@@ -89,7 +89,7 @@ namespace Atlassian.Bitbucket
             // Check for presence of refresh_token entry in credential store
             string refreshTokenService = GetRefreshTokenServiceName(input);
 
-            AuthenticationModes authModes = await GetSupportedAuthenticationModesAsync(targetUri);
+            AuthenticationModes authModes = GetSupportedAuthenticationModesAsync(targetUri);
 
             _context.Trace.WriteLine("Checking for refresh token...");
             ICredential refreshToken = SupportsOAuth(authModes) ? _context.CredentialStore.Get(refreshTokenService, input.UserName) : null;
@@ -167,7 +167,7 @@ namespace Atlassian.Bitbucket
                 }
             }
 
-            return await GetOAuthCredentialsViaManualFlow(targetUri, refreshTokenService);
+            return await GetOAuthCredentialsInteractive(targetUri, refreshTokenService);
         }
 
         private async Task<ICredential> GetOAuthCredentialsViaRefreshFlow(InputArguments input, string refreshTokenService, ICredential refreshToken)
@@ -189,8 +189,10 @@ namespace Atlassian.Bitbucket
             return new GitCredential(refreshUserName, refreshResult.AccessToken);
         }
 
-        private async Task<ICredential> GetOAuthCredentialsViaManualFlow(Uri targetUri, string refreshTokenService)
+        private async Task<ICredential> GetOAuthCredentialsInteractive(Uri targetUri, string refreshTokenService)
         {
+            _bitbucketAuth.ThrowIfUserInteractionDisabled();
+
             // We failed to use the refresh token either because it didn't exist, or because the refresh token is no
             // longer valid. Either way we must now try authenticating using OAuth interactively.
 
@@ -222,11 +224,11 @@ namespace Atlassian.Bitbucket
             return (authModes & AuthenticationModes.Basic) != 0;
         }
 
-        public async Task<AuthenticationModes> GetSupportedAuthenticationModesAsync(Uri targetUri)
+        public AuthenticationModes GetSupportedAuthenticationModesAsync(Uri targetUri)
         {
             if(!IsBitbucketOrg(targetUri))
             {
-                // Bitbucket.org should use Basic only
+                // Bitbucket Server/DC should use Basic only
                 return BitbucketConstants.ServerAuthenticationModes;
             }
 

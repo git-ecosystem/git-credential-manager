@@ -154,7 +154,7 @@ Override the available authentication modes presented during Bitbucket authentic
 If this option is not set, then the available authentication modes will be automatically detected.
 
 
-**Note:** This setting only applies to Bitbucket.org not Server or DC instances.
+**Note:** This setting only applies to Bitbucket.org, and not Server or DC instances.
 
 **Note:** This setting supports multiple values separated by commas.
 
