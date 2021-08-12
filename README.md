@@ -96,25 +96,27 @@ sudo /usr/local/share/gcm-core/uninstall.sh
 Hippo (21.04). Take the following steps to set up and install based on the
 version you are running:
 
-#### Ubuntu 18.04 (Bionic)
+##### Ubuntu 18.04 (Bionic)
 
 ```shell
 curl -sSL https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
 sudo apt-add-repository https://packages.microsoft.com/ubuntu/18.04/prod
 sudo apt-get update
 sudo apt-get install gcmcore
+git-credential-manager-core configure
 ```
 
-#### Ubuntu 21.04 (Hirsute)
+##### Ubuntu 21.04 (Hirsute)
 
 ```shell
 curl -sSL https://packages.microsoft.com/config/ubuntu/21.04/prod.list | sudo tee /etc/apt/sources.list.d/microsoft-prod.list
 curl -sSL https://packages.microsoft.com/keys/microsoft.asc | sudo tee /etc/apt/trusted.gpg.d/microsoft.asc
 sudo apt-get update
 sudo apt-get install gcmcore
+git-credential-manager-core configure
 ```
 
-#### Other Ubuntu/Debian distributions
+##### Other Ubuntu/Debian distributions
 
 Download the latest [.deb package](https://github.com/microsoft/Git-Credential-Manager-Core/releases/latest), and run the following:
 
@@ -122,8 +124,6 @@ Download the latest [.deb package](https://github.com/microsoft/Git-Credential-M
 sudo dpkg -i <path-to-package>
 git-credential-manager-core configure
 ```
-
-Note that Linux distributions [require additional configuration](https://aka.ms/gcmcore-linuxcredstores) to use GCM Core.
 
 #### Other distributions
 
@@ -133,6 +133,8 @@ Download the latest [tarball](https://github.com/microsoft/Git-Credential-Manage
 tar -xvf <path-to-tarball> -C /usr/local/bin
 git-credential-manager-core configure
 ```
+
+**Note:** all Linux distributions [require additional configuration](https://aka.ms/gcmcore-linuxcredstores) to use GCM Core.
 
 ---
 
