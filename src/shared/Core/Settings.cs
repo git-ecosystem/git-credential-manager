@@ -120,6 +120,11 @@ namespace GitCredentialManager
         bool IsCertificateVerificationEnabled { get; }
 
         /// <summary>
+        /// Automatically send client TLS certificates.
+        /// </summary>
+        bool AutomaticallyUseClientCertificates { get; }
+
+        /// <summary>
         /// Get the proxy setting if configured, or null otherwise.
         /// </summary>
         /// <returns>Proxy setting, or null if not configured.</returns>
@@ -562,6 +567,9 @@ namespace GitCredentialManager
                 return true;
             }
         }
+
+        public bool AutomaticallyUseClientCertificates =>
+            TryGetSetting(null, KnownGitCfg.Credential.SectionName, KnownGitCfg.Http.SslAutoClientCert, out string value) && value.ToBooleanyOrDefault(false);
 
         public string CustomCertificateBundlePath =>
             TryGetPathSetting(KnownEnvars.GitSslCaInfo, KnownGitCfg.Http.SectionName, KnownGitCfg.Http.SslCaInfo, out string value) ? value : null;
