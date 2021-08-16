@@ -1,0 +1,46 @@
+name: Run End-to-End Tests
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-install-test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-18.04, windows-2019, macos-10.15]
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 5.0.103
+
+      - name: Install dependencies
+        run: dotnet restore
+
+      - name: Build & Install Windows
+        if: contains(matrix.os, 'windows')
+        run: |
+          dotnet build --configuration WindowsRelease
+
+      - name: Build & Install Linux
+        if: contains(matrix.os, 'ubuntu')
+        run: |
+          dotnet build --configuration LinuxRelease
+
+          debpath = $(find -f out/linux/Packaging.Linux/deb/Release/*.deb)
+          sudo apt install $debpath
+
+      - name: Build & Install macOS
+        if: contains(matrix.os, 'macos')
+        run: |
+          dotnet build --configuration MacRelease
+
+          pkgpath = $(find -f out/osx/Installer.Mac/pkg/Release/*.pkg)
+          sudo installer -pkg $pkgpath
+
+      - name: Verify version
+        run: |
+          git-credential-manager-core --version
