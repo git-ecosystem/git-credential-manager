@@ -41,8 +41,7 @@ Depending on what you click, one of three things can happen:
 
 - If you leave "allow my organization to manage my device" checked and click "OK", your computer will be registered with the Azure AD tenant backing the organization.
 It may also be MDM-enrolled, meaning an administrator can deploy policies to your machine: requiring certain kinds of sign-in, turning on antivirus and firewall software, and enabling BitLocker.
-Your identity will also be available to other apps on the computer for signing in, some of which may do so automatically.
-Note Microsoft does not control policies that IT department deploys using mobile device management (MDM) provider, e.g. AirWatch, MobileIron, Intune, etc., all question about content of the policies should be addressed to IT department of your organization.
+Your identity will also be available to other apps on the computer for signing in, some of which may do so automatically. <br/><br/>Note Microsoft does not control policies that IT department deploys using mobile device management (MDM) provider, e.g. AirWatch, MobileIron, Intune, etc., all question about content of the policies should be addressed to IT department of your organization.<br/>
 ![Example of policies pushed to an MDM-enrolled device](img/aad-bitlocker.png)
 - If you uncheck "allow my organization to manage my device" and click "OK", your computer will be registered with Azure AD, but will not be enrolled in the mobile device management provider. Your identity will be available to other apps on the computer for signing in. 
 Other apps may log you in automatically, but if accessing some resource, including source code, requires the device to be managed by MDM, you will be rejected from access and prompted with remediation instructions.
