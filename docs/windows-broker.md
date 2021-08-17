@@ -40,10 +40,7 @@ More than 80% of Azure AD users on Windows use joined devices, and expected to h
 Depending on what you click, one of three things can happen:
 
 - If you leave "allow my organization to manage my device" checked and click "OK", your computer will be registered with the Azure AD tenant backing the organization. Your identity will also be available to other apps on the computer for signing in, some of which may do so automatically. The device may also be MDM-enrolled ("MDM" means mobile device management - a set of tools that allows an IT administrator to control the state of the device, e.g. AirWatch, MobileIron, Intune, etc.), meaning an administrator can deploy policies to your machine: requiring certain kinds of sign-in, turning on antivirus and firewall software, and enabling BitLocker.<br/>
-![Example of policies pushed to an MDM-enrolled device](img/aad-bitlocker.png)
- <br/>
-
-**Note** Microsoft does not control policies that IT department deploys on your device using MDM provider, Microsoft just provide tools for IT administrators to manage health of IT environment, all question about content of the MDM policies should be addressed to IT department of your organization.
+![Example of policies pushed to an MDM-enrolled device](img/aad-bitlocker.png) <br/> **Note** Microsoft does not control policies that IT department deploys on your device using MDM provider, Microsoft just provide tools for IT administrators to manage health of IT environment, all question about content of the MDM policies should be addressed to IT department of your organization.
 
 - If you uncheck "allow my organization to manage my device" and click "OK", your computer will be registered with Azure AD, but will not be enrolled in the mobile device management provider. Your identity will be available to other apps on the computer for signing in. 
 Other apps may log you in automatically, but if accessing some resource, including source code, requires the device to be managed by MDM, you will be rejected from access and prompted with remediation instructions.
