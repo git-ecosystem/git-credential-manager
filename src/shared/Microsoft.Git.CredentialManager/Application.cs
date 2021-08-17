@@ -130,6 +130,11 @@ namespace Microsoft.Git.CredentialManager
                     break;
             }
 
+            // If tracing is enabled then also print the stack trace to stderr
+            bool printStack = Context.Settings.GetTracingEnabled(out _);
+            if (printStack)
+                Context.Streams.Error.WriteLine(ex.StackTrace);
+
             // Recurse to print all inner exceptions
             if (!(ex.InnerException is null))
             {
