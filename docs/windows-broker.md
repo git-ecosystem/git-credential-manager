@@ -39,15 +39,17 @@ More than 80% of Azure AD users on Windows use joined devices, and expected to h
 
 Depending on what you click, one of three things can happen:
 
-- If you leave "allow my organization to manage my device" checked and click "OK", your computer will be registered with the Azure AD tenant backing the organization.
-It may also be MDM-enrolled, meaning an administrator can deploy policies to your machine: requiring certain kinds of sign-in, turning on antivirus and firewall software, and enabling BitLocker.
-Your identity will also be available to other apps on the computer for signing in, some of which may do so automatically. <br/><br/>Note Microsoft does not control policies that IT department deploys using mobile device management (MDM) provider, e.g. AirWatch, MobileIron, Intune, etc., all question about content of the policies should be addressed to IT department of your organization.<br/>
+- If you leave "allow my organization to manage my device" checked and click "OK", your computer will be registered with the Azure AD tenant backing the organization. Your identity will also be available to other apps on the computer for signing in, some of which may do so automatically. The device may also be MDM-enrolled ("MDM" means mobile device management - a set of tools that allows an IT administrator to control the state of the device, e.g. AirWatch, MobileIron, Intune, etc.), meaning an administrator can deploy policies to your machine: requiring certain kinds of sign-in, turning on antivirus and firewall software, and enabling BitLocker.<br/>
 ![Example of policies pushed to an MDM-enrolled device](img/aad-bitlocker.png)
+ <br/>
+**Note** Microsoft does not control policies that IT department deploys on your device using MDM provider, Microsoft just provide tools for IT administrators to manage health of IT environment, all question about content of the MDM policies should be addressed to IT department of your organization.
+
 - If you uncheck "allow my organization to manage my device" and click "OK", your computer will be registered with Azure AD, but will not be enrolled in the mobile device management provider. Your identity will be available to other apps on the computer for signing in. 
 Other apps may log you in automatically, but if accessing some resource, including source code, requires the device to be managed by MDM, you will be rejected from access and prompted with remediation instructions.
-- If you instead click "No, sign in to this app only", your machine will not be Azure AD joined or enrolled in MDM, so no policies can be enforced, and your identity won't be made available to other apps on the computer. In this case, you might be able to access the source code, if IT-department or your organization doesn't require device to be managed by MDM to access to resources, but it is also possible that you will be rejected from access.
 
-Note both CA policies and MDM policies in full control of your IT-department, please, work with them on right balance.
+- If you instead click "No, sign in to this app only", your machine will not be Azure AD joined or enrolled in MDM, so no policies can be enforced, and your identity won't be made available to other apps on the computer. In this case, you might be able to access the source code, if IT-department or your organization doesn't require device to be managed or compliant by MDM to access to resources, but it is also possible that you will be rejected from access.
+
+**Note** both CA policies, that used to control safety of resouces, and MDM policies, that deployed on your device, in full control of your IT-department, please, work with them on right balance.
 
 #### Removing device management
 If you've allowed your computer to be managed and want to undo it, you can go into **Settings**, **Accounts**, **Access work or school**.
