@@ -3,7 +3,7 @@
 Git Credential Manager (GCM) Core knows how to integrate with the [Web Account Manager (WAM)](https://docs.microsoft.com/azure/active-directory/devices/concept-primary-refresh-token#key-terminology-and-components) feature of Windows for authentication of applications.
 Authentication requests are said to be "brokered" to the operating system.
 
-Enterprises all over the world use [Conditional access policies (CA)](https://docs.microsoft.com/en-us/azure/active-directory/conditional-access/overview) to protect their assets and source code is a key asset for software businesses, with such policy IT-department can guarantee that a device that accesses to the source code has the latest security patches, anti-virus software and enabled encryption of hard drives.
+Organizations all over the world use [Conditional access policies (CA)](https://docs.microsoft.com/en-us/azure/active-directory/conditional-access/overview) to protect their assets and the source code is a key asset for software businesses, with such policy IT-department can guarantee that a device that accesses to the source code has the latest security patches, anti-virus software and enabled encryption of hard drives.
 
 Currently, WAM is the only product on Windows that can reliably, securely, and silently satisfy those policy, and avoid a user interruption. Also, WAM shares credentials with other applications on the device, like Outlook, Teams etc., and if the user passed multi-factor authentication during Windows Logon, Outlook, or Teams, it will be remembered and GIT, Visual Studio, and the Azure CLI will not require pass multi-factor authentication again. Other implementation GCM will not reliably work with CA policy and has degrade prompt expirience.
 
@@ -40,13 +40,13 @@ More than 80% of Azure AD users on Windows use joined devices, and expected to h
 Depending on what you click, one of three things can happen:
 
 - If you leave "allow my organization to manage my device" checked and click "OK", your computer will be registered with the Azure AD tenant backing the organization.
-It may also be Intune-enrolled, meaning an administrator can deploy policies to your machine: requiring certain kinds of sign-in, turning on antivirus and firewall software, and enabling BitLocker.
+It may also be MDM-enrolled, meaning an administrator can deploy policies to your machine: requiring certain kinds of sign-in, turning on antivirus and firewall software, and enabling BitLocker.
 Your identity will also be available to other apps on the computer for signing in, some of which may do so automatically.
-Note Microsoft does not control policies that IT department deploys using mobile device management (MDM) provider, e.g. AirWatch, MobileIron, Intune, etc., all question about content of the policies should be addressed to IT department of your enterprise.
-![Example of policies pushed to an Intune-enrolled device](img/aad-bitlocker.png)
+Note Microsoft does not control policies that IT department deploys using mobile device management (MDM) provider, e.g. AirWatch, MobileIron, Intune, etc., all question about content of the policies should be addressed to IT department of your organization.
+![Example of policies pushed to an MDM-enrolled device](img/aad-bitlocker.png)
 - If you uncheck "allow my organization to manage my device" and click "OK", your computer will be registered with Azure AD, but will not be enrolled in the mobile device management provider. Your identity will be available to other apps on the computer for signing in. 
-Other apps may log you in automatically, but if accessing some resource, including source code, requires the device to be managed by MDM, you will be rejected from access and prompted again with remediation instructions.
-- If you instead click "No, sign in to this app only", your machine will not be Azure AD joined or enrolled in MDM, so no policies can be enforced, and your identity won't be made available to other apps on the computer. In this case, you might be able to access source code, if IT-department or your enterprise doesn't require device to be managed by MDM to access to source code.
+Other apps may log you in automatically, but if accessing some resource, including source code, requires the device to be managed by MDM, you will be rejected from access and prompted with remediation instructions.
+- If you instead click "No, sign in to this app only", your machine will not be Azure AD joined or enrolled in MDM, so no policies can be enforced, and your identity won't be made available to other apps on the computer. In this case, you might be able to access the source code, if IT-department or your organization doesn't require device to be managed by MDM to access to resources, but it is also possible that you will be rejected from access.
 
 Note both CA policies and MDM policies in full control of your IT-department, please, work with them on right balance.
 
@@ -76,7 +76,9 @@ For any connected MSA, you can control whether or not the account is available t
 
 Two very important things to note:
 * If you haven't connected any Microsoft accounts to Windows before, the first account you connect will ask the local Windows user account to be converted to a connected account. You can avoid this by clicking "Microsoft apps only" link.
+![Secondary MSA Identity](img/secondaryMSA.png)
 * If you got in this state, you can change it in Settings/Your info by choosing "Stop signing in to all Microsoft apps automatically".
+![Disconnect MSA Identity](img/disconnectMSA.png)
 
 ## Running as administrator
 
