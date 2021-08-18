@@ -49,6 +49,7 @@ namespace Microsoft.Git.CredentialManager
             public const string CurlHttpsProxy        = "HTTPS_PROXY";
             public const string GcmHttpProxy          = "GCM_HTTP_PROXY";
             public const string GitSslNoVerify        = "GIT_SSL_NO_VERIFY";
+            public const string GitSslCaInfo          = "GIT_SSL_CAINFO";
             public const string GcmInteractive        = "GCM_INTERACTIVE";
             public const string GcmParentWindow       = "GCM_MODAL_PARENTHWND";
             public const string MsAuthFlow            = "GCM_MSAUTH_FLOW";
@@ -97,7 +98,10 @@ namespace Microsoft.Git.CredentialManager
             {
                 public const string SectionName = "http";
                 public const string Proxy = "proxy";
+                public const string SchannelUseSslCaInfo = "schannelUseSSLCAInfo";
+                public const string SslBackend = "sslBackend";
                 public const string SslVerify = "sslVerify";
+                public const string SslCaInfo = "sslCAInfo";
             }
 
             public static class Remote

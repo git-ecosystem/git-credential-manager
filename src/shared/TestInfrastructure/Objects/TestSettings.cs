@@ -39,6 +39,12 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
 
         public string CredentialBackingStore { get; set; }
 
+        public string CustomCertificateBundlePath { get; set; }
+
+        public TlsBackend TlsBackend { get; set; }
+
+        public bool UseCustomCertificateBundleWithSchannel { get; set; }
+
         #region ISettings
 
         public bool TryGetSetting(string envarName, string section, string property, out string value)
@@ -116,6 +122,12 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
         string ISettings.CredentialNamespace => CredentialNamespace;
 
         string ISettings.CredentialBackingStore => CredentialBackingStore;
+
+        string ISettings.CustomCertificateBundlePath => CustomCertificateBundlePath;
+
+        TlsBackend ISettings.TlsBackend => TlsBackend;
+
+        bool ISettings.UseCustomCertificateBundleWithSchannel => UseCustomCertificateBundleWithSchannel;
 
         #endregion
 
