@@ -19,7 +19,7 @@ You can opt-in to WAM support by setting the environment variable [`GCM_MSAUTH_U
 
 ## Features
 
-When you turn on WAM support, GCM Core can cooperate with Windows and with other WAM-enabled software on your machine, like Office, OneDrive, Teams, and many other applications on your device. This means a more seamless experience, fewer multi-factor authentication prompts, and the ability to use additional authentication technologies like smart cards and Windows Hello. Additionally, the users will not occasionally or permanently block from source code, if the IT-department enabled CA policies 
+When you turn on WAM support, GCM Core can cooperate with Windows and with other WAM-enabled software on your machine, like Office, OneDrive, Teams, and many other applications on your device. This means a more seamless experience, fewer multi-factor authentication prompts, and the ability to use additional authentication technologies like smart cards and Windows Hello. Additionally, the users will not occasionally or permanently be blocked from the source code, if the IT-department enabled CA policies 
 
 These convenience and security features make a good case for enabling WAM.
 
@@ -45,7 +45,7 @@ Depending on what you click, one of three things can happen:
 - If you uncheck "allow my organization to manage my device" and click "OK", your computer will be registered with Azure AD, but will not be enrolled in the mobile device management provider. Your identity will be available to other apps on the computer for signing in. 
 Other apps may log you in automatically, but if accessing some resource, including the source code, requires the device to be managed by MDM, you will be rejected from access and prompted with remediation instructions.
 
-- If you instead click "No, sign in to this app only", your machine will not be Azure AD joined or enrolled in MDM, so no policies can be enforced, and your identity won't be made available to other apps on the computer. In this case, you might be able to access some resources, if IT-department of your organization doesn't require a device to be managed or compliant, but it is also possible that you will be rejected from accessing, as your device is not joined/managed.
+- If you instead click "No, sign in to this app only", your machine will not be Azure AD joined or enrolled in MDM, so no policies can be enforced, and your identity won't be made available to other apps on the computer. In this case, you might be able to access some resources, if IT-department of your organization doesn't require the device to be managed or compliant, but it is also possible that you will be rejected from accessing, as your device is not joined/managed.
 
 **Note** both CA policies, that used to control safety of resouces, and MDM policies, that deployed on your device, in full control of your IT-department, please, work with them on right balance.
 
