@@ -190,11 +190,15 @@ namespace Microsoft.AzureRepos
                 return true;
             }
 
-            config.Enumerate(
-                GitConfigurationLevel.Local,
-                Constants.GitConfiguration.Credential.SectionName,
-                Constants.GitConfiguration.Credential.UserName,
-                entry => ExtractUserBinding(entry, localUsers));
+            // Only enumerate local configuration if we are inside a repository
+            if (_git.IsInsideRepository())
+            {
+                config.Enumerate(
+                    GitConfigurationLevel.Local,
+                    Constants.GitConfiguration.Credential.SectionName,
+                    Constants.GitConfiguration.Credential.UserName,
+                    entry => ExtractUserBinding(entry, localUsers));
+            }
 
             config.Enumerate(
                 GitConfigurationLevel.Global,
