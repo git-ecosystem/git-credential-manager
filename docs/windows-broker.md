@@ -1,9 +1,14 @@
 # Web Account Manager integration
 
-Git Credential Manager (GCM) Core knows how to integrate with the [Web Account Manager (WAM)](https://docs.microsoft.com/azure/active-directory/devices/concept-primary-refresh-token#key-terminology-and-components) feature of Windows to store credentials for Azure DevOps.
+Git Credential Manager (GCM) Core knows how to integrate with the [Web Account Manager (WAM)](https://docs.microsoft.com/azure/active-directory/devices/concept-primary-refresh-token#key-terminology-and-components) feature of Windows.
+GCM uses WAM to store credentials for Azure DevOps.
 Authentication requests are said to be "brokered" to the operating system.
 Currently, GCM will share authentication state with a few other Microsoft developer tools like Visual Studio and the Azure CLI, meaning fewer authentication prompts.
-Integration with the WAM broker comes with several additional benefits, but it also has some potential drawbacks that you should be aware of before enabling it.
+Enabling WAM integration may also be required with certain [Conditional Access policies](https://docs.microsoft.com/azure/active-directory/conditional-access/overview), which enterprises use to help protect their assets, including source code.
+
+Integration with the WAM broker offers convenience and other benefits, but may also make unexpected other changes on your device.
+On a device owned and managed by your institution or employer, WAM is probably the right choice.
+On a personal device or a device owned by a different institution (e.g. if you're a contractor working for Company A with access to resources at Company B), there are surprising behaviors that you should be aware of before enabling WAM integration.
 
 Note that this only affects [Azure DevOps](https://dev.azure.com).
 It doesn't impact authentication with GitHub, Bitbucket, or any other Git host.
@@ -18,30 +23,35 @@ When you turn on WAM support, GCM Core can cooperate with Windows and with other
 This means a more seamless experience, fewer multi-factor authentication prompts, and the ability to use additional authentication technologies like smart cards and Windows Hello.
 These convenience and security features make a good case for enabling WAM.
 
-## Potential drawbacks
+## Surprising behaviors
 
 The WAM and Windows identity systems are complex, addressing a very broad range of customer use cases.
 What works for a solo home user may not be adequate for a corporate-managed fleet of 100,000 devices and vice versa.
 The GCM Core team isn't responsible for the user experience or choices made by WAM, but by integrating with WAM, we inherit some of those choices.
 Therefore, we want you to be aware of some defaults and experiences if you choose to use WAM integration.
 
-### For work or school accounts (Azure AD-backend identities)
-When you sign into an Azure DevOps organization backed by Azure AD (often your company or school email), if your machine is already managed by Intune or enrolled in Azure AD matching that Azure DevOps organization, you'll get a seamless and easy-to-use experience.
+### For work or school accounts (Azure AD-backed identities)
+When you sign into an Azure DevOps organization backed by Azure AD (often your company or school email), if your machine is already joined to Azure AD matching that Azure DevOps organization, you'll get a seamless and easy-to-use experience.
 
-If your machine isn't Intune/Azure AD-joined, or is Intune/Azure AD-joined to a different tenant, WAM will present you with the following dialog box:
+If your machine isn't Azure AD-joined, or is Azure AD-joined to a different tenant, WAM will present you with the following dialog box:
 
 ![Consent dialog](img/aad-questions.png)
 
 Depending on what you click, one of three things can happen:
 
 - If you leave "allow my organization to manage my device" checked and click "OK", your computer will be registered with the Azure AD tenant backing the organization.
-It may also be Intune-enrolled, meaning an administrator can deploy policies to your machine: requiring certain kinds of sign-in, turning on antivirus and firewall software, and enabling BitLocker.
+It may also be MDM-enrolled ("Mobile Device Management" -- think Intune, AirWatch, MobileIron, etc.), meaning an administrator can deploy policies to your machine: requiring certain kinds of sign-in, turning on antivirus and firewall software, and enabling BitLocker.
 Your identity will also be available to other apps on the computer for signing in, some of which may do so automatically.
 ![Example of policies pushed to an Intune-enrolled device](img/aad-bitlocker.png)
-- If you uncheck "allow my organization to manage my device" and click "OK", your computer won't be registered with Azure AD or Intune-enrolled.
+- If you uncheck "allow my organization to manage my device" and click "OK", your computer will be registered with Azure AD but will not be MDM-enrolled.
 Your identity will be available to other apps on the computer for signing in.
 Other apps may log you in automatically or prompt you again to allow your organization to manage your device.
-- If you instead click "No, sign in to this app only", your machine will not be Intune-enrolled, so no policies can be enforced, and your identity won't be made available to other apps on the computer.
+Despite joining Azure AD, your organization's Conditional Access policies may still prevent you from accessing Azure DevOps.
+If so, you'll be prompted with instructions on how to enroll in MDM.
+- If you instead click "No, sign in to this app only", your machine will not be joined to Azure AD or MDM-enrolled, so no policies can be enforced, and your identity won't be made available to other apps on the computer.
+Similar to the above, your organization's Conditional Access policies may prevent you from proceeding.
+
+If Conditional Access is required to access your organization's Git repositories, you can [enable WAM integration](environment.md#GCM_MSAUTH_USEBROKER-experimental) (or follow other instructions your organization provides).
 
 #### Removing device management
 If you've allowed your computer to be managed and want to undo it, you can go into **Settings**, **Accounts**, **Access work or school**.
