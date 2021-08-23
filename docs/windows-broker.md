@@ -33,9 +33,12 @@ Therefore, we want you to be aware of some defaults and experiences if you choos
 ### For work or school accounts (Azure AD-backed identities)
 When you sign into an Azure DevOps organization backed by Azure AD (often your company or school email), if your machine is already joined to Azure AD matching that Azure DevOps organization, you'll get a seamless and easy-to-use experience.
 
-If your machine isn't Azure AD-joined, or is Azure AD-joined to a different tenant, WAM will present you with the following dialog box:
+If your machine isn't Azure AD-joined, or is Azure AD-joined to a different tenant, WAM will present you with a dialog box suggesting you stay signed in and allow the organization to manage your device.
+The dialog box has changed a bit in various versions of Windows; here are two examples from 2021:
 
-![Consent dialog](img/aad-questions.png)
+![Consent dialog pre-21H1](img/aad-questions.png)
+
+![Consent dialog post-21H1](img/aad-questions-21H1.png)
 
 Depending on what you click, one of three things can happen:
 
