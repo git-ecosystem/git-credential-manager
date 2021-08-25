@@ -1,5 +1,3 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
 using System;
 using System.Runtime.InteropServices;
 using static Microsoft.Git.CredentialManager.Interop.MacOS.Native.LibSystem;
