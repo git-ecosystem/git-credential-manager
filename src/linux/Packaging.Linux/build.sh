@@ -166,7 +166,7 @@ Section: vcs
 Priority: optional
 Architecture: $ARCH
 Depends:
-Maintainer: GCM-Core <gcmsupport@microsoft.com>
+Maintainer: GCM-Core <gitfundamentals@github.com>
 Description: Cross Platform Git Credential Manager Core command line utility.
  GCM Core supports authentication with a number of Git hosting providers
  including GitHub, BitBucket, and Azure DevOps.
