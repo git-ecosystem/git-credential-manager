@@ -1,5 +1,3 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -13,39 +11,17 @@ namespace Microsoft.Git.CredentialManager.Tests.Commands
 {
     public class GetCommandTests
     {
-        [Theory]
-        [InlineData("get", true)]
-        [InlineData("GET", true)]
-        [InlineData("gEt", true)]
-        [InlineData("erase", false)]
-        [InlineData("store", false)]
-        [InlineData("foobar", false)]
-        [InlineData("", false)]
-        [InlineData(null, false)]
-        public void GetCommand_CanExecuteAsync(string argString, bool expected)
-        {
-            var command = new GetCommand(Mock.Of<IHostProviderRegistry>());
-
-            bool result = command.CanExecute(argString?.Split(null));
-
-            if (expected)
-            {
-                Assert.True(result);
-            }
-            else
-            {
-                Assert.False(result);
-            }
-        }
-
         [Fact]
         public async Task GetCommand_ExecuteAsync_CallsHostProviderAndWritesCredential()
         {
             const string testUserName = "john.doe";
-            const string testPassword = "letmein123";
+            const string testPassword = "letmein123"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
             ICredential testCredential = new GitCredential(testUserName, testPassword);
+            var stdin = $"protocol=http\nhost=example.com\n\n";
             var expectedStdOutDict = new Dictionary<string, string>
             {
+                ["protocol"] = "http",
+                ["host"]     = "example.com",
                 ["username"] = testUserName,
                 ["password"] = testPassword
             };
@@ -54,12 +30,14 @@ namespace Microsoft.Git.CredentialManager.Tests.Commands
             providerMock.Setup(x => x.GetCredentialAsync(It.IsAny<InputArguments>()))
                         .ReturnsAsync(testCredential);
             var providerRegistry = new TestHostProviderRegistry {Provider = providerMock.Object};
-            var context = new TestCommandContext();
+            var context = new TestCommandContext
+            {
+                Streams = {In = stdin}
+            };
 
-            string[] cmdArgs = {"get"};
-            var command = new GetCommand(providerRegistry);
+            var command = new GetCommand(context, providerRegistry);
 
-            await command.ExecuteAsync(context, cmdArgs);
+            await command.ExecuteAsync();
 
             IDictionary<string, string> actualStdOutDict = ParseDictionary(context.Streams.Out);
 

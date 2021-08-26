@@ -2,13 +2,13 @@
 name: Authentication failure
 about: An authentication problem occurred when running a Git command.
 title: ''
-labels: 'auth-failure'
+labels: 'auth-issue'
 assignees: ''
 ---
 
 **Which version of GCM Core are you using?**
 
-From a terminal, run `git-credential-manager-core version` and paste the output.
+From a terminal, run `git-credential-manager-core --version` and paste the output.
 
 <!-- Ex:
 Git Credential Manager version 2.0.8-beta+e1f8492d04 (macOS, .NET Core 4.6.27129.04)

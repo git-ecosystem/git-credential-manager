@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+PACKAGE=$1
+INSTALL_DESTINATION=$2
+
 function IsBrewPkgInstalled
 {
     # Check if Homebrew is installed
@@ -24,9 +27,11 @@ then
 fi
 
 # Create symlink to GCM in /usr/local/bin
-/bin/ln -Fs /usr/local/share/gcm-core/git-credential-manager-core /usr/local/bin/git-credential-manager-core
+mkdir -p /usr/local/bin
+/bin/ln -Fs "$INSTALL_DESTINATION/git-credential-manager-core" /usr/local/bin/git-credential-manager-core
 
-# Configure GCM for the current user
-/usr/local/share/gcm-core/git-credential-manager-core configure
+# Configure GCM for the current user (running as the current user to avoid root
+# from taking ownership of ~/.gitconfig)
+sudo -u ${USER} "$INSTALL_DESTINATION/git-credential-manager-core" configure
 
 exit 0

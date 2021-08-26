@@ -1,5 +1,3 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -50,7 +48,7 @@ namespace Atlassian.Bitbucket
                 var cmdArgs = new StringBuilder("userpass");
                 if (!string.IsNullOrWhiteSpace(userName))
                 {
-                    cmdArgs.AppendFormat(" --username {0}", userName);
+                    cmdArgs.AppendFormat(" --username {0}", QuoteCmdArg(userName));
                 }
 
                 IDictionary<string, string> output = await InvokeHelperAsync(helperPath, cmdArgs.ToString());
@@ -129,7 +127,7 @@ namespace Atlassian.Bitbucket
                 FailureResponseHtmlFormat = BitbucketResources.AuthenticationResponseFailureHtmlFormat
             };
 
-            var browser = new OAuth2SystemWebBrowser(browserOptions);
+            var browser = new OAuth2SystemWebBrowser(Context.Environment, browserOptions);
             var authCodeResult = await oauthClient.GetAuthorizationCodeAsync(Scopes, browser, CancellationToken.None);
 
             return await oauthClient.GetTokenByAuthorizationCodeAsync(authCodeResult, CancellationToken.None);

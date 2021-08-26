@@ -1,5 +1,3 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Git.CredentialManager.Commands;
@@ -10,40 +8,16 @@ using Xunit;
 namespace Microsoft.Git.CredentialManager.Tests.Commands
 {
     public class StoreCommandTests
-    {
-        [Theory]
-        [InlineData("store", true)]
-        [InlineData("STORE", true)]
-        [InlineData("sToRe", true)]
-        [InlineData("get", false)]
-        [InlineData("erase", false)]
-        [InlineData("foobar", false)]
-        [InlineData("", false)]
-        [InlineData(null, false)]
-        public void StoreCommand_CanExecuteAsync(string argString, bool expected)
-        {
-            var command = new StoreCommand(Mock.Of<IHostProviderRegistry>());
-
-            bool result = command.CanExecute(argString?.Split(null));
-
-            if (expected)
-            {
-                Assert.True(result);
-            }
-            else
-            {
-                Assert.False(result);
-            }
-        }
-
-        [Fact]
+    {[Fact]
         public async Task StoreCommand_ExecuteAsync_CallsHostProvider()
         {
             const string testUserName = "john.doe";
-            const string testPassword = "letmein123";
-            var stdin = $"username={testUserName}\npassword={testPassword}\n\n";
+            const string testPassword = "letmein123"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
+            var stdin = $"protocol=http\nhost=example.com\nusername={testUserName}\npassword={testPassword}\n\n";
             var expectedInput = new InputArguments(new Dictionary<string, string>
             {
+                ["protocol"] = "http",
+                ["host"]     = "example.com",
                 ["username"] = testUserName,
                 ["password"] = testPassword
             });
@@ -57,10 +31,9 @@ namespace Microsoft.Git.CredentialManager.Tests.Commands
                 Streams = {In = stdin}
             };
 
-            string[] cmdArgs = {"store"};
-            var command = new StoreCommand(providerRegistry);
+            var command = new StoreCommand(context, providerRegistry);
 
-            await command.ExecuteAsync(context, cmdArgs);
+            await command.ExecuteAsync();
 
             providerMock.Verify(
                 x => x.StoreCredentialAsync(It.Is<InputArguments>(y => AreInputArgumentsEquivalent(expectedInput, y))),

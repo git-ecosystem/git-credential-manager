@@ -1,21 +1,22 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Git.CredentialManager;
 using Microsoft.Git.CredentialManager.Authentication;
+using Microsoft.Git.CredentialManager.Tests;
 using Microsoft.Git.CredentialManager.Tests.Objects;
 using Moq;
 using Xunit;
-using static Microsoft.Git.CredentialManager.Tests.TestHelpers;
 
 namespace Microsoft.AzureRepos.Tests
 {
     public class AzureReposHostProviderTests
     {
+        private static readonly string HelperKey =
+            $"{Constants.GitConfiguration.Credential.SectionName}.{Constants.GitConfiguration.Credential.Helper}";
         private static readonly string AzDevUseHttpPathKey =
             $"{Constants.GitConfiguration.Credential.SectionName}.https://dev.azure.com.{Constants.GitConfiguration.Credential.UseHttpPath}";
+        private static readonly string OrgName = "org";
 
         [Fact]
         public void AzureReposProvider_IsSupported_AzureHost_UnencryptedHttp_ReturnsTrue()
@@ -130,14 +131,163 @@ namespace Microsoft.AzureRepos.Tests
             var context = new TestCommandContext();
             var azDevOps = Mock.Of<IAzureDevOpsRestApi>();
             var msAuth = Mock.Of<IMicrosoftAuthentication>();
+            var authorityCache = Mock.Of<IAzureDevOpsAuthorityCache>();
+            var userMgr = Mock.Of<IAzureReposBindingManager>();
 
-            var provider = new AzureReposHostProvider(context, azDevOps, msAuth);
+            var provider = new AzureReposHostProvider(context, azDevOps, msAuth, authorityCache, userMgr);
 
             await Assert.ThrowsAsync<Exception>(() => provider.GetCredentialAsync(input));
         }
 
         [Fact]
-        public async Task AzureReposProvider_GetCredentialAsync_ReturnsCredential()
+        public async Task AzureReposProvider_GetCredentialAsync_JwtMode_CachedAuthority_VsComUrlUser_ReturnsCredential()
+        {
+            var urlAccount = "jane.doe";
+
+            var input = new InputArguments(new Dictionary<string, string>
+            {
+                ["protocol"] = "https",
+                ["host"] = "org.visualstudio.com",
+                ["username"] = urlAccount
+            });
+
+            var expectedOrgUri = new Uri("https://org.visualstudio.com");
+            var remoteUri = new Uri("https://org.visualstudio.com/");
+            var authorityUrl = "https://login.microsoftonline.com/common";
+            var expectedClientId = AzureDevOpsConstants.AadClientId;
+            var expectedRedirectUri = AzureDevOpsConstants.AadRedirectUri;
+            var expectedScopes = AzureDevOpsConstants.AzureDevOpsDefaultScopes;
+            var accessToken = "ACCESS-TOKEN";
+            var authResult = CreateAuthResult(urlAccount, accessToken);
+
+            var context = new TestCommandContext();
+
+            // Use OAuth Access Tokens
+            context.Environment.Variables[AzureDevOpsConstants.EnvironmentVariables.CredentialType] =
+                AzureDevOpsConstants.OAuthCredentialType;
+
+            var azDevOpsMock = new Mock<IAzureDevOpsRestApi>(MockBehavior.Strict);
+            azDevOpsMock.Setup(x => x.GetAuthorityAsync(expectedOrgUri)).ReturnsAsync(authorityUrl);
+
+            var msAuthMock = new Mock<IMicrosoftAuthentication>(MockBehavior.Strict);
+            msAuthMock.Setup(x => x.GetTokenAsync(authorityUrl, expectedClientId, expectedRedirectUri, expectedScopes, urlAccount))
+                      .ReturnsAsync(authResult);
+
+            var authorityCacheMock = new Mock<IAzureDevOpsAuthorityCache>(MockBehavior.Strict);
+            authorityCacheMock.Setup(x => x.GetAuthority(OrgName)).Returns(authorityUrl);
+
+            var userMgrMock = new Mock<IAzureReposBindingManager>(MockBehavior.Strict);
+
+            var provider = new AzureReposHostProvider(context, azDevOpsMock.Object, msAuthMock.Object, authorityCacheMock.Object, userMgrMock.Object);
+
+            ICredential credential = await provider.GetCredentialAsync(input);
+
+            Assert.NotNull(credential);
+            Assert.Equal(urlAccount, credential.Account);
+            Assert.Equal(accessToken, credential.Password);
+        }
+
+        [Fact]
+        public async Task AzureReposProvider_GetCredentialAsync_JwtMode_CachedAuthority_DevAzureUrlUser_ReturnsCredential()
+        {
+            var urlAccount = "jane.doe";
+
+            var input = new InputArguments(new Dictionary<string, string>
+            {
+                ["protocol"] = "https",
+                ["host"] = "dev.azure.com",
+                ["path"] = "org/project/_git/repo",
+                ["username"] = urlAccount
+            });
+
+            var expectedOrgUri = new Uri("https://dev.azure.com/org");
+            var remoteUri = new Uri("https://dev.azure.com/org/project/_git/repo");
+            var authorityUrl = "https://login.microsoftonline.com/common";
+            var expectedClientId = AzureDevOpsConstants.AadClientId;
+            var expectedRedirectUri = AzureDevOpsConstants.AadRedirectUri;
+            var expectedScopes = AzureDevOpsConstants.AzureDevOpsDefaultScopes;
+            var accessToken = "ACCESS-TOKEN";
+            var authResult = CreateAuthResult(urlAccount, accessToken);
+
+            var context = new TestCommandContext();
+
+            // Use OAuth Access Tokens
+            context.Environment.Variables[AzureDevOpsConstants.EnvironmentVariables.CredentialType] =
+                AzureDevOpsConstants.OAuthCredentialType;
+
+            var azDevOpsMock = new Mock<IAzureDevOpsRestApi>(MockBehavior.Strict);
+            azDevOpsMock.Setup(x => x.GetAuthorityAsync(expectedOrgUri)).ReturnsAsync(authorityUrl);
+
+            var msAuthMock = new Mock<IMicrosoftAuthentication>(MockBehavior.Strict);
+            msAuthMock.Setup(x => x.GetTokenAsync(authorityUrl, expectedClientId, expectedRedirectUri, expectedScopes, urlAccount))
+                      .ReturnsAsync(authResult);
+
+            var authorityCacheMock = new Mock<IAzureDevOpsAuthorityCache>(MockBehavior.Strict);
+            authorityCacheMock.Setup(x => x.GetAuthority(OrgName)).Returns(authorityUrl);
+
+            var userMgrMock = new Mock<IAzureReposBindingManager>(MockBehavior.Strict);
+
+            var provider = new AzureReposHostProvider(context, azDevOpsMock.Object, msAuthMock.Object, authorityCacheMock.Object, userMgrMock.Object);
+
+            ICredential credential = await provider.GetCredentialAsync(input);
+
+            Assert.NotNull(credential);
+            Assert.Equal(urlAccount, credential.Account);
+            Assert.Equal(accessToken, credential.Password);
+        }
+
+        [Fact]
+        public async Task AzureReposProvider_GetCredentialAsync_JwtMode_CachedAuthority_DevAzureUrlOrgName_ReturnsCredential()
+        {
+
+            var input = new InputArguments(new Dictionary<string, string>
+            {
+                ["protocol"] = "https",
+                ["host"] = "dev.azure.com",
+                ["path"] = "org/project/_git/repo",
+                ["username"] = "org"
+            });
+
+            var expectedOrgUri = new Uri("https://dev.azure.com/org");
+            var remoteUri = new Uri("https://dev.azure.com/org/project/_git/repo");
+            var authorityUrl = "https://login.microsoftonline.com/common";
+            var expectedClientId = AzureDevOpsConstants.AadClientId;
+            var expectedRedirectUri = AzureDevOpsConstants.AadRedirectUri;
+            var expectedScopes = AzureDevOpsConstants.AzureDevOpsDefaultScopes;
+            var accessToken = "ACCESS-TOKEN";
+            var account = "jane.doe";
+            var authResult = CreateAuthResult(account, accessToken);
+
+            var context = new TestCommandContext();
+
+            // Use OAuth Access Tokens
+            context.Environment.Variables[AzureDevOpsConstants.EnvironmentVariables.CredentialType] =
+                AzureDevOpsConstants.OAuthCredentialType;
+
+            var azDevOpsMock = new Mock<IAzureDevOpsRestApi>(MockBehavior.Strict);
+            azDevOpsMock.Setup(x => x.GetAuthorityAsync(expectedOrgUri)).ReturnsAsync(authorityUrl);
+
+            var msAuthMock = new Mock<IMicrosoftAuthentication>(MockBehavior.Strict);
+            msAuthMock.Setup(x => x.GetTokenAsync(authorityUrl, expectedClientId, expectedRedirectUri, expectedScopes, null))
+                      .ReturnsAsync(authResult);
+
+            var authorityCacheMock = new Mock<IAzureDevOpsAuthorityCache>(MockBehavior.Strict);
+            authorityCacheMock.Setup(x => x.GetAuthority(OrgName)).Returns(authorityUrl);
+
+            var userMgrMock = new Mock<IAzureReposBindingManager>(MockBehavior.Strict);
+            userMgrMock.Setup(x => x.GetBinding(OrgName)).Returns((AzureReposBinding)null);
+
+            var provider = new AzureReposHostProvider(context, azDevOpsMock.Object, msAuthMock.Object, authorityCacheMock.Object, userMgrMock.Object);
+
+            ICredential credential = await provider.GetCredentialAsync(input);
+
+            Assert.NotNull(credential);
+            Assert.Equal(account, credential.Account);
+            Assert.Equal(accessToken, credential.Password);
+        }
+
+        [Fact]
+        public async Task AzureReposProvider_GetCredentialAsync_JwtMode_CachedAuthority_NoUser_ReturnsCredential()
         {
             var input = new InputArguments(new Dictionary<string, string>
             {
@@ -151,46 +301,228 @@ namespace Microsoft.AzureRepos.Tests
             var authorityUrl = "https://login.microsoftonline.com/common";
             var expectedClientId = AzureDevOpsConstants.AadClientId;
             var expectedRedirectUri = AzureDevOpsConstants.AadRedirectUri;
-            var expectedResource = AzureDevOpsConstants.AadResourceId;
-            var accessToken = CreateJwt("john.doe");
-            var personalAccessToken = "PERSONAL-ACCESS-TOKEN";
+            var expectedScopes = AzureDevOpsConstants.AzureDevOpsDefaultScopes;
+            var accessToken = "ACCESS-TOKEN";
+            var account = "john.doe";
+            var authResult = CreateAuthResult(account, accessToken);
 
             var context = new TestCommandContext();
 
-            var azDevOpsMock = new Mock<IAzureDevOpsRestApi>();
-            azDevOpsMock.Setup(x => x.GetAuthorityAsync(expectedOrgUri))
-                        .ReturnsAsync(authorityUrl);
-            azDevOpsMock.Setup(x => x.CreatePersonalAccessTokenAsync(expectedOrgUri, accessToken, It.IsAny<IEnumerable<string>>()))
-                        .ReturnsAsync(personalAccessToken);
+            // Use OAuth Access Tokens
+            context.Environment.Variables[AzureDevOpsConstants.EnvironmentVariables.CredentialType] =
+                AzureDevOpsConstants.OAuthCredentialType;
 
-            var msAuthMock = new Mock<IMicrosoftAuthentication>();
-            msAuthMock.Setup(x => x.GetAccessTokenAsync(authorityUrl, expectedClientId, expectedRedirectUri, expectedResource, remoteUri, null))
-                      .ReturnsAsync(accessToken);
+            var azDevOpsMock = new Mock<IAzureDevOpsRestApi>(MockBehavior.Strict);
 
-            var provider = new AzureReposHostProvider(context, azDevOpsMock.Object, msAuthMock.Object);
+            var msAuthMock = new Mock<IMicrosoftAuthentication>(MockBehavior.Strict);
+            msAuthMock.Setup(x => x.GetTokenAsync(authorityUrl, expectedClientId, expectedRedirectUri, expectedScopes, null))
+                      .ReturnsAsync(authResult);
+
+            var authorityCacheMock = new Mock<IAzureDevOpsAuthorityCache>(MockBehavior.Strict);
+            authorityCacheMock.Setup(x => x.GetAuthority(OrgName)).Returns(authorityUrl);
+
+            var userMgrMock = new Mock<IAzureReposBindingManager>(MockBehavior.Strict);
+            userMgrMock.Setup(x => x.GetBinding(OrgName)).Returns((AzureReposBinding)null);
+
+            var provider = new AzureReposHostProvider(context, azDevOpsMock.Object, msAuthMock.Object, authorityCacheMock.Object, userMgrMock.Object);
 
             ICredential credential = await provider.GetCredentialAsync(input);
 
             Assert.NotNull(credential);
+            Assert.Equal(account, credential.Account);
+            Assert.Equal(accessToken, credential.Password);
+        }
+
+        [Fact]
+        public async Task AzureReposProvider_GetCredentialAsync_JwtMode_CachedAuthority_BoundUser_ReturnsCredential()
+        {
+
+            var input = new InputArguments(new Dictionary<string, string>
+            {
+                ["protocol"] = "https",
+                ["host"] = "dev.azure.com",
+                ["path"] = "org/proj/_git/repo"
+            });
+
+            var expectedOrgUri = new Uri("https://dev.azure.com/org");
+            var remoteUri = new Uri("https://dev.azure.com/org/proj/_git/repo");
+            var authorityUrl = "https://login.microsoftonline.com/common";
+            var expectedClientId = AzureDevOpsConstants.AadClientId;
+            var expectedRedirectUri = AzureDevOpsConstants.AadRedirectUri;
+            var expectedScopes = AzureDevOpsConstants.AzureDevOpsDefaultScopes;
+            var accessToken = "ACCESS-TOKEN";
+            var account = "john.doe";
+            var authResult = CreateAuthResult(account, accessToken);
+
+            var context = new TestCommandContext();
+
+            // Use OAuth Access Tokens
+            context.Environment.Variables[AzureDevOpsConstants.EnvironmentVariables.CredentialType] =
+                AzureDevOpsConstants.OAuthCredentialType;
+
+            var azDevOpsMock = new Mock<IAzureDevOpsRestApi>(MockBehavior.Strict);
+
+            var msAuthMock = new Mock<IMicrosoftAuthentication>(MockBehavior.Strict);
+            msAuthMock.Setup(x => x.GetTokenAsync(authorityUrl, expectedClientId, expectedRedirectUri, expectedScopes, account))
+                      .ReturnsAsync(authResult);
+
+            var authorityCacheMock = new Mock<IAzureDevOpsAuthorityCache>(MockBehavior.Strict);
+            authorityCacheMock.Setup(x => x.GetAuthority(OrgName)).Returns(authorityUrl);
+
+            var userMgrMock = new Mock<IAzureReposBindingManager>(MockBehavior.Strict);
+            userMgrMock.Setup(x => x.GetBinding(OrgName))
+                .Returns(new AzureReposBinding(OrgName, account, null));
+
+            var provider = new AzureReposHostProvider(context, azDevOpsMock.Object, msAuthMock.Object, authorityCacheMock.Object, userMgrMock.Object);
+
+            ICredential credential = await provider.GetCredentialAsync(input);
+
+            Assert.NotNull(credential);
+            Assert.Equal(account, credential.Account);
+            Assert.Equal(accessToken, credential.Password);
+        }
+
+        [Fact]
+        public async Task AzureReposProvider_GetCredentialAsync_JwtMode_NoCachedAuthority_NoUser_ReturnsCredential()
+        {
+
+            var input = new InputArguments(new Dictionary<string, string>
+            {
+                ["protocol"] = "https",
+                ["host"] = "dev.azure.com",
+                ["path"] = "org/proj/_git/repo"
+            });
+
+            var expectedOrgUri = new Uri("https://dev.azure.com/org");
+            var remoteUri = new Uri("https://dev.azure.com/org/proj/_git/repo");
+            var authorityUrl = "https://login.microsoftonline.com/common";
+            var expectedClientId = AzureDevOpsConstants.AadClientId;
+            var expectedRedirectUri = AzureDevOpsConstants.AadRedirectUri;
+            var expectedScopes = AzureDevOpsConstants.AzureDevOpsDefaultScopes;
+            var accessToken = "ACCESS-TOKEN";
+            var account = "john.doe";
+            var authResult = CreateAuthResult(account, accessToken);
+
+            var context = new TestCommandContext();
+
+            // Use OAuth Access Tokens
+            context.Environment.Variables[AzureDevOpsConstants.EnvironmentVariables.CredentialType] =
+                AzureDevOpsConstants.OAuthCredentialType;
+
+            var azDevOpsMock = new Mock<IAzureDevOpsRestApi>(MockBehavior.Strict);
+            azDevOpsMock.Setup(x => x.GetAuthorityAsync(expectedOrgUri)).ReturnsAsync(authorityUrl);
+
+            var msAuthMock = new Mock<IMicrosoftAuthentication>(MockBehavior.Strict);
+            msAuthMock.Setup(x => x.GetTokenAsync(authorityUrl, expectedClientId, expectedRedirectUri, expectedScopes, null))
+                      .ReturnsAsync(authResult);
+
+            var authorityCacheMock = new Mock<IAzureDevOpsAuthorityCache>(MockBehavior.Strict);
+            authorityCacheMock.Setup(x => x.GetAuthority(It.IsAny<string>())).Returns((string)null);
+            authorityCacheMock.Setup(x => x.UpdateAuthority(OrgName, authorityUrl));
+
+            var userMgrMock = new Mock<IAzureReposBindingManager>(MockBehavior.Strict);
+            userMgrMock.Setup(x => x.GetBinding(OrgName)).Returns((AzureReposBinding)null);
+
+            var provider = new AzureReposHostProvider(context, azDevOpsMock.Object, msAuthMock.Object, authorityCacheMock.Object, userMgrMock.Object);
+
+            ICredential credential = await provider.GetCredentialAsync(input);
+
+            Assert.NotNull(credential);
+            Assert.Equal(account, credential.Account);
+            Assert.Equal(accessToken, credential.Password);
+        }
+
+        [Fact]
+        public async Task AzureReposProvider_GetCredentialAsync_PatMode_NoExistingPat_GeneratesCredential()
+        {
+
+            var input = new InputArguments(new Dictionary<string, string>
+            {
+                ["protocol"] = "https",
+                ["host"] = "dev.azure.com",
+                ["path"] = "org/proj/_git/repo"
+            });
+
+            var expectedOrgUri = new Uri("https://dev.azure.com/org");
+            var remoteUri = new Uri("https://dev.azure.com/org/proj/_git/repo");
+            var authorityUrl = "https://login.microsoftonline.com/common";
+            var expectedClientId = AzureDevOpsConstants.AadClientId;
+            var expectedRedirectUri = AzureDevOpsConstants.AadRedirectUri;
+            var expectedScopes = AzureDevOpsConstants.AzureDevOpsDefaultScopes;
+            var accessToken = "ACCESS-TOKEN";
+            var personalAccessToken = "PERSONAL-ACCESS-TOKEN";
+            var account = "john.doe";
+            var authResult = CreateAuthResult(account, accessToken);
+
+            var context = new TestCommandContext();
+
+            var azDevOpsMock = new Mock<IAzureDevOpsRestApi>(MockBehavior.Strict);
+            azDevOpsMock.Setup(x => x.GetAuthorityAsync(expectedOrgUri)).ReturnsAsync(authorityUrl);
+            azDevOpsMock.Setup(x => x.CreatePersonalAccessTokenAsync(expectedOrgUri, accessToken, It.IsAny<IEnumerable<string>>()))
+                        .ReturnsAsync(personalAccessToken);
+
+            var msAuthMock = new Mock<IMicrosoftAuthentication>(MockBehavior.Strict);
+            msAuthMock.Setup(x => x.GetTokenAsync(authorityUrl, expectedClientId, expectedRedirectUri, expectedScopes, null))
+                      .ReturnsAsync(authResult);
+
+            var authorityCacheMock = new Mock<IAzureDevOpsAuthorityCache>(MockBehavior.Strict);
+
+            var userMgrMock = new Mock<IAzureReposBindingManager>(MockBehavior.Strict);
+
+            var provider = new AzureReposHostProvider(context, azDevOpsMock.Object, msAuthMock.Object, authorityCacheMock.Object, userMgrMock.Object);
+
+            ICredential credential = await provider.GetCredentialAsync(input);
+
+            Assert.NotNull(credential);
+            Assert.Equal(account, credential.Account);
             Assert.Equal(personalAccessToken, credential.Password);
-            // We don't care about the username value
+        }
+
+        [Fact]
+        public async Task AzureReposProvider_GetCredentialAsync_PatMode_ExistingPat_ReturnsExistingCredential()
+        {
+            var input = new InputArguments(new Dictionary<string, string>
+            {
+                ["protocol"] = "https",
+                ["host"] = "dev.azure.com",
+                ["path"] = "org/proj/_git/repo"
+            });
+
+            var remoteUri = new Uri("https://dev.azure.com/org/proj/_git/repo");
+            var personalAccessToken = "PERSONAL-ACCESS-TOKEN";
+            const string service = "https://dev.azure.com/org";
+            const string account = "john.doe";
+
+            var context = new TestCommandContext();
+
+            context.CredentialStore.Add(service, account, personalAccessToken);
+
+            var azDevOps = Mock.Of<IAzureDevOpsRestApi>();
+            var msAuth = Mock.Of<IMicrosoftAuthentication>();
+            var authorityCache = Mock.Of<IAzureDevOpsAuthorityCache>();
+            var userMgr = Mock.Of<IAzureReposBindingManager>();
+
+            var provider = new AzureReposHostProvider(context, azDevOps, msAuth, authorityCache, userMgr);
+
+            ICredential credential = await provider.GetCredentialAsync(input);
+
+            Assert.NotNull(credential);
+            Assert.Equal(account, credential.Account);
+            Assert.Equal(personalAccessToken, credential.Password);
         }
 
         [Fact]
         public async Task AzureReposHostProvider_ConfigureAsync_UseHttpPathSetTrue_DoesNothing()
         {
-            var provider = new AzureReposHostProvider(new TestCommandContext());
+            var context = new TestCommandContext();
+            var provider = new AzureReposHostProvider(context);
 
-            var environment = new TestEnvironment();
-            var git = new TestGit();
-            git.GlobalConfiguration.Dictionary[AzDevUseHttpPathKey] = new List<string> {"true"};
+            context.Git.Configuration.Global[AzDevUseHttpPathKey] = new List<string> {"true"};
 
-            await provider.ConfigureAsync(
-                environment, EnvironmentVariableTarget.User,
-                git, GitConfigurationLevel.Global);
+            await provider.ConfigureAsync(ConfigurationTarget.User);
 
-            Assert.Single(git.GlobalConfiguration.Dictionary);
-            Assert.True(git.GlobalConfiguration.Dictionary.TryGetValue(AzDevUseHttpPathKey, out IList<string> actualValues));
+            Assert.Single(context.Git.Configuration.Global);
+            Assert.True(context.Git.Configuration.Global.TryGetValue(AzDevUseHttpPathKey, out IList<string> actualValues));
             Assert.Single(actualValues);
             Assert.Equal("true", actualValues[0]);
         }
@@ -198,18 +530,15 @@ namespace Microsoft.AzureRepos.Tests
         [Fact]
         public async Task AzureReposHostProvider_ConfigureAsync_UseHttpPathSetFalse_SetsUseHttpPathTrue()
         {
-            var provider = new AzureReposHostProvider(new TestCommandContext());
+            var context = new TestCommandContext();
+            var provider = new AzureReposHostProvider(context);
 
-            var environment = new TestEnvironment();
-            var git = new TestGit();
-            git.GlobalConfiguration.Dictionary[AzDevUseHttpPathKey] = new List<string> {"false"};
+            context.Git.Configuration.Global[AzDevUseHttpPathKey] = new List<string> {"false"};
 
-            await provider.ConfigureAsync(
-                environment, EnvironmentVariableTarget.User,
-                git, GitConfigurationLevel.Global);
+            await provider.ConfigureAsync(ConfigurationTarget.User);
 
-            Assert.Single(git.GlobalConfiguration.Dictionary);
-            Assert.True(git.GlobalConfiguration.Dictionary.TryGetValue(AzDevUseHttpPathKey, out IList<string> actualValues));
+            Assert.Single(context.Git.Configuration.Global);
+            Assert.True(context.Git.Configuration.Global.TryGetValue(AzDevUseHttpPathKey, out IList<string> actualValues));
             Assert.Single(actualValues);
             Assert.Equal("true", actualValues[0]);
         }
@@ -217,36 +546,87 @@ namespace Microsoft.AzureRepos.Tests
         [Fact]
         public async Task AzureReposHostProvider_ConfigureAsync_UseHttpPathUnset_SetsUseHttpPathTrue()
         {
-            var provider = new AzureReposHostProvider(new TestCommandContext());
+            var context = new TestCommandContext();
+            var provider = new AzureReposHostProvider(context);
 
-            var environment = new TestEnvironment();
-            var git = new TestGit();
+            await provider.ConfigureAsync(ConfigurationTarget.User);
 
-            await provider.ConfigureAsync(
-                environment, EnvironmentVariableTarget.User,
-                git, GitConfigurationLevel.Global);
-
-            Assert.Single(git.GlobalConfiguration.Dictionary);
-            Assert.True(git.GlobalConfiguration.Dictionary.TryGetValue(AzDevUseHttpPathKey, out IList<string> actualValues));
+            Assert.Single(context.Git.Configuration.Global);
+            Assert.True(context.Git.Configuration.Global.TryGetValue(AzDevUseHttpPathKey, out IList<string> actualValues));
             Assert.Single(actualValues);
             Assert.Equal("true", actualValues[0]);
         }
 
-
         [Fact]
         public async Task AzureReposHostProvider_UnconfigureAsync_UseHttpPathSet_RemovesEntry()
         {
-            var provider = new AzureReposHostProvider(new TestCommandContext());
+            var context = new TestCommandContext();
+            var provider = new AzureReposHostProvider(context);
 
-            var environment = new TestEnvironment();
-            var git = new TestGit();
-            git.GlobalConfiguration.Dictionary[AzDevUseHttpPathKey] = new List<string> {"true"};
+            context.Git.Configuration.Global[AzDevUseHttpPathKey] = new List<string> {"true"};
 
-            await provider.UnconfigureAsync(
-                environment, EnvironmentVariableTarget.User,
-                git, GitConfigurationLevel.Global);
+            await provider.UnconfigureAsync(ConfigurationTarget.User);
 
-            Assert.Empty(git.GlobalConfiguration.Dictionary);
+            Assert.Empty(context.Git.Configuration.Global);
+        }
+
+        [PlatformFact(Platforms.Windows)]
+        public async Task AzureReposHostProvider_UnconfigureAsync_System_Windows_UseHttpPathSetAndManagerCoreHelper_DoesNotRemoveEntry()
+        {
+            var context = new TestCommandContext();
+            var provider = new AzureReposHostProvider(context);
+
+            context.Git.Configuration.System[HelperKey] = new List<string> {"manager-core"};
+            context.Git.Configuration.System[AzDevUseHttpPathKey] = new List<string> {"true"};
+
+            await provider.UnconfigureAsync(ConfigurationTarget.System);
+
+            Assert.True(context.Git.Configuration.System.TryGetValue(AzDevUseHttpPathKey, out IList<string> actualValues));
+            Assert.Single(actualValues);
+            Assert.Equal("true", actualValues[0]);
+        }
+
+        [PlatformFact(Platforms.Windows)]
+        public async Task AzureReposHostProvider_UnconfigureAsync_System_Windows_UseHttpPathSetNoManagerCoreHelper_RemovesEntry()
+        {
+            var context = new TestCommandContext();
+            var provider = new AzureReposHostProvider(context);
+
+            context.Git.Configuration.System[AzDevUseHttpPathKey] = new List<string> {"true"};
+
+            await provider.UnconfigureAsync(ConfigurationTarget.System);
+
+            Assert.Empty(context.Git.Configuration.System);
+        }
+
+        [PlatformFact(Platforms.Windows)]
+        public async Task AzureReposHostProvider_UnconfigureAsync_User_Windows_UseHttpPathSetAndManagerCoreHelper_RemovesEntry()
+        {
+            var context = new TestCommandContext();
+            var provider = new AzureReposHostProvider(context);
+
+            context.Git.Configuration.Global[HelperKey] = new List<string> {"manager-core"};
+            context.Git.Configuration.Global[AzDevUseHttpPathKey] = new List<string> {"true"};
+
+            await provider.UnconfigureAsync(ConfigurationTarget.User);
+
+            Assert.False(context.Git.Configuration.Global.TryGetValue(AzDevUseHttpPathKey, out _));
+        }
+
+        private static IMicrosoftAuthenticationResult CreateAuthResult(string upn, string token)
+        {
+            return new MockMsAuthResult
+            {
+                AccountUpn = upn,
+                AccessToken = token,
+            };
+        }
+
+        private class MockMsAuthResult : IMicrosoftAuthenticationResult
+        {
+            public string AccessToken { get; set; }
+            public string AccountUpn { get; set; }
+            public string TokenSource { get; set; }
         }
     }
 }

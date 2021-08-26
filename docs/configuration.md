@@ -3,14 +3,15 @@
 [Git Credential Manager Core](usage.md) works out of the box for most users.
 
 Git Credential Manager Core (GCM Core) can be configured using Git's configuration files, and follows all of the same rules Git does when consuming the files.
+
 Global configuration settings override system configuration settings, and local configuration settings override global settings; and because the configuration details exist within Git's configuration files you can use Git's `git config` utility to set, unset, and alter the setting values. All of GCM Core's configuration settings begin with the term `credential`.
 
 GCM Core honors several levels of settings, in addition to the standard local \> global \> system tiering Git uses.
 URL-specific settings or overrides can be applied to any value in the `credential` namespace with the syntax below.
 
-Additionally, GCM Core respects several GCM-specific [environment variables](environment.md) **which take precedence over configuration options.**
+Additionally, GCM Core respects several GCM-specific [environment variables](environment.md) **which take precedence over configuration options**. System administrators may also configure [default values](enterprise-config.md) for many settings used by GCM Core.
 
-GCM Core will only be used by Git if it is installed and configured (`credential.helper`).
+GCM Core will only be used by Git if it is installed and configured. Use `git config --global credential.helper manager-core` to assign GCM Core as your credential helper. Use `git config credential.helper` to see the current configuration.
 
 **Example:**
 
@@ -153,7 +154,7 @@ git config --global credential.httpsProxy http://john.doe:password@proxy.contoso
 Override the available authentication modes presented during GitHub authentication.
 If this option is not set, then the available authentication modes will be automatically detected.
 
-**Note:** This setting supports multiple values separated by spaces.
+**Note:** This setting supports multiple values separated by commas.
 
 Value|Authentication Mode
 -|-
@@ -164,7 +165,223 @@ _(unset)_|Automatically detect modes
 #### Example
 
 ```shell
-git config --global credential.gitHubAuthModes "oauth basic"
+git config --global credential.gitHubAuthModes "oauth,basic"
 ```
 
 **Also see: [GCM_GITHUB_AUTHMODES](environment.md#GCM_GITHUB_AUTHMODES)**
+
+---
+
+### credential.namespace
+
+Use a custom namespace prefix for credentials read and written in the OS credential store.
+Credentials will be stored in the format `{namespace}:{service}`.
+
+Defaults to the value `git`.
+
+#### Example
+
+```shell
+git config --global credential.namespace "my-namespace"
+```
+
+**Also see: [GCM_NAMESPACE](environment.md#GCM_NAMESPACE)**
+
+---
+
+### credential.credentialStore
+
+Select the type of credential store to use on supported platforms.
+
+Default value is unset.
+
+**Note:** This setting is only supported on Linux platforms. Setting this value on Windows and macOS has no effect. See more information about configuring secret stores on Linux [here](linuxcredstores.md).
+
+Value|Credential Store
+-|-
+_(unset)_|(error)
+`secretservice`|[freedesktop.org Secret Service API](https://specifications.freedesktop.org/secret-service/) via [libsecret](https://wiki.gnome.org/Projects/Libsecret) (requires a graphical interface to unlock secret collections).
+`gpg`|Use GPG to store encrypted files that are compatible with the [`pass` utility](https://www.passwordstore.org/) (requires GPG and `pass` to initialize the store).
+`cache`|Git's built-in [credential cache](https://git-scm.com/docs/git-credential-cache).
+`plaintext`|Store credentials in plaintext files (**UNSECURE**). Customize the plaintext store location with [`credential.plaintextStorePath`](#credentialplaintextstorepath).
+
+##### Example
+
+```bash
+git config --global credential.credentialStore gpg
+```
+
+**Also see: [GCM_CREDENTIAL_STORE](environment.md#GCM_CREDENTIAL_STORE)**
+
+---
+
+### credential.cacheOptions
+
+Pass [options](https://git-scm.com/docs/git-credential-cache#_options)
+to the Git credential cache when
+[`credential.credentialStore`](#credentialcredentialstore)
+is set to `cache`. This allows you to select a different amount
+of time to cache credentials (the default is 900 seconds) by passing
+`"--timeout <seconds>"`. Use of other options like `--socket` is untested
+and unsupported, but there's no reason it shouldn't work.
+
+Defaults to empty.
+
+#### Example
+
+```shell
+git config --global credential.cacheOptions "--timeout 300"
+```
+
+**Also see: [GCM_CREDENTIAL_CACHE_OPTIONS](environment.md#GCM_CREDENTIAL_CACHE_OPTIONS)**
+
+---
+
+### credential.plaintextStorePath
+
+Specify a custom directory to store plaintext credential files in when [`credential.credentialStore`](#credentialcredentialstore) is set to `plaintext`.
+
+Defaults to the value `~/.gcm/store`.
+
+#### Example
+
+```shell
+git config --global credential.plaintextStorePath /mnt/external-drive/credentials
+```
+
+**Also see: [GCM_PLAINTEXT_STORE_PATH](environment.md#GCM_PLAINTEXT_STORE_PATH)**
+
+---
+
+### credential.msauthFlow
+
+Specify which authentication flow should be used when performing Microsoft authentication and an interactive flow is required.
+
+Defaults to `auto`.
+
+**Note:** If [`credential.msauthUseBroker`](#credentialmsauthusebroker-experimental) is set
+to `true` and the operating system authentication broker is available, all flows
+will be delegated to the broker. If both of those things are true, then the
+value of `credential.msauthFlow` has no effect.
+
+Value|Authentication Flow
+-|-
+`auto` _(default)_|Select the best option depending on the current environment and platform.
+`embedded`|Show a window with embedded web view control.
+`system`|Open the user's default web browser.
+`devicecode`|Show a device code.
+
+#### Example
+
+```shell
+git config --global credential.msauthFlow devicecode
+```
+
+**Also see: [GCM_MSAUTH_FLOW](environment.md#GCM_MSAUTH_FLOW)**
+
+---
+
+### credential.msauthUseBroker _(experimental)_
+
+Use the operating system account manager where available.
+
+Defaults to `false`. This default is subject to change in the future.
+
+_**Note:** before you enable this option on Windows, please [review the details](windows-broker.md) about what this means to your local Windows user account._
+
+Value|Description
+-|-
+`true`|Use the operating system account manager as an authentication broker.
+`false` _(default)_|Do not use the broker.
+
+#### Example
+
+```shell
+git config --global credential.msauthUseBroker true
+```
+
+**Also see: [GCM_MSAUTH_USEBROKER](environment.md#GCM_MSAUTH_USEBROKER-experimental)**
+
+---
+
+### credential.useHttpPath
+
+Tells Git to pass the entire repository URL, rather than just the hostname, when calling out to a credential provider. (This setting [comes from Git itself](https://git-scm.com/docs/gitcredentials/#Documentation/gitcredentials.txt-useHttpPath), not GCM Core.)
+
+Defaults to `false`.
+
+**Note:** GCM Core sets this value to `true` for `dev.azure.com` (Azure Repos) hosts after installation by default.
+
+This is because `dev.azure.com` alone is not enough information to determine the correct Azure authentication authority - we require a part of the path. The fallout of this is that for `dev.azure.com` remote URLs we do not support storing credentials against the full-path. We always store against the `dev.azure.com/org-name` stub.
+
+In order to use Azure Repos and store credentials against a full-path URL, you must use the `org-name.visualstudio.com` remote URL format instead.
+
+Value|Git Behavior
+-|-
+`false` _(default)_|Git will use only `user` and `hostname` to look up credentials.
+`true`|Git will use the full repository URL to look up credentials.
+
+#### Example
+
+On Windows using GitHub, for a user whose login is `alice`, and with `credential.useHttpPath` set to `false` (or not set), the following remote URLs will use the same credentials:
+
+```text
+Credential: "git:https://github.com" (user = alice) 
+
+   https://github.com/foo/bar
+   https://github.com/contoso/widgets
+   https://alice@github.com/contoso/widgets
+```
+```text
+Credential: "git:https://bob@github.com" (user = bob)
+
+   https://bob@github.com/foo/bar
+   https://bob@github.com/example/myrepo
+```
+
+Under the same user but with `credential.useHttpPath` set to `true`, these credentials would be used:
+
+```text
+Credential: "git:https://github.com/foo/bar" (user = alice)
+
+   https://github.com/foo/bar
+```
+```text
+Credential: "git:https://github.com/contoso/widgets" (user = alice)
+
+   https://github.com/contoso/widgets
+   https://alice@github.com/contoso/widgets
+```
+```text
+Credential: "git:https://bob@github.com/foo/bar" (user = bob)
+
+   https://bob@github.com/foo/bar
+```
+```text
+Credential: "git:https://bob@github.com/example/myrepo" (user = bob)
+
+   https://bob@github.com/example/myrepo
+```
+
+---
+
+### credential.azreposCredentialType _(experimental)_
+
+Specify the type of credential the Azure Repos host provider should return.
+
+Defaults to the value `pat`.
+
+Value|Description
+-|-
+`pat` _(default)_|Azure DevOps personal access tokens
+`oauth`|Microsoft identity OAuth tokens (AAD or MSA tokens)
+
+More information about Azure Access tokens can be found [here](azrepos-azuretokens.md).
+
+#### Example
+
+```shell
+git config --global credential.azreposCredentialType oauth
+```
+
+**Also see: [GCM_AZREPOS_CREDENTIALTYPE](environment.md#GCM_AZREPOS_CREDENTIALTYPE-experimental)**

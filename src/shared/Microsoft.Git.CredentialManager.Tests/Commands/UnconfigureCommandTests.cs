@@ -1,5 +1,3 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
 using System.Threading.Tasks;
 using Microsoft.Git.CredentialManager.Commands;
 using Microsoft.Git.CredentialManager.Tests.Objects;
@@ -10,24 +8,6 @@ namespace Microsoft.Git.CredentialManager.Tests.Commands
 {
     public class UnconfigureCommandTests
     {
-        [Theory]
-        [InlineData("unconfigure", true)]
-        [InlineData("UNCONFIGURE", true)]
-        [InlineData("uNcOnFiGuRe", true)]
-        [InlineData("get", false)]
-        [InlineData("store", false)]
-        [InlineData("configure", false)]
-        [InlineData("", false)]
-        [InlineData(null, false)]
-        public void UnconfigureCommand_CanExecuteAsync(string argString, bool expected)
-        {
-            var command = new UnconfigureCommand(Mock.Of<IConfigurationService>());
-
-            bool result = command.CanExecute(argString?.Split(null));
-
-            Assert.Equal(expected, result);
-        }
-
         [Fact]
         public async Task UnconfigureCommand_ExecuteAsync_User_InvokesConfigurationServiceUnconfigureUser()
         {
@@ -37,11 +17,9 @@ namespace Microsoft.Git.CredentialManager.Tests.Commands
                 .Verifiable();
 
             var context = new TestCommandContext();
+            var command = new UnconfigureCommand(context, configService.Object);
 
-            string[] cmdArgs = {"unconfigure"};
-            var command = new UnconfigureCommand(configService.Object);
-
-            await command.ExecuteAsync(context, cmdArgs);
+            await command.ExecuteAsync(false);
 
             configService.Verify(x => x.UnconfigureAsync(ConfigurationTarget.User), Times.Once);
         }
@@ -55,11 +33,9 @@ namespace Microsoft.Git.CredentialManager.Tests.Commands
                 .Verifiable();
 
             var context = new TestCommandContext();
+            var command = new UnconfigureCommand(context, configService.Object);
 
-            string[] cmdArgs = {"unconfigure", "--system"};
-            var command = new UnconfigureCommand(configService.Object);
-
-            await command.ExecuteAsync(context, cmdArgs);
+            await command.ExecuteAsync(true);
 
             configService.Verify(x => x.UnconfigureAsync(ConfigurationTarget.System), Times.Once);
         }

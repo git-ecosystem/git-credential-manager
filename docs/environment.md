@@ -1,8 +1,8 @@
 # Environment variables
 
-[Git Credential Manager Core](usage.md) work out of the box for most users. Configuration options are available to customize or tweak behavior.
+[Git Credential Manager Core](usage.md) works out of the box for most users. Configuration options are available to customize or tweak behavior.
 
-Git Credential Manager Core (GCM Core) can be configured using environment variables. **Environment variables take precedence over [configuration](configuration.md) options.**
+Git Credential Manager Core (GCM Core) can be configured using environment variables. **Environment variables take precedence over [configuration](configuration.md) options and enterprise system administrator [default values](enterprise-config.md)**.
 
 For the complete list of environment variables GCM Core understands, see the list below.
 
@@ -288,7 +288,7 @@ export GCM_HTTP_PROXY=http://john.doe:password@proxy.contoso.com
 Override the available authentication modes presented during GitHub authentication.
 If this option is not set, then the available authentication modes will be automatically detected.
 
-**Note:** This setting supports multiple values separated by spaces.
+**Note:** This setting supports multiple values separated by commas.
 
 Value|Authentication Mode
 -|-
@@ -299,13 +299,207 @@ _(unset)_|Automatically detect modes
 ##### Windows
 
 ```batch
-SET GCM_GITHUB_AUTHMODES="oauth basic"
+SET GCM_GITHUB_AUTHMODES="oauth,basic"
 ```
 
 ##### macOS/Linux
 
 ```bash
-export GCM_GITHUB_AUTHMODES="oauth basic"
+export GCM_GITHUB_AUTHMODES="oauth,basic"
 ```
 
 **Also see: [credential.gitHubAuthModes](configuration.md#credentialgitHubAuthModes)**
+
+---
+
+### GCM_NAMESPACE
+
+Use a custom namespace prefix for credentials read and written in the OS credential store.
+Credentials will be stored in the format `{namespace}:{service}`.
+
+Defaults to the value `git`.
+
+##### Windows
+
+```batch
+SET GCM_NAMESPACE="my-namespace"
+```
+
+##### macOS/Linux
+
+```bash
+export GCM_NAMESPACE="my-namespace"
+```
+
+**Also see: [credential.namespace](configuration.md#credentialnamespace)**
+
+---
+
+### GCM_CREDENTIAL_STORE
+
+Select the type of credential store to use on supported platforms.
+
+Default value is unset.
+
+**Note:** This setting is only supported on Linux platforms. Setting this value on Windows and macOS has no effect.  See more information about configuring secret stores on Linux [here](linuxcredstores.md).
+
+Value|Credential Store
+-|-
+_(unset)_|(error)
+`secretservice`|[freedesktop.org Secret Service API](https://specifications.freedesktop.org/secret-service/) via [libsecret](https://wiki.gnome.org/Projects/Libsecret) (requires a graphical interface to unlock secret collections).
+`gpg`|Use GPG to store encrypted files that are compatible with the [`pass` utility](https://www.passwordstore.org/) (requires GPG and `pass` to initialize the store).
+`cache`|Git's built-in [credential cache](https://git-scm.com/docs/git-credential-cache).
+`plaintext`|Store credentials in plaintext files (**UNSECURE**). Customize the plaintext store location with [`GCM_PLAINTEXT_STORE_PATH`](#GCM_PLAINTEXT_STORE_PATH).
+
+##### Linux
+
+```bash
+export GCM_CREDENTIAL_STORE="gpg"
+```
+
+**Also see: [credential.credentialStore](configuration.md#credentialcredentialstore)**
+
+---
+
+### GCM_CREDENTIAL_CACHE_OPTIONS
+
+Pass [options](https://git-scm.com/docs/git-credential-cache#_options)
+to the Git credential cache when [`GCM_CREDENTIAL_STORE`](#GCM_CREDENTIAL_STORE)
+is set to `cache`. This allows you to select a different amount
+of time to cache credentials (the default is 900 seconds) by passing
+`"--timeout <seconds>"`. Use of other options like `--socket` is untested
+and unsupported, but there's no reason it shouldn't work.
+
+Defaults to empty.
+
+#### Linux
+
+```shell
+export GCM_CREDENTIAL_CACHE_OPTIONS="--timeout 300"
+```
+
+**Also see: [credential.cacheOptions](configuration.md#credentialcacheoptions)**
+
+---
+
+### GCM_PLAINTEXT_STORE_PATH
+
+Specify a custom directory to store plaintext credential files in when [`GCM_CREDENTIAL_STORE`](#GCM_CREDENTIAL_STORE) is set to `plaintext`.
+
+Defaults to the value `~/.gcm/store`.
+
+#### Linux
+
+```shell
+export GCM_PLAINTEXT_STORE_PATH=/mnt/external-drive/credentials
+```
+
+**Also see: [credential.plaintextStorePath](configuration.md#credentialplaintextstorepath)**
+
+---
+
+### GCM_GPG_PATH
+
+Specify the path (_including_ the executable name) to the version of `gpg` used by `pass` (`gpg2` if present, otherwise `gpg`). This is primarily meant to allow manual resolution of the conflict that occurs on legacy Linux systems with parallel installs of `gpg` and `gpg2`.
+
+If not specified, GCM Core defaults to using the version of `gpg2` on the `$PATH`, falling back on `gpg` if `gpg2` is not found.
+
+##### Linux
+
+```bash
+export GCM_GPG_PATH="/usr/local/bin/gpg2"
+```
+
+_No configuration equivalent._
+
+---
+
+### GCM_MSAUTH_FLOW
+
+Specify which authentication flow should be used when performing Microsoft authentication and an interactive flow is required.
+
+Defaults to `auto`.
+
+**Note:** If [`GCM_MSAUTH_USEBROKER`](#gcm_msauth_usebroker-experimental) is set to `true`
+and the operating system authentication broker is available, all flows will be
+delegated to the broker. If both of those things are true, then the value of
+`GCM_MSAUTH_FLOW` has no effect.
+
+Value|Authentication Flow
+-|-
+`auto` _(default)_|Select the best option depending on the current environment and platform.
+`embedded`|Show a window with embedded web view control.
+`system`|Open the user's default web browser.
+`devicecode`|Show a device code.
+
+##### Windows
+
+```batch
+SET GCM_MSAUTH_FLOW="devicecode"
+```
+
+##### macOS/Linux
+
+```bash
+export GCM_MSAUTH_FLOW="devicecode"
+```
+
+**Also see: [credential.msauthFlow](configuration.md#credentialmsauthflow)**
+
+---
+
+### GCM_MSAUTH_USEBROKER _(experimental)_
+
+Use the operating system account manager where available.
+
+Defaults to `false`. This default is subject to change in the future.
+
+_**Note:** before you enable this option on Windows, please [review the details](windows-broker.md) about what this means to your local Windows user account._
+
+Value|Description
+-|-
+`true`|Use the operating system account manager as an authentication broker.
+`false` _(default)_|Do not use the broker.
+
+##### Windows
+
+```batch
+SET GCM_MSAUTH_USEBROKER="true"
+```
+
+##### macOS/Linux
+
+```bash
+export GCM_MSAUTH_USEBROKER="false"
+```
+
+**Also see: [credential.msauthUseBroker](configuration.md#credentialmsauthusebroker-experimental)**
+
+---
+
+### GCM_AZREPOS_CREDENTIALTYPE _(experimental)_
+
+Specify the type of credential the Azure Repos host provider should return.
+
+Defaults to the value `pat`.
+
+Value|Description
+-|-
+`pat` _(default)_|Azure DevOps personal access tokens
+`oauth`|Microsoft identity OAuth tokens (AAD or MSA tokens)
+
+More information about Azure Access tokens can be found [here](azrepos-azuretokens.md).
+
+##### Windows
+
+```batch
+SET GCM_AZREPOS_CREDENTIALTYPE="oauth"
+```
+
+##### macOS/Linux
+
+```bash
+export GCM_AZREPOS_CREDENTIALTYPE="oauth"
+```
+
+**Also see: [credential.azreposCredentialType](configuration.md#azreposcredentialtype-experimental)**

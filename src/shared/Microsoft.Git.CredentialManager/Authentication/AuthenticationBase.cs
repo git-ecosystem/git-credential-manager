@@ -1,10 +1,11 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
+using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Git.CredentialManager.Authentication
@@ -20,7 +21,14 @@ namespace Microsoft.Git.CredentialManager.Authentication
             Context = context;
         }
 
-        protected async Task<IDictionary<string, string>> InvokeHelperAsync(string path, string args, IDictionary<string, string> standardInput = null)
+        protected Task<IDictionary<string, string>> InvokeHelperAsync(string path, string args,
+            IDictionary<string, string> standardInput = null)
+        {
+            return InvokeHelperAsync(path, args, null, CancellationToken.None);
+        }
+
+        protected async Task<IDictionary<string, string>> InvokeHelperAsync(string path, string args,
+            IDictionary<string, string> standardInput, CancellationToken ct)
         {
             var procStartInfo = new ProcessStartInfo(path)
             {
@@ -41,6 +49,9 @@ namespace Microsoft.Git.CredentialManager.Authentication
                 throw new Exception($"Failed to start helper process '{path}'");
             }
 
+            // Kill the process upon a cancellation request
+            ct.Register(() => process.Kill());
+
             if (!(standardInput is null))
             {
                 await process.StandardInput.WriteDictionaryAsync(standardInput);
@@ -48,7 +59,7 @@ namespace Microsoft.Git.CredentialManager.Authentication
 
             IDictionary<string, string> resultDict = await process.StandardOutput.ReadDictionaryAsync(StringComparer.OrdinalIgnoreCase);
 
-            await Task.Run(() => process.WaitForExit());
+            await Task.Run(() => process.WaitForExit(), ct);
             int exitCode = process.ExitCode;
 
             if (exitCode != 0)
@@ -106,13 +117,20 @@ namespace Microsoft.Git.CredentialManager.Authentication
                 helperName = PlatformUtils.IsWindows() ? $"{defaultValue}.exe" : defaultValue;
             }
 
+            // If the user set the helper override to the empty string then they are signalling not to use a helper
+            if (string.IsNullOrEmpty(helperName))
+            {
+                path = null;
+                return false;
+            }
+
             if (Path.IsPathRooted(helperName))
             {
                 path = helperName;
             }
             else
             {
-                string executableDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+                string executableDirectory = Path.GetDirectoryName(Context.ApplicationPath);
                 path = Path.Combine(executableDirectory!, helperName);
             }
 
@@ -129,6 +147,23 @@ namespace Microsoft.Git.CredentialManager.Authentication
             }
 
             return true;
+        }
+
+        public static string QuoteCmdArg(string str)
+        {
+            char[] needsQuoteChars = {'"', ' ', '\\', '\n', '\r', '\t'};
+            bool needsQuotes = str.Any(x => needsQuoteChars.Contains(x));
+
+            if (!needsQuotes)
+            {
+                return str;
+            }
+
+            // Replace all '\' characters with an escaped '\\', and all '"' with '\"'
+            string escapedStr = str.Replace("\\", "\\\\").Replace("\"", "\\\"");
+
+            // Bookend the escaped string with double-quotes '"'
+            return $"\"{escapedStr}\"";
         }
     }
 }

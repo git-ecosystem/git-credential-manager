@@ -1,5 +1,3 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -24,142 +22,90 @@ namespace GitHub.Tests
             Assert.Equal(expected, GitHubHostProvider.IsGitHubDotCom(new Uri(input)));
         }
 
-        [Fact]
-        public void GitHubHostProvider_IsSupported_GitHubHost_UnencryptedHttp_ReturnsTrue()
+
+        [Theory]
+        // We report that we support unencrypted HTTP here so that we can fail and
+        // show a helpful error message in the call to `GenerateCredentialAsync` instead.
+        [InlineData("http", "github.com", true)]
+        [InlineData("http", "gist.github.com", true)]
+        [InlineData("ssh", "github.com", false)]
+        [InlineData("https", "example.com", false)]
+
+        [InlineData("https", "github.com", true)]
+        [InlineData("https", "github.con", false)] // No support of phony similar tld.
+        [InlineData("https", "gist.github.con", false)] // No support of phony similar tld.
+        [InlineData("https", "foogithub.com", false)] // No support of non github.com domains.
+        [InlineData("https", "api.github.com", false)] // No support of github.com subdomains.
+        [InlineData("https", "gist.github.com", true)] // Except gists.
+        [InlineData("https", "GiST.GitHub.Com", true)]
+        [InlineData("https", "GitHub.Com", true)]
+
+        [InlineData("http", "github.my-company-server.com", true)]
+        [InlineData("http", "gist.github.my-company-server.com", true)]
+        [InlineData("https", "github.my-company-server.com", true)]
+        [InlineData("https", "gist.github.my-company-server.com", true)]
+        [InlineData("https", "gist.my-company-server.com", false)]
+        [InlineData("https", "my-company-server.com", false)]
+        [InlineData("https", "github.my.company.server.com", true)]
+        [InlineData("https", "foogithub.my-company-server.com", false)]
+        [InlineData("https", "api.github.my-company-server.com", false)]
+        [InlineData("https", "gist.github.my.company.server.com", true)]
+        [InlineData("https", "GitHub.My-Company-Server.Com", true)]
+        [InlineData("https", "GiST.GitHub.My-Company-Server.com", true)]
+        public void GitHubHostProvider_IsSupported(string protocol, string host, bool expected)
         {
             var input = new InputArguments(new Dictionary<string, string>
             {
-                ["protocol"] = "http",
-                ["host"] = "github.com",
+                ["protocol"] = protocol,
+                ["host"] = host,
             });
 
             var provider = new GitHubHostProvider(new TestCommandContext());
-
-            // We report that we support unencrypted HTTP here so that we can fail and
-            // show a helpful error message in the call to `GenerateCredentialAsync` instead.
-            Assert.True(provider.IsSupported(input));
+            Assert.Equal(expected, provider.IsSupported(input));
         }
 
-        [Fact]
-        public void GitHubHostProvider_IsSupported_GistHost_UnencryptedHttp_ReturnsTrue()
+
+        [Theory]
+        [InlineData("https", "github.com", "https://github.com")]
+        [InlineData("https", "GitHub.Com", "https://github.com")]
+        [InlineData("https", "gist.github.com", "https://github.com")]
+        [InlineData("https", "GiST.GitHub.Com", "https://github.com")]
+        [InlineData("https", "github.my-company-server.com", "https://github.my-company-server.com")]
+        [InlineData("https", "GitHub.My-Company-Server.Com", "https://github.my-company-server.com")]
+        [InlineData("https", "gist.github.my-company-server.com", "https://github.my-company-server.com")]
+        [InlineData("https", "GiST.GitHub.My-Company-Server.Com", "https://github.my-company-server.com")]
+        [InlineData("https", "github.my.company.server.com", "https://github.my.company.server.com")]
+        [InlineData("https", "GitHub.My.Company.Server.Com", "https://github.my.company.server.com")]
+        [InlineData("https", "gist.github.my.company.server.com", "https://github.my.company.server.com")]
+        [InlineData("https", "GiST.GitHub.My.Company.Server.Com", "https://github.my.company.server.com")]
+        public void GitHubHostProvider_GetCredentialServiceUrl(string protocol, string host, string expectedService)
         {
             var input = new InputArguments(new Dictionary<string, string>
             {
-                ["protocol"] = "http",
-                ["host"] = "gist.github.com",
+                ["protocol"] = protocol,
+                ["host"] = host,
             });
 
             var provider = new GitHubHostProvider(new TestCommandContext());
-
-            // We report that we support unencrypted HTTP here so that we can fail and
-            // show a helpful error message in the call to `GenerateCredentialAsync` instead.
-            Assert.True(provider.IsSupported(input));
+            Assert.Equal(expectedService, provider.GetServiceName(input));
         }
 
-        [Fact]
-        public void GitHubHostProvider_IsSupported_GitHubHost_Https_ReturnsTrue()
+
+        [Theory]
+        [InlineData("https://example.com", "oauth", AuthenticationModes.OAuth)]
+        [InlineData("https://github.com", "NOT-A-REAL-VALUE", GitHubConstants.DotComAuthenticationModes)]
+        [InlineData("https://GitHub.Com", "NOT-A-REAL-VALUE", GitHubConstants.DotComAuthenticationModes)]
+        [InlineData("https://github.com", "none", GitHubConstants.DotComAuthenticationModes)]
+        [InlineData("https://GitHub.Com", "none", GitHubConstants.DotComAuthenticationModes)]
+        [InlineData("https://github.com", null, GitHubConstants.DotComAuthenticationModes)]
+        [InlineData("https://GitHub.Com", null, GitHubConstants.DotComAuthenticationModes)]
+        public async Task GitHubHostProvider_GetSupportedAuthenticationModes(string uriString, string gitHubAuthModes, AuthenticationModes expectedModes)
         {
-            var input = new InputArguments(new Dictionary<string, string>
-            {
-                ["protocol"] = "https",
-                ["host"] = "github.com",
-            });
+            var targetUri = new Uri(uriString);
 
-            var provider = new GitHubHostProvider(new TestCommandContext());
-
-            Assert.True(provider.IsSupported(input));
-        }
-
-        [Fact]
-        public void GitHubHostProvider_IsSupported_GistHost_Https_ReturnsTrue()
-        {
-            var input = new InputArguments(new Dictionary<string, string>
-            {
-                ["protocol"] = "https",
-                ["host"] = "gist.github.com",
-            });
-
-            var provider = new GitHubHostProvider(new TestCommandContext());
-
-            Assert.True(provider.IsSupported(input));
-        }
-
-        [Fact]
-        public void GitHubHostProvider_IsSupported_NonHttpHttps_ReturnsTrue()
-        {
-            var input = new InputArguments(new Dictionary<string, string>
-            {
-                ["protocol"] = "ssh",
-                ["host"] = "github.com",
-            });
-
-            var provider = new GitHubHostProvider(new TestCommandContext());
-
-            Assert.False(provider.IsSupported(input));
-        }
-
-        [Fact]
-        public void GitHubHostProvider_IsSupported_NonGitHub_ReturnsFalse()
-        {
-            var input = new InputArguments(new Dictionary<string, string>
-            {
-                ["protocol"] = "https",
-                ["host"] = "example.com",
-            });
-
-            var provider = new GitHubHostProvider(new TestCommandContext());
-            Assert.False(provider.IsSupported(input));
-        }
-
-        [Fact]
-        public void GitHubHostProvider_GetCredentialKey_GitHubHost_ReturnsCorrectKey()
-        {
-            const string expectedKey = "git:https://github.com";
-            var input = new InputArguments(new Dictionary<string, string>
-            {
-                ["protocol"] = "https",
-                ["host"] = "github.com",
-            });
-
-            var provider = new GitHubHostProvider(new TestCommandContext());
-            string actualKey = provider.GetCredentialKey(input);
-            Assert.Equal(expectedKey, actualKey);
-        }
-
-        [Fact]
-        public void GitHubHostProvider_GetCredentialKey_GistHost_ReturnsCorrectKey()
-        {
-            const string expectedKey = "git:https://github.com";
-            var input = new InputArguments(new Dictionary<string, string>
-            {
-                ["protocol"] = "https",
-                ["host"] = "gist.github.com",
-            });
-
-            var provider = new GitHubHostProvider(new TestCommandContext());
-            string actualKey = provider.GetCredentialKey(input);
-            Assert.Equal(expectedKey, actualKey);
-        }
-
-        [Fact]
-        public async Task GitHubHostProvider_GetSupportedAuthenticationModes_Override_ReturnsOverrideValue()
-        {
-            var targetUri = new Uri("https://example.com");
-            var expectedModes = AuthenticationModes.OAuth;
-
-            var context = new TestCommandContext
-            {
-                Settings =
-                {
-                    Environment =
-                    {
-                        Variables =
-                        {
-                            [GitHubConstants.EnvironmentVariables.AuthenticationModes] = expectedModes.ToString()
-                        }
-                    }
-                }
-            };
+            var context = new TestCommandContext { };
+            if (gitHubAuthModes != null)
+                context.Environment.Variables.Add(GitHubConstants.EnvironmentVariables.AuthenticationModes, gitHubAuthModes);
 
             var ghApiMock = new Mock<IGitHubRestApi>(MockBehavior.Strict);
             var ghAuthMock = new Mock<IGitHubAuthentication>(MockBehavior.Strict);
@@ -171,95 +117,29 @@ namespace GitHub.Tests
             Assert.Equal(expectedModes, actualModes);
         }
 
-        [Fact]
-        public async Task GitHubHostProvider_GetSupportedAuthenticationModes_OverrideInvalid_ReturnsDetectedValue()
-        {
-            var targetUri = new Uri("https://github.com");
-            var expectedModes = GitHubConstants.DotDomAuthenticationModes;
 
-            var context = new TestCommandContext
-            {
-                Settings =
-                {
-                    Environment =
-                    {
-                        Variables =
-                        {
-                            [GitHubConstants.EnvironmentVariables.AuthenticationModes] = "NOT-A-REAL-VALUE"
-                        }
-                    }
-                }
-            };
+        [Theory]
+        [InlineData("https://example.com", null, "0.1", false, AuthenticationModes.Pat)]
+        [InlineData("https://example.com", null, "0.1", true, AuthenticationModes.Basic | AuthenticationModes.Pat)]
+        [InlineData("https://example.com", null, "100.0", false, AuthenticationModes.OAuth | AuthenticationModes.Pat)]
+        [InlineData("https://example.com", null, "100.0", true, AuthenticationModes.All)]
+        public async Task GitHubHostProvider_GetSupportedAuthenticationModes_WithMetadata(string uriString, string gitHubAuthModes,
+            string installedVersion, bool verifiablePasswordAuthentication, AuthenticationModes expectedModes)
+        {
+            var targetUri = new Uri(uriString);
+
+            var context = new TestCommandContext { };
+            if (gitHubAuthModes != null)
+                context.Environment.Variables.Add(GitHubConstants.EnvironmentVariables.AuthenticationModes, gitHubAuthModes);
 
             var ghApiMock = new Mock<IGitHubRestApi>(MockBehavior.Strict);
             var ghAuthMock = new Mock<IGitHubAuthentication>(MockBehavior.Strict);
 
-            var provider = new GitHubHostProvider(context, ghApiMock.Object, ghAuthMock.Object);
-
-            AuthenticationModes actualModes = await provider.GetSupportedAuthenticationModesAsync(targetUri);
-
-            Assert.Equal(expectedModes, actualModes);
-        }
-
-        [Fact]
-        public async Task GitHubHostProvider_GetSupportedAuthenticationModes_OverrideNone_ReturnsDetectedValue()
-        {
-            var targetUri = new Uri("https://github.com");
-            var expectedModes = GitHubConstants.DotDomAuthenticationModes;
-
-            var context = new TestCommandContext
-            {
-                Settings =
-                {
-                    Environment =
-                    {
-                        Variables =
-                        {
-                            [GitHubConstants.EnvironmentVariables.AuthenticationModes] = AuthenticationModes.None.ToString()
-                        }
-                    }
-                }
-            };
-
-            var ghApiMock = new Mock<IGitHubRestApi>(MockBehavior.Strict);
-            var ghAuthMock = new Mock<IGitHubAuthentication>(MockBehavior.Strict);
-
-            var provider = new GitHubHostProvider(context, ghApiMock.Object, ghAuthMock.Object);
-
-            AuthenticationModes actualModes = await provider.GetSupportedAuthenticationModesAsync(targetUri);
-
-            Assert.Equal(expectedModes, actualModes);
-        }
-
-        [Fact]
-        public async Task GitHubHostProvider_GetSupportedAuthenticationModes_GitHubDotCom_ReturnsDotComModes()
-        {
-            var targetUri = new Uri("https://github.com");
-            var expectedModes = GitHubConstants.DotDomAuthenticationModes;
-
-            var provider = new GitHubHostProvider(new TestCommandContext());
-
-            AuthenticationModes actualModes = await provider.GetSupportedAuthenticationModesAsync(targetUri);
-
-            Assert.Equal(expectedModes, actualModes);
-        }
-
-        [Fact]
-        public async Task GitHubHostProvider_GetSupportedAuthenticationModes_NotDotCom_OldInstanceNoPassword_ReturnsNone()
-        {
-            var targetUri = new Uri("https://ghe.io");
             var metaInfo = new GitHubMetaInfo
             {
-                InstalledVersion = "0.1",
-                VerifiablePasswordAuthentication = false
+                InstalledVersion = installedVersion,
+                VerifiablePasswordAuthentication = verifiablePasswordAuthentication
             };
-
-            var expectedModes = AuthenticationModes.None;
-
-            var context = new TestCommandContext();
-            var ghAuthMock = new Mock<IGitHubAuthentication>(MockBehavior.Strict);
-
-            var ghApiMock = new Mock<IGitHubRestApi>(MockBehavior.Strict);
             ghApiMock.Setup(x => x.GetMetaInfoAsync(targetUri)).ReturnsAsync(metaInfo);
 
             var provider = new GitHubHostProvider(context, ghApiMock.Object, ghAuthMock.Object);
@@ -269,80 +149,7 @@ namespace GitHub.Tests
             Assert.Equal(expectedModes, actualModes);
         }
 
-        [Fact]
-        public async Task GitHubHostProvider_GetSupportedAuthenticationModes_NotDotCom_OldInstanceWithPassword_ReturnsBasic()
-        {
-            var targetUri = new Uri("https://ghe.io");
-            var metaInfo = new GitHubMetaInfo
-            {
-                InstalledVersion = "0.1",
-                VerifiablePasswordAuthentication = true
-            };
 
-            var expectedModes = AuthenticationModes.Basic;
-
-            var context = new TestCommandContext();
-            var ghAuthMock = new Mock<IGitHubAuthentication>(MockBehavior.Strict);
-
-            var ghApiMock = new Mock<IGitHubRestApi>(MockBehavior.Strict);
-            ghApiMock.Setup(x => x.GetMetaInfoAsync(targetUri)).ReturnsAsync(metaInfo);
-
-            var provider = new GitHubHostProvider(context, ghApiMock.Object, ghAuthMock.Object);
-
-            AuthenticationModes actualModes = await provider.GetSupportedAuthenticationModesAsync(targetUri);
-
-            Assert.Equal(expectedModes, actualModes);
-        }
-
-        [Fact]
-        public async Task GitHubHostProvider_GetSupportedAuthenticationModes_NotDotCom_NewInstanceNoPassword_ReturnsOAuth()
-        {
-            var targetUri = new Uri("https://ghe.io");
-            var metaInfo = new GitHubMetaInfo
-            {
-                InstalledVersion = "100.0",
-                VerifiablePasswordAuthentication = false
-            };
-
-            var expectedModes = AuthenticationModes.OAuth;
-
-            var context = new TestCommandContext();
-            var ghAuthMock = new Mock<IGitHubAuthentication>(MockBehavior.Strict);
-
-            var ghApiMock = new Mock<IGitHubRestApi>(MockBehavior.Strict);
-            ghApiMock.Setup(x => x.GetMetaInfoAsync(targetUri)).ReturnsAsync(metaInfo);
-
-            var provider = new GitHubHostProvider(context, ghApiMock.Object, ghAuthMock.Object);
-
-            AuthenticationModes actualModes = await provider.GetSupportedAuthenticationModesAsync(targetUri);
-
-            Assert.Equal(expectedModes, actualModes);
-        }
-
-        [Fact]
-        public async Task GitHubHostProvider_GetSupportedAuthenticationModes_NotDotCom_NewInstanceWithPassword_ReturnsBasicAndOAuth()
-        {
-            var targetUri = new Uri("https://ghe.io");
-            var metaInfo = new GitHubMetaInfo
-            {
-                InstalledVersion = "100.0",
-                VerifiablePasswordAuthentication = true
-            };
-
-            var expectedModes = AuthenticationModes.Basic | AuthenticationModes.OAuth;
-
-            var context = new TestCommandContext();
-            var ghAuthMock = new Mock<IGitHubAuthentication>(MockBehavior.Strict);
-
-            var ghApiMock = new Mock<IGitHubRestApi>(MockBehavior.Strict);
-            ghApiMock.Setup(x => x.GetMetaInfoAsync(targetUri)).ReturnsAsync(metaInfo);
-
-            var provider = new GitHubHostProvider(context, ghApiMock.Object, ghAuthMock.Object);
-
-            AuthenticationModes actualModes = await provider.GetSupportedAuthenticationModesAsync(targetUri);
-
-            Assert.Equal(expectedModes, actualModes);
-        }
 
         [Fact]
         public async Task GitHubHostProvider_GenerateCredentialAsync_UnencryptedHttp_ThrowsException()
@@ -379,26 +186,29 @@ namespace GitHub.Tests
                 GitHubConstants.OAuthScopes.Workflow,
             };
 
+            var expectedUserName = "john.doe";
             var tokenValue = "OAUTH-TOKEN";
             var response = new OAuth2TokenResult(tokenValue, "bearer");
 
             var context = new TestCommandContext();
 
             var ghAuthMock = new Mock<IGitHubAuthentication>(MockBehavior.Strict);
-            ghAuthMock.Setup(x => x.GetAuthenticationAsync(expectedTargetUri, It.IsAny<AuthenticationModes>()))
+            ghAuthMock.Setup(x => x.GetAuthenticationAsync(expectedTargetUri, null, It.IsAny<AuthenticationModes>()))
                       .ReturnsAsync(new AuthenticationPromptResult(AuthenticationModes.OAuth));
 
             ghAuthMock.Setup(x => x.GetOAuthTokenAsync(expectedTargetUri, It.IsAny<IEnumerable<string>>()))
                       .ReturnsAsync(response);
 
             var ghApiMock = new Mock<IGitHubRestApi>(MockBehavior.Strict);
+            ghApiMock.Setup(x => x.GetUserInfoAsync(expectedTargetUri, tokenValue))
+                     .ReturnsAsync(new GitHubUserInfo{Login = expectedUserName});
 
             var provider = new GitHubHostProvider(context, ghApiMock.Object, ghAuthMock.Object);
 
             ICredential credential = await provider.GenerateCredentialAsync(input);
 
             Assert.NotNull(credential);
-            Assert.Equal(Constants.OAuthTokenUserName, credential.UserName);
+            Assert.Equal(expectedUserName, credential.Account);
             Assert.Equal(tokenValue, credential.Password);
 
             ghAuthMock.Verify(
@@ -418,7 +228,7 @@ namespace GitHub.Tests
 
             var expectedTargetUri = new Uri("https://github.com/");
             var expectedUserName = "john.doe";
-            var expectedPassword = "letmein123";
+            var expectedPassword = "letmein123"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
             IEnumerable<string> expectedPatScopes = new[]
             {
                 GitHubConstants.TokenScopes.Gist,
@@ -426,25 +236,27 @@ namespace GitHub.Tests
             };
 
             var patValue = "PERSONAL-ACCESS-TOKEN";
-            var pat = new GitCredential(Constants.PersonalAccessTokenUserName, patValue);
-            var response = new AuthenticationResult(GitHubAuthenticationResultType.Success, pat);
+            var response = new AuthenticationResult(GitHubAuthenticationResultType.Success, patValue);
 
             var context = new TestCommandContext();
 
             var ghAuthMock = new Mock<IGitHubAuthentication>(MockBehavior.Strict);
-            ghAuthMock.Setup(x => x.GetAuthenticationAsync(expectedTargetUri, It.IsAny<AuthenticationModes>()))
-                      .ReturnsAsync(new AuthenticationPromptResult(new GitCredential(expectedUserName, expectedPassword)));
+            ghAuthMock.Setup(x => x.GetAuthenticationAsync(expectedTargetUri, null, It.IsAny<AuthenticationModes>()))
+                      .ReturnsAsync(new AuthenticationPromptResult(
+                          AuthenticationModes.Basic, new GitCredential(expectedUserName, expectedPassword)));
 
             var ghApiMock = new Mock<IGitHubRestApi>(MockBehavior.Strict);
             ghApiMock.Setup(x => x.CreatePersonalAccessTokenAsync(expectedTargetUri, expectedUserName, expectedPassword, null, It.IsAny<IEnumerable<string>>()))
                      .ReturnsAsync(response);
+            ghApiMock.Setup(x => x.GetUserInfoAsync(expectedTargetUri, patValue))
+                     .ReturnsAsync(new GitHubUserInfo{Login = expectedUserName});
 
             var provider = new GitHubHostProvider(context, ghApiMock.Object, ghAuthMock.Object);
 
             ICredential credential = await provider.GenerateCredentialAsync(input);
 
             Assert.NotNull(credential);
-            Assert.Equal(Constants.PersonalAccessTokenUserName, credential.UserName);
+            Assert.Equal(expectedUserName, credential.Account);
             Assert.Equal(patValue, credential.Password);
 
             ghApiMock.Verify(
@@ -464,7 +276,7 @@ namespace GitHub.Tests
 
             var expectedTargetUri = new Uri("https://github.com/");
             var expectedUserName = "john.doe";
-            var expectedPassword = "letmein123";
+            var expectedPassword = "letmein123";  // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
             var expectedAuthCode = "123456";
             IEnumerable<string> expectedPatScopes = new[]
             {
@@ -473,15 +285,15 @@ namespace GitHub.Tests
             };
 
             var patValue = "PERSONAL-ACCESS-TOKEN";
-            var pat = new GitCredential(Constants.PersonalAccessTokenUserName, patValue);
             var response1 = new AuthenticationResult(GitHubAuthenticationResultType.TwoFactorApp);
-            var response2 = new AuthenticationResult(GitHubAuthenticationResultType.Success, pat);
+            var response2 = new AuthenticationResult(GitHubAuthenticationResultType.Success, patValue);
 
             var context = new TestCommandContext();
 
             var ghAuthMock = new Mock<IGitHubAuthentication>(MockBehavior.Strict);
-            ghAuthMock.Setup(x => x.GetAuthenticationAsync(expectedTargetUri, It.IsAny<AuthenticationModes>()))
-                      .ReturnsAsync(new AuthenticationPromptResult(new GitCredential(expectedUserName, expectedPassword)));
+            ghAuthMock.Setup(x => x.GetAuthenticationAsync(expectedTargetUri, null, It.IsAny<AuthenticationModes>()))
+                      .ReturnsAsync(new AuthenticationPromptResult(
+                          AuthenticationModes.Basic, new GitCredential(expectedUserName, expectedPassword)));
             ghAuthMock.Setup(x => x.GetTwoFactorCodeAsync(expectedTargetUri, false))
                       .ReturnsAsync(expectedAuthCode);
 
@@ -490,13 +302,15 @@ namespace GitHub.Tests
                         .ReturnsAsync(response1);
             ghApiMock.Setup(x => x.CreatePersonalAccessTokenAsync(expectedTargetUri, expectedUserName, expectedPassword, expectedAuthCode, It.IsAny<IEnumerable<string>>()))
                         .ReturnsAsync(response2);
+            ghApiMock.Setup(x => x.GetUserInfoAsync(expectedTargetUri, patValue))
+                     .ReturnsAsync(new GitHubUserInfo{Login = expectedUserName});
 
             var provider = new GitHubHostProvider(context, ghApiMock.Object, ghAuthMock.Object);
 
             ICredential credential = await provider.GenerateCredentialAsync(input);
 
             Assert.NotNull(credential);
-            Assert.Equal(Constants.PersonalAccessTokenUserName, credential.UserName);
+            Assert.Equal(expectedUserName, credential.Account);
             Assert.Equal(patValue, credential.Password);
 
             ghApiMock.Verify(

@@ -1,11 +1,8 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
 using System;
-using System.IO;
-using System.Reflection;
 using Atlassian.Bitbucket;
 using GitHub;
 using Microsoft.AzureRepos;
+using Microsoft.Git.CredentialManager.Authentication;
 
 namespace Microsoft.Git.CredentialManager
 {
@@ -13,19 +10,33 @@ namespace Microsoft.Git.CredentialManager
     {
         public static void Main(string[] args)
         {
-            string appPath = GetApplicationPath();
-            using (var context = new CommandContext())
-            using (var app = new Application(context, appPath))
+            string appPath = ApplicationBase.GetEntryApplicationPath();
+            using (var context = new CommandContext(appPath))
+            using (var app = new Application(context))
             {
-                // Register all supported host providers
-                app.RegisterProviders(
-                    new AzureReposHostProvider(context),
-                    new BitbucketHostProvider(context),
-                    new GitHubHostProvider(context),
-                    new GenericHostProvider(context)
-                );
+                // Workaround for https://github.com/AzureAD/microsoft-authentication-library-for-dotnet/issues/2560
+                if (MicrosoftAuthentication.CanUseBroker(context))
+                {
+                    try
+                    {
+                        MicrosoftAuthentication.InitializeBroker();
+                    }
+                    catch (Exception ex)
+                    {
+                        context.Streams.Error.WriteLine(
+                            "warning: broker initialization failed{0}{1}",
+                            Environment.NewLine, ex.Message
+                        );
+                    }
+                }
 
-                // Run!
+                // Register all supported host providers at the normal priority.
+                // The generic provider should never win against a more specific one, so register it with low priority.
+                app.RegisterProvider(new AzureReposHostProvider(context), HostProviderPriority.Normal);
+                app.RegisterProvider(new BitbucketHostProvider(context),  HostProviderPriority.Normal);
+                app.RegisterProvider(new GitHubHostProvider(context),     HostProviderPriority.Normal);
+                app.RegisterProvider(new GenericHostProvider(context),    HostProviderPriority.Low);
+
                 int exitCode = app.RunAsync(args)
                                   .ConfigureAwait(false)
                                   .GetAwaiter()
@@ -33,25 +44,6 @@ namespace Microsoft.Git.CredentialManager
 
                 Environment.Exit(exitCode);
             }
-        }
-
-        private static string GetApplicationPath()
-        {
-            Assembly entryAssembly = Assembly.GetExecutingAssembly();
-            if (entryAssembly is null)
-            {
-                throw new InvalidOperationException();
-            }
-
-            string candidatePath = entryAssembly.Location;
-
-            // Strip the .dll from assembly name on Mac and Linux
-            if (!PlatformUtils.IsWindows() && Path.HasExtension(candidatePath))
-            {
-                return Path.ChangeExtension(candidatePath, null);
-            }
-
-            return candidatePath;
         }
     }
 }

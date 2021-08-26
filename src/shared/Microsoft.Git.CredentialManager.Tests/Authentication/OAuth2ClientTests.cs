@@ -1,5 +1,3 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
 using System;
 using System.Net.Http;
 using System.Threading;
@@ -13,7 +11,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Authentication
     public class OAuth2ClientTests
     {
         private const string TestClientId = "9ffe7f11c8";
-        private const string TestClientSecret = "62adac63a4614d93833470942a38454f";
+        private const string TestClientSecret = "62adac63a4614d93833470942a38454f"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
         private static readonly Uri TestRedirectUri = new Uri("http://localhost/oauth-callback");
 
         [Fact]

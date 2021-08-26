@@ -1,5 +1,3 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -21,5 +19,8 @@ namespace Microsoft.Git.CredentialManager.Interop.Posix.Native
 
         [DllImport("libc", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         public static extern int getppid();
+
+        [DllImport("libc", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        public static extern int geteuid();
     }
 }

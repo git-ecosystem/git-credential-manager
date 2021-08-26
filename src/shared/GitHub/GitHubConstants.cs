@@ -1,5 +1,3 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
 using System;
 
 namespace GitHub
@@ -12,6 +10,8 @@ namespace GitHub
         public const string DefaultAuthenticationHelper = "GitHub.UI";
 
         public const string OAuthClientId = "0120e057bd645470c1ed";
+
+        // [SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification="OAuth2 public client application 'secrets' are required and permitted to be public")]
         public const string OAuthClientSecret = "18867509d956965542b521a529a79bb883344c90";
         public static readonly Uri OAuthRedirectUri = new Uri("http://localhost/");
         public static readonly Uri OAuthAuthorizationEndpointRelativeUri = new Uri("/login/oauth/authorize", UriKind.Relative);
@@ -25,16 +25,23 @@ namespace GitHub
         public const string GitHubOptHeader = "X-GitHub-OTP";
 
         /// <summary>
-        /// Minimum GitHub Enterprise version that supports OAuth authentication with GCM Core.
+        /// Minimum GitHub Enterprise Server version that supports OAuth authentication with GCM Core.
         /// </summary>
-        // TODO: update this with a real version number once the GCM OAuth application has been deployed to GHE
-        public static readonly Version MinimumEnterpriseOAuthVersion = new Version("99.99.99");
+        public static readonly Version MinimumOnPremOAuthVersion = new Version("3.2");
+
+        /// <summary>
+        /// The version string returned from the meta API endpoint for GitHub AE instances.
+        /// </summary>
+        public const string GitHubAeVersionString = "GitHub AE";
 
         /// <summary>
         /// Supported authentication modes for GitHub.com.
         /// </summary>
-        // TODO: remove Basic once the GCM OAuth app is whitelisted and does not require installation in every organization
-        public const AuthenticationModes DotDomAuthenticationModes = AuthenticationModes.Basic | AuthenticationModes.OAuth;
+        /// <remarks>
+        /// As of 13th November 2020, GitHub.com does not support username/password (basic) authentication to the APIs.
+        /// See https://developer.github.com/changes/2020-02-14-deprecating-oauth-auth-endpoint for more information.
+        /// </remarks>
+        public const AuthenticationModes DotComAuthenticationModes = AuthenticationModes.OAuth | AuthenticationModes.Pat;
 
         public static class TokenScopes
         {

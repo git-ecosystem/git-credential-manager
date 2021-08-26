@@ -1,7 +1,6 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace Microsoft.Git.CredentialManager
@@ -41,8 +40,9 @@ namespace Microsoft.Git.CredentialManager
         /// Locate an executable on the current PATH.
         /// </summary>
         /// <param name="program">Executable program name.</param>
-        /// <returns>List of all instances of the found executable program, in order of most specific to least.</returns>
-        string LocateExecutable(string program);
+        /// <param name="path">First instance of the found executable program.</param>
+        /// <returns>True if the executable was found, false otherwise.</returns>
+        bool TryLocateExecutable(string program, out string path);
     }
 
     public abstract class EnvironmentBase : IEnvironment
@@ -75,6 +75,25 @@ namespace Microsoft.Git.CredentialManager
 
         protected abstract string[] SplitPathVariable(string value);
 
-        public abstract string LocateExecutable(string program);
+        public abstract bool TryLocateExecutable(string program, out string path);
+    }
+
+    public static class EnvironmentExtensions
+    {
+        /// <summary>
+        /// Locate an executable on the current PATH.
+        /// </summary>
+        /// <param name="environment">The <see cref="IEnvironment"/>.</param>
+        /// <param name="program">Executable program name.</param>
+        /// <returns>List of all instances of the found executable program, in order of most specific to least.</returns>
+        public static string LocateExecutable(this IEnvironment environment, string program)
+        {
+            if (environment.TryLocateExecutable(program, out string path))
+            {
+                return path;
+            }
+
+            throw new Exception($"Failed to locate '{program}' executable on the path.");
+        }
     }
 }

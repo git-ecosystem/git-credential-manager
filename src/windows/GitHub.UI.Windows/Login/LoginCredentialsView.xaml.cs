@@ -31,7 +31,15 @@ namespace GitHub.UI.Login
                 return;
             }
 
-            if (ViewModel.IsLoginUsingUsernameAndPasswordVisible)
+            if (ViewModel.IsLoginUsingBrowserVisible)
+            {
+                loginLink.Focus();
+            }
+            else if (ViewModel.IsLoginUsingTokenVisible)
+            {
+                tokenBox.Focus();
+            }
+            else if (ViewModel.IsLoginUsingUsernameAndPasswordVisible)
             {
                 if (string.IsNullOrWhiteSpace(ViewModel.UsernameOrEmail))
                 {
@@ -41,10 +49,6 @@ namespace GitHub.UI.Login
                 {
                     passwordBox.Focus();
                 }
-            }
-            else if (ViewModel.IsLoginUsingBrowserVisible)
-            {
-                loginLink.Focus();
             }
         }
     }

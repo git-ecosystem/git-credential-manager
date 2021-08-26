@@ -1,9 +1,6 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
-
+﻿using System;
 using GitHub.UI.Login;
 using Microsoft.Git.CredentialManager.UI;
-using Microsoft.Git.CredentialManager.UI.Controls;
 
 namespace GitHub.UI
 {
@@ -16,28 +13,42 @@ namespace GitHub.UI
 
         private readonly IGui _gui;
 
-        public CredentialPromptResult ShowCredentialPrompt(string enterpriseUrl, bool showBasic, bool showOAuth, out string username, out string password)
+        public CredentialPromptResult ShowCredentialPrompt(
+            string enterpriseUrl, bool showBasic, bool showOAuth, bool showPat,
+            ref string username, out string password, out string token)
         {
-            username = null;
             password = null;
+            token = null;
 
-            var viewModel = new LoginCredentialsViewModel(showBasic, showOAuth)
+            var viewModel = new LoginCredentialsViewModel(showBasic, showOAuth, showPat)
             {
-                GitHubEnterpriseUrl = enterpriseUrl
+                GitHubEnterpriseUrl = enterpriseUrl,
+                UsernameOrEmail = username
             };
 
             bool valid = _gui.ShowDialogWindow(viewModel, () => new LoginCredentialsView());
 
-            if (viewModel.UseBrowserLogin)
+            switch (viewModel.SelectedAuthType)
             {
-                return CredentialPromptResult.OAuthAuthentication;
-            }
+                case CredentialPromptResult.BasicAuthentication:
+                    if (valid)
+                    {
+                        username = viewModel.UsernameOrEmail;
+                        password = viewModel.Password.ToUnsecureString();
+                        return CredentialPromptResult.BasicAuthentication;
+                    }
+                    break;
 
-            if (valid)
-            {
-                username = viewModel.UsernameOrEmail;
-                password = viewModel.Password.ToUnsecureString();
-                return CredentialPromptResult.BasicAuthentication;
+                case CredentialPromptResult.OAuthAuthentication:
+                    return CredentialPromptResult.OAuthAuthentication;
+
+                case CredentialPromptResult.PersonalAccessToken:
+                    if (valid)
+                    {
+                        token = viewModel.Token.ToUnsecureString();
+                        return CredentialPromptResult.PersonalAccessToken;
+                    }
+                    break;
             }
 
             return CredentialPromptResult.Cancel;
@@ -59,6 +70,7 @@ namespace GitHub.UI
     {
         BasicAuthentication,
         OAuthAuthentication,
+        PersonalAccessToken,
         Cancel,
     }
 }

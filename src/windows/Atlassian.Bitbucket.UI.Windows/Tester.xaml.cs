@@ -1,6 +1,4 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
-using System;
+﻿using System;
 using System.Windows;
 using System.Windows.Interop;
 using Atlassian.Bitbucket.UI.Controls;

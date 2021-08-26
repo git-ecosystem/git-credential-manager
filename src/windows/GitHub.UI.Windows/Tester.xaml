@@ -9,10 +9,33 @@
         UseLayoutRounding="True"
         ResizeMode="NoResize"
         Title="GitHub Authentication Dialog Tester"
-        Height="420"
-        Width="420">
-    <DockPanel>
-        <Button Content="Show Credentials Dialog" Padding="10" Click="ShowCredentials" />
-        <Button Content="Show Authentication Code Dialog" Padding="10" Click="ShowAuthenticationCode" />
+        Height="230"
+        Width="580">
+    <DockPanel Margin="5">
+        <StackPanel DockPanel.Dock="Right" Margin="10 0 0 0">
+            <Button Content="Show Credentials Dialog" Padding="10" Click="ShowCredentials" />
+            <Button Content="Show Authentication Code Dialog" Padding="10" Click="ShowAuthenticationCode" />
+        </StackPanel>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Label Grid.Row="0" Grid.Column="0" Content="Enterprise URL"/>
+            <TextBox Grid.Row="0" Grid.Column="1" x:Name="enterpriseUrl"/>
+            <Label Grid.Row="1" Grid.Column="0" Content="Username"/>
+            <TextBox Grid.Row="1" Grid.Column="1" x:Name="username"/>
+            <Label Grid.Row="2" Grid.Column="0" Content="Auth Modes"/>
+            <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal"  VerticalAlignment="Center">
+                <CheckBox Content="OAuth" x:Name="useOAuth" Margin="0 0 10 0"/>
+                <CheckBox Content="Pat" x:Name="usePat" Margin="0 0 10 0"/>
+                <CheckBox Content="Basic" x:Name="useBasic"/>
+            </StackPanel>
+        </Grid>
     </DockPanel>
 </Window>

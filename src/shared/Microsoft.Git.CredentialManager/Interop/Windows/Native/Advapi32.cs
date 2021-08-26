@@ -1,8 +1,5 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
 using System;
 using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.ComTypes;
 using FILETIME = System.Runtime.InteropServices.ComTypes.FILETIME;
 
 namespace Microsoft.Git.CredentialManager.Interop.Windows.Native
@@ -31,8 +28,15 @@ namespace Microsoft.Git.CredentialManager.Interop.Windows.Native
             int flags);
 
         [DllImport(LibraryName, EntryPoint = "CredFree", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode, SetLastError = true)]
-        internal static extern void CredFree(
+        public static extern void CredFree(
             IntPtr credential);
+
+        [DllImport(LibraryName, EntryPoint = "CredEnumerateW", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode, SetLastError = true)]
+        public static extern bool CredEnumerate(
+            string filter,
+            CredentialEnumerateFlags flags,
+            out int count,
+            out IntPtr credentialsList);
     }
 
     public enum CredentialType
@@ -50,6 +54,13 @@ namespace Microsoft.Git.CredentialManager.Interop.Windows.Native
         Enterprise = 3,
     }
 
+    [Flags]
+    public enum CredentialEnumerateFlags
+    {
+        None = 0,
+        AllCredentials = 0x1
+    }
+
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     public struct Win32Credential
     {
@@ -64,7 +75,7 @@ namespace Microsoft.Git.CredentialManager.Interop.Windows.Native
         public IntPtr CredentialBlob;
         public CredentialPersist Persist;
         public int AttributeCount;
-        public IntPtr CredAttribute;
+        public IntPtr Attributes;
         [MarshalAs(UnmanagedType.LPWStr)]
         public string TargetAlias;
         [MarshalAs(UnmanagedType.LPWStr)]

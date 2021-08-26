@@ -3,7 +3,7 @@
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <!-- MicroBuild hack: override OutDir to make all files we want to sign under it. -->
     <OutDir>$(RootDir)</OutDir>
@@ -20,8 +20,11 @@
 
   <ItemGroup>
     <FilesToSign Include="
+      $(OutDir)\Atlassian.Bitbucket.dll;
+      $(OutDir)\Atlassian.Bitbucket.UI.dll;
       $(OutDir)\git-credential-manager-core.dll;
       $(OutDir)\GitHub.dll;
+      $(OutDir)\GitHub.UI.dll;
       $(OutDir)\Microsoft.AzureRepos.dll;
       $(OutDir)\Microsoft.Git.CredentialManager.dll;">
       <Authenticode>Microsoft400</Authenticode>
@@ -29,7 +32,8 @@
     </FilesToSign>
     <MacFilesToSign Include="
       $(OutDir)\git-credential-manager-core;
-      $(OutDir)\Microsoft.Authentication.Helper;">
+      $(OutDir)\GitHub.UI;
+      $(OutDir)\Atlassian.Bitbucket.UI;">
       <InProject>false</InProject>
     </MacFilesToSign>
   </ItemGroup>

@@ -1,5 +1,3 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
 using System;
 using System.Threading.Tasks;
 
@@ -11,8 +9,6 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
             : base(context) { }
 
         public Func<InputArguments, bool> IsSupportedFunc { get; set; }
-
-        public string CredentialKey { get; set; }
 
         public string LegacyAuthorityIdValue { get; set; }
 
@@ -27,11 +23,6 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
         public string LegacyAuthorityId => LegacyAuthorityIdValue;
 
         public override bool IsSupported(InputArguments input) => IsSupportedFunc(input);
-
-        public override string GetCredentialKey(InputArguments input)
-        {
-            return CredentialKey;
-        }
 
         public override Task<ICredential> GenerateCredentialAsync(InputArguments input)
         {

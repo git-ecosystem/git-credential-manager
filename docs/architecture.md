@@ -3,40 +3,37 @@
 ## Overview
 
 ```text
-+---------------------------------------------------------------------------------------------------------------------+
-|                                                                                                                     |
-|                                              Git-Credential-Manager                                                 |
-|                                                                                                                     |
-+----------------+--------------------+--------------+--------------+-----+-----------------------+-----------------+-+
-                 |                    |              |              |     |                       |                 |
-                 | Mac                |              |              |     |               Windows |         Windows |
-                 |                    |              |              |     |                       |                 |
-                 |                    |  +-----------v-----------+  |     |      +----------------v---------------+ |
-                 |                    |  |                       |  |  Windows   |                                | |
-                 |                    |  |        GitHub         <--------+------+        GitHub.UI.Windows       | |
-                 |                    |  |                       |  |     |      |                                | |
-                 |                    |  +-+---------------------+  |     |      +-+------------------------------+ |
-                 |                    |    |                        |     |        |                                |
-                 |                    |    |  +---------------------v-+   |        | +------------------------------v-+
-                 |                    |    |  |                       |   |Windows | |                                |
-                 |                    |    |  |  Atlassian.Bitbucket  <--------------+ Atlassian.Bitbucket.UI.Windows |
-                 |                    |    |  |                       |   |        | |                                |
-                 |                    |    |  +-+---------------------+   |        | +---------------+----------------+
-                 |                    |    |    |                         |        |                 |
-+----------------v----------------+   |    |    |  +----------------------v-+      |                 |
-|                                 |   |   Mac   |  |                        |      |                 |
-| Microsoft.Authentication.Helper <----------------+  Microsoft.AzureRepos  |      |                 |
-|                                 |   |    |    |  |                        |      |                 |
-+---------------------------------+   |    |    |  +-----------+------------+      |                 |
-                                      |    |    |              |                   |                 |
-                                      |    |    |              |                   |                 |
-                                      |    |    |              |                   |                 |
-                                      |    |    |              |                   |                 |
-                                    +-v----v----v--------------v------------+    +-v-----------------v----------------+
-                                    |                                       |    |                                    |
-                                    |    Microsoft.Git.CredentialManager    <----+ Microsoft.Git.CredentialManager.UI |
-                                    |                                       |    |                                    |
-                                    +---------------------------------------+    +------------------------------------+
++------------------------------------------------------------------------------+
+|                                                                              |
+|                           Git-Credential-Manager                             |
+|                                                                              |
++-+-------------+--------------+-----+---------------------+-----------------+-+
+  |             |              |     |                     |                 |
+  |             |              |     |             Windows |         Windows |
+  |             |              |     |                     |                 |
+  | +-----------v-----------+  |     |    +----------------v---------------+ |
+  | |                       |  |     |    |                                | |
+  | |        GitHub         <-------------+        GitHub.UI.Windows       | |
+  | |                       |  |     |    |                                | |
+  | +-+---------------------+  |     |    +-+------------------------------+ |
+  |   |                        |     |      |                                |
+  |   |  +---------------------v-+   |      | +------------------------------v-+
+  |   |  |                       |   |      | |                                |
+  |   |  |  Atlassian.Bitbucket  <------------+ Atlassian.Bitbucket.UI.Windows |
+  |   |  |                       |   |      | |                                |
+  |   |  +-+---------------------+   |      | +---------------+----------------+
+  |   |    |                         |      |                 |
+  |   |    |  +----------------------v-+    |                 |
+  |   |    |  |                        |    |                 |
+  |   |    |  |  Microsoft.AzureRepos  |    |                 |
+  |   |    |  |                        |    |                 |
+  |   |    |  +-----------+------------+    |                 |
+  |   |    |              |                 |                 |
++-v---v----v--------------v------------+  +-v-----------------v----------------+
+|                                      |  |                                    |
+|    Microsoft.Git.CredentialManager   <--+ Microsoft.Git.CredentialManager.UI |
+|                                      |  |                                    |
++--------------------------------------+  +------------------------------------+
 ```
 
 Git Credential Manager Core (GCM Core) is built to be Git host and platform/OS
@@ -52,14 +49,14 @@ library (C#). The library targets .NET Standard as well as .NET Framework.
 > browser auth pop-up on Windows platforms.
 >
 > There are extension points that now exist in MSAL.NET meaning we can plug-in
-> our own browser pop-up handling code on .NET Core meaning both Windows and
+> our own browser pop-up handling code on .NET meaning both Windows and
 > Mac. We haven't yet gotten around to exploring this.
 >
 > See [this](https://github.com/microsoft/Git-Credential-Manager-Core/issues/113)
 > issue for more information.
 
 The entry-point for GCM Core can be found in the `Git-Credential-Manager`
-project, a console application that targets both .NET Core and .NET Framework.
+project, a console application that targets both .NET and .NET Framework.
 This project emits the `git-credential-manager-core(.exe)` executable, and
 contains very little code - registration of all supported host providers and
 running the `Application` object found in `Microsoft.Git.CredentialManager`.
@@ -95,16 +92,6 @@ the core `Microsoft.Git.CredentialManager` assembly, rather than bundled with a
 specific host provider. This was done to allow any service that may wish to in
 the future integrate with Microsoft Accounts or Azure Active Directory can make
 use of this reusable authentication component.
-
-Since MSAL.NET includes embedded GUI on Windows (when targeting .NET Framework
-only - see note above) we have no helper executable on Windows. However, on
-macOS the `MicrosoftAuthentication` component shells out to a native macOS
-helper that completely takes over all authentication flows using the older ADAL
-Objective-C library. This was done because MSAL.NET does not offer the same level
-of integration for [MDM](https://en.wikipedia.org/wiki/Mobile_device_management)
-purposes, as well as lacking an embedded UI on non-Windows platforms. As
-MSAL.NET continues to evolve we hope to replace the ADAL/macOS helper
-altogether.
 
 ## Asynchronous programming
 
@@ -196,25 +183,38 @@ directly implement the interface they can also derive from the `HostProvider`
 abstract class (which itself implements the `IHostProvider` interface).
 
 The `HostProvider` abstract class implements the
-`Get|Store|EraseCredentialAsync` methods and instead has a
-`GenerateCredentialAsync` and `GetCredentialKey` abstract methods. Calls to
-`get`, `store`, or `erase` result in first a call to `GetCredentialKey` which
-should return a stable and unique "key" for the request. This forms the key for
-any stored credential in the credential store. During a `get` operation the
-credential store is queried for an existing credential with the computed key.
+`Get|Store|EraseCredentialAsync` methods and instead has the
+`GenerateCredentialAsync` abstract method, and the `GetServiceName` virtual
+method. Calls to `get`, `store`, or `erase` result in first a call to
+`GetServiceName` which should return a stable and unique value for the provider
+and request. This value forms part of the attributes associated with any stored
+credential in the credential store. During a `get` operation the
+credential store is queried for an existing credential with such service name.
 If a credential is found it is returned immediately. Similarly, calls to `store`
 and `erase` are handles automatically to store credentials against, and erase
-credentials matching the computed key. Methods are implemented as `virtual`
+credentials matching the service name. Methods are implemented as `virtual`
 meaning you can always override this behaviour, for example to clear other
 custom caches on an `erase` request, without having to reimplement the
 lookup/store credential logic.
 
-Host providers are queried in turn (registration order) via the
-`IHostProvider.IsSupported` method and passed the input received from Git. If
-the provider recognises the request, for example by a matching known host name,
-they can return `true`. If the provider wants to cancel and abort an
-authentication request, for example if this is a HTTP (not HTTPS) request for a
-known host, they should still return `true` and later cancel the request.
+The default implementation of `GetServiceName` is usually sufficient for most
+providers. It returns the computed remote URL (without a trailing slash) from
+the input arguments from Git - `<protocol>://<host>[/<path>]` - no username is
+included even if present.
+
+Host providers are queried in turn, by priority (then registration order) via
+the `IHostProvider.IsSupported(InputArguments)` method and passed the input
+received from Git. If the provider recognises the request, for example by a
+matching known host name, they can return `true`. If the provider wants to
+cancel and abort an authentication request, for example if this is a HTTP (not
+HTTPS) request for a known host, they should still return `true` and later
+cancel the request.
+
+Host providers can also be queried via the `IHostProvider.IsSupported(HttpResponseMessage)`
+method and passed the response message from a HEAD call made to the remote URI.
+This is useful for detecting on-premises instances based on header values. GCM
+will only query a provider via this method overload if no other provider at the
+same registration priority has returned `true` to the `InputArguments` overload.
 
 Depending on the request from Git, one of `GetCredentialAsync` (for `get`
 requests), `StoreCredentialAsync` (for `store` requests) or

@@ -12,7 +12,7 @@ OUT="$ROOT/out"
 INSTALLER_SRC="$SRC/osx/Installer.Mac"
 
 # Product information
-IDENTIFIER="com.microsoft.GitCredentialManager"
+IDENTIFIER="com.microsoft.gitcredentialmanager"
 INSTALL_LOCATION="/usr/local/share/gcm-core"
 
 # Parse script arguments
@@ -50,13 +50,13 @@ if [ -z "$PKGOUT" ]; then
     die "--output was not set"
 fi
 
-# Cleanup any old package file
+# Cleanup any old component
 if [ -e "$PKGOUT" ]; then
-    echo "Deleteing old package '$PKGOUT'..."
+    echo "Deleteing old component '$PKGOUT'..."
     rm "$PKGOUT"
 fi
 
-# Ensure the parent directory for the package exists
+# Ensure the parent directory for the component exists
 mkdir -p "$(dirname "$PKGOUT")"
 
 # Set full read, write, execute permissions for owner and just read and execute permissions for group and other
@@ -67,8 +67,8 @@ echo "Setting file permissions..."
 echo "Removing extended attributes..."
 /usr/bin/xattr -rc "$PAYLOAD" || exit 1
 
-# Build installer package
-echo "Building installer package..."
+# Build component packages
+echo "Building core component package..."
 /usr/bin/pkgbuild \
     --root "$PAYLOAD/" \
     --install-location "$INSTALL_LOCATION" \
@@ -77,4 +77,4 @@ echo "Building installer package..."
     --version "$VERSION" \
     "$PKGOUT" || exit 1
 
-echo "Pack complete."
+echo "Component pack complete."

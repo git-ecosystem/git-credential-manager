@@ -1,5 +1,3 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -31,11 +29,14 @@ namespace Microsoft.Git.CredentialManager.Interop.Posix
             return value.Split(':');
         }
 
-        public override string LocateExecutable(string program)
+        public override bool TryLocateExecutable(string program, out string path)
         {
+            // The "which" utility scans over the PATH and does not include the current working directory
+            // (unlike the equivalent "where.exe" on Windows), which is exactly what we want. Let's use it.
             const string whichPath = "/usr/bin/which";
             var psi = new ProcessStartInfo(whichPath, program)
             {
+                UseShellExecute = false,
                 RedirectStandardOutput = true
             };
 
@@ -44,19 +45,21 @@ namespace Microsoft.Git.CredentialManager.Interop.Posix
                 where.Start();
                 where.WaitForExit();
 
-                if (where.ExitCode != 0)
+                switch (where.ExitCode)
                 {
-                    throw new Exception($"Failed to locate '{program}' using {whichPath}. Exit code: {where.ExitCode}.");
-                }
+                    case 0: // found
+                        string stdout = where.StandardOutput.ReadToEnd();
+                        string[] results = stdout.Split(new[] {'\n'}, StringSplitOptions.RemoveEmptyEntries);
+                        path = results.First();
+                        return true;
 
-                string stdout = where.StandardOutput.ReadToEnd();
-                if (string.IsNullOrWhiteSpace(stdout))
-                {
-                    return null;
-                }
+                    case 1: // not found
+                        path = null;
+                        return false;
 
-                string[] results = stdout.Split(new[] {'\n'}, StringSplitOptions.RemoveEmptyEntries);
-                return results.FirstOrDefault();
+                    default:
+                        throw new Exception($"Unknown error locating '{program}' using {whichPath}. Exit code: {where.ExitCode}.");
+                }
             }
         }
 

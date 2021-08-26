@@ -1,5 +1,3 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -72,6 +70,11 @@ namespace Microsoft.Git.CredentialManager
         public static string GetUserName(this Uri uri)
         {
             return TryGetUserInfo(uri, out string userName, out _) ? userName : null;
+        }
+
+        public static Uri WithoutUserInfo(this Uri uri)
+        {
+            return new UriBuilder(uri) {UserName = string.Empty, Password = string.Empty}.Uri;
         }
 
         public static IEnumerable<string> GetGitConfigurationScopes(this Uri uri)

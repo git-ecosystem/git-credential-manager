@@ -1,0 +1,37 @@
+name: Build-Installers
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, release ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  linux:
+    name: "Linux"
+
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0 # Indicate full history so Nerdbank.GitVersioning works.
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 5.0.103
+
+    - name: Install dependencies
+      run: dotnet restore --force
+
+    - name: Build Linux Payloads
+      run: dotnet build -c Release src/linux/Packaging.Linux/Packaging.Linux.csproj
+
+    - name: Upload Installers
+      uses: actions/upload-artifact@v2
+      with:
+        name: Installers
+        path: |
+          out/linux/Packaging.Linux/deb/Release/*.deb
+          out/linux/Packaging.Linux/tar/Release/*.tar.gz

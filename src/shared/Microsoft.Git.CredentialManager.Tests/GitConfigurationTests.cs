@@ -1,16 +1,46 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using Microsoft.Git.CredentialManager.Tests.Objects;
 using Xunit;
+using static Microsoft.Git.CredentialManager.Tests.GitTestUtilities;
 
 namespace Microsoft.Git.CredentialManager.Tests
 {
     public class GitConfigurationTests
     {
+        [Theory]
+        [InlineData(null, "\"\"")]
+        [InlineData("", "\"\"")]
+        [InlineData("hello", "hello")]
+        [InlineData("hello world", "\"hello world\"")]
+        [InlineData("C:\\app.exe", "C:\\app.exe")]
+        [InlineData("C:\\path with space\\app.exe", "\"C:\\path with space\\app.exe\"")]
+        [InlineData("''", "\"''\"")]
+        [InlineData("'hello'", "\"'hello'\"")]
+        [InlineData("'hello world'", "\"'hello world'\"")]
+        [InlineData("'C:\\app.exe'", "\"'C:\\app.exe'\"")]
+        [InlineData("'C:\\path with space\\app.exe'", "\"'C:\\path with space\\app.exe'\"")]
+        [InlineData("\"\"", "\"\\\"\\\"\"")]
+        [InlineData("\"hello\"", "\"\\\"hello\\\"\"")]
+        [InlineData("\"hello world\"", "\"\\\"hello world\\\"\"")]
+        [InlineData("\"C:\\app.exe\"", "\"\\\"C:\\app.exe\\\"\"")]
+        [InlineData("\"C:\\path with space\\app.exe\"", "\"\\\"C:\\path with space\\app.exe\\\"\"")]
+        [InlineData("\\", "\\")]
+        [InlineData("\\\\", "\\\\")]
+        [InlineData("\\\\\\", "\\\\\\")]
+        [InlineData("\"", "\"\\\"\"")]
+        [InlineData("\\\"", "\"\\\\\\\"\"")]
+        [InlineData("\\\\\"", "\"\\\\\\\\\\\"\"")]
+        [InlineData("\"\\", "\"\\\"\\\\\"")]
+        [InlineData("\"\\\\", "\"\\\"\\\\\\\\\"")]
+        [InlineData("ab\\", "ab\\")]
+        [InlineData("a b\\", "\"a b\\\\\"")]
+        public void GitConfiguration_QuoteCmdArg(string input, string expected)
+        {
+            string actual = GitProcessConfiguration.QuoteCmdArg(input);
+            Assert.Equal(expected, actual);
+        }
+
         [Fact]
         public void GitProcess_GetConfiguration_ReturnsConfiguration()
         {
@@ -25,9 +55,9 @@ namespace Microsoft.Git.CredentialManager.Tests
         public void GitConfiguration_Enumerate_CallbackReturnsTrue_InvokesCallbackForEachEntry()
         {
             string repoPath = CreateRepository(out string workDirPath);
-            Git(repoPath, workDirPath, "config --local foo.name lancelot").AssertSuccess();
-            Git(repoPath, workDirPath, "config --local foo.quest seek-holy-grail").AssertSuccess();
-            Git(repoPath, workDirPath, "config --local foo.favcolor blue").AssertSuccess();
+            ExecGit(repoPath, workDirPath, "config --local foo.name lancelot").AssertSuccess();
+            ExecGit(repoPath, workDirPath, "config --local foo.quest seek-holy-grail").AssertSuccess();
+            ExecGit(repoPath, workDirPath, "config --local foo.favcolor blue").AssertSuccess();
 
             var expectedVisitedEntries = new List<(string name, string value)>
             {
@@ -43,11 +73,11 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             var actualVisitedEntries = new List<(string name, string value)>();
 
-            bool cb(string name, string value)
+            bool cb(GitConfigurationEntry entry)
             {
-                if (name.StartsWith("foo."))
+                if (entry.Key.StartsWith("foo."))
                 {
-                    actualVisitedEntries.Add((name, value));
+                    actualVisitedEntries.Add((entry.Key, entry.Value));
                 }
 
                 // Continue enumeration
@@ -63,9 +93,9 @@ namespace Microsoft.Git.CredentialManager.Tests
         public void GitConfiguration_Enumerate_CallbackReturnsFalse_InvokesCallbackForEachEntryUntilReturnsFalse()
         {
             string repoPath = CreateRepository(out string workDirPath);
-            Git(repoPath, workDirPath, "config --local foo.name lancelot").AssertSuccess();
-            Git(repoPath, workDirPath, "config --local foo.quest seek-holy-grail").AssertSuccess();
-            Git(repoPath, workDirPath, "config --local foo.favcolor blue").AssertSuccess();
+            ExecGit(repoPath, workDirPath, "config --local foo.name lancelot").AssertSuccess();
+            ExecGit(repoPath, workDirPath, "config --local foo.quest seek-holy-grail").AssertSuccess();
+            ExecGit(repoPath, workDirPath, "config --local foo.favcolor blue").AssertSuccess();
 
             var expectedVisitedEntries = new List<(string name, string value)>
             {
@@ -80,11 +110,11 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             var actualVisitedEntries = new List<(string name, string value)>();
 
-            bool cb(string name, string value)
+            bool cb(GitConfigurationEntry entry)
             {
-                if (name.StartsWith("foo."))
+                if (entry.Key.StartsWith("foo."))
                 {
-                    actualVisitedEntries.Add((name, value));
+                    actualVisitedEntries.Add((entry.Key, entry.Value));
                 }
 
                 // Stop enumeration after 2 'foo' entries
@@ -97,24 +127,24 @@ namespace Microsoft.Git.CredentialManager.Tests
         }
 
         [Fact]
-        public void GitConfiguration_TryGetValue_Name_Exists_ReturnsTrueOutString()
+        public void GitConfiguration_TryGet_Name_Exists_ReturnsTrueOutString()
         {
             string repoPath = CreateRepository(out string workDirPath);
-            Git(repoPath, workDirPath, "config --local user.name john.doe").AssertSuccess();
+            ExecGit(repoPath, workDirPath, "config --local user.name john.doe").AssertSuccess();
 
             string gitPath = GetGitPath();
             var trace = new NullTrace();
             var git = new GitProcess(trace, gitPath, repoPath);
             IGitConfiguration config = git.GetConfiguration();
 
-            bool result = config.TryGetValue("user.name", out string value);
+            bool result = config.TryGet("user.name", out string value);
             Assert.True(result);
             Assert.NotNull(value);
             Assert.Equal("john.doe", value);
         }
 
         [Fact]
-        public void GitConfiguration_TryGetValue_Name_DoesNotExists_ReturnsFalse()
+        public void GitConfiguration_TryGet_Name_DoesNotExists_ReturnsFalse()
         {
             string repoPath = CreateRepository();
 
@@ -124,115 +154,29 @@ namespace Microsoft.Git.CredentialManager.Tests
             IGitConfiguration config = git.GetConfiguration();
 
             string randomName = $"{Guid.NewGuid():N}.{Guid.NewGuid():N}";
-            bool result = config.TryGetValue(randomName, out string value);
+            bool result = config.TryGet(randomName, out string value);
             Assert.False(result);
             Assert.Null(value);
         }
 
         [Fact]
-        public void GitConfiguration_TryGetValue_SectionProperty_Exists_ReturnsTrueOutString()
+        public void GitConfiguration_Get_Name_Exists_ReturnsString()
         {
             string repoPath = CreateRepository(out string workDirPath);
-            Git(repoPath, workDirPath, "config --local user.name john.doe").AssertSuccess();
+            ExecGit(repoPath, workDirPath, "config --local user.name john.doe").AssertSuccess();
 
             string gitPath = GetGitPath();
             var trace = new NullTrace();
             var git = new GitProcess(trace, gitPath, repoPath);
             IGitConfiguration config = git.GetConfiguration();
 
-            bool result = config.TryGetValue("user", "name", out string value);
-            Assert.True(result);
+            string value = config.Get("user.name");
             Assert.NotNull(value);
             Assert.Equal("john.doe", value);
         }
 
         [Fact]
-        public void GitConfiguration_TryGetValue_SectionProperty_DoesNotExists_ReturnsFalse()
-        {
-            string repoPath = CreateRepository();
-
-            string gitPath = GetGitPath();
-            var trace = new NullTrace();
-            var git = new GitProcess(trace, gitPath, repoPath);
-            IGitConfiguration config = git.GetConfiguration();
-
-            string randomSection = Guid.NewGuid().ToString("N");
-            string randomProperty = Guid.NewGuid().ToString("N");
-            bool result = config.TryGetValue(randomSection, randomProperty, out string value);
-            Assert.False(result);
-            Assert.Null(value);
-        }
-
-        [Fact]
-        public void GitConfiguration_TryGetValue_SectionScopeProperty_Exists_ReturnsTrueOutString()
-        {
-            string repoPath = CreateRepository(out string workDirPath);
-            Git(repoPath, workDirPath, "config --local user.example.com.name john.doe").AssertSuccess();
-
-            string gitPath = GetGitPath();
-            var trace = new NullTrace();
-            var git = new GitProcess(trace, gitPath, repoPath);
-            IGitConfiguration config = git.GetConfiguration();
-
-            bool result = config.TryGetValue("user", "example.com", "name", out string value);
-            Assert.True(result);
-            Assert.NotNull(value);
-            Assert.Equal("john.doe", value);
-        }
-
-        [Fact]
-        public void GitConfiguration_TryGetValue_SectionScopeProperty_NullScope_ReturnsTrueOutUnscopedString()
-        {
-            string repoPath = CreateRepository(out string workDirPath);
-            Git(repoPath, workDirPath, "config --local user.name john.doe").AssertSuccess();
-
-            string gitPath = GetGitPath();
-            var trace = new NullTrace();
-            var git = new GitProcess(trace, gitPath, repoPath);
-            IGitConfiguration config = git.GetConfiguration();
-
-            bool result = config.TryGetValue("user", null, "name", out string value);
-            Assert.True(result);
-            Assert.NotNull(value);
-            Assert.Equal("john.doe", value);
-        }
-
-        [Fact]
-        public void GitConfiguration_TryGetValue_SectionScopeProperty_DoesNotExists_ReturnsFalse()
-        {
-            string repoPath = CreateRepository();
-
-            string gitPath = GetGitPath();
-            var trace = new NullTrace();
-            var git = new GitProcess(trace, gitPath, repoPath);
-            IGitConfiguration config = git.GetConfiguration();
-
-            string randomSection = Guid.NewGuid().ToString("N");
-            string randomScope = Guid.NewGuid().ToString("N");
-            string randomProperty = Guid.NewGuid().ToString("N");
-            bool result = config.TryGetValue(randomSection, randomScope, randomProperty, out string value);
-            Assert.False(result);
-            Assert.Null(value);
-        }
-
-        [Fact]
-        public void GitConfiguration_GetString_Name_Exists_ReturnsString()
-        {
-            string repoPath = CreateRepository(out string workDirPath);
-            Git(repoPath, workDirPath, "config --local user.name john.doe").AssertSuccess();
-
-            string gitPath = GetGitPath();
-            var trace = new NullTrace();
-            var git = new GitProcess(trace, gitPath, repoPath);
-            IGitConfiguration config = git.GetConfiguration();
-
-            string value = config.GetValue("user.name");
-            Assert.NotNull(value);
-            Assert.Equal("john.doe", value);
-        }
-
-        [Fact]
-        public void GitConfiguration_GetString_Name_DoesNotExists_ThrowsException()
+        public void GitConfiguration_Get_Name_DoesNotExists_ThrowsException()
         {
             string repoPath = CreateRepository();
 
@@ -242,192 +186,143 @@ namespace Microsoft.Git.CredentialManager.Tests
             IGitConfiguration config = git.GetConfiguration();
 
             string randomName = $"{Guid.NewGuid():N}.{Guid.NewGuid():N}";
-            Assert.Throws<KeyNotFoundException>(() => config.GetValue(randomName));
+            Assert.Throws<KeyNotFoundException>(() => config.Get(randomName));
         }
 
         [Fact]
-        public void GitConfiguration_GetString_SectionProperty_Exists_ReturnsString()
+        public void GitConfiguration_Set_Local_SetsLocalConfig()
         {
             string repoPath = CreateRepository(out string workDirPath);
-            Git(repoPath, workDirPath, "config --local user.name john.doe").AssertSuccess();
 
             string gitPath = GetGitPath();
             var trace = new NullTrace();
             var git = new GitProcess(trace, gitPath, repoPath);
             IGitConfiguration config = git.GetConfiguration();
 
-            string value = config.GetValue("user", "name");
-            Assert.NotNull(value);
-            Assert.Equal("john.doe", value);
+            config.Set(GitConfigurationLevel.Local, "core.foobar", "foo123");
+
+            GitResult localResult = ExecGit(repoPath, workDirPath, "config --local core.foobar");
+
+            Assert.Equal("foo123",     localResult.StandardOutput.Trim());
         }
 
         [Fact]
-        public void GitConfiguration_GetString_SectionProperty_DoesNotExists_ThrowsException()
+        public void GitConfiguration_Set_All_ThrowsException()
         {
-            string repoPath = CreateRepository();
+            string repoPath = CreateRepository(out _);
 
             string gitPath = GetGitPath();
             var trace = new NullTrace();
             var git = new GitProcess(trace, gitPath, repoPath);
             IGitConfiguration config = git.GetConfiguration();
 
-            string randomSection = Guid.NewGuid().ToString("N");
-            string randomProperty = Guid.NewGuid().ToString("N");
-            Assert.Throws<KeyNotFoundException>(() => config.GetValue(randomSection, randomProperty));
+            Assert.Throws<InvalidOperationException>(() => config.Set(GitConfigurationLevel.All, "core.foobar", "test123"));
         }
 
         [Fact]
-        public void GitConfiguration_GetString_SectionScopeProperty_Exists_ReturnsString()
+        public void GitConfiguration_Unset_Global_UnsetsGlobalConfig()
         {
             string repoPath = CreateRepository(out string workDirPath);
-            Git(repoPath, workDirPath, "config --local user.example.com.name john.doe").AssertSuccess();
+            try
+            {
 
-            string gitPath = GetGitPath();
-            var trace = new NullTrace();
-            var git = new GitProcess(trace, gitPath, repoPath);
-            IGitConfiguration config = git.GetConfiguration();
+                ExecGit(repoPath, workDirPath, "config --global core.foobar alice").AssertSuccess();
+                ExecGit(repoPath, workDirPath, "config --local core.foobar bob").AssertSuccess();
 
-            string value = config.GetValue("user", "example.com", "name");
-            Assert.NotNull(value);
-            Assert.Equal("john.doe", value);
+                string gitPath = GetGitPath();
+                var trace = new NullTrace();
+                var git = new GitProcess(trace, gitPath, repoPath);
+                IGitConfiguration config = git.GetConfiguration();
+
+                config.Unset(GitConfigurationLevel.Global, "core.foobar");
+
+                GitResult globalResult = ExecGit(repoPath, workDirPath, "config --global core.foobar");
+                GitResult localResult = ExecGit(repoPath, workDirPath, "config --local core.foobar");
+
+                Assert.Equal(string.Empty, globalResult.StandardOutput.Trim());
+                Assert.Equal("bob", localResult.StandardOutput.Trim());
+            }
+            finally
+            {
+                // Cleanup global config changes
+                ExecGit(repoPath, workDirPath, "config --global --unset core.foobar");
+            }
         }
 
         [Fact]
-        public void GitConfiguration_GetString_SectionScopeProperty_NullScope_ReturnsUnscopedString()
+        public void GitConfiguration_Unset_Local_UnsetsLocalConfig()
         {
             string repoPath = CreateRepository(out string workDirPath);
-            Git(repoPath, workDirPath, "config --local user.name john.doe").AssertSuccess();
 
-            string gitPath = GetGitPath();
-            var trace = new NullTrace();
-            var git = new GitProcess(trace, gitPath, repoPath);
-            IGitConfiguration config = git.GetConfiguration();
+            try
+            {
+                ExecGit(repoPath, workDirPath, "config --global core.foobar alice").AssertSuccess();
+                ExecGit(repoPath, workDirPath, "config --local core.foobar bob").AssertSuccess();
 
-            string value = config.GetValue("user", null, "name");
-            Assert.NotNull(value);
-            Assert.Equal("john.doe", value);
+                string gitPath = GetGitPath();
+                var trace = new NullTrace();
+                var git = new GitProcess(trace, gitPath, repoPath);
+                IGitConfiguration config = git.GetConfiguration();
+
+                config.Unset(GitConfigurationLevel.Local, "core.foobar");
+
+                GitResult globalResult = ExecGit(repoPath, workDirPath, "config --global core.foobar");
+                GitResult localResult = ExecGit(repoPath, workDirPath, "config --local core.foobar");
+
+                Assert.Equal("alice", globalResult.StandardOutput.Trim());
+                Assert.Equal(string.Empty, localResult.StandardOutput.Trim());
+            }
+            finally
+            {
+                // Cleanup global config changes
+                ExecGit(repoPath, workDirPath, "config --global --unset core.foobar");
+            }
         }
 
         [Fact]
-        public void GitConfiguration_GetString_SectionScopeProperty_DoesNotExists_ThrowsException()
+        public void GitConfiguration_Unset_All_ThrowsException()
         {
-            string repoPath = CreateRepository();
+            string repoPath = CreateRepository(out _);
 
             string gitPath = GetGitPath();
             var trace = new NullTrace();
             var git = new GitProcess(trace, gitPath, repoPath);
             IGitConfiguration config = git.GetConfiguration();
 
-            string randomSection = Guid.NewGuid().ToString("N");
-            string randomScope = Guid.NewGuid().ToString("N");
-            string randomProperty = Guid.NewGuid().ToString("N");
-            Assert.Throws<KeyNotFoundException>(() => config.GetValue(randomSection, randomScope, randomProperty));
+            Assert.Throws<InvalidOperationException>(() => config.Unset(GitConfigurationLevel.All, "core.foobar"));
         }
 
-        #region Test helpers
-
-        private static string GetGitPath()
+        [Fact]
+        public void GitConfiguration_UnsetAll_UnsetsAllConfig()
         {
-            ProcessStartInfo psi;
-            if (PlatformUtils.IsWindows())
-            {
-                psi = new ProcessStartInfo(
-                    Path.Combine(
-                        Environment.GetFolderPath(Environment.SpecialFolder.System),
-                        "where.exe"),
-                    "git.exe"
-                );
-            }
-            else
-            {
-                psi = new ProcessStartInfo("/usr/bin/which", "git");
-            }
+            string repoPath = CreateRepository(out string workDirPath);
+            ExecGit(repoPath, workDirPath, "config --local --add core.foobar foo1").AssertSuccess();
+            ExecGit(repoPath, workDirPath, "config --local --add core.foobar foo2").AssertSuccess();
+            ExecGit(repoPath, workDirPath, "config --local --add core.foobar bar1").AssertSuccess();
 
-            psi.RedirectStandardOutput = true;
+            string gitPath = GetGitPath();
+            var trace = new NullTrace();
+            var git = new GitProcess(trace, gitPath, repoPath);
+            IGitConfiguration config = git.GetConfiguration();
 
-            using (var which = new Process {StartInfo = psi})
-            {
-                which.Start();
-                which.WaitForExit();
+            config.UnsetAll(GitConfigurationLevel.Local, "core.foobar", "foo*");
 
-                if (which.ExitCode != 0)
-                {
-                    throw new Exception("Failed to locate Git");
-                }
+            GitResult result = ExecGit(repoPath, workDirPath, "config --local --get-all core.foobar");
 
-                string data = which.StandardOutput.ReadLine();
-
-                if (string.IsNullOrWhiteSpace(data))
-                {
-                    throw new Exception("Failed to locate Git on the PATH");
-                }
-
-                return data;
-            }
+            Assert.Equal("bar1", result.StandardOutput.Trim());
         }
 
-        private static string CreateRepository() => CreateRepository(out _);
-
-        private static string CreateRepository(out string workDirPath)
+        [Fact]
+        public void GitConfiguration_UnsetAll_All_ThrowsException()
         {
-            string tempDirectory = Path.GetTempPath();
-            string repoName = $"repo-{Guid.NewGuid().ToString("N").Substring(0, 8)}";
-            workDirPath = Path.Combine(tempDirectory, repoName);
-            string gitDirPath = Path.Combine(workDirPath, ".git");
+            string repoPath = CreateRepository(out _);
 
-            if (Directory.Exists(workDirPath))
-            {
-                Directory.Delete(workDirPath);
-            }
+            string gitPath = GetGitPath();
+            var trace = new NullTrace();
+            var git = new GitProcess(trace, gitPath, repoPath);
+            IGitConfiguration config = git.GetConfiguration();
 
-            Directory.CreateDirectory(workDirPath);
-
-            Git(gitDirPath, workDirPath, "init").AssertSuccess();
-
-            return gitDirPath;
+            Assert.Throws<InvalidOperationException>(() => config.UnsetAll(GitConfigurationLevel.All, "core.foobar", Constants.RegexPatterns.Any));
         }
-
-        private static GitResult Git(string repositoryPath, string workingDirectory, string command)
-        {
-            var procInfo = new ProcessStartInfo("git", command)
-            {
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                WorkingDirectory = workingDirectory
-            };
-
-            procInfo.Environment["GIT_DIR"] = repositoryPath;
-
-            Process proc = Process.Start(procInfo);
-            if (proc is null)
-            {
-                throw new Exception("Failed to start Git process");
-            }
-
-            proc.WaitForExit();
-
-            var result = new GitResult
-            {
-                ExitCode = proc.ExitCode,
-                StandardOutput = proc.StandardOutput.ReadToEnd(),
-                StandardError = proc.StandardError.ReadToEnd()
-            };
-
-            return result;
-        }
-
-        private struct GitResult
-        {
-            public int ExitCode;
-            public string StandardOutput;
-            public string StandardError;
-
-            public void AssertSuccess()
-            {
-                Assert.Equal(0, ExitCode);
-            }
-        }
-
-        #endregion
     }
 }

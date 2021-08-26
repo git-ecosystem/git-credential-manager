@@ -1,5 +1,3 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -35,10 +33,15 @@ namespace Microsoft.Git.CredentialManager.Authentication.OAuth
 
     public class OAuth2SystemWebBrowser : IOAuth2WebBrowser
     {
+        private readonly IEnvironment _environment;
         private readonly OAuth2WebBrowserOptions _options;
 
-        public OAuth2SystemWebBrowser(OAuth2WebBrowserOptions options)
+        public OAuth2SystemWebBrowser(IEnvironment environment, OAuth2WebBrowserOptions options)
         {
+            EnsureArgument.NotNull(environment, nameof(environment));
+            EnsureArgument.NotNull(options, nameof(options));
+
+            _environment = environment;
             _options = options;
         }
 
@@ -68,25 +71,9 @@ namespace Microsoft.Git.CredentialManager.Authentication.OAuth
 
             Task<Uri> interceptTask = InterceptRequestsAsync(redirectUri, ct);
 
-            OpenDefaultBrowser(authorizationUri);
+            BrowserUtils.OpenDefaultBrowser(_environment, authorizationUri);
 
             return await interceptTask;
-        }
-
-        private void OpenDefaultBrowser(Uri uri)
-        {
-            if (!StringComparer.OrdinalIgnoreCase.Equals(Uri.UriSchemeHttp,  uri.Scheme) &&
-                !StringComparer.OrdinalIgnoreCase.Equals(Uri.UriSchemeHttps, uri.Scheme))
-            {
-                throw new ArgumentException("Can only open HTTP/HTTPS URIs", nameof(uri));
-            }
-
-            var pci = new ProcessStartInfo(uri.ToString())
-            {
-                UseShellExecute = true
-            };
-
-            Process.Start(pci);
         }
 
         private async Task<Uri> InterceptRequestsAsync(Uri listenUri, CancellationToken ct)

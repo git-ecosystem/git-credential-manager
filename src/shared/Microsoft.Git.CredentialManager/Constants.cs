@@ -1,6 +1,4 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
-using System.Diagnostics;
+using System;
 using System.Reflection;
 
 namespace Microsoft.Git.CredentialManager
@@ -8,11 +6,12 @@ namespace Microsoft.Git.CredentialManager
     public static class Constants
     {
         public const string PersonalAccessTokenUserName = "PersonalAccessToken";
-        public const string OAuthTokenUserName = "OAuthToken";
-        public const string DefaultMsAuthHelper = "Microsoft.Authentication.Helper";
+        public const string DefaultCredentialNamespace = "git";
 
         public const string ProviderIdAuto  = "auto";
         public const string AuthorityIdAuto = "auto";
+
+        public const string GcmDataDirectoryName = ".gcm";
 
         public static class RegexPatterns
         {
@@ -34,22 +33,31 @@ namespace Microsoft.Git.CredentialManager
 
         public static class EnvironmentVariables
         {
-            public const string GcmTrace           = "GCM_TRACE";
-            public const string GcmTraceSecrets    = "GCM_TRACE_SECRETS";
-            public const string GcmTraceMsAuth     = "GCM_TRACE_MSAUTH";
-            public const string GcmDebug           = "GCM_DEBUG";
-            public const string GcmProvider        = "GCM_PROVIDER";
-            public const string GcmAuthority       = "GCM_AUTHORITY";
-            public const string GitTerminalPrompts = "GIT_TERMINAL_PROMPT";
-            public const string GcmAllowWia        = "GCM_ALLOW_WINDOWSAUTH";
-            public const string CurlAllProxy       = "ALL_PROXY";
-            public const string CurlHttpProxy      = "HTTP_PROXY";
-            public const string CurlHttpsProxy     = "HTTPS_PROXY";
-            public const string GcmHttpProxy       = "GCM_HTTP_PROXY";
-            public const string GitSslNoVerify     = "GIT_SSL_NO_VERIFY";
-            public const string GcmInteractive     = "GCM_INTERACTIVE";
-            public const string GcmParentWindow    = "GCM_MODAL_PARENTHWND";
-            public const string MsAuthHelper       = "GCM_MSAUTH_HELPER";
+            public const string GcmTrace              = "GCM_TRACE";
+            public const string GcmTraceSecrets       = "GCM_TRACE_SECRETS";
+            public const string GcmTraceMsAuth        = "GCM_TRACE_MSAUTH";
+            public const string GcmDebug              = "GCM_DEBUG";
+            public const string GcmProvider           = "GCM_PROVIDER";
+            public const string GcmAuthority          = "GCM_AUTHORITY";
+            public const string GitTerminalPrompts    = "GIT_TERMINAL_PROMPT";
+            public const string GcmAllowWia           = "GCM_ALLOW_WINDOWSAUTH";
+            public const string CurlNoProxy           = "NO_PROXY";
+            public const string CurlAllProxy          = "ALL_PROXY";
+            public const string CurlHttpProxy         = "HTTP_PROXY";
+            public const string CurlHttpsProxy        = "HTTPS_PROXY";
+            public const string GcmHttpProxy          = "GCM_HTTP_PROXY";
+            public const string GitSslNoVerify        = "GIT_SSL_NO_VERIFY";
+            public const string GitSslCaInfo          = "GIT_SSL_CAINFO";
+            public const string GcmInteractive        = "GCM_INTERACTIVE";
+            public const string GcmParentWindow       = "GCM_MODAL_PARENTHWND";
+            public const string MsAuthFlow            = "GCM_MSAUTH_FLOW";
+            public const string MsAuthUseBroker       = "GCM_MSAUTH_USEBROKER";
+            public const string GcmCredNamespace      = "GCM_NAMESPACE";
+            public const string GcmCredentialStore    = "GCM_CREDENTIAL_STORE";
+            public const string GcmCredCacheOptions   = "GCM_CREDENTIAL_CACHE_OPTIONS";
+            public const string GcmPlaintextStorePath = "GCM_PLAINTEXT_STORE_PATH";
+            public const string GitExecutablePath     = "GIT_EXEC_PATH";
+            public const string GpgExecutablePath     = "GCM_GPG_PATH";
         }
 
         public static class Http
@@ -75,15 +83,37 @@ namespace Microsoft.Git.CredentialManager
                 public const string HttpsProxy  = "httpsProxy";
                 public const string UseHttpPath = "useHttpPath";
                 public const string Interactive = "interactive";
-                public const string MsAuthHelper = "msauthHelper";
+                public const string MsAuthFlow  = "msauthFlow";
+                public const string MsAuthUseBroker = "msauthUseBroker";
+                public const string CredNamespace = "namespace";
+                public const string CredentialStore = "credentialStore";
+                public const string CredCacheOptions = "cacheOptions";
+                public const string PlaintextStorePath = "plaintextStorePath";
+                public const string UserName = "username";
             }
 
             public static class Http
             {
                 public const string SectionName = "http";
                 public const string Proxy = "proxy";
+                public const string SchannelUseSslCaInfo = "schannelUseSSLCAInfo";
+                public const string SslBackend = "sslBackend";
                 public const string SslVerify = "sslVerify";
+                public const string SslCaInfo = "sslCAInfo";
             }
+
+            public static class Remote
+            {
+                public const string SectionName = "remote";
+                public const string FetchUrl = "url";
+                public const string PushUrl = "pushUrl";
+            }
+        }
+
+        public static class WindowsRegistry
+        {
+            public const string HKAppBasePath = @"SOFTWARE\GitCredentialManager";
+            public const string HKConfigurationPath = HKAppBasePath + @"\Configuration";
         }
 
         public static class HelpUrls
@@ -92,35 +122,37 @@ namespace Microsoft.Git.CredentialManager
             public const string GcmAuthorityDeprecated = "https://aka.ms/gcmcore-authority";
             public const string GcmHttpProxyGuide      = "https://aka.ms/gcmcore-httpproxy";
             public const string GcmTlsVerification     = "https://aka.ms/gcmcore-tlsverify";
+            public const string GcmLinuxCredStores     = "https://aka.ms/gcmcore-linuxcredstores";
+            public const string GcmWamComSecurity      = "https://aka.ms/gcmcore-wamadmin";
         }
 
-        private static string _gcmVersion;
+        private static Version _gcmVersion;
 
-        /// <summary>
-        /// The current version of Git Credential Manager.
-        /// </summary>
-        public static string GcmVersion
+        public static Version GcmVersion
         {
             get
             {
                 if (_gcmVersion is null)
                 {
-                    _gcmVersion = FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).ProductVersion;
+                    var assembly = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
+                    var attr = assembly.GetCustomAttribute<AssemblyFileVersionAttribute>();
+                    if (attr is null)
+                    {
+                        _gcmVersion = assembly.GetName().Version;
+                    }
+                    else if (Version.TryParse(attr.Version, out Version asmVersion))
+                    {
+                        _gcmVersion = asmVersion;
+                    }
+                    else
+                    {
+                        // Unknown version!
+                        _gcmVersion = new Version(0, 0);
+                    }
                 }
 
                 return _gcmVersion;
             }
-        }
-
-        /// <summary>
-        /// Get standard program header title for Git Credential Manager, including the current version and OS information.
-        /// </summary>
-        /// <returns>Standard program header.</returns>
-        public static string GetProgramHeader()
-        {
-            PlatformInformation info = PlatformUtils.GetPlatformInformation();
-
-            return $"Git Credential Manager version {GcmVersion} ({info.OperatingSystemType}, {info.ClrVersion})";
         }
 
         /// <summary>

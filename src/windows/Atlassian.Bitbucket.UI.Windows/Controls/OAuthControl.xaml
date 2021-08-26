@@ -20,7 +20,7 @@
 
     <DockPanel Margin="0,0,0,30" LastChildFill="True">
         <StackPanel DockPanel.Dock="Bottom">
-            <TextBlock HorizontalAlignment="Center" Margin="0,0,0,10">
+            <TextBlock HorizontalAlignment="Center" Margin="0,30,0,10">
                 <Hyperlink
                     Style="{StaticResource BlueHyperlink}"
                     ToolTip="{x:Static local:BitbucketResources.PasswordResetUrl}"

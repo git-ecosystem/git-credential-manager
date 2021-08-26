@@ -1,5 +1,3 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Git.CredentialManager.Commands;
@@ -11,34 +9,18 @@ namespace Microsoft.Git.CredentialManager.Tests.Commands
 {
     public class EraseCommandTests
     {
-        [Theory]
-        [InlineData("erase", true)]
-        [InlineData("ERASE", true)]
-        [InlineData("eRaSe", true)]
-        [InlineData("get", false)]
-        [InlineData("store", false)]
-        [InlineData("foobar", false)]
-        [InlineData("", false)]
-        [InlineData(null, false)]
-        public void EraseCommand_CanExecuteAsync(string argString, bool expected)
-        {
-            var command = new EraseCommand(Mock.Of<IHostProviderRegistry>());
-
-            bool result = command.CanExecute(argString?.Split(null));
-
-            Assert.Equal(expected, result);
-        }
-
         [Fact]
         public async Task EraseCommand_ExecuteAsync_CallsHostProvider()
         {
             const string testUserName = "john.doe";
-            const string testPassword = "letmein123";
-            var stdin = $"username={testUserName}\npassword={testPassword}\n\n";
+            const string testPassword = "letmein123"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
+            var stdin = $"protocol=http\nhost=example.com\nusername={testUserName}\npassword={testPassword}\n\n";
             var expectedInput = new InputArguments(new Dictionary<string, string>
             {
+                ["protocol"] = "http",
+                ["host"]     = "example.com",
                 ["username"] = testUserName,
-                ["password"] = testPassword
+                ["password"] = testPassword // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
             });
 
             var providerMock = new Mock<IHostProvider>();
@@ -50,10 +32,9 @@ namespace Microsoft.Git.CredentialManager.Tests.Commands
                 Streams = {In = stdin}
             };
 
-            string[] cmdArgs = {"erase"};
-            var command = new EraseCommand(providerRegistry);
+            var command = new EraseCommand(context, providerRegistry);
 
-            await command.ExecuteAsync(context, cmdArgs);
+            await command.ExecuteAsync();
 
             providerMock.Verify(
                 x => x.EraseCredentialAsync(It.Is<InputArguments>(y => AreInputArgumentsEquivalent(expectedInput, y))),

@@ -1,5 +1,3 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -8,14 +6,12 @@ namespace Microsoft.Git.CredentialManager.Commands
     /// <summary>
     /// Acquire a new <see cref="GitCredential"/> from a <see cref="IHostProvider"/>.
     /// </summary>
-    public class GetCommand : HostProviderCommandBase
+    public class GetCommand : GitCommandBase
     {
-        public GetCommand(IHostProviderRegistry hostProviderRegistry)
-            : base(hostProviderRegistry) { }
+        public GetCommand(ICommandContext context, IHostProviderRegistry hostProviderRegistry)
+            : base(context, "get", "[Git] Return a stored credential", hostProviderRegistry) { }
 
-        protected override string Name => "get";
-
-        protected override async Task ExecuteInternalAsync(ICommandContext context, InputArguments input, IHostProvider provider)
+        protected override async Task ExecuteInternalAsync(InputArguments input, IHostProvider provider)
         {
             ICredential credential = await provider.GetCredentialAsync(input);
 
@@ -36,11 +32,11 @@ namespace Microsoft.Git.CredentialManager.Commands
             }
 
             // Return the credential to Git
-            output["username"] = credential.UserName;
+            output["username"] = credential.Account;
             output["password"] = credential.Password;
 
             // Write the values to standard out
-            context.Streams.Out.WriteDictionary(output);
+            Context.Streams.Out.WriteDictionary(output);
         }
     }
 }

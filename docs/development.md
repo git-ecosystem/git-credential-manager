@@ -6,6 +6,8 @@ Start by cloning this repository:
 git clone https://github.com/microsoft/Git-Credential-Manager-Core
 ```
 
+You also need the latest version of the .NET SDK which can be downloaded and installed from [here](https://dotnet.microsoft.com/).
+
 ## Building
 
 The `Git-Credential-Manager.sln` solution can be opened and built in Visual Studio, Visual Studio for Mac, Visual Studio Code, or JetBrains Rider.
@@ -31,17 +33,26 @@ To build from inside an IDE, make sure to select the `WindowsDebug` or `WindowsR
 To build from the command line, run:
 
 ```powershell
-msbuild /t:restore /p:Configuration=WindowsDebug
-msbuild /p:Configuration=WindowsDebug
+dotnet build -c WindowsDebug
 ```
 
-You can find a copy of the installer .exe file in `out\windows\Installer.Windows\bin\Debug\net461`.
+You can find a copy of the installer .exe file in `out\windows\Installer.Windows\bin\Debug\net472`.
 
-The flat binaries can also be found in `out\windows\Payload.Windows\bin\Debug\net461\win-x86`.
+The flat binaries can also be found in `out\windows\Payload.Windows\bin\Debug\net472\win-x86`.
 
 ### Linux
 
-_No information yet._
+The two available solution configurations are `LinuxDebug` and `LinuxRelease`.
+
+To build from the command line, run:
+
+```shell
+dotnet build -c LinuxDebug
+```
+
+You can find a copy of the Debian package (.deb) file in `out/linux/Packaging.Linux/deb/Debug`.
+
+The flat binaries can also be found in `out/linux/Packaging.Linux/payload/Debug`.
 
 ## Debugging
 
@@ -81,6 +92,6 @@ For example:
 
 ```shell
 $ GCM_TRACE=1 git-credential-manager-core version
-> 18:47:56.526712 ...er/Application.cs:69 trace: [RunInternalAsync] Git Credential Manager version 2.0.124-beta+e1ebbe1517 (macOS, .NET Core 3.1.3) 'version'
-> Git Credential Manager version 2.0.124-beta+e1ebbe1517 (macOS, .NET Core 3.1.3)
+> 18:47:56.526712 ...er/Application.cs:69 trace: [RunInternalAsync] Git Credential Manager version 2.0.124-beta+e1ebbe1517 (macOS, .NET 5.0) 'version'
+> Git Credential Manager version 2.0.124-beta+e1ebbe1517 (macOS, .NET 5.0)
 ```

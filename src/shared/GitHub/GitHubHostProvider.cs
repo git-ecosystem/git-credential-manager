@@ -1,7 +1,6 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Git.CredentialManager;
 using Microsoft.Git.CredentialManager.Authentication.OAuth;
@@ -47,27 +46,72 @@ namespace GitHub
 
         public override bool IsSupported(InputArguments input)
         {
+            if (input is null)
+            {
+                return false;
+            }
+
             // We do not support unencrypted HTTP communications to GitHub,
             // but we report `true` here for HTTP so that we can show a helpful
             // error message for the user in `CreateCredentialAsync`.
-            return input != null &&
-                   (StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "http") ||
-                    StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "https")) &&
-                   (StringComparer.OrdinalIgnoreCase.Equals(input.Host, GitHubConstants.GitHubBaseUrlHost) ||
-                    StringComparer.OrdinalIgnoreCase.Equals(input.Host, GitHubConstants.GistBaseUrlHost));
-        }
-
-        public override string GetCredentialKey(InputArguments input)
-        {
-            string url = GetTargetUri(input).AbsoluteUri;
-
-            // Trim trailing slash
-            if (url.EndsWith("/"))
+            if (!StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "http") &&
+                !StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "https"))
             {
-                url = url.Substring(0, url.Length - 1);
+                return false;
             }
 
-            return $"git:{url}";
+            // Split port number and hostname from host input argument
+            if (!input.TryGetHostAndPort(out string hostName, out _))
+            {
+                return false;
+            }
+
+            if (StringComparer.OrdinalIgnoreCase.Equals(hostName, GitHubConstants.GitHubBaseUrlHost) ||
+                StringComparer.OrdinalIgnoreCase.Equals(hostName, GitHubConstants.GistBaseUrlHost))
+            {
+                return true;
+            }
+
+            string[] domains = hostName.Split(new char[] { '.' });
+
+            // github[.subdomain].domain.tld
+            if (domains.Length >= 3 &&
+                StringComparer.OrdinalIgnoreCase.Equals(domains[0], "github"))
+            {
+                return true;
+            }
+
+            // gist.github[.subdomain].domain.tld
+            if (domains.Length >= 4 &&
+                StringComparer.OrdinalIgnoreCase.Equals(domains[0], "gist") &&
+                StringComparer.OrdinalIgnoreCase.Equals(domains[1], "github"))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public override bool IsSupported(HttpResponseMessage response)
+        {
+            if (response is null)
+            {
+                return false;
+            }
+
+            // Look for a known GitHub.com/GHES header
+            return response.Headers.Contains("X-GitHub-Request-Id");
+        }
+
+        public override string GetServiceName(InputArguments input)
+        {
+            var baseUri = new Uri(base.GetServiceName(input));
+
+            // Normalise the URI
+            string url = NormalizeUri(baseUri).AbsoluteUri;
+
+            // Trim trailing slash
+            return url.TrimEnd('/');
         }
 
         public override async Task<ICredential> GenerateCredentialAsync(InputArguments input)
@@ -80,16 +124,19 @@ namespace GitHub
                 throw new Exception("Unencrypted HTTP is not supported for GitHub. Ensure the repository remote URL is using HTTPS.");
             }
 
-            Uri targetUri = GetTargetUri(input);
+            Uri remoteUri = input.GetRemoteUri();
 
-            AuthenticationModes authModes = await GetSupportedAuthenticationModesAsync(targetUri);
+            string service = GetServiceName(input);
 
-            AuthenticationPromptResult promptResult = await _gitHubAuth.GetAuthenticationAsync(targetUri, authModes);
+            AuthenticationModes authModes = await GetSupportedAuthenticationModesAsync(remoteUri);
+
+            AuthenticationPromptResult promptResult = await _gitHubAuth.GetAuthenticationAsync(remoteUri, input.UserName, authModes);
 
             switch (promptResult.AuthenticationMode)
             {
                 case AuthenticationModes.Basic:
-                    ICredential patCredential = await GeneratePersonalAccessTokenAsync(targetUri, promptResult.BasicCredential);
+                    GitCredential patCredential = await GeneratePersonalAccessTokenAsync(remoteUri, promptResult.Credential);
+
                     // HACK: Store the PAT immediately in case this PAT is not valid for SSO.
                     // We don't know if this PAT is valid for SAML SSO and if it's not Git will fail
                     // with a 403 and call neither 'store' or 'erase'. The user is expected to fiddle with
@@ -97,38 +144,58 @@ namespace GitHub
                     // We must store the PAT now so they can resume/repeat the operation with the same,
                     // now SSO authorized, PAT.
                     // See: https://github.com/microsoft/Git-Credential-Manager-Core/issues/133
-                    Context.CredentialStore.AddOrUpdate(GetCredentialKey(input), patCredential);
+                    Context.CredentialStore.AddOrUpdate(service, patCredential.Account, patCredential.Password);
                     return patCredential;
 
                 case AuthenticationModes.OAuth:
-                    return await GenerateOAuthCredentialAsync(targetUri);
+                    return await GenerateOAuthCredentialAsync(remoteUri);
+
+                case AuthenticationModes.Pat:
+                    // The token returned by the user should be good to use directly as the password for Git
+                    string token = promptResult.Credential.Password;
+
+                    // Resolve the GitHub user handle if we don't have a specific username already from the
+                    // initial request. The reason for this is GitHub requires a (any?) value for the username
+                    // when Git makes calls to GitHub.
+                    string userName = promptResult.Credential.Account;
+                    if (userName is null)
+                    {
+                        GitHubUserInfo userInfo = await _gitHubApi.GetUserInfoAsync(remoteUri, token);
+                        userName = userInfo.Login;
+                    }
+
+                    return new GitCredential(userName, token);
 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(promptResult));
             }
         }
 
-        private async Task<ICredential> GenerateOAuthCredentialAsync(Uri targetUri)
+        private async Task<GitCredential> GenerateOAuthCredentialAsync(Uri targetUri)
         {
             OAuth2TokenResult result = await _gitHubAuth.GetOAuthTokenAsync(targetUri, GitHubOAuthScopes);
 
-            return new GitCredential(Constants.OAuthTokenUserName, result.AccessToken);
+            // Resolve the GitHub user handle
+            GitHubUserInfo userInfo = await _gitHubApi.GetUserInfoAsync(targetUri, result.AccessToken);
+
+            return new GitCredential(userInfo.Login, result.AccessToken);
         }
 
-        private async Task<ICredential> GeneratePersonalAccessTokenAsync(Uri targetUri, ICredential credentials)
+        private async Task<GitCredential> GeneratePersonalAccessTokenAsync(Uri targetUri, ICredential credentials)
         {
             AuthenticationResult result = await _gitHubApi.CreatePersonalTokenAsync(
                 targetUri, credentials, null, GitHubCredentialScopes);
+
+            string token = null;
 
             if (result.Type == GitHubAuthenticationResultType.Success)
             {
                 Context.Trace.WriteLine($"Token acquisition for '{targetUri}' succeeded");
 
-                return result.Token;
+                token = result.Token;
             }
-
-            if (result.Type == GitHubAuthenticationResultType.TwoFactorApp ||
-                result.Type == GitHubAuthenticationResultType.TwoFactorSms)
+            else if (result.Type == GitHubAuthenticationResultType.TwoFactorApp ||
+                     result.Type == GitHubAuthenticationResultType.TwoFactorSms)
             {
                 bool isSms = result.Type == GitHubAuthenticationResultType.TwoFactorSms;
 
@@ -140,8 +207,16 @@ namespace GitHub
                 {
                     Context.Trace.WriteLine($"Token acquisition for '{targetUri}' succeeded.");
 
-                    return result.Token;
+                    token = result.Token;
                 }
+            }
+
+            if (token != null)
+            {
+                // Resolve the GitHub user handle
+                GitHubUserInfo userInfo = await _gitHubApi.GetUserInfoAsync(targetUri, token);
+
+                return new GitCredential(userInfo.Login, token);
             }
 
             throw new Exception($"Interactive logon for '{targetUri}' failed.");
@@ -166,27 +241,35 @@ namespace GitHub
                 }
             }
 
-            // GitHub.com should use OAuth authentication only
+            // GitHub.com should use OAuth or manual PAT based authentication only, never basic auth as of 13th November 2020
+            // https://developer.github.com/changes/2020-02-14-deprecating-oauth-auth-endpoint
             if (IsGitHubDotCom(targetUri))
             {
-                Context.Trace.WriteLine($"{targetUri} is github.com - authentication schemes: '{GitHubConstants.DotDomAuthenticationModes}'");
-                return GitHubConstants.DotDomAuthenticationModes;
+                Context.Trace.WriteLine($"{targetUri} is github.com - authentication schemes: '{GitHubConstants.DotComAuthenticationModes}'");
+                return GitHubConstants.DotComAuthenticationModes;
             }
 
             // For GitHub Enterprise we must do some detection of supported modes
-            Context.Trace.WriteLine($"{targetUri} is GitHub Enterprise - checking for supporting authentication schemes...");
+            Context.Trace.WriteLine($"{targetUri} is GitHub Enterprise - checking for supported authentication schemes...");
 
             try
             {
                 GitHubMetaInfo metaInfo = await _gitHubApi.GetMetaInfoAsync(targetUri);
 
-                var modes = AuthenticationModes.None;
+                var modes = AuthenticationModes.Pat;
                 if (metaInfo.VerifiablePasswordAuthentication)
                 {
                     modes |= AuthenticationModes.Basic;
                 }
-                if (Version.TryParse(metaInfo.InstalledVersion, out var version) && version >= GitHubConstants.MinimumEnterpriseOAuthVersion)
+
+                if (StringComparer.OrdinalIgnoreCase.Equals(metaInfo.InstalledVersion, GitHubConstants.GitHubAeVersionString))
                 {
+                    // Assume all GHAE instances have the GCM OAuth application deployed
+                    modes |= AuthenticationModes.OAuth;
+                }
+                else if (Version.TryParse(metaInfo.InstalledVersion, out var version) && version >= GitHubConstants.MinimumOnPremOAuthVersion)
+                {
+                    // Only GHES versions beyond the minimum version have the GCM OAuth application deployed
                     modes |= AuthenticationModes.OAuth;
                 }
 
@@ -199,7 +282,9 @@ namespace GitHub
                 Context.Trace.WriteException(ex);
 
                 Context.Terminal.WriteLine($"warning: failed to query '{targetUri}' for supported authentication schemes.");
-                return AuthenticationModes.Basic | AuthenticationModes.OAuth;
+
+                // Fall-back to offering all modes so the user is never blocked from authenticating by at least one mode
+                return AuthenticationModes.All;
             }
         }
 
@@ -212,37 +297,32 @@ namespace GitHub
 
         #region Private Methods
 
-        internal static bool IsGitHubDotCom(Uri targetUri)
+        public static bool IsGitHubDotCom(string targetUrl)
+        {
+            return Uri.TryCreate(targetUrl, UriKind.Absolute, out Uri uri) && IsGitHubDotCom(uri);
+        }
+
+        public static bool IsGitHubDotCom(Uri targetUri)
         {
             return StringComparer.OrdinalIgnoreCase.Equals(targetUri.Host, GitHubConstants.GitHubBaseUrlHost);
         }
 
-        private static Uri NormalizeUri(Uri targetUri)
+        private static Uri NormalizeUri(Uri uri)
         {
-            if (targetUri is null)
+            if (uri is null)
             {
-                throw new ArgumentNullException(nameof(targetUri));
+                throw new ArgumentNullException(nameof(uri));
             }
 
             // Special case for gist.github.com which are git backed repositories under the hood.
-            // Credentials for these repositories are the same as the one stored with "github.com"
-            if (targetUri.DnsSafeHost.Equals(GitHubConstants.GistBaseUrlHost, StringComparison.OrdinalIgnoreCase))
-            {
-                return new Uri("https://" + GitHubConstants.GitHubBaseUrlHost);
+            // Credentials for these repositories are the same as the one stored with "github.com".
+            // Same for gist.github[.subdomain].domain.tld. The general form was already checked via IsSupported.
+            int firstDot = uri.DnsSafeHost.IndexOf(".");
+            if (firstDot > -1 && uri.DnsSafeHost.Substring(0, firstDot).Equals("gist", StringComparison.OrdinalIgnoreCase)) {
+                return new Uri("https://" + uri.DnsSafeHost.Substring(firstDot+1));
             }
 
-            return targetUri;
-        }
-
-        private static Uri GetTargetUri(InputArguments input)
-        {
-            Uri uri = new UriBuilder
-            {
-                Scheme = input.Protocol,
-                Host = input.Host,
-            }.Uri;
-
-            return NormalizeUri(uri);
+            return uri;
         }
 
         #endregion

@@ -1,5 +1,3 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
 using System;
 using System.Collections.Generic;
 
@@ -31,11 +29,19 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
 
         public bool IsCertificateVerificationEnabled { get; set; } = true;
 
-        public Uri ProxyConfiguration { get; set; }
-
-        public bool IsDeprecatedProxyConfiguration { get; set; }
+        public ProxyConfiguration ProxyConfiguration { get; set; }
 
         public string ParentWindowId { get; set; }
+
+        public string CredentialNamespace { get; set; } = "git-test";
+
+        public string CredentialBackingStore { get; set; }
+
+        public string CustomCertificateBundlePath { get; set; }
+
+        public TlsBackend TlsBackend { get; set; }
+
+        public bool UseCustomCertificateBundleWithSchannel { get; set; }
 
         #region ISettings
 
@@ -48,7 +54,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
                 return true;
             }
 
-            if (GitConfiguration?.TryGetValue(section, property, out value) ?? false)
+            if (GitConfiguration?.TryGet($"{section}.{property}", out value) ?? false)
             {
                 return true;
             }
@@ -68,13 +74,10 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
             {
                 string key = $"{section}.{scope}.{property}";
 
-                IList<string> configValues = null;
-                if (GitConfiguration?.Dictionary.TryGetValue(key, out configValues) ?? false)
+                IEnumerable<string> configValues = GitConfiguration.GetAll(key);
+                foreach (string value in configValues)
                 {
-                    if (configValues.Count > 0)
-                    {
-                        yield return configValues[0];
-                    }
+                    yield return value;
                 }
             }
         }
@@ -107,13 +110,22 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
 
         bool ISettings.IsCertificateVerificationEnabled => IsCertificateVerificationEnabled;
 
-        Uri ISettings.GetProxyConfiguration(out bool isDeprecatedConfiguration)
+        ProxyConfiguration ISettings.GetProxyConfiguration()
         {
-            isDeprecatedConfiguration = IsDeprecatedProxyConfiguration;
             return ProxyConfiguration;
         }
 
         string ISettings.ParentWindowId => ParentWindowId;
+
+        string ISettings.CredentialNamespace => CredentialNamespace;
+
+        string ISettings.CredentialBackingStore => CredentialBackingStore;
+
+        string ISettings.CustomCertificateBundlePath => CustomCertificateBundlePath;
+
+        TlsBackend ISettings.TlsBackend => TlsBackend;
+
+        bool ISettings.UseCustomCertificateBundleWithSchannel => UseCustomCertificateBundleWithSchannel;
 
         #endregion
 
