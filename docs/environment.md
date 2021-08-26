@@ -283,6 +283,37 @@ export GCM_HTTP_PROXY=http://john.doe:password@proxy.contoso.com
 
 ---
 
+### GCM_BITBUCKET_AUTHMODES
+
+Override the available authentication modes presented during Bitbucket authentication.
+If this option is not set, then the available authentication modes will be automatically detected.
+
+**Note:** This setting only applies to Bitbucket.org, and not Server or DC instances.
+
+**Note:** This setting supports multiple values separated by commas.
+
+Value|Authentication Mode
+-|-
+_(unset)_|Automatically detect modes
+`oauth`|OAuth-based authentication
+`basic`|Basic/PAT-based authentication
+
+##### Windows
+
+```batch
+SET GCM_BITBUCKET_AUTHMODES="oauth,basic"
+```
+
+##### macOS/Linux
+
+```bash
+export GCM_BITBUCKET_AUTHMODES="oauth,basic"
+```
+
+**Also see: [credential.bitbucketAuthModes](configuration.md#credentialbitbucketAuthModes)**
+
+---
+
 ### GCM_GITHUB_AUTHMODES
 
 Override the available authentication modes presented during GitHub authentication.
