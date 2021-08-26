@@ -78,3 +78,5 @@ See https://developer.atlassian.com/server/framework/atlassian-sdk/atlas-run-sta
 This will download and run a standalone instance of Bitbucket Server which can be accessed using the credentials `admin`/`admin` at
 
 	https://localhost:7990/bitbucket
+
+Instructions on how to download and install the Atlassian SDK can be found here: https://developer.atlassian.com/server/framework/atlassian-sdk/
