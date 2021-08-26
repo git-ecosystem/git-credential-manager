@@ -191,8 +191,6 @@ namespace Atlassian.Bitbucket
 
         private async Task<ICredential> GetOAuthCredentialsInteractive(Uri targetUri, string refreshTokenService)
         {
-            _bitbucketAuth.ThrowIfUserInteractionDisabled();
-
             // We failed to use the refresh token either because it didn't exist, or because the refresh token is no
             // longer valid. Either way we must now try authenticating using OAuth interactively.
 
