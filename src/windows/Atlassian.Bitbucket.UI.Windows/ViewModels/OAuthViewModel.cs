@@ -1,6 +1,4 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Windows.Input;
 using Microsoft.Git.CredentialManager;
 using Microsoft.Git.CredentialManager.UI;

@@ -1,6 +1,4 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
-using Atlassian.Bitbucket.UI.Controls;
+﻿using Atlassian.Bitbucket.UI.Controls;
 using Atlassian.Bitbucket.UI.ViewModels;
 using Microsoft.Git.CredentialManager.UI;
 
