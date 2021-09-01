@@ -35,10 +35,6 @@ Proxy support|&#10003;|&#10003;|&#10003;
 
 (\*\*) Debian package offered but not yet available on an official Microsoft feed.
 
-### Planned features
-
-- [ ] macOS/Linux native UI ([#136](https://github.com/microsoft/Git-Credential-Manager-Core/issues/136))
-
 ## Download and Install
 
 ### macOS Homebrew
