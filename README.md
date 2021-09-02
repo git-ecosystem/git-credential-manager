@@ -4,7 +4,7 @@
 
 ---
 
-[Git Credential Manager Core](https://github.com/microsoft/Git-Credential-Manager-Core) (GCM Core) is a secure Git credential helper built on [.NET](https://dotnet.microsoft.com) that runs on Windows and macOS. Linux support is in an early preview.
+[Git Credential Manager Core](https://github.com/microsoft/Git-Credential-Manager-Core) (GCM Core) is a secure Git credential helper built on [.NET](https://dotnet.microsoft.com) that runs on Windows, macOS, and Linux.
 
 Compared to Git's [built-in credential helpers]((https://git-scm.com/book/en/v2/Git-Tools-Credential-Storage)) (Windows: wincred, macOS: osxkeychain, Linux: gnome-keyring) which provides single-factor authentication support working on any HTTP-enabled Git repository, GCM Core provides multi-factor authentication support for [Azure DevOps](https://dev.azure.com/), Azure DevOps Server (formerly Team Foundation Server), GitHub, and Bitbucket.
 
@@ -12,7 +12,7 @@ Git Credential Manager Core (GCM Core) replaces the .NET Framework-based [Git Cr
 
 ## Current status
 
-Git Credential Manager Core is currently available for macOS and Windows, with Linux support in preview. If the Linux version of GCM Core is insufficient then SSH still remains an option:
+Git Credential Manager Core is currently available for macOS and Windows, with Linux support in preview. If the Linux version of GCM Core is insufficient then SSH is a good option:
 
 - [Azure DevOps SSH](https://docs.microsoft.com/en-us/azure/devops/repos/git/use-ssh-keys-to-authenticate?view=azure-devops)
 - [GitHub SSH](https://help.github.com/en/articles/connecting-to-github-with-ssh)
@@ -202,3 +202,8 @@ This project welcomes contributions and suggestions.
 See the [contributing guide](CONTRIBUTING.md) to get started.
 
 This project follows [GitHub's Open Source Code of Conduct](CODE_OF_CONDUCT.md).
+
+## License
+
+We're [MIT](LICENSE) licensed.
+When using GitHub logos, please be sure to follow the [GitHub logo guidelines](https://github.com/logos).
