@@ -54,7 +54,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
                 return true;
             }
 
-            if (GitConfiguration?.TryGet($"{section}.{property}", out value) ?? false)
+            if (GitConfiguration?.TryGet($"{section}.{property}", false, out value) ?? false)
             {
                 return true;
             }
@@ -62,7 +62,12 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
             return false;
         }
 
-        public IEnumerable<string> GetSettingValues(string envarName, string section, string property)
+        public bool TryGetPathSetting(string envarName, string section, string property, out string value)
+        {
+            return TryGetSetting(envarName, section, property, out value);
+        }
+
+        public IEnumerable<string> GetSettingValues(string envarName, string section, string property, bool isPath)
         {
             string envarValue = null;
             if (Environment?.Variables.TryGetValue(envarName, out envarValue) ?? false)

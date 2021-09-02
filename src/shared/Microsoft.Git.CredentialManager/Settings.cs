@@ -24,6 +24,19 @@ namespace Microsoft.Git.CredentialManager
         /// <returns>True if a setting value was found, false otherwise.</returns>
         bool TryGetSetting(string envarName, string section, string property, out string value);
 
+
+        /// <summary>
+        /// Try and get the value of a specified setting as specified in the environment and Git configuration,
+        /// with the environment taking precedence over Git. If the value is pulled from the Git configuration,
+        /// it is returned as a canonical path.
+        /// </summary>
+        /// <param name="envarName">Optional environment variable name.</param>
+        /// <param name="section">Optional Git configuration section name.</param>
+        /// <param name="property">Git configuration property name. Required if <paramref name="section"/> is set, optional otherwise.</param>
+        /// <param name="value">Value of the requested setting as a canonical path.</param>
+        /// <returns>True if a setting value was found, false otherwise.</returns>
+        bool TryGetPathSetting(string envarName, string section, string property, out string value);
+
         /// <summary>
         /// Try and get the all values of a specified setting as specified in the environment and Git configuration,
         /// in the correct order or precedence.
@@ -31,8 +44,9 @@ namespace Microsoft.Git.CredentialManager
         /// <param name="envarName">Optional environment variable name.</param>
         /// <param name="section">Optional Git configuration section name.</param>
         /// <param name="property">Git configuration property name. Required if <paramref name="section"/> is set, optional otherwise.</param>
+        /// <param name="isPath">Whether the returned values should be transformed into canonical paths.</param>
         /// <returns>All values for the specified setting, in order of precedence, or an empty collection if no such values are set.</returns>
-        IEnumerable<string> GetSettingValues(string envarName, string section, string property);
+        IEnumerable<string> GetSettingValues(string envarName, string section, string property, bool isPath);
 
         /// <summary>
         /// Git remote address that setting lookup is scoped to, or null if no remote URL has been discovered.
@@ -203,14 +217,23 @@ namespace Microsoft.Git.CredentialManager
 
         public bool TryGetSetting(string envarName, string section, string property, out string value)
         {
-            IEnumerable<string> allValues = GetSettingValues(envarName, section, property);
+            IEnumerable<string> allValues = GetSettingValues(envarName, section, property, false);
 
             value = allValues.FirstOrDefault();
 
             return value != null;
         }
 
-        public IEnumerable<string> GetSettingValues(string envarName, string section, string property)
+        public bool TryGetPathSetting(string envarName, string section, string property, out string value)
+        {
+            IEnumerable<string> allValues = GetSettingValues(envarName, section, property, true);
+
+            value = allValues.FirstOrDefault();
+
+            return value != null;
+        }
+
+        public IEnumerable<string> GetSettingValues(string envarName, string section, string property, bool isPath)
         {
             string value;
 
@@ -286,16 +309,22 @@ namespace Microsoft.Git.CredentialManager
                     foreach (string scope in RemoteUri.GetGitConfigurationScopes())
                     {
                         string queryName = $"{section}.{scope}.{property}";
-                        // Look for a scoped entry that includes the scheme "protocol://example.com" first as this is more specific
-                        if (configEntries.TryGetValue(queryName, out value))
+                        // Look for a scoped entry that includes the scheme "protocol://example.com" first as
+                        // this is more specific. If `isPath` is true, then re-get the value from the
+                        // `GitConfiguration` with `isPath` specified.
+                        if (configEntries.TryGetValue(queryName, out value) &&
+                            (!isPath || config.TryGet(queryName, isPath, out value)))
                         {
                             yield return value;
                         }
 
-                        // Now look for a scoped entry that omits the scheme "example.com" second as this is less specific
+                        // Now look for a scoped entry that omits the scheme "example.com" second as this is less
+                        // specific. As above, if `isPath` is true, get the configuration setting again with
+                        // `isPath` specified.
                         string scopeWithoutScheme = scope.TrimUntilIndexOf(Uri.SchemeDelimiter);
                         string queryWithSchemeName = $"{section}.{scopeWithoutScheme}.{property}";
-                        if (configEntries.TryGetValue(queryWithSchemeName, out value))
+                        if (configEntries.TryGetValue(queryWithSchemeName, out value) &&
+                            (!isPath || config.TryGet(queryWithSchemeName, isPath, out value)))
                         {
                             yield return value;
                         }
@@ -309,7 +338,7 @@ namespace Microsoft.Git.CredentialManager
                  *        property = value
                  *
                  */
-                if (config.TryGet($"{section}.{property}", false, out value))
+                if (config.TryGet($"{section}.{property}", isPath, out value))
                 {
                     yield return value;
                 }
@@ -432,7 +461,7 @@ namespace Microsoft.Git.CredentialManager
         {
             bool TryGetUriSetting(string envarName, string section, string property, out Uri uri)
             {
-                IEnumerable<string> allValues = GetSettingValues(envarName, section, property);
+                IEnumerable<string> allValues = GetSettingValues(envarName, section, property, false);
 
                 foreach (var value in allValues)
                 {
