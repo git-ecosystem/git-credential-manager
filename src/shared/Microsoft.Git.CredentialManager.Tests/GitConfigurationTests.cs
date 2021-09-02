@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using Microsoft.Git.CredentialManager.Tests.Objects;
 using Xunit;
 using static Microsoft.Git.CredentialManager.Tests.GitTestUtilities;
@@ -137,7 +138,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             var git = new GitProcess(trace, gitPath, repoPath);
             IGitConfiguration config = git.GetConfiguration();
 
-            bool result = config.TryGet("user.name", out string value);
+            bool result = config.TryGet("user.name", false, out string value);
             Assert.True(result);
             Assert.NotNull(value);
             Assert.Equal("john.doe", value);
@@ -154,9 +155,80 @@ namespace Microsoft.Git.CredentialManager.Tests
             IGitConfiguration config = git.GetConfiguration();
 
             string randomName = $"{Guid.NewGuid():N}.{Guid.NewGuid():N}";
-            bool result = config.TryGet(randomName, out string value);
+            bool result = config.TryGet(randomName, false, out string value);
             Assert.False(result);
             Assert.Null(value);
+        }
+
+        [Fact]
+        public void GitConfiguration_TryGet_IsPath_True_ReturnsCanonicalPath()
+        {
+            string repoPath = CreateRepository(out string workDirPath);
+            ExecGit(repoPath, workDirPath, "config --local example.path ~/test").AssertSuccess();
+
+            string homeDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            string gitPath = GetGitPath();
+            var trace = new NullTrace();
+            var git = new GitProcess(trace, gitPath, repoPath);
+            IGitConfiguration config = git.GetConfiguration();
+
+            bool result = config.TryGet("example.path", true, out string value);
+            Assert.True(result);
+            Assert.NotNull(value);
+            Assert.Equal(Path.GetFullPath($"{homeDirectory}/test").Replace("\\", "/"), value);
+        }
+
+        [Fact]
+        public void GitConfiguration_TryGet_IsPath_False_ReturnsRawConfig()
+        {
+            string repoPath = CreateRepository(out string workDirPath);
+            ExecGit(repoPath, workDirPath, "config --local example.path ~/test").AssertSuccess();
+
+            string gitPath = GetGitPath();
+            var trace = new NullTrace();
+            var git = new GitProcess(trace, gitPath, repoPath);
+            IGitConfiguration config = git.GetConfiguration();
+
+            bool result = config.TryGet("example.path", false, out string value);
+            Assert.True(result);
+            Assert.NotNull(value);
+            Assert.Equal($"~/test", value);
+        }
+
+        [Fact]
+        public void GitConfiguration_TryGet_BoolType_ReturnsCanonicalBool()
+        {
+            string repoPath = CreateRepository(out string workDirPath);
+            ExecGit(repoPath, workDirPath, "config --local example.bool fAlSe").AssertSuccess();
+
+            string gitPath = GetGitPath();
+            var trace = new NullTrace();
+            var git = new GitProcess(trace, gitPath, repoPath);
+            IGitConfiguration config = git.GetConfiguration();
+
+            bool result = config.TryGet(GitConfigurationLevel.Local, GitConfigurationType.Bool,
+                "example.bool", out string value);
+            Assert.True(result);
+            Assert.NotNull(value);
+            Assert.Equal("false", value);
+        }
+
+        [Fact]
+        public void GitConfiguration_TryGet_BoolWithoutType_ReturnsRawConfig()
+        {
+            string repoPath = CreateRepository(out string workDirPath);
+            ExecGit(repoPath, workDirPath, "config --local example.bool fAlSe").AssertSuccess();
+
+            string gitPath = GetGitPath();
+            var trace = new NullTrace();
+            var git = new GitProcess(trace, gitPath, repoPath);
+            IGitConfiguration config = git.GetConfiguration();
+
+            bool result = config.TryGet(GitConfigurationLevel.Local, GitConfigurationType.Raw,
+                "example.bool", out string value);
+            Assert.True(result);
+            Assert.NotNull(value);
+            Assert.Equal("fAlSe", value);
         }
 
         [Fact]

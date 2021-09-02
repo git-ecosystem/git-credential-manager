@@ -309,7 +309,7 @@ namespace Microsoft.Git.CredentialManager
                  *        property = value
                  *
                  */
-                if (config.TryGet($"{section}.{property}", out value))
+                if (config.TryGet($"{section}.{property}", false, out value))
                 {
                     yield return value;
                 }

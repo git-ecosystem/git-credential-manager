@@ -21,6 +21,17 @@ namespace Microsoft.Git.CredentialManager
         Unknown,
     }
 
+    public enum GitConfigurationType
+    {
+        Raw,
+        Bool,
+        Int,
+        BoolOrInt,
+        Path,
+        ExpiryDate,
+        Color
+    }
+
     public interface IGitConfiguration
     {
         /// <summary>
@@ -34,10 +45,11 @@ namespace Microsoft.Git.CredentialManager
         /// Try and get the value of a configuration entry as a string.
         /// </summary>
         /// <param name="level">Filter to the specific configuration level.</param>
+        /// <param name="type">Type constraint to which the config value should be canonicalized.</param>
         /// <param name="name">Configuration entry name.</param>
         /// <param name="value">Configuration entry value.</param>
         /// <returns>True if the value was found, false otherwise.</returns>
-        bool TryGet(GitConfigurationLevel level, string name, out string value);
+        bool TryGet(GitConfigurationLevel level, GitConfigurationType type, string name, out string value);
 
         /// <summary>
         /// Set the value of a configuration entry.
@@ -66,18 +78,20 @@ namespace Microsoft.Git.CredentialManager
         /// Get all value of a multivar configuration entry.
         /// </summary>
         /// <param name="level">Filter to the specific configuration level.</param>
+        /// <param name="type">Type constraint to which the config values should be canonicalized.</param>
         /// <param name="name">Configuration entry name.</param>
         /// <returns>All values of the multivar configuration entry.</returns>
-        IEnumerable<string> GetAll(GitConfigurationLevel level, string name);
+        IEnumerable<string> GetAll(GitConfigurationLevel level, GitConfigurationType type, string name);
 
         /// <summary>
         /// Get all values of a multivar configuration entry.
         /// </summary>
         /// <param name="level">Filter to the specific configuration level.</param>
+        /// <param name="type">Type constraint to which the config values should be canonicalized.</param>
         /// <param name="nameRegex">Configuration entry name regular expression.</param>
         /// <param name="valueRegex">Regular expression to filter which variables we're interested in. Use null to indicate all.</param>
         /// <returns>All values of the multivar configuration entry.</returns>
-        IEnumerable<string> GetRegex(GitConfigurationLevel level, string nameRegex, string valueRegex);
+        IEnumerable<string> GetRegex(GitConfigurationLevel level, GitConfigurationType type, string nameRegex, string valueRegex);
 
         /// <summary>
         /// Set a multivar configuration entry value.
@@ -180,10 +194,11 @@ namespace Microsoft.Git.CredentialManager
             }
         }
 
-        public bool TryGet(GitConfigurationLevel level, string name, out string value)
+        public bool TryGet(GitConfigurationLevel level, GitConfigurationType type, string name, out string value)
         {
             string levelArg = GetLevelFilterArg(level);
-            using (Process git = _git.CreateProcess($"config --null {levelArg} {QuoteCmdArg(name)}"))
+            string typeArg = GetCanonicalizeTypeArg(type);
+            using (Process git = _git.CreateProcess($"config --null {levelArg} {typeArg} {QuoteCmdArg(name)}"))
             {
                 git.Start();
                 git.WaitForExit();
@@ -278,11 +293,12 @@ namespace Microsoft.Git.CredentialManager
             }
         }
 
-        public IEnumerable<string> GetAll(GitConfigurationLevel level, string name)
+        public IEnumerable<string> GetAll(GitConfigurationLevel level, GitConfigurationType type, string name)
         {
             string levelArg = GetLevelFilterArg(level);
+            string typeArg = GetCanonicalizeTypeArg(type);
 
-            var gitArgs = $"config --null {levelArg} --get-all {QuoteCmdArg(name)}";
+            var gitArgs = $"config --null {levelArg} {typeArg} --get-all {QuoteCmdArg(name)}";
 
             using (Process git = _git.CreateProcess(gitArgs))
             {
@@ -315,11 +331,12 @@ namespace Microsoft.Git.CredentialManager
             }
         }
 
-        public IEnumerable<string> GetRegex(GitConfigurationLevel level, string nameRegex, string valueRegex)
+        public IEnumerable<string> GetRegex(GitConfigurationLevel level, GitConfigurationType type, string nameRegex, string valueRegex)
         {
             string levelArg = GetLevelFilterArg(level);
+            string typeArg = GetCanonicalizeTypeArg(type);
 
-            var gitArgs = $"config --null {levelArg} --get-regex {QuoteCmdArg(nameRegex)}";
+            var gitArgs = $"config --null {levelArg} {typeArg} --get-regex {QuoteCmdArg(nameRegex)}";
             if (valueRegex != null)
             {
                 gitArgs += $" {QuoteCmdArg(valueRegex)}";
@@ -433,6 +450,20 @@ namespace Microsoft.Git.CredentialManager
                 default:
                     return null;
             }
+        }
+
+        private static string GetCanonicalizeTypeArg(GitConfigurationType type)
+        {
+            return type switch
+            {
+                GitConfigurationType.Bool         => "--type=bool",
+                GitConfigurationType.BoolOrInt    => "--type=bool-or-int",
+                GitConfigurationType.Int          => "--type=int",
+                GitConfigurationType.Path         => "--type=path",
+                GitConfigurationType.ExpiryDate   => "--type=expiry-date",
+                GitConfigurationType.Color        => "--type=color",
+                _                                 => null
+            };
         }
 
         public static string QuoteCmdArg(string str)
@@ -565,7 +596,7 @@ namespace Microsoft.Git.CredentialManager
         /// <returns>Configuration entry value.</returns>
         public static string Get(this IGitConfiguration config, GitConfigurationLevel level, string name)
         {
-            if (!config.TryGet(level, name, out string value))
+            if (!config.TryGet(level, GitConfigurationType.Raw, name, out string value))
             {
                 throw new KeyNotFoundException($"Git configuration entry with the name '{name}' was not found.");
             }
@@ -590,11 +621,14 @@ namespace Microsoft.Git.CredentialManager
         /// </summary>
         /// <param name="config">Configuration object.</param>
         /// <param name="name">Configuration entry name.</param>
+        /// <param name="isPath">Whether the entry should be canonicalized as a path.</param>
         /// <param name="value">Configuration entry value.</param>
         /// <returns>True if the value was found, false otherwise.</returns>
-        public static bool TryGet(this IGitConfiguration config, string name, out string value)
+        public static bool TryGet(this IGitConfiguration config, string name, bool isPath, out string value)
         {
-            return config.TryGet(GitConfigurationLevel.All, name, out value);
+            return config.TryGet(GitConfigurationLevel.All,
+                isPath ? GitConfigurationType.Path : GitConfigurationType.Raw,
+                name, out value);
         }
 
         /// <summary>
@@ -605,7 +639,7 @@ namespace Microsoft.Git.CredentialManager
         /// <returns>All values of the multivar configuration entry.</returns>
         public static IEnumerable<string> GetAll(this IGitConfiguration config, string name)
         {
-            return config.GetAll(GitConfigurationLevel.All, name);
+            return config.GetAll(GitConfigurationLevel.All, GitConfigurationType.Raw, name);
         }
 
         /// <summary>
@@ -617,7 +651,7 @@ namespace Microsoft.Git.CredentialManager
         /// <returns>All values of the multivar configuration entry.</returns>
         public static IEnumerable<string> GetRegex(this IGitConfiguration config, string nameRegex, string valueRegex)
         {
-            return config.GetRegex(GitConfigurationLevel.All, nameRegex, valueRegex);
+            return config.GetRegex(GitConfigurationLevel.All, GitConfigurationType.Raw, nameRegex, valueRegex);
         }
     }
 }
