@@ -103,7 +103,7 @@ namespace Microsoft.Git.CredentialManager.Authentication
         protected bool TryFindHelperExecutablePath(string envar, string configName, string defaultValue, out string path)
         {
             bool isOverride = false;
-            if (Context.Settings.TryGetSetting(
+            if (Context.Settings.TryGetPathSetting(
                 envar, Constants.GitConfiguration.Credential.SectionName, configName, out string helperName))
             {
                 Context.Trace.WriteLine($"UI helper override specified: '{helperName}'.");

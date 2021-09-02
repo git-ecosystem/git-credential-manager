@@ -446,7 +446,7 @@ namespace Microsoft.Git.CredentialManager
         }
 
         public string CustomCertificateBundlePath =>
-            TryGetSetting(KnownEnvars.GitSslCaInfo, KnownGitCfg.Http.SectionName, KnownGitCfg.Http.SslCaInfo, out string value) ? value : null;
+            TryGetPathSetting(KnownEnvars.GitSslCaInfo, KnownGitCfg.Http.SectionName, KnownGitCfg.Http.SslCaInfo, out string value) ? value : null;
 
         public TlsBackend TlsBackend =>
             TryGetSetting(null, KnownGitCfg.Http.SectionName, KnownGitCfg.Http.SslBackend, out string config)
