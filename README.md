@@ -201,6 +201,4 @@ See detailed information [here](https://aka.ms/gcmcore-httpproxy).
 This project welcomes contributions and suggestions.  
 See the [contributing guide](CONTRIBUTING.md) to get started.
 
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
-For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
-contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+This project follows [GitHub's Open Source Code of Conduct](CODE_OF_CONDUCT.md).
