@@ -213,7 +213,7 @@ namespace Atlassian.Bitbucket.Tests
         [InlineData("https://Bitbucket.org", "none", BitbucketConstants.DotOrgAuthenticationModes)]
         [InlineData("https://bitbucket.org", null, BitbucketConstants.DotOrgAuthenticationModes)]
         [InlineData("https://Bitbucket.org", null, BitbucketConstants.DotOrgAuthenticationModes)]
-        public async Task BitbucketHostProvider_GetSupportedAuthenticationModes(string uriString, string bitbucketAuthModes, AuthenticationModes expectedModes)
+        public void BitbucketHostProvider_GetSupportedAuthenticationModes(string uriString, string bitbucketAuthModes, AuthenticationModes expectedModes)
         {
             var targetUri = new Uri(uriString);
 
@@ -224,7 +224,7 @@ namespace Atlassian.Bitbucket.Tests
 
             var provider = new BitbucketHostProvider(context, bitbucketAuthentication.Object, bitbucketApi.Object);
 
-            AuthenticationModes actualModes = provider.GetSupportedAuthenticationModesAsync(targetUri);
+            AuthenticationModes actualModes = provider.GetSupportedAuthenticationModes(targetUri);
 
             Assert.Equal(expectedModes, actualModes);
         }

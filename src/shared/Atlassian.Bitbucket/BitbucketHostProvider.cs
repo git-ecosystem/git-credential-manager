@@ -87,7 +87,7 @@ namespace Atlassian.Bitbucket
             // Check for presence of refresh_token entry in credential store
             string refreshTokenService = GetRefreshTokenServiceName(input);
 
-            AuthenticationModes authModes = GetSupportedAuthenticationModesAsync(targetUri);
+            AuthenticationModes authModes = GetSupportedAuthenticationModes(targetUri);
 
             _context.Trace.WriteLine("Checking for refresh token...");
             ICredential refreshToken = SupportsOAuth(authModes) ? _context.CredentialStore.Get(refreshTokenService, input.UserName) : null;
@@ -220,7 +220,7 @@ namespace Atlassian.Bitbucket
             return (authModes & AuthenticationModes.Basic) != 0;
         }
 
-        public AuthenticationModes GetSupportedAuthenticationModesAsync(Uri targetUri)
+        public AuthenticationModes GetSupportedAuthenticationModes(Uri targetUri)
         {
             if(!IsBitbucketOrg(targetUri))
             {
