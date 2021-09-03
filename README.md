@@ -6,13 +6,13 @@
 
 [Git Credential Manager Core](https://github.com/microsoft/Git-Credential-Manager-Core) (GCM Core) is a secure Git credential helper built on [.NET](https://dotnet.microsoft.com) that runs on Windows, macOS, and Linux.
 
-Compared to Git's [built-in credential helpers]((https://git-scm.com/book/en/v2/Git-Tools-Credential-Storage)) (Windows: wincred, macOS: osxkeychain, Linux: gnome-keyring) which provides single-factor authentication support working on any HTTP-enabled Git repository, GCM Core provides multi-factor authentication support for [Azure DevOps](https://dev.azure.com/), Azure DevOps Server (formerly Team Foundation Server), GitHub, and Bitbucket.
+Compared to Git's [built-in credential helpers]((https://git-scm.com/book/en/v2/Git-Tools-Credential-Storage)) (Windows: wincred, macOS: osxkeychain, Linux: gnome-keyring/libsecret) which provides single-factor authentication support working on any HTTP-enabled Git repository, GCM Core provides multi-factor authentication support for [Azure DevOps](https://dev.azure.com/), Azure DevOps Server (formerly Team Foundation Server), GitHub, and Bitbucket.
 
 Git Credential Manager Core (GCM Core) replaces the .NET Framework-based [Git Credential Manager for Windows](https://github.com/microsoft/Git-Credential-Manager-for-Windows) (GCM), and the Java-based [Git Credential Manager for Mac and Linux](https://github.com/microsoft/Git-Credential-Manager-for-Mac-and-Linux) (Java GCM), providing a consistent authentication experience across all platforms.
 
 ## Current status
 
-Git Credential Manager Core is currently available for macOS and Windows, with Linux support in preview. If the Linux version of GCM Core is insufficient then SSH is a good option:
+Git Credential Manager Core is currently available for Windows, macOS, and Linux. GCM only works with HTTP(S) remotes; you can still use Git with SSH:
 
 - [Azure DevOps SSH](https://docs.microsoft.com/en-us/azure/devops/repos/git/use-ssh-keys-to-authenticate?view=azure-devops)
 - [GitHub SSH](https://help.github.com/en/articles/connecting-to-github-with-ssh)
@@ -20,24 +20,18 @@ Git Credential Manager Core is currently available for macOS and Windows, with L
 
 Feature|Windows|macOS|Linux
 -|:-:|:-:|:-:
-Installer/uninstaller|&#10003;|&#10003;|&#10003;\*\*
-Secure platform credential storage|&#10003;<br/>Windows<br/>Credential<br/>Manager|&#10003;<br/>macOS Keychain|&#10003;<br/>1. Secret Service<br/>2. `pass`/GPG<br/>3. Plaintext files
-Multi-factor authentication support for Azure DevOps|&#10003;|&#10003;|&#10003;\*
-Two-factor authentication support for GitHub|&#10003;|&#10003;\*|&#10003;\*
-Two-factor authentication support for Bitbucket|&#10003;|&#10003;\*|&#10003;\*
+Installer/uninstaller|&#10003;|&#10003;|&#10003;\*
+Secure platform credential storage|&#10003;<br/>Windows<br/>Credential<br/>Manager|&#10003;<br/>macOS Keychain|&#10003;<br/>1. Secret Service<br/>2. `pass`/GPG<br/>3. `credential-cache`<br/>4. Plaintext files<br/>[(see more)](docs/linuxcredstores.md)
+Multi-factor authentication support for Azure DevOps|&#10003;|&#10003;|&#10003;
+Two-factor authentication support for GitHub|&#10003;|&#10003;|&#10003;
+Two-factor authentication support for Bitbucket|&#10003;|&#10003;|&#10003;
 Windows Integrated Authentication (NTLM/Kerberos) support|&#10003;|_N/A_|_N/A_
 Basic HTTP authentication support|&#10003;|&#10003;|&#10003;
 Proxy support|&#10003;|&#10003;|&#10003;
 
 **Notes:**
 
-(\*) Currently only supported when using Git from the terminal or command line. A platform-native UI experience is not yet available, but planned.
-
-(\*\*) Debian package offered but not yet available on an official Microsoft feed.
-
-### Planned features
-
-- [ ] macOS/Linux native UI ([#136](https://github.com/microsoft/Git-Credential-Manager-Core/issues/136))
+(\*) Debian package offered but not yet available on an official Microsoft feed.
 
 ## Download and Install
 
@@ -195,6 +189,9 @@ See detailed information [here](https://aka.ms/gcmcore-httpproxy).
 - [Network and HTTP configuration](docs/netconfig.md)
 - [Architectural overview](docs/architecture.md)
 - [Host provider specification](docs/hostprovider.md)
+- [Linux credential stores](docs/linuxcredstores.md)
+- [Windows broker (experimental)](docs/windows-broker.md)
+- [Azure Repos OAuth tokens (experimental)](docs/azrepos-users-and-tokens.md)
 
 ## Contributing
 

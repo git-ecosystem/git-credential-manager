@@ -1,34 +1,7 @@
 using System;
-using System.Runtime.InteropServices;
 
 namespace Microsoft.Git.CredentialManager.Interop.Posix.Native
 {
-    public static class Termios
-    {
-        [DllImport("libc", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-        public static extern int tcgetattr(int fd, out termios termios);
-
-        [DllImport("libc", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-        public static extern int tcsetattr(int fd, SetActionFlags optActions, ref termios termios);
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    public struct termios
-    {
-        private const int NCCS = 20;
-
-        public InputFlags   c_iflag;
-        public OutputFlags  c_oflag;
-        public ControlFlags c_cflag;
-        public LocalFlags   c_lflag;
-
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = NCCS)]
-        public byte[] c_cc;
-
-        public ulong c_ispeed;
-        public ulong c_ospeed;
-    }
-
     [Flags]
     public enum SetActionFlags
     {
@@ -49,7 +22,7 @@ namespace Microsoft.Git.CredentialManager.Interop.Posix.Native
     }
 
     [Flags]
-    public enum InputFlags : ulong
+    public enum InputFlags : uint
     {
         IGNBRK  = 0x00000001, // ignore BREAK condition
         BRKINT  = 0x00000002, // map BREAK to SIGINTR
@@ -68,7 +41,7 @@ namespace Microsoft.Git.CredentialManager.Interop.Posix.Native
     }
 
     [Flags]
-    public enum OutputFlags : ulong
+    public enum OutputFlags : uint
     {
         OPOST  = 0x00000001, // enable following output processing
         ONLCR  = 0x00000002, // map NL to CR-NL (ala CRMOD)
@@ -88,7 +61,7 @@ namespace Microsoft.Git.CredentialManager.Interop.Posix.Native
     }
 
     [Flags]
-    public enum ControlFlags : ulong
+    public enum ControlFlags : uint
     {
         CIGNORE    = 0x00000001, // ignore control flags
         CSIZE      = 0x00000300, // character size mask
@@ -112,7 +85,7 @@ namespace Microsoft.Git.CredentialManager.Interop.Posix.Native
     }
 
     [Flags]
-    public enum LocalFlags : ulong
+    public enum LocalFlags : uint
     {
         ECHOKE     = 0x00000001, // visual erase for line kill
         ECHOE      = 0x00000002, // visually erase chars

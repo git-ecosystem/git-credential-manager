@@ -7,19 +7,19 @@ namespace Microsoft.Git.CredentialManager.Interop.Posix
     /// <summary>
     /// Represents a thin wrapper around the POSIX TTY device (/dev/tty).
     /// </summary>
-    public class PosixTerminal : ITerminal
+    public abstract class PosixTerminal : ITerminal
     {
         private const string TtyDeviceName = "/dev/tty";
         private const byte DeleteChar = 127;
 
-        private readonly ITrace _trace;
+        protected readonly ITrace Trace;
 
         public PosixTerminal(ITrace trace)
         {
             PlatformUtils.EnsurePosix();
             EnsureArgument.NotNull(trace, nameof(trace));
 
-            _trace = trace;
+            Trace = trace;
         }
 
         public void WriteLine(string format, params object[] args)
@@ -28,7 +28,7 @@ namespace Microsoft.Git.CredentialManager.Interop.Posix
             {
                 if (fd.IsInvalid)
                 {
-                    _trace.WriteLine("Not a TTY, abandoning write line.");
+                    Trace.WriteLine("Not a TTY, abandoning write line.");
                     return;
                 }
 
@@ -47,13 +47,15 @@ namespace Microsoft.Git.CredentialManager.Interop.Posix
             return Prompt(prompt, echo: false);
         }
 
+        protected abstract IDisposable CreateTtyContext(int fd, bool echo);
+
         private string Prompt(string prompt, bool echo)
         {
             using (var fd = new PosixFileDescriptor(TtyDeviceName, OpenFlags.O_RDWR))
             {
                 if (fd.IsInvalid)
                 {
-                    _trace.WriteLine("Not a TTY, abandoning prompt.");
+                    Trace.WriteLine("Not a TTY, abandoning prompt.");
                     return null;
                 }
 
@@ -61,7 +63,7 @@ namespace Microsoft.Git.CredentialManager.Interop.Posix
 
                 var sb = new StringBuilder();
 
-                using (new TtyContext(_trace, fd, echo))
+                using (CreateTtyContext(fd, echo))
                 {
                     var readBuf = new byte[1];
                     bool eol = false;
@@ -73,7 +75,7 @@ namespace Microsoft.Git.CredentialManager.Interop.Posix
                         {
                             // Either we reached end of file or an error occured.
                             // We don't care which so let's just trace and terminate further reading.
-                            _trace.WriteLine($"Exiting POSIX terminal prompt read-loop unexpectedly (nr={nr})");
+                            Trace.WriteLine($"Exiting POSIX terminal prompt read-loop unexpectedly (nr={nr})");
                             eol = true;
                             break;
                         }
@@ -85,7 +87,7 @@ namespace Microsoft.Git.CredentialManager.Interop.Posix
                                 // Since `read` is a blocking call we must manually raise the SIGINT signal
                                 // when the user types CTRL+C into the terminal window.
                                 int pid = Unistd.getpid();
-                                _trace.WriteLine($"Intercepted SIGINT during terminal prompt read-loop - sending SIGINT to self (pid={pid})");
+                                Trace.WriteLine($"Intercepted SIGINT during terminal prompt read-loop - sending SIGINT to self (pid={pid})");
                                 Signal.kill(pid, Signal.SIGINT);
                                 break;
 
@@ -115,63 +117,6 @@ namespace Microsoft.Git.CredentialManager.Interop.Posix
                     }
                     return sb.ToString();
                 }
-            }
-        }
-
-        private class TtyContext : IDisposable
-        {
-            private readonly ITrace _trace;
-            private readonly int _fd;
-
-            private termios _originalTerm;
-            private bool _isDisposed;
-
-            public TtyContext(ITrace trace, int fd, bool echo)
-            {
-                EnsureArgument.NotNull(trace, nameof(trace));
-                EnsureArgument.PositiveOrZero(fd, nameof(fd));
-
-                _trace = trace;
-                _fd = fd;
-
-                int error = 0;
-
-                // Capture current terminal settings so we can restore them later
-                if ((error = Termios.tcgetattr(_fd, out termios t)) != 0)
-                {
-                    throw new InteropException("Failed to get initial terminal settings", error);
-                }
-
-                _originalTerm = t;
-
-                // Set desired echo state
-                _trace.WriteLine($"Setting terminal echo state to '{echo}'");
-                t.c_lflag &= echo
-                    ? LocalFlags.ECHO
-                    : ~LocalFlags.ECHO;
-
-                if ((error = Termios.tcsetattr(_fd, SetActionFlags.TCSAFLUSH, ref t)) != 0)
-                {
-                    throw new InteropException("Failed to set terminal settings", error);
-                }
-            }
-
-            public void Dispose()
-            {
-                if (_isDisposed)
-                {
-                    return;
-                }
-
-                int error = 0;
-
-                // Restore original terminal settings
-                if ((error = Termios.tcsetattr(_fd, SetActionFlags.TCSAFLUSH, ref _originalTerm)) != 0)
-                {
-                    _trace.WriteLine($"Failed to get restore terminal settings (error: {error:x}");
-                }
-
-                _isDisposed = true;
             }
         }
     }
