@@ -108,7 +108,7 @@ namespace Microsoft.Git.CredentialManager
                 SessionManager    = new MacOSSessionManager();
                 SystemPrompts     = new MacOSSystemPrompts();
                 Environment       = new PosixEnvironment(FileSystem);
-                Terminal          = new PosixTerminal(Trace);
+                Terminal          = new MacOSTerminal(Trace);
                 string gitPath    = GetGitPath(Environment, FileSystem, Trace);
                 Git               = new GitProcess(
                                             Trace,
@@ -125,7 +125,7 @@ namespace Microsoft.Git.CredentialManager
                 SessionManager    = new PosixSessionManager();
                 SystemPrompts     = new LinuxSystemPrompts();
                 Environment       = new PosixEnvironment(FileSystem);
-                Terminal          = new PosixTerminal(Trace);
+                Terminal          = new LinuxTerminal(Trace);
                 string gitPath    = GetGitPath(Environment, FileSystem, Trace);
                 Git               = new GitProcess(
                                             Trace,
