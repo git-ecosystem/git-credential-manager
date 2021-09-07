@@ -1,13 +1,18 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Microsoft.Git.CredentialManager
 {
     public interface IGit
     {
+        /// <summary>
+        /// The version of the Git executable tied to this instance.
+        /// </summary>
+        GitVersion Version { get; }
+
         /// <summary>
         /// Return the path to the current repository, or null if this instance is not
         /// scoped to a Git repository.
@@ -64,6 +69,36 @@ namespace Microsoft.Git.CredentialManager
             _trace = trace;
             _gitPath = gitPath;
             _workingDirectory = workingDirectory;
+        }
+
+        private GitVersion _version;
+        public GitVersion Version
+        {
+            get
+            {
+                if (_version is null)
+                {
+                    using (var git = CreateProcess("version"))
+                    {
+                        git.Start();
+
+                        string data = git.StandardOutput.ReadToEnd();
+                        git.WaitForExit();
+
+                        Match match = Regex.Match(data, @"^git version (?'value'.*)");
+                        if (match.Success)
+                        {
+                            _version = new GitVersion(match.Groups["value"].Value);
+                        }
+                        else
+                        {
+                            _version = new GitVersion();
+                        }
+                    }
+                }
+
+                return _version;
+            }
         }
 
         public IGitConfiguration GetConfiguration()

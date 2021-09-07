@@ -168,6 +168,18 @@ namespace Microsoft.Git.CredentialManager.Tests
             AssertRemote(name, null, pushUrl, remotes[0]);
         }
 
+        [Fact]
+        public void Git_Version_ReturnsVersion()
+        {
+            string gitPath = GetGitPath();
+            var trace = new NullTrace();
+
+            var git = new GitProcess(trace, gitPath, Path.GetTempPath());
+            GitVersion version = git.Version;
+
+            Assert.NotEqual(new GitVersion(), version);
+        }
+
         #region Test Helpers
 
         private static void AssertRemote(string expectedName, string expectedUrl, GitRemote remote)

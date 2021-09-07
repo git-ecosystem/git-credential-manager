@@ -110,6 +110,8 @@ namespace Microsoft.Git.CredentialManager
 
     public class GitProcessConfiguration : IGitConfiguration
     {
+        private static readonly GitVersion TypeConfigMinVersion = new GitVersion(2, 18, 0);
+
         private readonly ITrace _trace;
         private readonly GitProcess _git;
 
@@ -448,14 +450,26 @@ namespace Microsoft.Git.CredentialManager
             }
         }
 
-        private static string GetCanonicalizeTypeArg(GitConfigurationType type)
+        private string GetCanonicalizeTypeArg(GitConfigurationType type)
         {
-            return type switch
+            if (_git.Version >= TypeConfigMinVersion)
             {
-                GitConfigurationType.Bool         => "--bool",
-                GitConfigurationType.Path         => "--path",
-                _                                 => null
-            };
+                return type switch
+                {
+                    GitConfigurationType.Bool   => "--type=bool",
+                    GitConfigurationType.Path   => "--type=path",
+                    _                           => null
+                };
+            }
+            else
+            {
+                return type switch
+                {
+                    GitConfigurationType.Bool   => "--bool",
+                    GitConfigurationType.Path   => "--path",
+                    _                           => null
+                };
+            }
         }
 
         public static string QuoteCmdArg(string str)
