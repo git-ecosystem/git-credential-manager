@@ -109,6 +109,8 @@ namespace Microsoft.Git.CredentialManager
             {
                 WriteException(ex);
             }
+
+            invocationContext.ResultCode = -1;
         }
 
         private bool WriteException(Exception ex)
