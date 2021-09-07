@@ -25,11 +25,7 @@ namespace Microsoft.Git.CredentialManager
     {
         Raw,
         Bool,
-        Int,
-        BoolOrInt,
-        Path,
-        ExpiryDate,
-        Color
+        Path
     }
 
     public interface IGitConfiguration
@@ -456,12 +452,8 @@ namespace Microsoft.Git.CredentialManager
         {
             return type switch
             {
-                GitConfigurationType.Bool         => "--type=bool",
-                GitConfigurationType.BoolOrInt    => "--type=bool-or-int",
-                GitConfigurationType.Int          => "--type=int",
-                GitConfigurationType.Path         => "--type=path",
-                GitConfigurationType.ExpiryDate   => "--type=expiry-date",
-                GitConfigurationType.Color        => "--type=color",
+                GitConfigurationType.Bool         => "--bool",
+                GitConfigurationType.Path         => "--path",
                 _                                 => null
             };
         }
