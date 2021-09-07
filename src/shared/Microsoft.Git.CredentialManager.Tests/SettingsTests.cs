@@ -555,6 +555,31 @@ namespace Microsoft.Git.CredentialManager.Tests
         }
 
         [Fact]
+        public void Settings_ProxyConfiguration_GitHttpConfig_EmptyScopedUriUnscoped_ReturnsNull()
+        {
+            const string remoteUrl = "http://example.com/foo.git";
+            const string section = Constants.GitConfiguration.Http.SectionName;
+            const string property = Constants.GitConfiguration.Http.Proxy;
+            var remoteUri = new Uri(remoteUrl);
+
+            var settingValue = new Uri("http://john.doe:letmein123@proxy.example.com");
+
+            var envars = new TestEnvironment();
+            var git = new TestGit();
+            git.Configuration.Global[$"{section}.{property}"] = new[] {settingValue.ToString()};
+            git.Configuration.Global[$"{section}.{remoteUrl}.{property}"] = new[] {string.Empty};
+
+            var settings = new Settings(envars, git)
+            {
+                RemoteUri = remoteUri
+            };
+
+            ProxyConfiguration actualConfig = settings.GetProxyConfiguration();
+
+            Assert.Null(actualConfig);
+        }
+
+        [Fact]
         public void Settings_ProxyConfiguration_NoProxyMixedSplitChar_ReturnsValue()
         {
             const string remoteUrl = "http://example.com/foo.git";

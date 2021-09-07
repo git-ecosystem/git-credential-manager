@@ -440,6 +440,11 @@ namespace Microsoft.Git.CredentialManager
                     {
                         return true;
                     }
+                    else if (string.IsNullOrWhiteSpace(value))
+                    {
+                        // An empty string value means "no proxy"
+                        return false;
+                    }
                 }
 
                 uri = null;
