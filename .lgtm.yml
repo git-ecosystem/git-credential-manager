@@ -1,0 +1,7 @@
+extraction:
+  csharp:
+    index:
+      dotnet:
+        version: 5.0.300
+      build_command:
+      - dotnet build
