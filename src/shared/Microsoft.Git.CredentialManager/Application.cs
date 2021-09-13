@@ -169,7 +169,7 @@ namespace Microsoft.Git.CredentialManager
             //     helper = {appPath} # the expected executable value & directly following the empty value
             //     ...                # any number of helper entries (possibly none, but not the empty value '')
             //
-            string[] currentValues = config.GetAll(configLevel, helperKey).ToArray();
+            string[] currentValues = config.GetAll(configLevel, GitConfigurationType.Raw, helperKey).ToArray();
 
             // Try to locate an existing app entry with a blank reset/clear entry immediately preceding,
             // and no other blank empty/clear entries following (which effectively disable us).
@@ -220,7 +220,7 @@ namespace Microsoft.Git.CredentialManager
             //
             Context.Trace.WriteLine("Removing Git credential helper configuration...");
 
-            string[] currentValues = config.GetAll(configLevel, helperKey).ToArray();
+            string[] currentValues = config.GetAll(configLevel, GitConfigurationType.Raw, helperKey).ToArray();
 
             int appIndex = Array.FindIndex(currentValues, x => Context.FileSystem.IsSamePath(x, appPath));
             if (appIndex > -1)

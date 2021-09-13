@@ -7,6 +7,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
 {
     public class TestGitConfiguration : IGitConfiguration
     {
+        public const string CanonicalPathPrefix = "/my/path/prefix";
+
         public IDictionary<string, IList<string>> System { get; set; } =
             new Dictionary<string, IList<string>>(GitConfigurationKeyComparer.Instance);
         public IDictionary<string, IList<string>> Global { get; set; } =
@@ -34,7 +36,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
             }
         }
 
-        public bool TryGet(GitConfigurationLevel level, string name, out string value)
+        public bool TryGet(GitConfigurationLevel level, GitConfigurationType type, string name, out string value)
         {
             value = null;
 
@@ -51,6 +53,12 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
                     if (values.Count == 1)
                     {
                         value = values[0];
+
+                        if (type == GitConfigurationType.Path)
+                        {
+                            // Create "fake" canonical path
+                            value = value.Replace("~", CanonicalPathPrefix);
+                        }
                     }
                 }
             }
@@ -110,7 +118,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
             dict.Remove(name);
         }
 
-        public IEnumerable<string> GetAll(GitConfigurationLevel level, string name)
+        public IEnumerable<string> GetAll(GitConfigurationLevel level, GitConfigurationType type, string name)
         {
             foreach (var (_, dict) in GetDictionaries(level))
             {
@@ -124,7 +132,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
             }
         }
 
-        public IEnumerable<string> GetRegex(GitConfigurationLevel level, string nameRegex, string valueRegex)
+        public IEnumerable<string> GetRegex(GitConfigurationLevel level, GitConfigurationType type, string nameRegex, string valueRegex)
         {
             foreach (var (_, dict) in GetDictionaries(level))
             {

@@ -1160,7 +1160,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             {
                 RemoteUri = remoteUri
             };
-            string[] actualValues = settings.GetSettingValues(envarName, section, property).ToArray();
+            string[] actualValues = settings.GetSettingValues(envarName, section, property, false).ToArray();
 
             Assert.Equal(expectedValues, actualValues);
         }
@@ -1204,7 +1204,7 @@ namespace Microsoft.Git.CredentialManager.Tests
                 RemoteUri = remoteUri
             };
 
-            string[] actualValues = settings.GetSettingValues(envarName, section, property).ToArray();
+            string[] actualValues = settings.GetSettingValues(envarName, section, property, false).ToArray();
 
             Assert.NotNull(actualValues);
             Assert.Equal(expectedValues, actualValues);
@@ -1247,7 +1247,53 @@ namespace Microsoft.Git.CredentialManager.Tests
                 RemoteUri = remoteUri
             };
 
-            string[] actualValues = settings.GetSettingValues(envarName, sectionMix, propertyMix).ToArray();
+            string[] actualValues = settings.GetSettingValues(envarName, sectionMix, propertyMix, false).ToArray();
+
+            Assert.NotNull(actualValues);
+            Assert.Equal(expectedValues, actualValues);
+        }
+
+        [Theory]
+        [InlineData(false, "~")]
+        [InlineData(true, TestGitConfiguration.CanonicalPathPrefix)]
+        public void Settings_GetSettingValues_IsPath_ReturnsAllParsedValues(bool isPath, string expectedPrefix)
+        {
+            const string remoteUrl = "http://example.com/foo/bar/bazz.git";
+            const string broadScope = "example.com";
+            const string tightScope = "example.com/foo/bar";
+            const string envarName = "GCM_TESTVAR";
+            const string envarValue = "envar-value";
+            const string section = "gcmtest";
+            const string property = "bar";
+            var remoteUri = new Uri(remoteUrl);
+
+            const string tightScopeValue = "path-tight";
+            const string broadScopeValue = "path-broad";
+            const string noScopeValue = "path-no-scope";
+
+            string[] expectedValues = {
+                envarValue,
+                $"{expectedPrefix}/{tightScopeValue}",
+                broadScopeValue,
+                $"{expectedPrefix}/{noScopeValue}"
+            };
+
+            var envars = new TestEnvironment
+            {
+                Variables = {[envarName] = envarValue}
+            };
+
+            var git = new TestGit();
+            git.Configuration.Local[$"{section}.{property}"] = new[] {$"~/{noScopeValue}"};
+            git.Configuration.Local[$"{section}.{broadScope}.{property}"] = new[] {broadScopeValue};
+            git.Configuration.Local[$"{section}.{tightScope}.{property}"] = new[] {$"~/{tightScopeValue}"};
+
+            var settings = new Settings(envars, git)
+            {
+                RemoteUri = remoteUri
+            };
+
+            string[] actualValues = settings.GetSettingValues(envarName, section, property, isPath).ToArray();
 
             Assert.NotNull(actualValues);
             Assert.Equal(expectedValues, actualValues);

@@ -58,7 +58,8 @@ namespace Microsoft.AzureRepos
 
             IGitConfiguration config = _git.GetConfiguration();
 
-            if (config.TryGet(GitConfigurationLevel.Global, GetAuthorityKey(orgName), out string authority))
+            if (config.TryGet(GitConfigurationLevel.Global, GitConfigurationType.Raw,
+                GetAuthorityKey(orgName), out string authority))
             {
                 return authority;
             }

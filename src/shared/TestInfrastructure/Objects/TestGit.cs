@@ -22,6 +22,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
         }
 
         #region IGit
+        GitVersion IGit.Version => new GitVersion(2, 33, 0);
 
         string IGit.GetCurrentRepository() => CurrentRepository;
 
