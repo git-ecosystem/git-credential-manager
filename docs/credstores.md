@@ -52,6 +52,30 @@ is unable to persist credentials to the Windows Credential Manager due to
 limitations in Windows itself. Note that connecting by Remote Desktop does not
 suffer from the same limitation.
 
+## DPAPI protected files
+
+**Available on:** _Windows_
+
+```batch
+SET GCM_CREDENTIAL_STORE="dpapi"
+```
+
+or
+
+```shell
+git config --global credential.credentialStore dpapi
+```
+
+This credential store uses Windows DPAPI to encrypt credentials which are stored
+as files in your file system. The file structure is the same as the
+[plaintext files credential store](#plaintext-files) except the first line (the
+secret value) is protected by DPAPI.
+
+By default files are stored in `~/.gcm/dpapi_store` but this can be configured using
+the environment variable `GCM_DPAPI_STORE_PATH` environment variable.
+
+If the directory does not exist is will be created.
+
 ## macOS Keychain
 
 **Available on:** _macOS_

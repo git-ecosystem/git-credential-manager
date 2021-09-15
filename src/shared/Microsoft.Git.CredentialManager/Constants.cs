@@ -16,6 +16,7 @@ namespace Microsoft.Git.CredentialManager
         public static class CredentialStoreNames
         {
             public const string WindowsCredentialManager = "wincredman";
+            public const string Dpapi = "dpapi";
             public const string MacOSKeychain = "keychain";
             public const string Gpg = "gpg";
             public const string SecretService = "secretservice";
@@ -66,6 +67,7 @@ namespace Microsoft.Git.CredentialManager
             public const string GcmCredentialStore    = "GCM_CREDENTIAL_STORE";
             public const string GcmCredCacheOptions   = "GCM_CREDENTIAL_CACHE_OPTIONS";
             public const string GcmPlaintextStorePath = "GCM_PLAINTEXT_STORE_PATH";
+            public const string GcmDpapiStorePath     = "GCM_DPAPI_STORE_PATH";
             public const string GitExecutablePath     = "GIT_EXEC_PATH";
             public const string GpgExecutablePath     = "GCM_GPG_PATH";
         }
@@ -99,6 +101,7 @@ namespace Microsoft.Git.CredentialManager
                 public const string CredentialStore = "credentialStore";
                 public const string CredCacheOptions = "cacheOptions";
                 public const string PlaintextStorePath = "plaintextStorePath";
+                public const string DpapiStorePath = "dpapiStorePath";
                 public const string UserName = "username";
             }
 

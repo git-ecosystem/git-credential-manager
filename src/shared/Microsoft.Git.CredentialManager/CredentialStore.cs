@@ -62,6 +62,11 @@ namespace Microsoft.Git.CredentialManager
                     _backingStore = new WindowsCredentialManager(ns);
                     break;
 
+                case StoreNames.Dpapi:
+                    ValidateDpapi(out string dpapiStoreRoot);
+                    _backingStore = new DpapiCredentialStore(_context.FileSystem, dpapiStoreRoot, ns);
+                    break;
+
                 case StoreNames.MacOSKeychain:
                     ValidateMacOSKeychain();
                     _backingStore = new MacOSKeychain(ns);
@@ -124,6 +129,9 @@ namespace Microsoft.Git.CredentialManager
             {
                 sb.AppendFormat("  {1,-13} : Windows Credential Manager (not available over network/SSH sessions){0}",
                     Environment.NewLine, StoreNames.WindowsCredentialManager);
+
+                sb.AppendFormat("  {1,-13} : DPAPI protected files{0}",
+                    Environment.NewLine, StoreNames.Dpapi);
             }
 
             if (PlatformUtils.IsMacOS())
@@ -160,6 +168,29 @@ namespace Microsoft.Git.CredentialManager
                     Environment.NewLine +
                     $"See {Constants.HelpUrls.GcmCredentialStores} for more information."
                 );
+            }
+        }
+
+        private void ValidateDpapi(out string storeRoot)
+        {
+            if (!PlatformUtils.IsWindows())
+            {
+                throw new Exception(
+                    $"Can only use the '{StoreNames.Dpapi}' credential store on Windows." +
+                    Environment.NewLine +
+                    $"See {Constants.HelpUrls.GcmCredentialStores} for more information."
+                );
+            }
+
+            // Check for a redirected credential store location
+            if (!_context.Settings.TryGetSetting(
+                Constants.EnvironmentVariables.GcmDpapiStorePath,
+                Constants.GitConfiguration.Credential.SectionName,
+                Constants.GitConfiguration.Credential.DpapiStorePath,
+                out storeRoot))
+            {
+                // Use default store root at ~/.gcm/dpapi_store
+                storeRoot = Path.Combine(_context.FileSystem.UserDataDirectoryPath, "dpapi_store");
             }
         }
 
