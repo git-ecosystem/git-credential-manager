@@ -169,6 +169,15 @@ namespace Microsoft.Git.CredentialManager
                     $"See {Constants.HelpUrls.GcmCredentialStores} for more information."
                 );
             }
+
+            if (!WindowsCredentialManager.CanPersist())
+            {
+                throw new Exception(
+                    $"Unable to persist credentials with the '{StoreNames.WindowsCredentialManager}' credential store." +
+                    Environment.NewLine +
+                    $"See {Constants.HelpUrls.GcmCredentialStores} for more information."
+                );
+            }
         }
 
         private void ValidateDpapi(out string storeRoot)

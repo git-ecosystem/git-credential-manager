@@ -82,7 +82,6 @@ namespace Microsoft.Git.CredentialManager.Interop.Windows
                     UserName = account,
                 };
 
-
                 int result = Win32Error.GetLastError(
                     Advapi32.CredWrite(ref newCred, 0)
                 );
@@ -131,6 +130,29 @@ namespace Microsoft.Git.CredentialManager.Interop.Windows
         }
 
         #endregion
+
+        /// <summary>
+        /// Check if we can persist credentials to for the current process and logon session.
+        /// </summary>
+        /// <returns>True if persistence is possible, false otherwise.</returns>
+        public static bool CanPersist()
+        {
+            uint count = Advapi32.CRED_TYPE_MAXIMUM;
+            var arr = new CredentialPersist[count];
+
+            int result = Win32Error.GetLastError(
+                Advapi32.CredGetSessionTypes(count, arr)
+            );
+
+            CredentialPersist persist = CredentialPersist.None;
+            if (result == Win32Error.Success)
+            {
+                persist = arr[(int)CredentialType.Generic];
+            }
+
+            // If the maximum allowed is anything less than "local machine" then cannot persist credentials.
+            return persist >= CredentialPersist.LocalMachine;
+        }
 
         private IEnumerable<WindowsCredential> Enumerate(string service, string account)
         {
@@ -194,7 +216,7 @@ namespace Microsoft.Git.CredentialManager.Interop.Windows
 
             // Recover the target name we gave from the internal (raw) target name
             string targetName = credential.TargetName.TrimUntilIndexOf(TargetNameLegacyGenericPrefix);
-            
+
             // Recover the service name from the target name
             string serviceName = targetName;
             if (!string.IsNullOrWhiteSpace(_namespace))
@@ -233,7 +255,7 @@ namespace Microsoft.Git.CredentialManager.Interop.Windows
                 {
                     slashIdx = url.Length - 1;
                 }
-                
+
                 // Only if the '@' is before the first slash is this the userinfo delimiter
                 if (0 < atIdx && atIdx < slashIdx)
                 {
