@@ -1,30 +1,86 @@
-# Credential stores on Linux
+# Credential stores
 
-There are four options for storing credentials that Git Credential
-Manager Core (GCM Core) manages on Linux platforms:
+There are several options for storing credentials that GCM Core supports:
 
-1. [freedesktop.org Secret Service API](https://specifications.freedesktop.org/secret-service/)
-2. GPG/[`pass`](https://www.passwordstore.org/) compatible files
-3. Git's built-in [credential cache](https://git-scm.com/docs/git-credential-cache)
-4. Plaintext files
+- Windows Credential Manager
+- macOS Keychain
+- [freedesktop.org Secret Service API](https://specifications.freedesktop.org/secret-service/)
+- GPG/[`pass`](https://www.passwordstore.org/) compatible files
+- Git's built-in [credential cache](https://git-scm.com/docs/git-credential-cache)
+- Plaintext files
 
-By default, GCM Core comes unconfigured. After running `git-credential-manager-core configure`, you can select which credential store
-to use by setting the [`GCM_CREDENTIAL_STORE`](environment.md#GCM_CREDENTIAL_STORE)
+The default credential stores on macOS and Windows are the macOS Keychain and
+the Windows Credential Manager, respectively.
+
+GCM comes without a default store on Linux distributions.
+
+You can select which credential store to use by setting the [`GCM_CREDENTIAL_STORE`](environment.md#GCM_CREDENTIAL_STORE)
 environment variable, or the [`credential.credentialStore`](configuration.md#credentialcredentialstore)
 Git configuration setting.
 
 Some credential stores have limitations, or further configuration required
-depending on your particular setup.
+depending on your particular setup. See more detailed information below for each
+credential store.
 
-## 1. [freedesktop.org Secret Service API](https://specifications.freedesktop.org/secret-service/)
+## Windows Credential Manager
+
+**Available on:** _Windows_
+
+**This is the default store on Windows.**
+
+**:warning: Does not work over a network/SSH session.**
+
+```batch
+SET GCM_CREDENTIAL_STORE="wincredman"
+```
+
+or
+
+```shell
+git config --global credential.credentialStore wincredman
+```
+
+This credential store uses the Windows Credential APIs (`wincred.h`) to store
+data securely in the Windows Credential Manager (also known as the Windows
+Credential Vault in earlier versions of Windows).
+
+You can [access and manage data in the credential manager](https://support.microsoft.com/en-us/windows/accessing-credential-manager-1b5c916a-6a16-889f-8581-fc16e8165ac0)
+from the control panel, or via the [`cmdkey` command-line tool](https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/cmdkey).
+
+When connecting to a Windows machine over a network session (such as SSH), GCM
+is unable to persist credentials to the Windows Credential Manager due to
+limitations in Windows itself. Note that connecting by Remote Desktop does not
+suffer from the same limitation.
+
+## macOS Keychain
+
+**Available on:** _macOS_
+
+**This is the default store on macOS.**
+
+```shell
+export GCM_CREDENTIAL_STORE=keychain
+# or
+git config --global credential.credentialStore keychain
+```
+
+This credential store uses the default macOS Keychain, which is typically the
+`login` keychain.
+
+You can [manage data stored in the keychain](https://support.apple.com/en-gb/guide/mac-help/mchlf375f392/mac)
+using the Keychain Access application.
+
+## [freedesktop.org Secret Service API](https://specifications.freedesktop.org/secret-service/)
+
+**Available on:** _Linux_
+
+**:warning: Requires a graphical user interface session.**
 
 ```shell
 export GCM_CREDENTIAL_STORE=secretservice
 # or
 git config --global credential.credentialStore secretservice
 ```
-
-**:warning: Requires a graphical user interface session.**
 
 This credential store uses the `libsecret` library to interact with the Secret
 Service. It stores credentials securely in 'collections', which can be viewed by
@@ -33,15 +89,17 @@ tools such as `secret-tool` and `seahorse`.
 A graphical user interface is required in order to show a secure prompt to
 request a secret collection be unlocked.
 
-## 2. GPG/[`pass`](https://www.passwordstore.org/) compatible files
+## GPG/[`pass`](https://www.passwordstore.org/) compatible files
+
+**Available on:** _macOS, Linux_
+
+**:warning: Requires `gpg`, `pass`, and a GPG key pair.**
 
 ```shell
 export GCM_CREDENTIAL_STORE=gpg
 # or
 git config --global credential.credentialStore gpg
 ```
-
-**:warning: Requires `gpg`, `pass`, and a GPG key pair.**
 
 This credential store uses GPG to encrypt files containing credentials which are
 stored in your file system. The file structure is compatible with the popular
@@ -88,7 +146,9 @@ export GPG_TTY=$(tty)
 **Note:** Using `/dev/tty` does not appear to work here - you must use the real
 TTY device path, as returned by the `tty` utility.
 
-## 3. Git's built-in [credential cache](https://git-scm.com/docs/git-credential-cache)
+## Git's built-in [credential cache](https://git-scm.com/docs/git-credential-cache)
+
+**Available on:** _Windows, macOS, Linux_
 
 ```shell
 export GCM_CREDENTIAL_STORE=cache
@@ -100,9 +160,10 @@ This credential store uses Git's built-in ephemeral
 [in-memory credential cache](https://git-scm.com/docs/git-credential-cache).
 This helps you reduce the number of times you have to authenticate but
 doesn't require storing credentials on persistent storage. It's good for
-scenarios like [Azure Cloud Shell](https://docs.microsoft.com/azure/cloud-shell/overview) or [AWS CloudShell](https://aws.amazon.com/cloudshell/), where you
-don't want to leave credentials on disk but also don't want to re-authenticate
-on every Git operation.
+scenarios like [Azure Cloud Shell](https://docs.microsoft.com/azure/cloud-shell/overview)
+or [AWS CloudShell](https://aws.amazon.com/cloudshell/), where you don't want to
+leave credentials on disk but also don't want to re-authenticate on every Git
+operation.
 
 By default, `git credential-cache` stores your credentials for 900 seconds.
 That, and any other
@@ -118,15 +179,17 @@ export GCM_CREDENTIAL_CACHE_OPTIONS="--timeout 300"
 git config --global credential.cacheOptions "--timeout 300"
 ```
 
-## 4. Plaintext files
+## Plaintext files
+
+**Available on:** _Windows, macOS, Linux_
+
+**:warning: This is not a secure method of credential storage!**
 
 ```shell
 export GCM_CREDENTIAL_STORE=plaintext
 # or
 git config --global credential.credentialStore plaintext
 ```
-
-**:warning: This is not a secure method of credential storage!**
 
 This credential store saves credentials to plaintext files in your file system.
 By default files are stored in `~/.gcm/store` but this can be configured using
@@ -140,15 +203,13 @@ Permissions on existing directories will not be modified.
 
 ---
 
-<p align="center">
-
 :warning: **WARNING** :warning:
 
 **This storage mechanism is NOT secure!**
 
-**Secrets and credentials are stored in plaintext files _without any security_!<br/>
-Git Credential Manager Core takes no liability for the safety of these
-credentials.**
+**Secrets and credentials are stored in plaintext files _without any security_!**
+
+**Git Credential Manager Core takes no liability for the safety of these credentials.**
 
 It is **HIGHLY RECOMMENDED** to always use one of the other credential store
 options above. This option is only provided for compatibility and use in
@@ -158,7 +219,5 @@ If you chose to use this credential store, it is recommended you set the
 permissions on this directory such that no other users or applications can
 access files within. If possible, use a path that exists on an external volume
 that you take with you and use full-disk encryption.
-
-</p>
 
 ---

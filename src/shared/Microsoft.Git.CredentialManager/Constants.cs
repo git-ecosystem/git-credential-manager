@@ -13,6 +13,16 @@ namespace Microsoft.Git.CredentialManager
 
         public const string GcmDataDirectoryName = ".gcm";
 
+        public static class CredentialStoreNames
+        {
+            public const string WindowsCredentialManager = "wincredman";
+            public const string MacOSKeychain = "keychain";
+            public const string Gpg = "gpg";
+            public const string SecretService = "secretservice";
+            public const string Plaintext = "plaintext";
+            public const string Cache = "cache";
+        }
+
         public static class RegexPatterns
         {
             /// <summary>
@@ -122,7 +132,7 @@ namespace Microsoft.Git.CredentialManager
             public const string GcmAuthorityDeprecated = "https://aka.ms/gcmcore-authority";
             public const string GcmHttpProxyGuide      = "https://aka.ms/gcmcore-httpproxy";
             public const string GcmTlsVerification     = "https://aka.ms/gcmcore-tlsverify";
-            public const string GcmLinuxCredStores     = "https://aka.ms/gcmcore-linuxcredstores";
+            public const string GcmCredentialStores    = "https://aka.ms/gcmcore-credstores";
             public const string GcmWamComSecurity      = "https://aka.ms/gcmcore-wamadmin";
         }
 
