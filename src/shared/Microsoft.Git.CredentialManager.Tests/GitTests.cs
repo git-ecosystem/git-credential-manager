@@ -13,7 +13,8 @@ namespace Microsoft.Git.CredentialManager.Tests
         {
             string gitPath = GetGitPath();
             var trace = new NullTrace();
-            var git = new GitProcess(trace, gitPath, Path.GetTempPath());
+            var env = new TestEnvironment();
+            var git = new GitProcess(trace, env, gitPath, Path.GetTempPath());
 
             string actual = git.GetCurrentRepository();
 
@@ -27,7 +28,8 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             string gitPath = GetGitPath();
             var trace = new NullTrace();
-            var git = new GitProcess(trace, gitPath, workDirPath);
+            var env = new TestEnvironment();
+            var git = new GitProcess(trace, env, gitPath, workDirPath);
 
             string actual = git.GetCurrentRepository();
 
@@ -39,7 +41,8 @@ namespace Microsoft.Git.CredentialManager.Tests
         {
             string gitPath = GetGitPath();
             var trace = new NullTrace();
-            var git = new GitProcess(trace, gitPath, Path.GetTempPath());
+            var env = new TestEnvironment();
+            var git = new GitProcess(trace, env, gitPath, Path.GetTempPath());
 
             GitRemote[] remotes = git.GetRemotes().ToArray();
 
@@ -53,7 +56,8 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             string gitPath = GetGitPath();
             var trace = new NullTrace();
-            var git = new GitProcess(trace, gitPath, workDirPath);
+            var env = new TestEnvironment();
+            var git = new GitProcess(trace, env, gitPath, workDirPath);
 
             GitRemote[] remotes = git.GetRemotes().ToArray();
 
@@ -70,8 +74,9 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             string gitPath = GetGitPath();
             var trace = new NullTrace();
+            var env = new TestEnvironment();
 
-            var git = new GitProcess(trace, gitPath, workDirPath);
+            var git = new GitProcess(trace, env, gitPath, workDirPath);
             GitRemote[] remotes = git.GetRemotes().ToArray();
 
             Assert.Single(remotes);
@@ -90,8 +95,9 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             string gitPath = GetGitPath();
             var trace = new NullTrace();
+            var env = new TestEnvironment();
 
-            var git = new GitProcess(trace, gitPath, workDirPath);
+            var git = new GitProcess(trace, env, gitPath, workDirPath);
             GitRemote[] remotes = git.GetRemotes().ToArray();
 
             Assert.Single(remotes);
@@ -112,8 +118,9 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             string gitPath = GetGitPath();
             var trace = new NullTrace();
+            var env = new TestEnvironment();
 
-            var git = new GitProcess(trace, gitPath, workDirPath);
+            var git = new GitProcess(trace, env, gitPath, workDirPath);
             GitRemote[] remotes = git.GetRemotes().ToArray();
 
             Assert.Single(remotes);
@@ -136,8 +143,9 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             string gitPath = GetGitPath();
             var trace = new NullTrace();
+            var env = new TestEnvironment();
 
-            var git = new GitProcess(trace, gitPath, workDirPath);
+            var git = new GitProcess(trace, env, gitPath, workDirPath);
             GitRemote[] remotes = git.GetRemotes().ToArray();
 
             Assert.Equal(3, remotes.Length);
@@ -159,8 +167,9 @@ namespace Microsoft.Git.CredentialManager.Tests
 
             string gitPath = GetGitPath();
             var trace = new NullTrace();
+            var env = new TestEnvironment();
 
-            var git = new GitProcess(trace, gitPath, workDirPath);
+            var git = new GitProcess(trace, env, gitPath, workDirPath);
             GitRemote[] remotes = git.GetRemotes().ToArray();
 
             Assert.Single(remotes);
@@ -173,8 +182,9 @@ namespace Microsoft.Git.CredentialManager.Tests
         {
             string gitPath = GetGitPath();
             var trace = new NullTrace();
+            var env = new TestEnvironment();
 
-            var git = new GitProcess(trace, gitPath, Path.GetTempPath());
+            var git = new GitProcess(trace, env, gitPath, Path.GetTempPath());
             GitVersion version = git.Version;
 
             Assert.NotEqual(new GitVersion(), version);
