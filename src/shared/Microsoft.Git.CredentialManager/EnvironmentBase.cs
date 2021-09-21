@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Diagnostics;
 using System.Linq;
 
 namespace Microsoft.Git.CredentialManager
@@ -43,6 +43,18 @@ namespace Microsoft.Git.CredentialManager
         /// <param name="path">First instance of the found executable program.</param>
         /// <returns>True if the executable was found, false otherwise.</returns>
         bool TryLocateExecutable(string program, out string path);
+
+        /// <summary>
+        /// Create a process ready to start, with redirected streams.
+        /// </summary>
+        /// <param name="path">Absolute file path of executable or command to start.</param>
+        /// <param name="args">Command line arguments to pass to executable.</param>
+        /// <param name="useShellExecute">
+        /// True to resolve <paramref name="path"/> using the OS shell, false to use as an absolute file path.
+        /// </param>
+        /// <param name="workingDirectory">Working directory for the new process.</param>
+        /// <returns><see cref="Process"/> object ready to start.</returns>
+        Process CreateProcess(string path, string args, bool useShellExecute, string workingDirectory);
     }
 
     public abstract class EnvironmentBase : IEnvironment
@@ -55,6 +67,8 @@ namespace Microsoft.Git.CredentialManager
         }
 
         public IReadOnlyDictionary<string, string> Variables { get; protected set; }
+
+        protected ITrace Trace { get; }
 
         protected IFileSystem FileSystem { get; }
 
@@ -76,6 +90,20 @@ namespace Microsoft.Git.CredentialManager
         protected abstract string[] SplitPathVariable(string value);
 
         public abstract bool TryLocateExecutable(string program, out string path);
+
+        public virtual Process CreateProcess(string path, string args, bool useShellExecute, string workingDirectory)
+        {
+            var psi = new ProcessStartInfo(path, args)
+            {
+                RedirectStandardInput = true,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = useShellExecute,
+                WorkingDirectory = workingDirectory ?? string.Empty
+            };
+
+            return new Process { StartInfo = psi };
+        }
     }
 
     public static class EnvironmentExtensions
@@ -94,6 +122,33 @@ namespace Microsoft.Git.CredentialManager
             }
 
             throw new Exception($"Failed to locate '{program}' executable on the path.");
+        }
+
+        /// <summary>
+        /// Create a process ready to start, with redirected streams.
+        /// </summary>
+        /// <param name="environment">The <see cref="IEnvironment"/>.</param>
+        /// <param name="path">Absolute file path of executable or command to start.</param>
+        /// <param name="args">Command line arguments to pass to executable.</param>
+        /// <param name="useShellExecute">
+        /// True to resolve <paramref name="path"/> using the OS shell, false to use as an absolute file path.
+        /// </param>
+        /// <returns><see cref="Process"/> object ready to start.</returns>
+        public static Process CreateProcess(this IEnvironment environment, string path, string args, bool useShellExecute)
+        {
+            return environment.CreateProcess(path, args, useShellExecute, string.Empty);
+        }
+
+        /// <summary>
+        /// Create a process ready to start, with redirected streams.
+        /// </summary>
+        /// <param name="environment">The <see cref="IEnvironment"/>.</param>
+        /// <param name="path">Absolute file path of executable to start.</param>
+        /// <param name="args">Command line arguments to pass to executable.</param>
+        /// <returns><see cref="Process"/> object ready to start.</returns>
+        public static Process CreateProcess(this IEnvironment environment, string path, string args)
+        {
+            return environment.CreateProcess(path, args, false, string.Empty);
         }
     }
 }
