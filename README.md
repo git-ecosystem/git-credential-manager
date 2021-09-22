@@ -166,7 +166,7 @@ Git Credential Manager Core can be used with the [Windows Subsystem for Linux
 (WSL)](https://aka.ms/wsl) to enable secure authentication of your remote Git
 repositories from inside of WSL.
 
-Please read [here](docs/wsl.md) for information.
+[Please see the GCM Core on WSL docs](docs/wsl.md) for more information.
 
 ## How to use
 
