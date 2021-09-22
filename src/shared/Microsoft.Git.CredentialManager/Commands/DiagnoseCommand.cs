@@ -27,6 +27,7 @@ namespace Microsoft.Git.CredentialManager.Commands
             {
                 // Add standard diagnostics
                 new EnvironmentDiagnostic(context.Environment),
+                new FileSystemDiagnostic(context.FileSystem),
             };
 
             AddOption(
