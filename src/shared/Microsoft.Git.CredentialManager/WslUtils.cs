@@ -86,7 +86,7 @@ namespace Microsoft.Git.CredentialManager
             // C:\Windows\SysNative that does **not** experience any redirection for 32-bit applications.
             //
             // HOWEVER, if we're running as a 64-bit application on a 64-bit operating system, the SysNative
-            // directory does not exist! This means if running as a 32-bit application on a 64-bit OS we must
+            // directory does not exist! This means if running as a 64-bit application on a 64-bit OS we must
             // use the System32 directory name directly.
             //
             var sysDir = Environment.ExpandEnvironmentVariables(
