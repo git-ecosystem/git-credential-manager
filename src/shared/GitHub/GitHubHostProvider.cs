@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
+using GitHub.Diagnostics;
 using Microsoft.Git.CredentialManager;
 using Microsoft.Git.CredentialManager.Authentication.OAuth;
+using Microsoft.Git.CredentialManager.Diagnostics;
 
 namespace GitHub
 {
-    public class GitHubHostProvider : HostProvider
+    public class GitHubHostProvider : HostProvider, IDiagnosticProvider
     {
         private static readonly string[] GitHubOAuthScopes =
         {
@@ -293,6 +295,11 @@ namespace GitHub
             _gitHubApi.Dispose();
             _gitHubAuth.Dispose();
             base.ReleaseManagedResources();
+        }
+
+        public IEnumerable<IDiagnostic> GetDiagnostics()
+        {
+            yield return new GitHubApiDiagnostic(_gitHubApi);
         }
 
         #region Private Methods
