@@ -119,6 +119,7 @@ namespace Microsoft.Git.CredentialManager
         public static class HelpUrls
         {
             public const string GcmProjectUrl          = "https://aka.ms/gcmcore";
+            public const string GcmNewIssue            = "https://aka.ms/gcmcore-bug";
             public const string GcmAuthorityDeprecated = "https://aka.ms/gcmcore-authority";
             public const string GcmHttpProxyGuide      = "https://aka.ms/gcmcore-httpproxy";
             public const string GcmTlsVerification     = "https://aka.ms/gcmcore-tlsverify";
