@@ -23,7 +23,11 @@ namespace Microsoft.Git.CredentialManager.Commands
             EnsureArgument.NotNull(context, nameof(context));
 
             _context = context;
-            _diagnostics = new List<IDiagnostic>();
+            _diagnostics = new List<IDiagnostic>
+            {
+                // Add standard diagnostics
+                new EnvironmentDiagnostic(context.Environment),
+            };
 
             AddOption(
                 new Option<string>(new []{"--output", "-o"}, "Output directory for diagnostic logs.")
