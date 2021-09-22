@@ -370,19 +370,28 @@ export GCM_NAMESPACE="my-namespace"
 
 Select the type of credential store to use on supported platforms.
 
-Default value is unset.
+Default value on Windows is `wincredman`, on macOS is `keychain`, and is unset on Linux.
 
 **Note:** See more information about configuring secret stores [here](credstores.md).
 
-Value|Credential Store
--|-
-_(unset)_|(error)
-`secretservice`|[freedesktop.org Secret Service API](https://specifications.freedesktop.org/secret-service/) via [libsecret](https://wiki.gnome.org/Projects/Libsecret) (requires a graphical interface to unlock secret collections).
-`gpg`|Use GPG to store encrypted files that are compatible with the [`pass` utility](https://www.passwordstore.org/) (requires GPG and `pass` to initialize the store).
-`cache`|Git's built-in [credential cache](https://git-scm.com/docs/git-credential-cache).
-`plaintext`|Store credentials in plaintext files (**UNSECURE**). Customize the plaintext store location with [`GCM_PLAINTEXT_STORE_PATH`](#GCM_PLAINTEXT_STORE_PATH).
+Value|Credential Store|Platforms
+-|-|-
+_(unset)_|Windows: `wincredman`<br/>macOS: `keychain`<br/>Linux: _(none)_|-
+`wincredman`|Windows Credential Manager (not available over SSH).|Windows
+`dpapi`|DPAPI protected files. Customize the DPAPI store location with [`GCM_DPAPI_STORE_PATH`](#gcm_dpapi_store_path)|Windows
+`keychain`|macOS Keychain.|macOS
+`secretservice`|[freedesktop.org Secret Service API](https://specifications.freedesktop.org/secret-service/) via [libsecret](https://wiki.gnome.org/Projects/Libsecret) (requires a graphical interface to unlock secret collections).|Linux
+`gpg`|Use GPG to store encrypted files that are compatible with the [`pass` utility](https://www.passwordstore.org/) (requires GPG and `pass` to initialize the store).|macOS, Linux
+`cache`|Git's built-in [credential cache](https://git-scm.com/docs/git-credential-cache).|Windows, macOS, Linux
+`plaintext`|Store credentials in plaintext files (**UNSECURE**). Customize the plaintext store location with [`GCM_PLAINTEXT_STORE_PATH`](#gcm_plaintext_store_path).|Windows, macOS, Linux
 
-##### Linux
+##### Windows
+
+```batch
+SET GCM_CREDENTIAL_STORE="gpg"
+```
+
+##### macOS/Linux
 
 ```bash
 export GCM_CREDENTIAL_STORE="gpg"
@@ -403,7 +412,13 @@ and unsupported, but there's no reason it shouldn't work.
 
 Defaults to empty.
 
-#### Linux
+#### Windows
+
+```batch
+SET GCM_CREDENTIAL_CACHE_OPTIONS="--timeout 300"
+```
+
+#### macOS/Linux
 
 ```shell
 export GCM_CREDENTIAL_CACHE_OPTIONS="--timeout 300"
@@ -417,9 +432,15 @@ export GCM_CREDENTIAL_CACHE_OPTIONS="--timeout 300"
 
 Specify a custom directory to store plaintext credential files in when [`GCM_CREDENTIAL_STORE`](#GCM_CREDENTIAL_STORE) is set to `plaintext`.
 
-Defaults to the value `~/.gcm/store`.
+Defaults to the value `~/.gcm/store` or `%USERPROFILE%\.gcm\store`.
 
-#### Linux
+#### Windows
+
+```batch
+SETX GCM_PLAINTEXT_STORE_PATH=D:\credentials
+```
+
+#### macOS/Linux
 
 ```shell
 export GCM_PLAINTEXT_STORE_PATH=/mnt/external-drive/credentials
@@ -429,13 +450,29 @@ export GCM_PLAINTEXT_STORE_PATH=/mnt/external-drive/credentials
 
 ---
 
+### GCM_DPAPI_STORE_PATH
+
+Specify a custom directory to store DPAPI protected credential files in when [`GCM_CREDENTIAL_STORE`](#GCM_CREDENTIAL_STORE) is set to `dpapi`.
+
+Defaults to the value `%USERPROFILE%\.gcm\dpapi_store`.
+
+#### Windows
+
+```batch
+SETX GCM_DPAPI_STORE_PATH=D:\credentials
+```
+
+**Also see: [credential.dpapiStorePath](configuration.md#credentialdpapistorepath)**
+
+---
+
 ### GCM_GPG_PATH
 
 Specify the path (_including_ the executable name) to the version of `gpg` used by `pass` (`gpg2` if present, otherwise `gpg`). This is primarily meant to allow manual resolution of the conflict that occurs on legacy Linux systems with parallel installs of `gpg` and `gpg2`.
 
 If not specified, GCM Core defaults to using the version of `gpg2` on the `$PATH`, falling back on `gpg` if `gpg2` is not found.
 
-##### Linux
+##### macOS/Linux
 
 ```bash
 export GCM_GPG_PATH="/usr/local/bin/gpg2"

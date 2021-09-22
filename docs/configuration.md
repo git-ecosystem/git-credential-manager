@@ -219,17 +219,20 @@ git config --global credential.namespace "my-namespace"
 
 Select the type of credential store to use on supported platforms.
 
-Default value is unset.
+Default value on Windows is `wincredman`, on macOS is `keychain`, and is unset on Linux.
 
 **Note:** See more information about configuring secret stores [here](credstores.md).
 
-Value|Credential Store
--|-
-_(unset)_|(error)
-`secretservice`|[freedesktop.org Secret Service API](https://specifications.freedesktop.org/secret-service/) via [libsecret](https://wiki.gnome.org/Projects/Libsecret) (requires a graphical interface to unlock secret collections).
-`gpg`|Use GPG to store encrypted files that are compatible with the [`pass` utility](https://www.passwordstore.org/) (requires GPG and `pass` to initialize the store).
-`cache`|Git's built-in [credential cache](https://git-scm.com/docs/git-credential-cache).
-`plaintext`|Store credentials in plaintext files (**UNSECURE**). Customize the plaintext store location with [`credential.plaintextStorePath`](#credentialplaintextstorepath).
+Value|Credential Store|Platforms
+-|-|-
+_(unset)_|Windows: `wincredman`<br/>macOS: `keychain`<br/>Linux: _(none)_|-
+`wincredman`|Windows Credential Manager (not available over SSH).|Windows
+`dpapi`|DPAPI protected files. Customize the DPAPI store location with [credential.dpapiStorePath](#credentialdpapistorepath)|Windows
+`keychain`|macOS Keychain.|macOS
+`secretservice`|[freedesktop.org Secret Service API](https://specifications.freedesktop.org/secret-service/) via [libsecret](https://wiki.gnome.org/Projects/Libsecret) (requires a graphical interface to unlock secret collections).|Linux
+`gpg`|Use GPG to store encrypted files that are compatible with the [`pass` utility](https://www.passwordstore.org/) (requires GPG and `pass` to initialize the store).|macOS, Linux
+`cache`|Git's built-in [credential cache](https://git-scm.com/docs/git-credential-cache).|Windows, macOS, Linux
+`plaintext`|Store credentials in plaintext files (**UNSECURE**). Customize the plaintext store location with [`credential.plaintextStorePath`](#credentialplaintextstorepath).|Windows, macOS, Linux
 
 ##### Example
 
@@ -267,7 +270,7 @@ git config --global credential.cacheOptions "--timeout 300"
 
 Specify a custom directory to store plaintext credential files in when [`credential.credentialStore`](#credentialcredentialstore) is set to `plaintext`.
 
-Defaults to the value `~/.gcm/store`.
+Defaults to the value `~/.gcm/store` or `%USERPROFILE%\.gcm\store`.
 
 #### Example
 
@@ -276,6 +279,22 @@ git config --global credential.plaintextStorePath /mnt/external-drive/credential
 ```
 
 **Also see: [GCM_PLAINTEXT_STORE_PATH](environment.md#GCM_PLAINTEXT_STORE_PATH)**
+
+---
+
+### credential.dpapiStorePath
+
+Specify a custom directory to store DPAPI protected credential files in when [`credential.credentialStore`](#credentialcredentialstore) is set to `dpapi`.
+
+Defaults to the value `%USERPROFILE%\.gcm\dpapi_store`.
+
+#### Example
+
+```batch
+git config --global credential.dpapiStorePath D:\credentials
+```
+
+**Also see: [GCM_DPAPI_STORE_PATH](environment.md#GCM_DPAPI_STORE_PATH)**
 
 ---
 
