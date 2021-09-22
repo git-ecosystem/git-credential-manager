@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.Git.CredentialManager.Interop.Posix.Native;
 
@@ -13,10 +14,11 @@ namespace Microsoft.Git.CredentialManager
         public static PlatformInformation GetPlatformInformation()
         {
             string osType = GetOSType();
+            string osVersion = GetOSVersion();
             string cpuArch = GetCpuArchitecture();
             string clrVersion = GetClrVersion();
 
-            return new PlatformInformation(osType, cpuArch, clrVersion);
+            return new PlatformInformation(osType, osVersion, cpuArch, clrVersion);
         }
 
         public static bool IsWindows10()
@@ -175,6 +177,56 @@ namespace Microsoft.Git.CredentialManager
             return "Unknown";
         }
 
+        private static string GetOSVersion()
+        {
+            if (IsWindows() && RtlGetVersionEx(out RTL_OSVERSIONINFOEX osvi) == 0)
+            {
+                return $"{osvi.dwMajorVersion}.{osvi.dwMinorVersion} (build {osvi.dwBuildNumber})";
+            }
+
+            if (IsMacOS())
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName = "/usr/bin/sw_vers",
+                    Arguments = "-productVersion",
+                    RedirectStandardOutput = true
+                };
+
+                using (var swvers = new Process { StartInfo = psi })
+                {
+                    swvers.Start();
+                    swvers.WaitForExit();
+                    if (swvers.ExitCode == 0)
+                    {
+                        return swvers.StandardOutput.ReadToEnd().Trim();
+                    }
+                }
+            }
+
+            if (IsLinux())
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName = "uname",
+                    Arguments = "-a",
+                    RedirectStandardOutput = true
+                };
+
+                using (var uname = new Process { StartInfo = psi })
+                {
+                    uname.Start();
+                    uname.WaitForExit();
+                    if (uname.ExitCode == 0)
+                    {
+                        return uname.StandardOutput.ReadToEnd().Trim();
+                    }
+                }
+            }
+
+            return "Unknown";
+        }
+
         private static string GetCpuArchitecture()
         {
 #if NETFRAMEWORK
@@ -238,14 +290,16 @@ namespace Microsoft.Git.CredentialManager
 
     public struct PlatformInformation
     {
-        public PlatformInformation(string osType, string cpuArch, string clrVersion)
+        public PlatformInformation(string osType, string osVersion, string cpuArch, string clrVersion)
         {
             OperatingSystemType = osType;
+            OperatingSystemVersion = osVersion;
             CpuArchitecture = cpuArch;
             ClrVersion = clrVersion;
         }
 
         public readonly string OperatingSystemType;
+        public readonly string OperatingSystemVersion;
         public readonly string CpuArchitecture;
         public readonly string ClrVersion;
     }
