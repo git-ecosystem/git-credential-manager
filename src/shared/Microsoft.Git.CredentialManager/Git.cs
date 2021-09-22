@@ -14,6 +14,13 @@ namespace Microsoft.Git.CredentialManager
         GitVersion Version { get; }
 
         /// <summary>
+        /// Create a Git process object with the specified arguments.
+        /// </summary>
+        /// <param name="args">Arguments to pass to the Git process.</param>
+        /// <returns>Process object ready to be started.</returns>
+        Process CreateProcess(string args);
+
+        /// <summary>
         /// Return the path to the current repository, or null if this instance is not
         /// scoped to a Git repository.
         /// </summary>

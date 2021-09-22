@@ -6,24 +6,27 @@ namespace Microsoft.Git.CredentialManager
 {
     public class GitVersion : IComparable, IComparable<GitVersion>
     {
-        private List<int> components;
+        private readonly string _originalString;
+        private List<int> _components;
 
         public GitVersion(string versionString)
         {
             if (versionString is null)
             {
-                components = new List<int>();
+                _components = new List<int>();
                 return;
             }
 
+            _originalString = versionString;
+
             string[] splitVersion = versionString.Split('.');
-            components = new List<int>(splitVersion.Length);
+            _components = new List<int>(splitVersion.Length);
 
             foreach (string part in splitVersion)
             {
                 if (Int32.TryParse(part, out int component))
                 {
-                    components.Add(component);
+                    _components.Add(component);
                 }
                 else
                 {
@@ -35,12 +38,25 @@ namespace Microsoft.Git.CredentialManager
 
         public GitVersion(params int[] components)
         {
-            this.components = components.ToList();
+            _components = components.ToList();
         }
 
         public override string ToString()
         {
-            return string.Join(".", this.components);
+            return string.Join(".", _components);
+        }
+
+        public string OriginalString
+        {
+            get
+            {
+                if (_originalString is null)
+                {
+                    return ToString();
+                }
+
+                return _originalString;
+            }
         }
 
         public int CompareTo(object obj)
@@ -68,11 +84,11 @@ namespace Microsoft.Git.CredentialManager
 
             // Compare for as many components as the two versions have in common. If a
             // component does not exist in a components list, it is assumed to be 0.
-            int thisCount = this.components.Count, otherCount = other.components.Count;
+            int thisCount = _components.Count, otherCount = other._components.Count;
             for (int i = 0; i < Math.Max(thisCount, otherCount); i++)
             {
-                int thisComponent = i < thisCount ? this.components[i] : 0;
-                int otherComponent = i < otherCount ? other.components[i] : 0;
+                int thisComponent = i < thisCount ? _components[i] : 0;
+                int otherComponent = i < otherCount ? other._components[i] : 0;
                 if (thisComponent != otherComponent)
                 {
                     return thisComponent.CompareTo(otherComponent);
