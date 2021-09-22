@@ -31,6 +31,7 @@ namespace Microsoft.Git.CredentialManager.Commands
                 new NetworkingDiagnostic(context.HttpClientFactory),
                 new GitDiagnostic(context.Git),
                 new CredentialStoreDiagnostic(context.CredentialStore),
+                new MicrosoftAuthenticationDiagnostic(context)
             };
 
             AddOption(
