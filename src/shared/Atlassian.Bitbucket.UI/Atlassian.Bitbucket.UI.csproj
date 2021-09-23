@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>Atlassian.Bitbucket.UI</RootNamespace>
     <AssemblyName>Atlassian.Bitbucket.UI.Shared</AssemblyName>
   </PropertyGroup>
