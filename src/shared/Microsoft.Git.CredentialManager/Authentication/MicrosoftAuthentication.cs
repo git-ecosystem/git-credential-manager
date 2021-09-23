@@ -54,8 +54,8 @@ namespace Microsoft.Git.CredentialManager.Authentication
 
             IsBrokerInitialized = true;
 
-            // Broker is only supported on Windows 10
-            if (!PlatformUtils.IsWindows10())
+            // Broker is only supported on Windows 10 and later
+            if (!PlatformUtils.IsWindows10OrGreater())
             {
                 return;
             }
@@ -287,8 +287,8 @@ namespace Microsoft.Git.CredentialManager.Authentication
                 appBuilder.WithParentActivityOrWindow(() => new IntPtr(hWndInt));
             }
 
-            // On Windows 10 & .NET Framework try and use the WAM broker
-            if (enableBroker && PlatformUtils.IsWindows10())
+            // On Windows 10+ & .NET Framework try and use the WAM broker
+            if (enableBroker && PlatformUtils.IsWindows10OrGreater())
             {
 #if NETFRAMEWORK
                 appBuilder.WithExperimentalFeatures();
@@ -460,7 +460,7 @@ namespace Microsoft.Git.CredentialManager.Authentication
         {
 #if NETFRAMEWORK
             // We only support the broker on Windows 10 and require an interactive session
-            if (!context.SessionManager.IsDesktopSession || !PlatformUtils.IsWindows10())
+            if (!context.SessionManager.IsDesktopSession || !PlatformUtils.IsWindows10OrGreater())
             {
                 return false;
             }
