@@ -49,8 +49,8 @@ from the control panel, or via the [`cmdkey` command-line tool](https://docs.mic
 
 When connecting to a Windows machine over a network session (such as SSH), GCM
 is unable to persist credentials to the Windows Credential Manager due to
-limitations in Windows itself. Note that connecting by Remote Desktop does not
-suffer from the same limitation.
+limitations in Windows. Connecting by Remote Desktop doesn't suffer from this
+limitation.
 
 ## DPAPI protected files
 
@@ -71,10 +71,11 @@ as files in your file system. The file structure is the same as the
 [plaintext files credential store](#plaintext-files) except the first line (the
 secret value) is protected by DPAPI.
 
-By default files are stored in `~/.gcm/dpapi_store` but this can be configured using
-the environment variable `GCM_DPAPI_STORE_PATH` environment variable.
+By default files are stored in `%USERPROFILE%\.gcm\dpapi_store`. This can be
+configured using the environment variable `GCM_DPAPI_STORE_PATH` environment
+variable.
 
-If the directory does not exist is will be created.
+If the directory doesn't exist it will be created.
 
 ## macOS Keychain
 
@@ -216,10 +217,11 @@ git config --global credential.credentialStore plaintext
 ```
 
 This credential store saves credentials to plaintext files in your file system.
-By default files are stored in `~/.gcm/store` but this can be configured using
-the environment variable `GCM_PLAINTEXT_STORE_PATH` environment variable.
+By default files are stored in `~/.gcm/store` or `%USERPROFILE%\.gcm\store`.
+This can be configured using the environment variable `GCM_PLAINTEXT_STORE_PATH`
+environment variable.
 
-If the directory does not exist is will be created.
+If the directory doesn't exist it will be created.
 
 On POSIX platforms the newly created store directory will have permissions set
 such that only the owner can `r`ead/`w`rite/e`x`ecute (`700` or `drwx---`).
@@ -232,8 +234,6 @@ Permissions on existing directories will not be modified.
 **This storage mechanism is NOT secure!**
 
 **Secrets and credentials are stored in plaintext files _without any security_!**
-
-**Git Credential Manager Core takes no liability for the safety of these credentials.**
 
 It is **HIGHLY RECOMMENDED** to always use one of the other credential store
 options above. This option is only provided for compatibility and use in
