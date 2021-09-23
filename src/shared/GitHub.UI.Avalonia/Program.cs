@@ -48,8 +48,8 @@ namespace GitHub.UI
             using (var context = new CommandContext(appPath))
             using (var app = new HelperApplication(context))
             {
-                app.RegisterCommand(new CredentialsCommand(context));
-                app.RegisterCommand(new TwoFactorCommand(context));
+                app.RegisterCommand(new CredentialsCommandImpl(context));
+                app.RegisterCommand(new TwoFactorCommandImpl(context));
 
                 int exitCode = app.RunAsync(args)
                     .ConfigureAwait(false)
