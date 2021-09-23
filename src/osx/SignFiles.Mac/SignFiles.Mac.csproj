@@ -22,6 +22,7 @@
     <FilesToSign Include="
       $(OutDir)\Atlassian.Bitbucket.dll;
       $(OutDir)\Atlassian.Bitbucket.UI.dll;
+      $(OutDir)\Atlassian.Bitbucket.UI.Shared.dll;
       $(OutDir)\git-credential-manager-core.dll;
       $(OutDir)\GitHub.dll;
       $(OutDir)\GitHub.UI.dll;
