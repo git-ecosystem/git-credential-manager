@@ -8,8 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\GitHub\GitHub.csproj" />
-    <ProjectReference Include="..\Microsoft.Git.CredentialManager\Microsoft.Git.CredentialManager.csproj" />
-    <ProjectReference Include="..\Microsoft.Git.CredentialManager.UI\Microsoft.Git.CredentialManager.UI.csproj" />
+    <ProjectReference Include="..\Microsoft.Git.CredentialManager.UI.Avalonia\Microsoft.Git.CredentialManager.UI.Avalonia.csproj" />
   </ItemGroup>
 
   <ItemGroup>

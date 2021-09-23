@@ -8,7 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Atlassian.Bitbucket\Atlassian.Bitbucket.csproj" />
-    <ProjectReference Include="..\Microsoft.Git.CredentialManager.UI\Microsoft.Git.CredentialManager.UI.csproj" />
+    <ProjectReference Include="..\Microsoft.Git.CredentialManager.UI.Avalonia\Microsoft.Git.CredentialManager.UI.Avalonia.csproj" />
   </ItemGroup>
 
   <ItemGroup>

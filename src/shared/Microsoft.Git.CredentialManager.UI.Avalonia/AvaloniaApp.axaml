@@ -4,12 +4,12 @@
              Name="Git Credential Manager">
     <Application.Styles>
         <FluentTheme Mode="Light"/>
-        <StyleInclude Source="avares://Microsoft.Git.CredentialManager.UI/Assets/Controls.axaml"/>
+        <StyleInclude Source="avares://Microsoft.Git.CredentialManager.UI.Avalonia/Assets/Controls.axaml"/>
     </Application.Styles>
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceInclude Source="avares://Microsoft.Git.CredentialManager.UI/Assets/LightBase.axaml"/>
+                <ResourceInclude Source="avares://Microsoft.Git.CredentialManager.UI.Avalonia/Assets/LightBase.axaml"/>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>
