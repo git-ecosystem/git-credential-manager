@@ -211,7 +211,7 @@ namespace Microsoft.Git.CredentialManager.Authentication
             return new MsalResult(result);
         }
 
-        private MicrosoftAuthenticationFlowType GetFlowType()
+        internal MicrosoftAuthenticationFlowType GetFlowType()
         {
             if (Context.Settings.TryGetSetting(
                 Constants.EnvironmentVariables.MsAuthFlow,
@@ -368,7 +368,7 @@ namespace Microsoft.Git.CredentialManager.Authentication
             }
         }
 
-        private StorageCreationProperties CreateTokenCacheProps(bool useLinuxFallback)
+        internal StorageCreationProperties CreateTokenCacheProps(bool useLinuxFallback)
         {
             const string cacheFileName = "msal.cache";
             string cacheDirectory;

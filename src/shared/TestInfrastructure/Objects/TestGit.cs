@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -7,6 +8,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
 {
     public class TestGit : IGit
     {
+        public GitVersion Version { get; set; } = new GitVersion("2.32.0.test.0");
+
         public string CurrentRepository { get; set; }
 
         public IList<GitRemote> Remotes { get; set; } = new List<GitRemote>();
@@ -22,7 +25,13 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
         }
 
         #region IGit
-        GitVersion IGit.Version => new GitVersion(2, 33, 0);
+
+        GitVersion IGit.Version => Version;
+
+        public Process CreateProcess(string args)
+        {
+            throw new NotImplementedException();
+        }
 
         string IGit.GetCurrentRepository() => CurrentRepository;
 
