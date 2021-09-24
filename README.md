@@ -152,10 +152,6 @@ There are two flavors of standalone installation on Windows:
 
 To install, double-click the desired installation package and follow the instructions presented.
 
-#### Git Credential Manager for Windows
-
-GCM Core installs side-by-side any existing Git Credential Manager for Windows installation and will take precedence over it and use any existing credentials so you shouldn't need to re-authenticate.
-
 #### Uninstall (Windows 10)
 
 To uninstall, open the Settings app and navigate to the Apps section. Select "Git Credential Manager Core" and click "Uninstall".
@@ -163,6 +159,14 @@ To uninstall, open the Settings app and navigate to the Apps section. Select "Gi
 #### Uninstall (Windows 7-8.1)
 
 To uninstall, open Control Panel and navigate to the Programs and Features screen. Select "Git Credential Manager Core" and click "Remove".
+
+#### Windows Subsystem for Linux (WSL)
+
+Git Credential Manager Core can be used with the [Windows Subsystem for Linux
+(WSL)](https://aka.ms/wsl) to enable secure authentication of your remote Git
+repositories from inside of WSL.
+
+[Please see the GCM Core on WSL docs](docs/wsl.md) for more information.
 
 ## How to use
 
