@@ -19,7 +19,7 @@ namespace Microsoft.Git.CredentialManager
             return new PlatformInformation(osType, cpuArch, clrVersion);
         }
 
-        public static bool IsWindows10()
+        public static bool IsWindows10OrGreater()
         {
             if (!IsWindows())
             {
@@ -36,7 +36,7 @@ namespace Microsoft.Git.CredentialManager
                 return false;
             }
 
-            return (int) osvi.dwMajorVersion == 10;
+            return (int) osvi.dwMajorVersion >= 10;
         }
 
         /// <summary>
