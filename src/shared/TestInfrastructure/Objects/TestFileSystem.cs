@@ -37,7 +37,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
 
         bool IFileSystem.DirectoryExists(string path)
         {
-            return Directories.Contains(path);
+            return Directories.Contains(TrimSlash(path));
         }
 
         string IFileSystem.GetCurrentDirectory()
@@ -59,7 +59,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
 
         void IFileSystem.CreateDirectory(string path)
         {
-            Directories.Add(path);
+            Directories.Add(TrimSlash(path));
         }
 
         void IFileSystem.DeleteFile(string path)
@@ -93,6 +93,19 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
         }
 
         #endregion
+
+        /// <summary>
+        /// Trim trailing slashes from a path.
+        /// </summary>
+        public static string TrimSlash(string path)
+        {
+            if (path.Length > 0 && path[path.Length - 1] == Path.DirectorySeparatorChar)
+            {
+                return path.Substring(0, path.Length - 1);
+            }
+
+            return path;
+        }
     }
 
     public class TestFileStream : MemoryStream
