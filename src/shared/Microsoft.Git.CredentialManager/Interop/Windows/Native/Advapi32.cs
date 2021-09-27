@@ -37,18 +37,31 @@ namespace Microsoft.Git.CredentialManager.Interop.Windows.Native
             CredentialEnumerateFlags flags,
             out int count,
             out IntPtr credentialsList);
+
+        [DllImport(LibraryName, EntryPoint = "CredGetSessionTypes", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode, SetLastError = true)]
+        public static extern bool CredGetSessionTypes(
+            uint maximumPersistCount,
+            [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] CredentialPersist[] maximumPersist);
+
+        // Values from wincred.h
+        public const uint CRED_TYPE_MAXIMUM = 7;
+        public const uint CRED_TYPE_MAXIMUM_EX = CRED_TYPE_MAXIMUM + 1000;
     }
 
+    // Enum values from wincred.h
     public enum CredentialType
     {
         Generic = 1,
         DomainPassword = 2,
         DomainCertificate = 3,
         DomainVisiblePassword = 4,
+        GenericCertificate = 5,
+        DomainExtended = 6
     }
 
     public enum CredentialPersist
     {
+        None = 0,
         Session = 1,
         LocalMachine = 2,
         Enterprise = 3,

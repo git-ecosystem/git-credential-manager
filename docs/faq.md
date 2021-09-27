@@ -26,7 +26,7 @@ You probably need to configure Git and GCM Core to use a proxy. Please see detai
 
 ### Q: I'm getting errors about picking a credential store on Linux.
 
-On Linux you must [select and configure a credential store](https://aka.ms/gcmcore-linuxcredstores), as due to the varied nature of distributions and installations, we cannot guarantee a suitable storage solution is available.
+On Linux you must [select and configure a credential store](https://aka.ms/gcmcore-credstores), as due to the varied nature of distributions and installations, we cannot guarantee a suitable storage solution is available.
 
 ## About the project
 

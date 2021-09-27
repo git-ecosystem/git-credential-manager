@@ -21,7 +21,7 @@ Git Credential Manager Core is currently available for Windows, macOS, and Linux
 Feature|Windows|macOS|Linux
 -|:-:|:-:|:-:
 Installer/uninstaller|&#10003;|&#10003;|&#10003;\*
-Secure platform credential storage|&#10003;<br/>Windows<br/>Credential<br/>Manager|&#10003;<br/>macOS Keychain|&#10003;<br/>1. Secret Service<br/>2. `pass`/GPG<br/>3. `credential-cache`<br/>4. Plaintext files<br/>[(see more)](docs/linuxcredstores.md)
+Secure platform credential storage|&#10003;<br/>[(see more)](docs/credstores.md)|&#10003;<br/>[(see more)](docs/credstores.md)|&#10003;<br/>[(see more)](docs/credstores.md)
 Multi-factor authentication support for Azure DevOps|&#10003;|&#10003;|&#10003;
 Two-factor authentication support for GitHub|&#10003;|&#10003;|&#10003;
 Two-factor authentication support for Bitbucket|&#10003;|&#10003;|&#10003;
@@ -128,7 +128,7 @@ tar -xvf <path-to-tarball> -C /usr/local/bin
 git-credential-manager-core configure
 ```
 
-**Note:** all Linux distributions [require additional configuration](https://aka.ms/gcmcore-linuxcredstores) to use GCM Core.
+**Note:** all Linux distributions [require additional configuration](https://aka.ms/gcmcore-credstores) to use GCM Core.
 
 ---
 
@@ -191,9 +191,12 @@ See detailed information [here](https://aka.ms/gcmcore-httpproxy).
 - [Environment variables](docs/environment.md)
 - [Enterprise configuration](docs/enterprise-config.md)
 - [Network and HTTP configuration](docs/netconfig.md)
+- [Credential stores](docs/credstores.md)
 - [Architectural overview](docs/architecture.md)
 - [Host provider specification](docs/hostprovider.md)
-- [Linux credential stores](docs/linuxcredstores.md)
+
+## Experimental Features
+
 - [Windows broker (experimental)](docs/windows-broker.md)
 - [Azure Repos OAuth tokens (experimental)](docs/azrepos-users-and-tokens.md)
 
