@@ -28,10 +28,15 @@ Two-factor authentication support for Bitbucket|&#10003;|&#10003;|&#10003;
 Windows Integrated Authentication (NTLM/Kerberos) support|&#10003;|_N/A_|_N/A_
 Basic HTTP authentication support|&#10003;|&#10003;|&#10003;
 Proxy support|&#10003;|&#10003;|&#10003;
+`amd64` support|&#10003;|&#10003;|&#10003;
+`x86` support|&#10003;|_N/A_|&#10003;
+`arm64` support|best effort|via Rosetta 2|best effort, no packages
+`armhf` support|_N/A_|_N/A_|best effort, no packages
 
 **Notes:**
 
 (\*) Debian package offered but not yet available on an official Microsoft feed.
+Fedora packages planned but not yet available.
 
 ## Download and Install
 
