@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net472</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>Atlassian.Bitbucket.UI</RootNamespace>
+    <AssemblyName>Atlassian.Bitbucket.UI</AssemblyName>
+    <StartupObject>Atlassian.Bitbucket.UI.Program</StartupObject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\shared\Atlassian.Bitbucket.UI\Atlassian.Bitbucket.UI.csproj" />
+    <ProjectReference Include="..\..\shared\Microsoft.Git.CredentialManager.UI\Microsoft.Git.CredentialManager.UI.csproj" />
+    <ProjectReference Include="..\Shared.UI.Windows\Shared.UI.Windows.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(OSPlatform)' != 'windows'">
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\atlassian-logo.png" />
+  </ItemGroup>
+
+</Project>
