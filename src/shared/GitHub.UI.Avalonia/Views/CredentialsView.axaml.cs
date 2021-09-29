@@ -9,6 +9,7 @@ namespace GitHub.UI.Views
     {
         private TabControl _tabControl;
         private Button _browserButton;
+        private Button _deviceButton;
         private TextBox _tokenTextBox;
         private TextBox _userNameTextBox;
         private TextBox _passwordTextBox;
@@ -24,6 +25,7 @@ namespace GitHub.UI.Views
 
             _tabControl = this.FindControl<TabControl>("authModesTabControl");
             _browserButton = this.FindControl<Button>("signInBrowserButton");
+            _deviceButton = this.FindControl<Button>("signInDeviceButton");
             _tokenTextBox = this.FindControl<TextBox>("tokenTextBox");
             _userNameTextBox = this.FindControl<TextBox>("userNameTextBox");
             _passwordTextBox = this.FindControl<TextBox>("passwordTextBox");
@@ -42,6 +44,11 @@ namespace GitHub.UI.Views
             {
                 _tabControl.SelectedIndex = 0;
                 _browserButton.Focus();
+            }
+            else if (vm.ShowDeviceLogin)
+            {
+                _tabControl.SelectedIndex = 0;
+                _deviceButton.Focus();
             }
             else if (vm.ShowTokenLogin)
             {

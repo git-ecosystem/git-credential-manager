@@ -15,10 +15,12 @@ namespace GitHub.UI.ViewModels
         private string _userName;
         private string _password;
         private bool _showBrowserLogin;
+        private bool _showDeviceLogin;
         private bool _showTokenLogin;
         private bool _showBasicLogin;
         private ICommand _signUpCommand;
         private ICommand _signInBrowserCommand;
+        private ICommand _signInDeviceCommand;
         private RelayCommand _signInBasicCommand;
         private RelayCommand _signInTokenCommand;
 
@@ -36,6 +38,7 @@ namespace GitHub.UI.ViewModels
             Title = "Connect to GitHub";
             SignUpCommand = new RelayCommand(SignUp);
             SignInBrowserCommand = new RelayCommand(SignInBrowser);
+            SignInDeviceCommand = new RelayCommand(SignInDevice);
             SignInTokenCommand = new RelayCommand(SignInToken, CanSignInToken);
             SignInBasicCommand = new RelayCommand(SignInBasic, CanSignInBasic);
 
@@ -65,6 +68,12 @@ namespace GitHub.UI.ViewModels
         private void SignInBrowser()
         {
             SelectedMode = AuthenticationModes.Browser;
+            Accept();
+        }
+
+        private void SignInDevice()
+        {
+            SelectedMode = AuthenticationModes.Device;
             Accept();
         }
 
@@ -114,10 +123,36 @@ namespace GitHub.UI.ViewModels
             set => SetAndRaisePropertyChanged(ref _enterpriseUrl, value);
         }
 
+        public string OAuthModeTitle
+        {
+            get
+            {
+                if (ShowBrowserLogin && ShowDeviceLogin)
+                    return "Browser/Device";
+                if (ShowBrowserLogin) return "Browser";
+                if (ShowDeviceLogin)  return "Device";
+                return "OAuth";
+            }
+        }
+
         public bool ShowBrowserLogin
         {
             get => _showBrowserLogin;
-            set => SetAndRaisePropertyChanged(ref _showBrowserLogin, value);
+            set
+            {
+                SetAndRaisePropertyChanged(ref _showBrowserLogin, value);
+                RaisePropertyChanged(OAuthModeTitle);
+            }
+        }
+
+        public bool ShowDeviceLogin
+        {
+            get => _showDeviceLogin;
+            set
+            {
+                SetAndRaisePropertyChanged(ref _showDeviceLogin, value);
+                RaisePropertyChanged(OAuthModeTitle);
+            }
         }
 
         public bool ShowTokenLogin
@@ -142,6 +177,12 @@ namespace GitHub.UI.ViewModels
         {
             get => _signInBrowserCommand;
             set => SetAndRaisePropertyChanged(ref _signInBrowserCommand, value);
+        }
+
+        public ICommand SignInDeviceCommand
+        {
+            get => _signInDeviceCommand;
+            set => SetAndRaisePropertyChanged(ref _signInDeviceCommand, value);
         }
 
         public RelayCommand SignInTokenCommand

@@ -38,6 +38,10 @@
       <DependentUpon>DeviceCodeView.axaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Views\DeviceCodeView.axaml.cs">
+      <DependentUpon>DeviceCodeView.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
 
 </Project>

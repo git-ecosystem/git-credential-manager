@@ -125,6 +125,17 @@
         </Setter>
     </Style>
 
+    <Style x:Key="DeviceCodeBox" TargetType="TextBox">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="IsReadOnly" Value="True" />
+        <Style.Triggers>
+            <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                <Setter Property="BorderThickness" Value="0" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
     <Style TargetType="TextBox" BasedOn="{StaticResource RoundTextBox}"/>
     <Style TargetType="sharedControls:PromptTextBox" BasedOn="{StaticResource PromptRoundTextBox}"/>
     <Style TargetType="sharedControls:PasswordPromptTextBox" BasedOn="{StaticResource PromptRoundTextBox}"/>

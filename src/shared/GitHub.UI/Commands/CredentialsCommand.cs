@@ -32,6 +32,10 @@ namespace GitHub.UI.Commands
             );
 
             AddOption(
+                new Option("--device", "Enable device code OAuth authentication.")
+            );
+
+            AddOption(
                 new Option("--pat", "Enable personal access token authentication.")
             );
 
@@ -48,6 +52,7 @@ namespace GitHub.UI.Commands
             public string EnterpriseUrl { get; set; }
             public bool Basic { get; set; }
             public bool Browser { get; set; }
+            public bool Device { get; set; }
             public bool Pat { get; set; }
             public bool All { get; set; }
         }
@@ -57,6 +62,7 @@ namespace GitHub.UI.Commands
             var viewModel = new CredentialsViewModel(Context.Environment)
             {
                 ShowBrowserLogin = options.All || options.Browser,
+                ShowDeviceLogin  = options.All || options.Device,
                 ShowTokenLogin   = options.All || options.Pat,
                 ShowBasicLogin   = options.All || options.Basic,
             };
@@ -90,6 +96,10 @@ namespace GitHub.UI.Commands
 
                 case AuthenticationModes.Browser:
                     result["mode"] = "browser";
+                    break;
+
+                case AuthenticationModes.Device:
+                    result["mode"] = "device";
                     break;
 
                 case AuthenticationModes.Pat:
