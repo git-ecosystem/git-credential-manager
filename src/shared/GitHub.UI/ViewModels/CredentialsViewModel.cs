@@ -64,7 +64,7 @@ namespace GitHub.UI.ViewModels
 
         private void SignInBrowser()
         {
-            SelectedMode = AuthenticationModes.OAuth;
+            SelectedMode = AuthenticationModes.Browser;
             Accept();
         }
 

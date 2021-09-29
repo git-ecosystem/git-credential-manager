@@ -149,7 +149,7 @@ namespace GitHub
                     Context.CredentialStore.AddOrUpdate(service, patCredential.Account, patCredential.Password);
                     return patCredential;
 
-                case AuthenticationModes.OAuth:
+                case AuthenticationModes.Browser:
                     return await GenerateOAuthCredentialAsync(remoteUri);
 
                 case AuthenticationModes.Pat:
@@ -267,12 +267,12 @@ namespace GitHub
                 if (StringComparer.OrdinalIgnoreCase.Equals(metaInfo.InstalledVersion, GitHubConstants.GitHubAeVersionString))
                 {
                     // Assume all GHAE instances have the GCM OAuth application deployed
-                    modes |= AuthenticationModes.OAuth;
+                    modes |= AuthenticationModes.Browser;
                 }
                 else if (Version.TryParse(metaInfo.InstalledVersion, out var version) && version >= GitHubConstants.MinimumOnPremOAuthVersion)
                 {
                     // Only GHES versions beyond the minimum version have the GCM OAuth application deployed
-                    modes |= AuthenticationModes.OAuth;
+                    modes |= AuthenticationModes.Browser;
                 }
 
                 Context.Trace.WriteLine($"GitHub Enterprise instance has version '{metaInfo.InstalledVersion}' and supports authentication schemes: {modes}");

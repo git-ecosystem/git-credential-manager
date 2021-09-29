@@ -92,7 +92,7 @@ namespace GitHub.Tests
 
 
         [Theory]
-        [InlineData("https://example.com", "oauth", AuthenticationModes.OAuth)]
+        [InlineData("https://example.com", "browser", AuthenticationModes.Browser)]
         [InlineData("https://github.com", "NOT-A-REAL-VALUE", GitHubConstants.DotComAuthenticationModes)]
         [InlineData("https://GitHub.Com", "NOT-A-REAL-VALUE", GitHubConstants.DotComAuthenticationModes)]
         [InlineData("https://github.com", "none", GitHubConstants.DotComAuthenticationModes)]
@@ -121,7 +121,7 @@ namespace GitHub.Tests
         [Theory]
         [InlineData("https://example.com", null, "0.1", false, AuthenticationModes.Pat)]
         [InlineData("https://example.com", null, "0.1", true, AuthenticationModes.Basic | AuthenticationModes.Pat)]
-        [InlineData("https://example.com", null, "100.0", false, AuthenticationModes.OAuth | AuthenticationModes.Pat)]
+        [InlineData("https://example.com", null, "100.0", false, AuthenticationModes.Browser | AuthenticationModes.Pat)]
         [InlineData("https://example.com", null, "100.0", true, AuthenticationModes.All)]
         public async Task GitHubHostProvider_GetSupportedAuthenticationModes_WithMetadata(string uriString, string gitHubAuthModes,
             string installedVersion, bool verifiablePasswordAuthentication, AuthenticationModes expectedModes)
@@ -170,7 +170,7 @@ namespace GitHub.Tests
         }
 
         [Fact]
-        public async Task GitHubHostProvider_GenerateCredentialAsync_OAuth_ReturnsCredential()
+        public async Task GitHubHostProvider_GenerateCredentialAsync_Browser_ReturnsCredential()
         {
             var input = new InputArguments(new Dictionary<string, string>
             {
@@ -194,7 +194,7 @@ namespace GitHub.Tests
 
             var ghAuthMock = new Mock<IGitHubAuthentication>(MockBehavior.Strict);
             ghAuthMock.Setup(x => x.GetAuthenticationAsync(expectedTargetUri, null, It.IsAny<AuthenticationModes>()))
-                      .ReturnsAsync(new AuthenticationPromptResult(AuthenticationModes.OAuth));
+                      .ReturnsAsync(new AuthenticationPromptResult(AuthenticationModes.Browser));
 
             ghAuthMock.Setup(x => x.GetOAuthTokenAsync(expectedTargetUri, It.IsAny<IEnumerable<string>>()))
                       .ReturnsAsync(response);

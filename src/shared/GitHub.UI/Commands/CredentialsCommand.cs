@@ -28,7 +28,7 @@ namespace GitHub.UI.Commands
             );
 
             AddOption(
-                new Option("--oauth", "Enable browser-based OAuth authentication.")
+                new Option("--browser", "Enable browser-based OAuth authentication.")
             );
 
             AddOption(
@@ -38,11 +38,11 @@ namespace GitHub.UI.Commands
             Handler = CommandHandler.Create<string, string, bool, bool, bool>(ExecuteAsync);
         }
 
-        private async Task<int> ExecuteAsync(string enterpriseUrl, string userName, bool basic, bool oauth, bool pat)
+        private async Task<int> ExecuteAsync(string enterpriseUrl, string userName, bool basic, bool browser, bool pat)
         {
             var viewModel = new CredentialsViewModel(Context.Environment)
             {
-                ShowBrowserLogin = oauth,
+                ShowBrowserLogin = browser,
                 ShowTokenLogin   = pat,
                 ShowBasicLogin   = basic,
             };
@@ -74,8 +74,8 @@ namespace GitHub.UI.Commands
                     result["password"] = viewModel.Password;
                     break;
 
-                case AuthenticationModes.OAuth:
-                    result["mode"] = "oauth";
+                case AuthenticationModes.Browser:
+                    result["mode"] = "browser";
                     break;
 
                 case AuthenticationModes.Pat:
