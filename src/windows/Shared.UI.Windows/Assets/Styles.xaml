@@ -24,6 +24,47 @@
     <SolidColorBrush x:Key="AccentButtonDisabledForegroundBrush" Color="{StaticResource DisabledForegroundColor}" />
     <SolidColorBrush x:Key="PromptTextBrush" Color="{StaticResource PromptTextColor}" />
 
+    <Style x:Key="RoundTextBox" TargetType="TextBox">
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="BorderBrush" Value="{StaticResource ControlBorderBrush}"/>
+        <Setter Property="Padding" Value="6"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <Grid>
+                        <Border x:Name="Bd"
+                                Background="{TemplateBinding Background}"
+                                Margin="1"
+                                CornerRadius="2"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"/>
+
+                        <Grid>
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                          Padding="{TemplateBinding Padding}"
+                                          Focusable="False"
+                                          HorizontalScrollBarVisibility="Hidden"
+                                          VerticalScrollBarVisibility="Hidden"
+                                          VerticalAlignment="Top"
+                                          Margin="0"/>
+                        </Grid>
+                    </Grid>
+
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.5"/>
+                        </Trigger>
+                        <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                            <Setter Property="BorderBrush" TargetName="Bd" Value="{StaticResource AccentBrush}"/>
+                            <Setter Property="BorderThickness" TargetName="Bd" Value="2"/>
+                            <Setter Property="Margin" TargetName="Bd" Value="0"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <Style x:Key="PromptRoundTextBox" TargetType="sharedControls:PromptTextBox">
         <Setter Property="FontSize" Value="14"/>
         <Setter Property="BorderBrush" Value="{StaticResource ControlBorderBrush}"/>
@@ -84,6 +125,7 @@
         </Setter>
     </Style>
 
+    <Style TargetType="TextBox" BasedOn="{StaticResource RoundTextBox}"/>
     <Style TargetType="sharedControls:PromptTextBox" BasedOn="{StaticResource PromptRoundTextBox}"/>
     <Style TargetType="sharedControls:PasswordPromptTextBox" BasedOn="{StaticResource PromptRoundTextBox}"/>
 
