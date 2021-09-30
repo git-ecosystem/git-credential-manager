@@ -35,26 +35,40 @@ namespace GitHub.UI.Commands
                 new Option("--pat", "Enable personal access token authentication.")
             );
 
-            Handler = CommandHandler.Create<string, string, bool, bool, bool>(ExecuteAsync);
+            AddOption(
+                new Option("--all", "Enable all available authentication options.")
+            );
+
+            Handler = CommandHandler.Create<CommandOptions>(ExecuteAsync);
         }
 
-        private async Task<int> ExecuteAsync(string enterpriseUrl, string userName, bool basic, bool browser, bool pat)
+        private class CommandOptions
+        {
+            public string UserName { get; set; }
+            public string EnterpriseUrl { get; set; }
+            public bool Basic { get; set; }
+            public bool Browser { get; set; }
+            public bool Pat { get; set; }
+            public bool All { get; set; }
+        }
+
+        private async Task<int> ExecuteAsync(CommandOptions options)
         {
             var viewModel = new CredentialsViewModel(Context.Environment)
             {
-                ShowBrowserLogin = browser,
-                ShowTokenLogin   = pat,
-                ShowBasicLogin   = basic,
+                ShowBrowserLogin = options.All || options.Browser,
+                ShowTokenLogin   = options.All || options.Pat,
+                ShowBasicLogin   = options.All || options.Basic,
             };
 
-            if (!GitHubHostProvider.IsGitHubDotCom(enterpriseUrl))
+            if (!GitHubHostProvider.IsGitHubDotCom(options.EnterpriseUrl))
             {
-                viewModel.EnterpriseUrl = enterpriseUrl;
+                viewModel.EnterpriseUrl = options.EnterpriseUrl;
             }
 
-            if (!string.IsNullOrWhiteSpace(userName))
+            if (!string.IsNullOrWhiteSpace(options.UserName))
             {
-                viewModel.UserName = userName;
+                viewModel.UserName = options.UserName;
             }
 
             await ShowAsync(viewModel, CancellationToken.None);
