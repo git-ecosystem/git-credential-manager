@@ -121,7 +121,7 @@ namespace GitHub.Tests
         [Theory]
         [InlineData("https://example.com", null, "0.1", false, AuthenticationModes.Pat)]
         [InlineData("https://example.com", null, "0.1", true, AuthenticationModes.Basic | AuthenticationModes.Pat)]
-        [InlineData("https://example.com", null, "100.0", false, AuthenticationModes.Browser | AuthenticationModes.Pat)]
+        [InlineData("https://example.com", null, "100.0", false, AuthenticationModes.OAuth | AuthenticationModes.Pat)]
         [InlineData("https://example.com", null, "100.0", true, AuthenticationModes.All)]
         public async Task GitHubHostProvider_GetSupportedAuthenticationModes_WithMetadata(string uriString, string gitHubAuthModes,
             string installedVersion, bool verifiablePasswordAuthentication, AuthenticationModes expectedModes)
@@ -196,7 +196,7 @@ namespace GitHub.Tests
             ghAuthMock.Setup(x => x.GetAuthenticationAsync(expectedTargetUri, null, It.IsAny<AuthenticationModes>()))
                       .ReturnsAsync(new AuthenticationPromptResult(AuthenticationModes.Browser));
 
-            ghAuthMock.Setup(x => x.GetOAuthTokenAsync(expectedTargetUri, It.IsAny<IEnumerable<string>>()))
+            ghAuthMock.Setup(x => x.GetOAuthTokenViaBrowserAsync(expectedTargetUri, It.IsAny<IEnumerable<string>>()))
                       .ReturnsAsync(response);
 
             var ghApiMock = new Mock<IGitHubRestApi>(MockBehavior.Strict);
@@ -212,7 +212,7 @@ namespace GitHub.Tests
             Assert.Equal(tokenValue, credential.Password);
 
             ghAuthMock.Verify(
-                x => x.GetOAuthTokenAsync(
+                x => x.GetOAuthTokenViaBrowserAsync(
                     expectedTargetUri, expectedOAuthScopes),
                 Times.Once);
         }
