@@ -74,3 +74,11 @@ The likely answer is we haven't gotten around to that yet! 🙂
 We are working on ensuring support for the Windows, macOS, and Ubuntu operating system, as well as the following Git hosting providers: Azure Repos, Azure DevOps Server (TFS), GitHub, and Bitbucket.
 
 We are happy to accept proposals and/or contributions to enable GCM Core to run on other platforms and Git host providers. Thank you!
+
+## Technical
+
+### Why is the `credential.useHttpPath` setting required for `dev.azure.com`?
+
+Due to the design of Git and credential helpers such as GCM Core, we need this setting to make Git use the full remote URL (including the path component) when communicating with GCM. The new `dev.azure.com` format of Azure DevOps URLs means the account name is now part of the path component (for example: `https://dev.azure.com/contoso/...`). The Azure DevOps account name is required in order to resolve the correct authority for authentication (which Azure AD tenant backs this account, or if it is backed by Microsoft personal accounts).
+
+In the older GCM for Windows product, the solution to the same problem was a "hack". GCM for Windows would walk the process tree looking for the `git-remote-https.exe` process, and attempt to read/parse the process environment block looking for the command line arguments (that contained the full remote URL). This is fragile and not a cross-platform solution, hense the need for the `credential.useHttpPath` setting with GCM Core.
