@@ -143,7 +143,7 @@ You can download the [latest installer](https://github.com/microsoft/Git-Credent
 
 **:warning: Important :warning:**
 
-Installing GCM Core as a standalone package on Windows will forcably override the version of GCM Core that is bundled with Git for Windows, **even if the version bundled with Git for Windows is a later version**.
+Installing GCM Core as a standalone package on Windows will forcibly override the version of GCM Core that is bundled with Git for Windows, **even if the version bundled with Git for Windows is a later version**.
 
 There are two flavors of standalone installation on Windows:
 
