@@ -1,5 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Threading.Tasks;
+using Atlassian.Bitbucket.UI.Commands;
+using Atlassian.Bitbucket.UI.Controls;
 using Microsoft.Git.CredentialManager;
 using Microsoft.Git.CredentialManager.UI;
 
@@ -7,59 +9,27 @@ namespace Atlassian.Bitbucket.UI
 {
     public static class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
-            IGui gui = new Gui();
-
-            try
+            string appPath = ApplicationBase.GetEntryApplicationPath();
+            using (var context = new CommandContext(appPath))
+            using (var app = new HelperApplication(context))
             {
-                // Show test UI when given no arguments
                 if (args.Length == 0)
                 {
-                    gui.ShowWindow(() => new Tester());
+                    await Gui.ShowWindow(() => new TesterWindow(), IntPtr.Zero);
+                    return;
                 }
-                else
-                {
-                    var prompts = new AuthenticationPrompts(gui);
-                    var resultDict = new Dictionary<string, string>();
 
-                    if (StringComparer.OrdinalIgnoreCase.Equals(args[0], "userpass"))
-                    {
-                        string username = CommandLineUtils.GetParameter(args, "--username");
-                        if (prompts.ShowCredentialsPrompt(ref username, out string password))
-                        {
-                            resultDict["username"] = username;
-                            resultDict["password"] = password;
-                        }
-                        else
-                        {
-                            throw new OperationCanceledException("authentication prompt was canceled");
-                        }
-                    }
-                    else if (StringComparer.OrdinalIgnoreCase.Equals(args[0], "oauth"))
-                    {
-                        if (!prompts.ShowOAuthPrompt())
-                        {
-                            throw new OperationCanceledException("authentication prompt was canceled");
-                        }
+                app.RegisterCommand(new CredentialsCommandImpl(context));
+                app.RegisterCommand(new OAuthCommandImpl(context));
 
-                        resultDict["continue"] = "1";
-                    }
-                    else
-                    {
-                        throw new Exception($"unknown argument '{args[0]}'");
-                    }
+                int exitCode = app.RunAsync(args)
+                    .ConfigureAwait(false)
+                    .GetAwaiter()
+                    .GetResult();
 
-                    Console.Out.WriteDictionary(resultDict);
-                }
-            }
-            catch (Exception e)
-            {
-                Console.Out.WriteDictionary(new Dictionary<string, string>
-                {
-                    ["error"] = e.Message
-                });
-                Environment.Exit(-1);
+                Environment.Exit(exitCode);
             }
         }
     }

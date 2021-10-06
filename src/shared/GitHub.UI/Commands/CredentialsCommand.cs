@@ -5,15 +5,14 @@ using System.CommandLine.Invocation;
 using System.Threading;
 using System.Threading.Tasks;
 using GitHub.UI.ViewModels;
-using GitHub.UI.Views;
 using Microsoft.Git.CredentialManager;
 using Microsoft.Git.CredentialManager.UI;
 
 namespace GitHub.UI.Commands
 {
-    public class CredentialsCommand : HelperCommand
+    public abstract class CredentialsCommand : HelperCommand
     {
-        public CredentialsCommand(ICommandContext context)
+        protected CredentialsCommand(ICommandContext context)
             : base(context, "prompt", "Show authentication prompt.")
         {
             AddOption(
@@ -58,7 +57,7 @@ namespace GitHub.UI.Commands
                 viewModel.UserName = userName;
             }
 
-            await AvaloniaUi.ShowViewAsync<CredentialsView>(viewModel, GetParentHandle(), CancellationToken.None);
+            await ShowAsync(viewModel, CancellationToken.None);
 
             if (!viewModel.WindowResult)
             {
@@ -91,5 +90,7 @@ namespace GitHub.UI.Commands
             WriteResult(result);
             return 0;
         }
+
+        protected abstract Task ShowAsync(CredentialsViewModel viewModel, CancellationToken ct);
     }
 }

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
 
   <PropertyGroup>
-    <OutputType>WinExe</OutputType>
+    <OutputType>Exe</OutputType>
     <TargetFramework>net472</TargetFramework>
     <UseWPF>true</UseWPF>
     <RootNamespace>GitHub.UI</RootNamespace>
@@ -10,27 +10,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\shared\Microsoft.Git.CredentialManager\Microsoft.Git.CredentialManager.csproj" />
+    <ProjectReference Include="..\..\shared\GitHub.UI\GitHub.UI.csproj" />
+    <ProjectReference Include="..\..\shared\Microsoft.Git.CredentialManager.UI\Microsoft.Git.CredentialManager.UI.csproj" />
     <ProjectReference Include="..\Shared.UI.Windows\Shared.UI.Windows.csproj" />
   </ItemGroup>
-
+  
   <ItemGroup Condition="'$(OSPlatform)' != 'windows'">
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Compile Update="GitHubResources.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>GitHubResources.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Update="GitHubResources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>GitHubResources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-  </ItemGroup>
-
+  
 </Project>

@@ -3,22 +3,27 @@ using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using Microsoft.Git.CredentialManager.UI.Controls;
 using Microsoft.Git.CredentialManager.UI.ViewModels;
 
 namespace Microsoft.Git.CredentialManager.UI
 {
-    public interface IGui
+    public static class Gui
     {
         /// <summary>
         /// Present the user with a <see cref="Window"/>.
         /// </summary>
         /// <param name="windowCreator"><see cref="Window"/> factory.</param>
+        /// <param name="parentHwnd">Parent window handle.</param>
         /// <returns>
         /// Returns `<see langword="true"/>` if the user completed the dialog; otherwise `<see langword="false"/>`
         /// if the user canceled or abandoned the dialog.
         /// </returns>
-        bool ShowWindow(Func<Window> windowCreator);
+        public static Task ShowWindow(Func<Window> windowCreator, IntPtr parentHwnd)
+        {
+            return StartSTATask(() => ShowDialog(windowCreator(), parentHwnd));
+        }
 
         /// <summary>
         /// Present the user with a <see cref="DialogWindow"/>.
@@ -30,40 +35,10 @@ namespace Microsoft.Git.CredentialManager.UI
         /// </returns>
         /// <param name="viewModel">Window view model.</param>
         /// <param name="contentCreator">Window content factory.</param>
-        bool ShowDialogWindow(WindowViewModel viewModel, Func<object> contentCreator);
-    }
-
-    public class Gui : IGui
-    {
-        private readonly IntPtr _parentHwnd = IntPtr.Zero;
-
-        public Gui()
+        /// <param name="parentHwnd">Parent window handle.</param>
+        public static Task ShowDialogWindow(WindowViewModel viewModel, Func<UserControl> contentCreator, IntPtr parentHwnd)
         {
-            string envar = Environment.GetEnvironmentVariable(Constants.EnvironmentVariables.GcmParentWindow);
-
-            if (long.TryParse(envar, out long ptrInt))
-            {
-                _parentHwnd = new IntPtr(ptrInt);
-            }
-        }
-
-        public bool ShowWindow(Func<Window> windowCreator)
-        {
-            bool windowResult = false;
-
-            var staTask = StartSTATask(() =>
-            {
-                windowResult = ShowDialog(windowCreator(), _parentHwnd) ?? false;
-            });
-
-            staTask.Wait();
-
-            return windowResult;
-        }
-
-        public bool ShowDialogWindow(WindowViewModel viewModel, Func<object> contentCreator)
-        {
-             return ShowWindow(() => new DialogWindow(viewModel, contentCreator())) && viewModel.IsValid;
+            return ShowWindow(() => new DialogWindow(contentCreator()) { DataContext = viewModel }, parentHwnd);
         }
 
         private static Task StartSTATask(Action action)

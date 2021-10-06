@@ -44,8 +44,8 @@ ROOT="$( cd "$THISDIR"/../../.. ; pwd -P )"
 SRC="$ROOT/src"
 OUT="$ROOT/out"
 GCM_SRC="$SRC/shared/Git-Credential-Manager"
-BITBUCKET_UI_SRC="$SRC/shared/Atlassian.Bitbucket.UI"
-GITHUB_UI_SRC="$SRC/shared/GitHub.UI"
+BITBUCKET_UI_SRC="$SRC/shared/Atlassian.Bitbucket.UI.Avalonia"
+GITHUB_UI_SRC="$SRC/shared/GitHub.UI.Avalonia"
 PROJ_OUT="$OUT/linux/Packaging.Linux"
 
 # Build parameters

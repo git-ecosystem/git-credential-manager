@@ -1,37 +1,57 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Threading;
 using Microsoft.Git.CredentialManager.UI.ViewModels;
 
 namespace Microsoft.Git.CredentialManager.UI.Controls
 {
     public partial class DialogWindow : Window
     {
-        public DialogWindow(WindowViewModel viewModel, object content)
+        private readonly UserControl _view;
+
+        public DialogWindow(UserControl view)
         {
             InitializeComponent();
 
-            DataContext = viewModel;
-            ContentHolder.Content = content;
+            DataContextChanged += OnDataContextChanged;
 
-            if (viewModel != null)
+            _view = view;
+            ContentHolder.Content = _view;
+        }
+
+        private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (DataContext is WindowViewModel vm)
             {
-                viewModel.Accepted += (sender, e) =>
+                vm.Accepted += (s, _) =>
                 {
                     DialogResult = true;
                     Close();
                 };
 
-                viewModel.Canceled += (sender, e) =>
+                vm.Canceled += (s, _) =>
                 {
                     DialogResult = false;
                     Close();
                 };
             }
+
+            if (_view is IFocusable focusable)
+            {
+                // Send a focus request to the child view on idle
+                Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.ApplicationIdle, (Action)(() => focusable.SetFocus()));
+            }
         }
 
-        public WindowViewModel ViewModel => (WindowViewModel) DataContext;
-
-        private void CloseButton_Click(object sender, RoutedEventArgs e) => ViewModel.Cancel();
+        private void CloseButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is WindowViewModel vm)
+            {
+                vm.Cancel();
+            }
+        }
 
         private void Border_MouseDown(object sender, MouseButtonEventArgs e)
         {

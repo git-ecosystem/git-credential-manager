@@ -1,0 +1,13 @@
+<Window x:Class="Atlassian.Bitbucket.UI.Controls.TesterWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        mc:Ignorable="d"
+        Title="Bitbucket Authentication Dialog Tester"
+        Height="240" Width="420" ResizeMode="NoResize">
+    <DockPanel>
+        <Button Content="Show Credentials Dialog" Padding="10" Click="ShowCredentials" />
+        <Button Content="Show OAuth Dialog" Padding="10" Click="ShowOAuth" />
+    </DockPanel>
+</Window>

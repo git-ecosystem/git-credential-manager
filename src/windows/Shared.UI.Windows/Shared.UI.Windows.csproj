@@ -4,21 +4,16 @@
     <TargetFramework>net472</TargetFramework>
     <UseWPF>true</UseWPF>
     <RootNamespace>Microsoft.Git.CredentialManager.UI</RootNamespace>
-    <AssemblyName>Microsoft.Git.CredentialManager.UI</AssemblyName>
+    <AssemblyName>Microsoft.Git.CredentialManager.UI.Windows</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\shared\Microsoft.Git.CredentialManager.UI\Microsoft.Git.CredentialManager.UI.csproj" />
     <ProjectReference Include="..\..\shared\Microsoft.Git.CredentialManager\Microsoft.Git.CredentialManager.csproj" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(OSPlatform)' != 'windows'">
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Page Update="Controls\DialogWindow.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
   </ItemGroup>
 
 </Project>

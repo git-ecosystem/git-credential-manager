@@ -48,6 +48,8 @@ namespace Microsoft.Git.CredentialManager.UI
             {
                 WriteException(ex);
             }
+
+            invocationContext.ResultCode = -1;
         }
 
         private bool WriteException(Exception ex)
@@ -56,8 +58,6 @@ namespace Microsoft.Git.CredentialManager.UI
             {
                 ["error"] = ex.Message
             });
-
-            Environment.ExitCode = -1;
 
             return true;
         }

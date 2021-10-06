@@ -39,6 +39,8 @@ namespace Microsoft.Git.CredentialManager.Authentication
                 UseShellExecute = false
             };
 
+            Context.Trace.WriteLine($"Starting helper process: {path} {args}");
+
             // We flush the trace writers here so that the we don't stomp over the
             // authentication helper's messages.
             Context.Trace.Flush();
@@ -46,7 +48,7 @@ namespace Microsoft.Git.CredentialManager.Authentication
             var process = Process.Start(procStartInfo);
             if (process is null)
             {
-                throw new Exception($"Failed to start helper process '{path}'");
+                throw new Exception($"Failed to start helper process: {path} {args}");
             }
 
             // Kill the process upon a cancellation request

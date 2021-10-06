@@ -1,0 +1,54 @@
+<UserControl x:Class="Atlassian.Bitbucket.UI.Views.OAuthView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:viewModels="clr-namespace:Atlassian.Bitbucket.UI.ViewModels;assembly=Atlassian.Bitbucket.UI.Shared"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance viewModels:OAuthViewModel}"
+             d:DesignWidth="300">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../Assets/Styles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <DockPanel LastChildFill="True">
+        <StackPanel DockPanel.Dock="Bottom">
+            <TextBlock Margin="0,30,0,10"
+                       FontSize="14" TextAlignment="Center">
+                <Hyperlink Command="{Binding ForgotPasswordCommand}">
+                    Can't log in?
+                </Hyperlink>
+            </TextBlock>
+            <TextBlock Margin="0,0,0,10"
+                       FontSize="14"  TextAlignment="Center">
+                <Hyperlink Command="{Binding SignUpCommand}">
+                    Sign up for an account
+                </Hyperlink>
+            </TextBlock>
+        </StackPanel>
+
+        <StackPanel DockPanel.Dock="Top">
+            <Image HorizontalAlignment="Center" Source="/Assets/atlassian-logo.png" />
+            <TextBlock HorizontalAlignment="Center"
+                       FontSize="14"
+                       Text="OAuth Authentication"/>
+        </StackPanel>
+
+        <StackPanel Width="288">
+            <TextBlock Margin="0,44,0,30"
+                       FontSize="14" TextAlignment="Center">
+                <Hyperlink Command="{Binding LearnMoreCommand}">
+                    Learn more about 2-Factor Authentication
+                </Hyperlink>
+            </TextBlock>
+            <Button IsDefault="True" x:Name="okButton"
+                    HorizontalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                    Command="{Binding OkCommand}"
+                    Content="Authorize" Width="140" Height="40"
+                    Style="{StaticResource AccentButton}"/>
+        </StackPanel>
+    </DockPanel>
+</UserControl>

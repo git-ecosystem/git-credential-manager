@@ -5,15 +5,14 @@ using System.CommandLine.Invocation;
 using System.Threading;
 using System.Threading.Tasks;
 using GitHub.UI.ViewModels;
-using GitHub.UI.Views;
 using Microsoft.Git.CredentialManager;
 using Microsoft.Git.CredentialManager.UI;
 
 namespace GitHub.UI.Commands
 {
-    public class TwoFactorCommand : HelperCommand
+    public abstract class TwoFactorCommand : HelperCommand
     {
-        public TwoFactorCommand(ICommandContext context)
+        protected TwoFactorCommand(ICommandContext context)
             : base(context, "2fa", "Show two-factor prompt.")
         {
             AddOption(
@@ -30,7 +29,7 @@ namespace GitHub.UI.Commands
                 IsSms = sms
             };
 
-            await AvaloniaUi.ShowViewAsync<TwoFactorView>(viewModel, GetParentHandle(), CancellationToken.None);
+            await ShowAsync(viewModel, CancellationToken.None);
 
             if (!viewModel.WindowResult)
             {
@@ -44,5 +43,7 @@ namespace GitHub.UI.Commands
 
             return 0;
         }
+
+        protected abstract Task ShowAsync(TwoFactorViewModel viewModel, CancellationToken ct);
     }
 }

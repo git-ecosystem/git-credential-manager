@@ -5,15 +5,14 @@ using System.CommandLine.Invocation;
 using System.Threading;
 using System.Threading.Tasks;
 using Atlassian.Bitbucket.UI.ViewModels;
-using Atlassian.Bitbucket.UI.Views;
 using Microsoft.Git.CredentialManager;
 using Microsoft.Git.CredentialManager.UI;
 
 namespace Atlassian.Bitbucket.UI.Commands
 {
-    internal class CredentialsCommand : HelperCommand
+    public abstract class CredentialsCommand : HelperCommand
     {
-        public CredentialsCommand(CommandContext context)
+        protected CredentialsCommand(ICommandContext context)
             : base(context, "userpass", "Show authentication prompt.")
         {
             AddOption(
@@ -30,7 +29,7 @@ namespace Atlassian.Bitbucket.UI.Commands
                 UserName = userName
             };
 
-            await AvaloniaUi.ShowViewAsync<CredentialsView>(viewModel, GetParentHandle(), CancellationToken.None);
+            await ShowAsync(viewModel, CancellationToken.None);
 
             if (!viewModel.WindowResult)
             {
@@ -45,5 +44,7 @@ namespace Atlassian.Bitbucket.UI.Commands
 
             return 0;
         }
+
+        protected abstract Task ShowAsync(CredentialsViewModel viewModel, CancellationToken ct);
     }
 }

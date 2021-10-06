@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+    <RuntimeIdentifiers>osx-x64;linux-x64</RuntimeIdentifiers>
+    <RootNamespace>Atlassian.Bitbucket.UI</RootNamespace>
+    <AssemblyName>Atlassian.Bitbucket.UI</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Atlassian.Bitbucket.UI\Atlassian.Bitbucket.UI.csproj" />
+    <ProjectReference Include="..\Microsoft.Git.CredentialManager.UI.Avalonia\Microsoft.Git.CredentialManager.UI.Avalonia.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Controls\TesterWindow.axaml.cs">
+      <DependentUpon>TesterWindow.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <AvaloniaResource Include="Assets\**" />
+  </ItemGroup>
+
+</Project>
