@@ -17,7 +17,7 @@ namespace Microsoft.Git.CredentialManager
 
         public static Task<HttpResponseMessage> HeadAsync(this HttpClient client, Uri requestUri)
         {
-            return client.HeadAsync(requestUri, HttpCompletionOption.ResponseContentRead);
+            return client.HeadAsync(requestUri, HttpCompletionOption.ResponseHeadersRead);
         }
 
         public static Task<HttpResponseMessage> HeadAsync(this HttpClient client, string requestUri, HttpCompletionOption completionOption)
@@ -37,7 +37,7 @@ namespace Microsoft.Git.CredentialManager
 
         public static Task<HttpResponseMessage> HeadAsync(this HttpClient client, Uri requestUri, CancellationToken cancellationToken)
         {
-            return client.HeadAsync(requestUri, HttpCompletionOption.ResponseContentRead, cancellationToken);
+            return client.HeadAsync(requestUri, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
         }
 
         public static Task<HttpResponseMessage> HeadAsync(this HttpClient client, string requestUri, HttpCompletionOption completionOption, CancellationToken cancellationToken)
