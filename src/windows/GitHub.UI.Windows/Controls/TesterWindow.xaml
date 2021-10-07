@@ -69,5 +69,29 @@
                 </StackPanel>
             </StackPanel>
         </TabItem>
+
+        <TabItem Header="Device Code">
+            <StackPanel>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Label   Grid.Row="0" Grid.Column="0" Content="User Code" />
+                    <TextBox Grid.Row="0" Grid.Column="1" x:Name="userCode" />
+                    <Label   Grid.Row="1" Grid.Column="0" Content="Verification URL" />
+                    <TextBox Grid.Row="1" Grid.Column="1" x:Name="verificationUrl" />
+                </Grid>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"
+                            Margin="0,10">
+                    <Button Content="Show" Click="ShowDeviceCode"
+                            Padding="8,4"/>
+                </StackPanel>
+            </StackPanel>
+        </TabItem>
     </TabControl>
 </Window>

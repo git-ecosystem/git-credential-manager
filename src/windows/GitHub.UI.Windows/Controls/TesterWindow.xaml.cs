@@ -20,6 +20,7 @@ namespace GitHub.UI.Controls
             var vm = new CredentialsViewModel(_environment)
             {
                 ShowBrowserLogin = useBrowser.IsChecked ?? false,
+                ShowDeviceLogin = useDevice.IsChecked ?? false,
                 ShowTokenLogin = usePat.IsChecked ?? false,
                 ShowBasicLogin = useBasic.IsChecked ?? false,
                 EnterpriseUrl = enterpriseUrl.Text,
@@ -37,6 +38,18 @@ namespace GitHub.UI.Controls
                 IsSms = twoFaSms.IsChecked ?? false,
             };
             var view = new TwoFactorView();
+            var window = new DialogWindow(view) { DataContext = vm };
+            window.ShowDialog();
+        }
+
+        private void ShowDeviceCode(object sender, RoutedEventArgs e)
+        {
+            var vm = new DeviceCodeViewModel(_environment)
+            {
+                UserCode = userCode.Text,
+                VerificationUrl = verificationUrl.Text,
+            };
+            var view = new DeviceCodeView();
             var window = new DialogWindow(view) { DataContext = vm };
             window.ShowDialog();
         }

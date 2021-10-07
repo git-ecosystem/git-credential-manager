@@ -60,5 +60,17 @@
                 <Button Classes="accent" Content="Show" Click="ShowTwoFactorCode" />
             </StackPanel>
         </TabItem>
+
+        <TabItem Header="Device Code">
+            <StackPanel>
+                <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="Auto,*">
+                    <Label   Grid.Row="0" Grid.Column="0" Content="User Code" />
+                    <TextBox Grid.Row="0" Grid.Column="1" x:Name="userCode" />
+                    <Label   Grid.Row="1" Grid.Column="0" Content="Verification Url" />
+                    <TextBox Grid.Row="1" Grid.Column="1" x:Name="verificationUrl" />
+                </Grid>
+                <Button Classes="accent" Content="Show" Click="ShowDeviceCode" />
+            </StackPanel>
+        </TabItem>
     </TabControl>
 </Window>

@@ -28,33 +28,53 @@ namespace GitHub.UI.Commands
             );
 
             AddOption(
-                new Option("--oauth", "Enable browser-based OAuth authentication.")
+                new Option("--browser", "Enable browser-based OAuth authentication.")
+            );
+
+            AddOption(
+                new Option("--device", "Enable device code OAuth authentication.")
             );
 
             AddOption(
                 new Option("--pat", "Enable personal access token authentication.")
             );
 
-            Handler = CommandHandler.Create<string, string, bool, bool, bool>(ExecuteAsync);
+            AddOption(
+                new Option("--all", "Enable all available authentication options.")
+            );
+
+            Handler = CommandHandler.Create<CommandOptions>(ExecuteAsync);
         }
 
-        private async Task<int> ExecuteAsync(string enterpriseUrl, string userName, bool basic, bool oauth, bool pat)
+        private class CommandOptions
+        {
+            public string UserName { get; set; }
+            public string EnterpriseUrl { get; set; }
+            public bool Basic { get; set; }
+            public bool Browser { get; set; }
+            public bool Device { get; set; }
+            public bool Pat { get; set; }
+            public bool All { get; set; }
+        }
+
+        private async Task<int> ExecuteAsync(CommandOptions options)
         {
             var viewModel = new CredentialsViewModel(Context.Environment)
             {
-                ShowBrowserLogin = oauth,
-                ShowTokenLogin   = pat,
-                ShowBasicLogin   = basic,
+                ShowBrowserLogin = options.All || options.Browser,
+                ShowDeviceLogin  = options.All || options.Device,
+                ShowTokenLogin   = options.All || options.Pat,
+                ShowBasicLogin   = options.All || options.Basic,
             };
 
-            if (!GitHubHostProvider.IsGitHubDotCom(enterpriseUrl))
+            if (!GitHubHostProvider.IsGitHubDotCom(options.EnterpriseUrl))
             {
-                viewModel.EnterpriseUrl = enterpriseUrl;
+                viewModel.EnterpriseUrl = options.EnterpriseUrl;
             }
 
-            if (!string.IsNullOrWhiteSpace(userName))
+            if (!string.IsNullOrWhiteSpace(options.UserName))
             {
-                viewModel.UserName = userName;
+                viewModel.UserName = options.UserName;
             }
 
             await ShowAsync(viewModel, CancellationToken.None);
@@ -74,8 +94,12 @@ namespace GitHub.UI.Commands
                     result["password"] = viewModel.Password;
                     break;
 
-                case AuthenticationModes.OAuth:
-                    result["mode"] = "oauth";
+                case AuthenticationModes.Browser:
+                    result["mode"] = "browser";
+                    break;
+
+                case AuthenticationModes.Device:
+                    result["mode"] = "device";
                     break;
 
                 case AuthenticationModes.Pat:

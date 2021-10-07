@@ -92,7 +92,7 @@ namespace GitHub.Tests
 
 
         [Theory]
-        [InlineData("https://example.com", "oauth", AuthenticationModes.OAuth)]
+        [InlineData("https://example.com", "browser", AuthenticationModes.Browser)]
         [InlineData("https://github.com", "NOT-A-REAL-VALUE", GitHubConstants.DotComAuthenticationModes)]
         [InlineData("https://GitHub.Com", "NOT-A-REAL-VALUE", GitHubConstants.DotComAuthenticationModes)]
         [InlineData("https://github.com", "none", GitHubConstants.DotComAuthenticationModes)]
@@ -170,7 +170,7 @@ namespace GitHub.Tests
         }
 
         [Fact]
-        public async Task GitHubHostProvider_GenerateCredentialAsync_OAuth_ReturnsCredential()
+        public async Task GitHubHostProvider_GenerateCredentialAsync_Browser_ReturnsCredential()
         {
             var input = new InputArguments(new Dictionary<string, string>
             {
@@ -194,9 +194,9 @@ namespace GitHub.Tests
 
             var ghAuthMock = new Mock<IGitHubAuthentication>(MockBehavior.Strict);
             ghAuthMock.Setup(x => x.GetAuthenticationAsync(expectedTargetUri, null, It.IsAny<AuthenticationModes>()))
-                      .ReturnsAsync(new AuthenticationPromptResult(AuthenticationModes.OAuth));
+                      .ReturnsAsync(new AuthenticationPromptResult(AuthenticationModes.Browser));
 
-            ghAuthMock.Setup(x => x.GetOAuthTokenAsync(expectedTargetUri, It.IsAny<IEnumerable<string>>()))
+            ghAuthMock.Setup(x => x.GetOAuthTokenViaBrowserAsync(expectedTargetUri, It.IsAny<IEnumerable<string>>()))
                       .ReturnsAsync(response);
 
             var ghApiMock = new Mock<IGitHubRestApi>(MockBehavior.Strict);
@@ -212,7 +212,7 @@ namespace GitHub.Tests
             Assert.Equal(tokenValue, credential.Password);
 
             ghAuthMock.Verify(
-                x => x.GetOAuthTokenAsync(
+                x => x.GetOAuthTokenViaBrowserAsync(
                     expectedTargetUri, expectedOAuthScopes),
                 Times.Once);
         }

@@ -55,6 +55,7 @@ namespace GitHub.UI.Controls
             var vm = new CredentialsViewModel(_environment)
             {
                 ShowBrowserLogin = this.FindControl<CheckBox>("useBrowser").IsChecked ?? false,
+                ShowDeviceLogin = this.FindControl<CheckBox>("useDevice").IsChecked ?? false,
                 ShowTokenLogin = this.FindControl<CheckBox>("usePat").IsChecked ?? false,
                 ShowBasicLogin = this.FindControl<CheckBox>("useBasic").IsChecked ?? false,
                 EnterpriseUrl = this.FindControl<TextBox>("enterpriseUrl").Text,
@@ -72,6 +73,18 @@ namespace GitHub.UI.Controls
                 IsSms = this.FindControl<CheckBox>("2faSms").IsChecked ?? false,
             };
             var view = new TwoFactorView();
+            var window = new DialogWindow(view) {DataContext = vm};
+            window.ShowDialog(this);
+        }
+
+        private void ShowDeviceCode(object sender, RoutedEventArgs e)
+        {
+            var vm = new DeviceCodeViewModel(_environment)
+            {
+                UserCode = this.FindControl<TextBox>("userCode").Text,
+                VerificationUrl = this.FindControl<TextBox>("verificationUrl").Text,
+            };
+            var view = new DeviceCodeView();
             var window = new DialogWindow(view) {DataContext = vm};
             window.ShowDialog(this);
         }

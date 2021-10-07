@@ -185,7 +185,9 @@ If this option is not set, then the available authentication modes will be autom
 Value|Authentication Mode
 -|-
 _(unset)_|Automatically detect modes
-`oauth`|OAuth-based authentication
+`oauth`|Expands to: `browser, device`
+`browser`|OAuth authentication via a web browser _(requires a GUI)_
+`device`|OAuth authentication with a device code
 `basic`|Basic/PAT-based authentication
 
 #### Example
