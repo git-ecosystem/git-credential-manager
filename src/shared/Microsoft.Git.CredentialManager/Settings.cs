@@ -150,6 +150,12 @@ namespace Microsoft.Git.CredentialManager
         /// </summary>
         /// <remarks>The default value is false if unset.</remarks>
         bool UseCustomCertificateBundleWithSchannel { get; }
+
+        /// <summary>
+        /// Maximum number of milliseconds to wait for a network response when probing a remote URL for the purpose
+        /// of host provider auto-detection. Use a zero or negative value to disable probing.
+        /// </summary>
+        int AutoDetectProviderTimeout { get; }
     }
 
     public class ProxyConfiguration
@@ -456,6 +462,23 @@ namespace Microsoft.Git.CredentialManager
         public bool UseCustomCertificateBundleWithSchannel =>
             TryGetSetting(null, KnownGitCfg.Http.SectionName, KnownGitCfg.Http.SchannelUseSslCaInfo, out string schannelUseSslCaInfo) &&
                 schannelUseSslCaInfo.ToBooleanyOrDefault(false);
+
+        public int AutoDetectProviderTimeout
+        {
+            get
+            {
+                if (TryGetSetting(KnownEnvars.GcmAutoDetectTimeout,
+                        KnownGitCfg.Credential.SectionName,
+                        KnownGitCfg.Credential.AutoDetectTimeout,
+                        out string valueStr) &&
+                    ConvertUtils.TryToInt32(valueStr, out int value))
+                {
+                    return value;
+                }
+
+                return Constants.DefaultAutoDetectProviderTimeoutMs;
+            }
+        }
 
         public ProxyConfiguration GetProxyConfiguration()
         {

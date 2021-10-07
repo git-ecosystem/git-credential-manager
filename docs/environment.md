@@ -166,7 +166,7 @@ Define the host provider to use when authenticating.
 
 ID|Provider
 -|-
-`auto` _(default)_|_\[automatic\]_
+`auto` _(default)_|_\[automatic\]_ ([learn more](autodetect.md))
 `azure-repos`|Azure Repos
 `github`|GitHub
 `generic`|Generic (any other provider not listed above)
@@ -223,6 +223,35 @@ export GCM_AUTHORITY=github
 ```
 
 **Also see: [credential.authority](configuration.md#credentialauthority-deprecated)**
+
+---
+
+### GCM_AUTODETECT_TIMEOUT
+
+Set the maximum length of time, in milliseconds, that GCM should wait for a
+network response during host provider auto-detection probing.
+
+See [here](autodetect.md) for more information.
+
+**Note:** Use a negative or zero value to disable probing altogether.
+
+Defaults to 2000 milliseconds (2 seconds).
+
+#### Example
+
+##### Windows
+
+```batch
+SET GCM_AUTODETECT_TIMEOUT=-1
+```
+
+##### macOS/Linux
+
+```bash
+export GCM_AUTODETECT_TIMEOUT=-1
+```
+
+**Also see: [credential.autoDetectTimeout](configuration.md#credentialautodetecttimeout)**
 
 ---
 
