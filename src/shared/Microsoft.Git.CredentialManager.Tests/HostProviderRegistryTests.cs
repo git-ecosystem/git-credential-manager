@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Git.CredentialManager.Tests.Objects;
 using Moq;
@@ -256,6 +258,155 @@ namespace Microsoft.Git.CredentialManager.Tests
             IHostProvider result = await registry.GetProviderAsync(input);
 
             Assert.Same(provider2Mock.Object, result);
+        }
+
+        [Fact]
+        public async Task HostProviderRegistry_GetProvider_Auto_NetworkProbe_ReturnsSupportedProvider()
+        {
+            var context = new TestCommandContext();
+            var registry = new HostProviderRegistry(context);
+            var remoteUri = new Uri("https://provider2.onprem.example.com");
+            var input = new InputArguments(
+                new Dictionary<string, string>
+                {
+                    ["protocol"] = remoteUri.Scheme,
+                    ["host"] = remoteUri.Host
+                }
+            );
+
+            var provider1Mock = new Mock<IHostProvider>();
+            provider1Mock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(false);
+            provider1Mock.Setup(x => x.IsSupported(It.IsAny<HttpResponseMessage>())).Returns(false);
+
+            var provider2Mock = new Mock<IHostProvider>();
+            provider2Mock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(false);
+            provider2Mock.Setup(x => x.IsSupported(It.IsAny<HttpResponseMessage>())).Returns(true);
+
+            var responseMessage = new HttpResponseMessage(HttpStatusCode.Unauthorized)
+            {
+                Headers = { { "X-Provider2", "true" } }
+            };
+
+            var httpHandler = new TestHttpMessageHandler();
+
+            httpHandler.Setup(HttpMethod.Head, remoteUri, responseMessage);
+            context.HttpClientFactory.MessageHandler = httpHandler;
+
+            registry.Register(provider1Mock.Object, HostProviderPriority.Normal);
+            registry.Register(provider2Mock.Object, HostProviderPriority.Normal);
+
+            IHostProvider result = await registry.GetProviderAsync(input);
+
+            httpHandler.AssertRequest(HttpMethod.Head, remoteUri, 1);
+            Assert.Same(provider2Mock.Object, result);
+        }
+
+        [Fact]
+        public async Task HostProviderRegistry_GetProvider_Auto_NetworkProbe_TimeoutZero_NoNetworkCall()
+        {
+            var context = new TestCommandContext();
+            var registry = new HostProviderRegistry(context);
+            var remoteUri = new Uri("https://onprem.example.com");
+            var input = new InputArguments(
+                new Dictionary<string, string>
+                {
+                    ["protocol"] = remoteUri.Scheme,
+                    ["host"] = remoteUri.Host
+                }
+            );
+
+            var providerMock = new Mock<IHostProvider>();
+            providerMock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(false);
+            providerMock.Setup(x => x.IsSupported(It.IsAny<HttpResponseMessage>())).Returns(true);
+
+            var responseMessage = new HttpResponseMessage(HttpStatusCode.Unauthorized);
+            var httpHandler = new TestHttpMessageHandler();
+
+            httpHandler.Setup(HttpMethod.Head, remoteUri, responseMessage);
+            context.HttpClientFactory.MessageHandler = httpHandler;
+
+            registry.Register(providerMock.Object, HostProviderPriority.Normal);
+
+            context.Settings.AutoDetectProviderTimeout = 0;
+
+            await Assert.ThrowsAnyAsync<Exception>(() => registry.GetProviderAsync(input));
+
+            httpHandler.AssertRequest(HttpMethod.Head, remoteUri, 0);
+        }
+
+        [Fact]
+        public async Task HostProviderRegistry_GetProvider_Auto_NetworkProbe_TimeoutNegative_NoNetworkCall()
+        {
+            var context = new TestCommandContext();
+            var registry = new HostProviderRegistry(context);
+            var remoteUri = new Uri("https://onprem.example.com");
+            var input = new InputArguments(
+                new Dictionary<string, string>
+                {
+                    ["protocol"] = remoteUri.Scheme,
+                    ["host"] = remoteUri.Host
+                }
+            );
+
+            var providerMock = new Mock<IHostProvider>();
+            providerMock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(false);
+            providerMock.Setup(x => x.IsSupported(It.IsAny<HttpResponseMessage>())).Returns(true);
+
+            var responseMessage = new HttpResponseMessage(HttpStatusCode.Unauthorized);
+            var httpHandler = new TestHttpMessageHandler();
+
+            httpHandler.Setup(HttpMethod.Head, remoteUri, responseMessage);
+            context.HttpClientFactory.MessageHandler = httpHandler;
+
+            registry.Register(providerMock.Object, HostProviderPriority.Normal);
+
+            context.Settings.AutoDetectProviderTimeout = -1;
+
+            await Assert.ThrowsAnyAsync<Exception>(() => registry.GetProviderAsync(input));
+
+            httpHandler.AssertRequest(HttpMethod.Head, remoteUri, 0);
+        }
+
+        [Fact]
+        public async Task HostProviderRegistry_GetProvider_Auto_NetworkProbe_NoNetwork_ReturnsLastProvider()
+        {
+            var context = new TestCommandContext();
+            var registry = new HostProviderRegistry(context);
+            var remoteUri = new Uri("https://provider2.onprem.example.com");
+            var input = new InputArguments(
+                new Dictionary<string, string>
+                {
+                    ["protocol"] = remoteUri.Scheme,
+                    ["host"] = remoteUri.Host
+                }
+            );
+
+            var highProviderMock = new Mock<IHostProvider>();
+            highProviderMock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(false);
+            highProviderMock.Setup(x => x.IsSupported(It.IsAny<HttpResponseMessage>())).Returns(false);
+            registry.Register(highProviderMock.Object, HostProviderPriority.Normal);
+
+            var lowProviderMock = new Mock<IHostProvider>();
+            lowProviderMock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(true);
+            registry.Register(lowProviderMock.Object, HostProviderPriority.Low);
+
+            var responseMessage = new HttpResponseMessage(HttpStatusCode.Unauthorized)
+            {
+                Headers = { { "X-Provider2", "true" } }
+            };
+
+            var httpHandler = new TestHttpMessageHandler
+            {
+                SimulateNoNetwork = true,
+            };
+
+            httpHandler.Setup(HttpMethod.Head, remoteUri, responseMessage);
+            context.HttpClientFactory.MessageHandler = httpHandler;
+
+            IHostProvider result = await registry.GetProviderAsync(input);
+
+            httpHandler.AssertRequest(HttpMethod.Head, remoteUri, 1);
+            Assert.Same(lowProviderMock.Object, result);
         }
     }
 }

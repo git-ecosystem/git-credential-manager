@@ -43,6 +43,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
 
         public bool UseCustomCertificateBundleWithSchannel { get; set; }
 
+        public int AutoDetectProviderTimeout { get; set; } = Constants.DefaultAutoDetectProviderTimeoutMs;
+
         #region ISettings
 
         public bool TryGetSetting(string envarName, string section, string property, out string value)
@@ -131,6 +133,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
         TlsBackend ISettings.TlsBackend => TlsBackend;
 
         bool ISettings.UseCustomCertificateBundleWithSchannel => UseCustomCertificateBundleWithSchannel;
+
+        int ISettings.AutoDetectProviderTimeout => AutoDetectProviderTimeout;
 
         #endregion
 

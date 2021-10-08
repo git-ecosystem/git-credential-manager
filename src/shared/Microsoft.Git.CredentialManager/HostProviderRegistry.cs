@@ -147,11 +147,11 @@ namespace Microsoft.Git.CredentialManager
             _context.Trace.WriteLine("Performing auto-detection of host provider.");
 
             var uri = input.GetRemoteUri();
-            var queryResponse = new Lazy<Task<HttpResponseMessage>>(() =>
-            {
-                _context.Trace.WriteLine("Querying remote URL for host provider auto-detection.");
-                return HttpClient.HeadAsync(uri);
-            });
+
+            var probeTimeout = TimeSpan.FromMilliseconds(_context.Settings.AutoDetectProviderTimeout);
+            _context.Trace.WriteLine($"Auto-detect probe timeout is {probeTimeout.TotalSeconds} ms.");
+
+            HttpResponseMessage probeResponse = null;
 
             async Task<IHostProvider> MatchProviderAsync(HostProviderPriority priority)
             {
@@ -165,12 +165,44 @@ namespace Microsoft.Git.CredentialManager
                         return match;
                     }
 
-                    HttpResponseMessage response = await queryResponse.Value;
-
-                    // Try matching using the HTTP response from a query to the remote URL (expensive)
-                    if (providers.TryGetFirst(x => x.IsSupported(response), out match))
+                    // Try matching using the HTTP response from a query to the remote URL (expensive).
+                    // The user may have disabled this feature with a zero or negative timeout for performance reasons.
+                    // We only probe the remote once and reuse the same response for all providers.
+                    if (probeTimeout.TotalMilliseconds > 0)
                     {
-                        return match;
+                        if (probeResponse is null)
+                        {
+                            _context.Trace.WriteLine("Querying remote URL for host provider auto-detection.");
+                            _context.Streams.Error.WriteLine($"info: detecting host provider for '{uri}'...");
+
+                            using (HttpClient client = _context.HttpClientFactory.CreateClient())
+                            {
+                                client.Timeout = probeTimeout;
+
+                                try
+                                {
+                                    probeResponse = await client.HeadAsync(uri);
+                                }
+                                catch (TaskCanceledException)
+                                {
+                                    _context.Streams.Error.WriteLine($"warning: auto-detection of host provider took too long (>{probeTimeout.TotalMilliseconds}ms)");
+                                    _context.Streams.Error.WriteLine($"warning: see {Constants.HelpUrls.GcmAutoDetect} for more information.");
+                                }
+                                catch (Exception ex)
+                                {
+                                    // The auto detect probing failed for some other reason.
+                                    // We don't particular care why, but we should not crash!
+                                    _context.Streams.Error.WriteLine($"warning: failed to probe '{uri}' to detect provider");
+                                    _context.Streams.Error.WriteLine($"warning: {ex.Message}");
+                                    _context.Streams.Error.WriteLine($"warning: see {Constants.HelpUrls.GcmAutoDetect} for more information.");
+                                }
+                            }
+                        }
+
+                        if (providers.TryGetFirst(x => x.IsSupported(probeResponse), out match))
+                        {
+                            return match;
+                        }
                     }
                 }
 
@@ -184,13 +216,8 @@ namespace Microsoft.Git.CredentialManager
                    throw new Exception("No host provider available to service this request.");
         }
 
-        private HttpClient _httpClient;
-        private HttpClient HttpClient => _httpClient ??= _context.HttpClientFactory.CreateClient();
-
         public void Dispose()
         {
-            _httpClient?.Dispose();
-
             // Dispose of all registered providers to give them a chance to clean up and release any resources
             foreach (IHostProvider provider in _hostProviders.Values.SelectMany(x => x))
             {
