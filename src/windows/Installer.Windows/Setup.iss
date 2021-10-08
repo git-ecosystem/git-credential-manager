@@ -31,8 +31,9 @@
 
 ; Define core properties
 #define GcmShortName "Git Credential Manager Core"
-#define GcmPublisher "Microsoft Corporation"
-#define GcmPublisherUrl "https://www.microsoft.com"
+#define GcmPublisher "GitHub"
+#define GcmVersionInfoDescription "Secure, cross-platform Git credential manager."
+#define GcmPublisherUrl "https://www.github.com"
 #define GcmCopyright "Copyright (c) GitHub, Inc. and contributors"
 #define GcmUrl "https://aka.ms/gcmcore"
 #define GcmReadme "https://github.com/microsoft/Git-Credential-Manager-Core/blob/main/README.md"
