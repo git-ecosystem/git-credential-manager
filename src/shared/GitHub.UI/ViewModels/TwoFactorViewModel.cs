@@ -1,6 +1,5 @@
 using System.ComponentModel;
 using System.Windows.Input;
-using Avalonia.Metadata;
 using Microsoft.Git.CredentialManager;
 using Microsoft.Git.CredentialManager.UI;
 using Microsoft.Git.CredentialManager.UI.ViewModels;
@@ -56,10 +55,13 @@ namespace GitHub.UI.ViewModels
         public bool IsSms
         {
             get => _isSms;
-            set => SetAndRaisePropertyChanged(ref _isSms, value);
+            set
+            {
+                SetAndRaisePropertyChanged(ref _isSms, value);
+                RaisePropertyChanged(nameof(Description));
+            }
         }
 
-        [DependsOn(nameof(IsSms))]
         public string Description => IsSms
             ? "We sent you a message via SMS with your authentication code."
             : "Open the two-factor authentication app on your device to view your authentication code.";

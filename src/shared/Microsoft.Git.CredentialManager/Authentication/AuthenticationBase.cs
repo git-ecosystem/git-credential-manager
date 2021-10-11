@@ -1,5 +1,3 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -41,6 +39,8 @@ namespace Microsoft.Git.CredentialManager.Authentication
                 UseShellExecute = false
             };
 
+            Context.Trace.WriteLine($"Starting helper process: {path} {args}");
+
             // We flush the trace writers here so that the we don't stomp over the
             // authentication helper's messages.
             Context.Trace.Flush();
@@ -48,7 +48,7 @@ namespace Microsoft.Git.CredentialManager.Authentication
             var process = Process.Start(procStartInfo);
             if (process is null)
             {
-                throw new Exception($"Failed to start helper process '{path}'");
+                throw new Exception($"Failed to start helper process: {path} {args}");
             }
 
             // Kill the process upon a cancellation request
@@ -105,7 +105,7 @@ namespace Microsoft.Git.CredentialManager.Authentication
         protected bool TryFindHelperExecutablePath(string envar, string configName, string defaultValue, out string path)
         {
             bool isOverride = false;
-            if (Context.Settings.TryGetSetting(
+            if (Context.Settings.TryGetPathSetting(
                 envar, Constants.GitConfiguration.Credential.SectionName, configName, out string helperName))
             {
                 Context.Trace.WriteLine($"UI helper override specified: '{helperName}'.");

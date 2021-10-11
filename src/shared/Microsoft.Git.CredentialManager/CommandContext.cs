@@ -1,5 +1,3 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
 using System;
 using System.IO;
 using Microsoft.Git.CredentialManager.Interop.Linux;
@@ -98,11 +96,11 @@ namespace Microsoft.Git.CredentialManager
                 string gitPath    = GetGitPath(Environment, FileSystem, Trace);
                 Git               = new GitProcess(
                                             Trace,
+                                            Environment,
                                             gitPath,
                                             FileSystem.GetCurrentDirectory()
                                         );
                 Settings          = new WindowsSettings(Environment, Git, Trace);
-                CredentialStore   = new WindowsCredentialManager(Settings.CredentialNamespace);
             }
             else if (PlatformUtils.IsMacOS())
             {
@@ -110,16 +108,15 @@ namespace Microsoft.Git.CredentialManager
                 SessionManager    = new MacOSSessionManager();
                 SystemPrompts     = new MacOSSystemPrompts();
                 Environment       = new PosixEnvironment(FileSystem);
-                Terminal          = new PosixTerminal(Trace);
+                Terminal          = new MacOSTerminal(Trace);
                 string gitPath    = GetGitPath(Environment, FileSystem, Trace);
                 Git               = new GitProcess(
                                             Trace,
+                                            Environment,
                                             gitPath,
                                             FileSystem.GetCurrentDirectory()
                                         );
                 Settings          = new Settings(Environment, Git);
-                CredentialStore   = new MacOSKeychain(Settings.CredentialNamespace);
-
             }
             else if (PlatformUtils.IsLinux())
             {
@@ -128,25 +125,23 @@ namespace Microsoft.Git.CredentialManager
                 SessionManager    = new PosixSessionManager();
                 SystemPrompts     = new LinuxSystemPrompts();
                 Environment       = new PosixEnvironment(FileSystem);
-                Terminal          = new PosixTerminal(Trace);
+                Terminal          = new LinuxTerminal(Trace);
                 string gitPath    = GetGitPath(Environment, FileSystem, Trace);
                 Git               = new GitProcess(
                                             Trace,
+                                            Environment,
                                             gitPath,
                                             FileSystem.GetCurrentDirectory()
                                         );
                 Settings          = new Settings(Environment, Git);
-
-                string gpgPath    = GetGpgPath(Environment, FileSystem, Trace);
-                IGpg gpg          = new Gpg(gpgPath, SessionManager);
-                CredentialStore   = new LinuxCredentialStore(FileSystem, Settings, SessionManager, gpg, Environment, Git);
             }
             else
             {
                 throw new PlatformNotSupportedException();
             }
 
-            HttpClientFactory = new HttpClientFactory(Trace, Settings, Streams);
+            HttpClientFactory = new HttpClientFactory(FileSystem, Trace, Settings, Streams);
+            CredentialStore   = new CredentialStore(this);
 
             // Set the parent window handle/ID
             SystemPrompts.ParentWindowId = Settings.ParentWindowId;
@@ -154,13 +149,22 @@ namespace Microsoft.Git.CredentialManager
 
         private static string GetGitPath(IEnvironment environment, IFileSystem fileSystem, ITrace trace)
         {
+            const string unixGitName = "git";
+            const string winGitName = "git.exe";
+
             string gitExecPath;
-            string programName = PlatformUtils.IsWindows() ? "git.exe" : "git";
+            string programName = PlatformUtils.IsWindows() ? winGitName : unixGitName;
 
             // Use the GIT_EXEC_PATH environment variable if set
             if (environment.Variables.TryGetValue(Constants.EnvironmentVariables.GitExecutablePath,
                 out gitExecPath))
             {
+                // If we're invoked from WSL we must locate the UNIX Git executable
+                if (PlatformUtils.IsWindows() && WslUtils.IsWslPath(gitExecPath))
+                {
+                    programName = unixGitName;
+                }
+
                 string candidatePath = Path.Combine(gitExecPath, programName);
                 if (fileSystem.FileExists(candidatePath))
                 {
@@ -173,41 +177,6 @@ namespace Microsoft.Git.CredentialManager
             gitExecPath = environment.LocateExecutable(programName);
             trace.WriteLine($"Using PATH-located Git executable: {gitExecPath}");
             return gitExecPath;
-        }
-
-        private static string GetGpgPath(IEnvironment environment, IFileSystem fileSystem, ITrace trace)
-        {
-            string gpgPath;
-
-            // Use the GCM_GPG_PATH environment variable if set
-            if (environment.Variables.TryGetValue(Constants.EnvironmentVariables.GpgExecutablePath,
-                out gpgPath))
-            {
-                if (fileSystem.FileExists(gpgPath))
-                {
-                    trace.WriteLine($"Using Git executable from GCM_GPG_PATH: {gpgPath}");
-                    return gpgPath;
-                }
-                else
-                {
-                    throw new Exception($"GPG executable does not exist with path '{gpgPath}'");
-                }
-
-            }
-
-            // If no explicit GPG path is specified, mimic the way `pass`
-            // determines GPG dependency (use gpg2 if available, otherwise gpg)
-            if (environment.TryLocateExecutable("gpg2", out string gpg2Path))
-            {
-                trace.WriteLine($"Using PATH-located GPG (gpg2) executable: {gpg2Path}");
-                return gpg2Path;
-            }
-            else
-            {
-                gpgPath = environment.LocateExecutable("gpg");
-                trace.WriteLine($"Using PATH-located GPG (gpg) executable: {gpgPath}");
-                return gpgPath;
-            }
         }
 
         #region ICommandContext

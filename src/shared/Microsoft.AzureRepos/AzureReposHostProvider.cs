@@ -1,5 +1,3 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
 using System;
 using System.Collections.Generic;
 using System.CommandLine;
@@ -436,7 +434,7 @@ namespace Microsoft.AzureRepos
 
             IGitConfiguration targetConfig = _context.Git.GetConfiguration();
 
-            if (targetConfig.TryGet(useHttpPathKey, out string currentValue) && currentValue.IsTruthy())
+            if (targetConfig.TryGet(useHttpPathKey, false, out string currentValue) && currentValue.IsTruthy())
             {
                 _context.Trace.WriteLine("Git configuration 'credential.useHttpPath' is already set to 'true' for https://dev.azure.com.");
             }

@@ -1,5 +1,3 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
 using System;
 
 namespace Atlassian.Bitbucket
@@ -34,6 +32,7 @@ namespace Atlassian.Bitbucket
             public const string DevOAuthClientId = "GCM_DEV_BITBUCKET_CLIENTID";
             public const string DevOAuthClientSecret = "GCM_DEV_BITBUCKET_CLIENTSECRET";
             public const string DevOAuthRedirectUri = "GCM_DEV_BITBUCKET_REDIRECTURI";
+            public const string AuthenticationModes = "GCM_BITBUCKET_AUTHMODES";
         }
 
         public static class GitConfiguration
@@ -44,7 +43,18 @@ namespace Atlassian.Bitbucket
                 public const string DevOAuthClientId = "bitbucketDevClientId";
                 public const string DevOAuthClientSecret = "bitbucketDevClientSecret";
                 public const string DevOAuthRedirectUri = "bitbucketDevRedirectUri";
+                public const string AuthenticationModes = "bitbucketAuthModes";
             }
         }
+
+        /// <summary>
+        /// Supported authentication modes for Bitbucket.org
+        /// </summary>
+        public const AuthenticationModes DotOrgAuthenticationModes = AuthenticationModes.Basic | AuthenticationModes.OAuth;
+
+        /// <summary>
+        /// Supported authentication modes for Bitbucket Server/DC
+        /// </summary>
+        public const AuthenticationModes ServerAuthenticationModes = AuthenticationModes.Basic;
     }
 }

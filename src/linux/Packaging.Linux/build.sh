@@ -44,8 +44,8 @@ ROOT="$( cd "$THISDIR"/../../.. ; pwd -P )"
 SRC="$ROOT/src"
 OUT="$ROOT/out"
 GCM_SRC="$SRC/shared/Git-Credential-Manager"
-BITBUCKET_UI_SRC="$SRC/shared/Atlassian.Bitbucket.UI"
-GITHUB_UI_SRC="$SRC/shared/GitHub.UI"
+BITBUCKET_UI_SRC="$SRC/shared/Atlassian.Bitbucket.UI.Avalonia"
+GITHUB_UI_SRC="$SRC/shared/GitHub.UI.Avalonia"
 PROJ_OUT="$OUT/linux/Packaging.Linux"
 
 # Build parameters
@@ -154,8 +154,9 @@ tar -czvf "$SYMTARBALL" * || exit 1
 popd
 
 # Build .deb
-INSTALL_TO="$DEBROOT/usr/bin/"
-mkdir -p "$DEBROOT/DEBIAN" "$INSTALL_TO" || exit 1
+INSTALL_TO="$DEBROOT/usr/local/share/gcm-core/"
+LINK_TO="$DEBROOT/usr/local/bin/"
+mkdir -p "$DEBROOT/DEBIAN" "$INSTALL_TO" "$LINK_TO" || exit 1
 
 # make the debian control file
 cat >"$DEBROOT/DEBIAN/control" <<EOF
@@ -165,15 +166,25 @@ Section: vcs
 Priority: optional
 Architecture: $ARCH
 Depends:
-Maintainer: GCM-Core <gcmsupport@microsoft.com>
+Maintainer: GCM-Core <gitfundamentals@github.com>
 Description: Cross Platform Git Credential Manager Core command line utility.
- GCM Core supports authentication with a number of Git hosting providers 
- including GitHub, BitBucket, and Azure DevOps. 
+ GCM Core supports authentication with a number of Git hosting providers
+ including GitHub, BitBucket, and Azure DevOps.
  For more information see https://aka.ms/gcmcore
 EOF
 
-# Copy single binary to target installation location
+# Copy GCM Core & UI helper binaries to target installation location
 cp "$PAYLOAD/git-credential-manager-core" "$INSTALL_TO" || exit 1
+cp "$PAYLOAD/Atlassian.Bitbucket.UI" "$INSTALL_TO" || exit 1
+cp "$PAYLOAD/GitHub.UI" "$INSTALL_TO" || exit 1
+
+# Create symlinks
+ln -s -r "$INSTALL_TO/git-credential-manager-core" \
+    "$LINK_TO/git-credential-manager-core" || exit 1
+ln -s -r "$INSTALL_TO/Atlassian.Bitbucket.UI" \
+    "$LINK_TO/Atlassian.Bitbucket.UI" || exit 1
+ln -s -r "$INSTALL_TO/GitHub.UI" \
+    "$LINK_TO/GitHub.UI" || exit 1
 
 dpkg-deb --build "$DEBROOT" "$DEBPKG" || exit 1
 

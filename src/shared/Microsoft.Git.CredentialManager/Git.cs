@@ -1,15 +1,25 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Microsoft.Git.CredentialManager
 {
     public interface IGit
     {
+        /// <summary>
+        /// The version of the Git executable tied to this instance.
+        /// </summary>
+        GitVersion Version { get; }
+
+        /// <summary>
+        /// Create a Git process object with the specified arguments.
+        /// </summary>
+        /// <param name="args">Arguments to pass to the Git process.</param>
+        /// <returns>Process object ready to be started.</returns>
+        Process CreateProcess(string args);
+
         /// <summary>
         /// Return the path to the current repository, or null if this instance is not
         /// scoped to a Git repository.
@@ -55,17 +65,50 @@ namespace Microsoft.Git.CredentialManager
     public class GitProcess : IGit
     {
         private readonly ITrace _trace;
+        private readonly IEnvironment _environment;
         private readonly string _gitPath;
         private readonly string _workingDirectory;
 
-        public GitProcess(ITrace trace, string gitPath, string workingDirectory = null)
+        public GitProcess(ITrace trace, IEnvironment environment, string gitPath, string workingDirectory = null)
         {
             EnsureArgument.NotNull(trace, nameof(trace));
+            EnsureArgument.NotNull(environment, nameof(environment));
             EnsureArgument.NotNullOrWhiteSpace(gitPath, nameof(gitPath));
 
             _trace = trace;
+            _environment = environment;
             _gitPath = gitPath;
             _workingDirectory = workingDirectory;
+        }
+
+        private GitVersion _version;
+        public GitVersion Version
+        {
+            get
+            {
+                if (_version is null)
+                {
+                    using (var git = CreateProcess("version"))
+                    {
+                        git.Start();
+
+                        string data = git.StandardOutput.ReadToEnd();
+                        git.WaitForExit();
+
+                        Match match = Regex.Match(data, @"^git version (?'value'.*)");
+                        if (match.Success)
+                        {
+                            _version = new GitVersion(match.Groups["value"].Value);
+                        }
+                        else
+                        {
+                            _version = new GitVersion();
+                        }
+                    }
+                }
+
+                return _version;
+            }
         }
 
         public IGitConfiguration GetConfiguration()
@@ -143,15 +186,7 @@ namespace Microsoft.Git.CredentialManager
 
         public Process CreateProcess(string args)
         {
-            var psi = new ProcessStartInfo(_gitPath, args)
-            {
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                WorkingDirectory = _workingDirectory
-            };
-
-            return new Process {StartInfo = psi};
+            return _environment.CreateProcess(_gitPath, args, false, _workingDirectory);
         }
 
         // This code was originally copied from

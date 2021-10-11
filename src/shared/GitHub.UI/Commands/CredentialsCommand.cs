@@ -5,15 +5,14 @@ using System.CommandLine.Invocation;
 using System.Threading;
 using System.Threading.Tasks;
 using GitHub.UI.ViewModels;
-using GitHub.UI.Views;
 using Microsoft.Git.CredentialManager;
 using Microsoft.Git.CredentialManager.UI;
 
 namespace GitHub.UI.Commands
 {
-    public class CredentialsCommand : HelperCommand
+    public abstract class CredentialsCommand : HelperCommand
     {
-        public CredentialsCommand(ICommandContext context)
+        protected CredentialsCommand(ICommandContext context)
             : base(context, "prompt", "Show authentication prompt.")
         {
             AddOption(
@@ -29,36 +28,56 @@ namespace GitHub.UI.Commands
             );
 
             AddOption(
-                new Option("--oauth", "Enable browser-based OAuth authentication.")
+                new Option("--browser", "Enable browser-based OAuth authentication.")
+            );
+
+            AddOption(
+                new Option("--device", "Enable device code OAuth authentication.")
             );
 
             AddOption(
                 new Option("--pat", "Enable personal access token authentication.")
             );
 
-            Handler = CommandHandler.Create<string, string, bool, bool, bool>(ExecuteAsync);
+            AddOption(
+                new Option("--all", "Enable all available authentication options.")
+            );
+
+            Handler = CommandHandler.Create<CommandOptions>(ExecuteAsync);
         }
 
-        private async Task<int> ExecuteAsync(string enterpriseUrl, string userName, bool basic, bool oauth, bool pat)
+        private class CommandOptions
+        {
+            public string UserName { get; set; }
+            public string EnterpriseUrl { get; set; }
+            public bool Basic { get; set; }
+            public bool Browser { get; set; }
+            public bool Device { get; set; }
+            public bool Pat { get; set; }
+            public bool All { get; set; }
+        }
+
+        private async Task<int> ExecuteAsync(CommandOptions options)
         {
             var viewModel = new CredentialsViewModel(Context.Environment)
             {
-                ShowBrowserLogin = oauth,
-                ShowTokenLogin   = pat,
-                ShowBasicLogin   = basic,
+                ShowBrowserLogin = options.All || options.Browser,
+                ShowDeviceLogin  = options.All || options.Device,
+                ShowTokenLogin   = options.All || options.Pat,
+                ShowBasicLogin   = options.All || options.Basic,
             };
 
-            if (!GitHubHostProvider.IsGitHubDotCom(enterpriseUrl))
+            if (!GitHubHostProvider.IsGitHubDotCom(options.EnterpriseUrl))
             {
-                viewModel.EnterpriseUrl = enterpriseUrl;
+                viewModel.EnterpriseUrl = options.EnterpriseUrl;
             }
 
-            if (!string.IsNullOrWhiteSpace(userName))
+            if (!string.IsNullOrWhiteSpace(options.UserName))
             {
-                viewModel.UserName = userName;
+                viewModel.UserName = options.UserName;
             }
 
-            await AvaloniaUi.ShowViewAsync<CredentialsView>(viewModel, GetParentHandle(), CancellationToken.None);
+            await ShowAsync(viewModel, CancellationToken.None);
 
             if (!viewModel.WindowResult)
             {
@@ -75,8 +94,12 @@ namespace GitHub.UI.Commands
                     result["password"] = viewModel.Password;
                     break;
 
-                case AuthenticationModes.OAuth:
-                    result["mode"] = "oauth";
+                case AuthenticationModes.Browser:
+                    result["mode"] = "browser";
+                    break;
+
+                case AuthenticationModes.Device:
+                    result["mode"] = "device";
                     break;
 
                 case AuthenticationModes.Pat:
@@ -91,5 +114,7 @@ namespace GitHub.UI.Commands
             WriteResult(result);
             return 0;
         }
+
+        protected abstract Task ShowAsync(CredentialsViewModel viewModel, CancellationToken ct);
     }
 }

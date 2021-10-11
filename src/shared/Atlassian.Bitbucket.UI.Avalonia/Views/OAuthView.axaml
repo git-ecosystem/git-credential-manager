@@ -1,0 +1,42 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Atlassian.Bitbucket.UI.ViewModels;assembly=Atlassian.Bitbucket.UI.Shared"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Atlassian.Bitbucket.UI.Views.OAuthView">
+    <Design.DataContext>
+        <vm:OAuthViewModel/>
+    </Design.DataContext>
+    <DockPanel LastChildFill="True">
+        <StackPanel DockPanel.Dock="Bottom">
+            <Button HorizontalAlignment="Center" Margin="0,30,0,10"
+                    Classes="hyperlink"
+                    Command="{Binding ForgotPasswordCommand}"
+                    Content="Can't log in?"/>
+            <Button HorizontalAlignment="Center" Margin="0,0,0,10"
+                    Classes="hyperlink"
+                    Command="{Binding SignUpCommand}"
+                    Content="Sign up for an account" />
+        </StackPanel>
+
+        <StackPanel DockPanel.Dock="Top">
+            <Image HorizontalAlignment="Center" Source="/Assets/atlassian-logo.png" />
+            <TextBlock HorizontalAlignment="Center" Text="OAuth Authentication"/>
+        </StackPanel>
+
+        <StackPanel Width="288">
+            <Button Margin="0,44,0,30"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Classes="hyperlink"
+                    Command="{Binding LearnMoreCommand}"
+                    Content="Learn more about 2-Factor Authentication"/>
+            <Button IsDefault="True" x:Name="okButton"
+                    HorizontalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                    Command="{Binding OkCommand}"
+                    Content="Authorize" Width="140" Height="40"
+                    Classes="accent"/>
+        </StackPanel>
+    </DockPanel>
+</UserControl>

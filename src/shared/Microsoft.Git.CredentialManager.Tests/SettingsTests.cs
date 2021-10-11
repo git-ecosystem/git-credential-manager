@@ -1,5 +1,3 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -554,6 +552,31 @@ namespace Microsoft.Git.CredentialManager.Tests
             Assert.Equal(expectedPassword, actualConfig.Password);
             Assert.Equal(bypassList, actualConfig.BypassHosts);
             Assert.False(actualConfig.IsDeprecatedSource);
+        }
+
+        [Fact]
+        public void Settings_ProxyConfiguration_GitHttpConfig_EmptyScopedUriUnscoped_ReturnsNull()
+        {
+            const string remoteUrl = "http://example.com/foo.git";
+            const string section = Constants.GitConfiguration.Http.SectionName;
+            const string property = Constants.GitConfiguration.Http.Proxy;
+            var remoteUri = new Uri(remoteUrl);
+
+            var settingValue = new Uri("http://john.doe:letmein123@proxy.example.com");
+
+            var envars = new TestEnvironment();
+            var git = new TestGit();
+            git.Configuration.Global[$"{section}.{property}"] = new[] {settingValue.ToString()};
+            git.Configuration.Global[$"{section}.{remoteUrl}.{property}"] = new[] {string.Empty};
+
+            var settings = new Settings(envars, git)
+            {
+                RemoteUri = remoteUri
+            };
+
+            ProxyConfiguration actualConfig = settings.GetProxyConfiguration();
+
+            Assert.Null(actualConfig);
         }
 
         [Fact]
@@ -1162,7 +1185,7 @@ namespace Microsoft.Git.CredentialManager.Tests
             {
                 RemoteUri = remoteUri
             };
-            string[] actualValues = settings.GetSettingValues(envarName, section, property).ToArray();
+            string[] actualValues = settings.GetSettingValues(envarName, section, property, false).ToArray();
 
             Assert.Equal(expectedValues, actualValues);
         }
@@ -1206,7 +1229,7 @@ namespace Microsoft.Git.CredentialManager.Tests
                 RemoteUri = remoteUri
             };
 
-            string[] actualValues = settings.GetSettingValues(envarName, section, property).ToArray();
+            string[] actualValues = settings.GetSettingValues(envarName, section, property, false).ToArray();
 
             Assert.NotNull(actualValues);
             Assert.Equal(expectedValues, actualValues);
@@ -1249,10 +1272,117 @@ namespace Microsoft.Git.CredentialManager.Tests
                 RemoteUri = remoteUri
             };
 
-            string[] actualValues = settings.GetSettingValues(envarName, sectionMix, propertyMix).ToArray();
+            string[] actualValues = settings.GetSettingValues(envarName, sectionMix, propertyMix, false).ToArray();
 
             Assert.NotNull(actualValues);
             Assert.Equal(expectedValues, actualValues);
+        }
+
+        [Theory]
+        [InlineData(false, "~")]
+        [InlineData(true, TestGitConfiguration.CanonicalPathPrefix)]
+        public void Settings_GetSettingValues_IsPath_ReturnsAllParsedValues(bool isPath, string expectedPrefix)
+        {
+            const string remoteUrl = "http://example.com/foo/bar/bazz.git";
+            const string broadScope = "example.com";
+            const string tightScope = "example.com/foo/bar";
+            const string envarName = "GCM_TESTVAR";
+            const string envarValue = "envar-value";
+            const string section = "gcmtest";
+            const string property = "bar";
+            var remoteUri = new Uri(remoteUrl);
+
+            const string tightScopeValue = "path-tight";
+            const string broadScopeValue = "path-broad";
+            const string noScopeValue = "path-no-scope";
+
+            string[] expectedValues = {
+                envarValue,
+                $"{expectedPrefix}/{tightScopeValue}",
+                broadScopeValue,
+                $"{expectedPrefix}/{noScopeValue}"
+            };
+
+            var envars = new TestEnvironment
+            {
+                Variables = {[envarName] = envarValue}
+            };
+
+            var git = new TestGit();
+            git.Configuration.Local[$"{section}.{property}"] = new[] {$"~/{noScopeValue}"};
+            git.Configuration.Local[$"{section}.{broadScope}.{property}"] = new[] {broadScopeValue};
+            git.Configuration.Local[$"{section}.{tightScope}.{property}"] = new[] {$"~/{tightScopeValue}"};
+
+            var settings = new Settings(envars, git)
+            {
+                RemoteUri = remoteUri
+            };
+
+            string[] actualValues = settings.GetSettingValues(envarName, section, property, isPath).ToArray();
+
+            Assert.NotNull(actualValues);
+            Assert.Equal(expectedValues, actualValues);
+        }
+
+        [Theory]
+        [InlineData(null, null, null)]
+        [InlineData(null, "ca-config.crt", "ca-config.crt")]
+        [InlineData("ca-envar.crt", "ca-config.crt", "ca-envar.crt")]
+        public void Settings_CustomCertificateBundlePath_ReturnsExpectedValue(string sslCaInfoEnvar, string sslCaInfoConfig, string expectedValue)
+        {
+            const string envarName = Constants.EnvironmentVariables.GitSslCaInfo;
+            const string section = Constants.GitConfiguration.Http.SectionName;
+            const string sslCaInfo = Constants.GitConfiguration.Http.SslCaInfo;
+
+            var envars = new TestEnvironment();
+            if (sslCaInfoEnvar != null)
+            {
+                envars.Variables[envarName] = sslCaInfoEnvar;
+            }
+
+            var git = new TestGit();
+            if (sslCaInfoConfig != null)
+            {
+                git.Configuration.Local[$"{section}.{sslCaInfo}"] = new[] {sslCaInfoConfig};
+            }
+
+            var settings = new Settings(envars, git);
+
+            string actualValue = settings.CustomCertificateBundlePath;
+
+            if (expectedValue is null)
+            {
+                Assert.Null(actualValue);
+            }
+            else
+            {
+                Assert.NotNull(actualValue);
+                Assert.Equal(expectedValue, actualValue);
+            }
+        }
+
+        [Theory]
+        [InlineData(null, TlsBackend.OpenSsl)]
+        [InlineData("schannel", TlsBackend.Schannel)]
+        [InlineData("gnutls", TlsBackend.Other)]
+        public void Settings_TlsBackend_ReturnsExpectedValue(string sslBackendConfig, TlsBackend expectedValue)
+        {
+            const string section = Constants.GitConfiguration.Http.SectionName;
+            const string sslBackend = Constants.GitConfiguration.Http.SslBackend;
+
+            var envars = new TestEnvironment();
+
+            var git = new TestGit();
+            if (sslBackendConfig != null)
+            {
+                git.Configuration.Local[$"{section}.{sslBackend}"] = new[] {sslBackendConfig};
+            }
+
+            var settings = new Settings(envars, git);
+
+            TlsBackend actualValue = settings.TlsBackend;
+
+            Assert.Equal(expectedValue, actualValue);
         }
     }
 }

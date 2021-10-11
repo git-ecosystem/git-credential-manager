@@ -166,7 +166,7 @@ Define the host provider to use when authenticating.
 
 ID|Provider
 -|-
-`auto` _(default)_|_\[automatic\]_
+`auto` _(default)_|_\[automatic\]_ ([learn more](autodetect.md))
 `azure-repos`|Azure Repos
 `github`|GitHub
 `generic`|Generic (any other provider not listed above)
@@ -223,6 +223,35 @@ export GCM_AUTHORITY=github
 ```
 
 **Also see: [credential.authority](configuration.md#credentialauthority-deprecated)**
+
+---
+
+### GCM_AUTODETECT_TIMEOUT
+
+Set the maximum length of time, in milliseconds, that GCM should wait for a
+network response during host provider auto-detection probing.
+
+See [here](autodetect.md) for more information.
+
+**Note:** Use a negative or zero value to disable probing altogether.
+
+Defaults to 2000 milliseconds (2 seconds).
+
+#### Example
+
+##### Windows
+
+```batch
+SET GCM_AUTODETECT_TIMEOUT=-1
+```
+
+##### macOS/Linux
+
+```bash
+export GCM_AUTODETECT_TIMEOUT=-1
+```
+
+**Also see: [credential.autoDetectTimeout](configuration.md#credentialautodetecttimeout)**
 
 ---
 
@@ -283,6 +312,37 @@ export GCM_HTTP_PROXY=http://john.doe:password@proxy.contoso.com
 
 ---
 
+### GCM_BITBUCKET_AUTHMODES
+
+Override the available authentication modes presented during Bitbucket authentication.
+If this option is not set, then the available authentication modes will be automatically detected.
+
+**Note:** This setting only applies to Bitbucket.org, and not Server or DC instances.
+
+**Note:** This setting supports multiple values separated by commas.
+
+Value|Authentication Mode
+-|-
+_(unset)_|Automatically detect modes
+`oauth`|OAuth-based authentication
+`basic`|Basic/PAT-based authentication
+
+##### Windows
+
+```batch
+SET GCM_BITBUCKET_AUTHMODES="oauth,basic"
+```
+
+##### macOS/Linux
+
+```bash
+export GCM_BITBUCKET_AUTHMODES="oauth,basic"
+```
+
+**Also see: [credential.bitbucketAuthModes](configuration.md#credentialbitbucketAuthModes)**
+
+---
+
 ### GCM_GITHUB_AUTHMODES
 
 Override the available authentication modes presented during GitHub authentication.
@@ -293,7 +353,9 @@ If this option is not set, then the available authentication modes will be autom
 Value|Authentication Mode
 -|-
 _(unset)_|Automatically detect modes
-`oauth`|OAuth-based authentication
+`oauth`|Expands to: `browser, device`
+`browser`|OAuth authentication via a web browser _(requires a GUI)_
+`device`|OAuth authentication with a device code
 `basic`|Basic/PAT-based authentication
 
 ##### Windows
@@ -339,19 +401,28 @@ export GCM_NAMESPACE="my-namespace"
 
 Select the type of credential store to use on supported platforms.
 
-Default value is unset.
+Default value on Windows is `wincredman`, on macOS is `keychain`, and is unset on Linux.
 
-**Note:** This setting is only supported on Linux platforms. Setting this value on Windows and macOS has no effect.  See more information about configuring secret stores on Linux [here](linuxcredstores.md).
+**Note:** See more information about configuring secret stores [here](credstores.md).
 
-Value|Credential Store
--|-
-_(unset)_|(error)
-`secretservice`|[freedesktop.org Secret Service API](https://specifications.freedesktop.org/secret-service/) via [libsecret](https://wiki.gnome.org/Projects/Libsecret) (requires a graphical interface to unlock secret collections).
-`gpg`|Use GPG to store encrypted files that are compatible with the [`pass` utility](https://www.passwordstore.org/) (requires GPG and `pass` to initialize the store).
-`cache`|Git's built-in [credential cache](https://git-scm.com/docs/git-credential-cache).
-`plaintext`|Store credentials in plaintext files (**UNSECURE**). Customize the plaintext store location with [`GCM_PLAINTEXT_STORE_PATH`](#GCM_PLAINTEXT_STORE_PATH).
+Value|Credential Store|Platforms
+-|-|-
+_(unset)_|Windows: `wincredman`<br/>macOS: `keychain`<br/>Linux: _(none)_|-
+`wincredman`|Windows Credential Manager (not available over SSH).|Windows
+`dpapi`|DPAPI protected files. Customize the DPAPI store location with [`GCM_DPAPI_STORE_PATH`](#gcm_dpapi_store_path)|Windows
+`keychain`|macOS Keychain.|macOS
+`secretservice`|[freedesktop.org Secret Service API](https://specifications.freedesktop.org/secret-service/) via [libsecret](https://wiki.gnome.org/Projects/Libsecret) (requires a graphical interface to unlock secret collections).|Linux
+`gpg`|Use GPG to store encrypted files that are compatible with the [`pass` utility](https://www.passwordstore.org/) (requires GPG and `pass` to initialize the store).|macOS, Linux
+`cache`|Git's built-in [credential cache](https://git-scm.com/docs/git-credential-cache).|Windows, macOS, Linux
+`plaintext`|Store credentials in plaintext files (**UNSECURE**). Customize the plaintext store location with [`GCM_PLAINTEXT_STORE_PATH`](#gcm_plaintext_store_path).|Windows, macOS, Linux
 
-##### Linux
+##### Windows
+
+```batch
+SET GCM_CREDENTIAL_STORE="gpg"
+```
+
+##### macOS/Linux
 
 ```bash
 export GCM_CREDENTIAL_STORE="gpg"
@@ -372,7 +443,13 @@ and unsupported, but there's no reason it shouldn't work.
 
 Defaults to empty.
 
-#### Linux
+#### Windows
+
+```batch
+SET GCM_CREDENTIAL_CACHE_OPTIONS="--timeout 300"
+```
+
+#### macOS/Linux
 
 ```shell
 export GCM_CREDENTIAL_CACHE_OPTIONS="--timeout 300"
@@ -386,9 +463,15 @@ export GCM_CREDENTIAL_CACHE_OPTIONS="--timeout 300"
 
 Specify a custom directory to store plaintext credential files in when [`GCM_CREDENTIAL_STORE`](#GCM_CREDENTIAL_STORE) is set to `plaintext`.
 
-Defaults to the value `~/.gcm/store`.
+Defaults to the value `~/.gcm/store` or `%USERPROFILE%\.gcm\store`.
 
-#### Linux
+#### Windows
+
+```batch
+SETX GCM_PLAINTEXT_STORE_PATH=D:\credentials
+```
+
+#### macOS/Linux
 
 ```shell
 export GCM_PLAINTEXT_STORE_PATH=/mnt/external-drive/credentials
@@ -398,13 +481,29 @@ export GCM_PLAINTEXT_STORE_PATH=/mnt/external-drive/credentials
 
 ---
 
+### GCM_DPAPI_STORE_PATH
+
+Specify a custom directory to store DPAPI protected credential files in when [`GCM_CREDENTIAL_STORE`](#GCM_CREDENTIAL_STORE) is set to `dpapi`.
+
+Defaults to the value `%USERPROFILE%\.gcm\dpapi_store`.
+
+#### Windows
+
+```batch
+SETX GCM_DPAPI_STORE_PATH=D:\credentials
+```
+
+**Also see: [credential.dpapiStorePath](configuration.md#credentialdpapistorepath)**
+
+---
+
 ### GCM_GPG_PATH
 
 Specify the path (_including_ the executable name) to the version of `gpg` used by `pass` (`gpg2` if present, otherwise `gpg`). This is primarily meant to allow manual resolution of the conflict that occurs on legacy Linux systems with parallel installs of `gpg` and `gpg2`.
 
 If not specified, GCM Core defaults to using the version of `gpg2` on the `$PATH`, falling back on `gpg` if `gpg2` is not found.
 
-##### Linux
+##### macOS/Linux
 
 ```bash
 export GCM_GPG_PATH="/usr/local/bin/gpg2"

@@ -1,5 +1,3 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
 using System;
 using System.Reflection;
 
@@ -9,11 +7,23 @@ namespace Microsoft.Git.CredentialManager
     {
         public const string PersonalAccessTokenUserName = "PersonalAccessToken";
         public const string DefaultCredentialNamespace = "git";
+        public const int DefaultAutoDetectProviderTimeoutMs = 2000; // 2 seconds
 
         public const string ProviderIdAuto  = "auto";
         public const string AuthorityIdAuto = "auto";
 
         public const string GcmDataDirectoryName = ".gcm";
+
+        public static class CredentialStoreNames
+        {
+            public const string WindowsCredentialManager = "wincredman";
+            public const string Dpapi = "dpapi";
+            public const string MacOSKeychain = "keychain";
+            public const string Gpg = "gpg";
+            public const string SecretService = "secretservice";
+            public const string Plaintext = "plaintext";
+            public const string Cache = "cache";
+        }
 
         public static class RegexPatterns
         {
@@ -49,6 +59,7 @@ namespace Microsoft.Git.CredentialManager
             public const string CurlHttpsProxy        = "HTTPS_PROXY";
             public const string GcmHttpProxy          = "GCM_HTTP_PROXY";
             public const string GitSslNoVerify        = "GIT_SSL_NO_VERIFY";
+            public const string GitSslCaInfo          = "GIT_SSL_CAINFO";
             public const string GcmInteractive        = "GCM_INTERACTIVE";
             public const string GcmParentWindow       = "GCM_MODAL_PARENTHWND";
             public const string MsAuthFlow            = "GCM_MSAUTH_FLOW";
@@ -57,8 +68,10 @@ namespace Microsoft.Git.CredentialManager
             public const string GcmCredentialStore    = "GCM_CREDENTIAL_STORE";
             public const string GcmCredCacheOptions   = "GCM_CREDENTIAL_CACHE_OPTIONS";
             public const string GcmPlaintextStorePath = "GCM_PLAINTEXT_STORE_PATH";
+            public const string GcmDpapiStorePath     = "GCM_DPAPI_STORE_PATH";
             public const string GitExecutablePath     = "GIT_EXEC_PATH";
             public const string GpgExecutablePath     = "GCM_GPG_PATH";
+            public const string GcmAutoDetectTimeout  = "GCM_AUTODETECT_TIMEOUT";
         }
 
         public static class Http
@@ -90,14 +103,19 @@ namespace Microsoft.Git.CredentialManager
                 public const string CredentialStore = "credentialStore";
                 public const string CredCacheOptions = "cacheOptions";
                 public const string PlaintextStorePath = "plaintextStorePath";
+                public const string DpapiStorePath = "dpapiStorePath";
                 public const string UserName = "username";
+                public const string AutoDetectTimeout = "autoDetectTimeout";
             }
 
             public static class Http
             {
                 public const string SectionName = "http";
                 public const string Proxy = "proxy";
+                public const string SchannelUseSslCaInfo = "schannelUseSSLCAInfo";
+                public const string SslBackend = "sslBackend";
                 public const string SslVerify = "sslVerify";
+                public const string SslCaInfo = "sslCAInfo";
             }
 
             public static class Remote
@@ -117,11 +135,13 @@ namespace Microsoft.Git.CredentialManager
         public static class HelpUrls
         {
             public const string GcmProjectUrl          = "https://aka.ms/gcmcore";
+            public const string GcmNewIssue            = "https://aka.ms/gcmcore-bug";
             public const string GcmAuthorityDeprecated = "https://aka.ms/gcmcore-authority";
             public const string GcmHttpProxyGuide      = "https://aka.ms/gcmcore-httpproxy";
             public const string GcmTlsVerification     = "https://aka.ms/gcmcore-tlsverify";
-            public const string GcmLinuxCredStores     = "https://aka.ms/gcmcore-linuxcredstores";
+            public const string GcmCredentialStores    = "https://aka.ms/gcmcore-credstores";
             public const string GcmWamComSecurity      = "https://aka.ms/gcmcore-wamadmin";
+            public const string GcmAutoDetect          = "https://aka.ms/gcmcore-autodetect";
         }
 
         private static Version _gcmVersion;

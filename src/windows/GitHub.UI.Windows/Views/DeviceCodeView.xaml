@@ -1,0 +1,52 @@
+<UserControl x:Class="GitHub.UI.Views.DeviceCodeView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:viewModels="clr-namespace:GitHub.UI.ViewModels;assembly=GitHub.UI.Shared"
+             xmlns:controls="clr-namespace:GitHub.UI.Controls"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance viewModels:TwoFactorViewModel}"
+             d:DesignHeight="300" d:DesignWidth="300">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../Assets/Styles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <DockPanel>
+        <StackPanel DockPanel.Dock="Top" Margin="0,0,0,15">
+            <!-- TODO: replace with GitHub logo -->
+            <TextBlock Text="GitHub"
+                       HorizontalAlignment="Center"
+                       FontSize="20"
+                       FontWeight="Bold"/>
+            <TextBlock Text="Device authentication"
+                       HorizontalAlignment="Center"
+                       FontSize="24"
+                       FontWeight="Light"
+                       Margin="0,0,0,10" />
+            <controls:HorizontalShadowDivider/>
+        </StackPanel>
+
+        <StackPanel Orientation="Vertical" VerticalAlignment="Center">
+            <TextBlock Text="Visit the URL below, sign in, and enter the following device code to continue."
+                       Margin="0,0,0,20"
+                       TextWrapping="Wrap" TextAlignment="Center" FontSize="14"/>
+            <TextBox Text="{Binding UserCode}"
+                     Margin="0,0,0,20"
+                     HorizontalAlignment="Center"
+                     FontSize="24"
+                     TextAlignment="Center"
+                     Style="{StaticResource DeviceCodeBox}"/>
+            <TextBlock FontSize="14"
+                       HorizontalAlignment="Center">
+                <Hyperlink Command="{Binding VerificationUrlCommand}">
+                    <Run Text="{Binding VerificationUrl}"/>
+                </Hyperlink>
+            </TextBlock>
+        </StackPanel>
+    </DockPanel>
+</UserControl>

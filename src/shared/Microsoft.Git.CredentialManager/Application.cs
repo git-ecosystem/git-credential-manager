@@ -1,5 +1,3 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
 using System;
 using System.Collections.Generic;
 using System.CommandLine;
@@ -11,6 +9,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Git.CredentialManager.Commands;
+using Microsoft.Git.CredentialManager.Diagnostics;
 using Microsoft.Git.CredentialManager.Interop;
 
 namespace Microsoft.Git.CredentialManager
@@ -20,6 +19,7 @@ namespace Microsoft.Git.CredentialManager
         private readonly IHostProviderRegistry _providerRegistry;
         private readonly IConfigurationService _configurationService;
         private readonly IList<ProviderCommand> _providerCommands = new List<ProviderCommand>();
+        private readonly List<IDiagnostic> _diagnostics = new List<IDiagnostic>();
 
         public Application(ICommandContext context)
             : this(context, new HostProviderRegistry(context), new ConfigurationService(context))
@@ -56,11 +56,19 @@ namespace Microsoft.Git.CredentialManager
                 ProviderCommand providerCommand = cmdProvider.CreateCommand();
                 _providerCommands.Add(providerCommand);
             }
+
+            // If the provider exposes custom diagnostics use them
+            if (provider is IDiagnosticProvider diagnosticProvider)
+            {
+                IEnumerable<IDiagnostic> providerDiagnostics = diagnosticProvider.GetDiagnostics();
+                _diagnostics.AddRange(providerDiagnostics);
+            }
         }
 
         protected override async Task<int> RunInternalAsync(string[] args)
         {
             var rootCommand = new RootCommand();
+            var diagnoseCommand = new DiagnoseCommand(Context);
 
             // Add standard commands
             rootCommand.AddCommand(new GetCommand(Context, _providerRegistry));
@@ -68,6 +76,7 @@ namespace Microsoft.Git.CredentialManager
             rootCommand.AddCommand(new EraseCommand(Context, _providerRegistry));
             rootCommand.AddCommand(new ConfigureCommand(Context, _configurationService));
             rootCommand.AddCommand(new UnconfigureCommand(Context, _configurationService));
+            rootCommand.AddCommand(diagnoseCommand);
 
             // Add any custom provider commands
             foreach (ProviderCommand providerCommand in _providerCommands)
@@ -75,11 +84,18 @@ namespace Microsoft.Git.CredentialManager
                 rootCommand.AddCommand(providerCommand);
             }
 
+            // Add any custom provider diagnostic tests
+            foreach (IDiagnostic providerDiagnostic in _diagnostics)
+            {
+                diagnoseCommand.AddDiagnostic(providerDiagnostic);
+            }
+
             // Trace the current version, OS, runtime, and program arguments
             PlatformInformation info = PlatformUtils.GetPlatformInformation();
             Context.Trace.WriteLine($"Version: {Constants.GcmVersion}");
             Context.Trace.WriteLine($"Runtime: {info.ClrVersion}");
             Context.Trace.WriteLine($"Platform: {info.OperatingSystemType} ({info.CpuArchitecture})");
+            Context.Trace.WriteLine($"OSVersion: {info.OperatingSystemVersion}");
             Context.Trace.WriteLine($"AppPath: {Context.ApplicationPath}");
             Context.Trace.WriteLine($"Arguments: {string.Join(" ", args)}");
 
@@ -111,6 +127,8 @@ namespace Microsoft.Git.CredentialManager
             {
                 WriteException(ex);
             }
+
+            invocationContext.ResultCode = -1;
         }
 
         private bool WriteException(Exception ex)
@@ -129,6 +147,11 @@ namespace Microsoft.Git.CredentialManager
                     Context.Streams.Error.WriteLine("fatal: {0}", ex.Message);
                     break;
             }
+
+            // If tracing is enabled then also print the stack trace to stderr
+            bool printStack = Context.Settings.GetTracingEnabled(out _);
+            if (printStack)
+                Context.Streams.Error.WriteLine(ex.StackTrace);
 
             // Recurse to print all inner exceptions
             if (!(ex.InnerException is null))
@@ -164,7 +187,7 @@ namespace Microsoft.Git.CredentialManager
             //     helper = {appPath} # the expected executable value & directly following the empty value
             //     ...                # any number of helper entries (possibly none, but not the empty value '')
             //
-            string[] currentValues = config.GetAll(configLevel, helperKey).ToArray();
+            string[] currentValues = config.GetAll(configLevel, GitConfigurationType.Raw, helperKey).ToArray();
 
             // Try to locate an existing app entry with a blank reset/clear entry immediately preceding,
             // and no other blank empty/clear entries following (which effectively disable us).
@@ -215,7 +238,7 @@ namespace Microsoft.Git.CredentialManager
             //
             Context.Trace.WriteLine("Removing Git credential helper configuration...");
 
-            string[] currentValues = config.GetAll(configLevel, helperKey).ToArray();
+            string[] currentValues = config.GetAll(configLevel, GitConfigurationType.Raw, helperKey).ToArray();
 
             int appIndex = Array.FindIndex(currentValues, x => Context.FileSystem.IsSamePath(x, appPath));
             if (appIndex > -1)

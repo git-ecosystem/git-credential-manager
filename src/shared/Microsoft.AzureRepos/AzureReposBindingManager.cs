@@ -1,5 +1,3 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -96,8 +94,10 @@ namespace Microsoft.AzureRepos
             _trace.WriteLine($"Looking up organization binding for '{orgName}'...");
 
             // NOT using the short-circuiting OR operator here on purpose - we need both branches to be evaluated
-            if (config.TryGet(GitConfigurationLevel.Local, orgKey, out string localUser) |
-                config.TryGet(GitConfigurationLevel.Global, orgKey, out string globalUser))
+            if (config.TryGet(GitConfigurationLevel.Local, GitConfigurationType.Raw,
+                    orgKey, out string localUser) |
+                config.TryGet(GitConfigurationLevel.Global, GitConfigurationType.Raw,
+                    orgKey, out string globalUser))
             {
                 return new AzureReposBinding(orgName, globalUser, localUser);
             }
@@ -190,11 +190,15 @@ namespace Microsoft.AzureRepos
                 return true;
             }
 
-            config.Enumerate(
-                GitConfigurationLevel.Local,
-                Constants.GitConfiguration.Credential.SectionName,
-                Constants.GitConfiguration.Credential.UserName,
-                entry => ExtractUserBinding(entry, localUsers));
+            // Only enumerate local configuration if we are inside a repository
+            if (_git.IsInsideRepository())
+            {
+                config.Enumerate(
+                    GitConfigurationLevel.Local,
+                    Constants.GitConfiguration.Credential.SectionName,
+                    Constants.GitConfiguration.Credential.UserName,
+                    entry => ExtractUserBinding(entry, localUsers));
+            }
 
             config.Enumerate(
                 GitConfigurationLevel.Global,

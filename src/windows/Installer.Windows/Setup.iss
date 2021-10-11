@@ -33,7 +33,7 @@
 #define GcmShortName "Git Credential Manager Core"
 #define GcmPublisher "Microsoft Corporation"
 #define GcmPublisherUrl "https://www.microsoft.com"
-#define GcmCopyright "Copyright (c) Microsoft 2020"
+#define GcmCopyright "Copyright (c) GitHub, Inc. and contributors"
 #define GcmUrl "https://aka.ms/gcmcore"
 #define GcmReadme "https://github.com/microsoft/Git-Credential-Manager-Core/blob/main/README.md"
 #define GcmRepoRoot "..\..\.."
@@ -101,30 +101,34 @@ Filename: "{app}\{#GcmExe}"; Parameters: "configure {#GcmConfigureCmdArgs}"; Fla
 Filename: "{app}\{#GcmExe}"; Parameters: "unconfigure {#GcmConfigureCmdArgs}"; Flags: runhidden
 
 [Files]
-Source: "{#PayloadDir}\Atlassian.Bitbucket.dll";                       DestDir: "{app}"; Flags: ignoreversion
-Source: "{#PayloadDir}\Atlassian.Bitbucket.UI.exe";                    DestDir: "{app}"; Flags: ignoreversion
-Source: "{#PayloadDir}\Atlassian.Bitbucket.UI.exe.config";             DestDir: "{app}"; Flags: ignoreversion
-Source: "{#PayloadDir}\git-credential-manager-core.exe";               DestDir: "{app}"; Flags: ignoreversion
-Source: "{#PayloadDir}\git-credential-manager-core.exe.config";        DestDir: "{app}"; Flags: ignoreversion
-Source: "{#PayloadDir}\GitHub.dll";                                    DestDir: "{app}"; Flags: ignoreversion
-Source: "{#PayloadDir}\GitHub.UI.exe";                                 DestDir: "{app}"; Flags: ignoreversion
-Source: "{#PayloadDir}\GitHub.UI.exe.config";                          DestDir: "{app}"; Flags: ignoreversion
-Source: "{#PayloadDir}\Microsoft.AzureRepos.dll";                      DestDir: "{app}"; Flags: ignoreversion
-Source: "{#PayloadDir}\Microsoft.Git.CredentialManager.dll";           DestDir: "{app}"; Flags: ignoreversion
-Source: "{#PayloadDir}\Microsoft.Git.CredentialManager.UI.dll";        DestDir: "{app}"; Flags: ignoreversion
-Source: "{#PayloadDir}\Microsoft.Identity.Client.Desktop.dll";         DestDir: "{app}"; Flags: ignoreversion
-Source: "{#PayloadDir}\Microsoft.Identity.Client.dll";                 DestDir: "{app}"; Flags: ignoreversion
-Source: "{#PayloadDir}\Microsoft.Identity.Client.Extensions.Msal.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#PayloadDir}\Microsoft.Web.WebView2.Core.dll";               DestDir: "{app}"; Flags: ignoreversion
-Source: "{#PayloadDir}\Microsoft.Web.WebView2.WinForms.dll";           DestDir: "{app}"; Flags: ignoreversion
-Source: "{#PayloadDir}\Microsoft.Web.WebView2.Wpf.dll";                DestDir: "{app}"; Flags: ignoreversion
-Source: "{#PayloadDir}\Newtonsoft.Json.dll";                           DestDir: "{app}"; Flags: ignoreversion
-Source: "{#PayloadDir}\System.Buffers.dll";                            DestDir: "{app}"; Flags: ignoreversion
-Source: "{#PayloadDir}\System.CommandLine.dll";                        DestDir: "{app}"; Flags: ignoreversion
-Source: "{#PayloadDir}\System.Memory.dll";                             DestDir: "{app}"; Flags: ignoreversion
-Source: "{#PayloadDir}\System.Numerics.Vectors.dll";                   DestDir: "{app}"; Flags: ignoreversion
-Source: "{#PayloadDir}\System.Runtime.CompilerServices.Unsafe.dll";    DestDir: "{app}"; Flags: ignoreversion
-Source: "{#PayloadDir}\WebView2Loader.dll";                            DestDir: "{app}"; Flags: ignoreversion
+Source: "{#PayloadDir}\Atlassian.Bitbucket.dll";                        DestDir: "{app}"; Flags: ignoreversion
+Source: "{#PayloadDir}\Atlassian.Bitbucket.UI.exe";                     DestDir: "{app}"; Flags: ignoreversion
+Source: "{#PayloadDir}\Atlassian.Bitbucket.UI.exe.config";              DestDir: "{app}"; Flags: ignoreversion
+Source: "{#PayloadDir}\Atlassian.Bitbucket.UI.Shared.dll";              DestDir: "{app}"; Flags: ignoreversion
+Source: "{#PayloadDir}\git-credential-manager-core.exe";                DestDir: "{app}"; Flags: ignoreversion
+Source: "{#PayloadDir}\git-credential-manager-core.exe.config";         DestDir: "{app}"; Flags: ignoreversion
+Source: "{#PayloadDir}\GitHub.dll";                                     DestDir: "{app}"; Flags: ignoreversion
+Source: "{#PayloadDir}\GitHub.UI.exe";                                  DestDir: "{app}"; Flags: ignoreversion
+Source: "{#PayloadDir}\GitHub.UI.exe.config";                           DestDir: "{app}"; Flags: ignoreversion
+Source: "{#PayloadDir}\GitHub.UI.Shared.dll";                           DestDir: "{app}"; Flags: ignoreversion
+Source: "{#PayloadDir}\Microsoft.AzureRepos.dll";                       DestDir: "{app}"; Flags: ignoreversion
+Source: "{#PayloadDir}\Microsoft.Git.CredentialManager.dll";            DestDir: "{app}"; Flags: ignoreversion
+Source: "{#PayloadDir}\Microsoft.Git.CredentialManager.UI.dll";         DestDir: "{app}"; Flags: ignoreversion
+Source: "{#PayloadDir}\Microsoft.Git.CredentialManager.UI.Windows.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#PayloadDir}\Microsoft.Identity.Client.Desktop.dll";          DestDir: "{app}"; Flags: ignoreversion
+Source: "{#PayloadDir}\Microsoft.Identity.Client.dll";                  DestDir: "{app}"; Flags: ignoreversion
+Source: "{#PayloadDir}\Microsoft.Identity.Client.Extensions.Msal.dll";  DestDir: "{app}"; Flags: ignoreversion
+Source: "{#PayloadDir}\Microsoft.Web.WebView2.Core.dll";                DestDir: "{app}"; Flags: ignoreversion
+Source: "{#PayloadDir}\Microsoft.Web.WebView2.WinForms.dll";            DestDir: "{app}"; Flags: ignoreversion
+Source: "{#PayloadDir}\Microsoft.Web.WebView2.Wpf.dll";                 DestDir: "{app}"; Flags: ignoreversion
+Source: "{#PayloadDir}\Newtonsoft.Json.dll";                            DestDir: "{app}"; Flags: ignoreversion
+Source: "{#PayloadDir}\NOTICE";                                         DestDir: "{app}"; Flags: ignoreversion
+Source: "{#PayloadDir}\System.Buffers.dll";                             DestDir: "{app}"; Flags: ignoreversion
+Source: "{#PayloadDir}\System.CommandLine.dll";                         DestDir: "{app}"; Flags: ignoreversion
+Source: "{#PayloadDir}\System.Memory.dll";                              DestDir: "{app}"; Flags: ignoreversion
+Source: "{#PayloadDir}\System.Numerics.Vectors.dll";                    DestDir: "{app}"; Flags: ignoreversion
+Source: "{#PayloadDir}\System.Runtime.CompilerServices.Unsafe.dll";     DestDir: "{app}"; Flags: ignoreversion
+Source: "{#PayloadDir}\WebView2Loader.dll";                             DestDir: "{app}"; Flags: ignoreversion
 
 [Code]
 // Don't allow installing conflicting architectures

@@ -1,5 +1,4 @@
 using System;
-using Avalonia.Platform;
 
 namespace Microsoft.Git.CredentialManager.UI.ViewModels
 {
@@ -32,13 +31,6 @@ namespace Microsoft.Git.CredentialManager.UI.ViewModels
             get => ShowClientChromeOverride || (ExtendClientArea && !PlatformUtils.IsMacOS());
         }
 
-        public ExtendClientAreaChromeHints ChromeHints
-        {
-            get => ShowCustomChrome
-                ? ExtendClientAreaChromeHints.NoChrome
-                : ExtendClientAreaChromeHints.PreferSystemChrome;
-        }
-
         public bool ShowClientChromeOverride
         {
             get => _showClientChromeOverride;
@@ -46,7 +38,6 @@ namespace Microsoft.Git.CredentialManager.UI.ViewModels
             {
                 SetAndRaisePropertyChanged(ref _showClientChromeOverride, value);
                 RaisePropertyChanged(nameof(ShowCustomChrome));
-                RaisePropertyChanged(nameof(ChromeHints));
             }
         }
 
@@ -57,7 +48,6 @@ namespace Microsoft.Git.CredentialManager.UI.ViewModels
             {
                 SetAndRaisePropertyChanged(ref _extendClientArea, value);
                 RaisePropertyChanged(nameof(ShowCustomChrome));
-                RaisePropertyChanged(nameof(ChromeHints));
             }
         }
 

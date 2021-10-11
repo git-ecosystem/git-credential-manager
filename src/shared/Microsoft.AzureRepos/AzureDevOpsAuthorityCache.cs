@@ -1,5 +1,3 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -60,7 +58,8 @@ namespace Microsoft.AzureRepos
 
             IGitConfiguration config = _git.GetConfiguration();
 
-            if (config.TryGet(GitConfigurationLevel.Global, GetAuthorityKey(orgName), out string authority))
+            if (config.TryGet(GitConfigurationLevel.Global, GitConfigurationType.Raw,
+                GetAuthorityKey(orgName), out string authority))
             {
                 return authority;
             }

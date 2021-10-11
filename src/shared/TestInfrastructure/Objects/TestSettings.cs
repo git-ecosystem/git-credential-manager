@@ -1,5 +1,3 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
 using System;
 using System.Collections.Generic;
 
@@ -39,6 +37,14 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
 
         public string CredentialBackingStore { get; set; }
 
+        public string CustomCertificateBundlePath { get; set; }
+
+        public TlsBackend TlsBackend { get; set; }
+
+        public bool UseCustomCertificateBundleWithSchannel { get; set; }
+
+        public int AutoDetectProviderTimeout { get; set; } = Constants.DefaultAutoDetectProviderTimeoutMs;
+
         #region ISettings
 
         public bool TryGetSetting(string envarName, string section, string property, out string value)
@@ -50,7 +56,7 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
                 return true;
             }
 
-            if (GitConfiguration?.TryGet($"{section}.{property}", out value) ?? false)
+            if (GitConfiguration?.TryGet($"{section}.{property}", false, out value) ?? false)
             {
                 return true;
             }
@@ -58,7 +64,12 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
             return false;
         }
 
-        public IEnumerable<string> GetSettingValues(string envarName, string section, string property)
+        public bool TryGetPathSetting(string envarName, string section, string property, out string value)
+        {
+            return TryGetSetting(envarName, section, property, out value);
+        }
+
+        public IEnumerable<string> GetSettingValues(string envarName, string section, string property, bool isPath)
         {
             string envarValue = null;
             if (Environment?.Variables.TryGetValue(envarName, out envarValue) ?? false)
@@ -116,6 +127,14 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
         string ISettings.CredentialNamespace => CredentialNamespace;
 
         string ISettings.CredentialBackingStore => CredentialBackingStore;
+
+        string ISettings.CustomCertificateBundlePath => CustomCertificateBundlePath;
+
+        TlsBackend ISettings.TlsBackend => TlsBackend;
+
+        bool ISettings.UseCustomCertificateBundleWithSchannel => UseCustomCertificateBundleWithSchannel;
+
+        int ISettings.AutoDetectProviderTimeout => AutoDetectProviderTimeout;
 
         #endregion
 

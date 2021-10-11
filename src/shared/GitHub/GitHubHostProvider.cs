@@ -1,15 +1,15 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
+using GitHub.Diagnostics;
 using Microsoft.Git.CredentialManager;
 using Microsoft.Git.CredentialManager.Authentication.OAuth;
+using Microsoft.Git.CredentialManager.Diagnostics;
 
 namespace GitHub
 {
-    public class GitHubHostProvider : HostProvider
+    public class GitHubHostProvider : HostProvider, IDiagnosticProvider
     {
         private static readonly string[] GitHubOAuthScopes =
         {
@@ -149,8 +149,11 @@ namespace GitHub
                     Context.CredentialStore.AddOrUpdate(service, patCredential.Account, patCredential.Password);
                     return patCredential;
 
-                case AuthenticationModes.OAuth:
-                    return await GenerateOAuthCredentialAsync(remoteUri);
+                case AuthenticationModes.Browser:
+                    return await GenerateOAuthCredentialAsync(remoteUri, useBrowser: true);
+
+                case AuthenticationModes.Device:
+                    return await GenerateOAuthCredentialAsync(remoteUri, useBrowser: false);
 
                 case AuthenticationModes.Pat:
                     // The token returned by the user should be good to use directly as the password for Git
@@ -173,9 +176,11 @@ namespace GitHub
             }
         }
 
-        private async Task<GitCredential> GenerateOAuthCredentialAsync(Uri targetUri)
+        private async Task<GitCredential> GenerateOAuthCredentialAsync(Uri targetUri, bool useBrowser)
         {
-            OAuth2TokenResult result = await _gitHubAuth.GetOAuthTokenAsync(targetUri, GitHubOAuthScopes);
+            OAuth2TokenResult result = useBrowser
+                ? await _gitHubAuth.GetOAuthTokenViaBrowserAsync(targetUri, GitHubOAuthScopes)
+                : await _gitHubAuth.GetOAuthTokenViaDeviceCodeAsync(targetUri, GitHubOAuthScopes);
 
             // Resolve the GitHub user handle
             GitHubUserInfo userInfo = await _gitHubApi.GetUserInfoAsync(targetUri, result.AccessToken);
@@ -295,6 +300,11 @@ namespace GitHub
             _gitHubApi.Dispose();
             _gitHubAuth.Dispose();
             base.ReleaseManagedResources();
+        }
+
+        public IEnumerable<IDiagnostic> GetDiagnostics()
+        {
+            yield return new GitHubApiDiagnostic(_gitHubApi);
         }
 
         #region Private Methods
