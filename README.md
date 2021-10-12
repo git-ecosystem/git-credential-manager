@@ -173,6 +173,22 @@ repositories from inside of WSL.
 
 [Please see the GCM Core on WSL docs](docs/wsl.md) for more information.
 
+## Supported Git versions
+
+Git Credential Manager Core tries to be compatible with the broadest set of Git
+versions (within reason). However there are some know problematic releases of
+Git that are not compatible.
+
+- Git 1.x
+
+  The initial major version of Git is not supported or tested with GCM.
+
+- Git 2.26.2
+
+  This version of Git introduced a breaking change with parsing credential
+  configuration that GCM relies on. This issue was fixed in commit [`12294990`](https://github.com/git/git/commit/12294990c90e043862be9eb7eb22c3784b526340)
+  of the Git project, and released in Git 2.27.0.
+
 ## How to use
 
 Once it's installed and configured, Git Credential Manager Core is called implicitly by Git.
