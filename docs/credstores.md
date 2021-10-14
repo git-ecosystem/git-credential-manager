@@ -3,6 +3,7 @@
 There are several options for storing credentials that GCM Core supports:
 
 - Windows Credential Manager
+- DPAPI protected files
 - macOS Keychain
 - [freedesktop.org Secret Service API](https://specifications.freedesktop.org/secret-service/)
 - GPG/[`pass`](https://www.passwordstore.org/) compatible files
