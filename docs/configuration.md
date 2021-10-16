@@ -210,7 +210,7 @@ _(unset)_|Automatically detect modes
 `browser`|OAuth authentication via a web browser _(requires a GUI)_
 `device`|OAuth authentication with a device code
 `basic`|Basic authentication using username and password
-`pat` |Personal Access Token (pat)-based authentication
+`pat`|Personal Access Token (pat)-based authentication
 
 #### Example
 
@@ -395,7 +395,7 @@ Value|Git Behavior
 On Windows using GitHub, for a user whose login is `alice`, and with `credential.useHttpPath` set to `false` (or not set), the following remote URLs will use the same credentials:
 
 ```text
-Credential: "git:https://github.com" (user = alice) 
+Credential: "git:https://github.com" (user = alice)
 
    https://github.com/foo/bar
    https://github.com/contoso/widgets

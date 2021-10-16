@@ -357,7 +357,7 @@ _(unset)_|Automatically detect modes
 `browser`|OAuth authentication via a web browser _(requires a GUI)_
 `device`|OAuth authentication with a device code
 `basic`|Basic authentication using username and password
-`pat` |Personal Access Token (pat)-based authentication
+`pat`|Personal Access Token (pat)-based authentication
 
 ##### Windows
 
