@@ -173,7 +173,6 @@ namespace Microsoft.Git.CredentialManager
                         if (probeResponse is null)
                         {
                             _context.Trace.WriteLine("Querying remote URL for host provider auto-detection.");
-                            _context.Streams.Error.WriteLine($"info: detecting host provider for '{uri}'...");
 
                             using (HttpClient client = _context.HttpClientFactory.CreateClient())
                             {
