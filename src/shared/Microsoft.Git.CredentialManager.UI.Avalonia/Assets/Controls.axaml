@@ -1,6 +1,6 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <StyleInclude Source="avares://Microsoft.Git.CredentialManager.UI.Avalonia/Assets/ButtonHyperlink.axaml"/>
+    <StyleInclude Source="avares://gcmcoreuiavn/Assets/ButtonHyperlink.axaml"/>
     <Style Selector="TextBox.monospace">
         <Setter Property="FontFamily" Value="SF Mono, Courier New, Courier, monospace" />
     </Style>

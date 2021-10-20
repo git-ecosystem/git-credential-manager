@@ -10,12 +10,12 @@
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceInclude Source="avares://Microsoft.Git.CredentialManager.UI.Avalonia/Assets/Images.axaml"/>
+                <ResourceInclude Source="gcmcoreuiavn/Assets/Images.axaml"/>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Window.Resources>
     <Window.Styles>
-        <StyleInclude Source="avares://Microsoft.Git.CredentialManager.UI.Avalonia/Assets/Controls.axaml"/>
+        <StyleInclude Source="avares://gcmcoreuiavn/Assets/Controls.axaml"/>
     </Window.Styles>
     <StackPanel Margin="20">
         <Image HorizontalAlignment="Center"
