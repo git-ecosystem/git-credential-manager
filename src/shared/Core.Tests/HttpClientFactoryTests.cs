@@ -88,13 +88,13 @@ namespace GitCredentialManager.Tests
             const string repoPath = "/tmp/repos/foo";
             const string repoRemote = "https://remote.example.com/foo.git";
 
-            var bypassList = new List<string> {"https://contoso.com", ".*fabrikam\\.com"};
+            var noProxyRaw = "contoso.com,fabrikam.com";
             var repoRemoteUri = new Uri(repoRemote);
             var proxyConfig = new ProxyConfiguration(
                 new Uri(proxyUrl),
                 userName: null,
                 password: null,
-                bypassHosts: bypassList);
+                noProxyRaw: noProxyRaw);
 
             var settings = new TestSettings
             {
@@ -115,6 +115,35 @@ namespace GitCredentialManager.Tests
             Assert.True(proxy.IsBypassed(new Uri("http://fabrikam.com")));
             Assert.True(proxy.IsBypassed(new Uri("https://subdomain.fabrikam.com")));
             Assert.False(proxy.IsBypassed(repoRemoteUri));
+        }
+
+        [Fact]
+        public void HttpClientFactory_TryCreateProxy_ProxyWithWildcardBypass_ReturnsFalse()
+        {
+            const string proxyUrl = "https://proxy.example.com/git";
+            const string repoPath = "/tmp/repos/foo";
+            const string repoRemote = "https://remote.example.com/foo.git";
+
+            var noProxyRaw = "*";
+            var repoRemoteUri = new Uri(repoRemote);
+            var proxyConfig = new ProxyConfiguration(
+                new Uri(proxyUrl),
+                userName: null,
+                password: null,
+                noProxyRaw: noProxyRaw);
+
+            var settings = new TestSettings
+            {
+                RemoteUri = repoRemoteUri,
+                RepositoryPath = repoPath,
+                ProxyConfiguration = proxyConfig
+            };
+            var httpFactory = new HttpClientFactory(Mock.Of<IFileSystem>(), Mock.Of<ITrace>(), settings, Mock.Of<IStandardStreams>());
+
+            bool result = httpFactory.TryCreateProxy(out IWebProxy proxy);
+
+            Assert.False(result);
+            Assert.Null(proxy);
         }
 
         [Fact]

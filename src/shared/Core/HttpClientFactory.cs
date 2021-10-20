@@ -210,9 +210,16 @@ namespace GitCredentialManager
                     _streams.Error.WriteLine($"warning: Using a deprecated proxy configuration. See {Constants.HelpUrls.GcmHttpProxyGuide} for more information.");
                 }
 
+                // If NO_PROXY is set to the value "*" then libcurl disables proxying. We should mirror this.
+                if (StringComparer.OrdinalIgnoreCase.Equals("*", proxyConfig.NoProxyRaw))
+                {
+                    _trace.WriteLine("NO_PROXY value set to \"*\"; disabling proxy settings");
+                    proxy = null;
+                    return false;
+                }
+
                 // Dictionary of proxy info for tracing
                 var dict = new Dictionary<string, string> {["address"] = proxyConfig.Address.ToString()};
-                if (proxyConfig.BypassHosts.Any()) dict["bypass"] = string.Join(",", proxyConfig.BypassHosts);
 
                 // Try to configure proxy credentials.
                 // For an empty username AND password we should use the system default credentials
@@ -222,7 +229,6 @@ namespace GitCredentialManager
                     proxy = new WebProxy(proxyConfig.Address)
                     {
                         Credentials = new NetworkCredential(proxyConfig.UserName, proxyConfig.Password),
-                        BypassList = proxyConfig.BypassHosts.ToArray()
                     };
 
                     // Add user/pass info to the trace dictionary
@@ -234,11 +240,34 @@ namespace GitCredentialManager
                     proxy = new WebProxy(proxyConfig.Address)
                     {
                         UseDefaultCredentials = true,
-                        BypassList = proxyConfig.BypassHosts.ToArray()
                     };
 
                     // Trace the use of system default credentials
                     dict["useDefaultCredentials"] = "true";
+                }
+
+                // Set bypass address list.
+                // The .NET WebProxy class requires that each host entry in the bypass list be a regular expression.
+                // However libcurl (that we are aiming to be compatible/co-operative with) doesn't support regexs so
+                // we must convert the libcurl-esc entries in to .NET-compatible regular expressions.
+                // If we fail at any point we shouldn't crash but write a warning to trace output.
+                if (!string.IsNullOrWhiteSpace(proxyConfig.NoProxyRaw))
+                {
+                    dict["noProxy"] = proxyConfig.NoProxyRaw;
+
+                    try
+                    {
+                        string[] bypassRegexs = ProxyConfiguration.ConvertToBypassRegexArray(proxyConfig.NoProxyRaw).ToArray();
+                        dict["bypass"] = string.Join(",", bypassRegexs);
+
+                        ((WebProxy)proxy).BypassList = bypassRegexs;
+                    }
+                    catch (Exception ex)
+                    {
+                        _trace.WriteLine("Failed to convert proxy bypass hosts to regular expressions; ignoring bypass list");
+                        _trace.WriteException(ex);
+                        dict["bypass"] = "<< failed to convert >>";
+                    }
                 }
 
                 // Tracer out proxy info dictionary

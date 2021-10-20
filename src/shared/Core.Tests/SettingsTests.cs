@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using GitCredentialManager.Tests.Objects;
 using Xunit;
 
@@ -427,6 +428,57 @@ namespace GitCredentialManager.Tests
             Assert.True(settings.IsWindowsIntegratedAuthenticationEnabled);
         }
 
+        [Theory]
+        [InlineData("", new string[0])]
+        [InlineData("    ", new string[0])]
+        [InlineData(",", new string[0])]
+        [InlineData("example.com", new[] { @"(\.|\:\/\/)example\.com$" })]
+        [InlineData("example.com:8080", new[] { @"(\.|\:\/\/)example\.com:8080$" })]
+        [InlineData("example.com,", new[] { @"(\.|\:\/\/)example\.com$" })]
+        [InlineData(",example.com", new[] { @"(\.|\:\/\/)example\.com$" })]
+        [InlineData(",example.com,", new[] { @"(\.|\:\/\/)example\.com$" })]
+        [InlineData(".example.com", new[] { @"(\.|\:\/\/)example\.com$" })]
+        [InlineData("..example.com", new[] { @"(\.|\:\/\/)example\.com$" })]
+        [InlineData("*.example.com", new[] { @"(\.|\:\/\/)example\.com$" })]
+        [InlineData("my.example.com", new[] { @"(\.|\:\/\/)my\.example\.com$" })]
+        [InlineData("example.com,contoso.com,fabrikam.com", new[]
+        {
+            @"(\.|\:\/\/)example\.com$",
+            @"(\.|\:\/\/)contoso\.com$",
+            @"(\.|\:\/\/)fabrikam\.com$"
+        })]
+        public void Settings_ProxyConfiguration_ConvertToBypassRegexArray(string input, string[] expected)
+        {
+            string[] actual = ProxyConfiguration.ConvertToBypassRegexArray(input).ToArray();
+            Assert.Equal(expected, actual);
+        }
+
+        [Theory]
+        [InlineData("example.com", "http://example.com", true)]
+        [InlineData("example.com", "https://example.com", true)]
+        [InlineData("example.com", "https://www.example.com", true)]
+        [InlineData("example.com", "http://www.example.com:80", true)]
+        [InlineData("example.com", "https://www.example.com:443", true)]
+        [InlineData("example.com", "https://www.example.com:8080", false)]
+        [InlineData("example.com", "http://notanexample.com", false)]
+        [InlineData("example.com", "https://notanexample.com", false)]
+        [InlineData("example.com", "https://www.notanexample.com", false)]
+        [InlineData("example.com", "https://example.com.otherltd", false)]
+        [InlineData("example.com:8080", "http://example.com", false)]
+        [InlineData("my.example.com", "http://example.com", false)]
+        public void Settings_ProxyConfiguration_ConvertToBypassRegexArray_WebProxyBypass(string noProxy, string address, bool expected)
+        {
+            var bypassList = ProxyConfiguration.ConvertToBypassRegexArray(noProxy).ToArray();
+            var webProxy = new WebProxy("https://localhost:8080/proxy")
+            {
+                BypassList = bypassList
+            };
+
+            bool actual = webProxy.IsBypassed(new Uri(address));
+
+            Assert.Equal(expected, actual);
+        }
+
         [Fact]
         public void Settings_ProxyConfiguration_Unset_ReturnsNull()
         {
@@ -458,11 +510,11 @@ namespace GitCredentialManager.Tests
             const string expectedPassword = "letmein123";
             var expectedAddress = new Uri("http://proxy.example.com");
             var settingValue = new Uri("http://john.doe:letmein123@proxy.example.com");
-            var bypassList = new List<string> {"contoso.com", "fabrikam.com"};
+            var expectedNoProxy = "contoso.com,fabrikam.com";
 
             var envars = new TestEnvironment
             {
-                Variables = {[Constants.EnvironmentVariables.CurlNoProxy] = string.Join(',', bypassList)}
+                Variables = {[Constants.EnvironmentVariables.CurlNoProxy] = expectedNoProxy}
             };
             var git = new TestGit();
             git.Configuration.Global[$"{section}.{property}"] = new[] {settingValue.ToString()};
@@ -478,7 +530,7 @@ namespace GitCredentialManager.Tests
             Assert.Equal(expectedAddress, actualConfig.Address);
             Assert.Equal(expectedUserName, actualConfig.UserName);
             Assert.Equal(expectedPassword, actualConfig.Password);
-            Assert.Equal(bypassList, actualConfig.BypassHosts);
+            Assert.Equal(expectedNoProxy, actualConfig.NoProxyRaw);
             Assert.True(actualConfig.IsDeprecatedSource);
         }
 
@@ -494,11 +546,11 @@ namespace GitCredentialManager.Tests
             const string expectedPassword = "letmein123";
             var expectedAddress = new Uri("http://proxy.example.com");
             var settingValue = new Uri("http://john.doe:letmein123@proxy.example.com");
-            var bypassList = new List<string> {"contoso.com", "fabrikam.com"};
+            var expectedNoProxy = "contoso.com,fabrikam.com";
 
             var envars = new TestEnvironment
             {
-                Variables = {[Constants.EnvironmentVariables.CurlNoProxy] = string.Join(',', bypassList)}
+                Variables = {[Constants.EnvironmentVariables.CurlNoProxy] = expectedNoProxy}
             };
             var git = new TestGit();
             git.Configuration.Global[$"{section}.{property}"] = new[] {settingValue.ToString()};
@@ -514,7 +566,7 @@ namespace GitCredentialManager.Tests
             Assert.Equal(expectedAddress, actualConfig.Address);
             Assert.Equal(expectedUserName, actualConfig.UserName);
             Assert.Equal(expectedPassword, actualConfig.Password);
-            Assert.Equal(bypassList, actualConfig.BypassHosts);
+            Assert.Equal(expectedNoProxy, actualConfig.NoProxyRaw);
             Assert.True(actualConfig.IsDeprecatedSource);
         }
 
@@ -530,11 +582,11 @@ namespace GitCredentialManager.Tests
             const string expectedPassword = "letmein123";
             var expectedAddress = new Uri("http://proxy.example.com");
             var settingValue = new Uri("http://john.doe:letmein123@proxy.example.com");
-            var bypassList = new List<string> {"contoso.com", "fabrikam.com"};
+            var expectedNoProxy = "contoso.com,fabrikam.com";
 
             var envars = new TestEnvironment
             {
-                Variables = {[Constants.EnvironmentVariables.CurlNoProxy] = string.Join(',', bypassList)}
+                Variables = {[Constants.EnvironmentVariables.CurlNoProxy] = expectedNoProxy}
             };
             var git = new TestGit();
             git.Configuration.Global[$"{section}.{property}"] = new[] {settingValue.ToString()};
@@ -550,7 +602,7 @@ namespace GitCredentialManager.Tests
             Assert.Equal(expectedAddress, actualConfig.Address);
             Assert.Equal(expectedUserName, actualConfig.UserName);
             Assert.Equal(expectedPassword, actualConfig.Password);
-            Assert.Equal(bypassList, actualConfig.BypassHosts);
+            Assert.Equal(expectedNoProxy, actualConfig.NoProxyRaw);
             Assert.False(actualConfig.IsDeprecatedSource);
         }
 
@@ -580,42 +632,6 @@ namespace GitCredentialManager.Tests
         }
 
         [Fact]
-        public void Settings_ProxyConfiguration_NoProxyMixedSplitChar_ReturnsValue()
-        {
-            const string remoteUrl = "http://example.com/foo.git";
-            const string section = Constants.GitConfiguration.Http.SectionName;
-            const string property = Constants.GitConfiguration.Http.Proxy;
-            var remoteUri = new Uri(remoteUrl);
-
-            const string expectedUserName = "john.doe";
-            const string expectedPassword = "letmein123";
-            var expectedAddress = new Uri("http://proxy.example.com");
-            var settingValue = new Uri("http://john.doe:letmein123@proxy.example.com");
-            var bypassList = new List<string> {"contoso.com", "fabrikam.com", "example.com"};
-
-            var envars = new TestEnvironment
-            {
-                Variables = {[Constants.EnvironmentVariables.CurlNoProxy] = "contoso.com, fabrikam.com example.com,"}
-            };
-            var git = new TestGit();
-            git.Configuration.Global[$"{section}.{property}"] = new[] {settingValue.ToString()};
-
-            var settings = new Settings(envars, git)
-            {
-                RemoteUri = remoteUri
-            };
-
-            ProxyConfiguration actualConfig = settings.GetProxyConfiguration();
-
-            Assert.NotNull(actualConfig);
-            Assert.Equal(expectedAddress, actualConfig.Address);
-            Assert.Equal(expectedUserName, actualConfig.UserName);
-            Assert.Equal(expectedPassword, actualConfig.Password);
-            Assert.Equal(bypassList, actualConfig.BypassHosts);
-            Assert.False(actualConfig.IsDeprecatedSource);
-        }
-
-        [Fact]
         public void Settings_ProxyConfiguration_CurlHttpEnvar_ReturnsValue()
         {
             const string remoteUrl = "http://example.com/foo.git";
@@ -625,14 +641,14 @@ namespace GitCredentialManager.Tests
             const string expectedPassword = "letmein123";
             var expectedAddress = new Uri("http://proxy.example.com");
             var settingValue = new Uri("http://john.doe:letmein123@proxy.example.com");
-            var bypassList = new List<string> {"contoso.com", "fabrikam.com"};
+            var expectedNoProxy = "contoso.com,fabrikam.com";
 
             var envars = new TestEnvironment
             {
                 Variables =
                 {
                     [Constants.EnvironmentVariables.CurlHttpProxy] = settingValue.ToString(),
-                    [Constants.EnvironmentVariables.CurlNoProxy] = string.Join(',', bypassList)
+                    [Constants.EnvironmentVariables.CurlNoProxy] = expectedNoProxy
                 }
             };
             var git = new TestGit();
@@ -648,7 +664,7 @@ namespace GitCredentialManager.Tests
             Assert.Equal(expectedAddress, actualConfig.Address);
             Assert.Equal(expectedUserName, actualConfig.UserName);
             Assert.Equal(expectedPassword, actualConfig.Password);
-            Assert.Equal(bypassList, actualConfig.BypassHosts);
+            Assert.Equal(expectedNoProxy, actualConfig.NoProxyRaw);
             Assert.False(actualConfig.IsDeprecatedSource);
         }
 
@@ -662,14 +678,14 @@ namespace GitCredentialManager.Tests
             const string expectedPassword = "letmein123";
             var expectedAddress = new Uri("http://proxy.example.com");
             var settingValue = new Uri("http://john.doe:letmein123@proxy.example.com");
-            var bypassList = new List<string> {"contoso.com", "fabrikam.com"};
+            var expectedNoProxy = "contoso.com,fabrikam.com";
 
             var envars = new TestEnvironment
             {
                 Variables =
                 {
                     [Constants.EnvironmentVariables.CurlHttpsProxy] = settingValue.ToString(),
-                    [Constants.EnvironmentVariables.CurlNoProxy] = string.Join(',', bypassList)
+                    [Constants.EnvironmentVariables.CurlNoProxy] = expectedNoProxy
                 }
             };
             var git = new TestGit();
@@ -685,7 +701,7 @@ namespace GitCredentialManager.Tests
             Assert.Equal(expectedAddress, actualConfig.Address);
             Assert.Equal(expectedUserName, actualConfig.UserName);
             Assert.Equal(expectedPassword, actualConfig.Password);
-            Assert.Equal(bypassList, actualConfig.BypassHosts);
+            Assert.Equal(expectedNoProxy, actualConfig.NoProxyRaw);
             Assert.False(actualConfig.IsDeprecatedSource);
         }
 
@@ -699,14 +715,14 @@ namespace GitCredentialManager.Tests
             const string expectedPassword = "letmein123";
             var expectedAddress = new Uri("http://proxy.example.com");
             var settingValue = new Uri("http://john.doe:letmein123@proxy.example.com");
-            var bypassList = new List<string> {"contoso.com", "fabrikam.com"};
+            var expectedNoProxy = "contoso.com,fabrikam.com";
 
             var envars = new TestEnvironment
             {
                 Variables =
                 {
                     [Constants.EnvironmentVariables.CurlAllProxy] = settingValue.ToString(),
-                    [Constants.EnvironmentVariables.CurlNoProxy] = string.Join(',', bypassList)
+                    [Constants.EnvironmentVariables.CurlNoProxy] = expectedNoProxy
                 }
             };
             var git = new TestGit();
@@ -722,7 +738,7 @@ namespace GitCredentialManager.Tests
             Assert.Equal(expectedAddress, actualConfig.Address);
             Assert.Equal(expectedUserName, actualConfig.UserName);
             Assert.Equal(expectedPassword, actualConfig.Password);
-            Assert.Equal(bypassList, actualConfig.BypassHosts);
+            Assert.Equal(expectedNoProxy, actualConfig.NoProxyRaw);
             Assert.False(actualConfig.IsDeprecatedSource);
         }
 
@@ -736,14 +752,14 @@ namespace GitCredentialManager.Tests
             const string expectedPassword = "letmein123";
             var expectedAddress = new Uri("http://proxy.example.com");
             var settingValue = new Uri("http://john.doe:letmein123@proxy.example.com");
-            var bypassList = new List<string> {"https://contoso.com", ".*fabrikam\\.com"};
+            var expectedNoProxy = "contoso.com,fabrikam.com";
 
             var envars = new TestEnvironment
             {
                 Variables =
                 {
                     [Constants.EnvironmentVariables.GcmHttpProxy] = settingValue.ToString(),
-                    [Constants.EnvironmentVariables.CurlNoProxy] = string.Join(',', bypassList)
+                    [Constants.EnvironmentVariables.CurlNoProxy] = expectedNoProxy
                 }
             };
             var git = new TestGit();
@@ -759,7 +775,7 @@ namespace GitCredentialManager.Tests
             Assert.Equal(expectedAddress, actualConfig.Address);
             Assert.Equal(expectedUserName, actualConfig.UserName);
             Assert.Equal(expectedPassword, actualConfig.Password);
-            Assert.Equal(bypassList, actualConfig.BypassHosts);
+            Assert.Equal(expectedNoProxy, actualConfig.NoProxyRaw);
             Assert.True(actualConfig.IsDeprecatedSource);
         }
 
