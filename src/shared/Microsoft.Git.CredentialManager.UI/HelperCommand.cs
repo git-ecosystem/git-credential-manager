@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.CommandLine;
 
-namespace Microsoft.Git.CredentialManager.UI
+namespace GitCredentialManager.UI
 {
     public abstract class HelperCommand : Command
     {

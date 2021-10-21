@@ -1,5 +1,5 @@
 
-namespace Microsoft.Git.CredentialManager.Authentication.OAuth
+namespace GitCredentialManager.Authentication.OAuth
 {
     public static class OAuth2Constants
     {

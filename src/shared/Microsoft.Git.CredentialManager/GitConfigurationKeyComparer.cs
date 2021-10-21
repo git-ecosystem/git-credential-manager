@@ -1,6 +1,6 @@
 using System;
 
-namespace Microsoft.Git.CredentialManager
+namespace GitCredentialManager
 {
     /// <summary>
     /// Represents string comparison of Git configuration entry key names.

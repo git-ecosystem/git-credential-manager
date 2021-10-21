@@ -1,7 +1,7 @@
 using System.Linq;
 using Avalonia.Data.Converters;
 
-namespace Microsoft.Git.CredentialManager.UI.Converters
+namespace GitCredentialManager.UI.Converters
 {
     public static class BoolConvertersEx
     {

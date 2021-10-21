@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 
-namespace Microsoft.Git.CredentialManager.Interop.Windows.Native
+namespace GitCredentialManager.Interop.Windows.Native
 {
     // https://docs.microsoft.com/en-gb/windows/desktop/Debug/system-error-codes
 

@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Git.CredentialManager.Authentication;
+using GitCredentialManager.Authentication;
 
-namespace Microsoft.Git.CredentialManager
+namespace GitCredentialManager
 {
     public class GenericHostProvider : HostProvider
     {

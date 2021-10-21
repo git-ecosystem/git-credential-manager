@@ -1,10 +1,10 @@
 using System.IO;
 using System.Linq;
-using Microsoft.Git.CredentialManager.Tests.Objects;
+using GitCredentialManager.Tests.Objects;
 using Xunit;
-using static Microsoft.Git.CredentialManager.Tests.GitTestUtilities;
+using static GitCredentialManager.Tests.GitTestUtilities;
 
-namespace Microsoft.Git.CredentialManager.Tests
+namespace GitCredentialManager.Tests
 {
     public class GitTests
     {

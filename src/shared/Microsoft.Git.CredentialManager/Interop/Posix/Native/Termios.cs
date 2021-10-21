@@ -1,6 +1,6 @@
 using System;
 
-namespace Microsoft.Git.CredentialManager.Interop.Posix.Native
+namespace GitCredentialManager.Interop.Posix.Native
 {
     [Flags]
     public enum SetActionFlags

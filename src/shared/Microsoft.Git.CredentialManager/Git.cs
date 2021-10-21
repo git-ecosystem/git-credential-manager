@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace Microsoft.Git.CredentialManager
+namespace GitCredentialManager
 {
     public interface IGit
     {
@@ -190,7 +190,7 @@ namespace Microsoft.Git.CredentialManager
         }
 
         // This code was originally copied from
-        // src/shared/Microsoft.Git.CredentialManager/Authentication/AuthenticationBase.cs
+        // src/shared/GitCredentialManager/Authentication/AuthenticationBase.cs
         // That code is for GUI helpers in this codebase, while the below is for
         // communicating over Git's stdin/stdout helper protocol. The GUI helper
         // protocol will one day use a different IPC mechanism, whereas this code

@@ -2,8 +2,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Atlassian.Bitbucket.UI.ViewModels;
 using Atlassian.Bitbucket.UI.Views;
-using Microsoft.Git.CredentialManager;
-using Microsoft.Git.CredentialManager.UI;
+using GitCredentialManager;
+using GitCredentialManager.UI;
 
 namespace Atlassian.Bitbucket.UI.Commands
 {

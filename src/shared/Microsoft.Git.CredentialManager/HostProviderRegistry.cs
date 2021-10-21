@@ -4,7 +4,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 
-namespace Microsoft.Git.CredentialManager
+namespace GitCredentialManager
 {
     /// <summary>
     /// Priority in which host providers are queried during auto-detection.

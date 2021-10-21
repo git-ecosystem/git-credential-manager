@@ -1,9 +1,9 @@
 using System;
-using Microsoft.Git.CredentialManager.Interop.Linux.Native;
-using Microsoft.Git.CredentialManager.Interop.Posix;
-using Microsoft.Git.CredentialManager.Interop.Posix.Native;
+using GitCredentialManager.Interop.Linux.Native;
+using GitCredentialManager.Interop.Posix;
+using GitCredentialManager.Interop.Posix.Native;
 
-namespace Microsoft.Git.CredentialManager.Interop.Linux
+namespace GitCredentialManager.Interop.Linux
 {
     public class LinuxTerminal : PosixTerminal
     {

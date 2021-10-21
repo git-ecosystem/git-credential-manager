@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace Microsoft.Git.CredentialManager.Interop.Windows.Native
+namespace GitCredentialManager.Interop.Windows.Native
 {
     public static class Ole32
     {

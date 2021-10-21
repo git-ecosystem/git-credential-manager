@@ -1,13 +1,13 @@
 using System;
 using System.IO;
 using System.Text;
-using Microsoft.Git.CredentialManager.Interop.Linux;
-using Microsoft.Git.CredentialManager.Interop.MacOS;
-using Microsoft.Git.CredentialManager.Interop.Posix;
-using Microsoft.Git.CredentialManager.Interop.Windows;
-using StoreNames = Microsoft.Git.CredentialManager.Constants.CredentialStoreNames;
+using GitCredentialManager.Interop.Linux;
+using GitCredentialManager.Interop.MacOS;
+using GitCredentialManager.Interop.Posix;
+using GitCredentialManager.Interop.Windows;
+using StoreNames = GitCredentialManager.Constants.CredentialStoreNames;
 
-namespace Microsoft.Git.CredentialManager
+namespace GitCredentialManager
 {
     public class CredentialStore : ICredentialStore
     {

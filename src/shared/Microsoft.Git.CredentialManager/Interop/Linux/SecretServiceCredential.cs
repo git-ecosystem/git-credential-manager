@@ -1,6 +1,6 @@
 using System.Diagnostics;
 
-namespace Microsoft.Git.CredentialManager.Interop.Linux
+namespace GitCredentialManager.Interop.Linux
 {
     [DebuggerDisplay("{DebuggerDisplay}")]
     public class SecretServiceCredential : ICredential

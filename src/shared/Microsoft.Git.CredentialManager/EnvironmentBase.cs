@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
-namespace Microsoft.Git.CredentialManager
+namespace GitCredentialManager
 {
     /// <summary>
     /// Component that encapsulates the process environment, including environment variables.

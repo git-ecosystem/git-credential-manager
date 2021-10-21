@@ -1,7 +1,7 @@
 using System;
 using System.Reflection;
 
-namespace Microsoft.Git.CredentialManager
+namespace GitCredentialManager
 {
     public static class Constants
     {

@@ -2,11 +2,11 @@ using System;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Microsoft.Git.CredentialManager.Authentication;
-using Microsoft.Git.CredentialManager.Tests.Objects;
+using GitCredentialManager.Authentication;
+using GitCredentialManager.Tests.Objects;
 using Xunit;
 
-namespace Microsoft.Git.CredentialManager.Tests.Authentication
+namespace GitCredentialManager.Tests.Authentication
 {
     public class WindowsIntegratedAuthenticationTests
     {

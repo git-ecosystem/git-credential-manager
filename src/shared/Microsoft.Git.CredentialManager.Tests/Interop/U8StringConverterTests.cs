@@ -1,8 +1,8 @@
 using System;
-using Microsoft.Git.CredentialManager.Interop;
+using GitCredentialManager.Interop;
 using Xunit;
 
-namespace Microsoft.Git.CredentialManager.Tests.Interop
+namespace GitCredentialManager.Tests.Interop
 {
     public class U8StringConverterTests
     {

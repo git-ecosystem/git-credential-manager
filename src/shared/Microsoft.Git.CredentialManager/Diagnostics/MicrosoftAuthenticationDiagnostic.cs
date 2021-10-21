@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.Git.CredentialManager.Authentication;
+using GitCredentialManager.Authentication;
 using Microsoft.Identity.Client.Extensions.Msal;
 
-namespace Microsoft.Git.CredentialManager.Diagnostics
+namespace GitCredentialManager.Diagnostics
 {
     public class MicrosoftAuthenticationDiagnostic : Diagnostic
     {

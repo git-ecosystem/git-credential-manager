@@ -1,6 +1,6 @@
 using System;
 
-namespace Microsoft.Git.CredentialManager
+namespace GitCredentialManager
 {
     /// <summary>
     /// An object that implements the <see cref="IDisposable"/> interface and the disposable pattern.

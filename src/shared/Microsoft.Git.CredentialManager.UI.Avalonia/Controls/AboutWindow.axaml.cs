@@ -4,7 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 
-namespace Microsoft.Git.CredentialManager.UI.Controls
+namespace GitCredentialManager.UI.Controls
 {
     public class AboutWindow : Window
     {

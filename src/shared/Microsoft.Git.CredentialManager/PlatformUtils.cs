@@ -1,9 +1,9 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using Microsoft.Git.CredentialManager.Interop.Posix.Native;
+using GitCredentialManager.Interop.Posix.Native;
 
-namespace Microsoft.Git.CredentialManager
+namespace GitCredentialManager
 {
     public static class PlatformUtils
     {

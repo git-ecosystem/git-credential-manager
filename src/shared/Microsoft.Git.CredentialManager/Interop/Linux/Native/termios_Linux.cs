@@ -1,7 +1,7 @@
 using System.Runtime.InteropServices;
-using Microsoft.Git.CredentialManager.Interop.Posix.Native;
+using GitCredentialManager.Interop.Posix.Native;
 
-namespace Microsoft.Git.CredentialManager.Interop.Linux.Native
+namespace GitCredentialManager.Interop.Linux.Native
 {
     public static class Termios_Linux
     {

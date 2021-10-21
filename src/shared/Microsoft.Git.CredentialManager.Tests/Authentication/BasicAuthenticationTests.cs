@@ -1,10 +1,10 @@
 using System;
-using Microsoft.Git.CredentialManager.Authentication;
-using Microsoft.Git.CredentialManager.Tests.Objects;
+using GitCredentialManager.Authentication;
+using GitCredentialManager.Tests.Objects;
 using Moq;
 using Xunit;
 
-namespace Microsoft.Git.CredentialManager.Tests.Authentication
+namespace GitCredentialManager.Tests.Authentication
 {
     public class BasicAuthenticationTests
     {

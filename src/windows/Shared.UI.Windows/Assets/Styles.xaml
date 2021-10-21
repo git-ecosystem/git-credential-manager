@@ -1,6 +1,6 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:sharedControls="clr-namespace:Microsoft.Git.CredentialManager.UI.Controls">
+                    xmlns:sharedControls="clr-namespace:GitCredentialManager.UI.Controls">
 
     <Color x:Key="AccentColor">#0078d7</Color>
     <Color x:Key="AccentHoverColor">#429ce3</Color>

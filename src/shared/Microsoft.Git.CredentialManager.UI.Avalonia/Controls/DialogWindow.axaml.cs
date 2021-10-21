@@ -5,9 +5,9 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
-using Microsoft.Git.CredentialManager.UI.ViewModels;
+using GitCredentialManager.UI.ViewModels;
 
-namespace Microsoft.Git.CredentialManager.UI.Controls
+namespace GitCredentialManager.UI.Controls
 {
     public class DialogWindow : Window
     {

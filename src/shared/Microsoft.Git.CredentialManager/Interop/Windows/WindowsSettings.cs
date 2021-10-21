@@ -1,5 +1,5 @@
 
-namespace Microsoft.Git.CredentialManager.Interop.Windows
+namespace GitCredentialManager.Interop.Windows
 {
     /// <summary>
     /// Reads settings from Git configuration, environment variables, and defaults from the Windows Registry.
@@ -24,7 +24,7 @@ namespace Microsoft.Git.CredentialManager.Interop.Windows
 #if NETFRAMEWORK
             // Check for machine (HKLM) registry keys that match the Git configuration name.
             // These can be set by system administrators via Group Policy, so make useful defaults.
-            using (Win32.RegistryKey configKey = Win32.Registry.LocalMachine.OpenSubKey(Constants.WindowsRegistry.HKConfigurationPath))
+            using (Microsoft.Win32.RegistryKey configKey = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(Constants.WindowsRegistry.HKConfigurationPath))
             {
                 if (configKey is null)
                 {

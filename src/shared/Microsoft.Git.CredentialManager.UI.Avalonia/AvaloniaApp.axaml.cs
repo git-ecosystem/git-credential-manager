@@ -2,9 +2,9 @@ using System;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using Microsoft.Git.CredentialManager.UI.Controls;
+using GitCredentialManager.UI.Controls;
 
-namespace Microsoft.Git.CredentialManager.UI
+namespace GitCredentialManager.UI
 {
     public class AvaloniaApp : Avalonia.Application
     {

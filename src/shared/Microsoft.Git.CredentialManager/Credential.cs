@@ -1,5 +1,5 @@
 
-namespace Microsoft.Git.CredentialManager
+namespace GitCredentialManager
 {
     /// <summary>
     /// Represents a credential.

@@ -1,6 +1,6 @@
 using System;
 
-namespace Microsoft.Git.CredentialManager.UI.ViewModels
+namespace GitCredentialManager.UI.ViewModels
 {
     public class WindowViewModel : ViewModel
     {

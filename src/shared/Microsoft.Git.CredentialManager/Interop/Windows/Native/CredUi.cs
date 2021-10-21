@@ -2,7 +2,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace Microsoft.Git.CredentialManager.Interop.Windows.Native
+namespace GitCredentialManager.Interop.Windows.Native
 {
     // https://docs.microsoft.com/en-us/windows/desktop/api/wincred/
     public static class CredUi

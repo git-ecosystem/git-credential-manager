@@ -5,10 +5,10 @@ using System.CommandLine.Invocation;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Microsoft.Git.CredentialManager;
-using Microsoft.Git.CredentialManager.Authentication;
-using Microsoft.Git.CredentialManager.Commands;
-using KnownGitCfg = Microsoft.Git.CredentialManager.Constants.GitConfiguration;
+using GitCredentialManager;
+using GitCredentialManager.Authentication;
+using GitCredentialManager.Commands;
+using KnownGitCfg = GitCredentialManager.Constants.GitConfiguration;
 
 namespace Microsoft.AzureRepos
 {

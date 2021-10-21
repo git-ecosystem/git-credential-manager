@@ -4,8 +4,8 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using Microsoft.Git.CredentialManager;
-using Microsoft.Git.CredentialManager.UI.Controls;
+using GitCredentialManager;
+using GitCredentialManager.UI.Controls;
 
 namespace GitHub.UI.Controls
 {

@@ -3,7 +3,7 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
 
-namespace Microsoft.Git.CredentialManager.UI.Converters
+namespace GitCredentialManager.UI.Converters
 {
     [ValueConversion(typeof(string), typeof(Visibility))]
     public class NonEmptyStringToVisibleConverter : IValueConverter

@@ -1,5 +1,5 @@
 
-namespace Microsoft.Git.CredentialManager.Interop.Posix
+namespace GitCredentialManager.Interop.Posix
 {
     public abstract class PosixFileSystem : FileSystem
     {

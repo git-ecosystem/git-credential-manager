@@ -2,7 +2,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Microsoft.Git.CredentialManager.Authentication.OAuth
+namespace GitCredentialManager.Authentication.OAuth
 {
     public static class HttpListenerExtensions
     {

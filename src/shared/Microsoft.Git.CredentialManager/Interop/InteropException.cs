@@ -2,7 +2,7 @@ using System;
 using System.ComponentModel;
 using System.Diagnostics;
 
-namespace Microsoft.Git.CredentialManager.Interop
+namespace GitCredentialManager.Interop
 {
     /// <summary>
     /// An unexpected error occurred in interop-code.

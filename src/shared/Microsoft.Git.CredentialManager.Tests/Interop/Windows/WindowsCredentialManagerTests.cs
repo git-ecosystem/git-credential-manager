@@ -1,8 +1,8 @@
 using System;
 using Xunit;
-using Microsoft.Git.CredentialManager.Interop.Windows;
+using GitCredentialManager.Interop.Windows;
 
-namespace Microsoft.Git.CredentialManager.Tests.Interop.Windows
+namespace GitCredentialManager.Tests.Interop.Windows
 {
     public class WindowsCredentialManagerTests
     {

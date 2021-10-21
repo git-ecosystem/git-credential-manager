@@ -5,12 +5,12 @@ using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using GitHub.UI.ViewModels;
 using GitHub.UI.Views;
-using Microsoft.Git.CredentialManager;
-using Microsoft.Git.CredentialManager.Interop.Linux;
-using Microsoft.Git.CredentialManager.Interop.MacOS;
-using Microsoft.Git.CredentialManager.Interop.Posix;
-using Microsoft.Git.CredentialManager.Interop.Windows;
-using Microsoft.Git.CredentialManager.UI.Controls;
+using GitCredentialManager;
+using GitCredentialManager.Interop.Linux;
+using GitCredentialManager.Interop.MacOS;
+using GitCredentialManager.Interop.Posix;
+using GitCredentialManager.Interop.Windows;
+using GitCredentialManager.UI.Controls;
 
 namespace GitHub.UI.Controls
 {

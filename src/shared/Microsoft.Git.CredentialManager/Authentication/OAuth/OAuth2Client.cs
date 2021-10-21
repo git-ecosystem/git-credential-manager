@@ -4,10 +4,10 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Git.CredentialManager.Authentication.OAuth.Json;
+using GitCredentialManager.Authentication.OAuth.Json;
 using Newtonsoft.Json;
 
-namespace Microsoft.Git.CredentialManager.Authentication.OAuth
+namespace GitCredentialManager.Authentication.OAuth
 {
     /// <summary>
     /// Represents an OAuth2 client application that can perform the basic flows outlined in RFC 6749,

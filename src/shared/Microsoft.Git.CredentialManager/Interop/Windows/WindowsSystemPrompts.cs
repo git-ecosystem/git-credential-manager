@@ -1,9 +1,9 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Text;
-using Microsoft.Git.CredentialManager.Interop.Windows.Native;
+using GitCredentialManager.Interop.Windows.Native;
 
-namespace Microsoft.Git.CredentialManager.Interop.Windows
+namespace GitCredentialManager.Interop.Windows
 {
     public class WindowsSystemPrompts : ISystemPrompts
     {

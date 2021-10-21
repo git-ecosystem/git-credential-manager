@@ -1,10 +1,10 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Text;
-using Microsoft.Git.CredentialManager.Interop.Windows.Native;
+using GitCredentialManager.Interop.Windows.Native;
 using Microsoft.Win32.SafeHandles;
 
-namespace Microsoft.Git.CredentialManager.Interop.Windows
+namespace GitCredentialManager.Interop.Windows
 {
     /// <summary>
     /// Represents a thin wrapper around the Windows console device.

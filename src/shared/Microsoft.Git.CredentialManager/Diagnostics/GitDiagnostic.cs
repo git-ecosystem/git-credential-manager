@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Microsoft.Git.CredentialManager.Diagnostics
+namespace GitCredentialManager.Diagnostics
 {
     public class GitDiagnostic : Diagnostic
     {

@@ -1,6 +1,6 @@
 using System;
 
-namespace Microsoft.Git.CredentialManager
+namespace GitCredentialManager
 {
     public static class StringExtensions
     {

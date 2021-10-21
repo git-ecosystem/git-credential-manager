@@ -1,7 +1,7 @@
 ﻿using Avalonia.Data.Converters;
 using Avalonia.Platform;
 
-namespace Microsoft.Git.CredentialManager.UI.Converters
+namespace GitCredentialManager.UI.Converters
 {
     public static class WindowClientAreaConverters
     {

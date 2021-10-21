@@ -1,7 +1,7 @@
-using Microsoft.Git.CredentialManager.Authentication;
+using GitCredentialManager.Authentication;
 using Xunit;
 
-namespace Microsoft.Git.CredentialManager.Tests.Authentication
+namespace GitCredentialManager.Tests.Authentication
 {
     public class AuthenticationBaseTests
     {

@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using Microsoft.Git.CredentialManager;
-using Microsoft.Git.CredentialManager.Tests.Objects;
+using GitCredentialManager;
+using GitCredentialManager.Tests.Objects;
 using Xunit;
 
 namespace Microsoft.AzureRepos.Tests

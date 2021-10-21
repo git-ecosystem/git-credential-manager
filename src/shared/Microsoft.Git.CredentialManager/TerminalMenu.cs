@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace Microsoft.Git.CredentialManager
+namespace GitCredentialManager
 {
     public class TerminalMenu : IEnumerable<TerminalMenuItem>
     {

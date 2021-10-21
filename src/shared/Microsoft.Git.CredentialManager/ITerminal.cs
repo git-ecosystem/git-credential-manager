@@ -1,7 +1,7 @@
 using System;
-using Microsoft.Git.CredentialManager.Interop;
+using GitCredentialManager.Interop;
 
-namespace Microsoft.Git.CredentialManager
+namespace GitCredentialManager
 {
     /// <summary>
     /// Represents a terminal (TTY) interface.

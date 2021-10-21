@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <RootNamespace>Microsoft.Git.CredentialManager.Tests</RootNamespace>
+    <RootNamespace>GitCredentialManager.Tests</RootNamespace>
     <IsPackable>false</IsPackable>
     <IsTestProject>false</IsTestProject>
     <LangVersion>latest</LangVersion>

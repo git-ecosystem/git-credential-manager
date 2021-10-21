@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 
-namespace Microsoft.Git.CredentialManager
+namespace GitCredentialManager
 {
     public static class NameValueCollectionExtensions
     {

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Microsoft.Git.CredentialManager
+namespace GitCredentialManager
 {
     public class CredentialCacheStore : ICredentialStore
     {

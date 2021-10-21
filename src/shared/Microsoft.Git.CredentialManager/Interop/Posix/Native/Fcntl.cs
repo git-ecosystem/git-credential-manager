@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace Microsoft.Git.CredentialManager.Interop.Posix.Native
+namespace GitCredentialManager.Interop.Posix.Native
 {
     public static class Fcntl
     {

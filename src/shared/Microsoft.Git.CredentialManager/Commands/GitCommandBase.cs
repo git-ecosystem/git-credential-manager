@@ -4,7 +4,7 @@ using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.Threading.Tasks;
 
-namespace Microsoft.Git.CredentialManager.Commands
+namespace GitCredentialManager.Commands
 {
     /// <summary>
     /// Represents a command which selects a <see cref="IHostProvider"/> from a <see cref="IHostProviderRegistry"/>

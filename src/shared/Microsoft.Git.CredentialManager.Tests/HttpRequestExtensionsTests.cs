@@ -1,7 +1,7 @@
 using System.Net.Http;
 using Xunit;
 
-namespace Microsoft.Git.CredentialManager.Tests
+namespace GitCredentialManager.Tests
 {
     public class HttpRequestExtensionsTests
     {

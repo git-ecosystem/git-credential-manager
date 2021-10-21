@@ -1,7 +1,7 @@
 using Atlassian.Bitbucket.UI.ViewModels;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
-using Microsoft.Git.CredentialManager.UI.Controls;
+using GitCredentialManager.UI.Controls;
 
 namespace Atlassian.Bitbucket.UI.Views
 {

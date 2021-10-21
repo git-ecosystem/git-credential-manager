@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 
-namespace Microsoft.Git.CredentialManager.Interop.Windows
+namespace GitCredentialManager.Interop.Windows
 {
     public class WindowsFileSystem : FileSystem
     {

@@ -1,10 +1,10 @@
 using System.Threading.Tasks;
-using Microsoft.Git.CredentialManager.Commands;
-using Microsoft.Git.CredentialManager.Tests.Objects;
+using GitCredentialManager.Commands;
+using GitCredentialManager.Tests.Objects;
 using Moq;
 using Xunit;
 
-namespace Microsoft.Git.CredentialManager.Tests.Commands
+namespace GitCredentialManager.Tests.Commands
 {
     public class UnconfigureCommandTests
     {

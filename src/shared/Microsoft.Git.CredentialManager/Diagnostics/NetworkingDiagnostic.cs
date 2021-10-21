@@ -7,7 +7,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Microsoft.Git.CredentialManager.Diagnostics
+namespace GitCredentialManager.Diagnostics
 {
     public class NetworkingDiagnostic : Diagnostic
     {

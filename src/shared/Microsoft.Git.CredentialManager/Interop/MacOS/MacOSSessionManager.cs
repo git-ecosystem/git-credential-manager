@@ -1,7 +1,7 @@
-using Microsoft.Git.CredentialManager.Interop.MacOS.Native;
-using Microsoft.Git.CredentialManager.Interop.Posix;
+using GitCredentialManager.Interop.MacOS.Native;
+using GitCredentialManager.Interop.Posix;
 
-namespace Microsoft.Git.CredentialManager.Interop.MacOS
+namespace GitCredentialManager.Interop.MacOS
 {
     public class MacOSSessionManager : PosixSessionManager
     {

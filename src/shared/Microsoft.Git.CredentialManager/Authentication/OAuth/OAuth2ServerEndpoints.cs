@@ -1,6 +1,6 @@
 using System;
 
-namespace Microsoft.Git.CredentialManager.Authentication.OAuth
+namespace GitCredentialManager.Authentication.OAuth
 {
     /// <summary>
     /// Represents the various OAuth2 endpoints for an <see cref="OAuth2Client"/>.

@@ -1,8 +1,8 @@
 using System;
 using System.IO;
-using Microsoft.Git.CredentialManager.Interop.Posix;
+using GitCredentialManager.Interop.Posix;
 
-namespace Microsoft.Git.CredentialManager.Interop.MacOS
+namespace GitCredentialManager.Interop.MacOS
 {
     public class MacOSFileSystem : PosixFileSystem
     {

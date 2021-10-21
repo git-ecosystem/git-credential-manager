@@ -6,9 +6,9 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.Git.CredentialManager.Diagnostics;
+using GitCredentialManager.Diagnostics;
 
-namespace Microsoft.Git.CredentialManager.Commands
+namespace GitCredentialManager.Commands
 {
     public class DiagnoseCommand : Command
     {

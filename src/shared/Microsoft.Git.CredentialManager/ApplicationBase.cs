@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.Git.CredentialManager
+namespace GitCredentialManager
 {
     public abstract class ApplicationBase : IDisposable
     {

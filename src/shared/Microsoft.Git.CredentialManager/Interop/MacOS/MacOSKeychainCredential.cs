@@ -1,6 +1,6 @@
 using System.Diagnostics;
 
-namespace Microsoft.Git.CredentialManager.Interop.MacOS
+namespace GitCredentialManager.Interop.MacOS
 {
     [DebuggerDisplay("{DebuggerDisplay}")]
     public class MacOSKeychainCredential : ICredential

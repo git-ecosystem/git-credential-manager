@@ -1,7 +1,7 @@
 using System.Runtime.InteropServices;
-using Microsoft.Git.CredentialManager.Interop.Posix.Native;
+using GitCredentialManager.Interop.Posix.Native;
 
-namespace Microsoft.Git.CredentialManager.Interop.MacOS.Native
+namespace GitCredentialManager.Interop.MacOS.Native
 {
     public static class Termios_MacOS
     {

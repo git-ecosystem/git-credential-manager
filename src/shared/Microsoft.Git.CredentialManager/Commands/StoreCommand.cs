@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
 
-namespace Microsoft.Git.CredentialManager.Commands
+namespace GitCredentialManager.Commands
 {
     /// <summary>
     /// Store a previously created <see cref="GitCredential"/> in the OS secure credential store.

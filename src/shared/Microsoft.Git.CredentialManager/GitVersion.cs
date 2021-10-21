@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.Git.CredentialManager
+namespace GitCredentialManager
 {
     public class GitVersion : IComparable, IComparable<GitVersion>
     {

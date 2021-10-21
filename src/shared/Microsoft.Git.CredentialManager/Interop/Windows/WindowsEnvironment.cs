@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 
-namespace Microsoft.Git.CredentialManager.Interop.Windows
+namespace GitCredentialManager.Interop.Windows
 {
     public class WindowsEnvironment : EnvironmentBase
     {

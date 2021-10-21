@@ -1,6 +1,6 @@
 using System;
 
-namespace Microsoft.Git.CredentialManager.Authentication
+namespace GitCredentialManager.Authentication
 {
     public interface IBasicAuthentication
     {

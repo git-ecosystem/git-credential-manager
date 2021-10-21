@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using Moq;
-using Microsoft.Git.CredentialManager.Tests.Objects;
+using GitCredentialManager.Tests.Objects;
 using Xunit;
 
-namespace Microsoft.Git.CredentialManager.Tests
+namespace GitCredentialManager.Tests
 {
     public class HttpClientFactoryTests
     {

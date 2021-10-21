@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace Microsoft.Git.CredentialManager.Interop.MacOS.Native
+namespace GitCredentialManager.Interop.MacOS.Native
 {
     public static class LibSystem
     {

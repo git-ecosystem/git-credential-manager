@@ -3,7 +3,7 @@ using System.Linq;
 using System.Text;
 using System.Web;
 
-namespace Microsoft.Git.CredentialManager
+namespace GitCredentialManager
 {
     public static class DictionaryExtensions
     {

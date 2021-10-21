@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
-namespace Microsoft.Git.CredentialManager.Interop.Posix
+namespace GitCredentialManager.Interop.Posix
 {
     public class PosixEnvironment : EnvironmentBase
     {

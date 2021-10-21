@@ -1,8 +1,8 @@
 using System;
 using Xunit;
-using Microsoft.Git.CredentialManager.Interop.Linux;
+using GitCredentialManager.Interop.Linux;
 
-namespace Microsoft.Git.CredentialManager.Tests.Interop.Linux
+namespace GitCredentialManager.Tests.Interop.Linux
 {
     public class SecretServiceCollectionTests
     {

@@ -2,7 +2,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace Microsoft.Git.CredentialManager.Interop.Posix.Native
+namespace GitCredentialManager.Interop.Posix.Native
 {
     public static class Stdio
     {

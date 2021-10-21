@@ -1,8 +1,8 @@
 using System;
 using System.Text;
-using Microsoft.Git.CredentialManager.Interop.Posix.Native;
+using GitCredentialManager.Interop.Posix.Native;
 
-namespace Microsoft.Git.CredentialManager.Interop.Posix
+namespace GitCredentialManager.Interop.Posix
 {
     /// <summary>
     /// Represents a thin wrapper around the POSIX TTY device (/dev/tty).

@@ -1,9 +1,9 @@
 using System;
-using Microsoft.Git.CredentialManager.Interop.MacOS.Native;
-using Microsoft.Git.CredentialManager.Interop.Posix;
-using Microsoft.Git.CredentialManager.Interop.Posix.Native;
+using GitCredentialManager.Interop.MacOS.Native;
+using GitCredentialManager.Interop.Posix;
+using GitCredentialManager.Interop.Posix.Native;
 
-namespace Microsoft.Git.CredentialManager.Interop.MacOS
+namespace GitCredentialManager.Interop.MacOS
 {
     public class MacOSTerminal : PosixTerminal
     {

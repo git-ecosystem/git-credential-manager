@@ -1,10 +1,10 @@
 using System;
 using Xunit;
-using Microsoft.Git.CredentialManager.Interop;
-using Microsoft.Git.CredentialManager.Interop.MacOS;
-using Microsoft.Git.CredentialManager.Interop.MacOS.Native;
+using GitCredentialManager.Interop;
+using GitCredentialManager.Interop.MacOS;
+using GitCredentialManager.Interop.MacOS.Native;
 
-namespace Microsoft.Git.CredentialManager.Tests.Interop.MacOS
+namespace GitCredentialManager.Tests.Interop.MacOS
 {
     public class MacOSKeychainTests
     {

@@ -1,10 +1,10 @@
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using Microsoft.Git.CredentialManager.Authentication.OAuth;
+using GitCredentialManager.Authentication.OAuth;
 using Xunit;
 
-namespace Microsoft.Git.CredentialManager.Tests.Authentication
+namespace GitCredentialManager.Tests.Authentication
 {
     public class OAuth2CryptographicCodeGeneratorTests
     {

@@ -10,7 +10,7 @@ using Microsoft.Identity.Client.Extensions.Msal;
 using Microsoft.Identity.Client.Desktop;
 #endif
 
-namespace Microsoft.Git.CredentialManager.Authentication
+namespace GitCredentialManager.Authentication
 {
     public interface IMicrosoftAuthentication
     {

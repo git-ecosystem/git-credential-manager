@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -11,7 +11,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\shared\Atlassian.Bitbucket.UI\Atlassian.Bitbucket.UI.csproj" />
-    <ProjectReference Include="..\..\shared\Microsoft.Git.CredentialManager.UI\Microsoft.Git.CredentialManager.UI.csproj" />
+    <ProjectReference Include="..\..\shared\Microsoft.Git.CredentialManager\Microsoft.Git.CredentialManager.csproj" />
     <ProjectReference Include="..\Shared.UI.Windows\Shared.UI.Windows.csproj" />
   </ItemGroup>
 

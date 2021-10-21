@@ -1,13 +1,13 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Text;
-using static Microsoft.Git.CredentialManager.Interop.Linux.Native.Gobject;
-using static Microsoft.Git.CredentialManager.Interop.Linux.Native.Glib;
-using static Microsoft.Git.CredentialManager.Interop.Linux.Native.Libsecret;
-using static Microsoft.Git.CredentialManager.Interop.Linux.Native.Libsecret.SecretSchemaAttributeType;
-using static Microsoft.Git.CredentialManager.Interop.Linux.Native.Libsecret.SecretSchemaFlags;
+using static GitCredentialManager.Interop.Linux.Native.Gobject;
+using static GitCredentialManager.Interop.Linux.Native.Glib;
+using static GitCredentialManager.Interop.Linux.Native.Libsecret;
+using static GitCredentialManager.Interop.Linux.Native.Libsecret.SecretSchemaAttributeType;
+using static GitCredentialManager.Interop.Linux.Native.Libsecret.SecretSchemaFlags;
 
-namespace Microsoft.Git.CredentialManager.Interop.Linux
+namespace GitCredentialManager.Interop.Linux
 {
     public class SecretServiceCollection : ICredentialStore
     {

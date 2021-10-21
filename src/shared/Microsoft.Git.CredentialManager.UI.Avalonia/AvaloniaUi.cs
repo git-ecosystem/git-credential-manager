@@ -3,12 +3,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
-using Microsoft.Git.CredentialManager.Interop.Windows.Native;
-using Microsoft.Git.CredentialManager.UI.Controls;
-using Microsoft.Git.CredentialManager.UI.ViewModels;
+using GitCredentialManager.Interop.Windows.Native;
+using GitCredentialManager.UI.Controls;
+using GitCredentialManager.UI.ViewModels;
 using AvnDispatcher = Avalonia.Threading.Dispatcher;
 
-namespace Microsoft.Git.CredentialManager.UI
+namespace GitCredentialManager.UI
 {
     public static class AvaloniaUi
     {

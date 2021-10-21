@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using KnownEnvars = Microsoft.Git.CredentialManager.Constants.EnvironmentVariables;
-using KnownGitCfg = Microsoft.Git.CredentialManager.Constants.GitConfiguration;
-using GitCredCfg  = Microsoft.Git.CredentialManager.Constants.GitConfiguration.Credential;
-using GitHttpCfg  = Microsoft.Git.CredentialManager.Constants.GitConfiguration.Http;
+using KnownEnvars = GitCredentialManager.Constants.EnvironmentVariables;
+using KnownGitCfg = GitCredentialManager.Constants.GitConfiguration;
+using GitCredCfg  = GitCredentialManager.Constants.GitConfiguration.Credential;
+using GitHttpCfg  = GitCredentialManager.Constants.GitConfiguration.Http;
 
-namespace Microsoft.Git.CredentialManager
+namespace GitCredentialManager
 {
     /// <summary>
     /// Component that represents settings for Git Credential Manager as found from the environment and Git configuration.
@@ -456,7 +456,7 @@ namespace Microsoft.Git.CredentialManager
 
         public TlsBackend TlsBackend =>
             TryGetSetting(null, KnownGitCfg.Http.SectionName, KnownGitCfg.Http.SslBackend, out string config)
-                ? (Enum.TryParse(config, true, out TlsBackend backend) ? backend : CredentialManager.TlsBackend.Other)
+                ? (Enum.TryParse(config, true, out TlsBackend backend) ? backend : GitCredentialManager.TlsBackend.Other)
                 : default(TlsBackend);
 
         public bool UseCustomCertificateBundleWithSchannel =>

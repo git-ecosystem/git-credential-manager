@@ -1,6 +1,6 @@
 using System;
 
-namespace Microsoft.Git.CredentialManager.Interop.Posix
+namespace GitCredentialManager.Interop.Posix
 {
     public class PosixSessionManager : ISessionManager
     {

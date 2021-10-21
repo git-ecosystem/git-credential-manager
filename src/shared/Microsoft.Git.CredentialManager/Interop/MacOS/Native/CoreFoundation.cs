@@ -1,8 +1,8 @@
 using System;
 using System.Runtime.InteropServices;
-using static Microsoft.Git.CredentialManager.Interop.MacOS.Native.LibSystem;
+using static GitCredentialManager.Interop.MacOS.Native.LibSystem;
 
-namespace Microsoft.Git.CredentialManager.Interop.MacOS.Native
+namespace GitCredentialManager.Interop.MacOS.Native
 {
     public static class CoreFoundation
     {

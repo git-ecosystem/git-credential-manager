@@ -3,9 +3,9 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
-using Microsoft.Git.CredentialManager.UI.ViewModels;
+using GitCredentialManager.UI.ViewModels;
 
-namespace Microsoft.Git.CredentialManager.UI.Controls
+namespace GitCredentialManager.UI.Controls
 {
     public partial class DialogWindow : Window
     {

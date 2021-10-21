@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Microsoft.Git.CredentialManager.Diagnostics
+namespace GitCredentialManager.Diagnostics
 {
     public interface IDiagnosticProvider
     {

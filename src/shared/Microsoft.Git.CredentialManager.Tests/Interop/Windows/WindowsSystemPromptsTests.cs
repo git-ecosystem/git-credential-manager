@@ -1,9 +1,9 @@
 using System;
-using Microsoft.Git.CredentialManager.Interop.Windows;
-using Microsoft.Git.CredentialManager.Tests.Objects;
+using GitCredentialManager.Interop.Windows;
+using GitCredentialManager.Tests.Objects;
 using Xunit;
 
-namespace Microsoft.Git.CredentialManager.Tests.Interop.Windows
+namespace GitCredentialManager.Tests.Interop.Windows
 {
     public class WindowsSystemPromptsTests
     {

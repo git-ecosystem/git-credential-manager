@@ -1,5 +1,5 @@
 
-namespace Microsoft.Git.CredentialManager.Interop.Linux
+namespace GitCredentialManager.Interop.Linux
 {
     public class LinuxSystemPrompts : ISystemPrompts
     {

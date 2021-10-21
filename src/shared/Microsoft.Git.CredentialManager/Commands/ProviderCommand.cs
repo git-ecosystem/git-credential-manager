@@ -1,6 +1,6 @@
 using System.CommandLine;
 
-namespace Microsoft.Git.CredentialManager.Commands
+namespace GitCredentialManager.Commands
 {
     public interface ICommandProvider
     {

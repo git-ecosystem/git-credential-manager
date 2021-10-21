@@ -1,7 +1,7 @@
 using System;
 using System.Diagnostics;
 
-namespace Microsoft.Git.CredentialManager
+namespace GitCredentialManager
 {
     public static class BrowserUtils
     {

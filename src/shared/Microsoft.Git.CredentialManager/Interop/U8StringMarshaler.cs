@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace Microsoft.Git.CredentialManager.Interop
+namespace GitCredentialManager.Interop
 {
     /// <summary>
     /// Marshaler for converting between .NET strings (UTF-16) and byte arrays (UTF-8).

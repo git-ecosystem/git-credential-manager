@@ -1,5 +1,5 @@
 
-namespace Microsoft.Git.CredentialManager
+namespace GitCredentialManager
 {
     /// <summary>
     /// Represents a secure storage location for <see cref="ICredential"/>s.

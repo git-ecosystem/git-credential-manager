@@ -2,7 +2,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace Microsoft.Git.CredentialManager.Interop
+namespace GitCredentialManager.Interop
 {
     /// <summary>
     /// Conversion utilities to convert between .NET strings (UTF-16) and byte arrays (UTF-8).

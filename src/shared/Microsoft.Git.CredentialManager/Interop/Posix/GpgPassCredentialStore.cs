@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace Microsoft.Git.CredentialManager.Interop.Posix
+namespace GitCredentialManager.Interop.Posix
 {
     public class GpgPassCredentialStore : PlaintextCredentialStore
     {

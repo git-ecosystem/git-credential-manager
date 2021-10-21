@@ -3,14 +3,14 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-        x:Class="Microsoft.Git.CredentialManager.UI.Controls.AboutWindow"
+        x:Class="GitCredentialManager.UI.Controls.AboutWindow"
         Title="About Git Credential Manager"
         CanResize="False" Width="300" SizeToContent="Height"
         Background="#F6F6F6">
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceInclude Source="gcmcoreuiavn/Assets/Images.axaml"/>
+                <ResourceInclude Source="avares://gcmcoreuiavn/Assets/Images.axaml"/>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Window.Resources>

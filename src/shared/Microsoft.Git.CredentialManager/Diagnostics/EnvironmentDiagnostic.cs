@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Microsoft.Git.CredentialManager.Diagnostics
+namespace GitCredentialManager.Diagnostics
 {
     public class EnvironmentDiagnostic : Diagnostic
     {

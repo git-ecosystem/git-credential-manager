@@ -1,11 +1,11 @@
 using System;
 using System.IO;
-using Microsoft.Git.CredentialManager.Interop.Linux;
-using Microsoft.Git.CredentialManager.Interop.MacOS;
-using Microsoft.Git.CredentialManager.Interop.Posix;
-using Microsoft.Git.CredentialManager.Interop.Windows;
+using GitCredentialManager.Interop.Linux;
+using GitCredentialManager.Interop.MacOS;
+using GitCredentialManager.Interop.Posix;
+using GitCredentialManager.Interop.Windows;
 
-namespace Microsoft.Git.CredentialManager
+namespace GitCredentialManager
 {
     /// <summary>
     /// Represents the execution environment for a Git credential helper command.

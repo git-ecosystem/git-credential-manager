@@ -1,5 +1,5 @@
 
-namespace Microsoft.Git.CredentialManager.Interop.MacOS
+namespace GitCredentialManager.Interop.MacOS
 {
     public class MacOSSystemPrompts : ISystemPrompts
     {

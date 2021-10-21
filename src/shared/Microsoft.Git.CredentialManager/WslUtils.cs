@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 
-namespace Microsoft.Git.CredentialManager
+namespace GitCredentialManager
 {
     public static class WslUtils
     {

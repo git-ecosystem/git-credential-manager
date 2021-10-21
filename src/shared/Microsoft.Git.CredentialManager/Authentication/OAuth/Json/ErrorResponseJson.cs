@@ -2,7 +2,7 @@ using System;
 using System.Text;
 using Newtonsoft.Json;
 
-namespace Microsoft.Git.CredentialManager.Authentication.OAuth.Json
+namespace GitCredentialManager.Authentication.OAuth.Json
 {
     public class ErrorResponseJson
     {

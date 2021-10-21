@@ -6,7 +6,7 @@ using System.CommandLine.Invocation;
 using System.CommandLine.Parsing;
 using System.Threading.Tasks;
 
-namespace Microsoft.Git.CredentialManager.UI
+namespace GitCredentialManager.UI
 {
     public class HelperApplication : ApplicationBase
     {

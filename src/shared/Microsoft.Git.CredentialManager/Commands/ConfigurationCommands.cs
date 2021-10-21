@@ -2,7 +2,7 @@ using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.Threading.Tasks;
 
-namespace Microsoft.Git.CredentialManager.Commands
+namespace GitCredentialManager.Commands
 {
     public abstract class ConfigurationCommandBase : Command
     {

@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace Microsoft.Git.CredentialManager.Interop
+namespace GitCredentialManager.Interop
 {
     internal static class InteropUtils
     {

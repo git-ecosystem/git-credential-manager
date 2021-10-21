@@ -4,12 +4,12 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
-using Microsoft.Git.CredentialManager;
-using Microsoft.Git.CredentialManager.Interop.Linux;
-using Microsoft.Git.CredentialManager.Interop.MacOS;
-using Microsoft.Git.CredentialManager.Interop.Posix;
-using Microsoft.Git.CredentialManager.Interop.Windows;
-using Microsoft.Git.CredentialManager.UI.Controls;
+using GitCredentialManager;
+using GitCredentialManager.Interop.Linux;
+using GitCredentialManager.Interop.MacOS;
+using GitCredentialManager.Interop.Posix;
+using GitCredentialManager.Interop.Windows;
+using GitCredentialManager.UI.Controls;
 
 namespace Atlassian.Bitbucket.UI.Controls
 {

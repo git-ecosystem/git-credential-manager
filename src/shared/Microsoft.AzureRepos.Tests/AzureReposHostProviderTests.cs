@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.Git.CredentialManager;
-using Microsoft.Git.CredentialManager.Authentication;
-using Microsoft.Git.CredentialManager.Tests;
-using Microsoft.Git.CredentialManager.Tests.Objects;
+using GitCredentialManager;
+using GitCredentialManager.Authentication;
+using GitCredentialManager.Tests;
+using GitCredentialManager.Tests.Objects;
 using Moq;
 using Xunit;
 

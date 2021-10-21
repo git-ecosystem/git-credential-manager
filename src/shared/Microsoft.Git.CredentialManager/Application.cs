@@ -8,11 +8,11 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Microsoft.Git.CredentialManager.Commands;
-using Microsoft.Git.CredentialManager.Diagnostics;
-using Microsoft.Git.CredentialManager.Interop;
+using GitCredentialManager.Commands;
+using GitCredentialManager.Diagnostics;
+using GitCredentialManager.Interop;
 
-namespace Microsoft.Git.CredentialManager
+namespace GitCredentialManager
 {
     public class Application : ApplicationBase, IConfigurableComponent
     {

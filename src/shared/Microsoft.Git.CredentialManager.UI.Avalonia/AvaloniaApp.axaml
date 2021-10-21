@@ -1,6 +1,6 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             x:Class="Microsoft.Git.CredentialManager.UI.AvaloniaApp"
+             x:Class="GitCredentialManager.UI.AvaloniaApp"
              Name="Git Credential Manager">
     <Application.Styles>
         <FluentTheme Mode="Light"/>

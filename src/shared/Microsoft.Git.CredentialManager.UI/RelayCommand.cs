@@ -1,7 +1,7 @@
 using System;
 using System.Windows.Input;
 
-namespace Microsoft.Git.CredentialManager.UI
+namespace GitCredentialManager.UI
 {
     public class RelayCommand : ICommand
     {

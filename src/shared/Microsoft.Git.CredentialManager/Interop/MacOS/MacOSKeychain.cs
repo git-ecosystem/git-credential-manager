@@ -2,11 +2,11 @@ using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
-using Microsoft.Git.CredentialManager.Interop.MacOS.Native;
-using static Microsoft.Git.CredentialManager.Interop.MacOS.Native.CoreFoundation;
-using static Microsoft.Git.CredentialManager.Interop.MacOS.Native.SecurityFramework;
+using GitCredentialManager.Interop.MacOS.Native;
+using static GitCredentialManager.Interop.MacOS.Native.CoreFoundation;
+using static GitCredentialManager.Interop.MacOS.Native.SecurityFramework;
 
-namespace Microsoft.Git.CredentialManager.Interop.MacOS
+namespace GitCredentialManager.Interop.MacOS
 {
     public class MacOSKeychain : ICredentialStore
     {

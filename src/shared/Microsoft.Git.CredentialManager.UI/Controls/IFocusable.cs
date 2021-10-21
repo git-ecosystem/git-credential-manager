@@ -1,4 +1,4 @@
-namespace Microsoft.Git.CredentialManager.UI.Controls
+namespace GitCredentialManager.UI.Controls
 {
     public interface IFocusable
     {

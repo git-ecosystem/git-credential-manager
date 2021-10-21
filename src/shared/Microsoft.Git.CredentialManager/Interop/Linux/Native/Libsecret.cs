@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace Microsoft.Git.CredentialManager.Interop.Linux.Native
+namespace GitCredentialManager.Interop.Linux.Native
 {
     public static class Libsecret
     {

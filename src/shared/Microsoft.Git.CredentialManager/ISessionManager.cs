@@ -1,4 +1,4 @@
-namespace Microsoft.Git.CredentialManager
+namespace GitCredentialManager
 {
     public interface ISessionManager
     {

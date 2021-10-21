@@ -1,11 +1,11 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using Microsoft.Git.CredentialManager.Commands;
+using GitCredentialManager.Commands;
 using Moq;
 using Xunit;
 
-namespace Microsoft.Git.CredentialManager.Tests.Commands
+namespace GitCredentialManager.Tests.Commands
 {
     public class GitCommandBaseTests
     {

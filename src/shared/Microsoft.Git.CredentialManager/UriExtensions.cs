@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Web;
 
-namespace Microsoft.Git.CredentialManager
+namespace GitCredentialManager
 {
     public static class UriExtensions
     {

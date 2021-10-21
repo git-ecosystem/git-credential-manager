@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Text;
 
-namespace Microsoft.Git.CredentialManager
+namespace GitCredentialManager
 {
     /// <summary>
     /// Represents the standard I/O streams (input, output, error) of a process.

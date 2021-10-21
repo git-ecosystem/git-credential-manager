@@ -1,5 +1,5 @@
 
-namespace Microsoft.Git.CredentialManager.Interop.Windows
+namespace GitCredentialManager.Interop.Windows
 {
     public class WindowsCredential : ICredential
     {

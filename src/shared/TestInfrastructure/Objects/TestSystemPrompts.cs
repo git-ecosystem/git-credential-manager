@@ -1,6 +1,6 @@
 using System;
 
-namespace Microsoft.Git.CredentialManager.Tests.Objects
+namespace GitCredentialManager.Tests.Objects
 {
     public class TestSystemPrompts : ISystemPrompts
     {
