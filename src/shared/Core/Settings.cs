@@ -580,7 +580,11 @@ namespace GitCredentialManager
                 uri.TryGetUserInfo(out string userName, out string password);
 
                 // Get the proxy bypass host names
-                _environment.Variables.TryGetValue(KnownEnvars.CurlNoProxy, out string noProxyStr);
+                // Check both lowercase "no_proxy" and uppercase "NO_PROXY" variants (preferring the former)
+                if (!_environment.Variables.TryGetValue(KnownEnvars.CurlNoProxy, out string noProxyStr))
+                {
+                    _environment.Variables.TryGetValue(KnownEnvars.CurlNoProxyUpper, out noProxyStr);
+                }
 
                 return new ProxyConfiguration(address, userName, password, noProxyStr, isLegacy);
             }
@@ -598,8 +602,10 @@ namespace GitCredentialManager
              *        http.proxy
              *
              *   3. cURL environment variables
+             *        https_proxy
              *        HTTPS_PROXY
-             *        HTTP_PROXY
+             *        http_proxy (note that uppercase HTTP_PROXY is not supported by libcurl)
+             *        all_proxy
              *        ALL_PROXY
              *
              *   4. GCM proxy environment variable (deprecated)
@@ -610,7 +616,7 @@ namespace GitCredentialManager
              *
              * For HTTP URIs we only check the HTTP variants.
              *
-             * We also support the cURL "NO_PROXY" environment variable in conjunction with any
+             * We also support the cURL "no_proxy" / "NO_PROXY" environment variables in conjunction with any
              * of the above supported proxy address configurations. This comma separated list of
              * host names (or host name wildcards) should be respected and the proxy should NOT
              * be used for these addresses.
@@ -634,10 +640,14 @@ namespace GitCredentialManager
                 return CreateConfiguration(proxyUri);
             }
 
-            // 3. cURL environment variables
+            // 3. cURL environment variables (both lower- and uppercase variants)
+            // Prefer the lowercase variants as these are quasi-standard.
             if (isHttps && TryGetUriSetting(KnownEnvars.CurlHttpsProxy, null, null, out proxyUri) ||
+                isHttps && TryGetUriSetting(KnownEnvars.CurlHttpsProxyUpper, null, null, out proxyUri) ||
                 TryGetUriSetting(KnownEnvars.CurlHttpProxy, null, null, out proxyUri) ||
-                TryGetUriSetting(KnownEnvars.CurlAllProxy, null, null, out proxyUri))
+                // Note that the uppercase HTTP_PROXY is not recognized by libcurl
+                TryGetUriSetting(KnownEnvars.CurlAllProxy, null, null, out proxyUri) ||
+                TryGetUriSetting(KnownEnvars.CurlAllProxyUpper, null, null, out proxyUri))
             {
                 return CreateConfiguration(proxyUri);
             }

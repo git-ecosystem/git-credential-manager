@@ -788,8 +788,10 @@ namespace GitCredentialManager.Tests
             // 2. Standard Git configuration
             //      http.proxy
             // 3. cURL environment variables
+            //      http_proxy
             //      HTTPS_PROXY
-            //      HTTP_PROXY
+            //      http_proxy (note that uppercase HTTP_PROXY is not supported by libcurl)
+            //      all_proxy
             //      ALL_PROXY
             // 4. GCM proxy environment variable (deprecated)
             //      GCM_HTTP_PROXY
@@ -820,15 +822,71 @@ namespace GitCredentialManager.Tests
             envars.Variables[Constants.EnvironmentVariables.CurlHttpProxy] = value2.ToString();
             RunTest(value2);
 
-             // Test case 2: http.proxy > cURL environment variables
-             string httpProxyKey = $"{Constants.GitConfiguration.Http.SectionName}.{Constants.GitConfiguration.Http.Proxy}";
-             git.Configuration.Global[httpProxyKey] = new[] {value3.ToString()};
-             RunTest(value3);
+            // Test case 2: http.proxy > cURL environment variables
+            string httpProxyKey = $"{Constants.GitConfiguration.Http.SectionName}.{Constants.GitConfiguration.Http.Proxy}";
+            git.Configuration.Global[httpProxyKey] = new[] {value3.ToString()};
+            RunTest(value3);
 
-             // Test case 3: credential.httpProxy > http.proxy
-             string credentialProxyKey = $"{Constants.GitConfiguration.Credential.SectionName}.{Constants.GitConfiguration.Credential.HttpProxy}";
-             git.Configuration.Global[credentialProxyKey] = new[] {value4.ToString()};
-             RunTest(value4);
+            // Test case 3: credential.httpProxy > http.proxy
+            string credentialProxyKey = $"{Constants.GitConfiguration.Credential.SectionName}.{Constants.GitConfiguration.Credential.HttpProxy}";
+            git.Configuration.Global[credentialProxyKey] = new[] {value4.ToString()};
+            RunTest(value4);
+        }
+
+        [Fact]
+        public void Settings_ProxyConfiguration_CurlEnvarPrecedence_PrefersLowercase()
+        {
+            // Expected precedence:
+            //  https_proxy
+            //  HTTPS_PROXY
+            //  http_proxy (note that uppercase HTTP_PROXY is not supported by libcurl)
+            //  all_proxy
+            //  ALL_PROXY
+
+            const string remoteUrl = "https://example.com/foo.git";
+            var remoteUri = new Uri(remoteUrl);
+
+            var value1 = new Uri("http://proxy1.example.com");
+            var value2 = new Uri("http://proxy2.example.com");
+
+            // The differentiation between upper- and lowercase environment variables is not possible
+            // on some platforms (Windows) so force the comparer to case-sensitive in the test so we
+            // can run this on all platforms.
+            var envars = new TestEnvironment(envarComparer: StringComparer.Ordinal);
+            var git = new TestGit();
+
+            void RunTest(Uri expectedValue)
+            {
+                var settings = new Settings(envars, git)
+                {
+                    RemoteUri = remoteUri
+                };
+                ProxyConfiguration actualConfig = settings.GetProxyConfiguration();
+                Assert.Equal(expectedValue, actualConfig.Address);
+            }
+
+            // Test case 1: https_proxy > HTTPS_PROXY
+            envars.Variables[Constants.EnvironmentVariables.CurlHttpsProxy] = value1.ToString();
+            envars.Variables[Constants.EnvironmentVariables.CurlHttpsProxyUpper] = value2.ToString();
+            RunTest(value1);
+
+            // Test case 2a: https_proxy > http_proxy
+            envars.Variables.Clear();
+            envars.Variables[Constants.EnvironmentVariables.CurlHttpsProxy] = value1.ToString();
+            envars.Variables[Constants.EnvironmentVariables.CurlHttpProxy] = value2.ToString();
+            RunTest(value1);
+
+            // Test case 2b: HTTPS_PROXY > http_proxy
+            envars.Variables.Clear();
+            envars.Variables[Constants.EnvironmentVariables.CurlHttpsProxyUpper] = value1.ToString();
+            envars.Variables[Constants.EnvironmentVariables.CurlHttpProxy] = value2.ToString();
+            RunTest(value1);
+
+            // Test case 3: all_proxy > ALL_PROXY
+            envars.Variables.Clear();
+            envars.Variables[Constants.EnvironmentVariables.CurlAllProxy] = value1.ToString();
+            envars.Variables[Constants.EnvironmentVariables.CurlAllProxyUpper] = value2.ToString();
+            RunTest(value1);
         }
 
         [Fact]
