@@ -8,8 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\shared\Microsoft.Git.CredentialManager.UI\Microsoft.Git.CredentialManager.UI.csproj" />
-    <ProjectReference Include="..\..\shared\Microsoft.Git.CredentialManager\Microsoft.Git.CredentialManager.csproj" />
+    <ProjectReference Include="..\..\shared\Core.UI\Core.UI.csproj" />
+    <ProjectReference Include="..\..\shared\Core\Core.csproj" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(OSPlatform)' != 'windows'">

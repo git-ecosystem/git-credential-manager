@@ -31,14 +31,14 @@
   |   |    |              |                 |                 |
 +-v---v----v--------------v------------+  +-v-----------------v----------------+
 |                                      |  |                                    |
-|    Microsoft.Git.CredentialManager   <--+ Microsoft.Git.CredentialManager.UI |
+|    Core   <--+ Core.UI |
 |                                      |  |                                    |
 +--------------------------------------+  +------------------------------------+
 ```
 
 Git Credential Manager Core (GCM Core) is built to be Git host and platform/OS
 agonstic. Most of the shared logic (command execution, the abstract platform
-subsystems, etc) can be found in the `Microsoft.Git.CredentialManager` class
+subsystems, etc) can be found in the `Core` class
 library (C#). The library targets .NET Standard as well as .NET Framework.
 
 > **Note**
@@ -59,10 +59,10 @@ The entry-point for GCM Core can be found in the `Git-Credential-Manager`
 project, a console application that targets both .NET and .NET Framework.
 This project emits the `git-credential-manager-core(.exe)` executable, and
 contains very little code - registration of all supported host providers and
-running the `Application` object found in `Microsoft.Git.CredentialManager`.
+running the `Application` object found in `Core`.
 
 Providers have their own projects/assemblies that take dependencies on the
-`Microsoft.Git.CredentialManager` core assembly, and are dependents of the main
+`Core` core assembly, and are dependents of the main
 entry point application `Git-Credential-Manager`. Code in these binaries is
 expected to run on all supported platforms and typically (see MSAL.NET note
 above) does not include any graphical user interface; they use terminal prompts
@@ -88,7 +88,7 @@ issue for up-to-date progress on this effort.
 
 For authentication using Microsoft Accounts or Azure Active Directory, things
 are a little different. The `MicrosoftAuthentication` component is present in
-the core `Microsoft.Git.CredentialManager` assembly, rather than bundled with a
+the core `Core` assembly, rather than bundled with a
 specific host provider. This was done to allow any service that may wish to in
 the future integrate with Microsoft Accounts or Azure Active Directory can make
 use of this reusable authentication component.
@@ -148,7 +148,7 @@ Git Credential Manager Core maintains a set of known commands including
 GCM Core also maintains a set of known, registered host providers that implement
 the `IHostProvider` interface. Providers register themselves by adding an
 instance of the provider to the `Application` object via the `RegisterProvider`
-method [in `Microsoft.Git.CredentialManager.Program`](../src/shared/Git-Credential-Manager/Program.cs).
+method [in `Core.Program`](../src/shared/Git-Credential-Manager/Program.cs).
 The `GenericHostProvider` is registered last so that it can handle all other
 HTTP-based remotes as a catch-all, and provide basic username/password auth and
 detect the presence of Windows Integrated Authentication (Kerberos, NTLM,
