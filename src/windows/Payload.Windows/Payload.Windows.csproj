@@ -29,6 +29,7 @@
       $(OutDir)GitHub.UI.exe;
       $(OutDir)Microsoft.AzureRepos.dll;
       $(OutDir)gcmcore.dll;
+      $(OutDir)gcmcoreui.dll;
       $(OutDir)gcmcoreuiwpf.dll;">
       <Authenticode>Microsoft400</Authenticode>
       <InProject>false</InProject>
