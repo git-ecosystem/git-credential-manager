@@ -1,0 +1,196 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sharedControls="clr-namespace:GitCredentialManager.UI.Controls">
+
+    <Color x:Key="AccentColor">#0078d7</Color>
+    <Color x:Key="AccentHoverColor">#429ce3</Color>
+    <Color x:Key="AccentActiveColor">#005a9e</Color>
+    <Color x:Key="DisabledBackgroundColor">#cccccc</Color>
+    <Color x:Key="DisabledForegroundColor">#7e7e7e</Color>
+    <Color x:Key="ControlBorderColor">#666666</Color>
+    <Color x:Key="PromptTextColor">#989898</Color>
+
+    <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}" />
+    <SolidColorBrush x:Key="AccentHoverBrush" Color="{StaticResource AccentHoverColor}" />
+    <SolidColorBrush x:Key="AccentActiveBrush" Color="{StaticResource AccentActiveColor}" />
+    <SolidColorBrush x:Key="DisabledBackgroundBrush" Color="{StaticResource DisabledBackgroundColor}" />
+    <SolidColorBrush x:Key="DisabledForegroundBrush" Color="{StaticResource DisabledForegroundColor}" />
+    <SolidColorBrush x:Key="ControlBorderBrush" Color="{StaticResource ControlBorderColor}" />
+
+    <SolidColorBrush x:Key="AccentButtonDefaultBackgroundBrush" Color="{StaticResource AccentColor}" />
+    <SolidColorBrush x:Key="AccentButtonHoverBackgroundBrush" Color="{StaticResource AccentHoverColor}" />
+    <SolidColorBrush x:Key="AccentButtonPressedBackgroundBrush" Color="{StaticResource AccentActiveColor}" />
+    <SolidColorBrush x:Key="AccentButtonDisabledBackgroundBrush" Color="{StaticResource DisabledBackgroundColor}" />
+    <SolidColorBrush x:Key="AccentButtonDisabledForegroundBrush" Color="{StaticResource DisabledForegroundColor}" />
+    <SolidColorBrush x:Key="PromptTextBrush" Color="{StaticResource PromptTextColor}" />
+
+    <Style x:Key="RoundTextBox" TargetType="TextBox">
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="BorderBrush" Value="{StaticResource ControlBorderBrush}"/>
+        <Setter Property="Padding" Value="6"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <Grid>
+                        <Border x:Name="Bd"
+                                Background="{TemplateBinding Background}"
+                                Margin="1"
+                                CornerRadius="2"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"/>
+
+                        <Grid>
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                          Padding="{TemplateBinding Padding}"
+                                          Focusable="False"
+                                          HorizontalScrollBarVisibility="Hidden"
+                                          VerticalScrollBarVisibility="Hidden"
+                                          VerticalAlignment="Top"
+                                          Margin="0"/>
+                        </Grid>
+                    </Grid>
+
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.5"/>
+                        </Trigger>
+                        <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                            <Setter Property="BorderBrush" TargetName="Bd" Value="{StaticResource AccentBrush}"/>
+                            <Setter Property="BorderThickness" TargetName="Bd" Value="2"/>
+                            <Setter Property="Margin" TargetName="Bd" Value="0"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="PromptRoundTextBox" TargetType="sharedControls:PromptTextBox">
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="BorderBrush" Value="{StaticResource ControlBorderBrush}"/>
+        <Setter Property="Padding" Value="6"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="sharedControls:PromptTextBox">
+                    <Grid>
+                        <Border x:Name="Bd"
+                                Background="{TemplateBinding Background}"
+                                Margin="1"
+                                CornerRadius="2"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"/>
+
+                        <Grid>
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                          Padding="{TemplateBinding Padding}"
+                                          Focusable="False"
+                                          HorizontalScrollBarVisibility="Hidden"
+                                          VerticalScrollBarVisibility="Hidden"
+                                          VerticalAlignment="Top"
+                                          Margin="0"/>
+                            <Label x:Name="PromptLabel"
+                                   HorizontalAlignment="Left"
+                                   Foreground="{StaticResource PromptTextBrush}"
+                                   FontSize="{TemplateBinding FontSize}"
+                                   Padding="{TemplateBinding Padding}"
+                                   Opacity="0"
+                                   Target="{Binding ElementName=Bd}"
+                                   SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
+                                   Focusable="False"
+                                   IsHitTestVisible="False"
+                                   VerticalAlignment="Top">
+                                <TextBlock Text="{TemplateBinding PromptText}"
+                                           Margin="2,0,0,0"
+                                           TextTrimming="CharacterEllipsis"/>
+                            </Label>
+                        </Grid>
+                    </Grid>
+
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.5"/>
+                        </Trigger>
+                        <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                            <Setter Property="BorderBrush" TargetName="Bd" Value="{StaticResource AccentBrush}"/>
+                            <Setter Property="BorderThickness" TargetName="Bd" Value="2"/>
+                            <Setter Property="Margin" TargetName="Bd" Value="0"/>
+                        </Trigger>
+                        <DataTrigger Binding="{Binding Text.Length, RelativeSource={RelativeSource Self}}" Value="0">
+                            <Setter Property="Opacity" Value="0.7" TargetName="PromptLabel" />
+                            <Setter Property="Foreground" Value="Transparent" />
+                        </DataTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="DeviceCodeBox" TargetType="TextBox">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="IsReadOnly" Value="True" />
+        <Style.Triggers>
+            <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                <Setter Property="BorderThickness" Value="0" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style TargetType="TextBox" BasedOn="{StaticResource RoundTextBox}"/>
+    <Style TargetType="sharedControls:PromptTextBox" BasedOn="{StaticResource PromptRoundTextBox}"/>
+    <Style TargetType="sharedControls:PasswordPromptTextBox" BasedOn="{StaticResource PromptRoundTextBox}"/>
+
+    <Style x:Key="RoundButton" TargetType="Button">
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="MinHeight" Value="23"/>
+        <Setter Property="MinWidth" Value="46"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}"
+                            CornerRadius="2">
+                        <ContentPresenter Margin="10,6"
+                                          HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"
+                                          RecognizesAccessKey="True"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+
+    </Style>
+    <Style x:Key="AccentButton" TargetType="Button" BasedOn="{StaticResource RoundButton}">
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="Background" Value="{StaticResource AccentButtonDefaultBackgroundBrush}"/>
+        <Style.Triggers>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Foreground" Value="{StaticResource AccentButtonDisabledForegroundBrush}"/>
+                <Setter Property="Background" Value="{StaticResource AccentButtonDisabledBackgroundBrush}"/>
+            </Trigger>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{StaticResource AccentButtonHoverBackgroundBrush}"/>
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Background" Value="{StaticResource AccentButtonPressedBackgroundBrush}"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style TargetType="Button" BasedOn="{StaticResource RoundButton}"/>
+
+    <Style TargetType="Hyperlink">
+        <Setter Property="TextDecorations" Value="" />
+        <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Foreground" Value="{StaticResource AccentHoverBrush}"/>
+            </Trigger>
+            <Trigger Property="IsFocused" Value="True">
+                <Setter Property="Foreground" Value="{StaticResource AccentActiveBrush}"/>
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Foreground" Value="{StaticResource DisabledBackgroundBrush}"/>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+</ResourceDictionary>

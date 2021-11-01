@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using Microsoft.Git.CredentialManager;
+using GitCredentialManager;
 
 namespace Microsoft.AzureRepos
 {

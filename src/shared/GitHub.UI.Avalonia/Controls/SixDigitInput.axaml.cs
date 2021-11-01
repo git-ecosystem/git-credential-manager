@@ -8,7 +8,7 @@ using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
-using Microsoft.Git.CredentialManager.UI.Controls;
+using GitCredentialManager.UI.Controls;
 
 namespace GitHub.UI.Controls
 {

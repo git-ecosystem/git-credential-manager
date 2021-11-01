@@ -1,6 +1,6 @@
-﻿using Microsoft.Git.CredentialManager;
-using Microsoft.Git.CredentialManager.Authentication.OAuth;
-using Microsoft.Git.CredentialManager.Tests.Objects;
+﻿using GitCredentialManager;
+using GitCredentialManager.Authentication.OAuth;
+using GitCredentialManager.Tests.Objects;
 using Moq;
 using System;
 using System.Collections.Generic;

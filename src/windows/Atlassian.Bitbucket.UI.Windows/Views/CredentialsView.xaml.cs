@@ -1,6 +1,6 @@
 using System.Windows.Controls;
 using Atlassian.Bitbucket.UI.ViewModels;
-using Microsoft.Git.CredentialManager.UI.Controls;
+using GitCredentialManager.UI.Controls;
 
 namespace Atlassian.Bitbucket.UI.Views
 {

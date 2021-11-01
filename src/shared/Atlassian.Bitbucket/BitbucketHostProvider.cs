@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Microsoft.Git.CredentialManager;
-using Microsoft.Git.CredentialManager.Authentication.OAuth;
+using GitCredentialManager;
+using GitCredentialManager.Authentication.OAuth;
 
 namespace Atlassian.Bitbucket
 {

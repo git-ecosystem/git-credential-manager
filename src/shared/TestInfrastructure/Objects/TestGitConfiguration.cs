@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace Microsoft.Git.CredentialManager.Tests.Objects
+namespace GitCredentialManager.Tests.Objects
 {
     public class TestGitConfiguration : IGitConfiguration
     {

@@ -1,8 +1,8 @@
 using System.ComponentModel;
 using System.Windows.Input;
-using Microsoft.Git.CredentialManager;
-using Microsoft.Git.CredentialManager.UI;
-using Microsoft.Git.CredentialManager.UI.ViewModels;
+using GitCredentialManager;
+using GitCredentialManager.UI;
+using GitCredentialManager.UI.ViewModels;
 
 namespace Atlassian.Bitbucket.UI.ViewModels
 {

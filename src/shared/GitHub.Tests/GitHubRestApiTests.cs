@@ -5,7 +5,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.Git.CredentialManager.Tests.Objects;
+using GitCredentialManager.Tests.Objects;
 using Xunit;
 
 namespace GitHub.Tests

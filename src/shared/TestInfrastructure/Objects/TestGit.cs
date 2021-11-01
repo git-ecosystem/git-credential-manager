@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace Microsoft.Git.CredentialManager.Tests.Objects
+namespace GitCredentialManager.Tests.Objects
 {
     public class TestGit : IGit
     {

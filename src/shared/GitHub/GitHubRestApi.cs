@@ -7,7 +7,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Microsoft.Git.CredentialManager;
+using GitCredentialManager;
 using Newtonsoft.Json;
 
 namespace GitHub

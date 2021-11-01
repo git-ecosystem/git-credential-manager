@@ -2,7 +2,7 @@ using System;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Microsoft.Git.CredentialManager;
+using GitCredentialManager;
 using Newtonsoft.Json;
 
 namespace Atlassian.Bitbucket

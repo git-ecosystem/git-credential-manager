@@ -1,7 +1,7 @@
 using System;
 using System.Windows.Controls;
 using System.Windows.Threading;
-using Microsoft.Git.CredentialManager.UI.Controls;
+using GitCredentialManager.UI.Controls;
 
 namespace GitHub.UI.Views
 {

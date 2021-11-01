@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Microsoft.Git.CredentialManager.Tests.Objects
+namespace GitCredentialManager.Tests.Objects
 {
     public class TestTerminal : ITerminal
     {

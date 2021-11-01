@@ -6,12 +6,12 @@ using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.Git.CredentialManager.Authentication.OAuth;
-using Microsoft.Git.CredentialManager.Authentication.OAuth.Json;
+using GitCredentialManager.Authentication.OAuth;
+using GitCredentialManager.Authentication.OAuth.Json;
 using Newtonsoft.Json;
 using Xunit;
 
-namespace Microsoft.Git.CredentialManager.Tests.Objects
+namespace GitCredentialManager.Tests.Objects
 {
     public class TestOAuth2Server
     {

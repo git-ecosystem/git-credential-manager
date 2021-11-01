@@ -2,7 +2,7 @@ using System;
 using System.Runtime.InteropServices;
 using Xunit;
 
-namespace Microsoft.Git.CredentialManager.Tests
+namespace GitCredentialManager.Tests
 {
     public class PlatformFactAttribute : FactAttribute
     {
