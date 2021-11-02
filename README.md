@@ -138,7 +138,13 @@ git-credential-manager-core configure
 
 ### Windows
 
-You can download the [latest installer](https://github.com/microsoft/Git-Credential-Manager-Core/releases/latest) for Windows to install GCM Core standalone.
+GCM Core is included with [Git for Windows](https://gitforwindows.org/), and the latest version is included in each new Git for Windows release. This is the preferred way to install GCM Core on Windows. During installation you will be asked to select a credential helper, with GCM Core being set as the default.
+
+![image](https://user-images.githubusercontent.com/5658207/139860428-badede8c-a068-4150-846f-1ac778e114b2.png)
+
+#### Standalone installation
+
+You can also download the [latest installer](https://github.com/microsoft/Git-Credential-Manager-Core/releases/latest) for Windows to install GCM Core standalone.
 
 **:warning: Important :warning:**
 
