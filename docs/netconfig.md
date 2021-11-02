@@ -62,8 +62,28 @@ addresses. GCM Core supports the cURL environment variable `NO_PROXY` for this
 scenariom, as does Git itself.
 
 The `NO_PROXY` environment variable should contain a comma (`,`) or space (` `)
-separated list of regular expressions to match hosts that should not be proxied
-(should connect directly).
+separated list of host names that should not be proxied (should connect
+directly).
+
+GCM Core attempts to match [libcurl's behaviour](https://curl.se/libcurl/c/CURLOPT_NOPROXY.html),
+which is briefly summarized here:
+
+- a value of `*` disables proxying for all hosts;
+- other wildcard use is **not** supported;
+- each name in the list is matched as a domain which contains the hostname,
+  or the hostname itself
+- a leading period/dot `.` matches against the provided hostname
+
+For example, setting `NO_PROXY` to `example.com` results in the following:
+
+Hostname|Matches?
+-|-
+`example.com`|:white_check_mark:
+`example.com:80`|:white_check_mark:
+`www.example.com`|:white_check_mark:
+`notanexample.com`|:x:
+`www.notanexample.com`|:x:
+`example.com.othertld`|:x:
 
 **Example:**
 

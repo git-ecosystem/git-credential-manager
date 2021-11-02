@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
 using KnownEnvars = GitCredentialManager.Constants.EnvironmentVariables;
 using KnownGitCfg = GitCredentialManager.Constants.GitConfiguration;
 using GitCredCfg  = GitCredentialManager.Constants.GitConfiguration.Credential;
@@ -164,13 +166,13 @@ namespace GitCredentialManager
             Uri proxyAddress,
             string userName = null,
             string password = null,
-            ICollection<string> bypassHosts = null,
+            string noProxyRaw = null,
             bool isDeprecatedSource = false)
         {
             Address = proxyAddress;
             UserName = userName;
             Password = password;
-            BypassHosts = bypassHosts ?? new List<string>();
+            NoProxyRaw = noProxyRaw;
             IsDeprecatedSource = isDeprecatedSource;
         }
 
@@ -197,7 +199,65 @@ namespace GitCredentialManager
         /// <summary>
         /// List of host names that should not be proxied.
         /// </summary>
-        public ICollection<string> BypassHosts { get; }
+        /// <remarks>
+        /// This is the raw value from the NO_PROXY setting. Values are expected to be in a libcurl compatible format.
+        /// <para/>
+        /// To convert the string in to a set of .NET regular expressions for use with proxy settings,
+        /// use the <see cref="ConvertToBypassRegexArray"/> method.
+        /// </remarks>
+        public string NoProxyRaw { get; }
+
+        /// <summary>
+        /// Convert a libcurl-format NO_PROXY string in to a set of equivalent .NET regular expressions.
+        /// </summary>
+        /// <param name="noProxy">NO_PROXY value in a libcurl-compatible format.</param>
+        /// <returns>Array of regular expressions.</returns>
+        public static IEnumerable<string> ConvertToBypassRegexArray(string noProxy)
+        {
+            if (string.IsNullOrWhiteSpace(noProxy))
+            {
+                yield break;
+            }
+
+            string[] split = noProxy.Split(new[] { ",", " " }, StringSplitOptions.RemoveEmptyEntries);
+
+            var normalized = new StringBuilder();
+            var regex = new StringBuilder();
+            foreach (string str in split)
+            {
+                // Normalize the domain search value
+                normalized.Clear();
+                normalized.Append(str);
+
+                // Strip leading subdomain wildcards: *.example.com => example.com
+                if (normalized.Length > 1 && normalized[0] == '*' && normalized[1] == '.')
+                {
+                    normalized.Remove(0, 2);
+                }
+
+                // Strip all leading dots: .example.com => example.com
+                while (normalized.Length > 0 && normalized[0] == '.')
+                {
+                    normalized.Remove(0, 1);
+                }
+
+                // Build the regular expression
+                regex.Clear();
+
+                // Only match (sub-)domains, not partial domain names.
+                // For example: "example.com" should match "http://example.com" and
+                // "http://www.example.com" but not "http://notanexample.com".
+                regex.Append(@"(\.|\:\/\/)");
+
+                // Add the escaped domain search value
+                regex.Append(Regex.Escape(normalized.ToString()));
+
+                // Ensure we only match the specified port and TLD
+                regex.Append('$');
+
+                yield return regex.ToString();
+            }
+        }
     }
 
     public enum TlsBackend
@@ -520,13 +580,9 @@ namespace GitCredentialManager
                 uri.TryGetUserInfo(out string userName, out string password);
 
                 // Get the proxy bypass host names
-                var bypassHosts = new List<string>();
-                if (_environment.Variables.TryGetValue(KnownEnvars.CurlNoProxy, out string noProxyStr) && noProxyStr != null)
-                {
-                    bypassHosts.AddRange(noProxyStr.Split(bypassListSeparators, StringSplitOptions.RemoveEmptyEntries));
-                }
+                _environment.Variables.TryGetValue(KnownEnvars.CurlNoProxy, out string noProxyStr);
 
-                return new ProxyConfiguration(address, userName, password, bypassHosts, isLegacy);
+                return new ProxyConfiguration(address, userName, password, noProxyStr, isLegacy);
             }
 
             /*
