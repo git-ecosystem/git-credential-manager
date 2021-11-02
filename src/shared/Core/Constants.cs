@@ -53,10 +53,24 @@ namespace GitCredentialManager
             public const string GcmAuthority          = "GCM_AUTHORITY";
             public const string GitTerminalPrompts    = "GIT_TERMINAL_PROMPT";
             public const string GcmAllowWia           = "GCM_ALLOW_WINDOWSAUTH";
-            public const string CurlNoProxy           = "NO_PROXY";
-            public const string CurlAllProxy          = "ALL_PROXY";
-            public const string CurlHttpProxy         = "HTTP_PROXY";
-            public const string CurlHttpsProxy        = "HTTPS_PROXY";
+
+            /*
+             * Unlike other environment variables, these proxy variables are normally lowercase only.
+             * However, libcurl also implemented checks for the uppercase variants! The lowercase
+             * variants should take precedence over the uppercase ones since the former are quasi-standard.
+             *
+             * One exception to this is that libcurl does not even look for the uppercase variant of
+             * http_proxy (for some security reasons).
+             */
+            public const string CurlNoProxy           = "no_proxy";
+            public const string CurlNoProxyUpper      = "NO_PROXY";
+            public const string CurlHttpsProxy        = "https_proxy";
+            public const string CurlHttpsProxyUpper   = "HTTPS_PROXY";
+            public const string CurlHttpProxy         = "http_proxy";
+            // Note there is no uppercase variant of the http_proxy since libcurl doesn't use it
+            public const string CurlAllProxy          = "all_proxy";
+            public const string CurlAllProxyUpper     = "ALL_PROXY";
+
             public const string GcmHttpProxy          = "GCM_HTTP_PROXY";
             public const string GitSslNoVerify        = "GIT_SSL_NO_VERIFY";
             public const string GitSslCaInfo          = "GIT_SSL_CAINFO";

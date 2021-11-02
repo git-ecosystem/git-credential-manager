@@ -49,21 +49,35 @@ GCM Core supports other ways of configuring a proxy for convenience and compatib
 1. GCM-specific configuration options (_**only** respected by GCM; **deprecated**_):
    - `credential.httpProxy`
    - `credential.httpsProxy`
-1. cURL environment variables (_also respected by Git_):
-   - `HTTP_PROXY`
-   - `HTTPS_PROXY`
-   - `ALL_PROXY`
-1. `GCM_HTTP_PROXY` environment variable (_**only** respected by GCM; **deprecated**_)
+2. cURL environment variables (_also respected by Git_):
+   - `http_proxy`
+   - `https_proxy`/`HTTPS_PROXY`
+   - `all_proxy`/`ALL_PROXY`
+3. `GCM_HTTP_PROXY` environment variable (_**only** respected by GCM; **deprecated**_)
+
+Note that with the cURL environment variables there are both lowercase and
+uppercase variants.
+
+**_Lowercase variants take precedence over the uppercase form._** This is
+consistent with how libcurl (and therefore Git) operates.
+
+The `http_proxy` variable exists only in the lowercase variant and libcurl does
+_not_ consider any uppercase form. _GCM Core also reflects this behavior._
+
+See <https://everything.curl.dev/usingcurl/proxies#proxy-environment-variables>
+for more information.
 
 ### Bypassing addresses
 
 In some circumstances you may wish to bypass a configured proxy for specific
-addresses. GCM Core supports the cURL environment variable `NO_PROXY` for this
-scenariom, as does Git itself.
+addresses. GCM Core supports the cURL environment variable `no_proxy` (and
+`NO_PROXY`) for this scenario, as does Git itself.
 
-The `NO_PROXY` environment variable should contain a comma (`,`) or space (` `)
-separated list of host names that should not be proxied (should connect
-directly).
+Like with the [other cURL proxy environment variables](#other-proxy-options),
+the lowercase variant will take precedence over the uppercase form.
+
+This environment variable should contain a comma (`,`) or space (` `) separated
+list of host names that should not be proxied (should connect directly).
 
 GCM Core attempts to match [libcurl's behaviour](https://curl.se/libcurl/c/CURLOPT_NOPROXY.html),
 which is briefly summarized here:
@@ -88,7 +102,7 @@ Hostname|Matches?
 **Example:**
 
 ```text
-NO_PROXY="contoso.com,www.fabrikam.com"
+no_proxy="contoso.com,www.fabrikam.com"
 ```
 
 ## TLS Verification
