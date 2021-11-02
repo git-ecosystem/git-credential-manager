@@ -24,6 +24,11 @@ This helps us coordinate and reduce duplication.
 0. Make sure the tests pass on your machine: `dotnet test`
 0. Create a new branch: `git switch -c my-branch-name`
 0. Make your change, add tests, and make sure the tests still pass
+0. For UI updates, test your changes by executing a `dotnet run` in applicable UI-related project directories:
+    - `Atlassian.Bitbucket.UI.Avalonia`
+    - `GitHub.UI.Avalonia`
+    - `Atlassian.Bitbucket.UI.Windows`
+    - `GitHub.UI.Windows`
 0. Push to your fork and [submit a pull request][pr]
 0. Pat your self on the back and wait for your pull request to be reviewed and merged.
 

@@ -35,8 +35,7 @@ Proxy support|&#10003;|&#10003;|&#10003;
 
 **Notes:**
 
-(\*) Debian package offered but not yet available on an official Microsoft feed.
-Fedora packages planned but not yet available.
+(\*) Fedora packages planned but not yet available.
 
 ## Download and Install
 
