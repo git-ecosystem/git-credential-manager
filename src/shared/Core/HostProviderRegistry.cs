@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -143,10 +144,15 @@ namespace GitCredentialManager
 
             //
             // Auto-detection
+            // Perform auto-detection network probe and remember the result
             //
             _context.Trace.WriteLine("Performing auto-detection of host provider.");
 
             var uri = input.GetRemoteUri();
+            if (uri is null)
+            {
+                throw new Exception("Unable to detect host provider without a remote URL");
+            }
 
             var probeTimeout = TimeSpan.FromMilliseconds(_context.Settings.AutoDetectProviderTimeout);
             _context.Trace.WriteLine($"Auto-detect probe timeout is {probeTimeout.TotalSeconds} ms.");
@@ -209,10 +215,32 @@ namespace GitCredentialManager
             }
 
             // Match providers starting with the highest priority
-            return await MatchProviderAsync(HostProviderPriority.High) ??
-                   await MatchProviderAsync(HostProviderPriority.Normal) ??
-                   await MatchProviderAsync(HostProviderPriority.Low) ??
-                   throw new Exception("No host provider available to service this request.");
+            IHostProvider match = await MatchProviderAsync(HostProviderPriority.High) ??
+                                  await MatchProviderAsync(HostProviderPriority.Normal) ??
+                                  await MatchProviderAsync(HostProviderPriority.Low) ??
+                                  throw new Exception("No host provider available to service this request.");
+
+            // Set the host provider explicitly for future calls
+            IGitConfiguration gitConfig = _context.Git.GetConfiguration();
+            var keyName = string.Format(CultureInfo.InvariantCulture, "{0}.{1}.{2}",
+                Constants.GitConfiguration.Credential.SectionName, uri.ToString().TrimEnd('/'),
+                Constants.GitConfiguration.Credential.Provider);
+
+            try
+            {
+                _context.Trace.WriteLine($"Remembering host provider for '{uri}' as '{match.Id}'...");
+                gitConfig.Set(GitConfigurationLevel.Global, keyName, match.Id);
+            }
+            catch (Exception ex)
+            {
+                _context.Trace.WriteLine("Failed to set host provider!");
+                _context.Trace.WriteException(ex);
+
+                _context.Streams.Error.WriteLine("warning: failed to remember result of host provider detection!");
+                _context.Streams.Error.WriteLine($"warning: try setting this manually: `git config --global {keyName} {match.Id}`");
+            }
+
+            return match;
         }
 
         public void Dispose()
