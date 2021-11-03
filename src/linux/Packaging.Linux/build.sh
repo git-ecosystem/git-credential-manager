@@ -173,10 +173,8 @@ Description: Cross Platform Git Credential Manager Core command line utility.
  For more information see https://aka.ms/gcmcore
 EOF
 
-# Copy GCM Core & UI helper binaries to target installation location
-cp "$PAYLOAD/git-credential-manager-core" "$INSTALL_TO" || exit 1
-cp "$PAYLOAD/Atlassian.Bitbucket.UI" "$INSTALL_TO" || exit 1
-cp "$PAYLOAD/GitHub.UI" "$INSTALL_TO" || exit 1
+# Copy all binaries and shared libraries to target installation location
+cp -R "$PAYLOAD" "$INSTALL_TO" || exit 1
 
 # Create symlinks
 ln -s -r "$INSTALL_TO/git-credential-manager-core" \
