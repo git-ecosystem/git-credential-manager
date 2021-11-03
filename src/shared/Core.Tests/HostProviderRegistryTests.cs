@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -48,7 +49,8 @@ namespace GitCredentialManager.Tests
         {
             var context = new TestCommandContext();
             var registry = new HostProviderRegistry(context);
-            var input = new InputArguments(new Dictionary<string, string>());
+            var remote = new Uri("https://example.com");
+            InputArguments input = CreateInputArguments(remote);
 
             var provider1Mock = new Mock<IHostProvider>();
             var provider2Mock = new Mock<IHostProvider>();
@@ -67,11 +69,68 @@ namespace GitCredentialManager.Tests
         }
 
         [Fact]
+        public async Task HostProviderRegistry_GetProvider_Auto_HasProviders_SetsProviderGlobalConfig()
+        {
+            var context = new TestCommandContext();
+            var registry = new HostProviderRegistry(context);
+            var remote = new Uri("https://example.com");
+            InputArguments input = CreateInputArguments(remote);
+
+            string providerId = "myProvider";
+            string configKey = string.Format(CultureInfo.InvariantCulture,
+                "{0}.https://example.com.{1}",
+                Constants.GitConfiguration.Credential.SectionName,
+                Constants.GitConfiguration.Credential.Provider);
+
+            var providerMock = new Mock<IHostProvider>();
+            providerMock.Setup(x => x.Id).Returns(providerId);
+            providerMock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(true);
+
+            registry.Register(providerMock.Object, HostProviderPriority.Normal);
+
+            IHostProvider result = await registry.GetProviderAsync(input);
+
+            Assert.Same(providerMock.Object, result);
+            Assert.True(context.Git.Configuration.Global.TryGetValue(configKey, out IList<string> config));
+            Assert.Equal(1, config.Count);
+            Assert.Equal(providerId, config[0]);
+        }
+
+        [Fact]
+        public async Task HostProviderRegistry_GetProvider_Auto_HasProviders_SetsProviderGlobalConfig_HostWithPath()
+        {
+            var context = new TestCommandContext();
+            var registry = new HostProviderRegistry(context);
+            var remote = new Uri("https://example.com/alice/repo.git/");
+            InputArguments input = CreateInputArguments(remote);
+
+            string providerId = "myProvider";
+            string configKey = string.Format(CultureInfo.InvariantCulture,
+                "{0}.https://example.com/alice/repo.git.{1}", // expect any trailing slash to be removed
+                Constants.GitConfiguration.Credential.SectionName,
+                Constants.GitConfiguration.Credential.Provider);
+
+            var providerMock = new Mock<IHostProvider>();
+            providerMock.Setup(x => x.Id).Returns(providerId);
+            providerMock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(true);
+
+            registry.Register(providerMock.Object, HostProviderPriority.Normal);
+
+            IHostProvider result = await registry.GetProviderAsync(input);
+
+            Assert.Same(providerMock.Object, result);
+            Assert.True(context.Git.Configuration.Global.TryGetValue(configKey, out IList<string> config));
+            Assert.Equal(1, config.Count);
+            Assert.Equal(providerId, config[0]);
+        }
+
+        [Fact]
         public async Task HostProviderRegistry_GetProvider_Auto_MultipleValidProviders_ReturnsFirstRegistered()
         {
             var context = new TestCommandContext();
             var registry = new HostProviderRegistry(context);
-            var input = new InputArguments(new Dictionary<string, string>());
+            var remote = new Uri("https://example.com");
+            InputArguments input = CreateInputArguments(remote);
 
             var provider1Mock = new Mock<IHostProvider>();
             var provider2Mock = new Mock<IHostProvider>();
@@ -94,7 +153,8 @@ namespace GitCredentialManager.Tests
         {
             var context = new TestCommandContext();
             var registry = new HostProviderRegistry(context);
-            var input = new InputArguments(new Dictionary<string, string>());
+            var remote = new Uri("https://example.com");
+            InputArguments input = CreateInputArguments(remote);
 
             var provider1Mock = new Mock<IHostProvider>();
             var provider2Mock = new Mock<IHostProvider>();
@@ -152,7 +212,8 @@ namespace GitCredentialManager.Tests
                 Settings = {ProviderOverride = Constants.ProviderIdAuto}
             };
             var registry = new HostProviderRegistry(context);
-            var input = new InputArguments(new Dictionary<string, string>());
+            var remote = new Uri("https://example.com");
+            InputArguments input = CreateInputArguments(remote);
 
             var provider1Mock = new Mock<IHostProvider>();
             var provider2Mock = new Mock<IHostProvider>();
@@ -181,7 +242,8 @@ namespace GitCredentialManager.Tests
                 Settings = {ProviderOverride = "provider42"}
             };
             var registry = new HostProviderRegistry(context);
-            var input = new InputArguments(new Dictionary<string, string>());
+            var remote = new Uri("https://example.com");
+            InputArguments input = CreateInputArguments(remote);
 
             var provider1Mock = new Mock<IHostProvider>();
             var provider2Mock = new Mock<IHostProvider>();
@@ -239,7 +301,8 @@ namespace GitCredentialManager.Tests
                 Settings = {LegacyAuthorityOverride = Constants.AuthorityIdAuto}
             };
             var registry = new HostProviderRegistry(context);
-            var input = new InputArguments(new Dictionary<string, string>());
+            var remote = new Uri("https://example.com");
+            InputArguments input = CreateInputArguments(remote);
 
             var provider1Mock = new Mock<IHostProvider>();
             var provider2Mock = new Mock<IHostProvider>();
@@ -266,13 +329,7 @@ namespace GitCredentialManager.Tests
             var context = new TestCommandContext();
             var registry = new HostProviderRegistry(context);
             var remoteUri = new Uri("https://provider2.onprem.example.com");
-            var input = new InputArguments(
-                new Dictionary<string, string>
-                {
-                    ["protocol"] = remoteUri.Scheme,
-                    ["host"] = remoteUri.Host
-                }
-            );
+            InputArguments input = CreateInputArguments(remoteUri);
 
             var provider1Mock = new Mock<IHostProvider>();
             provider1Mock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(false);
@@ -407,6 +464,22 @@ namespace GitCredentialManager.Tests
 
             httpHandler.AssertRequest(HttpMethod.Head, remoteUri, 1);
             Assert.Same(lowProviderMock.Object, result);
+        }
+
+        public static InputArguments CreateInputArguments(Uri uri)
+        {
+            var dict = new Dictionary<string, string>
+            {
+                ["protocol"] = uri.Scheme,
+                ["host"] = uri.IsDefaultPort ? uri.Host : $"{uri.Host}:{uri.Port}"
+            };
+
+            if (!string.IsNullOrWhiteSpace(uri.AbsolutePath) && uri.AbsolutePath != "/")
+            {
+                dict["path"] = uri.AbsolutePath.TrimEnd('/');
+            }
+
+            return new InputArguments(dict);
         }
     }
 }
