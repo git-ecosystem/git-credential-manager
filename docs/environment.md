@@ -1,10 +1,10 @@
 # Environment variables
 
-[Git Credential Manager Core](usage.md) works out of the box for most users. Configuration options are available to customize or tweak behavior.
+[Git Credential Manager](usage.md) works out of the box for most users. Configuration options are available to customize or tweak behavior.
 
-Git Credential Manager Core (GCM Core) can be configured using environment variables. **Environment variables take precedence over [configuration](configuration.md) options and enterprise system administrator [default values](enterprise-config.md)**.
+Git Credential Manager (GCM) can be configured using environment variables. **Environment variables take precedence over [configuration](configuration.md) options and enterprise system administrator [default values](enterprise-config.md)**.
 
-For the complete list of environment variables GCM Core understands, see the list below.
+For the complete list of environment variables GCM understands, see the list below.
 
 ## Available settings
 
@@ -99,7 +99,7 @@ _No configuration equivalent._
 
 ### GCM_DEBUG
 
-Pauses execution of GCM Core at launch to wait for a debugger to be attached.
+Pauses execution of GCM at launch to wait for a debugger to be attached.
 
 #### Example
 
@@ -123,9 +123,9 @@ _No configuration equivalent._
 
 ### GCM_INTERACTIVE
 
-Permit or disable GCM Core from interacting with the user (showing GUI or TTY prompts). If interaction is required but has been disabled, an error is returned.
+Permit or disable GCM from interacting with the user (showing GUI or TTY prompts). If interaction is required but has been disabled, an error is returned.
 
-This can be helpful when using GCM Core in headless and unattended environments, such as build servers, where it would be preferable to fail than to hang indefinitely waiting for a non-existent user.
+This can be helpful when using GCM in headless and unattended environments, such as build servers, where it would be preferable to fail than to hang indefinitely waiting for a non-existent user.
 
 To disable interactivity set this to `false` or `0`.
 
@@ -292,7 +292,7 @@ export GCM_ALLOW_WINDOWSAUTH=0
 >
 > Click [here](https://aka.ms/gcmcore-httpproxy) for more information.
 
-Configure GCM Core to use the a proxy for network operations.
+Configure GCM to use the a proxy for network operations.
 
 **Note:** Git itself does _not_ respect this setting; this affects GCM _only_.
 
@@ -502,7 +502,7 @@ SETX GCM_DPAPI_STORE_PATH=D:\credentials
 
 Specify the path (_including_ the executable name) to the version of `gpg` used by `pass` (`gpg2` if present, otherwise `gpg`). This is primarily meant to allow manual resolution of the conflict that occurs on legacy Linux systems with parallel installs of `gpg` and `gpg2`.
 
-If not specified, GCM Core defaults to using the version of `gpg2` on the `$PATH`, falling back on `gpg` if `gpg2` is not found.
+If not specified, GCM defaults to using the version of `gpg2` on the `$PATH`, falling back on `gpg` if `gpg2` is not found.
 
 ##### macOS/Linux
 

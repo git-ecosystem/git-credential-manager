@@ -1,6 +1,6 @@
 # Web Account Manager integration
 
-Git Credential Manager (GCM) Core knows how to integrate with the [Web Account Manager (WAM)](https://docs.microsoft.com/azure/active-directory/devices/concept-primary-refresh-token#key-terminology-and-components) feature of Windows.
+Git Credential Manager (GCM) knows how to integrate with the [Web Account Manager (WAM)](https://docs.microsoft.com/azure/active-directory/devices/concept-primary-refresh-token#key-terminology-and-components) feature of Windows.
 GCM uses WAM to store credentials for Azure DevOps.
 Authentication requests are said to be "brokered" to the operating system.
 Currently, GCM will share authentication state with a few other Microsoft developer tools like Visual Studio and the Azure CLI, meaning fewer authentication prompts.
@@ -19,7 +19,7 @@ You can opt-in to WAM support by setting the environment variable [`GCM_MSAUTH_U
 
 ## Features
 
-When you turn on WAM support, GCM Core can cooperate with Windows and with other WAM-enabled software on your machine.
+When you turn on WAM support, GCM can cooperate with Windows and with other WAM-enabled software on your machine.
 This means a more seamless experience, fewer multi-factor authentication prompts, and the ability to use additional authentication technologies like smart cards and Windows Hello.
 These convenience and security features make a good case for enabling WAM.
 
@@ -27,7 +27,7 @@ These convenience and security features make a good case for enabling WAM.
 
 The WAM and Windows identity systems are complex, addressing a very broad range of customer use cases.
 What works for a solo home user may not be adequate for a corporate-managed fleet of 100,000 devices and vice versa.
-The GCM Core team isn't responsible for the user experience or choices made by WAM, but by integrating with WAM, we inherit some of those choices.
+The GCM team isn't responsible for the user experience or choices made by WAM, but by integrating with WAM, we inherit some of those choices.
 Therefore, we want you to be aware of some defaults and experiences if you choose to use WAM integration.
 
 ### For work or school accounts (Azure AD-backed identities)

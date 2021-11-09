@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
 <installer-gui-script minSpecVersion="1">
-    <title>Git Credential Manager Core</title>
+    <title>Git Credential Manager</title>
     <background file="background.png" mime-type="image/png" alignment="bottomleft" scaling="tofit" />
     <options customize="never" />
     <welcome file="welcome.html" mime-type="text/html" />
@@ -15,7 +15,7 @@
     <choices-outline>
         <line choice="default" />
     </choices-outline>
-    <choice id="default" visible="true" enabled="false" title="Git Credential Manager Core" description="Git Credential Manager core application.">
+    <choice id="default" visible="true" enabled="false" title="Git Credential Manager" description="Git Credential Manager application.">
         <pkg-ref id="gcmcore">com.microsoft.gitcredentialmanager.component.pkg</pkg-ref>
     </choice>
 </installer-gui-script>

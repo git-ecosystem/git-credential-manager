@@ -36,7 +36,7 @@
 +--------------------------------------+  +------------------------------------+
 ```
 
-Git Credential Manager Core (GCM Core) is built to be Git host and platform/OS
+Git Credential Manager (GCM) is built to be Git host and platform/OS
 agonstic. Most of the shared logic (command execution, the abstract platform
 subsystems, etc) can be found in the `Core` class
 library (C#). The library targets .NET Standard as well as .NET Framework.
@@ -55,7 +55,7 @@ library (C#). The library targets .NET Standard as well as .NET Framework.
 > See [this](https://github.com/microsoft/Git-Credential-Manager-Core/issues/113)
 > issue for more information.
 
-The entry-point for GCM Core can be found in the `Git-Credential-Manager`
+The entry-point for GCM can be found in the `Git-Credential-Manager`
 project, a console application that targets both .NET and .NET Framework.
 This project emits the `git-credential-manager-core(.exe)` executable, and
 contains very little code - registration of all supported host providers and
@@ -88,14 +88,14 @@ issue for up-to-date progress on this effort.
 
 For authentication using Microsoft Accounts or Azure Active Directory, things
 are a little different. The `MicrosoftAuthentication` component is present in
-the core `Core` assembly, rather than bundled with a
+the `Core` core assembly, rather than bundled with a
 specific host provider. This was done to allow any service that may wish to in
 the future integrate with Microsoft Accounts or Azure Active Directory can make
 use of this reusable authentication component.
 
 ## Asynchronous programming
 
-GCM Core makes use of the `async`/`await` model of .NET and C# in almost all
+GCM makes use of the `async`/`await` model of .NET and C# in almost all
 parts of the codebase where appropriate as usually requests end up going to the
 network at some point.
 
@@ -142,10 +142,10 @@ network at some point.
                              +---------------+
 ```
 
-Git Credential Manager Core maintains a set of known commands including
+Git Credential Manager maintains a set of known commands including
 `Get|Store|EraseCommand`, as well as commands for install and help/usage.
 
-GCM Core also maintains a set of known, registered host providers that implement
+GCM also maintains a set of known, registered host providers that implement
 the `IHostProvider` interface. Providers register themselves by adding an
 instance of the provider to the `Application` object via the `RegisterProvider`
 method [in `Core.Program`](../src/shared/Git-Credential-Manager/Program.cs).
@@ -154,7 +154,7 @@ HTTP-based remotes as a catch-all, and provide basic username/password auth and
 detect the presence of Windows Integrated Authentication (Kerberos, NTLM,
 Negotiate) support (1).
 
-For each invocation of GCM Core, the first argument on the command-line is
+For each invocation of GCM, the first argument on the command-line is
 matched against the known commands and if there is a successful match, the input
 from Git (over standard input) is deserialized and the command is executed (2).
 
@@ -174,7 +174,7 @@ context to complete the requested operation (5).
 Once a credential has been created, retrieved, stored or erased, the host
 provider returns the credential (for `get` operations only) to the calling
 command (6). The credential is then serialized and returned to Git over standard
-output (7) and GCM Core terminates with a successful exit code.
+output (7) and GCM terminates with a successful exit code.
 
 ## Host provider
 
@@ -247,7 +247,7 @@ systems and platforms.
 Component|Description
 -|-
 CredentialStore|A secure operating system controlled location for storing and retrieving `ICredential` objects.
-Settings|Abstraction over all GCM Core settings.
+Settings|Abstraction over all GCM settings.
 Streams|Abstraction over standard input, output and error streams connected to the parent process (typically Git).
 Terminal|Provides interactions with an attached terminal, if it exists.
 SessionManager|Provides information about the current user session.
@@ -260,7 +260,7 @@ SystemPrompts|Provides services for showing system/OS native credential prompts.
 
 ## Error handling and tracing
 
-GCM Core operates a 'fail fast' approach to unrecoverable errors. This usually
+GCM operates a 'fail fast' approach to unrecoverable errors. This usually
 means throwing an `Exception` which will propagate up to the entry-point and be
 caught, a non-zero exit code returned, and the error message printed with the
 "fatal:" prefix. For errors originating from interop/native code, you should
@@ -276,4 +276,4 @@ operation/authentication.
 
 The `ITrace` component can be found on the `ICommandContext` object or passed in
 directly to some constructors. Verbose and diagnostic information is be written
-to the trace object in most places of GCM Core.
+to the trace object in most places of GCM.

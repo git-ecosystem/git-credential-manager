@@ -7,7 +7,7 @@ call their APIs, and in the future, use Git itself.
 
 This means Git credential helpers such as [Git Credential Manager (GCM) for
 Windows](https://github.com/microsoft/Git-Credential-Manager-for-Windows), and
-old versions of [GCM Core](https://aka.ms/gcmcore) that offer username/password
+old versions of [GCM](https://aka.ms/gcmcore) that offer username/password
 flows **will not be able to create new access tokens** for accessing Git
 repositories.
 
@@ -19,7 +19,7 @@ Windows, they will continue to work until they expire or are revoked/deleted.
 ### Windows command-line users
 
 The best thing to do right now is upgrade to the latest Git for Windows (at
-least version 2.29), which includes a version of Git Credential Manager Core that
+least version 2.29), which includes a version of Git Credential Manager that
 uses supported OAuth token-based authentication.
 
 [Download the latest Git for Windows ⬇️](https://git-scm.com/download/win)
@@ -27,7 +27,7 @@ uses supported OAuth token-based authentication.
 ### Visual Studio users
 
 Please update to the latest supported release of Visual Studio, that includes
-GCM Core and support for OAuth token-based authentication.
+GCM and support for OAuth token-based authentication.
 
 - [Visual Studio 2019 ⬇️](https://docs.microsoft.com/en-us/visualstudio/install/update-visual-studio?view=vs-2019)
 - [Visual Studio 2017 ⬇️](https://docs.microsoft.com/en-us/visualstudio/install/update-visual-studio?view=vs-2017)
@@ -36,21 +36,21 @@ GCM Core and support for OAuth token-based authentication.
 
 If you are using SSH this change does **not** affect you.
 
-If you are using an older version of Git Credential Manager Core (before
+If you are using an older version of Git Credential Manager (before
 2.0.124-beta) please upgrade to the latest version following [these
 instructions](https://github.com/microsoft/Git-Credential-Manager-Core#download-and-install).
 
 ## What if I cannot upgrade Git for Windows?
 
 If you are unable to upgrade Git for Windows, you can manually install Git
-Credential Manager Core as a standalone install. This will override the older,
+Credential Manager as a standalone install. This will override the older,
 GCM for Windows bundled with the Git for Windows installation.
 
-[Download Git Credential Manager Core standalone ⬇️](https://aka.ms/gcmcore-latest)
+[Download Git Credential Manager standalone ⬇️](https://aka.ms/gcmcore-latest)
 
-## What if I cannot use Git Credential Manager Core?
+## What if I cannot use Git Credential Manager?
 
-If you are unable to use Git Credential Manager Core due to a bug or
+If you are unable to use Git Credential Manager due to a bug or
 compatibility issue we'd [like to know why](https://github.com/microsoft/Git-Credential-Manager-Core/issues/new/choose)!
 
 ## Help! I cannot make any changes to my Windows machine without an Administrator!

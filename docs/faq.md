@@ -16,13 +16,13 @@ Please follow these steps to diagnose or resolve the problem:
 
 ### Q: I got an error saying unsecure HTTP is not supported.
 
-To keep your data secure, Git Credential Manager Core will not send credentials for Azure Repos, Azure DevOps Server (TFS), GitHub, and Bitbucket, over HTTP connections that are not secured using TLS (HTTPS).
+To keep your data secure, Git Credential Manager will not send credentials for Azure Repos, Azure DevOps Server (TFS), GitHub, and Bitbucket, over HTTP connections that are not secured using TLS (HTTPS).
 
 Please make sure your remote URLs use "https://" rather than "http://".
 
 ### Q: I got an authentication error and I am behind a network proxy.
 
-You probably need to configure Git and GCM Core to use a proxy. Please see detailed information [here](https://aka.ms/gcmcore-httpproxy).
+You probably need to configure Git and GCM to use a proxy. Please see detailed information [here](https://aka.ms/gcmcore-httpproxy).
 
 ### Q: I'm getting errors about picking a credential store on Linux.
 
@@ -35,19 +35,19 @@ On Linux you must [select and configure a credential store](https://aka.ms/gcmco
 Git Credential Manager for Windows (GCM Windows) is a .NET Framework-based Git credential helper which runs on Windows.
 Likewise the Git Credential Manager for Mac and Linux (Java GCM) is a Java-based Git credential helper that runs only on macOS and Linux. Although both of these projects aim to solve the same problem (providing seamless multi-factor HTTPS authentication with Git), they are based on different codebases and languages which is becoming hard to manage to ensure feature parity.
 
-Git Credential Manager Core (GCM Core; this project) aims to replace both GCM Windows and Java GCM with a unified codebase which should be easier to maintain and enhance in the future.
+Git Credential Manager (GCM; this project) aims to replace both GCM Windows and Java GCM with a unified codebase which should be easier to maintain and enhance in the future.
 
 ### Q: Does this mean GCM for Windows (.NET Framework-based) is deprecated?
 
-Yes. Git Credential Manager for Windows (GCM Windows) is no longer receiving updates and fixes. All development effort has now been directed to GCM Core. GCM Core is available as an credential helper option in Git for Windows 2.28, and will be made the default helper in 2.29.
+Yes. Git Credential Manager for Windows (GCM Windows) is no longer receiving updates and fixes. All development effort has now been directed to GCM. GCM is available as an credential helper option in Git for Windows 2.28, and will be made the default helper in 2.29.
 
 ### Q: Does this mean the Java-based GCM for Mac/Linux is deprecated?
 
-Yes. Usage of Git Credential Manager for Mac and Linux (Java GCM) should be replaced with GCM Core or SSH keys. If you wish to install GCM Core on macOS or Linux, please follow the [download and installation instructions](../README.md#download-and-install).
+Yes. Usage of Git Credential Manager for Mac and Linux (Java GCM) should be replaced with GCM or SSH keys. If you wish to install GCM on macOS or Linux, please follow the [download and installation instructions](../README.md#download-and-install).
 
 ### Q: I want to use SSH
 
-GCM Core is only useful for HTTP(S)-based remotes. Git supports SSH out-of-the box so you shouldn't need to install anything else.
+GCM is only useful for HTTP(S)-based remotes. Git supports SSH out-of-the box so you shouldn't need to install anything else.
 
 To use SSH please follow the below links:
 
@@ -63,22 +63,22 @@ No, neither are "preferred". SSH isn't going away, and is supported "natively" i
 
 GCM Windows was not designed with a cross-platform architecture.
 
-### What level of support does GCM Core have?
+### What level of support does GCM have?
 
 Support will be best-effort. We would really appreciate your feedback to make this a great experience across each platform we support. 
 
-### Q: Why does GCM Core not support operating system/distribution 'X', or Git hosting provider 'Y'?
+### Q: Why does GCM not support operating system/distribution 'X', or Git hosting provider 'Y'?
 
 The likely answer is we haven't gotten around to that yet! 🙂
 
 We are working on ensuring support for the Windows, macOS, and Ubuntu operating system, as well as the following Git hosting providers: Azure Repos, Azure DevOps Server (TFS), GitHub, and Bitbucket.
 
-We are happy to accept proposals and/or contributions to enable GCM Core to run on other platforms and Git host providers. Thank you!
+We are happy to accept proposals and/or contributions to enable GCM to run on other platforms and Git host providers. Thank you!
 
 ## Technical
 
 ### Why is the `credential.useHttpPath` setting required for `dev.azure.com`?
 
-Due to the design of Git and credential helpers such as GCM Core, we need this setting to make Git use the full remote URL (including the path component) when communicating with GCM. The new `dev.azure.com` format of Azure DevOps URLs means the account name is now part of the path component (for example: `https://dev.azure.com/contoso/...`). The Azure DevOps account name is required in order to resolve the correct authority for authentication (which Azure AD tenant backs this account, or if it is backed by Microsoft personal accounts).
+Due to the design of Git and credential helpers such as GCM, we need this setting to make Git use the full remote URL (including the path component) when communicating with GCM. The new `dev.azure.com` format of Azure DevOps URLs means the account name is now part of the path component (for example: `https://dev.azure.com/contoso/...`). The Azure DevOps account name is required in order to resolve the correct authority for authentication (which Azure AD tenant backs this account, or if it is backed by Microsoft personal accounts).
 
-In the older GCM for Windows product, the solution to the same problem was a "hack". GCM for Windows would walk the process tree looking for the `git-remote-https.exe` process, and attempt to read/parse the process environment block looking for the command line arguments (that contained the full remote URL). This is fragile and not a cross-platform solution, hense the need for the `credential.useHttpPath` setting with GCM Core.
+In the older GCM for Windows product, the solution to the same problem was a "hack". GCM for Windows would walk the process tree looking for the `git-remote-https.exe` process, and attempt to read/parse the process environment block looking for the command line arguments (that contained the full remote URL). This is fragile and not a cross-platform solution, hense the need for the `credential.useHttpPath` setting with GCM.

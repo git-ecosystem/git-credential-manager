@@ -17,12 +17,12 @@
 
 #if InstallTarget == "user"
   #define GcmAppId "{{aa76d31d-432c-42ee-844c-bc0bc801cef3}}"
-  #define GcmLongName "Git Credential Manager Core (User)"
+  #define GcmLongName "Git Credential Manager (User)"
   #define GcmSetupExe "gcmcoreuser"
   #define GcmConfigureCmdArgs ""
 #elif InstallTarget == "system"
   #define GcmAppId "{{fdfae50a-1bc1-4ead-9228-1e1c275e8d12}}"
-  #define GcmLongName "Git Credential Manager Core"
+  #define GcmLongName "Git Credential Manager"
   #define GcmSetupExe "gcmcore"
   #define GcmConfigureCmdArgs "--system"
 #else
@@ -30,7 +30,7 @@
 #endif
 
 ; Define core properties
-#define GcmShortName "Git Credential Manager Core"
+#define GcmShortName "Git Credential Manager"
 #define GcmPublisher "GitHub"
 #define GcmVersionInfoDescription "Secure, cross-platform Git credential manager."
 #define GcmPublisherUrl "https://www.github.com"
@@ -139,7 +139,7 @@ begin
 
   #if InstallTarget == "user"
     if not WizardSilent() and IsAdmin() then begin
-      if MsgBox('This User Installer is not meant to be run as an Administrator. If you would like to install Git Credential Manager Core for all users in this system, download the System Installer instead from https://aka.ms/gcmcore-latest. Are you sure you want to continue?', mbError, MB_OKCANCEL) = IDCANCEL then begin
+      if MsgBox('This User Installer is not meant to be run as an Administrator. If you would like to install Git Credential Manager for all users in this system, download the System Installer instead from https://aka.ms/gcmcore-latest. Are you sure you want to continue?', mbError, MB_OKCANCEL) = IDCANCEL then begin
         Result := False;
       end;
     end;

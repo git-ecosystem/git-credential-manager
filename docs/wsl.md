@@ -1,6 +1,6 @@
 # Windows Subsystem for Linux (WSL)
 
-GCM Core can be used with the
+GCM can be used with the
 [Windows Subsystem for Linux (WSL)](https://aka.ms/wsl), both WSL1 and WSL2, by
 following these instructions.
 
@@ -34,7 +34,7 @@ git config --global credential.https://dev.azure.com.useHttpPath true
 
 ## Configuring WSL without Git for Windows
 
-If you wish to use GCM Core inside of WSL _without installing Git for Windows_
+If you wish to use GCM inside of WSL _without installing Git for Windows_
 you must complete additional configuration so that GCM can callback to Git
 inside of your WSL installation.
 

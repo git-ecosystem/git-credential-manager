@@ -6,7 +6,7 @@ labels: 'experimental'
 assignees: ''
 ---
 
-**Which version of GCM Core are you using?**
+**Which version of GCM are you using?**
 
 From a terminal, run `git-credential-manager-core --version` and paste the output.
 

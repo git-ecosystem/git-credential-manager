@@ -1,4 +1,4 @@
-# Git Credential Manager Core Host Provider
+# Git Credential Manager Host Provider
 
 Property|Value
 -|-
@@ -15,7 +15,7 @@ Last updated|2021-01-08
 
 ## Abstract
 
-Git Credential Manger Core, the cross-platform and cross-host Git credential
+Git Credential Manger, the cross-platform and cross-host Git credential
 helper, can be extended to support any Git hosting service allowing seamless
 authentication to secured Git repositories by implementing and registering a
 "host provider".
@@ -46,9 +46,9 @@ authentication to secured Git repositories by implementing and registering a
 
 ## 1. Introduction
 
-Git Credential Manager Core (GCM Core) is a host and platform agnostic Git
+Git Credential Manager (GCM) is a host and platform agnostic Git
 credential helper application. Support for authenticating to any Git hosting
-service can be added to GCM Core by creating a custom "host provider" and
+service can be added to GCM by creating a custom "host provider" and
 registering it within the product. Host providers can be submitted via a pull
 request on GitHub at <https://github.com/microsoft/Git-Credential-Manager-Core>.
 
@@ -67,7 +67,7 @@ specification are to be interpreted as described in
 Throughout this document you may see multiple abbreviations of product names and
 security or credential objects.
 
-"Git Credential Manager Core" is abbreviated to "GCM Core". "Git Credential
+"Git Credential Manager" is abbreviated to "GCM". "Git Credential
 Manager for Windows" is abbreviated to "GCM for Windows" or "GCM Windows".
 "Git Credential Manager for Mac & Linux" is abbreviated to "GCM for
 Mac/Linux" or "GCM Mac/Linux".
@@ -78,7 +78,7 @@ abbreviated to "PATs".
 
 ## 2. Implementation
 
-Writing and adding a host provider to GCM Core requires two main actions:
+Writing and adding a host provider to GCM requires two main actions:
 implementing the `IHostProvider` interface, and registering an instance of the
 provider with the application via the host provider registry.
 
@@ -109,15 +109,15 @@ authorities that the provider supports authentication against.
 ### 2.1. Registration
 
 Host providers must provide an instance of their `IHostProvider` type to the
-GCM Core application host provider registry to be considered for handling
+GCM application host provider registry to be considered for handling
 requests.
 
-The main GCM Core `Application` object has one principal registry which you can
+The main GCM `Application` object has one principal registry which you can
 register providers with by calling the `RegisterProvider` method.
 
 #### 2.1.2. Ordering
 
-The default host provider registry in GCM Core has multiple priority levels that
+The default host provider registry in GCM has multiple priority levels that
 host providers can be registered at: High, Normal, and Low.
 
 For each priority level (starting with High, then Normal, then Low), the
@@ -333,14 +333,14 @@ terminal/TTY or text-based authentication mechanism alongside any graphical
 interface provided by a helper.
 
 In order to achieve this host providers MUST introduce an out-of-process
-"helper" executable that can be invoked from the main GCM Core process. This
+"helper" executable that can be invoked from the main GCM process. This
 allows the "helper" executable full implementation freedom of runtime, language,
 etc.
 
 Communications between the main and helper processes MAY use any IPC mechanism
 available. It is RECOMMENDED implementors use standard input/output streams or
 file descriptors to send and receive data as this is consistent with how Git and
-GCM Core communicate. UNIX sockets or Windows Named Pipes MAY also be used when
+GCM communicate. UNIX sockets or Windows Named Pipes MAY also be used when
 an ongoing back-and-forth communication is required.
 
 ### 3.1. Discovery

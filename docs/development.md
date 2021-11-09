@@ -58,7 +58,7 @@ The flat binaries can also be found in `out/linux/Packaging.Linux/payload/Debug`
 
 To debug from inside an IDE you'll want to set `Git-Credential-Manager` as the startup project, and specify one of `get`, `store`, or `erase` as a program argument.
 
-To simulate Git interacting with GCM Core, when you start from your IDE of choice, you'll need to enter the following [information over standard input](https://git-scm.com/docs/git-credential#IOFMT):
+To simulate Git interacting with GCM, when you start from your IDE of choice, you'll need to enter the following [information over standard input](https://git-scm.com/docs/git-credential#IOFMT):
 
 ```text
 protocol=http<LF>
@@ -80,13 +80,13 @@ For more information about how Git interacts with credential helpers, please rea
 
 ### Attaching to a running process
 
-If you want to debug an already running GCM Core process, set the `GCM_DEBUG` environment variable to `1` or `true`. The process will wait on launch for a debugger to attach before continuing.
+If you want to debug an already running GCM process, set the `GCM_DEBUG` environment variable to `1` or `true`. The process will wait on launch for a debugger to attach before continuing.
 
-This is useful when debugging interactions between GCM Core and Git, and you want Git to be the one launching us.
+This is useful when debugging interactions between GCM and Git, and you want Git to be the one launching us.
 
 ### Collect trace output
 
-If you want to debug a release build or installation of GCM Core, you can set the `GCM_TRACE` environment variable to `1` to print trace information to standard error, or to an absolute file path to write trace information to a file.
+If you want to debug a release build or installation of GCM, you can set the `GCM_TRACE` environment variable to `1` to print trace information to standard error, or to an absolute file path to write trace information to a file.
 
 For example:
 

@@ -1,17 +1,17 @@
 # Configuration options
 
-[Git Credential Manager Core](usage.md) works out of the box for most users.
+[Git Credential Manager](usage.md) works out of the box for most users.
 
-Git Credential Manager Core (GCM Core) can be configured using Git's configuration files, and follows all of the same rules Git does when consuming the files.
+Git Credential Manager (GCM) can be configured using Git's configuration files, and follows all of the same rules Git does when consuming the files.
 
-Global configuration settings override system configuration settings, and local configuration settings override global settings; and because the configuration details exist within Git's configuration files you can use Git's `git config` utility to set, unset, and alter the setting values. All of GCM Core's configuration settings begin with the term `credential`.
+Global configuration settings override system configuration settings, and local configuration settings override global settings; and because the configuration details exist within Git's configuration files you can use Git's `git config` utility to set, unset, and alter the setting values. All of GCM's configuration settings begin with the term `credential`.
 
-GCM Core honors several levels of settings, in addition to the standard local \> global \> system tiering Git uses.
+GCM honors several levels of settings, in addition to the standard local \> global \> system tiering Git uses.
 URL-specific settings or overrides can be applied to any value in the `credential` namespace with the syntax below.
 
-Additionally, GCM Core respects several GCM-specific [environment variables](environment.md) **which take precedence over configuration options**. System administrators may also configure [default values](enterprise-config.md) for many settings used by GCM Core.
+Additionally, GCM respects several GCM-specific [environment variables](environment.md) **which take precedence over configuration options**. System administrators may also configure [default values](enterprise-config.md) for many settings used by GCM.
 
-GCM Core will only be used by Git if it is installed and configured. Use `git config --global credential.helper manager-core` to assign GCM Core as your credential helper. Use `git config credential.helper` to see the current configuration.
+GCM will only be used by Git if it is installed and configured. Use `git config --global credential.helper manager-core` to assign GCM as your credential helper. Use `git config credential.helper` to see the current configuration.
 
 **Example:**
 
@@ -19,15 +19,15 @@ GCM Core will only be used by Git if it is installed and configured. Use `git co
 
 In the examples above, the `credential.namespace` setting would affect any remote repository; the `credential.visualstudio.com.namespace` would affect any remote repository in the domain, and/or any subdomain (including `www.`) of, 'visualstudio.com'; where as the `credential.microsoft.visualstudio.com.namespace` setting would only be applied to remote repositories hosted at 'microsoft.visualstudio.com'.
 
-For the complete list of settings GCM Core understands, see the list below.
+For the complete list of settings GCM understands, see the list below.
 
 ## Available settings
 
 ### credential.interactive
 
-Permit or disable GCM Core from interacting with the user (showing GUI or TTY prompts). If interaction is required but has been disabled, an error is returned.
+Permit or disable GCM from interacting with the user (showing GUI or TTY prompts). If interaction is required but has been disabled, an error is returned.
 
-This can be helpful when using GCM Core in headless and unattended environments, such as build servers, where it would be preferable to fail than to hang indefinitely waiting for a non-existent user.
+This can be helpful when using GCM in headless and unattended environments, such as build servers, where it would be preferable to fail than to hang indefinitely waiting for a non-existent user.
 
 To disable interactivity set this to `false` or `0`.
 
@@ -156,7 +156,7 @@ git config --global credential.tfsonprem123.allowWindowsAuth false
 >
 > Click [here](https://aka.ms/gcmcore-httpproxy) for more information.
 
-Configure GCM Core to use the a proxy for network operations.
+Configure GCM to use the a proxy for network operations.
 
 **Note:** Git itself does _not_ respect this setting; this affects GCM _only_.
 
@@ -375,11 +375,11 @@ git config --global credential.msauthUseBroker true
 
 ### credential.useHttpPath
 
-Tells Git to pass the entire repository URL, rather than just the hostname, when calling out to a credential provider. (This setting [comes from Git itself](https://git-scm.com/docs/gitcredentials/#Documentation/gitcredentials.txt-useHttpPath), not GCM Core.)
+Tells Git to pass the entire repository URL, rather than just the hostname, when calling out to a credential provider. (This setting [comes from Git itself](https://git-scm.com/docs/gitcredentials/#Documentation/gitcredentials.txt-useHttpPath), not GCM.)
 
 Defaults to `false`.
 
-**Note:** GCM Core sets this value to `true` for `dev.azure.com` (Azure Repos) hosts after installation by default.
+**Note:** GCM sets this value to `true` for `dev.azure.com` (Azure Repos) hosts after installation by default.
 
 This is because `dev.azure.com` alone is not enough information to determine the correct Azure authentication authority - we require a part of the path. The fallout of this is that for `dev.azure.com` remote URLs we do not support storing credentials against the full-path. We always store against the `dev.azure.com/org-name` stub.
 
