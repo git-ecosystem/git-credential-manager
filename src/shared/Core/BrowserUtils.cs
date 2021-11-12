@@ -39,7 +39,11 @@ namespace GitCredentialManager
                 //
                 // We try and use the same 'shell execute' utilities as the Framework does,
                 // searching for them in the same order until we find one.
-                foreach (string shellExec in new[] {"xdg-open", "gnome-open", "kfmclient"})
+                //
+                // One additional 'shell execute' utility we also attempt to use is `wslview`
+                // that is commonly found on WSL (Windows Subsystem for Linux) distributions that
+                // opens the browser on the Windows host.
+                foreach (string shellExec in new[] {"xdg-open", "gnome-open", "kfmclient", "wslview"})
                 {
                     if (environment.TryLocateExecutable(shellExec, out string shellExecPath))
                     {
