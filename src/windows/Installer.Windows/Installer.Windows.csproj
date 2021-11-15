@@ -19,7 +19,7 @@
 
   <ItemGroup>
     <PackageReference Include="Tools.InnoSetup" Version="6.0.5" />
-    <PackageReference Include="MicroBuild.Core" Version="0.2.0">
+    <PackageReference Include="Microsoft.VisualStudioEng.MicroBuild.Core" Version="1.0.0">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
   </ItemGroup>
