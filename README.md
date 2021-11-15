@@ -35,8 +35,7 @@ Proxy support|&#10003;|&#10003;|&#10003;
 
 **Notes:**
 
-(\*) Debian package offered but not yet available on an official Microsoft feed.
-Fedora packages planned but not yet available.
+(\*) Fedora packages planned but not yet available.
 
 ## Download and Install
 
@@ -89,33 +88,7 @@ sudo /usr/local/share/gcm-core/uninstall.sh
 <a name="linux-install-instructions"></a>
 ### Linux
 
-#### Debian package (.deb)
-
-`apt-get` support is available for Ubuntu Bionic Beaver (18.04) and Hirsute 
-Hippo (21.04). Take the following steps to set up and install based on the
-version you are running:
-
-##### Ubuntu 18.04 (Bionic)
-
-```shell
-curl -sSL https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
-sudo apt-add-repository https://packages.microsoft.com/ubuntu/18.04/prod
-sudo apt-get update
-sudo apt-get install gcmcore
-git-credential-manager-core configure
-```
-
-##### Ubuntu 21.04 (Hirsute)
-
-```shell
-curl -sSL https://packages.microsoft.com/config/ubuntu/21.04/prod.list | sudo tee /etc/apt/sources.list.d/microsoft-prod.list
-curl -sSL https://packages.microsoft.com/keys/microsoft.asc | sudo tee /etc/apt/trusted.gpg.d/microsoft.asc
-sudo apt-get update
-sudo apt-get install gcmcore
-git-credential-manager-core configure
-```
-
-##### Other Ubuntu/Debian distributions
+#### Ubuntu/Debian distributions
 
 Download the latest [.deb package](https://github.com/microsoft/Git-Credential-Manager-Core/releases/latest), and run the following:
 
@@ -139,7 +112,13 @@ git-credential-manager-core configure
 
 ### Windows
 
-You can download the [latest installer](https://github.com/microsoft/Git-Credential-Manager-Core/releases/latest) for Windows to install GCM Core standalone.
+GCM Core is included with [Git for Windows](https://gitforwindows.org/), and the latest version is included in each new Git for Windows release. This is the preferred way to install GCM Core on Windows. During installation you will be asked to select a credential helper, with GCM Core being set as the default.
+
+![image](https://user-images.githubusercontent.com/5658207/140082529-1ac133c1-0922-4a24-af03-067e27b3988b.png)
+
+#### Standalone installation
+
+You can also download the [latest installer](https://github.com/microsoft/Git-Credential-Manager-Core/releases/latest) for Windows to install GCM Core standalone.
 
 **:warning: Important :warning:**
 
@@ -172,6 +151,22 @@ Git Credential Manager Core can be used with the [Windows Subsystem for Linux
 repositories from inside of WSL.
 
 [Please see the GCM Core on WSL docs](docs/wsl.md) for more information.
+
+## Supported Git versions
+
+Git Credential Manager Core tries to be compatible with the broadest set of Git
+versions (within reason). However there are some know problematic releases of
+Git that are not compatible.
+
+- Git 1.x
+
+  The initial major version of Git is not supported or tested with GCM.
+
+- Git 2.26.2
+
+  This version of Git introduced a breaking change with parsing credential
+  configuration that GCM relies on. This issue was fixed in commit [`12294990`](https://github.com/git/git/commit/12294990c90e043862be9eb7eb22c3784b526340)
+  of the Git project, and released in Git 2.27.0.
 
 ## How to use
 

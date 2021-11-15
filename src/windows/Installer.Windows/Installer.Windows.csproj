@@ -47,8 +47,8 @@
 
   <Target Name="CoreCompile" Condition="'$(OSPlatform)'=='windows'">
     <PropertyGroup>
-      <InnoSetupCommandSystem>$(NuGetPackageRoot)Tools.InnoSetup\6.0.5\tools\ISCC.exe /DPayloadDir=$(PayloadPath) /DInstallTarget=system Setup.iss /O$(OutputPath)</InnoSetupCommandSystem>
-      <InnoSetupCommandUser>$(NuGetPackageRoot)Tools.InnoSetup\6.0.5\tools\ISCC.exe /DPayloadDir=$(PayloadPath) /DInstallTarget=user Setup.iss /O$(OutputPath)</InnoSetupCommandUser>
+      <InnoSetupCommandSystem>"$(NuGetPackageRoot)Tools.InnoSetup\6.0.5\tools\ISCC.exe" /DPayloadDir="$(PayloadPath)" /DInstallTarget=system "$(RepoSrcPath)\windows\Installer.Windows\Setup.iss" /O"$(OutputPath)"</InnoSetupCommandSystem>
+      <InnoSetupCommandUser>"$(NuGetPackageRoot)Tools.InnoSetup\6.0.5\tools\ISCC.exe" /DPayloadDir="$(PayloadPath)" /DInstallTarget=user "$(RepoSrcPath)\windows\Installer.Windows\Setup.iss" /O"$(OutputPath)"</InnoSetupCommandUser>
     </PropertyGroup>
     <Message Text="$(InnoSetupCommandSystem)" Importance="High" />
     <Exec Command="$(InnoSetupCommandSystem)" />

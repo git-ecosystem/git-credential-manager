@@ -10,7 +10,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\GitHub.UI\GitHub.UI.csproj" />
-    <ProjectReference Include="..\Microsoft.Git.CredentialManager.UI.Avalonia\Microsoft.Git.CredentialManager.UI.Avalonia.csproj" />
+    <ProjectReference Include="..\Core.UI.Avalonia\Core.UI.Avalonia.csproj" />
   </ItemGroup>
 
   <ItemGroup>

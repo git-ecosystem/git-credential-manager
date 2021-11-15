@@ -1,8 +1,8 @@
 using System.Windows;
 using GitHub.UI.ViewModels;
 using GitHub.UI.Views;
-using Microsoft.Git.CredentialManager.Interop.Windows;
-using Microsoft.Git.CredentialManager.UI.Controls;
+using GitCredentialManager.Interop.Windows;
+using GitCredentialManager.UI.Controls;
 
 namespace GitHub.UI.Controls
 {

@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Microsoft.Git.CredentialManager;
+using GitCredentialManager;
 using Xunit;
 
 namespace Microsoft.AzureRepos.Tests

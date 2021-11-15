@@ -4,10 +4,10 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Git.CredentialManager.Authentication;
+using GitCredentialManager.Authentication;
 using Xunit;
 
-namespace Microsoft.Git.CredentialManager.Tests.Objects
+namespace GitCredentialManager.Tests.Objects
 {
     public class TestHttpMessageHandler : HttpMessageHandler
     {

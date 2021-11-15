@@ -1,8 +1,8 @@
 using System;
 using System.Net.Http;
-using Microsoft.Git.CredentialManager;
-using Microsoft.Git.CredentialManager.Authentication.OAuth;
-using Microsoft.Git.CredentialManager.Authentication.OAuth.Json;
+using GitCredentialManager;
+using GitCredentialManager.Authentication.OAuth;
+using GitCredentialManager.Authentication.OAuth.Json;
 using Newtonsoft.Json;
 
 namespace Atlassian.Bitbucket

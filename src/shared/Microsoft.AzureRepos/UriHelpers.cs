@@ -1,6 +1,6 @@
 using System;
 using System.Linq;
-using Microsoft.Git.CredentialManager;
+using GitCredentialManager;
 
 namespace Microsoft.AzureRepos
 {

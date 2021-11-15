@@ -2,8 +2,8 @@
 using System.Threading.Tasks;
 using GitHub.UI.Commands;
 using GitHub.UI.Controls;
-using Microsoft.Git.CredentialManager;
-using Microsoft.Git.CredentialManager.UI;
+using GitCredentialManager;
+using GitCredentialManager.UI;
 
 namespace GitHub.UI
 {

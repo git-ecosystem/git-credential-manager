@@ -31,6 +31,11 @@ hostname can be made. Only one HTTP `HEAD` call is made per credential request
 received by Git. To avoid this network call, please [explicitly configure](#explicit-configuration)
 the host provider for your self-hosted instance.
 
+After a successful detection of the host provider, GCM will automatically set
+the [`credential.provider` configuration entry](configuration.md#credentialprovider)
+for that remote to avoid needing to perform this expensive network call in
+future requests.
+
 ### Timeout
 
 You can control how long GCM will wait for a response to the remote network call
@@ -41,7 +46,7 @@ Git configuration setting to the maximum number of milliseconds to wait.
 The default value is 2000 milliseconds (2 seconds). You can prevent the network
 call altogether by setting a zero or negative value, for example -1.
 
-## Explicit configuration
+## Manual configuration
 
 If the auto-detection mechanism fails to select the correct host provider, or
 if the remote probing network call is causing performance issues, you can

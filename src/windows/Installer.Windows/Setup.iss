@@ -31,8 +31,9 @@
 
 ; Define core properties
 #define GcmShortName "Git Credential Manager Core"
-#define GcmPublisher "Microsoft Corporation"
-#define GcmPublisherUrl "https://www.microsoft.com"
+#define GcmPublisher "GitHub"
+#define GcmVersionInfoDescription "Secure, cross-platform Git credential manager."
+#define GcmPublisherUrl "https://www.github.com"
 #define GcmCopyright "Copyright (c) GitHub, Inc. and contributors"
 #define GcmUrl "https://aka.ms/gcmcore"
 #define GcmReadme "https://github.com/microsoft/Git-Credential-Manager-Core/blob/main/README.md"
@@ -112,9 +113,9 @@ Source: "{#PayloadDir}\GitHub.UI.exe";                                  DestDir:
 Source: "{#PayloadDir}\GitHub.UI.exe.config";                           DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PayloadDir}\GitHub.UI.Shared.dll";                           DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PayloadDir}\Microsoft.AzureRepos.dll";                       DestDir: "{app}"; Flags: ignoreversion
-Source: "{#PayloadDir}\Microsoft.Git.CredentialManager.dll";            DestDir: "{app}"; Flags: ignoreversion
-Source: "{#PayloadDir}\Microsoft.Git.CredentialManager.UI.dll";         DestDir: "{app}"; Flags: ignoreversion
-Source: "{#PayloadDir}\Microsoft.Git.CredentialManager.UI.Windows.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#PayloadDir}\gcmcore.dll";                                    DestDir: "{app}"; Flags: ignoreversion
+Source: "{#PayloadDir}\gcmcoreui.dll";                                  DestDir: "{app}"; Flags: ignoreversion
+Source: "{#PayloadDir}\gcmcoreuiwpf.dll";                               DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PayloadDir}\Microsoft.Identity.Client.Desktop.dll";          DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PayloadDir}\Microsoft.Identity.Client.dll";                  DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PayloadDir}\Microsoft.Identity.Client.Extensions.Msal.dll";  DestDir: "{app}"; Flags: ignoreversion

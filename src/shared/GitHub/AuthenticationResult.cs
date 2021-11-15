@@ -1,4 +1,4 @@
-using Microsoft.Git.CredentialManager;
+using GitCredentialManager;
 
 namespace GitHub
 {
