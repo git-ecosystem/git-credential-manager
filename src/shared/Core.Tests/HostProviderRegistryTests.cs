@@ -69,7 +69,7 @@ namespace GitCredentialManager.Tests
         }
 
         [Fact]
-        public async Task HostProviderRegistry_GetProvider_Auto_HasProviders_SetsProviderGlobalConfig()
+        public async Task HostProviderRegistry_GetProvider_Auto_HasProviders_StaticMatch_DoesNotSetProviderGlobalConfig()
         {
             var context = new TestCommandContext();
             var registry = new HostProviderRegistry(context);
@@ -91,13 +91,40 @@ namespace GitCredentialManager.Tests
             IHostProvider result = await registry.GetProviderAsync(input);
 
             Assert.Same(providerMock.Object, result);
+            Assert.False(context.Git.Configuration.Global.TryGetValue(configKey, out _));
+        }
+
+        [Fact]
+        public async Task HostProviderRegistry_GetProvider_Auto_HasProviders_DynamicMatch_SetsProviderGlobalConfig()
+        {
+            var context = new TestCommandContext();
+            var registry = new HostProviderRegistry(context);
+            var remote = new Uri("https://example.com");
+            InputArguments input = CreateInputArguments(remote);
+
+            string providerId = "myProvider";
+            string configKey = string.Format(CultureInfo.InvariantCulture,
+                "{0}.https://example.com.{1}",
+                Constants.GitConfiguration.Credential.SectionName,
+                Constants.GitConfiguration.Credential.Provider);
+
+            var providerMock = new Mock<IHostProvider>();
+            providerMock.Setup(x => x.Id).Returns(providerId);
+            providerMock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(false);
+            providerMock.Setup(x => x.IsSupported(It.IsAny<HttpResponseMessage>())).Returns(true);
+
+            registry.Register(providerMock.Object, HostProviderPriority.Normal);
+
+            IHostProvider result = await registry.GetProviderAsync(input);
+
+            Assert.Same(providerMock.Object, result);
             Assert.True(context.Git.Configuration.Global.TryGetValue(configKey, out IList<string> config));
             Assert.Equal(1, config.Count);
             Assert.Equal(providerId, config[0]);
         }
 
         [Fact]
-        public async Task HostProviderRegistry_GetProvider_Auto_HasProviders_SetsProviderGlobalConfig_HostWithPath()
+        public async Task HostProviderRegistry_GetProvider_Auto_HasProviders_DynamicMatch_SetsProviderGlobalConfig_HostWithPath()
         {
             var context = new TestCommandContext();
             var registry = new HostProviderRegistry(context);
@@ -112,7 +139,8 @@ namespace GitCredentialManager.Tests
 
             var providerMock = new Mock<IHostProvider>();
             providerMock.Setup(x => x.Id).Returns(providerId);
-            providerMock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(true);
+            providerMock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(false);
+            providerMock.Setup(x => x.IsSupported(It.IsAny<HttpResponseMessage>())).Returns(true);
 
             registry.Register(providerMock.Object, HostProviderPriority.Normal);
 
