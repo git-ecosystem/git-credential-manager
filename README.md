@@ -96,6 +96,10 @@ Download the latest [.deb package](https://github.com/microsoft/Git-Credential-M
 sudo dpkg -i <path-to-package>
 git-credential-manager-core configure
 ```
+__Note:__ Although packages were previously offered on certain
+[Microsoft Ubuntu package feeds](https://packages.microsoft.com/repos/),
+GCM no longer publishes to these repositories. Please install the
+Debian package using the above instructions instead.
 
 #### Other distributions
 

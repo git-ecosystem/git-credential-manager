@@ -128,7 +128,7 @@ namespace GitCredentialManager
                 WriteException(ex);
             }
 
-            invocationContext.ResultCode = -1;
+            invocationContext.ExitCode = -1;
         }
 
         private bool WriteException(Exception ex)
