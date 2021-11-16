@@ -3,7 +3,7 @@ trigger:
 
 variables:
   configuration: Release
-  signPool: VSEng-MicroBuildVS2019
+  signPool: MSEngSS-MicroBuild2019-1ES
   winImage: vs2017-win2016
   osxImage: macos-latest
 

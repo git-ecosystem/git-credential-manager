@@ -12,7 +12,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MicroBuild.Core" Version="0.2.0">
+    <PackageReference Include="Microsoft.VisualStudioEng.MicroBuild.Core" Version="1.0.0">
       <!-- Development dependency only -->
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
