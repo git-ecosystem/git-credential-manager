@@ -1,4 +1,9 @@
 steps:
+  - task: NuGetAuthenticate@0
+    displayName: Authenticate to MicroBuild NuGet feed
+    inputs:
+      nuGetServiceConnections: 'MicroBuild Toolset Nuget Feed (Read)'
+
   - task: ms-vseng.MicroBuildTasks.30666190-6959-11e5-9f96-f56098202fef.MicroBuildSigningPlugin@3
     displayName: Install signing plugin
     condition: and(succeeded(), eq(variables['SignType'], 'real'))
