@@ -220,24 +220,28 @@ namespace GitCredentialManager
                                   await MatchProviderAsync(HostProviderPriority.Low) ??
                                   throw new Exception("No host provider available to service this request.");
 
-            // Set the host provider explicitly for future calls
-            IGitConfiguration gitConfig = _context.Git.GetConfiguration();
-            var keyName = string.Format(CultureInfo.InvariantCulture, "{0}.{1}.{2}",
-                Constants.GitConfiguration.Credential.SectionName, uri.ToString().TrimEnd('/'),
-                Constants.GitConfiguration.Credential.Provider);
-
-            try
+            // If we ended up making a network call then set the host provider explicitly
+            // to avoid future calls!
+            if (probeResponse != null)
             {
-                _context.Trace.WriteLine($"Remembering host provider for '{uri}' as '{match.Id}'...");
-                gitConfig.Set(GitConfigurationLevel.Global, keyName, match.Id);
-            }
-            catch (Exception ex)
-            {
-                _context.Trace.WriteLine("Failed to set host provider!");
-                _context.Trace.WriteException(ex);
+                IGitConfiguration gitConfig = _context.Git.GetConfiguration();
+                var keyName = string.Format(CultureInfo.InvariantCulture, "{0}.{1}.{2}",
+                    Constants.GitConfiguration.Credential.SectionName, uri.ToString().TrimEnd('/'),
+                    Constants.GitConfiguration.Credential.Provider);
 
-                _context.Streams.Error.WriteLine("warning: failed to remember result of host provider detection!");
-                _context.Streams.Error.WriteLine($"warning: try setting this manually: `git config --global {keyName} {match.Id}`");
+                try
+                {
+                    _context.Trace.WriteLine($"Remembering host provider for '{uri}' as '{match.Id}'...");
+                    gitConfig.Set(GitConfigurationLevel.Global, keyName, match.Id);
+                }
+                catch (Exception ex)
+                {
+                    _context.Trace.WriteLine("Failed to set host provider!");
+                    _context.Trace.WriteException(ex);
+
+                    _context.Streams.Error.WriteLine("warning: failed to remember result of host provider detection!");
+                    _context.Streams.Error.WriteLine($"warning: try setting this manually: `git config --global {keyName} {match.Id}`");
+                }
             }
 
             return match;
