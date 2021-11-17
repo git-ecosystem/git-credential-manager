@@ -7,7 +7,7 @@ call their APIs, and in the future, use Git itself.
 
 This means Git credential helpers such as [Git Credential Manager (GCM) for
 Windows](https://github.com/microsoft/Git-Credential-Manager-for-Windows), and
-old versions of [GCM](https://aka.ms/gcmcore) that offer username/password
+old versions of [GCM](https://aka.ms/gcm) that offer username/password
 flows **will not be able to create new access tokens** for accessing Git
 repositories.
 
@@ -46,7 +46,7 @@ If you are unable to upgrade Git for Windows, you can manually install Git
 Credential Manager as a standalone install. This will override the older,
 GCM for Windows bundled with the Git for Windows installation.
 
-[Download Git Credential Manager standalone ⬇️](https://aka.ms/gcmcore-latest)
+[Download Git Credential Manager standalone ⬇️](https://aka.ms/gcm/latest)
 
 ## What if I cannot use Git Credential Manager?
 
@@ -57,7 +57,7 @@ compatibility issue we'd [like to know why](https://github.com/GitCredentialMana
 
 If you do not have permission to change your installation (for example in a
 corporate environment) you can use the per-user installer. Check out the [latest
-release](https://aka.ms/gcmcore-latest) and download the `gcmcoreuser-win-*.exe`
+release](https://aka.ms/gcm/latest) and download the `gcmcoreuser-win-*.exe`
 executable.
 
 ### Help! I still cannot or don't want to install anything!

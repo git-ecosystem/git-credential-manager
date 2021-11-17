@@ -170,7 +170,7 @@ Maintainer: GCM <gitfundamentals@github.com>
 Description: Cross Platform Git Credential Manager command line utility.
  GCM supports authentication with a number of Git hosting providers
  including GitHub, BitBucket, and Azure DevOps.
- For more information see https://aka.ms/gcmcore
+ For more information see https://aka.ms/gcm
 EOF
 
 # Copy all binaries and shared libraries to target installation location

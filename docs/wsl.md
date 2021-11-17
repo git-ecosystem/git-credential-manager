@@ -38,7 +38,7 @@ If you wish to use GCM inside of WSL _without installing Git for Windows_
 you must complete additional configuration so that GCM can callback to Git
 inside of your WSL installation.
 
-Start by installing the [latest GCM ⬇️](https://aka.ms/gcmcore-latest)
+Start by installing the [latest GCM ⬇️](https://aka.ms/gcm/latest)
 
 _Inside your WSL installation_, run the following command to set GCM as the Git
 credential helper:

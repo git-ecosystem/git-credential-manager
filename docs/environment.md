@@ -197,7 +197,7 @@ export GCM_PROVIDER=github
 
 > This setting is deprecated and should be replaced by `GCM_PROVIDER` with the corresponding provider ID value.
 >
-> Click [here](https://aka.ms/gcmcore-authority) for more information.
+> Click [here](https://aka.ms/gcm/authority) for more information.
 
 Select the host provider to use when authenticating by which authority is supported by the providers.
 
@@ -290,7 +290,7 @@ export GCM_ALLOW_WINDOWSAUTH=0
 
 > This setting is deprecated and should be replaced by the [standard `http.proxy` Git configuration option](https://git-scm.com/docs/git-config#Documentation/git-config.txt-httpproxy).
 >
-> Click [here](https://aka.ms/gcmcore-httpproxy) for more information.
+> Click [here](https://aka.ms/gcm/httpproxy) for more information.
 
 Configure GCM to use the a proxy for network operations.
 

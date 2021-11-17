@@ -106,7 +106,7 @@ tar -xvf <path-to-tarball> -C /usr/local/bin
 git-credential-manager-core configure
 ```
 
-**Note:** all Linux distributions [require additional configuration](https://aka.ms/gcmcore-credstores) to use GCM.
+**Note:** all Linux distributions [require additional configuration](https://aka.ms/gcm/credstores) to use GCM.
 
 ---
 
@@ -180,7 +180,7 @@ Read full command line usage [here](docs/usage.md).
 
 ### Configuring a proxy
 
-See detailed information [here](https://aka.ms/gcmcore-httpproxy).
+See detailed information [here](https://aka.ms/gcm/httpproxy).
 
 ## Additional Resources
 

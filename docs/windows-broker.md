@@ -103,7 +103,7 @@ If GCM can't modify the process's COM security settings, GCM prints a warning me
 ```text
 warning: broker initialization failed
 Failed to set COM process security to allow Windows broker from an elevated process (0x80010119).
-See https://aka.ms/gcmcore-wamadmin for more information.
+See https://aka.ms/gcm/wamadmin for more information.
 ```
 
 ### Possible solutions

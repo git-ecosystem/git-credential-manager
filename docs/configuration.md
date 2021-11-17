@@ -84,7 +84,7 @@ git config --global credential.ghe.contoso.com.provider github
 
 > This setting is deprecated and should be replaced by `credential.provider` with the corresponding provider ID value.
 >
-> Click [here](https://aka.ms/gcmcore-authority) for more information.
+> Click [here](https://aka.ms/gcm/authority) for more information.
 
 Select the host provider to use when authenticating by which authority is supported by the providers.
 
@@ -154,7 +154,7 @@ git config --global credential.tfsonprem123.allowWindowsAuth false
 
 > This setting is deprecated and should be replaced by the [standard `http.proxy` Git configuration option](https://git-scm.com/docs/git-config#Documentation/git-config.txt-httpproxy).
 >
-> Click [here](https://aka.ms/gcmcore-httpproxy) for more information.
+> Click [here](https://aka.ms/gcm/httpproxy) for more information.
 
 Configure GCM to use the a proxy for network operations.
 

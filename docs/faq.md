@@ -22,11 +22,11 @@ Please make sure your remote URLs use "https://" rather than "http://".
 
 ### Q: I got an authentication error and I am behind a network proxy.
 
-You probably need to configure Git and GCM to use a proxy. Please see detailed information [here](https://aka.ms/gcmcore-httpproxy).
+You probably need to configure Git and GCM to use a proxy. Please see detailed information [here](https://aka.ms/gcm/httpproxy).
 
 ### Q: I'm getting errors about picking a credential store on Linux.
 
-On Linux you must [select and configure a credential store](https://aka.ms/gcmcore-credstores), as due to the varied nature of distributions and installations, we cannot guarantee a suitable storage solution is available.
+On Linux you must [select and configure a credential store](https://aka.ms/gcm/credstores), as due to the varied nature of distributions and installations, we cannot guarantee a suitable storage solution is available.
 
 ## About the project
 

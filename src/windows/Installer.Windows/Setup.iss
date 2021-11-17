@@ -35,7 +35,7 @@
 #define GcmVersionInfoDescription "Secure, cross-platform Git credential manager."
 #define GcmPublisherUrl "https://www.github.com"
 #define GcmCopyright "Copyright (c) GitHub, Inc. and contributors"
-#define GcmUrl "https://aka.ms/gcmcore"
+#define GcmUrl "https://aka.ms/gcm"
 #define GcmReadme "https://github.com/GitCredentialManager/git-credential-manager/blob/main/README.md"
 #define GcmRepoRoot "..\..\.."
 #define GcmAssets GcmRepoRoot + "\assets"
@@ -139,7 +139,7 @@ begin
 
   #if InstallTarget == "user"
     if not WizardSilent() and IsAdmin() then begin
-      if MsgBox('This User Installer is not meant to be run as an Administrator. If you would like to install Git Credential Manager for all users in this system, download the System Installer instead from https://aka.ms/gcmcore-latest. Are you sure you want to continue?', mbError, MB_OKCANCEL) = IDCANCEL then begin
+      if MsgBox('This User Installer is not meant to be run as an Administrator. If you would like to install Git Credential Manager for all users in this system, download the System Installer instead from https://aka.ms/gcm/latest. Are you sure you want to continue?', mbError, MB_OKCANCEL) = IDCANCEL then begin
         Result := False;
       end;
     end;
