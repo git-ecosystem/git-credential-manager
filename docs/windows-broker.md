@@ -15,7 +15,7 @@ It doesn't impact authentication with GitHub, Bitbucket, or any other Git host.
 
 ## How to enable
 
-You can opt-in to WAM support by setting the environment variable [`GCM_MSAUTH_USEBROKER`](https://github.com/microsoft/Git-Credential-Manager-Core/blob/main/docs/environment.md#gcm_msauth_usebroker-experimental) or setting the Git configuration value [`credential.msauthUseBroker`](https://github.com/microsoft/Git-Credential-Manager-Core/blob/main/docs/configuration.md#credentialmsauthusebroker-experimental).
+You can opt-in to WAM support by setting the environment variable [`GCM_MSAUTH_USEBROKER`](https://github.com/GitCredentialManager/git-credential-manager/blob/main/docs/environment.md#gcm_msauth_usebroker-experimental) or setting the Git configuration value [`credential.msauthUseBroker`](https://github.com/GitCredentialManager/git-credential-manager/blob/main/docs/configuration.md#credentialmsauthusebroker-experimental).
 
 ## Features
 

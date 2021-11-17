@@ -1,10 +1,10 @@
 # Git Credential Manager
 
-[![Build Status](https://github.com/microsoft/Git-Credential-Manager-Core/actions/workflows/continuous-integration.yml/badge.svg)](https://github.com/microsoft/Git-Credential-Manager-Core/actions/workflows/continuous-integration.yml)
+[![Build Status](https://github.com/GitCredentialManager/git-credential-manager/actions/workflows/continuous-integration.yml/badge.svg)](https://github.com/GitCredentialManager/git-credential-manager/actions/workflows/continuous-integration.yml)
 
 ---
 
-[Git Credential Manager](https://github.com/microsoft/Git-Credential-Manager-Core) (GCM) is a secure Git credential helper built on [.NET](https://dotnet.microsoft.com) that runs on Windows, macOS, and Linux.
+[Git Credential Manager](https://github.com/GitCredentialManager/git-credential-manager) (GCM) is a secure Git credential helper built on [.NET](https://dotnet.microsoft.com) that runs on Windows, macOS, and Linux.
 
 Compared to Git's [built-in credential helpers]((https://git-scm.com/book/en/v2/Git-Tools-Credential-Storage)) (Windows: wincred, macOS: osxkeychain, Linux: gnome-keyring/libsecret) which provides single-factor authentication support working on any HTTP-enabled Git repository, GCM provides multi-factor authentication support for [Azure DevOps](https://dev.azure.com/), Azure DevOps Server (formerly Team Foundation Server), GitHub, and Bitbucket.
 
@@ -72,7 +72,7 @@ brew uninstall --cask git-credential-manager-core
 
 ### macOS Package
 
-We also provide a [.pkg installer](https://github.com/microsoft/Git-Credential-Manager-Core/releases/latest) with each release. To install, double-click the installation package and follow the instructions presented.
+We also provide a [.pkg installer](https://github.com/GitCredentialManager/git-credential-manager/releases/latest) with each release. To install, double-click the installation package and follow the instructions presented.
 
 #### Uninstall
 
@@ -90,7 +90,7 @@ sudo /usr/local/share/gcm-core/uninstall.sh
 
 #### Ubuntu/Debian distributions
 
-Download the latest [.deb package](https://github.com/microsoft/Git-Credential-Manager-Core/releases/latest), and run the following:
+Download the latest [.deb package](https://github.com/GitCredentialManager/git-credential-manager/releases/latest), and run the following:
 
 ```shell
 sudo dpkg -i <path-to-package>
@@ -99,7 +99,7 @@ git-credential-manager-core configure
 
 #### Other distributions
 
-Download the latest [tarball](https://github.com/microsoft/Git-Credential-Manager-Core/releases/latest), and run the following:
+Download the latest [tarball](https://github.com/GitCredentialManager/git-credential-manager/releases/latest), and run the following:
 
 ```shell
 tar -xvf <path-to-tarball> -C /usr/local/bin
@@ -118,7 +118,7 @@ GCM is included with [Git for Windows](https://gitforwindows.org/), and the late
 
 #### Standalone installation
 
-You can also download the [latest installer](https://github.com/microsoft/Git-Credential-Manager-Core/releases/latest) for Windows to install GCM standalone.
+You can also download the [latest installer](https://github.com/GitCredentialManager/git-credential-manager/releases/latest) for Windows to install GCM standalone.
 
 **:warning: Important :warning:**
 

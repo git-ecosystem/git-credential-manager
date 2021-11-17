@@ -12,7 +12,7 @@ Please follow these steps to diagnose or resolve the problem:
 
 1. Set the environment variable `GCM_TRACE` and run the Git operation again. Find instructions [here](environment.md#GCM_TRACE).
 
-1. If all else fails, create an issue [here](https://github.com/Microsoft/Git-Credential-Manager-Core/issues/create), making sure to include the trace log.
+1. If all else fails, create an issue [here](https://github.com/GitCredentialManager/git-credential-manager/issues/create), making sure to include the trace log.
 
 ### Q: I got an error saying unsecure HTTP is not supported.
 

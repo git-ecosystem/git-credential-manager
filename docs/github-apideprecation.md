@@ -38,7 +38,7 @@ If you are using SSH this change does **not** affect you.
 
 If you are using an older version of Git Credential Manager (before
 2.0.124-beta) please upgrade to the latest version following [these
-instructions](https://github.com/microsoft/Git-Credential-Manager-Core#download-and-install).
+instructions](https://github.com/GitCredentialManager/git-credential-manager#download-and-install).
 
 ## What if I cannot upgrade Git for Windows?
 
@@ -51,7 +51,7 @@ GCM for Windows bundled with the Git for Windows installation.
 ## What if I cannot use Git Credential Manager?
 
 If you are unable to use Git Credential Manager due to a bug or
-compatibility issue we'd [like to know why](https://github.com/microsoft/Git-Credential-Manager-Core/issues/new/choose)!
+compatibility issue we'd [like to know why](https://github.com/GitCredentialManager/git-credential-manager/issues/new/choose)!
 
 ## Help! I cannot make any changes to my Windows machine without an Administrator!
 

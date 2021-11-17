@@ -52,7 +52,7 @@ library (C#). The library targets .NET Standard as well as .NET Framework.
 > our own browser pop-up handling code on .NET meaning both Windows and
 > Mac. We haven't yet gotten around to exploring this.
 >
-> See [this](https://github.com/microsoft/Git-Credential-Manager-Core/issues/113)
+> See [this](https://github.com/GitCredentialManager/git-credential-manager/issues/113)
 > issue for more information.
 
 The entry-point for GCM can be found in the `Git-Credential-Manager`
@@ -81,7 +81,7 @@ helpers on Windows.
 ### Cross-platform UI
 
 We hope to be able to migrate the WPF/Windows only helpers to [Avalonia](https://avaloniaui.net/)
-in order to gain cross-platform graphical user interface support. See [this](https://github.com/microsoft/Git-Credential-Manager-Core/issues/136)
+in order to gain cross-platform graphical user interface support. See [this](https://github.com/GitCredentialManager/git-credential-manager/issues/136)
 issue for up-to-date progress on this effort.
 
 ### Microsoft authentication

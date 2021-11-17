@@ -1,8 +1,8 @@
 ## Contributing
 
-[issue]: https://github.com/microsoft/Git-Credential-Manager-Core/issues 
-[fork]: https://github.com/microsoft/Git-Credential-Manager-Core/fork
-[pr]: https://github.com/microsoft/Git-Credential-Manager-Core/compare
+[issue]: https://github.com/GitCredentialManager/git-credential-manager/issues 
+[fork]: https://github.com/GitCredentialManager/git-credential-manager/fork
+[pr]: https://github.com/GitCredentialManager/git-credential-manager/compare
 [code-of-conduct]: CODE_OF_CONDUCT.md
 
 Hi there! We're thrilled that you'd like to contribute to this project. Your help is essential for keeping it great.

@@ -50,7 +50,7 @@ Git Credential Manager (GCM) is a host and platform agnostic Git
 credential helper application. Support for authenticating to any Git hosting
 service can be added to GCM by creating a custom "host provider" and
 registering it within the product. Host providers can be submitted via a pull
-request on GitHub at <https://github.com/microsoft/Git-Credential-Manager-Core>.
+request on GitHub at <https://github.com/GitCredentialManager/git-credential-manager>.
 
 This document outlines the required and expected behaviour of a host provider,
 and what is required to implement and register one.
