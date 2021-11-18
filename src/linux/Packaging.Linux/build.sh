@@ -174,7 +174,7 @@ Description: Cross Platform Git Credential Manager Core command line utility.
 EOF
 
 # Copy all binaries and shared libraries to target installation location
-cp -R "$PAYLOAD" "$INSTALL_TO" || exit 1
+cp -R "$PAYLOAD"/* "$INSTALL_TO" || exit 1
 
 # Create symlinks
 ln -s -r "$INSTALL_TO/git-credential-manager-core" \
