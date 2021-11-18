@@ -176,13 +176,9 @@ EOF
 # Copy all binaries and shared libraries to target installation location
 cp -R "$PAYLOAD"/* "$INSTALL_TO" || exit 1
 
-# Create symlinks
+# Create symlink
 ln -s -r "$INSTALL_TO/git-credential-manager-core" \
     "$LINK_TO/git-credential-manager-core" || exit 1
-ln -s -r "$INSTALL_TO/Atlassian.Bitbucket.UI" \
-    "$LINK_TO/Atlassian.Bitbucket.UI" || exit 1
-ln -s -r "$INSTALL_TO/GitHub.UI" \
-    "$LINK_TO/GitHub.UI" || exit 1
 
 dpkg-deb --build "$DEBROOT" "$DEBPKG" || exit 1
 
