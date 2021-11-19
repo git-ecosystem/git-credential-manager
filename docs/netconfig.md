@@ -1,6 +1,6 @@
 # Network and HTTP configuration
 
-Git Credential Manager Core's network and HTTP(S) behavior can be configured in a few different ways via [environment variables](environment.md) and [configuration options](configuration.md).
+Git Credential Manager's network and HTTP(S) behavior can be configured in a few different ways via [environment variables](environment.md) and [configuration options](configuration.md).
 
 ## HTTP Proxy
 
@@ -44,7 +44,7 @@ For example, a space character would be encoded with `%20`.
 
 ### Other proxy options
 
-GCM Core supports other ways of configuring a proxy for convenience and compatibility.
+GCM supports other ways of configuring a proxy for convenience and compatibility.
 
 1. GCM-specific configuration options (_**only** respected by GCM; **deprecated**_):
    - `credential.httpProxy`
@@ -62,7 +62,7 @@ uppercase variants.
 consistent with how libcurl (and therefore Git) operates.
 
 The `http_proxy` variable exists only in the lowercase variant and libcurl does
-_not_ consider any uppercase form. _GCM Core also reflects this behavior._
+_not_ consider any uppercase form. _GCM also reflects this behavior._
 
 See <https://everything.curl.dev/usingcurl/proxies#proxy-environment-variables>
 for more information.
@@ -70,7 +70,7 @@ for more information.
 ### Bypassing addresses
 
 In some circumstances you may wish to bypass a configured proxy for specific
-addresses. GCM Core supports the cURL environment variable `no_proxy` (and
+addresses. GCM supports the cURL environment variable `no_proxy` (and
 `NO_PROXY`) for this scenario, as does Git itself.
 
 Like with the [other cURL proxy environment variables](#other-proxy-options),
@@ -79,7 +79,7 @@ the lowercase variant will take precedence over the uppercase form.
 This environment variable should contain a comma (`,`) or space (` `) separated
 list of host names that should not be proxied (should connect directly).
 
-GCM Core attempts to match [libcurl's behaviour](https://curl.se/libcurl/c/CURLOPT_NOPROXY.html),
+GCM attempts to match [libcurl's behaviour](https://curl.se/libcurl/c/CURLOPT_NOPROXY.html),
 which is briefly summarized here:
 
 - a value of `*` disables proxying for all hosts;

@@ -1,4 +1,4 @@
-name: GCM-Core
+name: GCM
 
 on:
   workflow_dispatch:

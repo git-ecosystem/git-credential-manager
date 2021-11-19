@@ -23,7 +23,7 @@ namespace GitCredentialManager.UI.Controls
 
         private void ProjectButton_Click(object sender, RoutedEventArgs e)
         {
-            var psi = new ProcessStartInfo("https://aka.ms/gcmcore")
+            var psi = new ProcessStartInfo("https://aka.ms/gcm")
             {
                 UseShellExecute = true
             };

@@ -32,7 +32,7 @@
         <Button HorizontalAlignment="Center"
                 Margin="0,5"
                 FontSize="12" Classes="hyperlink"
-                Content="https://aka.ms/gcmcore"
+                Content="https://aka.ms/gcm"
                 Click="ProjectButton_Click"/>
         <TextBlock HorizontalAlignment="Center"
                    Margin="0,10,0,0"

@@ -1,6 +1,6 @@
 # Enterprise configuration defaults
 
-Git Credential Manager Core (GCM Core) can be configured using multiple
+Git Credential Manager (GCM) can be configured using multiple
 different mechanisms. In order of preference, those mechanisms are:
 
 1. [Environment variables](environment.md)
@@ -42,12 +42,12 @@ HKEY_LOCAL_MACHINE\SOFTWARE\GitCredentialManager\Configuration
 HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\GitCredentialManager\Configuration
 ```
 
-> GCM Core is a 32-bit executable on Windows. When running on a 64-bit
+> GCM is a 32-bit executable on Windows. When running on a 64-bit
 installation of Windows registry access is transparently redirected to the
 `WOW6432Node` node.
 
 By using the Windows Registry, system administrators can use Group Policy to
-easily set defaults for GCM Core's settings.
+easily set defaults for GCM's settings.
 
 The names and possible values of all settings under this key are the same as
 those of the [Git configuration](configuration.md) settings.

@@ -447,7 +447,7 @@ namespace GitCredentialManager
                     /*
                      * COMPAT: In the previous GCM we accepted the values 'auto', 'never', and 'always'.
                      *
-                     * We've slightly changed the behaviour of this setting in GCM Core to essentially
+                     * We've slightly changed the behaviour of this setting in GCM to essentially
                      * remove the 'always' option. The table below outlines the changes:
                      *
                      * -------------------------------------------------------------

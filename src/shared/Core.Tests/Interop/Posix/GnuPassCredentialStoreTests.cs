@@ -90,7 +90,7 @@ namespace GitCredentialManager.Tests.Interop.Posix
         {
             string homePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
             string storePath = Path.Combine(homePath, ".password-store");
-            string userId = "gcmcore-test@example.com";
+            string userId = "gcm-test@example.com";
             string gpgIdPath = Path.Combine(storePath, ".gpg-id");
 
             // Ensure we have a GPG key for use with testing
