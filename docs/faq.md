@@ -82,3 +82,18 @@ We are happy to accept proposals and/or contributions to enable GCM to run on ot
 Due to the design of Git and credential helpers such as GCM, we need this setting to make Git use the full remote URL (including the path component) when communicating with GCM. The new `dev.azure.com` format of Azure DevOps URLs means the account name is now part of the path component (for example: `https://dev.azure.com/contoso/...`). The Azure DevOps account name is required in order to resolve the correct authority for authentication (which Azure AD tenant backs this account, or if it is backed by Microsoft personal accounts).
 
 In the older GCM for Windows product, the solution to the same problem was a "hack". GCM for Windows would walk the process tree looking for the `git-remote-https.exe` process, and attempt to read/parse the process environment block looking for the command line arguments (that contained the full remote URL). This is fragile and not a cross-platform solution, hense the need for the `credential.useHttpPath` setting with GCM.
+
+### Why does GCM take so long at startup the first time?
+
+GCM will [autodetect](autodetect.md) what kind of Git host it's talking to. GitHub, Bitbucket, and Azure DevOps each have their own form(s) of authentication, plus there's a "generic" username and password option.
+
+For the hosted versions of these services, GCM can guess from the URL which service to use. But for on-premises versions which would have unique URLs, GCM will probe with a network call. GCM caches the results of the probe, so it should be faster on the second and later invocations.
+
+If you know which provider you're talking to and want to avoid the probe, that's possible. You can explicitly tell GCM which provider to use for a URL "example.com" like this:
+
+|| Provider || Command ||
+|-----------|----------|
+| GitHub    | `git config --global credential.https://example.com.provider github`
+| Bitbucket | `git config --global credential.https://example.com.provider bitbucket`
+| Azure DevOps | `git config --global credential.https://example.com.provider azure-repos`
+| Generic | `git config --global credential.https://example.com.provider generic`
