@@ -101,6 +101,13 @@ __Note:__ Although packages were previously offered on certain
 GCM no longer publishes to these repositories. Please install the
 Debian package using the above instructions instead.
 
+To uninstall:
+
+```shell
+git-credential-manager-core unconfigure
+sudo dpkg -r gcmcore
+```
+
 #### Other distributions
 
 Download the latest [tarball](https://github.com/GitCredentialManager/git-credential-manager/releases/latest), and run the following:
@@ -108,6 +115,13 @@ Download the latest [tarball](https://github.com/GitCredentialManager/git-creden
 ```shell
 tar -xvf <path-to-tarball> -C /usr/local/bin
 git-credential-manager-core configure
+```
+
+To uninstall:
+git-credential-manager-core unconfigure
+rm $(command -v git-credential-manager-core)
+```shell
+
 ```
 
 **Note:** all Linux distributions [require additional configuration](https://aka.ms/gcm/credstores) to use GCM.
