@@ -105,3 +105,7 @@ This likely indicates that you don't have newer TLS versions available. Please [
 ### How do I use GCM with Windows Subsystem for Linux (WSL)?
 
 Follow the instructions in [our WSL guide](wsl.md) carefully. Especially note the need to run `git config --global credential.https://dev.azure.com.useHttpPath true` _within_ WSL if you're using Azure DevOps.
+
+### Does GCM work with multiple users? If so, how?
+
+That's a fairly complicated question to answer, but in short, yes. See [our document on multiple users](multiple-users.md) for details.
