@@ -101,3 +101,7 @@ If you know which provider you're talking to and want to avoid the probe, that's
 ### How do I fix "Could not create SSL/TLS secure channel" errors on Windows 7?
 
 This likely indicates that you don't have newer TLS versions available. Please [follow Microsoft's guide](https://support.microsoft.com/topic/update-to-enable-tls-1-1-and-tls-1-2-as-default-secure-protocols-in-winhttp-in-windows-c4bd73d2-31d7-761e-0178-11268bb10392) for enabling TLS 1.1 and 1.2 on your machine, specifically the **SChannel** instructions. You'll need to be on at least Windows 7 SP1, and in the end you should have a `TLS 1.2` key with `DisabledByDefault` set to `0`. You can also read [more from Microsoft](https://docs.microsoft.com/previous-versions/windows/it-pro/windows-server-2012-R2-and-2012/dn786418(v=ws.11)#tls-12) on this change.
+
+### How do I use GCM with Windows Subsystem for Linux (WSL)?
+
+Follow the instructions in [our WSL guide](wsl.md) carefully. Especially note the need to run `git config --global credential.https://dev.azure.com.useHttpPath true` _within_ WSL if you're using Azure DevOps.
