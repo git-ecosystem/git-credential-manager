@@ -1,4 +1,4 @@
-# Multiple users in GCM
+# Multiple users
 
 We're sometimes asked, "Does GCM support multiple users?" The answer is a bit complex (though ultimately, it's "yes").
 
