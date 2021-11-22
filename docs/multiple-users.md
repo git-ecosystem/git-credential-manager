@@ -48,6 +48,6 @@ git remote set-url origin https://contrib123@example.com/open-source/library.git
 git remote set-url origin https://employee9999@example.com/big-company/secret-repo.git
 ```
 
-## One last thing
+## Azure DevOps
 
 [Azure DevOps has some additional, optional complexity](azrepos-users-and-tokens.md) which you should also be aware of if you're using it.
