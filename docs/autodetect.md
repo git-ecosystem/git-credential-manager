@@ -18,7 +18,7 @@ In order to detect which host provider to use for a self-hosted instance, each
 provider can provide some heuristic matching of the hostname. For example any
 hostname that begins "github.*" will be matched to the GitHub host provider.
 
-If a heuristic matches incorrectly, you can always [explicitly configure](#explicit-configuration)
+If a heuristic matches incorrectly, you can always [explicitly configure](#manual-configuration)
 GCM to use a particular provider.
 
 ## Remote URL probing
