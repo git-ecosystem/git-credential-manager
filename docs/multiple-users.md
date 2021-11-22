@@ -4,7 +4,7 @@ We're sometimes asked, "Does GCM support multiple users?" The answer is a bit co
 
 ## Foundations: Git and Git hosts
 
-Git itself doesn't have a strong concept of "user". There's the `user.name` and `user.email` which get embedded into commit headers/trailers, but these are arbitrary strings. GCM doesn't interact with this notion of a user at all. You can put whatever you want into your `user.*` config, and nothing in GCM will change at all.
+Git itself doesn't have a single, strong concept of "user". There's the `user.name` and `user.email` which get embedded into commit headers/trailers, but these are arbitrary strings. GCM doesn't interact with this notion of a user at all. You can put whatever you want into your `user.*` config, and nothing in GCM will change at all.
 
 Git hosting providers (like GitHub or Bitbucket) _do_ have a concept of "user". Typically it's an identity like a username or email address, plus a password or other credential to perform actions as that user. You may have guessed by now that GCM (the Git **Credential** Manager) does work with this notion of a user.
 
