@@ -1,10 +1,10 @@
-# Multiple users in GCM
+# Multiple users
 
 If you work with multiple different identities on a single Git hosting service, you may be wondering if Git Credential Manager (GCM) supports this workflow. The answer is yes, with a bit of complexity due to how it interoperates with Git.
 
 ## Foundations: Git and Git hosts
 
-Git itself doesn't have a strong concept of "user". There's the `user.name` and `user.email` which get embedded into commit headers/trailers, but these are arbitrary strings. GCM doesn't interact with this notion of a user at all. You can put whatever you want into your `user.*` config, and nothing in GCM will change at all.
+Git itself doesn't have a single, strong concept of "user". There's the `user.name` and `user.email` which get embedded into commit headers/trailers, but these are arbitrary strings. GCM doesn't interact with this notion of a user at all. You can put whatever you want into your `user.*` config, and nothing in GCM will change at all.
 
 Separate from the user strings in commits, Git recognizes the "user" part of a remote URL or a credential. These are not often used, at least by default, in the web UI of major Git hosts.
 
@@ -48,6 +48,6 @@ git remote set-url origin https://contrib123@example.com/open-source/library.git
 git remote set-url origin https://employee9999@example.com/big-company/secret-repo.git
 ```
 
-## One last thing
+## Azure DevOps
 
 [Azure DevOps has some additional, optional complexity](azrepos-users-and-tokens.md) which you should also be aware of if you're using it.
