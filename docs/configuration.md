@@ -11,7 +11,7 @@ URL-specific settings or overrides can be applied to any value in the `credentia
 
 Additionally, GCM respects several GCM-specific [environment variables](environment.md) **which take precedence over configuration options**. System administrators may also configure [default values](enterprise-config.md) for many settings used by GCM.
 
-GCM will only be used by Git if it is installed and configured. Use `git config --global credential.helper manager-core` to assign GCM as your credential helper. Use `git config credential.helper` to see the current configuration.
+GCM will only be used by Git if it is installed and configured. Use `git config --global credential.helper manager` to assign GCM as your credential helper. Use `git config credential.helper` to see the current configuration.
 
 **Example:**
 

@@ -11,8 +11,8 @@ namespace GitCredentialManager.Tests.Objects
         public TestCommandContext()
         {
             AppPath = PlatformUtils.IsWindows()
-                ? @"C:\Program Files\Git Credential Manager Core\git-credential-manager-core.exe"
-                : "/usr/local/bin/git-credential-manager-core";
+                ? @"C:\Program Files\Git Credential Manager Core\git-credential-manager.exe"
+                : "/usr/local/bin/git-credential-manager";
 
             Streams = new TestStandardStreams();
             Terminal = new TestTerminal();

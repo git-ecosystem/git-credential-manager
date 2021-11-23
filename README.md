@@ -94,7 +94,7 @@ Download the latest [.deb package](https://github.com/GitCredentialManager/git-c
 
 ```shell
 sudo dpkg -i <path-to-package>
-git-credential-manager-core configure
+git-credential-manager configure
 ```
 __Note:__ Although packages were previously offered on certain
 [Microsoft Ubuntu package feeds](https://packages.microsoft.com/repos/),
@@ -104,7 +104,7 @@ Debian package using the above instructions instead.
 To uninstall:
 
 ```shell
-git-credential-manager-core unconfigure
+git-credential-manager unconfigure
 sudo dpkg -r gcmcore
 ```
 
@@ -114,12 +114,12 @@ Download the latest [tarball](https://github.com/GitCredentialManager/git-creden
 
 ```shell
 tar -xvf <path-to-tarball> -C /usr/local/bin
-git-credential-manager-core configure
+git-credential-manager configure
 ```
 
 To uninstall:
-git-credential-manager-core unconfigure
-rm $(command -v git-credential-manager-core)
+git-credential-manager unconfigure
+rm $(command -v git-credential-manager)
 ```shell
 
 ```

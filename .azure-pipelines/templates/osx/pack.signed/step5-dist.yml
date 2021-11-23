@@ -21,7 +21,7 @@ steps:
       downloadPath: '$(Build.StagingDirectory)/symbols'
 
   # Skip notarization until we can preserve the hardened runtime bit and sign the .NET runtime bits
-  # Tracked: https://github.com/microsoft/Git-Credential-Manager-Core/issues/108
+  # Tracked: https://github.com/GitCredentialManager/git-credential-manager/issues/108
   #- script: src/osx/SignFiles.Mac/notarize-pkg.sh -id "$(AppleId)" -p "$(AppleIdPassword)" -pkg "$(Build.StagingDirectory)"/pkg/*.pkg
   #  displayName: Notarize and staple installer package
 

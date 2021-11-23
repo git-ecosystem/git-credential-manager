@@ -70,7 +70,7 @@ In advanced scenarios (such as using multiple accounts) you can interact with
 and manage remembered user accounts using the 'azure-repos' provider command:
 
 ```shell
-git-credential-manager-core azure-repos [ list | bind | unbind | ... ] <options>
+git-credential-manager azure-repos [ list | bind | unbind | ... ] <options>
 ```
 
 ##### Listing remembered accounts
@@ -79,7 +79,7 @@ You can list all bound user accounts by Git Credential Manager for each Azure
 DevOps organization using the `list` command:
 
 ```shell
-$ git-credential-manager-core azure-repos list
+$ git-credential-manager azure-repos list
 contoso:
   (global) -> alice@contoso.com
 fabrikam:
@@ -105,7 +105,7 @@ the `.git/config` file. If there are local bindings in a repository you can show
 them with the `list` command:
 
 ```shell
-~/myrepo$ git-credential-manager-core azure-repos list
+~/myrepo$ git-credential-manager azure-repos list
 contoso:
   (global) -> alice@contoso.com
   (local)  -> alice-alt@contoso.com
@@ -118,7 +118,7 @@ To create a local binding, use the `bind` command with the `--local` option when
 inside a repository:
 
 ```shell
-~/myrepo$ git-credential-manager-core azure-repos bind --local contoso alice-alt@contso.com
+~/myrepo$ git-credential-manager azure-repos bind --local contoso alice-alt@contso.com
 ```
 
 ```diff
@@ -132,7 +132,7 @@ inside a repository:
 To have Git Credential Manager forget a user account, use the `unbind` command:
 
 ```shell
-git-credential-manager-core azure-repos unbind fabrikam
+git-credential-manager azure-repos unbind fabrikam
 ```
 
 ```diff
@@ -151,7 +151,7 @@ To forget or remove a local binding, within the repository run the `unbind`
 command with the `--local` option:
 
 ```shell
-~/myrepo$ git-credential-manager-core azure-repos unbind --local contoso
+~/myrepo$ git-credential-manager azure-repos unbind --local contoso
 ```
 
 ```diff
@@ -170,7 +170,7 @@ To show which accounts are being used for each Git remote in a repository use
 the `list` command with the `--show-remotes` option:
 
 ```shell
-~/myrepo$ git-credential-manager-core azure-repos list --show-remotes
+~/myrepo$ git-credential-manager azure-repos list --show-remotes
 contoso:
   (global) -> alice@contoso.com
   origin:
@@ -209,7 +209,7 @@ The `list --show-remotes` command will show the user account specified in the
 remote URL:
 
 ```shell
-~/myrepo$ git-credential-manager-core azure-repos list --show-remotes
+~/myrepo$ git-credential-manager azure-repos list --show-remotes
 contoso:
   (global) -> alice@contoso.com
   origin:

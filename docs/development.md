@@ -91,7 +91,7 @@ If you want to debug a release build or installation of GCM, you can set the `GC
 For example:
 
 ```shell
-$ GCM_TRACE=1 git-credential-manager-core version
+$ GCM_TRACE=1 git-credential-manager version
 > 18:47:56.526712 ...er/Application.cs:69 trace: [RunInternalAsync] Git Credential Manager version 2.0.124-beta+e1ebbe1517 (macOS, .NET 5.0) 'version'
 > Git Credential Manager version 2.0.124-beta+e1ebbe1517 (macOS, .NET 5.0)
 ```

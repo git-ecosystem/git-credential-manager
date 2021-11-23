@@ -177,8 +177,8 @@ EOF
 cp -R "$PAYLOAD"/* "$INSTALL_TO" || exit 1
 
 # Create symlink
-ln -s -r "$INSTALL_TO/git-credential-manager-core" \
-    "$LINK_TO/git-credential-manager-core" || exit 1
+ln -s -r "$INSTALL_TO/git-credential-manager" \
+    "$LINK_TO/git-credential-manager" || exit 1
 
 dpkg-deb --build "$DEBROOT" "$DEBPKG" || exit 1
 

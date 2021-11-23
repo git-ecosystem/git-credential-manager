@@ -571,12 +571,12 @@ namespace Microsoft.AzureRepos.Tests
         }
 
         [PlatformFact(Platforms.Windows)]
-        public async Task AzureReposHostProvider_UnconfigureAsync_System_Windows_UseHttpPathSetAndManagerCoreHelper_DoesNotRemoveEntry()
+        public async Task AzureReposHostProvider_UnconfigureAsync_System_Windows_UseHttpPathSetAndManagerHelper_DoesNotRemoveEntry()
         {
             var context = new TestCommandContext();
             var provider = new AzureReposHostProvider(context);
 
-            context.Git.Configuration.System[HelperKey] = new List<string> {"manager-core"};
+            context.Git.Configuration.System[HelperKey] = new List<string> {"manager"};
             context.Git.Configuration.System[AzDevUseHttpPathKey] = new List<string> {"true"};
 
             await provider.UnconfigureAsync(ConfigurationTarget.System);
@@ -587,7 +587,7 @@ namespace Microsoft.AzureRepos.Tests
         }
 
         [PlatformFact(Platforms.Windows)]
-        public async Task AzureReposHostProvider_UnconfigureAsync_System_Windows_UseHttpPathSetNoManagerCoreHelper_RemovesEntry()
+        public async Task AzureReposHostProvider_UnconfigureAsync_System_Windows_UseHttpPathSetNoManagerHelper_RemovesEntry()
         {
             var context = new TestCommandContext();
             var provider = new AzureReposHostProvider(context);
@@ -600,12 +600,12 @@ namespace Microsoft.AzureRepos.Tests
         }
 
         [PlatformFact(Platforms.Windows)]
-        public async Task AzureReposHostProvider_UnconfigureAsync_User_Windows_UseHttpPathSetAndManagerCoreHelper_RemovesEntry()
+        public async Task AzureReposHostProvider_UnconfigureAsync_User_Windows_UseHttpPathSetAndManagerHelper_RemovesEntry()
         {
             var context = new TestCommandContext();
             var provider = new AzureReposHostProvider(context);
 
-            context.Git.Configuration.Global[HelperKey] = new List<string> {"manager-core"};
+            context.Git.Configuration.Global[HelperKey] = new List<string> {"manager"};
             context.Git.Configuration.Global[AzDevUseHttpPathKey] = new List<string> {"true"};
 
             await provider.UnconfigureAsync(ConfigurationTarget.User);

@@ -6,7 +6,7 @@ GCM stays invisible as much as possible, so ideally you’ll forget that you’r
 Assuming GCM has been installed, use your favorite terminal to execute the following commands to interact directly with GCM.
 
 ```shell
-git credential-manager-core [<command> [<args>]]
+git credential-manager [<command> [<args>]]
 ```
 
 ## Commands
