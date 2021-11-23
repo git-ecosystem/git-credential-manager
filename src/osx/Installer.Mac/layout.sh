@@ -103,6 +103,10 @@ dotnet publish "$GITHUB_UI_SRC" \
 echo "Collecting managed symbols..."
 mv "$PAYLOAD"/*.pdb "$SYMBOLOUT" || exit 1
 
+# Copy shim script from the older "GCM Core" executable name for back-compat
+echo "Copying shim script..."
+cp "$THISDIR"/shim.sh "$PAYLOAD"/git-credential-manager-core || exit 1
+
 # Remove any unwanted .DS_Store files
 echo "Removing unnecessary files..."
 find "$PAYLOAD" -name '*.DS_Store' -type f -delete || exit 1

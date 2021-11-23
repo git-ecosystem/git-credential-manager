@@ -122,6 +122,10 @@ dotnet publish "$GITHUB_UI_SRC" \
 echo "Collecting managed symbols..."
 mv "$PAYLOAD"/*.pdb "$SYMBOLOUT" || exit 1
 
+# Copy shim script from the older "GCM Core" executable name for back-compat
+echo "Copying shim script..."
+cp "$THISDIR"/shim.sh "$PAYLOAD"/git-credential-manager-core || exit 1
+
 echo "Build complete."
 
 #####################################################################
@@ -130,7 +134,7 @@ echo "Build complete."
 echo "Packing Packaging.Linux..."
 # Cleanup any old archive files
 if [ -e "$TAROUT" ]; then
-    echo "Deleteing old archive '$TAROUT'..."
+    echo "Deleting old archive '$TAROUT'..."
     rm "$TAROUT"
 fi
 
@@ -176,9 +180,13 @@ EOF
 # Copy all binaries and shared libraries to target installation location
 cp -R "$PAYLOAD"/* "$INSTALL_TO" || exit 1
 
-# Create symlink
+# Create symlinks
 ln -s -r "$INSTALL_TO/git-credential-manager" \
     "$LINK_TO/git-credential-manager" || exit 1
+
+# Create old executable name symlink for back-compat
+ln -s -r "$INSTALL_TO/git-credential-manager-core" \
+    "$LINK_TO/git-credential-manager-core" || exit 1
 
 dpkg-deb --build "$DEBROOT" "$DEBPKG" || exit 1
 
