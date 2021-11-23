@@ -18,12 +18,12 @@
 #if InstallTarget == "user"
   #define GcmAppId "{{aa76d31d-432c-42ee-844c-bc0bc801cef3}}"
   #define GcmLongName "Git Credential Manager (User)"
-  #define GcmSetupExe "gcmcoreuser"
+  #define GcmSetupExe "gcmuser"
   #define GcmConfigureCmdArgs ""
 #elif InstallTarget == "system"
   #define GcmAppId "{{fdfae50a-1bc1-4ead-9228-1e1c275e8d12}}"
   #define GcmLongName "Git Credential Manager"
-  #define GcmSetupExe "gcmcore"
+  #define GcmSetupExe "gcm"
   #define GcmConfigureCmdArgs "--system"
 #else
   #error Installer target property 'InstallTarget' must be 'user' or 'system'

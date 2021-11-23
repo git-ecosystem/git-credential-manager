@@ -57,7 +57,7 @@ compatibility issue we'd [like to know why](https://github.com/GitCredentialMana
 
 If you do not have permission to change your installation (for example in a
 corporate environment) you can use the per-user installer. Check out the [latest
-release](https://aka.ms/gcm/latest) and download the `gcmcoreuser-win-*.exe`
+release](https://aka.ms/gcm/latest) and download the `gcmuser-win-*.exe`
 executable.
 
 ### Help! I still cannot or don't want to install anything!

@@ -68,12 +68,12 @@ PAYLOAD="$PROJ_OUT/payload/$CONFIGURATION"
 SYMBOLOUT="$PROJ_OUT/payload.sym/$CONFIGURATION"
 
 TAROUT="$PROJ_OUT/tar/$CONFIGURATION"
-TARBALL="$TAROUT/gcmcore-linux_$ARCH.$VERSION.tar.gz"
+TARBALL="$TAROUT/gcm-linux_$ARCH.$VERSION.tar.gz"
 SYMTARBALL="$TAROUT/symbols-linux_$ARCH.$VERSION.tar.gz"
 
 DEBOUT="$PROJ_OUT/deb/$CONFIGURATION"
 DEBROOT="$DEBOUT/root"
-DEBPKG="$DEBOUT/gcmcore-linux_$ARCH.$VERSION.deb"
+DEBPKG="$DEBOUT/gcm-linux_$ARCH.$VERSION.deb"
 
 # Cleanup payload directory
 if [ -d "$PAYLOAD" ]; then

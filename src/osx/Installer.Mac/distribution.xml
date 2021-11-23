@@ -11,11 +11,11 @@
             <os-version min="10.13" />
         </allowed-os-versions>
     </volume-check>
-    <pkg-ref id="gcmcore" />
+    <pkg-ref id="gcm" />
     <choices-outline>
         <line choice="default" />
     </choices-outline>
     <choice id="default" visible="true" enabled="false" title="Git Credential Manager" description="Git Credential Manager application.">
-        <pkg-ref id="gcmcore">com.microsoft.gitcredentialmanager.component.pkg</pkg-ref>
+        <pkg-ref id="gcm">com.microsoft.gitcredentialmanager.component.pkg</pkg-ref>
     </choice>
 </installer-gui-script>

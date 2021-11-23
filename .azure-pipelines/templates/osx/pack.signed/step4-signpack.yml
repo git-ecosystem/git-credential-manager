@@ -18,21 +18,21 @@ steps:
 
   - powershell: |
       $dir="$(Build.StagingDirectory)\pkg"
-      Compress-Archive -Path $dir\*.pkg $dir\gcmcorepkg.zip
+      Compress-Archive -Path $dir\*.pkg $dir\gcmpkg.zip
       Remove-Item $dir\*.pkg
     displayName: 'Zip package file for signing'
 
   - task: ms-vseng.MicroBuildTasks.7973a23b-33e3-4b00-a7d9-c06d90f8297f.MicroBuildSignMacFiles@1
     displayName: Sign package
     inputs:
-      SigningTarget: '$(Build.StagingDirectory)\pkg\gcmcorepkg.zip'
+      SigningTarget: '$(Build.StagingDirectory)\pkg\gcmpkg.zip'
       SigningCert: 8003
     condition: and(succeeded(), ne(variables['SignType'], 'test'))
 
   - powershell: |
       $dir="$(Build.StagingDirectory)\pkg"
-      Expand-Archive -LiteralPath $dir\gcmcorepkg.zip -DestinationPath $dir -Force
-      Remove-Item $dir\gcmcorepkg.zip -Force
+      Expand-Archive -LiteralPath $dir\gcmpkg.zip -DestinationPath $dir -Force
+      Remove-Item $dir\gcmpkg.zip -Force
     displayName: 'Unzip signed package file'
 
   - task: PublishPipelineArtifact@0
