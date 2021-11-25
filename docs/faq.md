@@ -91,12 +91,12 @@ For the hosted versions of these services, GCM can guess from the URL which serv
 
 If you know which provider you're talking to and want to avoid the probe, that's possible. You can explicitly tell GCM which provider to use for a URL "example.com" like this:
 
-|| Provider || Command ||
-|-----------|----------|
-| GitHub    | `git config --global credential.https://example.com.provider github`
-| Bitbucket | `git config --global credential.https://example.com.provider bitbucket`
-| Azure DevOps | `git config --global credential.https://example.com.provider azure-repos`
-| Generic | `git config --global credential.https://example.com.provider generic`
+Provider|Command
+-|-
+GitHub|`git config --global credential.https://example.com.provider github`
+Bitbucket|`git config --global credential.https://example.com.provider bitbucket`
+Azure DevOps|`git config --global credential.https://example.com.provider azure-repos`
+Generic|`git config --global credential.https://example.com.provider generic`
 
 ### How do I fix "Could not create SSL/TLS secure channel" errors on Windows 7?
 
