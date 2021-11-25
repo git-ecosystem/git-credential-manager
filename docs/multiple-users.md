@@ -26,7 +26,7 @@ As an example, let's say you're working on multiple repositories hosted at the s
 | `https://example.com/more-open-source/app.git` | `contrib123` |
 | `https://example.com/big-company/secret-repo.git` | `employee9999` |
 
-When you clone these repos, include the identity and an `@` before the domain name in order to force Git and GCM to use different identities. If you've already cloned the repos, you can update the remote URL to incude the identity.
+When you clone these repos, include the identity and an `@` before the domain name in order to force Git and GCM to use different identities. If you've already cloned the repos, you can update the remote URL to include the identity.
 
 ### Example: fresh clones
 
