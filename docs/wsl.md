@@ -55,7 +55,7 @@ the value `GIT_EXEC_PATH/wp`. From an _Administrator_ Command Prompt run the
 following:
 
 ```batch
-SETX WSLENV=%WSLENV%:GIT_EXEC_PATH/wp
+SETX WSLENV %WSLENV%:GIT_EXEC_PATH/wp
 ```
 
 After updating the `WSLENV` environment variable, restart your WSL installation.
