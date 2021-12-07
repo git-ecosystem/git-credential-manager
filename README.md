@@ -118,10 +118,10 @@ git-credential-manager-core configure
 ```
 
 To uninstall:
+
+```shell
 git-credential-manager-core unconfigure
 rm $(command -v git-credential-manager-core)
-```shell
-
 ```
 
 **Note:** all Linux distributions [require additional configuration](https://aka.ms/gcm/credstores) to use GCM.
