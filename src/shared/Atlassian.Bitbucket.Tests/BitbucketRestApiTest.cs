@@ -33,7 +33,7 @@ namespace Atlassian.Bitbucket.Tests
             var httpHandler = new TestHttpMessageHandler();
             httpHandler.Setup(HttpMethod.Get, expectedRequestUri, request =>
             {
-                if(isBearerToken)
+                if (isBearerToken)
                 {
                     RestTestUtilities.AssertBearerAuth(request, password);
                 }
@@ -41,7 +41,7 @@ namespace Atlassian.Bitbucket.Tests
                 {
                     RestTestUtilities.AssertBasicAuth(request, username, password);
                 }
-                //AssertAuthCode(request, testAuthCode);
+
                 return httpResponse;
             });
             context.HttpClientFactory.MessageHandler = httpHandler;

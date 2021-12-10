@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
@@ -81,7 +80,6 @@ namespace Atlassian.Bitbucket.Tests
             IEnumerable<char> tokenType = null;
             Assert.Equal(tokenType, result.TokenType);
             Assert.Equal(null, result.Scopes);
-            //Assert.Equal(pkceCodeVerifier, result.ExpiresIn);
         }
 
         private void VerifyAuthorizationCodeResult(OAuth2AuthorizationCodeResult result)
