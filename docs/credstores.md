@@ -1,6 +1,6 @@
 # Credential stores
 
-There are several options for storing credentials that GCM Core supports:
+There are several options for storing credentials that GCM supports:
 
 - Windows Credential Manager
 - DPAPI protected files
@@ -157,12 +157,12 @@ you must ensure you have configured the GPG Agent (`gpg-agent`) with a suitable
 pin-entry program for the terminal such as `pinentry-tty` or `pinentry-curses`.
 
 If you are connecting to your system via SSH, then the `SSH_TTY` variable should
-automatically be set. GCM Core will pass the value of `SSH_TTY` to GPG/GPG Agent
+automatically be set. GCM will pass the value of `SSH_TTY` to GPG/GPG Agent
 as the TTY device to use for prompting for a passphrase.
 
 If you are not connecting via SSH, or otherwise do not have the `SSH_TTY`
 environment variable set, you must set the `GPG_TTY` environment variable before
-running GCM Core. The easiest way to do this is by adding the following to your
+running GCM. The easiest way to do this is by adding the following to your
 profile (`~/.bashrc`, `~/.profile` etc):
 
 ```shell

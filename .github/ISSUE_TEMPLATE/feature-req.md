@@ -1,6 +1,6 @@
 ---
 name: Feature request
-about: A suggestion for a new feature in Git Credential Manager Core.
+about: A suggestion for a new feature in Git Credential Manager.
 title: ''
 labels: 'enhancement'
 assignees: ''

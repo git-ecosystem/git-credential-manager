@@ -148,14 +148,14 @@ namespace GitCredentialManager
 
         public static class HelpUrls
         {
-            public const string GcmProjectUrl          = "https://aka.ms/gcmcore";
-            public const string GcmNewIssue            = "https://aka.ms/gcmcore-bug";
-            public const string GcmAuthorityDeprecated = "https://aka.ms/gcmcore-authority";
-            public const string GcmHttpProxyGuide      = "https://aka.ms/gcmcore-httpproxy";
-            public const string GcmTlsVerification     = "https://aka.ms/gcmcore-tlsverify";
-            public const string GcmCredentialStores    = "https://aka.ms/gcmcore-credstores";
-            public const string GcmWamComSecurity      = "https://aka.ms/gcmcore-wamadmin";
-            public const string GcmAutoDetect          = "https://aka.ms/gcmcore-autodetect";
+            public const string GcmProjectUrl          = "https://aka.ms/gcm";
+            public const string GcmNewIssue            = "https://aka.ms/gcm/bug";
+            public const string GcmAuthorityDeprecated = "https://aka.ms/gcm/authority";
+            public const string GcmHttpProxyGuide      = "https://aka.ms/gcm/httpproxy";
+            public const string GcmTlsVerification     = "https://aka.ms/gcm/tlsverify";
+            public const string GcmCredentialStores    = "https://aka.ms/gcm/credstores";
+            public const string GcmWamComSecurity      = "https://aka.ms/gcm/wamadmin";
+            public const string GcmAutoDetect          = "https://aka.ms/gcm/autodetect";
         }
 
         private static Version _gcmVersion;

@@ -3,7 +3,7 @@
 Start by cloning this repository:
 
 ```shell
-git clone https://github.com/microsoft/Git-Credential-Manager-Core
+git clone https://github.com/GitCredentialManager/git-credential-manager
 ```
 
 You also need the latest version of the .NET SDK which can be downloaded and installed from [here](https://dotnet.microsoft.com/).
@@ -58,7 +58,7 @@ The flat binaries can also be found in `out/linux/Packaging.Linux/payload/Debug`
 
 To debug from inside an IDE you'll want to set `Git-Credential-Manager` as the startup project, and specify one of `get`, `store`, or `erase` as a program argument.
 
-To simulate Git interacting with GCM Core, when you start from your IDE of choice, you'll need to enter the following [information over standard input](https://git-scm.com/docs/git-credential#IOFMT):
+To simulate Git interacting with GCM, when you start from your IDE of choice, you'll need to enter the following [information over standard input](https://git-scm.com/docs/git-credential#IOFMT):
 
 ```text
 protocol=http<LF>
@@ -80,13 +80,13 @@ For more information about how Git interacts with credential helpers, please rea
 
 ### Attaching to a running process
 
-If you want to debug an already running GCM Core process, set the `GCM_DEBUG` environment variable to `1` or `true`. The process will wait on launch for a debugger to attach before continuing.
+If you want to debug an already running GCM process, set the `GCM_DEBUG` environment variable to `1` or `true`. The process will wait on launch for a debugger to attach before continuing.
 
-This is useful when debugging interactions between GCM Core and Git, and you want Git to be the one launching us.
+This is useful when debugging interactions between GCM and Git, and you want Git to be the one launching us.
 
 ### Collect trace output
 
-If you want to debug a release build or installation of GCM Core, you can set the `GCM_TRACE` environment variable to `1` to print trace information to standard error, or to an absolute file path to write trace information to a file.
+If you want to debug a release build or installation of GCM, you can set the `GCM_TRACE` environment variable to `1` to print trace information to standard error, or to an absolute file path to write trace information to a file.
 
 For example:
 
@@ -94,4 +94,41 @@ For example:
 $ GCM_TRACE=1 git-credential-manager-core version
 > 18:47:56.526712 ...er/Application.cs:69 trace: [RunInternalAsync] Git Credential Manager version 2.0.124-beta+e1ebbe1517 (macOS, .NET 5.0) 'version'
 > Git Credential Manager version 2.0.124-beta+e1ebbe1517 (macOS, .NET 5.0)
+```
+
+### Code coverage metrics
+
+If you want code coverage metrics these can be generated either from the command line:
+
+```shell
+$ dotnet test --collect:"XPlat Code Coverage" --settings=./.code-coverage/coverlet.settings.xml
+```
+
+Or via the VSCode Terminal/Run Task:
+
+```
+test with coverage
+```
+
+HTML reports can be generated using ReportGenerator, this should be installed during the build process, from the command line:
+
+```shell
+$ dotnet ~/.nuget/packages/reportgenerator/*/*/net5.0/ReportGenerator.dll -reports:./**/TestResults/**/coverage.cobertura.xml -targetdir:./out/code-coverage
+```
+or
+
+```shell
+$ dotnet {$env:USERPROFILE}/.nuget/packages/reportgenerator/*/*/net5.0/ReportGenerator.dll -reports:./**/TestResults/**/coverage.cobertura.xml -targetdir:./out/code-coverage
+```
+
+Or via VSCode Terminal/Run Task:
+
+```
+report coverage - nix
+```
+
+or
+
+```
+report coverage - win
 ```

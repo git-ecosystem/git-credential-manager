@@ -145,7 +145,7 @@ namespace GitHub
                     // the PAT permissions manually on the web and then retry the Git operation.
                     // We must store the PAT now so they can resume/repeat the operation with the same,
                     // now SSO authorized, PAT.
-                    // See: https://github.com/microsoft/Git-Credential-Manager-Core/issues/133
+                    // See: https://github.com/GitCredentialManager/git-credential-manager/issues/133
                     Context.CredentialStore.AddOrUpdate(service, patCredential.Account, patCredential.Password);
                     return patCredential;
 

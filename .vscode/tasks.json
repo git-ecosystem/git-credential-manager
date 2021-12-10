@@ -31,6 +31,54 @@
                 "reveal": "always",
                 "panel": "dedicated"
             }
+        },
+        {
+            "label": "test with coverage",
+            "command": "dotnet",
+            "type": "shell",
+            "group": "test",
+            "args": [
+                "test",
+                "${workspaceFolder}/Git-Credential-Manager.sln",
+                "--collect",
+                "'XPlat Code Coverage'",
+                "--settings",
+                "${workspaceFolder}/.code-coverage/coverlet.settings.xml"
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            }
+        },
+        {
+            "label": "report coverage - nix",
+            "command": "dotnet",
+            "type": "shell",
+            "group": "test",
+            "args": [
+                "~/.nuget/packages/reportgenerator/*/*/net5.0/ReportGenerator.dll",
+                "-reports:${workspaceFolder}/**/TestResults/**/coverage.cobertura.xml",
+                "-targetdir:${workspaceFolder}/out/code-coverage"
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            }
+        },
+        {
+            "label": "report coverage - win",
+            "command": "dotnet",
+            "type": "shell",
+            "group": "test",
+            "args": [
+                "${env:USERROFILE}/.nuget/packages/reportgenerator/*/*/net5.0/ReportGenerator.dll",
+                "-reports:${workspaceFolder}/**/TestResults/**/coverage.cobertura.xml",
+                "-targetdir:${workspaceFolder}/out/code-coverage"
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated"
+            }
         }
     ]
 }

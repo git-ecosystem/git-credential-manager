@@ -79,7 +79,7 @@ namespace GitHub
                 throw new ArgumentException(@$"Must specify at least one {nameof(AuthenticationModes)}", nameof(modes));
             }
 
-            if (TryFindHelperExecutablePath(out string helperPath))
+            if (Context.SessionManager.IsDesktopSession && TryFindHelperExecutablePath(out string helperPath))
             {
                 var promptArgs = new StringBuilder("prompt");
                 if (modes == AuthenticationModes.All)
@@ -207,7 +207,7 @@ namespace GitHub
         {
             ThrowIfUserInteractionDisabled();
 
-            if (TryFindHelperExecutablePath(out string helperPath))
+            if (Context.SessionManager.IsDesktopSession && TryFindHelperExecutablePath(out string helperPath))
             {
                 var args = new StringBuilder("2fa");
                 if (isSms) args.Append(" --sms");
