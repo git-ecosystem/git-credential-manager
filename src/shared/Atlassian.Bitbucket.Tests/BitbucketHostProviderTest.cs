@@ -56,7 +56,7 @@ namespace Atlassian.Bitbucket.Tests
         {
             InputArguments input = null;
             var provider = new BitbucketHostProvider(new TestCommandContext());
-            Assert.Equal(false, provider.IsSupported(input));
+            Assert.False(provider.IsSupported(input));
         }
 
         [Fact]
@@ -64,7 +64,7 @@ namespace Atlassian.Bitbucket.Tests
         {
             HttpResponseMessage httpResponseMessage = null;
             var provider = new BitbucketHostProvider(new TestCommandContext());
-            Assert.Equal(false, provider.IsSupported(httpResponseMessage));
+            Assert.False(provider.IsSupported(httpResponseMessage));
         }
 
         [Theory]

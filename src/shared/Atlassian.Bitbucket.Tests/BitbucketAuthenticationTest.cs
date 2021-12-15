@@ -25,9 +25,8 @@ namespace Atlassian.Bitbucket.Tests
             Assert.Equal(password, result.Password);
         }
 
-        [Theory]
-        [InlineData("jsquire", "password")]
-        public async Task BitbucketAuthentication_ShowOAuthRequiredPromptAsync_SucceedsAfterUserInput(string username, string password)
+        [Fact]
+        public async Task BitbucketAuthentication_ShowOAuthRequiredPromptAsync_SucceedsAfterUserInput()
         {
             var context = new TestCommandContext();
             context.Terminal.Prompts["Press enter to continue..."] = " ";

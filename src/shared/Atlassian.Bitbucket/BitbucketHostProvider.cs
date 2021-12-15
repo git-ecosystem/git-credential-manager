@@ -144,9 +144,6 @@ namespace Atlassian.Bitbucket
                 // There is no refresh token either because this is a non-2FA enabled account (where OAuth is not
                 // required), or because we previously erased the RT.
 
-                // Check for the presence of a credential in the store
-                string credentialService = GetServiceName(input);
-
                 if (SupportsBasicAuth(authModes))
                 {
                     _context.Trace.WriteLine("Prompt for Basic Auth...");
@@ -181,9 +178,6 @@ namespace Atlassian.Bitbucket
             {
                 _context.Trace.WriteLineSecrets($"Found stored refresh token: {{0}}", new object[] { refreshToken });
 
-                // It's very likely that any access token expired between the last time we used/stored it.
-                // To ensure the AT is as 'fresh' as it can be, always first try to use the refresh token
-                // (which lives longer) to create a new AT (and possibly also a new RT).
                 try
                 {
                     return await GetOAuthCredentialsViaRefreshFlow(input, refreshToken);
