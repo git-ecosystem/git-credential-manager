@@ -65,7 +65,7 @@ namespace Atlassian.Bitbucket
             }
 
             // Identify Bitbucket on-prem instances from the HTTP response using the Atlassian specific header X-AREQUESTID
-            var supported =  response.Headers.Contains("X-AREQUESTID");
+            var supported = response.Headers.Contains("X-AREQUESTID");
 
             _context.Trace.WriteLine($"Host is{(supported ? null : "n't")} supported as Bitbucket");
 
@@ -94,8 +94,8 @@ namespace Atlassian.Bitbucket
 
         private async Task<ICredential> GetStoredCredentials(InputArguments input)
         {
-            if (_context.Settings.TryGetSetting(BitbucketConstants.EnvironmentVariables.AlwaysRefreshCredentials, 
-                Constants.GitConfiguration.Credential.SectionName, BitbucketConstants.GitConfiguration.Credential.AlwaysRefreshCredentials, 
+            if (_context.Settings.TryGetSetting(BitbucketConstants.EnvironmentVariables.AlwaysRefreshCredentials,
+                Constants.GitConfiguration.Credential.SectionName, BitbucketConstants.GitConfiguration.Credential.AlwaysRefreshCredentials,
                 out string alwaysRefreshCredentials) && alwaysRefreshCredentials.ToBooleanyOrDefault(false))
             {
                 _context.Trace.WriteLine($"Ignore stored credentials");
@@ -110,14 +110,15 @@ namespace Atlassian.Bitbucket
 
             if (credentials == null)
             {
-                _context.Trace.WriteLine($"    Found none");
+                _context.Trace.WriteLine($"No stored credentials found");
                 return null;
             }
 
-            _context.Trace.WriteLineSecrets($"    Found credentials: {credentials.Account}/{{0}}", new object[] {credentials.Password});
-            
-            //check credentials are still valid
-            if (!await ValidateCredentialsWork(input, credentials, GetSupportedAuthenticationModes(targetUri))) {
+            _context.Trace.WriteLineSecrets($"Found stored credentials: {credentials.Account}/{{0}}", new object[] { credentials.Password });
+
+            // Check credentials are still valid
+            if (!await ValidateCredentialsWork(input, credentials, GetSupportedAuthenticationModes(targetUri)))
+            {
                 return null;
             }
 
@@ -139,7 +140,7 @@ namespace Atlassian.Bitbucket
             ICredential refreshToken = SupportsOAuth(authModes) ? _context.CredentialStore.Get(refreshTokenService, input.UserName) : null;
             if (refreshToken is null)
             {
-                _context.Trace.WriteLine($"    Found none");
+                _context.Trace.WriteLine($"No stored refresh token found");
                 // There is no refresh token either because this is a non-2FA enabled account (where OAuth is not
                 // required), or because we previously erased the RT.
 
@@ -156,7 +157,7 @@ namespace Atlassian.Bitbucket
                     {
                         return basicCredentials;
                     }
-                    
+
                     // Fall through to the start of the interactive OAuth authentication flow
                 }
 
@@ -178,7 +179,7 @@ namespace Atlassian.Bitbucket
             }
             else
             {
-                _context.Trace.WriteLine($"    Found refresh token: {refreshToken} ");
+                _context.Trace.WriteLineSecrets($"Found stored refresh token: {{0}}", new object[] { refreshToken });
 
                 // It's very likely that any access token expired between the last time we used/stored it.
                 // To ensure the AT is as 'fresh' as it can be, always first try to use the refresh token
@@ -379,7 +380,7 @@ namespace Atlassian.Bitbucket
 
         private async Task<bool> RequiresTwoFactorAuthenticationAsync(ICredential credentials, AuthenticationModes authModes)
         {
-            _context.Trace.WriteLineSecrets($"Check if 2FA si required for credentials ({credentials.Account}/{{0}}) {authModes} ...", new object[] {credentials.Password});
+            _context.Trace.WriteLineSecrets($"Check if 2FA si required for credentials ({credentials.Account}/{{0}}) {authModes} ...", new object[] { credentials.Password });
 
             if (!SupportsOAuth(authModes))
             {
@@ -407,7 +408,7 @@ namespace Atlassian.Bitbucket
             }
         }
 
-        private async Task<bool> ValidateCredentialsWork(InputArguments input, ICredential credentials, AuthenticationModes authModes) 
+        private async Task<bool> ValidateCredentialsWork(InputArguments input, ICredential credentials, AuthenticationModes authModes)
         {
             if (credentials == null)
             {
@@ -419,7 +420,7 @@ namespace Atlassian.Bitbucket
             // This would be more efficient than having to make REST API calls to check.
 
             var targetUri = input.GetRemoteUri();
-            _context.Trace.WriteLineSecrets($"Validate credentials ({credentials.Account}/{{0}}) are fresh for {targetUri} ...", new object[] {credentials.Password});
+            _context.Trace.WriteLineSecrets($"Validate credentials ({credentials.Account}/{{0}}) are fresh for {targetUri} ...", new object[] { credentials.Password });
 
             if (!IsBitbucketOrg(targetUri))
             {
@@ -440,7 +441,7 @@ namespace Atlassian.Bitbucket
                     _context.Trace.WriteLine("Validated existing credentials using OAuth");
                     return true;
                 }
-                catch(Exception)
+                catch (Exception)
                 {
                     _context.Trace.WriteLine("Failed to validate existing credentials using OAuth");
                 }
@@ -454,7 +455,7 @@ namespace Atlassian.Bitbucket
                     _context.Trace.WriteLine("Validated existing credentials using BasicAuth");
                     return true;
                 }
-                catch(Exception)
+                catch (Exception)
                 {
                     _context.Trace.WriteLine("Failed to validate existing credentials using Basic Auth");
                     return false;
@@ -475,7 +476,7 @@ namespace Atlassian.Bitbucket
 
             // The refresh token key never includes the path component.
             // Instead we use the path component to specify this is the "refresh_token".
-            Uri uri = new UriBuilder(baseUri) {Path = "/refresh_token"}.Uri;
+            Uri uri = new UriBuilder(baseUri) { Path = "/refresh_token" }.Uri;
 
             return uri.AbsoluteUri.TrimEnd('/');
         }

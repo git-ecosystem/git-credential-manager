@@ -79,7 +79,7 @@ namespace Atlassian.Bitbucket.Tests
             Assert.Equal(refresh_token, result.RefreshToken);
             IEnumerable<char> tokenType = null;
             Assert.Equal(tokenType, result.TokenType);
-            Assert.Equal(null, result.Scopes);
+            Assert.Null(result.Scopes);
         }
 
         private void VerifyAuthorizationCodeResult(OAuth2AuthorizationCodeResult result)

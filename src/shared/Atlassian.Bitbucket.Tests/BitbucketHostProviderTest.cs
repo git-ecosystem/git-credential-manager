@@ -361,11 +361,11 @@ namespace Atlassian.Bitbucket.Tests
 
             var provider = new BitbucketHostProvider(context, bitbucketAuthentication.Object, bitbucketApi.Object);
 
-            Assert.Equal(context.CredentialStore.Count, 0);
+            Assert.Equal(0, context.CredentialStore.Count);
 
             await provider.StoreCredentialAsync(input);
 
-            Assert.Equal(context.CredentialStore.Count, 1);
+            Assert.Equal(1, context.CredentialStore.Count);
         }
         
         [Theory]
@@ -380,11 +380,11 @@ namespace Atlassian.Bitbucket.Tests
 
             var provider = new BitbucketHostProvider(context, bitbucketAuthentication.Object, bitbucketApi.Object);
 
-            Assert.Equal(context.CredentialStore.Count, 1);
+            Assert.Equal(1, context.CredentialStore.Count);
 
             await provider.EraseCredentialAsync(input);
 
-            Assert.Equal(context.CredentialStore.Count, 0);
+            Assert.Equal(0, context.CredentialStore.Count);
         }
 
         #endregion
