@@ -196,6 +196,34 @@ git config --global credential.bitbucketAuthModes "oauth,basic"
 
 ---
 
+### credential.bitbucketAlwaysRefreshCredentials
+
+Forces GCM to ignore any existing stored Basic Auth or OAuth access tokens and always run through the process to refresh the credentials before returning them to Git.
+
+This is especially relevant to OAuth credentials. Bitbucket.org access tokens expire after 2 hours, after that the refresh token must be used to get a new access token.
+
+Enabling this option will improve performance when using Oauth2 and interacting with Bitbucket.org if, on average, commits are done less frequently than every 2 hours.
+
+Enabling this option will decrease performance when using Basic Auth by requiring the user the re-enter credentials everytime.
+
+
+Value|Refresh Credentials Before Returning
+-|-
+`true`, `1`, `yes`, `on` |Always
+`false`, `0`, `no`, `off`_(default)_|Only when the credentials are found to be invalid
+
+#### Example
+
+```shell
+git config --global credential.bitbucketAlwaysRefreshCredentials 1
+```
+
+Defaults to false/disabled.
+
+**Also see: [GCM_BITBUCKET_ALWAYS_REFRESH_CREDENTIALS](environment.md#GCM_BITBUCKET_ALWAYS_REFRESH_CREDENTIALS)**
+
+---
+
 ### credential.gitHubAuthModes
 
 Override the available authentication modes presented during GitHub authentication.
