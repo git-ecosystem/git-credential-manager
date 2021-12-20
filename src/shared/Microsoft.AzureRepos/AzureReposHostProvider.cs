@@ -596,7 +596,7 @@ namespace Microsoft.AzureRepos
                 }
             }
 
-            bool isFiltered = organization != null;
+            bool isFiltered = !string.IsNullOrWhiteSpace(organization);
             string indent = isFiltered ? string.Empty : "  ";
 
             // Get the set of all organization names (organization names are not case sensitive)
