@@ -140,11 +140,10 @@ namespace GitHub
             }
             else
             {
-                ThrowIfTerminalPromptsDisabled();
-
                 switch (modes)
                 {
                     case AuthenticationModes.Basic:
+                        ThrowIfTerminalPromptsDisabled();
                         Context.Terminal.WriteLine("Enter GitHub credentials for '{0}'...", targetUri);
 
                         if (string.IsNullOrWhiteSpace(userName))
@@ -168,6 +167,7 @@ namespace GitHub
                         return new AuthenticationPromptResult(AuthenticationModes.Device);
 
                     case AuthenticationModes.Pat:
+                        ThrowIfTerminalPromptsDisabled();
                         Context.Terminal.WriteLine("Enter GitHub personal access token for '{0}'...", targetUri);
                         string pat = Context.Terminal.PromptSecret("Token");
                         return new AuthenticationPromptResult(
@@ -177,6 +177,7 @@ namespace GitHub
                         throw new ArgumentOutOfRangeException(nameof(modes), @$"At least one {nameof(AuthenticationModes)} must be supplied");
 
                     default:
+                        ThrowIfTerminalPromptsDisabled();
                         var menuTitle = $"Select an authentication method for '{targetUri}'";
                         var menu = new TerminalMenu(Context.Terminal, menuTitle);
 
