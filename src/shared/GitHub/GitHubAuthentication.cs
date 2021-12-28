@@ -77,6 +77,18 @@ namespace GitHub
                 throw new ArgumentException(@$"Must specify at least one {nameof(AuthenticationModes)}", nameof(modes));
             }
 
+            switch (modes)
+            {
+                case AuthenticationModes.Browser:
+                    // no prompt or user interaction required
+                    return new AuthenticationPromptResult(AuthenticationModes.Browser);
+                case AuthenticationModes.Device:
+                    // no prompt or user interaction required
+                    return new AuthenticationPromptResult(AuthenticationModes.Device);
+                default:
+                    break;
+            }
+
             if (Context.SessionManager.IsDesktopSession && TryFindHelperExecutablePath(out string helperPath))
             {
                 var promptArgs = new StringBuilder("prompt");
