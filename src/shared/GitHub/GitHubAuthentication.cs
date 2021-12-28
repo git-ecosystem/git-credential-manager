@@ -65,8 +65,6 @@ namespace GitHub
 
         public async Task<AuthenticationPromptResult> GetAuthenticationAsync(Uri targetUri, string userName, AuthenticationModes modes)
         {
-            ThrowIfUserInteractionDisabled();
-
             // If we don't have a desktop session/GUI then we cannot offer browser
             if (!Context.SessionManager.IsDesktopSession)
             {
@@ -96,6 +94,7 @@ namespace GitHub
                 if (!GitHubHostProvider.IsGitHubDotCom(targetUri)) promptArgs.AppendFormat(" --enterprise-url {0}", QuoteCmdArg(targetUri.ToString()));
                 if (!string.IsNullOrWhiteSpace(userName)) promptArgs.AppendFormat(" --username {0}", QuoteCmdArg(userName));
 
+                ThrowIfUserInteractionDisabled();
                 IDictionary<string, string> resultDict = await InvokeHelperAsync(helperPath, promptArgs.ToString(), null);
 
                 if (!resultDict.TryGetValue("mode", out string responseMode))
@@ -143,6 +142,7 @@ namespace GitHub
                 switch (modes)
                 {
                     case AuthenticationModes.Basic:
+                        ThrowIfUserInteractionDisabled();
                         ThrowIfTerminalPromptsDisabled();
                         Context.Terminal.WriteLine("Enter GitHub credentials for '{0}'...", targetUri);
 
@@ -167,6 +167,7 @@ namespace GitHub
                         return new AuthenticationPromptResult(AuthenticationModes.Device);
 
                     case AuthenticationModes.Pat:
+                        ThrowIfUserInteractionDisabled();
                         ThrowIfTerminalPromptsDisabled();
                         Context.Terminal.WriteLine("Enter GitHub personal access token for '{0}'...", targetUri);
                         string pat = Context.Terminal.PromptSecret("Token");
@@ -177,6 +178,7 @@ namespace GitHub
                         throw new ArgumentOutOfRangeException(nameof(modes), @$"At least one {nameof(AuthenticationModes)} must be supplied");
 
                     default:
+                        ThrowIfUserInteractionDisabled();
                         ThrowIfTerminalPromptsDisabled();
                         var menuTitle = $"Select an authentication method for '{targetUri}'";
                         var menu = new TerminalMenu(Context.Terminal, menuTitle);
