@@ -409,6 +409,36 @@ export GCM_GITHUB_AUTHMODES="oauth,basic"
 
 ---
 
+### GCM_GITLAB_AUTHMODES
+
+Override the available authentication modes presented during GitLab authentication.
+If this option is not set, then the available authentication modes will be automatically detected.
+
+**Note:** This setting supports multiple values separated by commas.
+
+Value|Authentication Mode
+-|-
+_(unset)_|Automatically detect modes
+`browser`|OAuth authentication via a web browser _(requires a GUI)_
+`basic`|Basic authentication using username and password
+`pat`|Personal Access Token (pat)-based authentication
+
+##### Windows
+
+```batch
+SET GCM_GITLAB_AUTHMODES="browser"
+```
+
+##### macOS/Linux
+
+```bash
+export GCM_GITLAB_AUTHMODES="browser"
+```
+
+**Also see: [credential.gitLabAuthModes](configuration.md#credentialgitLabAuthModes)**
+
+---
+
 ### GCM_NAMESPACE
 
 Use a custom namespace prefix for credentials read and written in the OS credential store.
