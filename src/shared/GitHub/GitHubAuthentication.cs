@@ -22,7 +22,7 @@ namespace GitHub
         Task<OAuth2TokenResult> GetOAuthTokenViaDeviceCodeAsync(Uri targetUri, IEnumerable<string> scopes);
     }
 
-    public class AuthenticationPromptResult
+    public record AuthenticationPromptResult
     {
         public AuthenticationPromptResult(AuthenticationModes mode)
         {
@@ -37,7 +37,7 @@ namespace GitHub
 
         public AuthenticationModes AuthenticationMode { get; }
 
-        public ICredential Credential { get; set; }
+        public ICredential Credential { get; }
     }
 
     [Flags]

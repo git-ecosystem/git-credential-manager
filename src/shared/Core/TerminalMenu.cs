@@ -92,7 +92,7 @@ namespace GitCredentialManager
         }
     }
 
-    public class TerminalMenuItem
+    public record TerminalMenuItem
     {
         public TerminalMenuItem(string name)
         {

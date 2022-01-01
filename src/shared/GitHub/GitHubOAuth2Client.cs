@@ -17,10 +17,7 @@ namespace GitHub
             Uri tokenEndpoint = new Uri(baseUri, GitHubConstants.OAuthTokenEndpointRelativeUri);
             Uri deviceAuthEndpoint = new Uri(baseUri, GitHubConstants.OAuthDeviceEndpointRelativeUri);
 
-            return new OAuth2ServerEndpoints(authEndpoint, tokenEndpoint)
-            {
-                DeviceAuthorizationEndpoint = deviceAuthEndpoint
-            };
+            return new OAuth2ServerEndpoints(authEndpoint, tokenEndpoint, deviceAuthEndpoint);
         }
 
         private static string GetClientId(ISettings settings)

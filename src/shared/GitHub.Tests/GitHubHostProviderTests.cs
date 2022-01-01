@@ -207,9 +207,7 @@ namespace GitHub.Tests
 
             ICredential credential = await provider.GenerateCredentialAsync(input);
 
-            Assert.NotNull(credential);
-            Assert.Equal(expectedUserName, credential.Account);
-            Assert.Equal(tokenValue, credential.Password);
+            Assert.Equal(new GitCredential(expectedUserName, tokenValue), credential);
 
             ghAuthMock.Verify(
                 x => x.GetOAuthTokenViaBrowserAsync(
@@ -255,9 +253,7 @@ namespace GitHub.Tests
 
             ICredential credential = await provider.GenerateCredentialAsync(input);
 
-            Assert.NotNull(credential);
-            Assert.Equal(expectedUserName, credential.Account);
-            Assert.Equal(patValue, credential.Password);
+            Assert.Equal(new GitCredential(expectedUserName, patValue), credential);
 
             ghApiMock.Verify(
                 x => x.CreatePersonalAccessTokenAsync(
@@ -309,9 +305,7 @@ namespace GitHub.Tests
 
             ICredential credential = await provider.GenerateCredentialAsync(input);
 
-            Assert.NotNull(credential);
-            Assert.Equal(expectedUserName, credential.Account);
-            Assert.Equal(patValue, credential.Password);
+            Assert.Equal(new GitCredential(expectedUserName, patValue), credential);
 
             ghApiMock.Verify(
                 x => x.CreatePersonalAccessTokenAsync(

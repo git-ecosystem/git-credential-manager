@@ -310,8 +310,7 @@ namespace GitCredentialManager.Tests.Authentication
             Uri tokenEndpoint = new Uri(baseUri, "/oauth/v2.0/access_token");
             Uri deviceEndpoint = new Uri(baseUri, "/oauth/v2.0/authorize_device");
 
-            return new OAuth2ServerEndpoints(authEndpoint, tokenEndpoint)
-                {DeviceAuthorizationEndpoint = deviceEndpoint};
+            return new OAuth2ServerEndpoints(authEndpoint, tokenEndpoint, deviceEndpoint);
         }
 
         #endregion

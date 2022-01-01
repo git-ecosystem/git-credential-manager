@@ -20,7 +20,7 @@ namespace GitCredentialManager
     /// <summary>
     /// Represents a credential (username/password pair) that Git can use to authenticate to a remote repository.
     /// </summary>
-    public class GitCredential : ICredential
+    public record GitCredential : ICredential
     {
         public GitCredential(string userName, string password)
         {

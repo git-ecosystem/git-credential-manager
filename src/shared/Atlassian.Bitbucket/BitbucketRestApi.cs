@@ -12,7 +12,7 @@ namespace Atlassian.Bitbucket
         Task<RestApiResult<UserInfo>> GetUserInformationAsync(string userName, string password, bool isBearerToken);
     }
 
-    public class RestApiResult<T>
+    public record RestApiResult<T>
     {
         public RestApiResult(HttpStatusCode statusCode)
             : this(statusCode, default(T)) { }

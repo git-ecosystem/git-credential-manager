@@ -1,6 +1,6 @@
 namespace GitCredentialManager
 {
-    public class FileCredential : ICredential
+    public record FileCredential : ICredential
     {
         public FileCredential(string fullPath, string service, string account, string password)
         {

@@ -24,10 +24,7 @@ namespace GitCredentialManager.Authentication.OAuth.Json
 
         public OAuth2DeviceCodeResult ToResult()
         {
-            return new OAuth2DeviceCodeResult(DeviceCode, UserCode, VerificationUri, PollingInterval)
-            {
-                ExpiresIn = ExpiresIn
-            };
+            return new OAuth2DeviceCodeResult(DeviceCode, UserCode, VerificationUri, PollingInterval, ExpiresIn);
         }
     }
 }

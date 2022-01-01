@@ -1,6 +1,6 @@
 namespace GitCredentialManager
 {
-    public class GitConfigurationEntry
+    public record GitConfigurationEntry
     {
         public GitConfigurationEntry(string key, string value)
         {
