@@ -17,7 +17,10 @@ namespace Atlassian.Bitbucket.UI.Controls
 
         private void ShowCredentials(object sender, RoutedEventArgs e)
         {
-            var vm = new CredentialsViewModel(_environment);
+            var vm = new CredentialsViewModel(_environment)
+            {
+                ShowOAuth = true
+            };
             var view = new CredentialsView();
             var window = new DialogWindow(view) { DataContext = vm };
             window.ShowDialog();
