@@ -212,6 +212,7 @@ namespace GitHub
             {
                 // If we're here, it's GitHub Enterprise via a configured authority
                 var baseUrl = targetUri.GetLeftPart(UriPartial.Authority);
+                baseUrl = Regex.Replace(baseUrl, @"^(https?://)raw\.", "$1", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
                 return new Uri(baseUrl + $"/api/v3/{apiUrl}");
             }
         }
