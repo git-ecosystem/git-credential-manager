@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -89,6 +87,16 @@ namespace GitCredentialManager.Authentication
                 Context.Trace.WriteLine($"{envName} / {cfgName} is false/never; user interactivity has been disabled.");
 
                 throw new InvalidOperationException("Cannot prompt because user interactivity has been disabled.");
+            }
+        }
+
+        protected void ThrowIfGuiPromptsDisabled()
+        {
+            if (!Context.Settings.IsGuiPromptsEnabled)
+            {
+                Context.Trace.WriteLine($"{Constants.EnvironmentVariables.GitTerminalPrompts} is 0; GUI prompts have been disabled.");
+
+                throw new InvalidOperationException("Cannot show prompt because GUI prompts have been disabled.");
             }
         }
 
