@@ -24,7 +24,7 @@ namespace GitHub.UI.ViewModels
 
             _environment = environment;
 
-            Title = "Two-factor authentication required";
+            Title = "Device code authentication";
             VerificationUrlCommand = new RelayCommand(OpenVerificationUrl);
         }
 
