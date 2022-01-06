@@ -110,6 +110,15 @@ Follow the instructions in [our WSL guide](wsl.md) carefully. Especially note th
 
 That's a fairly complicated question to answer, but in short, yes. See [our document on multiple users](multiple-users.md) for details.
 
+### How can I disable GUI dialogs and prompts?
+
+There are various environment variables and configuration options available to
+customize how GCM will prompt you (or not) for input. Please see the following:
+
+- [`GCM_INTERACTIVE`](environment.md#GCM_INTERACTIVE) / [`credential.interactive`](configuration.md#credentialinteractive)
+- [`GCM_GUI_PROMPT`](environment.md#GCM_GUI_PROMPT) / [`credential.guiPrompt`](configuration.md#credentialguiprompt)
+- [`GIT_TERMINAL_PROMPT`](https://git-scm.com/docs/git#Documentation/git.txt-codeGITTERMINALPROMPTcode) (note this is a _Git setting_ that will affect Git as well as GCM)
+
 ### How can I extend GUI prompts/integrate prompts with my application?
 
 You can replace the GUI prompts of the Bitbucket and GitHub host providers
