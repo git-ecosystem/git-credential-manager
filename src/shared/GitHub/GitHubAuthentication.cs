@@ -81,11 +81,13 @@ namespace GitHub
             if (modes == AuthenticationModes.Browser ||
                 modes == AuthenticationModes.Device)
             {
-                    return new AuthenticationPromptResult(modes);
+                return new AuthenticationPromptResult(modes);
             }
 
             ThrowIfUserInteractionDisabled();
-            if (Context.SessionManager.IsDesktopSession && TryFindHelperExecutablePath(out string helperPath))
+
+            if (Context.Settings.IsGuiPromptsEnabled && Context.SessionManager.IsDesktopSession &&
+                TryFindHelperExecutablePath(out string helperPath))
             {
                 var promptArgs = new StringBuilder("prompt");
                 if (modes == AuthenticationModes.All)
@@ -213,7 +215,8 @@ namespace GitHub
         {
             ThrowIfUserInteractionDisabled();
 
-            if (Context.SessionManager.IsDesktopSession && TryFindHelperExecutablePath(out string helperPath))
+            if (Context.Settings.IsGuiPromptsEnabled && Context.SessionManager.IsDesktopSession &&
+                TryFindHelperExecutablePath(out string helperPath))
             {
                 var args = new StringBuilder("2fa");
                 if (isSms) args.Append(" --sms");
@@ -282,7 +285,8 @@ namespace GitHub
             OAuth2DeviceCodeResult dcr = await oauthClient.GetDeviceCodeAsync(scopes, CancellationToken.None);
 
             // If we have a desktop session show the device code in a dialog
-            if (Context.SessionManager.IsDesktopSession && TryFindHelperExecutablePath(out string helperPath))
+            if (Context.Settings.IsGuiPromptsEnabled && Context.SessionManager.IsDesktopSession &&
+                TryFindHelperExecutablePath(out string helperPath))
             {
                 var args = new StringBuilder("device");
                 args.AppendFormat(" --code {0} ", QuoteCmdArg(dcr.UserCode));
