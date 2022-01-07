@@ -121,6 +121,10 @@ customize how GCM will prompt you (or not) for input. Please see the following:
 
 ### How can I extend GUI prompts/integrate prompts with my application?
 
+Application developers who use Git - think Visual Studio, GitKraken, etc. - may
+want to replace the GCM default UI with prompts styled to look like their
+application. This isn't complicated (though it is a bit of work).
+
 You can replace the GUI prompts of the Bitbucket and GitHub host providers
 specifically by using the `credential.gitHubHelper`/`credential.bitbucketHelper`
 settings or `GCM_GITHUB_HELPER`/`GCM_BITBUCKET_HELPER` environment variables.
