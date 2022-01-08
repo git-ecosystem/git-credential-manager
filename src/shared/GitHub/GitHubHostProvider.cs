@@ -316,10 +316,7 @@ namespace GitHub
 
         public static bool IsGitHubDotCom(Uri targetUri)
         {
-            if (targetUri is null)
-            {
-                throw new ArgumentNullException(nameof(targetUri));
-            }
+            EnsureArgument.AbsoluteUri(targetUri, nameof(targetUri));
 
             return StringComparer.OrdinalIgnoreCase.Equals(targetUri.Host, GitHubConstants.GitHubBaseUrlHost);
         }

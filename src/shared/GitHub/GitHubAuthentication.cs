@@ -76,16 +76,12 @@ namespace GitHub
                 throw new ArgumentException(@$"Must specify at least one {nameof(AuthenticationModes)}", nameof(modes));
             }
 
-            switch (modes)
+            // If there is no mode choice to be made and no interaction required,
+            // just return that result.
+            if (modes == AuthenticationModes.Browser ||
+                modes == AuthenticationModes.Device)
             {
-                case AuthenticationModes.Browser:
-                    // no user interaction required
-                    return new AuthenticationPromptResult(AuthenticationModes.Browser);
-                case AuthenticationModes.Device:
-                    // no user interaction required
-                    return new AuthenticationPromptResult(AuthenticationModes.Device);
-                default:
-                    break;
+                    return new AuthenticationPromptResult(modes);
             }
 
             ThrowIfUserInteractionDisabled();
