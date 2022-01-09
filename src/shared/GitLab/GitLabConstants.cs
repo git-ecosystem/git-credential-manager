@@ -4,38 +4,11 @@ using System.Linq;
 
 namespace GitLab
 {
-    public record GitLabApplication
-    {
-        public GitLabApplication(string host, string oAuthClientId, string oAuthClientSecret)
-        {
-            Host = host;
-            OAuthClientId = oAuthClientId;
-            OAuthClientSecret = oAuthClientSecret;
-        }
-
-        public string Host { get; }
-        public string OAuthClientId { get; }
-        public string OAuthClientSecret { get; }
-    }
-
-
     public static class GitLabConstants
     {
-        // To add an instance, follow https://docs.gitlab.com/ee/integration/oauth_provider.html
-        // specify callback/redirect URI http://127.0.0.1/ and check 'confidential', 'expire access tokens', 'write_repository'
-        private static readonly GitLabApplication[] GitLabApplications =
-        {
-            new GitLabApplication(host: "gitlab.com",
-                // https://gitlab.com/oauth/applications/207177/edit owned by hickford
-                oAuthClientId: "d8a14250a4d1beacaad67dd6fabaab1e0408b581ca73ae4a76cc7170d3f8afd1",
-                oAuthClientSecret : "58b5f5e0c99a5be9ac13f4ba15992cc72c5594386e82aecac94da964147d3151"
-            ),
-            new GitLabApplication(host: "gitlab.freedesktop.org",
-                // https://gitlab.freedesktop.org/oauth/applications/52 owned by hickford
-                oAuthClientId: "6503d8c5a27187628440d44e0352833a2b49bce540c546c22a3378c8f5b74d45",
-                oAuthClientSecret: "2ae9343a034ff1baadaef1e7ce3197776b00746a02ddf0323bb34aca8bff6dc1")
-        };
-        public static readonly IDictionary<string, GitLabApplication> GitLabApplicationsByHost = GitLabApplications.ToDictionary(x => x.Host, StringComparer.InvariantCultureIgnoreCase);
+        // owned by https://gitlab.com/gitcredentialmanager
+        public const string OAuthClientId = "172b9f227872b5dde33f4d9b1db06a6a5515ae79508e7a00c973c85ce490671e";
+        public const string OAuthClientSecret = "7da92770d1447508601e4ba026bc5eb655c8268e818cd609889cc9bae2023f39";
 
         public static readonly Uri OAuthRedirectUri = new Uri("http://127.0.0.1/");
         // https://docs.gitlab.com/ee/api/oauth2.html#authorization-code-flow
@@ -57,11 +30,13 @@ namespace GitLab
         {
             public static class Credential
             {
-                public const string AuthenticationModes = "GitLabAuthModes";
-                public const string DevOAuthClientId = "GitLabDevClientId";
-                public const string DevOAuthClientSecret = "GitLabDevClientSecret";
-                public const string DevOAuthRedirectUri = "GitLabDevRedirectUri";
+                public const string AuthenticationModes = "gitLabAuthModes";
+                public const string DevOAuthClientId = "gitLabDevClientId";
+                public const string DevOAuthClientSecret = "gitLabDevClientSecret";
+                public const string DevOAuthRedirectUri = "gitLabDevRedirectUri";
             }
         }
+
+        public static bool IsGitLabDotCom(Uri uri) => StringComparer.OrdinalIgnoreCase.Equals(uri.Host, "gitlab.com");
     }
 }

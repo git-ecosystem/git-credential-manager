@@ -14,9 +14,9 @@ namespace GitLab.Tests
         [Theory]
         [InlineData("https", "gitlab.com", true)]
         [InlineData("http", "gitlab.com", true)]
-        [InlineData("https", "gitlab.freedesktop.org", true)]
-        [InlineData("https", "gitlab.gnome.org", true)]
+        [InlineData("https", "gitlab.example.com", true)]
         [InlineData("https", "github.com", false)]
+        [InlineData("https", "github.example.com", false)]
         public void GitLabHostProvider_IsSupported(string protocol, string host, bool expected)
         {
             var input = new InputArguments(new Dictionary<string, string>

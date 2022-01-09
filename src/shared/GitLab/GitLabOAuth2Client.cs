@@ -9,7 +9,7 @@ namespace GitLab
     {
         public GitLabOAuth2Client(HttpClient httpClient, ISettings settings, Uri baseUri)
             : base(httpClient, CreateEndpoints(baseUri),
-                GetClientId(settings, baseUri), GetRedirectUri(settings), GetClientSecret(settings, baseUri))
+                GetClientId(settings), GetRedirectUri(settings), GetClientSecret(settings))
         { }
 
         private static OAuth2ServerEndpoints CreateEndpoints(Uri baseUri)
@@ -34,7 +34,7 @@ namespace GitLab
             return GitLabConstants.OAuthRedirectUri;
         }
 
-        internal static string GetClientId(ISettings settings, Uri baseUri)
+        internal static string GetClientId(ISettings settings)
         {
             // Check for developer override value
             if (settings.TryGetSetting(
@@ -45,15 +45,10 @@ namespace GitLab
                 return clientId;
             }
 
-            GitLabApplication instance;
-            if (GitLabConstants.GitLabApplicationsByHost.TryGetValue(baseUri.Host, out instance))
-            {
-                return instance.OAuthClientId;
-            }
-            throw new ArgumentException($"Missing OAuth configuration for {baseUri.Host}, see https://github.com/GitCredentialManager/git-credential-manager/blob/main/docs/gitlab.md.");
+            return GitLabConstants.OAuthClientId;
         }
 
-        private static string GetClientSecret(ISettings settings, Uri baseUri)
+        private static string GetClientSecret(ISettings settings)
         {
             // Check for developer override value
             if (settings.TryGetSetting(
@@ -64,12 +59,7 @@ namespace GitLab
                 return clientSecret;
             }
 
-            GitLabApplication instance;
-            if (GitLabConstants.GitLabApplicationsByHost.TryGetValue(baseUri.Host, out instance))
-            {
-                return instance.OAuthClientSecret;
-            }
-            throw new ArgumentException($"Missing OAuth configuration for {baseUri.Host}, see https://github.com/GitCredentialManager/git-credential-manager/blob/main/docs/gitlab.md.");
+            return GitLabConstants.OAuthClientSecret;
         }
     }
 }

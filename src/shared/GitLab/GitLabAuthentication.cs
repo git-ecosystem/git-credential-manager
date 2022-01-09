@@ -69,6 +69,7 @@ namespace GitLab
             switch (modes)
             {
                 case AuthenticationModes.Basic:
+                case AuthenticationModes.Pat:
                     ThrowIfUserInteractionDisabled();
                     ThrowIfTerminalPromptsDisabled();
                     Context.Terminal.WriteLine("Enter GitLab credentials for '{0}'...", targetUri);
@@ -82,21 +83,11 @@ namespace GitLab
                         Context.Terminal.WriteLine("Username: {0}", userName);
                     }
 
-                    string password = Context.Terminal.PromptSecret("Password");
-
-                    return new AuthenticationPromptResult(
-                        AuthenticationModes.Basic, new GitCredential(userName, password));
+                    string password_or_token = Context.Terminal.PromptSecret(modes == AuthenticationModes.Basic ? "Password" : "Personal access token");
+                    return new AuthenticationPromptResult(modes, new GitCredential(userName, password_or_token));
 
                 case AuthenticationModes.Browser:
                     return new AuthenticationPromptResult(AuthenticationModes.Browser);
-
-                case AuthenticationModes.Pat:
-                    ThrowIfUserInteractionDisabled();
-                    ThrowIfTerminalPromptsDisabled();
-                    Context.Terminal.WriteLine("Enter GitLab personal access token for '{0}'...", targetUri);
-                    string pat = Context.Terminal.PromptSecret("Token");
-                    return new AuthenticationPromptResult(
-                        AuthenticationModes.Pat, new GitCredential(userName, pat));
 
                 case AuthenticationModes.None:
                     throw new ArgumentOutOfRangeException(nameof(modes), @$"At least one {nameof(AuthenticationModes)} must be supplied");

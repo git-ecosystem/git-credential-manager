@@ -1,3 +1,3 @@
 using System.Runtime.CompilerServices;
 
-[assembly:InternalsVisibleTo("GitLab.Tests")]
+[assembly: InternalsVisibleTo("GitLab.Tests")]

@@ -1,21 +1,17 @@
 # GitLab support
 
-git-credential-manager supports the following public GitLab instances out the box:
+Git Credential Manager supports [gitlab.com](https://gitlab.com) out the box.
 
-* https://gitlab.com
-* https://gitlab.freedesktop.org
-
-If you'd like support for another puublic instance, please [open an issue](https://github.com/GitCredentialManager/git-credential-manager/issues).
-
-## Using on a custom instance
+## Using on a another instance
 
 To use on another instance, eg. `https://gitlab.example.com` requires setup and configuration:
 
-1. [Create an OAuth application](https://docs.gitlab.com/ee/integration/oauth_provider.html). This can be at the user, group or instance level. Specify name `git-credential-manager` and redirect URI `http://127.0.0.1/`. Select options 'Confidential', 'Expire access tokens' and scope 'write_repository'.
+1. [Create an OAuth application](https://docs.gitlab.com/ee/integration/oauth_provider.html). This can be at the user, group or instance level. Specify a name and use a redirect URI of `http://127.0.0.1/`. _Unselect_ the 'Confidential' option, and ensure the 'Expire access tokens' option is selected. Set the scope to 'write_repository'.
 2. Copy the application ID and configure `git config --global credential.https://gitlab.example.com.GitLabDevClientId <APPLICATION_ID>`
 3. Copy the application secret and configure `git config --global credential.https://gitlab.example.com.GitLabDevClientSecret <APPLICATION_SECRET>`
-4. For good measure, configure `git config --global credential.https://gitlab.example.com.provider gitlab`
-5. Verify the config is as expected `git config --global --get-urlmatch credential https://gitlab.example.com`
+4. Configure authentication modes to include 'browser' `git config --global credential.https://gitlab.example.com.gitLabAuthModes browser`
+5. For good measure, configure `git config --global credential.https://gitlab.example.com.provider gitlab`
+6. Verify the config is as expected `git config --global --get-urlmatch credential https://gitlab.example.com`
 
 ### Clearing config
 
@@ -34,7 +30,6 @@ Select an authentication method for 'https://gitlab.com/':
   3. Username/password
 option (enter for default): 
 ```
-
 
 If you have a preferred authentication mode, you can specify [credential.gitLabAuthModes](configuration.md#credential.gitLabAuthModes):
 

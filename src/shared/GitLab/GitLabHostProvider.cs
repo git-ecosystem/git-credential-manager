@@ -15,20 +15,20 @@ namespace GitLab
             "write_repository",
         };
 
-        private readonly IGitLabAuthentication _GitLabAuth;
+        private readonly IGitLabAuthentication _gitLabAuth;
 
         public GitLabHostProvider(ICommandContext context)
             : this(context, new GitLabAuthentication(context)) { }
 
-        public GitLabHostProvider(ICommandContext context, IGitLabAuthentication GitLabAuth)
+        public GitLabHostProvider(ICommandContext context, IGitLabAuthentication gitLabAuth)
             : base(context)
         {
-            EnsureArgument.NotNull(GitLabAuth, nameof(GitLabAuth));
+            EnsureArgument.NotNull(gitLabAuth, nameof(gitLabAuth));
 
-            _GitLabAuth = GitLabAuth;
+            _gitLabAuth = gitLabAuth;
         }
 
-        public override string Id => "GitLab";
+        public override string Id => "gitlab";
 
         public override string Name => "GitLab";
 
@@ -48,15 +48,15 @@ namespace GitLab
                 return false;
             }
 
+            if (GitLabConstants.IsGitLabDotCom(input.GetRemoteUri()))
+            {
+                return true;
+            }
+
             // Split port number and hostname from host input argument
             if (!input.TryGetHostAndPort(out string hostName, out _))
             {
                 return false;
-            }
-
-            if (GitLabConstants.GitLabApplicationsByHost.ContainsKey(hostName))
-            {
-                return true;
             }
 
             string[] domains = hostName.Split(new char[] { '.' });
@@ -78,6 +78,7 @@ namespace GitLab
                 return false;
             }
 
+            // as seen at eg. https://salsa.debian.org/apt-team/apt.git
             // not always present https://gitlab.com/gitlab-org/gitlab/-/issues/349464
             return response.Headers.Contains("X-Gitlab-Feature-Category");
         }
@@ -106,23 +107,16 @@ namespace GitLab
 
             AuthenticationModes authModes = GetSupportedAuthenticationModes(remoteUri);
 
-            AuthenticationPromptResult promptResult = _GitLabAuth.GetAuthentication(remoteUri, input.UserName, authModes);
+            AuthenticationPromptResult promptResult = _gitLabAuth.GetAuthentication(remoteUri, input.UserName, authModes);
 
             switch (promptResult.AuthenticationMode)
             {
                 case AuthenticationModes.Basic:
+                case AuthenticationModes.Pat:
                     return promptResult.Credential;
 
                 case AuthenticationModes.Browser:
                     return await GenerateOAuthCredentialAsync(remoteUri);
-
-                case AuthenticationModes.Pat:
-                    string token = promptResult.Credential.Password;
-
-                    // GitLab accepts any username https://gitlab.com/gitlab-org/gitlab/-/issues/212953
-                    string userName = promptResult.Credential.Account ?? "pat";
-
-                    return new GitCredential(userName, token);
 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(promptResult));
@@ -148,24 +142,19 @@ namespace GitLab
                 }
             }
 
-            AuthenticationModes modes = AuthenticationModes.Basic | AuthenticationModes.Pat;
+            if (GitLabConstants.IsGitLabDotCom(targetUri))
+            {
+                return AuthenticationModes.All;
+            }
 
-            try
-            {
-                GitLabOAuth2Client.GetClientId(Context.Settings, targetUri);
-            }
-            catch (Exception e)
-            {
-                Context.Streams.Error.WriteLine(e.Message);
-                return modes;
-            }
-            modes |= AuthenticationModes.Browser;
-            return modes;
+            Context.Streams.Error.WriteLine($"Missing OAuth configuration for {targetUri.Host}, see https://github.com/GitCredentialManager/git-credential-manager/blob/main/docs/gitlab.md.");
+            // Would like to query password_authentication_enabled_for_git, but can't unless logged in https://gitlab.com/gitlab-org/gitlab/-/issues/349463
+            return AuthenticationModes.Basic | AuthenticationModes.Pat;
         }
 
         private async Task<GitCredential> GenerateOAuthCredentialAsync(Uri targetUri)
         {
-            OAuth2TokenResult result = await _GitLabAuth.GetOAuthTokenViaBrowserAsync(targetUri, GitLabOAuthScopes);
+            OAuth2TokenResult result = await _gitLabAuth.GetOAuthTokenViaBrowserAsync(targetUri, GitLabOAuthScopes);
 
             // username oauth2 https://gitlab.com/gitlab-org/gitlab/-/issues/349461
             return new GitCredential("oauth2", result.AccessToken);
@@ -173,7 +162,7 @@ namespace GitLab
 
         protected override void ReleaseManagedResources()
         {
-            _GitLabAuth.Dispose();
+            _gitLabAuth.Dispose();
             base.ReleaseManagedResources();
         }
     }
