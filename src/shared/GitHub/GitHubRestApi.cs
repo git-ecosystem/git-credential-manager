@@ -212,7 +212,10 @@ namespace GitHub
             {
                 // If we're here, it's GitHub Enterprise via a configured authority
                 var baseUrl = targetUri.GetLeftPart(UriPartial.Authority);
+
+                // Check for 'raw.' in the hostname and remove it to get the correct GHE API URL
                 baseUrl = Regex.Replace(baseUrl, @"^(https?://)raw\.", "$1", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
+
                 return new Uri(baseUrl + $"/api/v3/{apiUrl}");
             }
         }
