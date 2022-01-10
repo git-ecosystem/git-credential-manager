@@ -27,7 +27,7 @@ namespace GitCredentialManager.Authentication
             return InvokeHelperAsync(path, args, null, CancellationToken.None);
         }
 
-        protected async Task<IDictionary<string, string>> InvokeHelperAsync(string path, string args,
+        internal protected virtual async Task<IDictionary<string, string>> InvokeHelperAsync(string path, string args,
             IDictionary<string, string> standardInput, CancellationToken ct)
         {
             var procStartInfo = new ProcessStartInfo(path)

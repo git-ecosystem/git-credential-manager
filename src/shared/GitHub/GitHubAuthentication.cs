@@ -1,7 +1,6 @@
 using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
@@ -65,8 +64,6 @@ namespace GitHub
 
         public async Task<AuthenticationPromptResult> GetAuthenticationAsync(Uri targetUri, string userName, AuthenticationModes modes)
         {
-            ThrowIfUserInteractionDisabled();
-
             // If we don't have a desktop session/GUI then we cannot offer browser
             if (!Context.SessionManager.IsDesktopSession)
             {
@@ -79,6 +76,15 @@ namespace GitHub
                 throw new ArgumentException(@$"Must specify at least one {nameof(AuthenticationModes)}", nameof(modes));
             }
 
+            // If there is no mode choice to be made and no interaction required,
+            // just return that result.
+            if (modes == AuthenticationModes.Browser ||
+                modes == AuthenticationModes.Device)
+            {
+                    return new AuthenticationPromptResult(modes);
+            }
+
+            ThrowIfUserInteractionDisabled();
             if (Context.SessionManager.IsDesktopSession && TryFindHelperExecutablePath(out string helperPath))
             {
                 var promptArgs = new StringBuilder("prompt");
