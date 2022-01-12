@@ -116,7 +116,7 @@ namespace GitLab
                     return promptResult.Credential;
 
                 case AuthenticationModes.Browser:
-                    return await GenerateOAuthCredentialAsync(remoteUri);
+                    return await GenerateOAuthCredentialAsync(input);
 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(promptResult));
@@ -152,18 +152,75 @@ namespace GitLab
             return AuthenticationModes.Basic | AuthenticationModes.Pat;
         }
 
-        private async Task<GitCredential> GenerateOAuthCredentialAsync(Uri targetUri)
+        public override async Task<ICredential> GetCredentialAsync(InputArguments input)
         {
-            OAuth2TokenResult result = await _gitLabAuth.GetOAuthTokenViaBrowserAsync(targetUri, GitLabOAuthScopes);
+            ICredential credential = await base.GetCredentialAsync(input);
+            if (credential.Account == "oauth2")
+            {
+                // cast succeeds if and only if credential is freshly generated (not retrieved)
+                OAuthCredential oAuthCredential = credential as OAuthCredential;
+                if (oAuthCredential == null)
+                {
+                    // retrieved OAuth credential may have expired, so refresh
+                    try
+                    {
+                        oAuthCredential = await RefreshOAuthCredentialAsync(input);
+                    }
+                    catch (Exception e)
+                    {
+                        Context.Terminal.WriteLine($"OAuth token refresh failed: {e.Message}");
+                        return credential;
+                    }
+                }
+                // store refresh token under a separate service
+                Context.Trace.WriteLine("Storing refresh token...");
+                Context.CredentialStore.AddOrUpdate(GetRefreshTokenServiceName(input.GetRemoteUri()), "oauth2", oAuthCredential.RefreshToken);
+                return oAuthCredential;
+            }
 
-            // username oauth2 https://gitlab.com/gitlab-org/gitlab/-/issues/349461
-            return new GitCredential("oauth2", result.AccessToken);
+            return credential;
+        }
+
+        internal class OAuthCredential : GitCredential
+        {
+            // username must be oauth2 https://gitlab.com/gitlab-org/gitlab/-/issues/349461
+            public OAuthCredential(OAuth2TokenResult oAuth2TokenResult) : base("oauth2", oAuth2TokenResult.AccessToken)
+            {
+                RefreshToken = oAuth2TokenResult.RefreshToken;
+            }
+
+            public string RefreshToken { get; }
+        }
+
+        private async Task<OAuthCredential> GenerateOAuthCredentialAsync(InputArguments input)
+        {
+            OAuth2TokenResult result = await _gitLabAuth.GetOAuthTokenViaBrowserAsync(input.GetRemoteUri(), GitLabOAuthScopes);
+            return new OAuthCredential(result);
+        }
+
+        private async Task<OAuthCredential> RefreshOAuthCredentialAsync(InputArguments input)
+        {
+            // retrieve refresh token stored under separate service
+            Context.Trace.WriteLine($"Checking for stored refresh token...");
+            string refreshTokenServiceName = GetRefreshTokenServiceName(input.GetRemoteUri());
+            string refreshToken = Context.CredentialStore.Get(refreshTokenServiceName, "oauth2").Password;
+            if (refreshToken == null)
+            {
+                throw new InvalidOperationException("No stored refresh token");
+            }
+            OAuth2TokenResult result = await _gitLabAuth.GetOAuthTokenViaRefresh(input.GetRemoteUri(), refreshToken);
+            return new OAuthCredential(result);
         }
 
         protected override void ReleaseManagedResources()
         {
             _gitLabAuth.Dispose();
             base.ReleaseManagedResources();
+        }
+
+        private static string GetRefreshTokenServiceName(Uri baseUri)
+        {
+            return new Uri(baseUri.WithoutUserInfo(), "/refresh_token").AbsoluteUri;
         }
     }
 }

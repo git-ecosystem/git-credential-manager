@@ -16,6 +16,8 @@ namespace GitLab
         AuthenticationPromptResult GetAuthentication(Uri targetUri, string userName, AuthenticationModes modes);
 
         Task<OAuth2TokenResult> GetOAuthTokenViaBrowserAsync(Uri targetUri, IEnumerable<string> scopes);
+
+        Task<OAuth2TokenResult> GetOAuthTokenViaRefresh(Uri targetUri, string refreshToken);
     }
 
     public class AuthenticationPromptResult
@@ -139,6 +141,12 @@ namespace GitLab
                 await oauthClient.GetAuthorizationCodeAsync(scopes, browser, CancellationToken.None);
 
             return await oauthClient.GetTokenByAuthorizationCodeAsync(authCodeResult, CancellationToken.None);
+        }
+
+        public async Task<OAuth2TokenResult> GetOAuthTokenViaRefresh(Uri targetUri, string refreshToken)
+        {
+            var oauthClient = new GitLabOAuth2Client(HttpClient, Context.Settings, targetUri);
+            return await oauthClient.GetTokenByRefreshTokenAsync(refreshToken, CancellationToken.None);
         }
 
         private HttpClient _httpClient;
