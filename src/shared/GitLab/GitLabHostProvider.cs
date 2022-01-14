@@ -83,16 +83,6 @@ namespace GitLab
             return response.Headers.Contains("X-Gitlab-Feature-Category");
         }
 
-        public override string GetServiceName(InputArguments input)
-        {
-            var baseUri = new Uri(base.GetServiceName(input));
-
-            string url = baseUri.AbsoluteUri;
-
-            // Trim trailing slash
-            return url.TrimEnd('/');
-        }
-
         public override async Task<ICredential> GenerateCredentialAsync(InputArguments input)
         {
             ThrowIfDisposed();
@@ -152,44 +142,46 @@ namespace GitLab
             return AuthenticationModes.Basic | AuthenticationModes.Pat;
         }
 
+        // <remarks>Stores OAuth refresh token as a side effect</remarks>
         public override async Task<ICredential> GetCredentialAsync(InputArguments input)
         {
             ICredential credential = await base.GetCredentialAsync(input);
-            if (credential.Account == "oauth2")
+            if (credential.Account == "oauth2" && credential is not OAuthCredential)
             {
-                // cast succeeds if and only if credential is freshly generated (not retrieved)
-                OAuthCredential oAuthCredential = credential as OAuthCredential;
-                if (oAuthCredential == null)
+                Context.Trace.WriteLine("Retrieved stored OAuth credential");
+                // retrieved OAuth credential may have expired, so refresh
+                try
                 {
-                    // retrieved OAuth credential may have expired, so refresh
-                    try
-                    {
-                        oAuthCredential = await RefreshOAuthCredentialAsync(input);
-                    }
-                    catch (Exception e)
-                    {
-                        Context.Terminal.WriteLine($"OAuth token refresh failed: {e.Message}");
-                        return credential;
-                    }
+                    credential = await RefreshOAuthCredentialAsync(input);
                 }
-                // store refresh token under a separate service
-                Context.Trace.WriteLine("Storing refresh token...");
-                Context.CredentialStore.AddOrUpdate(GetRefreshTokenServiceName(input.GetRemoteUri()), "oauth2", oAuthCredential.RefreshToken);
-                return oAuthCredential;
+                catch (Exception e)
+                {
+                    Context.Terminal.WriteLine($"OAuth token refresh failed: {e.Message}");
+                }
             }
-
+            if (credential is OAuthCredential oAuthCredential)
+            {
+                // store refresh token under a separate service
+                string refreshTokenService = GetRefreshTokenServiceName(input);
+                Context.Trace.WriteLine($"Storing credential with service={refreshTokenService} account={input.UserName}...");
+                Context.CredentialStore.AddOrUpdate(refreshTokenService, oAuthCredential.Account, oAuthCredential.RefreshToken);
+            }
             return credential;
         }
 
-        internal class OAuthCredential : GitCredential
+        internal class OAuthCredential : ICredential
         {
-            // username must be oauth2 https://gitlab.com/gitlab-org/gitlab/-/issues/349461
-            public OAuthCredential(OAuth2TokenResult oAuth2TokenResult) : base("oauth2", oAuth2TokenResult.AccessToken)
+            public OAuthCredential(OAuth2TokenResult oAuth2TokenResult)
             {
+                AccessToken = oAuth2TokenResult.AccessToken;
                 RefreshToken = oAuth2TokenResult.RefreshToken;
             }
 
+            // username must be 'oauth2' https://gitlab.com/gitlab-org/gitlab/-/issues/349461
+            public string Account => "oauth2";
+            public string AccessToken { get; }
             public string RefreshToken { get; }
+            string ICredential.Password => AccessToken;
         }
 
         private async Task<OAuthCredential> GenerateOAuthCredentialAsync(InputArguments input)
@@ -202,7 +194,7 @@ namespace GitLab
         {
             // retrieve refresh token stored under separate service
             Context.Trace.WriteLine($"Checking for stored refresh token...");
-            string refreshTokenServiceName = GetRefreshTokenServiceName(input.GetRemoteUri());
+            string refreshTokenServiceName = GetRefreshTokenServiceName(input);
             string refreshToken = Context.CredentialStore.Get(refreshTokenServiceName, "oauth2").Password;
             if (refreshToken == null)
             {
@@ -218,9 +210,16 @@ namespace GitLab
             base.ReleaseManagedResources();
         }
 
-        private static string GetRefreshTokenServiceName(Uri baseUri)
+        private string GetRefreshTokenServiceName(InputArguments input)
         {
-            return new Uri(baseUri.WithoutUserInfo(), "/refresh_token").AbsoluteUri;
+            return new Uri(new Uri(GetServiceName(input)), "/refresh_token").AbsoluteUri;
+        }
+
+        public override Task EraseCredentialAsync(InputArguments input)
+        {
+            Context.CredentialStore.Remove(GetServiceName(input), input.UserName);
+            Context.CredentialStore.Remove(GetRefreshTokenServiceName(input), "oauth2");
+            return Task.CompletedTask;
         }
     }
 }
