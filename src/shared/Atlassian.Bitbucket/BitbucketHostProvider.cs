@@ -459,13 +459,9 @@ namespace Atlassian.Bitbucket
 
         private static string GetRefreshTokenServiceName(Uri remoteUri)
         {
-            Uri baseUri = remoteUri.WithoutUserInfo();
-
-            // The refresh token key never includes the path component.
-            // Instead we use the path component to specify this is the "refresh_token".
-            Uri uri = new UriBuilder(baseUri) { Path = "/refresh_token" }.Uri;
-
-            return uri.AbsoluteUri.TrimEnd('/');
+            var builder = new UriBuilder(GetServiceName(remoteUri));
+            builder.Host = "oauth-refresh-token." + builder.Host;
+            return builder.Uri.AbsoluteUri.TrimEnd('/');
         }
 
         public static bool IsBitbucketOrg(Uri targetUri)
