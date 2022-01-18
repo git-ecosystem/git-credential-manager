@@ -6,7 +6,7 @@ namespace GitCredentialManager.Tests
 {
     public class WslUtilsTests
     {
-        [PlatformTheory(Platforms.Windows)]
+        [Theory]
         [InlineData(null, false)]
         [InlineData(@"", false)]
         [InlineData(@" ", false)]
@@ -26,6 +26,18 @@ namespace GitCredentialManager.Tests
         [InlineData(@"\\WSL$\UBUNTU\home", true)]
         [InlineData(@"\\wsl$\ubuntu\home\", true)]
         [InlineData(@"\\wsl$\openSUSE-42\home", true)]
+        [InlineData(@"wsl.localhost", false)]
+        [InlineData(@"\wsl.localhost\ubuntu\home", false)]
+        [InlineData(@"wsl.localhost\ubuntu\home", false)]
+        [InlineData(@"//wsl.localhost/ubuntu/home", false)]
+        [InlineData(@"\\wsl.localhost", false)]
+        [InlineData(@"\\wsl.localhost\", false)]
+        [InlineData(@"\\wsl.localhost\ubuntu", true)]
+        [InlineData(@"\\wsl.localhost\ubuntu\", true)]
+        [InlineData(@"\\wsl.localhost\ubuntu\home", true)]
+        [InlineData(@"\\WSL.LOCALHOST\UBUNTU\home", true)]
+        [InlineData(@"\\wsl.localhost\ubuntu\home\", true)]
+        [InlineData(@"\\wsl.localhost\openSUSE-42\home", true)]
         public void WslUtils_IsWslPath(string path, bool expected)
         {
             bool actual = WslUtils.IsWslPath(path);
@@ -40,6 +52,13 @@ namespace GitCredentialManager.Tests
         [InlineData(@"\\wsl$\UBUNTU\home", "UBUNTU", "/home")]
         [InlineData(@"\\wsl$\ubuntu\home\", "ubuntu", "/home/")]
         [InlineData(@"\\wsl$\openSUSE-42\home", "openSUSE-42", "/home")]
+        [InlineData(@"\\wsl.localhost\ubuntu", "ubuntu", "/")]
+        [InlineData(@"\\wsl.localhost\ubuntu\", "ubuntu", "/")]
+        [InlineData(@"\\wsl.localhost\ubuntu\home", "ubuntu", "/home")]
+        [InlineData(@"\\wsl.localhost\ubuntu\HOME", "ubuntu", "/HOME")]
+        [InlineData(@"\\wsl.localhost\UBUNTU\home", "UBUNTU", "/home")]
+        [InlineData(@"\\wsl.localhost\ubuntu\home\", "ubuntu", "/home/")]
+        [InlineData(@"\\wsl.localhost\openSUSE-42\home", "openSUSE-42", "/home")]
         public void WslUtils_ConvertToDistroPath(string path, string expectedDistro, string expectedPath)
         {
             string actualPath = WslUtils.ConvertToDistroPath(path, out string actualDistro);
@@ -47,7 +66,7 @@ namespace GitCredentialManager.Tests
             Assert.Equal(expectedDistro, actualDistro);
         }
 
-        [PlatformTheory(Platforms.Windows)]
+        [Theory]
         [InlineData(null)]
         [InlineData(@"")]
         [InlineData(@" ")]
@@ -61,6 +80,12 @@ namespace GitCredentialManager.Tests
         [InlineData(@"\\wsl")]
         [InlineData(@"\\wsl$")]
         [InlineData(@"\\wsl$\")]
+        [InlineData(@"wsl.localhost")]
+        [InlineData(@"\wsl.localhost\ubuntu\home")]
+        [InlineData(@"wsl.localhost\ubuntu\home")]
+        [InlineData(@"//wsl.localhost/ubuntu/home")]
+        [InlineData(@"\\wsl.localhost")]
+        [InlineData(@"\\wsl.localhost\")]
         public void WslUtils_ConvertToDistroPath_Invalid_ThrowsException(string path)
         {
             Assert.Throws<ArgumentException>(() => WslUtils.ConvertToDistroPath(path, out _));

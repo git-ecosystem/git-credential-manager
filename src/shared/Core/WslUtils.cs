@@ -8,6 +8,7 @@ namespace GitCredentialManager
     public static class WslUtils
     {
         private const string WslUncPrefix = @"\\wsl$\";
+        private const string WslLocalHostUncPrefix = @"\\wsl.localhost\";
         private const string WslCommandName = "wsl.exe";
 
         /// <summary>
@@ -19,8 +20,10 @@ namespace GitCredentialManager
         {
             if (string.IsNullOrWhiteSpace(path)) return false;
 
-            return path.StartsWith(WslUncPrefix, StringComparison.OrdinalIgnoreCase) &&
-                   path.Length > WslUncPrefix.Length;
+            return (path.StartsWith(WslUncPrefix, StringComparison.OrdinalIgnoreCase) &&
+                    path.Length > WslUncPrefix.Length) ||
+                   (path.StartsWith(WslLocalHostUncPrefix, StringComparison.OrdinalIgnoreCase) &&
+                    path.Length > WslLocalHostUncPrefix.Length);
         }
 
         /// <summary>
@@ -54,7 +57,20 @@ namespace GitCredentialManager
         {
             if (!IsWslPath(path)) throw new ArgumentException("Must provide a WSL path", nameof(path));
 
-            int distroStart = WslUncPrefix.Length;
+            int distroStart;
+            if (path.StartsWith(WslUncPrefix, StringComparison.OrdinalIgnoreCase))
+            {
+                distroStart = WslUncPrefix.Length;
+            }
+            else if (path.StartsWith(WslLocalHostUncPrefix, StringComparison.OrdinalIgnoreCase))
+            {
+                distroStart = WslLocalHostUncPrefix.Length;
+            }
+            else
+            {
+                throw new Exception("Invalid WSL path prefix");
+            }
+
             int distroEnd = path.IndexOf('\\', distroStart);
 
             if (distroEnd < 0) distroEnd = path.Length;
