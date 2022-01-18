@@ -13,6 +13,8 @@ namespace GitCredentialManager.Tests.Objects
 
         public bool IsTerminalPromptsEnabled { get; set; } = true;
 
+        public bool IsGuiPromptsEnabled { get; set; } = true;
+
         public bool IsInteractionAllowed { get; set; } = true;
 
         public string Trace { get; set; }
@@ -96,6 +98,8 @@ namespace GitCredentialManager.Tests.Objects
         bool ISettings.IsDebuggingEnabled => IsDebuggingEnabled;
 
         bool ISettings.IsTerminalPromptsEnabled => IsTerminalPromptsEnabled;
+
+        bool ISettings.IsGuiPromptsEnabled => IsGuiPromptsEnabled;
 
         bool ISettings.IsInteractionAllowed => IsInteractionAllowed;
 

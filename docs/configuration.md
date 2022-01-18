@@ -106,6 +106,25 @@ git config --global credential.ghe.contoso.com.authority github
 
 ---
 
+### credential.guiPrompt
+
+Permit or disable GCM from presenting GUI prompts. If an equivalent terminal/
+text-based prompt is available, that will be shown instead.
+
+To disable all interactivity see [credential.interactive](#credentialinteractive).
+
+#### Example
+
+```shell
+git config --global credential.guiPrompt false
+```
+
+Defaults to enabled.
+
+**Also see: [GCM_GUI_PROMPT](environment.md#GCM_GUI_PROMPT)**
+
+---
+
 ### credential.autoDetectTimeout
 
 Set the maximum length of time, in milliseconds, that GCM should wait for a

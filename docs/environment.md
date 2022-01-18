@@ -226,6 +226,33 @@ export GCM_AUTHORITY=github
 
 ---
 
+### GCM_GUI_PROMPT
+
+Permit or disable GCM from presenting GUI prompts. If an equivalent terminal/
+text-based prompt is available, that will be shown instead.
+
+To disable all interactivity see [GCM_INTERACTIVE](#gcm_interactive).
+
+#### Example
+
+##### Windows
+
+```batch
+SET GCM_GUI_PROMPT=0
+```
+
+##### macOS/Linux
+
+```bash
+export GCM_GUI_PROMPT=0
+```
+
+Defaults to enabled.
+
+**Also see: [credential.guiPrompt](configuration.md#credentialguiprompt)**
+
+---
+
 ### GCM_AUTODETECT_TIMEOUT
 
 Set the maximum length of time, in milliseconds, that GCM should wait for a

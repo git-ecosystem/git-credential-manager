@@ -109,3 +109,30 @@ Follow the instructions in [our WSL guide](wsl.md) carefully. Especially note th
 ### Does GCM work with multiple users? If so, how?
 
 That's a fairly complicated question to answer, but in short, yes. See [our document on multiple users](multiple-users.md) for details.
+
+### How can I disable GUI dialogs and prompts?
+
+There are various environment variables and configuration options available to
+customize how GCM will prompt you (or not) for input. Please see the following:
+
+- [`GCM_INTERACTIVE`](environment.md#GCM_INTERACTIVE) / [`credential.interactive`](configuration.md#credentialinteractive)
+- [`GCM_GUI_PROMPT`](environment.md#GCM_GUI_PROMPT) / [`credential.guiPrompt`](configuration.md#credentialguiprompt)
+- [`GIT_TERMINAL_PROMPT`](https://git-scm.com/docs/git#Documentation/git.txt-codeGITTERMINALPROMPTcode) (note this is a _Git setting_ that will affect Git as well as GCM)
+
+### How can I extend GUI prompts/integrate prompts with my application?
+
+Application developers who use Git - think Visual Studio, GitKraken, etc. - may
+want to replace the GCM default UI with prompts styled to look like their
+application. This isn't complicated (though it is a bit of work).
+
+You can replace the GUI prompts of the Bitbucket and GitHub host providers
+specifically by using the `credential.gitHubHelper`/`credential.bitbucketHelper`
+settings or `GCM_GITHUB_HELPER`/`GCM_BITBUCKET_HELPER` environment variables.
+
+Set these variables to the path of an external helper executable that responds
+to the requests as the bundled UI helpers do. See the current `--help` documents
+for the bundled UI helpers (`GitHub.UI`/`Atlassian.Bitbucket.UI`) for more
+information.
+
+You may also set these variables to the empty string `""` to force terminal/
+text-based prompts instead.
