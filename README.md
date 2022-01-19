@@ -25,6 +25,7 @@ Secure platform credential storage|&#10003;<br/>[(see more)](docs/credstores.md)
 Multi-factor authentication support for Azure DevOps|&#10003;|&#10003;|&#10003;
 Two-factor authentication support for GitHub|&#10003;|&#10003;|&#10003;
 Two-factor authentication support for Bitbucket|&#10003;|&#10003;|&#10003;
+Two-factor authentication support for GitLab|&#10003;|&#10003;|&#10003;
 Windows Integrated Authentication (NTLM/Kerberos) support|&#10003;|_N/A_|_N/A_
 Basic HTTP authentication support|&#10003;|&#10003;|&#10003;
 Proxy support|&#10003;|&#10003;|&#10003;

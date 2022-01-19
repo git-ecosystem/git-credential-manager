@@ -64,6 +64,7 @@ ID|Provider
 `azure-repos`|Azure Repos
 `github`|GitHub
 `bitbucket`|Bitbucket
+`gitlab`|GitLab<br/>_(supports OAuth in browser, personal access token and Basic Authentication)_
 `generic`|Generic (any other provider not listed above)
 
 Automatic provider selection is based on the remote URL.
@@ -94,6 +95,7 @@ Authority|Provider(s)
 `msa`, `microsoft`, `microsoftaccount`,<br/>`aad`, `azure`, `azuredirectory`,</br>`live`, `liveconnect`, `liveid`|Azure Repos<br/>_(supports Microsoft Authentication)_
 `github`|GitHub<br/>_(supports GitHub Authentication)_
 `bitbucket`|Bitbucket.org<br/>_(supports Basic Authentication and OAuth)_<br/>Bitbucket Server<br/>_(supports Basic Authentication)_
+`gitlab`|GitLab<br/>_(supports OAuth in browser, personal access token and Basic Authentication)_
 `basic`, `integrated`, `windows`, `kerberos`, `ntlm`,<br/>`tfs`, `sso`|Generic<br/>_(supports Basic and Windows Integrated Authentication)_
 
 #### Example
@@ -268,6 +270,31 @@ git config --global credential.gitHubAuthModes "oauth,basic"
 **Also see: [GCM_GITHUB_AUTHMODES](environment.md#GCM_GITHUB_AUTHMODES)**
 
 ---
+
+### credential.gitLabAuthModes
+
+Override the available authentication modes presented during GitLab authentication.
+If this option is not set, then the available authentication modes will be automatically detected.
+
+**Note:** This setting supports multiple values separated by commas.
+
+Value|Authentication Mode
+-|-
+_(unset)_|Automatically detect modes
+`browser`|OAuth authentication via a web browser _(requires a GUI)_
+`basic`|Basic authentication using username and password
+`pat`|Personal Access Token (pat)-based authentication
+
+#### Example
+
+```shell
+git config --global credential.gitLabAuthModes "browser"
+```
+
+**Also see: [GCM_GITLAB_AUTHMODES](environment.md#GCM_GITLAB_AUTHMODES)**
+
+---
+
 
 ### credential.namespace
 
