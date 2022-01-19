@@ -58,6 +58,34 @@ namespace GitLab.Tests
         }
 
         [Fact]
+        public void GitLabAuthentication_GetAuthenticationAsync_ChoosePat()
+        {
+            var context = new TestCommandContext();
+            var auth = new GitLabAuthentication(context);
+            context.Terminal.Prompts["option (enter for default)"] = "";
+            context.Terminal.Prompts["Username"] = "username";
+            context.Terminal.SecretPrompts["Personal access token"] = "token";
+            var result = auth.GetAuthentication(null, null, AuthenticationModes.All);
+            Assert.Equal(AuthenticationModes.Pat, result.AuthenticationMode);
+            Assert.Equal("username", result.Credential.Account);
+            Assert.Equal("token", result.Credential.Password);
+        }
+
+        [Fact]
+        public void GitLabAuthentication_GetAuthenticationAsync_ChooseBasic()
+        {
+            var context = new TestCommandContext();
+            var auth = new GitLabAuthentication(context);
+            context.Terminal.Prompts["option (enter for default)"] = "2";
+            context.Terminal.Prompts["Username"] = "username";
+            context.Terminal.SecretPrompts["Password"] = "password";
+            var result = auth.GetAuthentication(null, null, AuthenticationModes.All);
+            Assert.Equal(AuthenticationModes.Basic, result.AuthenticationMode);
+            Assert.Equal("username", result.Credential.Account);
+            Assert.Equal("password", result.Credential.Password);
+        }
+
+        [Fact]
         public void GitLabAuthentication_GetAuthenticationAsync_AuthenticationModesAll_RequiresInteraction()
         {
             var context = new TestCommandContext();

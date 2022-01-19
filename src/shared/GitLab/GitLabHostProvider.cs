@@ -160,7 +160,7 @@ namespace GitLab
             }
 
             string refreshService = GetRefreshTokenServiceName(input);
-            string refreshToken = Context.CredentialStore.Get(service, input.UserName)?.Password;
+            string refreshToken = Context.CredentialStore.Get(refreshService, input.UserName)?.Password;
             if (refreshToken != null)
             {
                 Context.Trace.WriteLine("Refreshing OAuth token...");
@@ -183,7 +183,7 @@ namespace GitLab
                 // store credential, since we know it to be valid (whereas Git will only store credential if git push succeeds)
                 Context.CredentialStore.AddOrUpdate(service, oAuthCredential.Account, oAuthCredential.AccessToken);
                 // store refresh token under a separate service
-                Context.CredentialStore.AddOrUpdate(GetRefreshTokenServiceName(input), oAuthCredential.Account, oAuthCredential.RefreshToken);
+                Context.CredentialStore.AddOrUpdate(refreshService, oAuthCredential.Account, oAuthCredential.RefreshToken);
             }
             return credential;
         }
