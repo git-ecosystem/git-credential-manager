@@ -28,6 +28,7 @@
       $(OutDir)\GitHub.UI.dll;
       $(OutDir)\GitHub.UI.Shared.dll;
       $(OutDir)\GitLab.dll;
+      $(OutDir)\GitLab.UI.dll;
       $(OutDir)\GitLab.UI.Shared.dll;
       $(OutDir)\Microsoft.AzureRepos.dll;
       $(OutDir)\gcmcore.dll;">
@@ -37,6 +38,7 @@
     <MacFilesToSign Include="
       $(OutDir)\git-credential-manager-core;
       $(OutDir)\GitHub.UI;
+      $(OutDir)\GitLab.UI;
       $(OutDir)\Atlassian.Bitbucket.UI;">
       <InProject>false</InProject>
     </MacFilesToSign>

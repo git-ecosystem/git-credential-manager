@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+    <RuntimeIdentifiers>osx-x64;linux-x64</RuntimeIdentifiers>
+    <RootNamespace>GitLab.UI</RootNamespace>
+    <AssemblyName>GitLab.UI</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GitLab.UI\GitLab.UI.csproj" />
+    <ProjectReference Include="..\Core.UI.Avalonia\Core.UI.Avalonia.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Windows\CredentialsWindow.axaml.cs">
+      <DependentUpon>CredentialsWindow.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Windows\TesterWindow.axaml.cs">
+      <DependentUpon>Tester.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Controls\TesterWindow.axaml.cs">
+      <DependentUpon>TesterWindow.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\gitlab-logo-gray-rgb.png" />
+  </ItemGroup>
+
+</Project>
