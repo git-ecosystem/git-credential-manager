@@ -27,7 +27,9 @@
       $(OutDir)git-credential-manager-core.exe;
       $(OutDir)GitHub.dll;
       $(OutDir)GitHub.UI.exe;
+      $(OutDir)GitHub.UI.Shared.dll;
       $(OutDir)GitLab.dll;
+      $(OutDir)GitLab.UI.Shared.dll;
       $(OutDir)Microsoft.AzureRepos.dll;
       $(OutDir)gcmcore.dll;
       $(OutDir)gcmcoreui.dll;
