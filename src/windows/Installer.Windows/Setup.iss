@@ -112,6 +112,7 @@ Source: "{#PayloadDir}\GitHub.dll";                                     DestDir:
 Source: "{#PayloadDir}\GitHub.UI.exe";                                  DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PayloadDir}\GitHub.UI.exe.config";                           DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PayloadDir}\GitHub.UI.Shared.dll";                           DestDir: "{app}"; Flags: ignoreversion
+Source: "{#PayloadDir}\GitLab.dll";                                     DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PayloadDir}\Microsoft.AzureRepos.dll";                       DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PayloadDir}\gcmcore.dll";                                    DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PayloadDir}\gcmcoreui.dll";                                  DestDir: "{app}"; Flags: ignoreversion
