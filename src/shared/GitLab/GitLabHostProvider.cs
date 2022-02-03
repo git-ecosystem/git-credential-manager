@@ -132,14 +132,39 @@ namespace GitLab
                 }
             }
 
+            // GitLab.com has well-known supported auth modes
             if (GitLabConstants.IsGitLabDotCom(targetUri))
             {
-                return AuthenticationModes.All;
+                return GitLabConstants.DotComAuthenticationModes;
             }
 
-            Context.Streams.Error.WriteLine($"Missing OAuth configuration for {targetUri.Host}, see https://github.com/GitCredentialManager/git-credential-manager/blob/main/docs/gitlab.md.");
-            // Would like to query password_authentication_enabled_for_git, but can't unless logged in https://gitlab.com/gitlab-org/gitlab/-/issues/349463
-            return AuthenticationModes.Basic | AuthenticationModes.Pat;
+            // Try to detect what auth modes are available for this non-GitLab.com host.
+            // Assume that PATs are always available to give at least one option to users!
+            var modes = AuthenticationModes.Pat;
+
+            // If there is a configured OAuth client ID (that isn't GitLab.com's client ID)
+            // then assume OAuth is possible.
+            string oauthClientId = GitLabOAuth2Client.GetClientId(Context.Settings);
+            if (!GitLabConstants.IsGitLabDotComClientId(oauthClientId))
+            {
+                modes |= AuthenticationModes.Browser;
+            }
+            else
+            {
+                // Tell the user that they may wish to configure OAuth for this GitLab instance
+                Context.Streams.Error.WriteLine(
+                    $"warning: missing OAuth configuration for {targetUri.Host} - see {GitLabConstants.HelpUrls.GitLab} for more information");
+            }
+
+            // Would like to query password_authentication_enabled_for_git, but can't unless logged in https://gitlab.com/gitlab-org/gitlab/-/issues/349463.
+            // For now assume password auth is always available.
+            bool supportsBasic = true;
+            if (supportsBasic)
+            {
+                modes |= AuthenticationModes.Basic;
+            }
+
+            return modes;
         }
 
         // <remarks>Stores OAuth tokens as a side effect</remarks>

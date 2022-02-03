@@ -27,6 +27,7 @@
       $(OutDir)\GitHub.dll;
       $(OutDir)\GitHub.UI.dll;
       $(OutDir)\GitHub.UI.Shared.dll;
+      $(OutDir)\GitLab.dll;
       $(OutDir)\Microsoft.AzureRepos.dll;
       $(OutDir)\gcmcore.dll;">
       <Authenticode>Microsoft400</Authenticode>

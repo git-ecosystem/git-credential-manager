@@ -1,10 +1,6 @@
 using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 using GitCredentialManager.Tests.Objects;
-using Moq;
-using Moq.Protected;
 using Xunit;
 
 namespace GitLab.Tests
