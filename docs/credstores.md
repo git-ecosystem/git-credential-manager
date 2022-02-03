@@ -17,7 +17,11 @@ GCM comes without a default store on Linux distributions.
 
 You can select which credential store to use by setting the [`GCM_CREDENTIAL_STORE`](environment.md#GCM_CREDENTIAL_STORE)
 environment variable, or the [`credential.credentialStore`](configuration.md#credentialcredentialstore)
-Git configuration setting.
+Git configuration setting. For example:
+
+```shell
+git config --global credential.credentialStore gpg
+```
 
 Some credential stores have limitations, or further configuration required
 depending on your particular setup. See more detailed information below for each
