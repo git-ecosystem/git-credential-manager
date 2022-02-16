@@ -520,7 +520,7 @@ Value|Description
 `pat` _(default)_|Azure DevOps personal access tokens
 `oauth`|Microsoft identity OAuth tokens (AAD or MSA tokens)
 
-More information about Azure Access tokens can be found [here](azrepos-azuretokens.md).
+More information about Azure Access tokens can be found [here](azrepos-users-and-tokens.md).
 
 #### Example
 
