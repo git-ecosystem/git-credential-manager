@@ -150,10 +150,10 @@ namespace GitHub
                     return patCredential;
 
                 case AuthenticationModes.Browser:
-                    return await GenerateOAuthCredentialAsync(remoteUri, useBrowser: true);
+                    return await GenerateOAuthCredentialAsync(input, useBrowser: true);
 
                 case AuthenticationModes.Device:
-                    return await GenerateOAuthCredentialAsync(remoteUri, useBrowser: false);
+                    return await GenerateOAuthCredentialAsync(input, useBrowser: false);
 
                 case AuthenticationModes.Pat:
                     // The token returned by the user should be good to use directly as the password for Git
@@ -176,8 +176,9 @@ namespace GitHub
             }
         }
 
-        private async Task<GitCredential> GenerateOAuthCredentialAsync(Uri targetUri, bool useBrowser)
+        private async Task<GitCredential> GenerateOAuthCredentialAsync(InputArguments input, bool useBrowser)
         {
+            Uri targetUri = input.GetRemoteUri();
             OAuth2TokenResult result = useBrowser
                 ? await _gitHubAuth.GetOAuthTokenViaBrowserAsync(targetUri, GitHubOAuthScopes)
                 : await _gitHubAuth.GetOAuthTokenViaDeviceCodeAsync(targetUri, GitHubOAuthScopes);
@@ -185,6 +186,8 @@ namespace GitHub
             // Resolve the GitHub user handle
             GitHubUserInfo userInfo = await _gitHubApi.GetUserInfoAsync(targetUri, result.AccessToken);
 
+            // pre-emptively store credential so we don't have to authenticate again if push fails
+            Context.CredentialStore.AddOrUpdate(GetServiceName(input), userInfo.Login, result.AccessToken);
             return new GitCredential(userInfo.Login, result.AccessToken);
         }
 
