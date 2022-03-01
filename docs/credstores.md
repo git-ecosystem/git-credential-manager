@@ -232,6 +232,8 @@ On POSIX platforms the newly created store directory will have permissions set
 such that only the owner can `r`ead/`w`rite/e`x`ecute (`700` or `drwx---`).
 Permissions on existing directories will not be modified.
 
+NB. GCM's plaintext store is distinct from [git-credential-store](https://git-scm.com/docs/git-credential-store), though the formats are similar. The default paths differ.
+
 ---
 
 :warning: **WARNING** :warning:
