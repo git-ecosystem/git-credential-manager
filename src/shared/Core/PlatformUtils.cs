@@ -21,7 +21,7 @@ namespace GitCredentialManager
             return new PlatformInformation(osType, osVersion, cpuArch, clrVersion);
         }
 
-        public static bool IsWindows10OrGreater()
+        public static bool IsWindowsBrokerSupported()
         {
             if (!IsWindows())
             {
@@ -38,7 +38,27 @@ namespace GitCredentialManager
                 return false;
             }
 
-            return (int) osvi.dwMajorVersion >= 10;
+            // Windows major version 10 is required for WAM
+            if (osvi.dwMajorVersion < 10)
+            {
+                return false;
+            }
+
+            // Specific minimum build number is different between Windows Server and Client SKUs
+            const int minClientBuildNumber = 15063;
+            const int minServerBuildNumber = 17763; // Server 2019
+
+            switch (osvi.wProductType)
+            {
+                case VER_NT_WORKSTATION:
+                    return osvi.dwBuildNumber >= minClientBuildNumber;
+
+                case VER_NT_SERVER:
+                case VER_NT_DOMAIN_CONTROLLER:
+                    return osvi.dwBuildNumber >= minServerBuildNumber;
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -283,7 +303,30 @@ namespace GitCredentialManager
             internal uint dwBuildNumber;
             internal uint dwPlatformId;
             internal fixed char szCSDVersion[128];
+            internal ushort wServicePackMajor;
+            internal ushort wServicePackMinor;
+            internal short wSuiteMask;
+            internal byte wProductType;
+            internal byte wReserved;
         }
+
+        /// <summary>
+        /// The operating system is Windows client.
+        /// </summary>
+        private const byte VER_NT_WORKSTATION = 0x0000001;
+
+        /// <summary>
+        /// The system is a domain controller and the operating system is Windows Server.
+        /// </summary>
+        private const byte VER_NT_DOMAIN_CONTROLLER = 0x0000002;
+
+        /// <summary>
+        /// The operating system is Windows Server.
+        /// </summary>
+        /// <remarks>
+        /// A server that is also a domain controller is reported as VER_NT_DOMAIN_CONTROLLER, not VER_NT_SERVER.
+        /// </remarks>
+        private const byte VER_NT_SERVER = 0x0000003;
 
         #endregion
     }
