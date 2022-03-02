@@ -19,8 +19,4 @@
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0" />
   </ItemGroup>
   
-  <ItemGroup>
-    <Resource Include="Assets\gitlab-logo-gray-rgb.png" />
-  </ItemGroup>
-  
 </Project>

@@ -28,8 +28,4 @@
     </Compile>
   </ItemGroup>
 
-  <ItemGroup>
-    <AvaloniaResource Include="Assets\gitlab-logo-gray-rgb.png" />
-  </ItemGroup>
-
 </Project>
