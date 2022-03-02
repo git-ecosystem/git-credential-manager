@@ -76,6 +76,8 @@ namespace GitLab
                     cmdArgs.AppendFormat(" --username {0}", QuoteCmdArg(userName));
                 }
 
+                cmdArgs.AppendFormat(" --url {0}", QuoteCmdArg(targetUri.ToString()));
+
                 if ((modes & AuthenticationModes.Basic) != 0)   cmdArgs.Append(" --basic");
                 if ((modes & AuthenticationModes.Browser) != 0) cmdArgs.Append(" --browser");
                 if ((modes & AuthenticationModes.Pat) != 0)     cmdArgs.Append(" --pat");
