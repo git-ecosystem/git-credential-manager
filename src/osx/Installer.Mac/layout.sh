@@ -23,6 +23,7 @@ INSTALLER_SRC="$SRC/osx/Installer.Mac"
 GCM_SRC="$SRC/shared/Git-Credential-Manager"
 BITBUCKET_UI_SRC="$SRC/shared/Atlassian.Bitbucket.UI.Avalonia"
 GITHUB_UI_SRC="$SRC/shared/GitHub.UI.Avalonia"
+GITLAB_UI_SRC="$SRC/shared/GitLab.UI.Avalonia"
 
 # Build parameters
 FRAMEWORK=net5.0
@@ -92,6 +93,15 @@ dotnet publish "$BITBUCKET_UI_SRC" \
 
 echo "Publishing GitHub UI helper..."
 dotnet publish "$GITHUB_UI_SRC" \
+	--no-restore \
+	-m:1 \
+	--configuration="$CONFIGURATION" \
+	--framework="$FRAMEWORK" \
+	--runtime="$RUNTIME" \
+	--output="$(make_absolute "$PAYLOAD")" || exit 1
+
+echo "Publishing GitLab UI helper..."
+dotnet publish "$GITLAB_UI_SRC" \
 	--no-restore \
 	-m:1 \
 	--configuration="$CONFIGURATION" \
