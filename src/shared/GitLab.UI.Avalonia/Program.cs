@@ -33,7 +33,7 @@ namespace GitLab.UI
             // Process the dispatcher job queue (aka: message pump, run-loop, etc...)
             // We must ensure to run this on the same thread that it was created on
             // (the main thread) so we cannot use any async/await calls between
-            // Dispatcher.Create and Run.
+            // Dispatcher.Initialize and Run.
             Dispatcher.MainThread.Run();
 
             // Execution should never reach here as AppMain terminates the process on completion.
