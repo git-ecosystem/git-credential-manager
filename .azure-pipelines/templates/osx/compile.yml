@@ -1,9 +1,9 @@
 steps:
   - task: UseDotNet@2
-    displayName: Use .NET SDK 5.0.203
+    displayName: Use .NET SDK 6.0.201
     inputs:
       packageType: sdk
-      version: 5.0.203
+      version: 6.0.201
 
   - task: DotNetCoreCLI@2
     displayName: Compile common code and macOS Helpers

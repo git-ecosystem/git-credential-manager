@@ -7,10 +7,10 @@ steps:
       downloadPath: '$(Build.StagingDirectory)/payload'
 
   - task: UseDotNet@2
-    displayName: Use .NET SDK 5.0.203
+    displayName: Use .NET SDK 6.0.201
     inputs:
       packageType: sdk
-      version: 5.0.203
+      version: 6.0.201
 
   - script: dotnet tool install --global nbgv
     displayName: Install Nerdbank.GitVersioning tool
