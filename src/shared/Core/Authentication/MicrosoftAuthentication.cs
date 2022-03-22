@@ -478,7 +478,7 @@ namespace GitCredentialManager.Authentication
 
             return defaultValue;
 #else
-            // OS broker requires .NET Framework right now until we migrate to .NET 5.0 (net6.0-windows10.x.y.z)
+            // OS broker requires .NET Framework right now until we migrate to .NET 5.0 (net5.0-windows10.x.y.z)
             return false;
 #endif
         }
