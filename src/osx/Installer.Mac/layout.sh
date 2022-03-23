@@ -27,7 +27,21 @@ GITLAB_UI_SRC="$SRC/shared/GitLab.UI.Avalonia"
 
 # Build parameters
 FRAMEWORK=net6.0
-RUNTIME=osx-arm64
+
+TEST_ARCH=`uname -m`
+case $TEST_ARCH in
+    "x86_64")
+        RUNTIME="osx-x64"
+        ;;
+    "arm64")
+        RUNTIME="osx-arm64"
+        ;;
+    *)
+        die "Unknown architecture '$TEST_ARCH'"
+        ;;
+esac
+
+echo "Building for architecture '$RUNTIME'"
 
 # Parse script arguments
 for i in "$@"
