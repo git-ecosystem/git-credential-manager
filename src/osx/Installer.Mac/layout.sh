@@ -27,7 +27,7 @@ GITLAB_UI_SRC="$SRC/shared/GitLab.UI.Avalonia"
 
 # Build parameters
 FRAMEWORK=net6.0
-RUNTIME=osx-x64
+RUNTIME=osx-arm64
 
 # Parse script arguments
 for i in "$@"

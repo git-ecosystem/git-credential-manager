@@ -2,7 +2,7 @@
 <installer-gui-script minSpecVersion="1">
     <title>Git Credential Manager</title>
     <background file="background.png" mime-type="image/png" alignment="bottomleft" scaling="tofit" />
-    <options customize="never" />
+    <options customize="never" hostArchitectures="x86_64,arm64" />
     <welcome file="welcome.html" mime-type="text/html" />
     <conclusion file="conclusion.html" mime-type="text/html" />
     <license file="LICENSE" />
