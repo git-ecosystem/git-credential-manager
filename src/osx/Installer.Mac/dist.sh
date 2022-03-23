@@ -11,7 +11,6 @@ SRC="$ROOT/src"
 OUT="$ROOT/out"
 INSTALLER_SRC="$SRC/osx/Installer.Mac"
 RESXPATH="$INSTALLER_SRC/resources"
-DISTPATH="$INSTALLER_SRC/distribution.xml"
 
 # Product information
 IDENTIFIER="com.microsoft.gitcredentialmanager.dist"
@@ -32,6 +31,10 @@ case "$i" in
     DISTOUT="${i#*=}"
     shift # past argument=value
     ;;
+    --runtime=*)
+    RUNTIME="${i#*=}"
+    shift
+    ;;
     *)
           # unknown option
     ;;
@@ -49,6 +52,28 @@ elif [ ! -d "$PACKAGEPATH" ]; then
 fi
 if [ -z "$DISTOUT" ]; then
     die "--output was not set"
+fi
+if [ -z "$RUNTIME" ]; then
+    TEST_RUNTIME=`uname -m`
+    case $TEST_RUNTIME in
+        "x86_64")
+            RUNTIME="osx-x64"
+            ;;
+        "arm64")
+            RUNTIME="osx-arm64"
+            ;;
+        *)
+            die "Unknown runtime '$TEST_RUNTIME'"
+            ;;
+    esac
+fi
+
+echo "Building for runtime '$RUNTIME'"
+
+if [ "$RUNTIME" == "osx-x64"]; then
+    DISTPATH="$INSTALLER_SRC/distribution.x64.xml"
+else
+    DISTPATH="$INSTALLER_SRC/distribution.arm64.xml"
 fi
 
 # Cleanup any old package
