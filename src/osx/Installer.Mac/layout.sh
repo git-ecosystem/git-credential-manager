@@ -41,7 +41,7 @@ case $TEST_ARCH in
         ;;
 esac
 
-echo "Building for architecture '$RUNTIME'"
+echo "Building for runtime '$RUNTIME'"
 
 # Parse script arguments
 for i in "$@"
