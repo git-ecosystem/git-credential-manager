@@ -52,7 +52,8 @@
 #define VerBuild
 #define VerRevision
 #expr ParseVersion(PayloadDir + "\" + GcmExe, VerMajor, VerMinor, VerBuild, VerRevision)
-#define GcmVersion str(VerMajor) + "." + str(VerMinor) + "." + str(VerBuild) + "." + str(VerRevision)
+#define GcmVersionSimple str(VerMajor) + "." + str(VerMinor) + "." + str(VerBuild)
+#define GcmVersion str(GcmVersionSimple) "." + str(VerRevision)
 
 [Setup]
 AppId={#GcmAppId}
@@ -68,7 +69,7 @@ AppCopyright={#GcmCopyright}
 AppReadmeFile={#GcmReadme}
 VersionInfoVersion={#GcmVersion}
 LicenseFile={#GcmRepoRoot}\LICENSE
-OutputBaseFilename={#GcmSetupExe}-win-{#GcmArch}-{#GcmVersion}
+OutputBaseFilename={#GcmSetupExe}-win-{#GcmArch}-{#GcmVersionSimple}
 DefaultDirName={autopf}\{#GcmShortName}
 Compression=lzma2
 SolidCompression=yes
