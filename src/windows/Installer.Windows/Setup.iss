@@ -53,7 +53,7 @@
 #define VerRevision
 #expr ParseVersion(PayloadDir + "\" + GcmExe, VerMajor, VerMinor, VerBuild, VerRevision)
 #define GcmVersionSimple str(VerMajor) + "." + str(VerMinor) + "." + str(VerBuild)
-#define GcmVersion str(GcmVersionSimple) "." + str(VerRevision)
+#define GcmVersion str(GcmVersionSimple) + "." + str(VerRevision)
 
 [Setup]
 AppId={#GcmAppId}
