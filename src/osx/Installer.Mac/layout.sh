@@ -28,21 +28,6 @@ GITLAB_UI_SRC="$SRC/shared/GitLab.UI.Avalonia"
 # Build parameters
 FRAMEWORK=net6.0
 
-TEST_ARCH=`uname -m`
-case $TEST_ARCH in
-    "x86_64")
-        RUNTIME="osx-x64"
-        ;;
-    "arm64")
-        RUNTIME="osx-arm64"
-        ;;
-    *)
-        die "Unknown architecture '$TEST_ARCH'"
-        ;;
-esac
-
-echo "Building for runtime '$RUNTIME'"
-
 # Parse script arguments
 for i in "$@"
 do
@@ -55,6 +40,10 @@ case "$i" in
     PAYLOAD="${i#*=}"
     shift # past argument=value
     ;;
+    --runtime=*)
+    RUNTIME="${i#*=}"
+    shift # past argument=value
+    ;;
     --symbol-output=*)
     SYMBOLOUT="${i#*=}"
     ;;
@@ -63,6 +52,24 @@ case "$i" in
     ;;
 esac
 done
+
+# Determine a runtime if one was not provided
+if [ -z "$RUNTIME" ]; then
+    TEST_ARCH=`uname -m`
+    case $TEST_ARCH in
+        "x86_64")
+            RUNTIME="osx-x64"
+            ;;
+        "arm64")
+            RUNTIME="osx-arm64"
+            ;;
+        *)
+            die "Unknown architecture '$TEST_ARCH'"
+            ;;
+    esac
+fi
+
+echo "Building for runtime '$RUNTIME'"
 
 # Perform pre-execution checks
 CONFIGURATION="${CONFIGURATION:=Debug}"
