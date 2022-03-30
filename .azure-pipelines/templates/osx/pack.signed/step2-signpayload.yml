@@ -15,6 +15,17 @@ steps:
       buildType: 'current'
       artifactName: 'tmp.macpayload_unsigned'
       downloadPath: '$(Build.StagingDirectory)\payload'
+  
+  - task: UseDotNet@2
+    displayName: Use .NET SDK 6.0.201
+    inputs:
+      packageType: sdk
+      version: 6.0.201
+
+  - task: NuGetToolInstaller@0
+    displayName: Install NuGet tool >=4.3.0
+    inputs:
+      versionSpec: '>=4.3.0'
 
   # Must use the NuGet & MSBuild toolchain here rather than `dotnet`
   # because the signing tasks target the netfx MSBuild runtime only.
