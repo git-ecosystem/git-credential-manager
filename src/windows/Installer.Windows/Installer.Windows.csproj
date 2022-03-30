@@ -29,7 +29,7 @@
        before we attempt to sign any files or validate they exist. -->
   <Target Name="CreateFilesToSignItems" DependsOnTargets="GetBuildVersion" BeforeTargets="PrepareForRun">
     <ItemGroup>
-      <FilesToSign Include="$(OutDir)gcmcore*-win-x86-$(BuildVersion).exe">
+      <FilesToSign Include="$(OutDir)gcmcore*-win-x86-$(BuildVersionSimple).exe">
         <Authenticode>Microsoft400</Authenticode>
         <InProject>false</InProject>
       </FilesToSign>
