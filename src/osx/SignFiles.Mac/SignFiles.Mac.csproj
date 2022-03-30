@@ -3,7 +3,7 @@
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <!-- MicroBuild hack: override OutDir to make all files we want to sign under it. -->
     <OutDir>$(RootDir)</OutDir>

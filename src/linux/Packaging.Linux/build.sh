@@ -53,7 +53,7 @@ GITLAB_UI_SRC="$SRC/shared/GitLab.UI.Avalonia"
 PROJ_OUT="$OUT/linux/Packaging.Linux"
 
 # Build parameters
-FRAMEWORK=net5.0
+FRAMEWORK=net6.0
 RUNTIME=linux-x64
 
 # Perform pre-execution checks

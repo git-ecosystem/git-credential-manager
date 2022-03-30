@@ -26,7 +26,7 @@ GITHUB_UI_SRC="$SRC/shared/GitHub.UI.Avalonia"
 GITLAB_UI_SRC="$SRC/shared/GitLab.UI.Avalonia"
 
 # Build parameters
-FRAMEWORK=net5.0
+FRAMEWORK=net6.0
 RUNTIME=osx-x64
 
 # Parse script arguments
@@ -80,6 +80,7 @@ dotnet publish "$GCM_SRC" \
 	--configuration="$CONFIGURATION" \
 	--framework="$FRAMEWORK" \
 	--runtime="$RUNTIME" \
+	--self-contained \
 	--output="$(make_absolute "$PAYLOAD")" || exit 1
 
 echo "Publishing Bitbucket UI helper..."
@@ -89,6 +90,7 @@ dotnet publish "$BITBUCKET_UI_SRC" \
 	--configuration="$CONFIGURATION" \
 	--framework="$FRAMEWORK" \
 	--runtime="$RUNTIME" \
+	--self-contained \
 	--output="$(make_absolute "$PAYLOAD")" || exit 1
 
 echo "Publishing GitHub UI helper..."
@@ -98,6 +100,7 @@ dotnet publish "$GITHUB_UI_SRC" \
 	--configuration="$CONFIGURATION" \
 	--framework="$FRAMEWORK" \
 	--runtime="$RUNTIME" \
+	--self-contained \
 	--output="$(make_absolute "$PAYLOAD")" || exit 1
 
 echo "Publishing GitLab UI helper..."
@@ -107,6 +110,7 @@ dotnet publish "$GITLAB_UI_SRC" \
 	--configuration="$CONFIGURATION" \
 	--framework="$FRAMEWORK" \
 	--runtime="$RUNTIME" \
+	--self-contained \
 	--output="$(make_absolute "$PAYLOAD")" || exit 1
 
 # Collect symbols
