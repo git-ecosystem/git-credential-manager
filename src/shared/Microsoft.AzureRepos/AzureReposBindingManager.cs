@@ -181,7 +181,7 @@ namespace Microsoft.AzureRepos
                     uri.Scheme == AzureDevOpsConstants.UrnScheme && uri.AbsolutePath.StartsWith(orgPrefix))
                 {
                     string entryOrgName = uri.AbsolutePath.Substring(orgPrefix.Length);
-                    if (orgName is null || StringComparer.OrdinalIgnoreCase.Equals(entryOrgName, orgName))
+                    if (string.IsNullOrWhiteSpace(orgName) || StringComparer.OrdinalIgnoreCase.Equals(entryOrgName, orgName))
                     {
                         dict[entryOrgName] = entry.Value;
                     }

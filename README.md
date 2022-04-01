@@ -25,6 +25,7 @@ Secure platform credential storage|&#10003;<br/>[(see more)](docs/credstores.md)
 Multi-factor authentication support for Azure DevOps|&#10003;|&#10003;|&#10003;
 Two-factor authentication support for GitHub|&#10003;|&#10003;|&#10003;
 Two-factor authentication support for Bitbucket|&#10003;|&#10003;|&#10003;
+Two-factor authentication support for GitLab|&#10003;|&#10003;|&#10003;
 Windows Integrated Authentication (NTLM/Kerberos) support|&#10003;|_N/A_|_N/A_
 Basic HTTP authentication support|&#10003;|&#10003;|&#10003;
 Proxy support|&#10003;|&#10003;|&#10003;
@@ -87,6 +88,32 @@ sudo /usr/local/share/gcm-core/uninstall.sh
 <!-- this explicit anchor should stay stable so that external docs can link here -->
 <a name="linux-install-instructions"></a>
 ### Linux
+
+#### Experimental: install from source helper script
+
+If you would like to help dogfood our new install from source helper script,
+run the following:
+
+1. To ensure `curl` is installed:
+
+```shell
+curl --version
+```
+
+If `curl` is not installed, please use your distribution's package manager
+to install it.
+
+0. To download and run the script:
+
+```shell
+curl -LO https://raw.githubusercontent.com/GitCredentialManager/git-credential-manager/main/src/linux/Packaging.Linux/install-from-source.sh &&
+sh ./install-from-source.sh &&
+git-credential-manager-core configure
+```
+
+__Note:__ You will be prompted to enter your credentials so that the script
+can download GCM's dependencies using your distribution's package
+manager.
 
 #### Ubuntu/Debian distributions
 

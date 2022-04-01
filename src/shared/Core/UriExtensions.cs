@@ -74,6 +74,11 @@ namespace GitCredentialManager
 
         public static Uri WithoutUserInfo(this Uri uri)
         {
+            if (string.IsNullOrEmpty(uri.UserInfo))
+            {
+                return uri;
+            }
+
             return new UriBuilder(uri) {UserName = string.Empty, Password = string.Empty}.Uri;
         }
 

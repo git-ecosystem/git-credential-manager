@@ -33,6 +33,7 @@ namespace Atlassian.Bitbucket
             public const string DevOAuthClientSecret = "GCM_DEV_BITBUCKET_CLIENTSECRET";
             public const string DevOAuthRedirectUri = "GCM_DEV_BITBUCKET_REDIRECTURI";
             public const string AuthenticationModes = "GCM_BITBUCKET_AUTHMODES";
+            public const string AlwaysRefreshCredentials = "GCM_BITBUCKET_ALWAYS_REFRESH_CREDENTIALS";
         }
 
         public static class GitConfiguration
@@ -44,6 +45,7 @@ namespace Atlassian.Bitbucket
                 public const string DevOAuthClientSecret = "bitbucketDevClientSecret";
                 public const string DevOAuthRedirectUri = "bitbucketDevRedirectUri";
                 public const string AuthenticationModes = "bitbucketAuthModes";
+                public const string AlwaysRefreshCredentials = "bitbucketAlwaysRefreshCredentials";
             }
         }
 

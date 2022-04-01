@@ -19,14 +19,19 @@ namespace Atlassian.Bitbucket.UI.Commands
                 new Option<string>("--username", "Username or email.")
             );
 
-            Handler = CommandHandler.Create<string>(ExecuteAsync);
+            AddOption(
+                new Option("--show-oauth", "Show OAuth option.")
+            );
+
+            Handler = CommandHandler.Create<string, bool>(ExecuteAsync);
         }
 
-        private async Task<int> ExecuteAsync(string userName)
+        private async Task<int> ExecuteAsync(string userName, bool showOAuth)
         {
             var viewModel = new CredentialsViewModel(Context.Environment)
             {
-                UserName = userName
+                UserName = userName,
+                ShowOAuth = showOAuth
             };
 
             await ShowAsync(viewModel, CancellationToken.None);
@@ -36,11 +41,22 @@ namespace Atlassian.Bitbucket.UI.Commands
                 throw new Exception("User cancelled dialog.");
             }
 
-            WriteResult(new Dictionary<string, string>
+            if (viewModel.UseOAuth)
             {
-                ["username"] = viewModel.UserName,
-                ["password"] = viewModel.Password,
-            });
+                WriteResult(new Dictionary<string, string>
+                {
+                    ["mode"] = "oauth"
+                });
+            }
+            else
+            {
+                WriteResult(new Dictionary<string, string>
+                {
+                    ["mode"] = "basic",
+                    ["username"] = viewModel.UserName,
+                    ["password"] = viewModel.Password,
+                });
+            }
 
             return 0;
         }

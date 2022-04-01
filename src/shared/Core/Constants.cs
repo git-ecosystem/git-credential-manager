@@ -86,6 +86,7 @@ namespace GitCredentialManager
             public const string GitExecutablePath     = "GIT_EXEC_PATH";
             public const string GpgExecutablePath     = "GCM_GPG_PATH";
             public const string GcmAutoDetectTimeout  = "GCM_AUTODETECT_TIMEOUT";
+            public const string GcmGuiPromptsEnabled  = "GCM_GUI_PROMPT";
         }
 
         public static class Http
@@ -120,6 +121,7 @@ namespace GitCredentialManager
                 public const string DpapiStorePath = "dpapiStorePath";
                 public const string UserName = "username";
                 public const string AutoDetectTimeout = "autoDetectTimeout";
+                public const string GuiPromptsEnabled = "guiPrompt";
             }
 
             public static class Http
