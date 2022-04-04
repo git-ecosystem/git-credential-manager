@@ -181,7 +181,7 @@ if [ $INSTALL_FROM_SOURCE = false ]; then
 
     # Build .deb
     INSTALL_TO="$DEBROOT/usr/local/share/gcm-core/"
-    LINK_TO="$DEBROOT/usr/bin/"
+    LINK_TO="$DEBROOT/usr/local/bin/"
     mkdir -p "$DEBROOT/DEBIAN" "$INSTALL_TO" "$LINK_TO" || exit 1
 
 # make the debian control file
@@ -201,8 +201,6 @@ Description: Cross Platform Git Credential Manager command line utility.
  including GitHub, BitBucket, and Azure DevOps.
  For more information see https://aka.ms/gcm
 EOF
-
-    dpkg-deb --build "$DEBROOT" "$DEBPKG" || exit 1
 else
     echo "Installing..."
 
@@ -216,6 +214,10 @@ mkdir -p "$INSTALL_TO" "$LINK_TO"
 
 # Copy all binaries and shared libraries to target installation location
 cp -R "$PAYLOAD"/* "$INSTALL_TO" || exit 1
+
+if [ $INSTALL_FROM_SOURCE = false ]; then
+    dpkg-deb --build "$DEBROOT" "$DEBPKG" || exit 1
+fi
 
 # Create symlink
 if [ ! -f "$LINK_TO/git-credential-manager-core" ]; then
