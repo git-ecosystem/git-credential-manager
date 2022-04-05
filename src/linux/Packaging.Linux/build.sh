@@ -215,14 +215,14 @@ mkdir -p "$INSTALL_TO" "$LINK_TO"
 # Copy all binaries and shared libraries to target installation location
 cp -R "$PAYLOAD"/* "$INSTALL_TO" || exit 1
 
-if [ $INSTALL_FROM_SOURCE = false ]; then
-    dpkg-deb --build "$DEBROOT" "$DEBPKG" || exit 1
-fi
-
 # Create symlink
 if [ ! -f "$LINK_TO/git-credential-manager-core" ]; then
     ln -s -r "$INSTALL_TO/git-credential-manager-core" \
         "$LINK_TO/git-credential-manager-core" || exit 1
+fi
+
+if [ $INSTALL_FROM_SOURCE = false ]; then
+    dpkg-deb --build "$DEBROOT" "$DEBPKG" || exit 1
 fi
 
 echo $MESSAGE
