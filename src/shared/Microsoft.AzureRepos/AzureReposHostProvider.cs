@@ -389,7 +389,7 @@ namespace Microsoft.AzureRepos
         /// <returns>True if Personal Access Tokens should be used, false otherwise.</returns>
         private bool UsePersonalAccessTokens()
         {
-            // Default to using PATs whilst the Azure AT functionality is being tested
+            // Default to using PATs
             const bool defaultValue = true;
 
             if (_context.Settings.TryGetSetting(
@@ -410,7 +410,7 @@ namespace Microsoft.AzureRepos
 
                     default:
                         _context.Streams.Error.WriteLine(
-                            $"warning: unknown Azure Repos credential type '{valueStr}' - using default option");
+                            $"warning: unknown Azure Repos credential type '{valueStr}' - using PATs");
                         return defaultValue;
                 }
             }
