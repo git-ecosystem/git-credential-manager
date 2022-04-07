@@ -670,7 +670,7 @@ export GCM_MSAUTH_USEBROKER="false"
 
 ---
 
-### GCM_AZREPOS_CREDENTIALTYPE _(experimental)_
+### GCM_AZREPOS_CREDENTIALTYPE
 
 Specify the type of credential the Azure Repos host provider should return.
 
@@ -695,4 +695,4 @@ SET GCM_AZREPOS_CREDENTIALTYPE="oauth"
 export GCM_AZREPOS_CREDENTIALTYPE="oauth"
 ```
 
-**Also see: [credential.azreposCredentialType](configuration.md#azreposcredentialtype-experimental)**
+**Also see: [credential.azreposCredentialType](configuration.md#azreposcredentialtype)**

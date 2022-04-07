@@ -508,7 +508,7 @@ Credential: "git:https://bob@github.com/example/myrepo" (user = bob)
 
 ---
 
-### credential.azreposCredentialType _(experimental)_
+### credential.azreposCredentialType
 
 Specify the type of credential the Azure Repos host provider should return.
 
@@ -527,4 +527,4 @@ More information about Azure Access tokens can be found [here](azrepos-azuretoke
 git config --global credential.azreposCredentialType oauth
 ```
 
-**Also see: [GCM_AZREPOS_CREDENTIALTYPE](environment.md#GCM_AZREPOS_CREDENTIALTYPE-experimental)**
+**Also see: [GCM_AZREPOS_CREDENTIALTYPE](environment.md#GCM_AZREPOS_CREDENTIALTYPE)**

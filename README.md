@@ -239,11 +239,11 @@ See detailed information [here](https://aka.ms/gcm/httpproxy).
 - [Credential stores](docs/credstores.md)
 - [Architectural overview](docs/architecture.md)
 - [Host provider specification](docs/hostprovider.md)
+- [Azure Repos OAuth tokens](docs/azrepos-users-and-tokens.md)
 
 ## Experimental Features
 
 - [Windows broker (experimental)](docs/windows-broker.md)
-- [Azure Repos OAuth tokens (experimental)](docs/azrepos-users-and-tokens.md)
 
 ## Contributing
 
