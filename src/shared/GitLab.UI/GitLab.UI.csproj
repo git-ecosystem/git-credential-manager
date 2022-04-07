@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>GitLab.UI</RootNamespace>
+    <AssemblyName>GitLab.UI.Shared</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GitLab\GitLab.csproj" />
+    <ProjectReference Include="..\Core.UI\Core.UI.csproj" />
+  </ItemGroup>
+
+</Project>

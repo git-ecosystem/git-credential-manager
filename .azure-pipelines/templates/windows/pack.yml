@@ -18,7 +18,7 @@ steps:
       rootFolderOrFile: '$(Build.StagingDirectory)\publish\payload\'
       includeRootFolder: false
       archiveType: 'zip'
-      archiveFile: '$(Build.StagingDirectory)\publish\gcmcore-win-x86-$(GitBuildVersion).zip'
+      archiveFile: '$(Build.StagingDirectory)\publish\gcmcore-win-x86-$(GitBuildVersionSimple).zip'
       replaceExistingArchive: true
 
   - task: ArchiveFiles@2

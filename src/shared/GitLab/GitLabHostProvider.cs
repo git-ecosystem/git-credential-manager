@@ -97,7 +97,7 @@ namespace GitLab
 
             AuthenticationModes authModes = GetSupportedAuthenticationModes(remoteUri);
 
-            AuthenticationPromptResult promptResult = _gitLabAuth.GetAuthentication(remoteUri, input.UserName, authModes);
+            AuthenticationPromptResult promptResult = await _gitLabAuth.GetAuthenticationAsync(remoteUri, input.UserName, authModes);
 
             switch (promptResult.AuthenticationMode)
             {

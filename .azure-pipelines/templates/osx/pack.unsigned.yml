@@ -15,7 +15,7 @@ steps:
       rootFolderOrFile: '$(Build.StagingDirectory)/publish/payload'
       includeRootFolder: false
       archiveType: 'tar'
-      archiveFile: '$(Build.StagingDirectory)/publish/gcmcore-osx-$(GitBuildVersion).tar.gz'
+      archiveFile: '$(Build.StagingDirectory)/publish/gcmcore-osx-$(GitBuildVersionSimple).tar.gz'
       replaceExistingArchive: true
 
   - task: ArchiveFiles@2

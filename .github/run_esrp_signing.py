@@ -4,6 +4,7 @@ import glob
 import pprint
 import subprocess
 import sys
+import re
 
 esrp_tool = os.path.join("esrp", "tools", "EsrpClient.exe")
 
@@ -96,7 +97,16 @@ result = subprocess.run(
 	"-p", "policy.json",
 	"-o", esrp_out,
 	"-l", "Verbose"],
+	capture_output=True,
+	text=True,
 	cwd=workspace)
+
+# Scrub log before printing
+log = re.sub(r'^.+Uploading.*to\s*destinationUrl\s*(.+?),.+$',
+    '***', 
+    result.stdout,
+    flags=re.IGNORECASE|re.MULTILINE)
+printf(log)
 
 if result.returncode != 0:
 	print("Failed to run ESRPClient.exe")

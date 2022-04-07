@@ -89,6 +89,32 @@ sudo /usr/local/share/gcm-core/uninstall.sh
 <a name="linux-install-instructions"></a>
 ### Linux
 
+#### Experimental: install from source helper script
+
+If you would like to help dogfood our new install from source helper script,
+run the following:
+
+1. To ensure `curl` is installed:
+
+```shell
+curl --version
+```
+
+If `curl` is not installed, please use your distribution's package manager
+to install it.
+
+0. To download and run the script:
+
+```shell
+curl -LO https://raw.githubusercontent.com/GitCredentialManager/git-credential-manager/main/src/linux/Packaging.Linux/install-from-source.sh &&
+sh ./install-from-source.sh &&
+git-credential-manager-core configure
+```
+
+__Note:__ You will be prompted to enter your credentials so that the script
+can download GCM's dependencies using your distribution's package
+manager.
+
 #### Ubuntu/Debian distributions
 
 Download the latest [.deb package](https://github.com/GitCredentialManager/git-credential-manager/releases/latest), and run the following:
@@ -213,11 +239,11 @@ See detailed information [here](https://aka.ms/gcm/httpproxy).
 - [Credential stores](docs/credstores.md)
 - [Architectural overview](docs/architecture.md)
 - [Host provider specification](docs/hostprovider.md)
+- [Azure Repos OAuth tokens](docs/azrepos-users-and-tokens.md)
 
 ## Experimental Features
 
 - [Windows broker (experimental)](docs/windows-broker.md)
-- [Azure Repos OAuth tokens (experimental)](docs/azrepos-users-and-tokens.md)
 
 ## Contributing
 
