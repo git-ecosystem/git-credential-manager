@@ -169,6 +169,7 @@ ID|Provider
 `auto` _(default)_|_\[automatic\]_ ([learn more](autodetect.md))
 `azure-repos`|Azure Repos
 `github`|GitHub
+`gitlab`|GitLab<br/>_(supports OAuth in browser, personal access token and Basic Authentication)_
 `generic`|Generic (any other provider not listed above)
 
 Automatic provider selection is based on the remote URL.
@@ -206,6 +207,7 @@ Authority|Provider(s)
 `auto` _(default)_|_\[automatic\]_
 `msa`, `microsoft`, `microsoftaccount`,<br/>`aad`, `azure`, `azuredirectory`,</br>`live`, `liveconnect`, `liveid`|Azure Repos<br/>_(supports Microsoft Authentication)_
 `github`|GitHub<br/>_(supports GitHub Authentication)_
+`gitlab`|GitLab<br/>_(supports OAuth in browser, personal access token and Basic Authentication)_
 `basic`, `integrated`, `windows`, `kerberos`, `ntlm`,<br/>`tfs`, `sso`|Generic<br/>_(supports Basic and Windows Integrated Authentication)_
 
 #### Example
@@ -223,6 +225,33 @@ export GCM_AUTHORITY=github
 ```
 
 **Also see: [credential.authority](configuration.md#credentialauthority-deprecated)**
+
+---
+
+### GCM_GUI_PROMPT
+
+Permit or disable GCM from presenting GUI prompts. If an equivalent terminal/
+text-based prompt is available, that will be shown instead.
+
+To disable all interactivity see [GCM_INTERACTIVE](#gcm_interactive).
+
+#### Example
+
+##### Windows
+
+```batch
+SET GCM_GUI_PROMPT=0
+```
+
+##### macOS/Linux
+
+```bash
+export GCM_GUI_PROMPT=0
+```
+
+Defaults to enabled.
+
+**Also see: [credential.guiPrompt](configuration.md#credentialguiprompt)**
 
 ---
 
@@ -343,6 +372,40 @@ export GCM_BITBUCKET_AUTHMODES="oauth,basic"
 
 ---
 
+### GCM_BITBUCKET_ALWAYS_REFRESH_CREDENTIALS
+
+Forces GCM to ignore any existing stored Basic Auth or OAuth access tokens and always run through the process to refresh the credentials before returning them to Git.
+
+This is especially relevant to OAuth credentials. Bitbucket.org access tokens expire after 2 hours, after that the refresh token must be used to get a new access token.
+
+Enabling this option will improve performance when using Oauth2 and interacting with Bitbucket.org if, on average, commits are done less frequently than every 2 hours.
+
+Enabling this option will decrease performance when using Basic Auth by requiring the user the re-enter credentials everytime.
+
+
+Value|Refresh Credentials Before Returning
+-|-
+`true`, `1`, `yes`, `on` |Always
+`false`, `0`, `no`, `off`_(default)_|Only when the credentials are found to be invalid
+
+##### Windows
+
+```batch
+SET GCM_BITBUCKET_ALWAYS_REFRESH_CREDENTIALS=1
+```
+
+##### macOS/Linux
+
+```bash
+export GCM_BITBUCKET_ALWAYS_REFRESH_CREDENTIALS=1
+```
+
+Defaults to false/disabled.
+
+**Also see: [credential.bitbucketAlwaysRefreshCredentials](configuration.md#bitbucketAlwaysRefreshCredentials)**
+
+---
+
 ### GCM_GITHUB_AUTHMODES
 
 Override the available authentication modes presented during GitHub authentication.
@@ -372,6 +435,36 @@ export GCM_GITHUB_AUTHMODES="oauth,basic"
 ```
 
 **Also see: [credential.gitHubAuthModes](configuration.md#credentialgitHubAuthModes)**
+
+---
+
+### GCM_GITLAB_AUTHMODES
+
+Override the available authentication modes presented during GitLab authentication.
+If this option is not set, then the available authentication modes will be automatically detected.
+
+**Note:** This setting supports multiple values separated by commas.
+
+Value|Authentication Mode
+-|-
+_(unset)_|Automatically detect modes
+`browser`|OAuth authentication via a web browser _(requires a GUI)_
+`basic`|Basic authentication using username and password
+`pat`|Personal Access Token (pat)-based authentication
+
+##### Windows
+
+```batch
+SET GCM_GITLAB_AUTHMODES="browser"
+```
+
+##### macOS/Linux
+
+```bash
+export GCM_GITLAB_AUTHMODES="browser"
+```
+
+**Also see: [credential.gitLabAuthModes](configuration.md#credentialgitLabAuthModes)**
 
 ---
 
@@ -577,7 +670,7 @@ export GCM_MSAUTH_USEBROKER="false"
 
 ---
 
-### GCM_AZREPOS_CREDENTIALTYPE _(experimental)_
+### GCM_AZREPOS_CREDENTIALTYPE
 
 Specify the type of credential the Azure Repos host provider should return.
 
@@ -602,4 +695,4 @@ SET GCM_AZREPOS_CREDENTIALTYPE="oauth"
 export GCM_AZREPOS_CREDENTIALTYPE="oauth"
 ```
 
-**Also see: [credential.azreposCredentialType](configuration.md#azreposcredentialtype-experimental)**
+**Also see: [credential.azreposCredentialType](configuration.md#azreposcredentialtype)**

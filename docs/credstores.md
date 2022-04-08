@@ -17,7 +17,11 @@ GCM comes without a default store on Linux distributions.
 
 You can select which credential store to use by setting the [`GCM_CREDENTIAL_STORE`](environment.md#GCM_CREDENTIAL_STORE)
 environment variable, or the [`credential.credentialStore`](configuration.md#credentialcredentialstore)
-Git configuration setting.
+Git configuration setting. For example:
+
+```shell
+git config --global credential.credentialStore gpg
+```
 
 Some credential stores have limitations, or further configuration required
 depending on your particular setup. See more detailed information below for each
@@ -227,6 +231,8 @@ If the directory doesn't exist it will be created.
 On POSIX platforms the newly created store directory will have permissions set
 such that only the owner can `r`ead/`w`rite/e`x`ecute (`700` or `drwx---`).
 Permissions on existing directories will not be modified.
+
+NB. GCM's plaintext store is distinct from [git-credential-store](https://git-scm.com/docs/git-credential-store), though the formats are similar. The default paths differ.
 
 ---
 

@@ -25,6 +25,7 @@ Secure platform credential storage|&#10003;<br/>[(see more)](docs/credstores.md)
 Multi-factor authentication support for Azure DevOps|&#10003;|&#10003;|&#10003;
 Two-factor authentication support for GitHub|&#10003;|&#10003;|&#10003;
 Two-factor authentication support for Bitbucket|&#10003;|&#10003;|&#10003;
+Two-factor authentication support for GitLab|&#10003;|&#10003;|&#10003;
 Windows Integrated Authentication (NTLM/Kerberos) support|&#10003;|_N/A_|_N/A_
 Basic HTTP authentication support|&#10003;|&#10003;|&#10003;
 Proxy support|&#10003;|&#10003;|&#10003;
@@ -88,13 +89,39 @@ sudo /usr/local/share/gcm-core/uninstall.sh
 <a name="linux-install-instructions"></a>
 ### Linux
 
+#### Experimental: install from source helper script
+
+If you would like to help dogfood our new install from source helper script,
+run the following:
+
+1. To ensure `curl` is installed:
+
+```shell
+curl --version
+```
+
+If `curl` is not installed, please use your distribution's package manager
+to install it.
+
+0. To download and run the script:
+
+```shell
+curl -LO https://raw.githubusercontent.com/GitCredentialManager/git-credential-manager/main/src/linux/Packaging.Linux/install-from-source.sh &&
+sh ./install-from-source.sh &&
+git-credential-manager-core configure
+```
+
+__Note:__ You will be prompted to enter your credentials so that the script
+can download GCM's dependencies using your distribution's package
+manager.
+
 #### Ubuntu/Debian distributions
 
 Download the latest [.deb package](https://github.com/GitCredentialManager/git-credential-manager/releases/latest), and run the following:
 
 ```shell
 sudo dpkg -i <path-to-package>
-git-credential-manager configure
+git-credential-manager-core configure
 ```
 __Note:__ Although packages were previously offered on certain
 [Microsoft Ubuntu package feeds](https://packages.microsoft.com/repos/),
@@ -104,7 +131,7 @@ Debian package using the above instructions instead.
 To uninstall:
 
 ```shell
-git-credential-manager unconfigure
+git-credential-manager-core unconfigure
 sudo dpkg -r gcmcore
 ```
 
@@ -114,14 +141,14 @@ Download the latest [tarball](https://github.com/GitCredentialManager/git-creden
 
 ```shell
 tar -xvf <path-to-tarball> -C /usr/local/bin
-git-credential-manager configure
+git-credential-manager-core configure
 ```
 
 To uninstall:
-git-credential-manager unconfigure
-rm $(command -v git-credential-manager)
-```shell
 
+```shell
+git-credential-manager-core unconfigure
+rm $(command -v git-credential-manager-core)
 ```
 
 **Note:** all Linux distributions [require additional configuration](https://aka.ms/gcm/credstores) to use GCM.
@@ -144,11 +171,11 @@ Installing GCM as a standalone package on Windows will forcibly override the ver
 
 There are two flavors of standalone installation on Windows:
 
-- User (preferred) (`gcmuser-win*`):
+- User (preferred) (`gcmcoreuser-win*`):
 
   Does not require administrator rights. Will install only for the current user and updates only the current user's Git configuration.
 
-- System (`gcm-win*`):
+- System (`gcmcore-win*`):
 
   Requires administrator rights. Will install for all users on the system and update the system-wide Git configuration.
 
@@ -212,11 +239,11 @@ See detailed information [here](https://aka.ms/gcm/httpproxy).
 - [Credential stores](docs/credstores.md)
 - [Architectural overview](docs/architecture.md)
 - [Host provider specification](docs/hostprovider.md)
+- [Azure Repos OAuth tokens](docs/azrepos-users-and-tokens.md)
 
 ## Experimental Features
 
 - [Windows broker (experimental)](docs/windows-broker.md)
-- [Azure Repos OAuth tokens (experimental)](docs/azrepos-users-and-tokens.md)
 
 ## Contributing
 

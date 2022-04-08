@@ -66,6 +66,14 @@ namespace GitCredentialManager
         bool IsTerminalPromptsEnabled { get; }
 
         /// <summary>
+        /// True if GUI prompts are enabled, false otherwise.
+        /// </summary>
+        /// <remarks>
+        /// If GUI prompts are disabled but an equivalent terminal prompt is available, the latter will be used instead.
+        /// </remarks>
+        bool IsGuiPromptsEnabled { get; }
+
+        /// <summary>
         /// True if it is permitted to interact with the user, false otherwise.
         /// </summary>
         /// <remarks>
@@ -436,6 +444,25 @@ namespace GitCredentialManager
         public bool IsDebuggingEnabled => _environment.Variables.GetBooleanyOrDefault(KnownEnvars.GcmDebug, false);
 
         public bool IsTerminalPromptsEnabled => _environment.Variables.GetBooleanyOrDefault(KnownEnvars.GitTerminalPrompts, true);
+
+        public bool IsGuiPromptsEnabled
+        {
+            get
+            {
+                const bool defaultValue = true;
+
+                if (TryGetSetting(
+                        KnownEnvars.GcmGuiPromptsEnabled,
+                        KnownGitCfg.Credential.SectionName,
+                        KnownGitCfg.Credential.GuiPromptsEnabled,
+                        out string str))
+                {
+                    return str.ToBooleanyOrDefault(defaultValue);
+                }
+
+                return defaultValue;
+            }
+        }
 
         public bool IsInteractionAllowed
         {

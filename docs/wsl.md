@@ -22,7 +22,7 @@ _Inside your WSL installation_, run the following command to set GCM as the Git
 credential helper:
 
 ```shell
-git config --global credential.helper "/mnt/c/Program\ Files/Git/mingw64/libexec/git-core/git-credential-manager.exe"
+git config --global credential.helper "/mnt/c/Program\ Files/Git/mingw64/libexec/git-core/git-credential-manager-core.exe"
 ```
 
 If you intend to use Azure DevOps you must _also_ set the following Git
@@ -44,7 +44,7 @@ _Inside your WSL installation_, run the following command to set GCM as the Git
 credential helper:
 
 ```shell
-git config --global credential.helper /mnt/c/Program\ Files/Git/mingw64/libexec/git-core/git-credential-manager.exe
+git config --global credential.helper "/mnt/c/Program\ Files\ \(x86\)/Git\ Credential\ Manager\ Core/git-credential-manager-core.exe"
 
 # For Azure DevOps support only
 git config --global credential.https://dev.azure.com.useHttpPath true
@@ -55,10 +55,17 @@ the value `GIT_EXEC_PATH/wp`. From an _Administrator_ Command Prompt run the
 following:
 
 ```batch
-SETX WSLENV=%WSLENV%:GIT_EXEC_PATH/wp
+SETX WSLENV %WSLENV%:GIT_EXEC_PATH/wp
 ```
 
 After updating the `WSLENV` environment variable, restart your WSL installation.
+
+### Using the user-only GCM installer?
+
+If you have installed GCM using the user-only installer (i.e, the `gcmuser-*.exe`
+installer and not the system-wide/admin required installer), you need to modify
+the above instructions to point to `/mnt/c/Users/<USERNAME>/AppData/Local/Programs/Git\ Credential\ Manager\ Core/git-credential-manager-core.exe`
+instead.
 
 ## How it works
 

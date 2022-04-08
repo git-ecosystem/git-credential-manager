@@ -12,6 +12,7 @@ namespace Atlassian.Bitbucket.UI.ViewModels
 
         private string _userName;
         private string _password;
+        private bool _showOAuth;
 
         public CredentialsViewModel()
         {
@@ -27,6 +28,7 @@ namespace Atlassian.Bitbucket.UI.ViewModels
             Title = "Connect to Bitbucket";
             LoginCommand = new RelayCommand(Accept, CanLogin);
             CancelCommand = new RelayCommand(Cancel);
+            OAuthCommand = new RelayCommand(AcceptOAuth, CanAcceptOAuth);
             ForgotPasswordCommand = new RelayCommand(ForgotPassword);
             SignUpCommand = new RelayCommand(SignUp);
 
@@ -47,6 +49,17 @@ namespace Atlassian.Bitbucket.UI.ViewModels
         private bool CanLogin()
         {
             return !string.IsNullOrWhiteSpace(UserName) && !string.IsNullOrWhiteSpace(Password);
+        }
+
+        private void AcceptOAuth()
+        {
+            UseOAuth = true;
+            Accept();
+        }
+
+        private bool CanAcceptOAuth()
+        {
+            return ShowOAuth;
         }
 
         private void ForgotPassword()
@@ -72,6 +85,24 @@ namespace Atlassian.Bitbucket.UI.ViewModels
         }
 
         /// <summary>
+        /// Show the direct-to-OAuth button.
+        /// </summary>
+        public bool ShowOAuth
+        {
+            get => _showOAuth;
+            set => SetAndRaisePropertyChanged(ref _showOAuth, value);
+        }
+
+        /// <summary>
+        /// User indicated a preference to use OAuth authentication over username/password.
+        /// </summary>
+        public bool UseOAuth
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
         /// Start the process to validate the username/password
         /// </summary>
         public RelayCommand LoginCommand { get; }
@@ -80,6 +111,11 @@ namespace Atlassian.Bitbucket.UI.ViewModels
         /// Cancel the authentication attempt.
         /// </summary>
         public ICommand CancelCommand { get; }
+
+        /// <summary>
+        /// Use OAuth authentication instead of username/password.
+        /// </summary>
+        public ICommand OAuthCommand { get; }
 
         /// <summary>
         /// Hyperlink to the Bitbucket forgotten password process.

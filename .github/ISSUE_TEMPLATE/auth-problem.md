@@ -63,3 +63,10 @@ A clear and concise description of what happens. For example: exception is throw
 **Logs**
 
 Set the environment variables `GCM_TRACE=1` and `GIT_TRACE=1` and re-run your Git command. Review and redact any private information and attach the log.
+
+If you are running inside of Windows Subsystem for Linux (WSL), you must also set an additional environment variable to enable tracing: `WSLENV=$WSLENV:GCM_TRACE`.
+For example:
+
+```shell
+WSLENV=$WSLENV:GCM_TRACE:GIT_TRACE GCM_TRACE=1 GIT_TRACE=1 git fetch
+```
