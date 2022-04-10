@@ -10,7 +10,7 @@ steps:
     inputs:
       command: build
       projects: 'Git-Credential-Manager.sln'
-      arguments: '--configuration=Mac$(configuration)'
+      arguments: '--configuration=Mac$(configuration) --runtime=$(osxRuntime)'
 
   - task: DotNetCoreCLI@2
     displayName: Run common unit tests
