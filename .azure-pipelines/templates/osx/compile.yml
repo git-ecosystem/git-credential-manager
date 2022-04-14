@@ -4,13 +4,18 @@ steps:
     inputs:
       packageType: sdk
       version: 6.0.201
+  
+  - task: DotNetCoreCLI@2
+    displayName: Restore solution
+    inputs:
+      command: restore
 
   - task: DotNetCoreCLI@2
     displayName: Compile common code and macOS Helpers
     inputs:
       command: build
-      projects: 'Git-Credential-Manager.sln'
-      arguments: '--configuration=Mac$(configuration) --runtime=$(osxRuntime)'
+      projects: src/osx/Installer.Mac/Installer.Mac.csproj
+      arguments: '--configuration=Mac$(configuration) --runtime=$(osxRuntime) --no-self-contained'
 
   - task: DotNetCoreCLI@2
     displayName: Run common unit tests
