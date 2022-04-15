@@ -76,7 +76,7 @@ addresses. GCM supports the cURL environment variable `no_proxy` (and
 Like with the [other cURL proxy environment variables](#other-proxy-options),
 the lowercase variant will take precedence over the uppercase form.
 
-This environment variable should contain a comma (`,`) or space (` `) separated
+This environment variable should contain a comma-separated or space-separated
 list of host names that should not be proxied (should connect directly).
 
 GCM attempts to match [libcurl's behaviour](https://curl.se/libcurl/c/CURLOPT_NOPROXY.html),
