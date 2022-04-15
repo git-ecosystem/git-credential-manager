@@ -98,7 +98,7 @@ There is a workaround which should work and doesn't require installing anything.
       ```
 
       You will be prompted to enter a password – copy the newly generated PAT in
-      step 4 and paste it here, and press <kbd>Enter</kbd>
+      step 4 and paste it here, and press the `Enter` key
 
       ![image](https://user-images.githubusercontent.com/5658207/95448479-4fc64580-095b-11eb-9970-0b6faf7f4ae7.png)
 

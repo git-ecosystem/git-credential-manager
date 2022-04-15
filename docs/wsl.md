@@ -102,7 +102,7 @@ installation, and not shared with others or the Windows host.
 Yes. Rather than install GCM as a Windows application (and have WSL Git invoke
 the Windows GCM), can you install GCM as a Linux application instead.
 
-To do this, simply follow the [GCM installation instructions for Linux](../README.md#linux-install-instructions).
+To do this, simply follow the [GCM installation instructions for Linux](../README.md#linux).
 
 **Note:** In this scenario, because GCM is running as a Linux application
 it cannot utilize authentication or credential storage features of the host

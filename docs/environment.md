@@ -137,8 +137,8 @@ The following table summarizes the change in behavior and the mapping of older v
 Value(s)|Old meaning|New meaning
 -|-|-
 `auto`|Prompt if required – use cached credentials if possible|_(unchanged)_
-`never`,<br/>`false`| Never prompt – fail if interaction is required|_(unchanged)_
-`always`,<br/>`force`,<br/>`true`|Always prompt – don't use cached credentials|Prompt if required (same as the old `auto` value)
+`never`, `false`| Never prompt – fail if interaction is required|_(unchanged)_
+`always`, `force`, `true`|Always prompt – don't use cached credentials|Prompt if required (same as the old `auto` value)
 
 #### Example
 
@@ -169,7 +169,7 @@ ID|Provider
 `auto` _(default)_|_\[automatic\]_ ([learn more](autodetect.md))
 `azure-repos`|Azure Repos
 `github`|GitHub
-`gitlab`|GitLab<br/>_(supports OAuth in browser, personal access token and Basic Authentication)_
+`gitlab`|GitLab _(supports OAuth in browser, personal access token and Basic Authentication)_
 `generic`|Generic (any other provider not listed above)
 
 Automatic provider selection is based on the remote URL.
@@ -205,10 +205,10 @@ Select the host provider to use when authenticating by which authority is suppor
 Authority|Provider(s)
 -|-
 `auto` _(default)_|_\[automatic\]_
-`msa`, `microsoft`, `microsoftaccount`,<br/>`aad`, `azure`, `azuredirectory`,</br>`live`, `liveconnect`, `liveid`|Azure Repos<br/>_(supports Microsoft Authentication)_
-`github`|GitHub<br/>_(supports GitHub Authentication)_
-`gitlab`|GitLab<br/>_(supports OAuth in browser, personal access token and Basic Authentication)_
-`basic`, `integrated`, `windows`, `kerberos`, `ntlm`,<br/>`tfs`, `sso`|Generic<br/>_(supports Basic and Windows Integrated Authentication)_
+`msa`, `microsoft`, `microsoftaccount`, `aad`, `azure`, `azuredirectory`, `live`, `liveconnect`, `liveid`|Azure Repos _(supports Microsoft Authentication)_
+`github`|GitHub _(supports GitHub Authentication)_
+`gitlab`|GitLab _(supports OAuth in browser, personal access token and Basic Authentication)_
+`basic`, `integrated`, `windows`, `kerberos`, `ntlm`, `tfs`, `sso`|Generic _(supports Basic and Windows Integrated Authentication)_
 
 #### Example
 
@@ -500,7 +500,7 @@ Default value on Windows is `wincredman`, on macOS is `keychain`, and is unset o
 
 Value|Credential Store|Platforms
 -|-|-
-_(unset)_|Windows: `wincredman`<br/>macOS: `keychain`<br/>Linux: _(none)_|-
+_(unset)_|Windows: `wincredman`, macOS: `keychain`, Linux: _(none)_|-
 `wincredman`|Windows Credential Manager (not available over SSH).|Windows
 `dpapi`|DPAPI protected files. Customize the DPAPI store location with [`GCM_DPAPI_STORE_PATH`](#gcm_dpapi_store_path)|Windows
 `keychain`|macOS Keychain.|macOS
