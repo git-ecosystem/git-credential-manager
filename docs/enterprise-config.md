@@ -18,7 +18,7 @@ The addition of the enterprise system administrator defaults enables those
 administrators to configure many GCM settings using familiar MDM tooling, rather
 than having to modify the Git installation configuration files.
 
-### User Freedom
+## User Freedom
 
 We believe the user should _always_ be at liberty to configure
 Git and GCM exactly as they wish. By prefering environment variables and Git
@@ -30,13 +30,13 @@ that can always be overriden by the user in the usual ways.
 Default setting values come from the Windows Registry, specifically the
 following keys:
 
-**32-bit Windows**
+### 32-bit Windows
 
 ```text
 HKEY_LOCAL_MACHINE\SOFTWARE\GitCredentialManager\Configuration
 ```
 
-**64-bit Windows**
+### 64-bit Windows
 
 ```text
 HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\GitCredentialManager\Configuration
@@ -54,7 +54,6 @@ those of the [Git configuration](configuration.md) settings.
 
 The type of each registry key can be either `REG_SZ` (string) or `REG_DWORD`
 (integer).
-
 
 ## macOS/Linux
 

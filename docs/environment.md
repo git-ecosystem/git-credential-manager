@@ -325,13 +325,13 @@ Configure GCM to use the a proxy for network operations.
 
 **Note:** Git itself does _not_ respect this setting; this affects GCM _only_.
 
-##### Windows
+#### Windows
 
 ```batch
 SET GCM_HTTP_PROXY=http://john.doe:password@proxy.contoso.com
 ```
 
-##### macOS/Linux
+#### macOS/Linux
 
 ```bash
 export GCM_HTTP_PROXY=http://john.doe:password@proxy.contoso.com
@@ -356,13 +356,13 @@ _(unset)_|Automatically detect modes
 `oauth`|OAuth-based authentication
 `basic`|Basic/PAT-based authentication
 
-##### Windows
+#### Windows
 
 ```batch
 SET GCM_BITBUCKET_AUTHMODES="oauth,basic"
 ```
 
-##### macOS/Linux
+#### macOS/Linux
 
 ```bash
 export GCM_BITBUCKET_AUTHMODES="oauth,basic"
@@ -382,19 +382,18 @@ Enabling this option will improve performance when using Oauth2 and interacting 
 
 Enabling this option will decrease performance when using Basic Auth by requiring the user the re-enter credentials everytime.
 
-
 Value|Refresh Credentials Before Returning
 -|-
 `true`, `1`, `yes`, `on` |Always
 `false`, `0`, `no`, `off`_(default)_|Only when the credentials are found to be invalid
 
-##### Windows
+#### Windows
 
 ```batch
 SET GCM_BITBUCKET_ALWAYS_REFRESH_CREDENTIALS=1
 ```
 
-##### macOS/Linux
+#### macOS/Linux
 
 ```bash
 export GCM_BITBUCKET_ALWAYS_REFRESH_CREDENTIALS=1
@@ -422,13 +421,13 @@ _(unset)_|Automatically detect modes
 `basic`|Basic authentication using username and password
 `pat`|Personal Access Token (pat)-based authentication
 
-##### Windows
+#### Windows
 
 ```batch
 SET GCM_GITHUB_AUTHMODES="oauth,basic"
 ```
 
-##### macOS/Linux
+#### macOS/Linux
 
 ```bash
 export GCM_GITHUB_AUTHMODES="oauth,basic"
@@ -452,13 +451,13 @@ _(unset)_|Automatically detect modes
 `basic`|Basic authentication using username and password
 `pat`|Personal Access Token (pat)-based authentication
 
-##### Windows
+#### Windows
 
 ```batch
 SET GCM_GITLAB_AUTHMODES="browser"
 ```
 
-##### macOS/Linux
+#### macOS/Linux
 
 ```bash
 export GCM_GITLAB_AUTHMODES="browser"
@@ -475,13 +474,13 @@ Credentials will be stored in the format `{namespace}:{service}`.
 
 Defaults to the value `git`.
 
-##### Windows
+#### Windows
 
 ```batch
 SET GCM_NAMESPACE="my-namespace"
 ```
 
-##### macOS/Linux
+#### macOS/Linux
 
 ```bash
 export GCM_NAMESPACE="my-namespace"
@@ -510,13 +509,13 @@ _(unset)_|Windows: `wincredman`<br/>macOS: `keychain`<br/>Linux: _(none)_|-
 `cache`|Git's built-in [credential cache](https://git-scm.com/docs/git-credential-cache).|Windows, macOS, Linux
 `plaintext`|Store credentials in plaintext files (**UNSECURE**). Customize the plaintext store location with [`GCM_PLAINTEXT_STORE_PATH`](#gcm_plaintext_store_path).|Windows, macOS, Linux
 
-##### Windows
+#### Windows
 
 ```batch
 SET GCM_CREDENTIAL_STORE="gpg"
 ```
 
-##### macOS/Linux
+#### macOS/Linux
 
 ```bash
 export GCM_CREDENTIAL_STORE="gpg"
@@ -597,7 +596,7 @@ Specify the path (_including_ the executable name) to the version of `gpg` used 
 
 If not specified, GCM defaults to using the version of `gpg2` on the `$PATH`, falling back on `gpg` if `gpg2` is not found.
 
-##### macOS/Linux
+#### macOS/Linux
 
 ```bash
 export GCM_GPG_PATH="/usr/local/bin/gpg2"
@@ -625,13 +624,13 @@ Value|Authentication Flow
 `system`|Open the user's default web browser.
 `devicecode`|Show a device code.
 
-##### Windows
+#### Windows
 
 ```batch
 SET GCM_MSAUTH_FLOW="devicecode"
 ```
 
-##### macOS/Linux
+#### macOS/Linux
 
 ```bash
 export GCM_MSAUTH_FLOW="devicecode"
@@ -654,13 +653,13 @@ Value|Description
 `true`|Use the operating system account manager as an authentication broker.
 `false` _(default)_|Do not use the broker.
 
-##### Windows
+#### Windows
 
 ```batch
 SET GCM_MSAUTH_USEBROKER="true"
 ```
 
-##### macOS/Linux
+#### macOS/Linux
 
 ```bash
 export GCM_MSAUTH_USEBROKER="false"
@@ -683,13 +682,13 @@ Value|Description
 
 More information about Azure Access tokens can be found [here](azrepos-azuretokens.md).
 
-##### Windows
+#### Windows
 
 ```batch
 SET GCM_AZREPOS_CREDENTIALTYPE="oauth"
 ```
 
-##### macOS/Linux
+#### macOS/Linux
 
 ```bash
 export GCM_AZREPOS_CREDENTIALTYPE="oauth"

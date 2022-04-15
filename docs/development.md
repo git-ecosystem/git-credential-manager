@@ -106,7 +106,7 @@ $ dotnet test --collect:"XPlat Code Coverage" --settings=./.code-coverage/coverl
 
 Or via the VSCode Terminal/Run Task:
 
-```
+```console
 test with coverage
 ```
 
@@ -115,6 +115,7 @@ HTML reports can be generated using ReportGenerator, this should be installed du
 ```shell
 $ dotnet ~/.nuget/packages/reportgenerator/*/*/net6.0/ReportGenerator.dll -reports:./**/TestResults/**/coverage.cobertura.xml -targetdir:./out/code-coverage
 ```
+
 or
 
 ```shell
@@ -123,12 +124,12 @@ $ dotnet {$env:USERPROFILE}/.nuget/packages/reportgenerator/*/*/net6.0/ReportGen
 
 Or via VSCode Terminal/Run Task:
 
-```
+```console
 report coverage - nix
 ```
 
 or
 
-```
+```console
 report coverage - win
 ```

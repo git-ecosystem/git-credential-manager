@@ -196,7 +196,6 @@ git config --global credential.httpsProxy http://john.doe:password@proxy.contoso
 Override the available authentication modes presented during Bitbucket authentication.
 If this option is not set, then the available authentication modes will be automatically detected.
 
-
 **Note:** This setting only applies to Bitbucket.org, and not Server or DC instances.
 
 **Note:** This setting supports multiple values separated by commas.
@@ -226,7 +225,6 @@ This is especially relevant to OAuth credentials. Bitbucket.org access tokens ex
 Enabling this option will improve performance when using Oauth2 and interacting with Bitbucket.org if, on average, commits are done less frequently than every 2 hours.
 
 Enabling this option will decrease performance when using Basic Auth by requiring the user the re-enter credentials everytime.
-
 
 Value|Refresh Credentials Before Returning
 -|-
@@ -295,7 +293,6 @@ git config --global credential.gitLabAuthModes "browser"
 
 ---
 
-
 ### credential.namespace
 
 Use a custom namespace prefix for credentials read and written in the OS credential store.
@@ -332,7 +329,7 @@ _(unset)_|Windows: `wincredman`<br/>macOS: `keychain`<br/>Linux: _(none)_|-
 `cache`|Git's built-in [credential cache](https://git-scm.com/docs/git-credential-cache).|Windows, macOS, Linux
 `plaintext`|Store credentials in plaintext files (**UNSECURE**). Customize the plaintext store location with [`credential.plaintextStorePath`](#credentialplaintextstorepath).|Windows, macOS, Linux
 
-##### Example
+#### Example
 
 ```bash
 git config --global credential.credentialStore gpg
@@ -475,6 +472,7 @@ Credential: "git:https://github.com" (user = alice)
    https://github.com/contoso/widgets
    https://alice@github.com/contoso/widgets
 ```
+
 ```text
 Credential: "git:https://bob@github.com" (user = bob)
 
@@ -489,17 +487,20 @@ Credential: "git:https://github.com/foo/bar" (user = alice)
 
    https://github.com/foo/bar
 ```
+
 ```text
 Credential: "git:https://github.com/contoso/widgets" (user = alice)
 
    https://github.com/contoso/widgets
    https://alice@github.com/contoso/widgets
 ```
+
 ```text
 Credential: "git:https://bob@github.com/foo/bar" (user = bob)
 
    https://bob@github.com/foo/bar
 ```
+
 ```text
 Credential: "git:https://bob@github.com/example/myrepo" (user = bob)
 

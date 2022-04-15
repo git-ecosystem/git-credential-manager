@@ -10,7 +10,7 @@ Separate from the user strings in commits, Git recognizes the "user" part of a r
 
 Git hosting providers (like GitHub or Bitbucket) _do_ have a concept of "user". Typically it's an identity like a username or email address, plus a password or other credential to perform actions as that user. You may have guessed by now that GCM (the Git **Credential** Manager) does work with this notion of a user.
 
-## People, identities, credentials, oh my!
+## People, identities, credentials, oh my
 
 You (a physical person) may have one or more user accounts (identities) with one or more Git hosting providers. Since most Git hosts don't put a "user" part in their URLs, by default, Git will treat the user part for a remote as the empty string. If you have multiple identites on one domain, you'll need to insert a unique user part per-identity yourself.
 

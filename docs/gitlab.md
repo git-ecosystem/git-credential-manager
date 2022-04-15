@@ -15,7 +15,7 @@ To use on another instance, eg. `https://gitlab.example.com` requires setup and 
 
 ### Clearing config
 
-```
+```console
     git config --global --unset-all credential.https://gitlab.example.com.GitLabDevClientId
     git config --global --unset-all credential.https://gitlab.example.com.GitLabDevClientSecret
     git config --global --unset-all credential.https://gitlab.example.com.provider
@@ -23,17 +23,19 @@ To use on another instance, eg. `https://gitlab.example.com` requires setup and 
 
 ## Preferences
 
-```
+```console
 Select an authentication method for 'https://gitlab.com/':
   1. Web browser (default)
   2. Personal access token
   3. Username/password
-option (enter for default): 
+option (enter for default):
 ```
 
 If you have a preferred authentication mode, you can specify [credential.gitLabAuthModes](configuration.md#credential.gitLabAuthModes):
 
-    `git config --global credential.gitlabauthmodes browser`
+```console
+git config --global credential.gitlabauthmodes browser
+```
 
 ## Caveats
 

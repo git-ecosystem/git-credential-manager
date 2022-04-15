@@ -97,24 +97,24 @@ run the following:
 
 1. To ensure `curl` is installed:
 
-```shell
-curl --version
-```
+   ```shell
+   curl --version
+   ```
 
-If `curl` is not installed, please use your distribution's package manager
-to install it.
+   If `curl` is not installed, please use your distribution's package manager
+   to install it.
 
-0. To download and run the script:
+2. To download and run the script:
 
-```shell
-curl -LO https://raw.githubusercontent.com/GitCredentialManager/git-credential-manager/main/src/linux/Packaging.Linux/install-from-source.sh &&
-sh ./install-from-source.sh &&
-git-credential-manager-core configure
-```
+   ```shell
+   curl -LO https://raw.githubusercontent.com/GitCredentialManager/git-credential-manager/main/src/linux/Packaging.Linux/install-from-source.sh &&
+   sh ./install-from-source.sh &&
+   git-credential-manager-core configure
+   ```
 
-__Note:__ You will be prompted to enter your credentials so that the script
-can download GCM's dependencies using your distribution's package
-manager.
+   **Note:** You will be prompted to enter your credentials so that the script
+   can download GCM's dependencies using your distribution's package
+   manager.
 
 #### Ubuntu/Debian distributions
 
@@ -124,7 +124,8 @@ Download the latest [.deb package](https://github.com/GitCredentialManager/git-c
 sudo dpkg -i <path-to-package>
 git-credential-manager-core configure
 ```
-__Note:__ Although packages were previously offered on certain
+
+**Note:** Although packages were previously offered on certain
 [Microsoft Ubuntu package feeds](https://packages.microsoft.com/repos/),
 GCM no longer publishes to these repositories. Please install the
 Debian package using the above instructions instead.
@@ -249,7 +250,7 @@ See detailed information [here](https://aka.ms/gcm/httpproxy).
 
 ## Contributing
 
-This project welcomes contributions and suggestions.  
+This project welcomes contributions and suggestions.
 See the [contributing guide](CONTRIBUTING.md) to get started.
 
 This project follows [GitHub's Open Source Code of Conduct](CODE_OF_CONDUCT.md).
