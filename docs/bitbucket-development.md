@@ -63,7 +63,7 @@ Assuming the user successfully logins into Bitbucket and authorizes the GCM this
 
 The Access and Refresh Tokens will be stored against the username and the username/Access Token credentials returned to Git.
 
-# On-Premise Bitbucket
+## On-Premise Bitbucket
 
 On-premise Bitbucket, more correctly known as Bitbucket Server or Bitbucket DC, has a number of differences compared to the cloud instance of Bitbucket, [bitbucket.org](https://bitbucket.org).
 
