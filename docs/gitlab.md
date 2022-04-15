@@ -41,6 +41,6 @@ git config --global credential.gitlabauthmodes browser
 
 Improved support requires changes in GitLab. Please vote for these issues if they affect you:
 
-1. No support for OAuth device authorization (necessary for machines without web browser) https://gitlab.com/gitlab-org/gitlab/-/issues/332682
-2. Only domains with prefix `gitlab.` are recognised as GitLab remotes https://gitlab.com/gitlab-org/gitlab/-/issues/349464
-3. Username/password authentication is suggested even if disabled on server https://gitlab.com/gitlab-org/gitlab/-/issues/349463
+1. No support for OAuth device authorization (necessary for machines without web browser): [GitLab issue 332682](https://gitlab.com/gitlab-org/gitlab/-/issues/332682)
+2. Only domains with prefix `gitlab.` are recognised as GitLab remotes: [GitLab issue 349464](https://gitlab.com/gitlab-org/gitlab/-/issues/349464)
+3. Username/password authentication is suggested even if disabled on server: [GitLab issue 349463](https://gitlab.com/gitlab-org/gitlab/-/issues/349463)

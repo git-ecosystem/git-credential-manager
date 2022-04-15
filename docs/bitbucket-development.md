@@ -65,7 +65,7 @@ The Access and Refresh Tokens will be stored against the username and the userna
 
 # On-Premise Bitbucket
 
-On-premise Bitbucket, more correctly known as Bitbucket Server or Bitbucket DC, has a number of differences compared to the cloud instance of Bitbucket, https://bitbucket.org.
+On-premise Bitbucket, more correctly known as Bitbucket Server or Bitbucket DC, has a number of differences compared to the cloud instance of Bitbucket, [bitbucket.org](https://bitbucket.org).
 
 As far as GCMC is concerned the main difference it doesn't support OAuth so only Basic Authentication is available.
 
@@ -73,10 +73,10 @@ It is possible to test with Bitbucket Server by running it locally using the fol
 
     ❯ atlas-run-standalone --product bitbucket
 
-See https://developer.atlassian.com/server/framework/atlassian-sdk/atlas-run-standalone/.
+See the devloper documentation for [atlas-run-standalone](https://developer.atlassian.com/server/framework/atlassian-sdk/atlas-run-standalone/).
 
 This will download and run a standalone instance of Bitbucket Server which can be accessed using the credentials `admin`/`admin` at
 
     https://localhost:7990/bitbucket
 
-Instructions on how to download and install the Atlassian SDK can be found here: https://developer.atlassian.com/server/framework/atlassian-sdk/
+Atlassian has [documentation](https://developer.atlassian.com/server/framework/atlassian-sdk/) on how to download and install their SDK.
