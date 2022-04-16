@@ -73,7 +73,7 @@ It is possible to test with Bitbucket Server by running it locally using the fol
 
     ❯ atlas-run-standalone --product bitbucket
 
-See the devloper documentation for [atlas-run-standalone](https://developer.atlassian.com/server/framework/atlassian-sdk/atlas-run-standalone/).
+See the developer documentation for [atlas-run-standalone](https://developer.atlassian.com/server/framework/atlassian-sdk/atlas-run-standalone/).
 
 This will download and run a standalone instance of Bitbucket Server which can be accessed using the credentials `admin`/`admin` at
 

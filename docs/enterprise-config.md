@@ -21,9 +21,9 @@ than having to modify the Git installation configuration files.
 ## User Freedom
 
 We believe the user should _always_ be at liberty to configure
-Git and GCM exactly as they wish. By prefering environment variables and Git
+Git and GCM exactly as they wish. By preferring environment variables and Git
 configuration files over system admin values, these only act as _default values_
-that can always be overriden by the user in the usual ways.
+that can always be overridden by the user in the usual ways.
 
 ## Windows
 

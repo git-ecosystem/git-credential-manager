@@ -380,7 +380,7 @@ This is especially relevant to OAuth credentials. Bitbucket.org access tokens ex
 
 Enabling this option will improve performance when using Oauth2 and interacting with Bitbucket.org if, on average, commits are done less frequently than every 2 hours.
 
-Enabling this option will decrease performance when using Basic Auth by requiring the user the re-enter credentials everytime.
+Enabling this option will decrease performance when using Basic Auth by requiring the user the re-enter credentials every time.
 
 Value|Refresh Credentials Before Returning
 -|-
