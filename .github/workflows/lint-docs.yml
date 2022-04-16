@@ -1,0 +1,19 @@
+name: "Lint documentation"
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, linux ]
+  pull_request:
+    branches: [ main, linux ]
+
+jobs:
+  lint-markdown:
+    name: Lint markdown files
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@dcd71f646680f2efd8db4afa5ad64fdcba30e748
+
+      - uses: DavidAnson/markdownlint-cli2-action@744f913a124058ee903768d3adb92a4847e5d132
+        with:
+          globs: "**/*.md"
