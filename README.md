@@ -12,7 +12,7 @@ Git Credential Manager (GCM) replaces the .NET Framework-based [Git Credential M
 
 ## Current status
 
-Git Credential Manager is currently available for Windows, macOS, and Linux. GCM only works with HTTP(S) remotes; you can still use Git with SSH:
+Git Credential Manager is currently available for Windows, macOS, and Linux\*. GCM only works with HTTP(S) remotes; you can still use Git with SSH:
 
 - [Azure DevOps SSH](https://docs.microsoft.com/en-us/azure/devops/repos/git/use-ssh-keys-to-authenticate?view=azure-devops)
 - [GitHub SSH](https://help.github.com/en/articles/connecting-to-github-with-ssh)
@@ -20,7 +20,7 @@ Git Credential Manager is currently available for Windows, macOS, and Linux. GCM
 
 Feature|Windows|macOS|Linux
 -|:-:|:-:|:-:
-Installer/uninstaller|&#10003;|&#10003;|&#10003;\*
+Installer/uninstaller|&#10003;|&#10003;|&#10003;
 Secure platform credential storage|&#10003;<br/>[(see more)](docs/credstores.md)|&#10003;<br/>[(see more)](docs/credstores.md)|&#10003;<br/>[(see more)](docs/credstores.md)
 Multi-factor authentication support for Azure DevOps|&#10003;|&#10003;|&#10003;
 Two-factor authentication support for GitHub|&#10003;|&#10003;|&#10003;
@@ -34,10 +34,11 @@ Proxy support|&#10003;|&#10003;|&#10003;
 `arm64` support|best effort|via Rosetta 2|best effort, no packages
 `armhf` support|_N/A_|_N/A_|best effort, no packages
 
-**Notes:**
+(\*) GCM guarantees support for the below Linux distributions. GCM maintainers also monitor and evaluate issues opened against other distributions to determine community interest/engagement and whether an emerging platform should become fully-supported.
 
-(\*) Fedora packages planned but not yet available.
-
+- Debian/Ubuntu/Linux Mint
+- Fedora/CentOS/RHEL
+- Alpine
 ## Download and Install
 
 ### macOS Homebrew
