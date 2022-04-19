@@ -10,7 +10,7 @@ To use on another instance, eg. `https://gitlab.example.com` requires setup and 
 2. Copy the application ID and configure `git config --global credential.https://gitlab.example.com.GitLabDevClientId <APPLICATION_ID>`
 3. Copy the application secret and configure `git config --global credential.https://gitlab.example.com.GitLabDevClientSecret <APPLICATION_SECRET>`
 4. Configure authentication modes to include 'browser' `git config --global credential.https://gitlab.example.com.gitLabAuthModes browser`
-5. For good measure, configure `git config --global credential.https://gitlab.example.com.provider gitlab`
+5. For good measure, configure `git config --global credential.https://gitlab.example.com.provider gitlab`. This may be necessary to recognise the domain as a GitLab instance.
 6. Verify the config is as expected `git config --global --get-urlmatch credential https://gitlab.example.com`
 
 ### Clearing config

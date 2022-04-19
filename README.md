@@ -241,6 +241,7 @@ See detailed information [here](https://aka.ms/gcm/httpproxy).
 - [Architectural overview](docs/architecture.md)
 - [Host provider specification](docs/hostprovider.md)
 - [Azure Repos OAuth tokens](docs/azrepos-users-and-tokens.md)
+- [GitLab support](docs/gitlab.md)
 
 ## Experimental Features
 
