@@ -1,0 +1,64 @@
+name: release
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ release ]
+
+jobs:
+# ================================
+#              macOS
+# ================================
+  osx-build:
+    name: Build macOS
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0 # Indicate full history so Nerdbank.GitVersioning works.
+
+    - name: Set up dotnet
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: 6.0.201
+    
+    - name: Install dependencies
+      run: dotnet restore
+
+    - name: Build
+      run: |
+        dotnet build --configuration=MacRelease
+    
+    - name: Run macOS unit tests
+      run: |
+        dotnet test --configuration=MacRelease
+
+    - name: Lay out payload and symbols
+      run: |
+        src/osx/Installer.Mac/layout.sh --configuration=MacRelease --output=payload --symbol-output=symbols
+
+    - name: Create keychain
+      env:
+        CERT_BASE64: ${{ secrets.DEVELOPER_CERTIFICATE_BASE64 }}
+        CERT_PASSPHRASE: ${{ secrets.DEVELOPER_CERTIFICATE_PASSWORD }}
+      run: |
+        security create-keychain -p pwd $RUNNER_TEMP/buildagent.keychain
+        security default-keychain -s $RUNNER_TEMP/buildagent.keychain
+        security unlock-keychain -p pwd $RUNNER_TEMP/buildagent.keychain
+        echo $CERT_BASE64 | base64 -D > $RUNNER_TEMP/cert.p12
+        security import $RUNNER_TEMP/cert.p12 -k $RUNNER_TEMP/buildagent.keychain -P $CERT_PASSPHRASE -T /usr/bin/codesign
+        security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k pwd $RUNNER_TEMP/buildagent.keychain
+    
+    - name: Developer sign
+      env:
+        APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      run: |
+        .github/run_developer_signing.sh payload $APPLE_TEAM_ID $GITHUB_WORKSPACE/src/osx/Installer.Mac/entitlements.xml
+
+    - name: Upload macOS artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: tmp.osx-build
+        path: |
+          payload
+          symbols
