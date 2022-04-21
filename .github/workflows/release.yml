@@ -62,3 +62,64 @@ jobs:
         path: |
           payload
           symbols
+  
+  osx-payload-sign:
+    name: Sign macOS payload
+    # ESRP service requires signing to run on Windows
+    runs-on: windows-latest
+    needs: osx-build
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v3
+
+    - name: Download payload
+      uses: actions/download-artifact@v3
+      with:
+        name: tmp.osx-build
+    
+    - name: Zip unsigned payload
+      shell: pwsh
+      run: |
+        Compress-Archive -Path payload payload/payload.zip
+        cd payload
+        Get-ChildItem -Exclude payload.zip | Remove-Item -Recurse -Force
+    
+    - uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    
+    - name: Set up ESRP client
+      shell: pwsh
+      env:
+        AZURE_STORAGE_KEY: ${{ secrets.AZURE_STORAGE_KEY }}
+        AZURE_VAULT: ${{ secrets.AZURE_VAULT }}
+        AUTH_CERT: ${{ secrets.AZURE_VAULT_AUTH_CERT_NAME }}
+        REQUEST_SIGNING_CERT: ${{ secrets.AZURE_VAULT_REQUEST_SIGNING_CERT_NAME }}
+      run: |
+        .github\set_up_esrp.ps1
+    
+    - name: Run ESRP client
+      shell: pwsh
+      env:
+        AZURE_AAD_ID: ${{ secrets.AZURE_AAD_ID }}
+        # We temporarily need two AAD IDs, as we're using an SSL certificate associated
+        # with an older App Registration until we have the required hardware to approve
+        # the new certificate in SSL Admin.
+        AZURE_AAD_ID_SSL: ${{ secrets.AZURE_AAD_ID_SSL }}
+        APPLE_KEY_CODE: ${{ secrets.APPLE_KEY_CODE }}
+        APPLE_SIGNING_OP_CODE: ${{ secrets.APPLE_SIGNING_OPERATION_CODE }}
+      run: |
+        python .github\run_esrp_signing.py payload $env:APPLE_KEY_CODE $env:APPLE_SIGNING_OP_CODE --params 'Hardening' '--options=runtime'
+    
+    - name: Unzip signed payload
+      shell: pwsh
+      run: |
+        Expand-Archive signed/payload.zip -DestinationPath signed
+        Remove-Item signed/payload.zip
+
+    - name: Upload signed payload
+      uses: actions/upload-artifact@v3
+      with:
+        name: osx-payload-sign
+        path: |
+          signed
