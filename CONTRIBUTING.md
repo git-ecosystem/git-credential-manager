@@ -15,22 +15,22 @@ Please note that this project is released with a [Contributor Code of Conduct][c
 
 1. Open an [issue][issue] to discuss the change you want to see.
 This helps us coordinate and reduce duplication.
-2. Once we've had some discussion, you're ready to code!
+1. Once we've had some discussion, you're ready to code!
 
 ## Submitting a pull request
 
 1. [Fork][fork] and clone the repository
-2. Configure and install the dependencies: `dotnet restore`
-3. Make sure the tests pass on your machine: `dotnet test`
-4. Create a new branch: `git switch -c my-branch-name`
-5. Make your change, add tests, and make sure the tests still pass
-6. For UI updates, test your changes by executing a `dotnet run` in applicable UI-related project directories:
+1. Configure and install the dependencies: `dotnet restore`
+1. Make sure the tests pass on your machine: `dotnet test`
+1. Create a new branch: `git switch -c my-branch-name`
+1. Make your change, add tests, and make sure the tests still pass
+1. For UI updates, test your changes by executing a `dotnet run` in applicable UI-related project directories:
     - `Atlassian.Bitbucket.UI.Avalonia`
     - `GitHub.UI.Avalonia`
     - `Atlassian.Bitbucket.UI.Windows`
     - `GitHub.UI.Windows`
-7. Push to your fork and [submit a pull request][pr]
-8. Pat your self on the back and wait for your pull request to be reviewed and merged.
+1. Push to your fork and [submit a pull request][pr]
+1. Pat your self on the back and wait for your pull request to be reviewed and merged.
 
 Here are a few things you can do that will increase the likelihood of your pull request being accepted:
 

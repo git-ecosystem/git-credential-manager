@@ -106,7 +106,7 @@ run the following:
    If `curl` is not installed, please use your distribution's package manager
    to install it.
 
-2. To download and run the script:
+1. To download and run the script:
 
    ```shell
    curl -LO https://raw.githubusercontent.com/GitCredentialManager/git-credential-manager/main/src/linux/Packaging.Linux/install-from-source.sh &&

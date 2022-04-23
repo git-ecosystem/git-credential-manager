@@ -4,12 +4,12 @@ Git Credential Manager (GCM) can be configured using multiple
 different mechanisms. In order of preference, those mechanisms are:
 
 1. [Environment variables](environment.md)
-2. [Standard Git configuration files](configuration.md)
+1. [Standard Git configuration files](configuration.md)
    1. Repository/local configuration (`.git/config`)
-   2. User/global configuration (`$HOME/.gitconfig` or `%HOME%\.gitconfig`)
-   3. Installation/system configuration (`etc/gitconfig`)
-3. Enterprise system administrator defaults
-4. Compiled default values
+   1. User/global configuration (`$HOME/.gitconfig` or `%HOME%\.gitconfig`)
+   1. Installation/system configuration (`etc/gitconfig`)
+1. Enterprise system administrator defaults
+1. Compiled default values
 
 This model largely matches what Git itself supports, namely environment
 variables that take precedence over Git configuration files.
