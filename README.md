@@ -39,6 +39,7 @@ Proxy support|&#10003;|&#10003;|&#10003;
 - Debian/Ubuntu/Linux Mint
 - Fedora/CentOS/RHEL
 - Alpine
+
 ## Download and Install
 
 ### macOS Homebrew
