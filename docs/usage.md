@@ -23,7 +23,7 @@ Displays the current version.
 
 Commands for interaction with Git. You shouldn't need to run these manually.
 
-Read the [Git manual](https://git-scm.com/docs/gitcredentials#_custom_helpers) about custom helpers for more information.
+Read the [Git manual][git-credentials-custom-helpers] about custom helpers for more information.
 
 ### configure/unconfigure
 
@@ -36,4 +36,7 @@ Set your user-level Git configuration (`~/.gitconfig`) to use GCM. If you pass
 Interact with the Azure Repos host provider to bind/unbind user accounts to Azure DevOps
 organizations or specific remote URLs, and manage the authentication authority cache.
 
-For more information about managing user account bindings see [here](azrepos-users-and-tokens.md#useraccounts).
+For more information about managing user account bindings see [here][azure-access-tokens-ua].
+
+[azure-access-tokens-ua]: azrepos-users-and-tokens.md#useraccounts
+[git-credentials-custom-helpers]: https://git-scm.com/docs/gitcredentials#_custom_helpers

@@ -6,7 +6,7 @@ Start by cloning this repository:
 git clone https://github.com/GitCredentialManager/git-credential-manager
 ```
 
-You also need the latest version of the .NET SDK which can be downloaded and installed from [here](https://dotnet.microsoft.com/).
+You also need the latest version of the .NET SDK which can be downloaded and installed from the [.NET website][dotnet-web].
 
 ## Building
 
@@ -58,7 +58,7 @@ The flat binaries can also be found in `out/linux/Packaging.Linux/payload/Debug`
 
 To debug from inside an IDE you'll want to set `Git-Credential-Manager` as the startup project, and specify one of `get`, `store`, or `erase` as a program argument.
 
-To simulate Git interacting with GCM, when you start from your IDE of choice, you'll need to enter the following [information over standard input](https://git-scm.com/docs/git-credential#IOFMT):
+To simulate Git interacting with GCM, when you start from your IDE of choice, you'll need to enter the following [information over standard input][ioformat]:
 
 ```text
 protocol=http<LF>
@@ -76,7 +76,7 @@ username=<USERNAME><LF>
 password=<PASSWORD><LF>
 ```
 
-For more information about how Git interacts with credential helpers, please read Git's [documentation](https://git-scm.com/docs/gitcredentials#_custom_helpers).
+For more information about how Git interacts with credential helpers, please read Git's documentation on [custom helpers][custom-helpers].
 
 ### Attaching to a running process
 
@@ -133,3 +133,7 @@ or
 ```console
 report coverage - win
 ```
+
+[dotnet-web]: https://dotnet.microsoft.com/
+[custom-helpers]: https://git-scm.com/docs/gitcredentials#_custom_helpers
+[ioformat]: https://git-scm.com/docs/git-credential#IOFMT

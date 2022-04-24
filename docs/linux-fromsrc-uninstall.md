@@ -1,6 +1,6 @@
 # Uninstalling after installing from source
 
-These instructions will guide you in removing GCM after running the [install from source script](../src/linux/Packaging.Linux/install-from-source.sh) on your Linux distribution.
+These instructions will guide you in removing GCM after running the [install from source script][install-from-source] on your Linux distribution.
 
 :rotating_light: PROCEED WITH CAUTION :rotating_light:
 
@@ -22,7 +22,7 @@ sudo rm ~/install-from-source.sh
 
 ## Debian/Ubuntu
 
-**Note:** If you had a pre-existing installation of dotnet that was not installed via `apt` or `apt-get` when you ran the install from source script, you will need to remove it using [these instructions](https://docs.microsoft.com/en-us/dotnet/core/install/remove-runtime-sdk-versions?pivots=os-linux#uninstall-net) and remove `dotnet-*` from the below command.
+**Note:** If you had a pre-existing installation of dotnet that was not installed via `apt` or `apt-get` when you ran the install from source script, you will need to remove it using [these instructions][uninstall-dotnet] and remove `dotnet-*` from the below command.
 
 ```console
 sudo apt remove dotnet-* dpkg-dev apt-transport-https git curl wget
@@ -30,7 +30,7 @@ sudo apt remove dotnet-* dpkg-dev apt-transport-https git curl wget
 
 ## Linux Mint
 
-**Note:** If you had a pre-existing installation of dotnet when you ran the install from source script that was not located at `~/.dotnet`, you will need to modify the first command below to point to the custom install location. If you would like to remove the specific version of dotnet that the script installed and keep other versions, you can do so with [these instructions](https://docs.microsoft.com/en-us/dotnet/core/install/remove-runtime-sdk-versions?pivots=os-linux#uninstall-net).
+**Note:** If you had a pre-existing installation of dotnet when you ran the install from source script that was not located at `~/.dotnet`, you will need to modify the first command below to point to the custom install location. If you would like to remove the specific version of dotnet that the script installed and keep other versions, you can do so with [these instructions][uninstall-dotnet].
 
 ```console
 sudo rm -rf ~/.dotnet &&
@@ -39,7 +39,7 @@ sudo apt remove git curl
 
 ## Fedora/CentOS/RHEL
 
-**Note:** If you had a pre-existing installation of dotnet when you ran the install from source script that was not located at `~/.dotnet`, you will need to modify the first command below to point to the custom install location. If you would like to remove the specific version of dotnet that the script installed and keep other versions, you can do so with [these instructions](https://docs.microsoft.com/en-us/dotnet/core/install/remove-runtime-sdk-versions?pivots=os-linux#uninstall-net).
+**Note:** If you had a pre-existing installation of dotnet when you ran the install from source script that was not located at `~/.dotnet`, you will need to modify the first command below to point to the custom install location. If you would like to remove the specific version of dotnet that the script installed and keep other versions, you can do so with [these instructions][uninstall-dotnet].
 
 ```console
 sudo rm -rf ~/.dotnet
@@ -47,9 +47,12 @@ sudo rm -rf ~/.dotnet
 
 ## Alpine
 
-**Note:** If you had a pre-existing installation of dotnet when you ran the install from source script that was not located at `~/.dotnet`, you will need to modify the first command below to point to the custom install location. If you would like to remove the specific version of dotnet that the script installed and keep other versions, you can do so with [these instructions](https://docs.microsoft.com/en-us/dotnet/core/install/remove-runtime-sdk-versions?pivots=os-linux#uninstall-net).
+**Note:** If you had a pre-existing installation of dotnet when you ran the install from source script that was not located at `~/.dotnet`, you will need to modify the first command below to point to the custom install location. If you would like to remove the specific version of dotnet that the script installed and keep other versions, you can do so with [these instructions][uninstall-dotnet].
 
 ```console
 sudo rm -rf ~/.dotnet &&
 sudo apk del icu-libs krb5-libs libgcc libintl libssl1.1 libstdc++ zlib which bash coreutils gcompat git curl
 ```
+
+[install-from-source]: ../src/linux/Packaging.Linux/install-from-source.sh
+[uninstall-dotnet]: https://docs.microsoft.com/en-us/dotnet/core/install/remove-runtime-sdk-versions?pivots=os-linux#uninstall-net

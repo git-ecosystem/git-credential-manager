@@ -2,7 +2,7 @@
 
 Property|Value
 -|-
-Author(s)|Matthew John Cheetham ([@mjcheetham](https://github.com/mjcheetham))
+Author(s)|Matthew John Cheetham ([@mjcheetham][mjcheetham])
 Revision|1.2
 Last updated|2021-01-08
 
@@ -378,4 +378,7 @@ take, but implementors SHOULD attempt to follow existing practices and styles.
 
 ## References
 
-1. `System.CommandLine` API (<https://github.com/dotnet/command-line-api>)
+1. [`System.CommandLine` API][github-dotnet-cli]
+
+[github-dotnet-cli]: https://github.com/dotnet/command-line-api
+[mjcheetham]: https://github.com/mjcheetham
