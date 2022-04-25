@@ -49,11 +49,11 @@ GCM supports other ways of configuring a proxy for convenience and compatibility
 1. GCM-specific configuration options (_**only** respected by GCM; **deprecated**_):
    - `credential.httpProxy`
    - `credential.httpsProxy`
-2. cURL environment variables (_also respected by Git_):
+1. cURL environment variables (_also respected by Git_):
    - `http_proxy`
    - `https_proxy`/`HTTPS_PROXY`
    - `all_proxy`/`ALL_PROXY`
-3. `GCM_HTTP_PROXY` environment variable (_**only** respected by GCM; **deprecated**_)
+1. `GCM_HTTP_PROXY` environment variable (_**only** respected by GCM; **deprecated**_)
 
 Note that with the cURL environment variables there are both lowercase and
 uppercase variants.
@@ -76,7 +76,7 @@ addresses. GCM supports the cURL environment variable `no_proxy` (and
 Like with the [other cURL proxy environment variables](#other-proxy-options),
 the lowercase variant will take precedence over the uppercase form.
 
-This environment variable should contain a comma (`,`) or space (` `) separated
+This environment variable should contain a comma-separated or space-separated
 list of host names that should not be proxied (should connect directly).
 
 GCM attempts to match [libcurl's behaviour](https://curl.se/libcurl/c/CURLOPT_NOPROXY.html),

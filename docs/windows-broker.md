@@ -31,6 +31,7 @@ The GCM team isn't responsible for the user experience or choices made by WAM, b
 Therefore, we want you to be aware of some defaults and experiences if you choose to use WAM integration.
 
 ### For work or school accounts (Azure AD-backed identities)
+
 When you sign into an Azure DevOps organization backed by Azure AD (often your company or school email), if your machine is already joined to Azure AD matching that Azure DevOps organization, you'll get a seamless and easy-to-use experience.
 
 If your machine isn't Azure AD-joined, or is Azure AD-joined to a different tenant, WAM will present you with a dialog box suggesting you stay signed in and allow the organization to manage your device.
@@ -57,6 +58,7 @@ Similar to the above, your organization's Conditional Access policies may preven
 If Conditional Access is required to access your organization's Git repositories, you can [enable WAM integration](environment.md#GCM_MSAUTH_USEBROKER-experimental) (or follow other instructions your organization provides).
 
 #### Removing device management
+
 If you've allowed your computer to be managed and want to undo it, you can go into **Settings**, **Accounts**, **Access work or school**.
 In the section where you see your email address and organization name, click **Disconnect**.
 
@@ -65,6 +67,7 @@ In the section where you see your email address and organization name, click **D
 ![Disconnecting from Azure AD](img/aad-disconnect.png)
 
 ### For Microsoft accounts
+
 When you sign into an Azure DevOps organization backed by Microsoft account (MSA) identities (email addresses like `@outlook.com` or `@gmail.com` fall into this category), you may be prompted to select an existing "work or school account" or use a different one.
 
 In order to sign in with an MSA you should continue and select "Use a different [work or school] account", but enter your MSA credentials when prompted.
@@ -81,8 +84,9 @@ For any connected MSA, you can control whether or not the account is available t
 ![Microsoft apps must ask to access your identity](img/apps-must-ask.png)
 
 Two very important things to note:
-* If you haven't connected any Microsoft accounts to Windows before, the first account you connect will cause the local Windows user account to be converted to a connected account.
-* In addition, you can't change the usage preference for the first Microsoft account connected to Windows: all Microsoft apps will be able to sign you in with that account.
+
+- If you haven't connected any Microsoft accounts to Windows before, the first account you connect will cause the local Windows user account to be converted to a connected account.
+- In addition, you can't change the usage preference for the first Microsoft account connected to Windows: all Microsoft apps will be able to sign you in with that account.
 
 As far as we can tell, there are no workarounds for either of these behaviors (other than to not use the WAM broker).
 

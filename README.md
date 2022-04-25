@@ -20,8 +20,8 @@ Git Credential Manager is currently available for Windows, macOS, and Linux\*. G
 
 Feature|Windows|macOS|Linux
 -|:-:|:-:|:-:
-Installer/uninstaller|&#10003;|&#10003;|&#10003;
-Secure platform credential storage|&#10003;<br/>[(see more)](docs/credstores.md)|&#10003;<br/>[(see more)](docs/credstores.md)|&#10003;<br/>[(see more)](docs/credstores.md)
+Installer/uninstaller|&#10003;|&#10003;|&#10003;\*
+Secure platform credential storage|&#10003; [(see more)](docs/credstores.md)|&#10003; [(see more)](docs/credstores.md)|&#10003; [(see more)](docs/credstores.md)
 Multi-factor authentication support for Azure DevOps|&#10003;|&#10003;|&#10003;
 Two-factor authentication support for GitHub|&#10003;|&#10003;|&#10003;
 Two-factor authentication support for Bitbucket|&#10003;|&#10003;|&#10003;
@@ -39,6 +39,7 @@ Proxy support|&#10003;|&#10003;|&#10003;
 - Debian/Ubuntu/Linux Mint
 - Fedora/CentOS/RHEL
 - Alpine
+
 ## Download and Install
 
 ### macOS Homebrew
@@ -87,7 +88,9 @@ sudo /usr/local/share/gcm-core/uninstall.sh
 ---
 
 <!-- this explicit anchor should stay stable so that external docs can link here -->
+<!-- markdownlint-disable-next-line no-inline-html -->
 <a name="linux-install-instructions"></a>
+
 ### Linux
 
 #### Experimental: install from source helper script
@@ -97,24 +100,24 @@ run the following:
 
 1. To ensure `curl` is installed:
 
-```shell
-curl --version
-```
+   ```shell
+   curl --version
+   ```
 
-If `curl` is not installed, please use your distribution's package manager
-to install it.
+   If `curl` is not installed, please use your distribution's package manager
+   to install it.
 
-0. To download and run the script:
+1. To download and run the script:
 
-```shell
-curl -LO https://raw.githubusercontent.com/GitCredentialManager/git-credential-manager/main/src/linux/Packaging.Linux/install-from-source.sh &&
-sh ./install-from-source.sh &&
-git-credential-manager-core configure
-```
+   ```shell
+   curl -LO https://raw.githubusercontent.com/GitCredentialManager/git-credential-manager/main/src/linux/Packaging.Linux/install-from-source.sh &&
+   sh ./install-from-source.sh &&
+   git-credential-manager-core configure
+   ```
 
-__Note:__ You will be prompted to enter your credentials so that the script
-can download GCM's dependencies using your distribution's package
-manager.
+   **Note:** You will be prompted to enter your credentials so that the script
+   can download GCM's dependencies using your distribution's package
+   manager.
 
 #### Ubuntu/Debian distributions
 
@@ -124,7 +127,8 @@ Download the latest [.deb package](https://github.com/GitCredentialManager/git-c
 sudo dpkg -i <path-to-package>
 git-credential-manager-core configure
 ```
-__Note:__ Although packages were previously offered on certain
+
+**Note:** Although packages were previously offered on certain
 [Microsoft Ubuntu package feeds](https://packages.microsoft.com/repos/),
 GCM no longer publishes to these repositories. Please install the
 Debian package using the above instructions instead.
@@ -249,7 +253,7 @@ See detailed information [here](https://aka.ms/gcm/httpproxy).
 
 ## Contributing
 
-This project welcomes contributions and suggestions.  
+This project welcomes contributions and suggestions.
 See the [contributing guide](CONTRIBUTING.md) to get started.
 
 This project follows [GitHub's Open Source Code of Conduct](CODE_OF_CONDUCT.md).

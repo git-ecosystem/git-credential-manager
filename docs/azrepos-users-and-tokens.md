@@ -64,7 +64,7 @@ credential. This may change in the future.
 
 Normally you won't need to worry about managing which user accounts Git
 Credential Manager is using as this is configured automatically when you first
-authenticate for a particular Azure DevOps organziation.
+authenticate for a particular Azure DevOps organization.
 
 In advanced scenarios (such as using multiple accounts) you can interact with
 and manage remembered user accounts using the 'azure-repos' provider command:
@@ -181,7 +181,7 @@ fabrikam:
 ```
 
 In the above example, the `~/myrepo` repository has a single Git remote named
-`origin` that points to the `contoso` Azure DevOps organziation. There is no
+`origin` that points to the `contoso` Azure DevOps organization. There is no
 user account specifically associated with the `origin` remote, so the global
 user account binding for `contoso` will be used (the global binding is
 inherited).
