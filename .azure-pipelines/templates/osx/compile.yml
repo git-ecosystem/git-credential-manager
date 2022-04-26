@@ -15,7 +15,7 @@ steps:
     inputs:
       command: build
       projects: src/osx/Installer.Mac/Installer.Mac.csproj
-      arguments: '--configuration=Mac$(configuration) --runtime=$(osxRuntime) --no-self-contained'
+      arguments: '--configuration=Mac$(configuration) --runtime=$(parameters.osxRuntime) --no-self-contained'
 
   - task: DotNetCoreCLI@2
     displayName: Run common unit tests

@@ -22,6 +22,8 @@ jobs:
     vmImage: $(osxImage)
   steps:
   - template: templates/osx/compile.yml
+    parameters:
+      osxRuntime: osx-x64
   - template: templates/osx/pack.unsigned.yml
 
 - job: ubuntu1804_x86_64

@@ -23,7 +23,11 @@ jobs:
     vmImage: $(osxImage)
   steps:
   - template: templates/osx/compile.yml
+    parameters:
+      osxRuntime: osx-x64
   - template: templates/osx/pack.signed/step1-layout.yml
+    parameters:
+      osxRuntime: osx-x64
 
 - job: osx_step2
   displayName: macOS (Sign payload)
