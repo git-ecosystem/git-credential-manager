@@ -53,42 +53,42 @@ GCM for Windows bundled with the Git for Windows installation.
 If you are unable to use Git Credential Manager due to a bug or
 compatibility issue we'd [like to know why](https://github.com/GitCredentialManager/git-credential-manager/issues/new/choose)!
 
-## Help! I cannot make any changes to my Windows machine without an Administrator!
+## Help! I cannot make any changes to my Windows machine without an Administrator
 
 If you do not have permission to change your installation (for example in a
 corporate environment) you can use the per-user installer. Check out the [latest
 release](https://aka.ms/gcm/latest) and download the `gcmcoreuser-win-*.exe`
 executable.
 
-### Help! I still cannot or don't want to install anything!
+### Help! I still cannot or don't want to install anything
 
 There is a workaround which should work and doesn't require installing anything.
 
 1. Tell your system administrator they should start planning to upgrade the
    installed version of Git for Windows to at least 2.29! 😁
 
-2. [Create a new personal access token](https://github.com/settings/tokens/new?scopes=repo,gist,workflow) (see official [documentation](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token))
+1. [Create a new personal access token](https://github.com/settings/tokens/new?scopes=repo,gist,workflow) (see official [documentation](https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token))
 
-3. Enter a name ("note") for the token and ensure the `repo`, `gist`, and
+1. Enter a name ("note") for the token and ensure the `repo`, `gist`, and
    `workflow` scopes are selected:
-![image](https://user-images.githubusercontent.com/5658207/95448332-1beb2000-095b-11eb-9a48-9c05b1926a6b.png)
-...
-![image](https://user-images.githubusercontent.com/5658207/95447304-6f5c6e80-0959-11eb-924b-50b86c2b3d77.png)
-...
-![image](https://user-images.githubusercontent.com/5658207/95447450-a3d02a80-0959-11eb-82a8-2d2834d5aa16.png)
-...
-![image](https://user-images.githubusercontent.com/5658207/95447343-7b483080-0959-11eb-8e00-151d53893f3f.png)
+   ![image](https://user-images.githubusercontent.com/5658207/95448332-1beb2000-095b-11eb-9a48-9c05b1926a6b.png)
+   ...
+   ![image](https://user-images.githubusercontent.com/5658207/95447304-6f5c6e80-0959-11eb-924b-50b86c2b3d77.png)
+   ...
+   ![image](https://user-images.githubusercontent.com/5658207/95447450-a3d02a80-0959-11eb-82a8-2d2834d5aa16.png)
+   ...
+   ![image](https://user-images.githubusercontent.com/5658207/95447343-7b483080-0959-11eb-8e00-151d53893f3f.png)
 
-3. Click "Generate Token"
+1. Click "Generate Token"
 
-![image](https://user-images.githubusercontent.com/5658207/95448393-31f8e080-095b-11eb-9568-cfd1c567a65c.png)
+   ![image](https://user-images.githubusercontent.com/5658207/95448393-31f8e080-095b-11eb-9568-cfd1c567a65c.png)
 
-4. **[IMPORTANT]** Keep the resulting page open as this contains your new token
+1. **[IMPORTANT]** Keep the resulting page open as this contains your new token
    (this will only be displayed once!)
 
-![image](https://user-images.githubusercontent.com/5658207/95448288-ff4ee800-095a-11eb-9709-8e37bde8b716.png)
+   ![image](https://user-images.githubusercontent.com/5658207/95448288-ff4ee800-095a-11eb-9709-8e37bde8b716.png)
 
-5. Save the generated PAT in the Windows Credential Manager:
+1. Save the generated PAT in the Windows Credential Manager:
 
    1. If you prefer to use the command-line, open a command prompt (cmd.exe) and
       type the following:
@@ -98,7 +98,7 @@ There is a workaround which should work and doesn't require installing anything.
       ```
 
       You will be prompted to enter a password – copy the newly generated PAT in
-      step 4 and paste it here, and press <kbd>Enter</kbd>
+      step 4 and paste it here, and press the `Enter` key
 
       ![image](https://user-images.githubusercontent.com/5658207/95448479-4fc64580-095b-11eb-9970-0b6faf7f4ae7.png)
 

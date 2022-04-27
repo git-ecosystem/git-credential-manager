@@ -14,17 +14,17 @@ Please follow these steps to diagnose or resolve the problem:
 
 1. If all else fails, create an issue [here](https://github.com/GitCredentialManager/git-credential-manager/issues/create), making sure to include the trace log.
 
-### Q: I got an error saying unsecure HTTP is not supported.
+### Q: I got an error saying unsecure HTTP is not supported
 
 To keep your data secure, Git Credential Manager will not send credentials for Azure Repos, Azure DevOps Server (TFS), GitHub, and Bitbucket, over HTTP connections that are not secured using TLS (HTTPS).
 
 Please make sure your remote URLs use "https://" rather than "http://".
 
-### Q: I got an authentication error and I am behind a network proxy.
+### Q: I got an authentication error and I am behind a network proxy
 
 You probably need to configure Git and GCM to use a proxy. Please see detailed information [here](https://aka.ms/gcm/httpproxy).
 
-### Q: I'm getting errors about picking a credential store on Linux.
+### Q: I'm getting errors about picking a credential store on Linux
 
 On Linux you must [select and configure a credential store](https://aka.ms/gcm/credstores), as due to the varied nature of distributions and installations, we cannot guarantee a suitable storage solution is available.
 
@@ -65,7 +65,7 @@ GCM Windows was not designed with a cross-platform architecture.
 
 ### What level of support does GCM have?
 
-Support will be best-effort. We would really appreciate your feedback to make this a great experience across each platform we support. 
+Support will be best-effort. We would really appreciate your feedback to make this a great experience across each platform we support.
 
 ### Q: Why does GCM not support operating system/distribution 'X', or Git hosting provider 'Y'?
 
