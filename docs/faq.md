@@ -136,3 +136,13 @@ information.
 
 You may also set these variables to the empty string `""` to force terminal/
 text-based prompts instead.
+
+### How do I revoke consent for GCM for GitHub.com?
+
+In your GitHub user settings, navigate to
+[Integrations > Applications > Authorized OAuth Apps > Git Credential Manager](https://github.com/settings/connections/applications/0120e057bd645470c1ed)
+and pick "Revoke access".
+
+![Revoke GCM OAuth app access](img/github-oauthapp-revoke.png)
+
+After revoking access, any tokens created by GCM will be invalidated and can no longer be used to access your repositories. The next time GCM attempts to access GitHub.com you will be prompted to consent again.
