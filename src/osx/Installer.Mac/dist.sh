@@ -11,7 +11,6 @@ SRC="$ROOT/src"
 OUT="$ROOT/out"
 INSTALLER_SRC="$SRC/osx/Installer.Mac"
 RESXPATH="$INSTALLER_SRC/resources"
-DISTPATH="$INSTALLER_SRC/distribution.xml"
 
 # Product information
 IDENTIFIER="com.microsoft.gitcredentialmanager.dist"
@@ -31,6 +30,10 @@ case "$i" in
     --output=*)
     DISTOUT="${i#*=}"
     shift # past argument=value
+    ;;
+    --runtime=*)
+    RUNTIME="${i#*=}"
+    shift
     ;;
     *)
           # unknown option
@@ -56,6 +59,32 @@ if [ -e "$DISTOUT" ]; then
     echo "Deleteing old product package '$DISTOUT'..."
     rm "$DISTOUT"
 fi
+
+# Determine a runtime if one was not provided
+if [ -z "$RUNTIME" ]; then
+    TEST_ARCH=`uname -m`
+    case $TEST_ARCH in
+        "x86_64")
+            RUNTIME="osx-x64"
+            ;;
+        "arm64")
+            RUNTIME="osx-arm64"
+            ;;
+        *)
+            die "Unknown architecture '$TEST_ARCH'"
+            ;;
+    esac
+fi
+
+# Determine the distribution file to use with a given runtime
+case $RUNTIME in
+    "osx-x64")
+        DISTPATH="$INSTALLER_SRC/distribution.x64.xml"
+        ;;
+    "osx-arm64")
+        DISTPATH="$INSTALLER_SRC/distribution.arm64.xml"
+        ;;
+esac
 
 # Ensure the parent directory for the package exists
 mkdir -p "$(dirname "$DISTOUT")"

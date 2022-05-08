@@ -51,6 +51,6 @@ DISTOUT="$OUTDIR/gcmcore-osx-$VERSION.pkg"
 # Layout and pack
 "$INSTALLER_SRC/layout.sh" --configuration="$CONFIGURATION" --output="$PAYLOAD" --runtime="$RUNTIME" || exit 1
 "$INSTALLER_SRC/pack.sh" --payload="$PAYLOAD" --version="$VERSION" --output="$COMPONENTOUT" || exit 1
-"$INSTALLER_SRC/dist.sh" --package-path="$COMPONENTDIR" --version="$VERSION" --output="$DISTOUT" || exit 1
+"$INSTALLER_SRC/dist.sh" --package-path="$COMPONENTDIR" --version="$VERSION" --output="$DISTOUT" --runtime="$RUNTIME" || exit 1
 
 echo "Build of Installer.Mac complete."

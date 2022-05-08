@@ -21,7 +21,7 @@ steps:
   - script: src/osx/Installer.Mac/pack.sh --payload='$(Build.StagingDirectory)/payload' --version='$(GitBuildVersionSimple)' --output='$(Build.StagingDirectory)/components/com.microsoft.gitcredentialmanager.component.pkg'
     displayName: Create component package
 
-  - script: src/osx/Installer.Mac/dist.sh --package-path='$(Build.StagingDirectory)/components' --version='$(GitBuildVersionSimple)' --output='$(Build.StagingDirectory)/pkg/gcmcore-osx-$(GitBuildVersionSimple).pkg' || exit 1
+  - script: src/osx/Installer.Mac/dist.sh --package-path='$(Build.StagingDirectory)/components' --version='$(GitBuildVersionSimple)' --output='$(Build.StagingDirectory)/pkg/gcmcore-osx-$(GitBuildVersionSimple).pkg' --runtime='$(parameters.osxRuntime)' || exit 1
     displayName: Create product archive
 
   - task: PublishPipelineArtifact@0
