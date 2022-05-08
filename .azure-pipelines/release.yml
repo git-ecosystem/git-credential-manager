@@ -5,8 +5,6 @@ variables:
   configuration: Release
   signPool: MSEngSS-MicroBuild2019-1ES
   winImage: vs2017-win2016
-  osxImage: macos-latest
-  osxRuntime: osx-x64
 
 jobs:
 - job: windows
@@ -17,55 +15,14 @@ jobs:
   - template: templates/windows/compile.signed.yml
   - template: templates/windows/pack.yml
 
-- job: osx_step1
-  displayName: macOS (Build & Layout)
-  pool:
-    vmImage: $(osxImage)
-  steps:
-  - template: templates/osx/compile.yml
-    parameters:
-      osxRuntime: osx-x64
-  - template: templates/osx/pack.signed/step1-layout.yml
-    parameters:
-      osxRuntime: osx-x64
-
-- job: osx_step2
-  displayName: macOS (Sign payload)
-  dependsOn: osx_step1
-  condition: succeeded()
+- job: macos-x64
+  displayName: macOS x64
   pool:
     name: $(signPool)
   steps:
-  - template: templates/osx/pack.signed/step2-signpayload.yml
-
-- job: osx_step3
-  displayName: macOS (Pack)
-  dependsOn: osx_step2
-  condition: succeeded()
-  pool:
-    vmImage: $(osxImage)
-  steps:
-  - template: templates/osx/pack.signed/step3-pack.yml
+  - template: templates/osx/build.yml
     parameters:
-      osxRuntime: osx-x64
-
-- job: osx_step4
-  displayName: macOS (Sign package)
-  dependsOn: osx_step3
-  condition: succeeded()
-  pool:
-    name: $(signPool)
-  steps:
-  - template: templates/osx/pack.signed/step4-signpack.yml
-
-- job: osx_step5
-  displayName: macOS (Prepare for distribution)
-  dependsOn: osx_step4
-  condition: succeeded()
-  pool:
-    vmImage: $(osxImage)
-  steps:
-  - template: templates/osx/pack.signed/step5-dist.yml
+      osxRuntime: osx-64
 
 - job: ubuntu1804_x86_64
   displayName: Ubuntu 18.04 LTS x86_64

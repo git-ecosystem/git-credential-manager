@@ -1,0 +1,53 @@
+variables:
+  osxImage: macos-latest
+
+jobs:
+  - job: osx_step1
+    displayName: macOS (Build & Layout)
+    pool:
+      vmImage: $(osxImage)
+    steps:
+    - template: templates/osx/compile.yml
+      parameters:
+        osxRuntime: $(parameters.osxRuntime)
+    - template: templates/osx/pack.signed/step1-layout.yml
+      parameters:
+        osxRuntime: $(parameters.osxRuntime)
+
+  - job: osx_step2
+    displayName: macOS (Sign payload)
+    dependsOn: osx_step1
+    condition: succeeded()
+    pool:
+      name: $(signPool)
+    steps:
+    - template: templates/osx/pack.signed/step2-signpayload.yml
+
+  - job: osx_step3
+    displayName: macOS (Pack)
+    dependsOn: osx_step2
+    condition: succeeded()
+    pool:
+      vmImage: $(osxImage)
+    steps:
+    - template: templates/osx/pack.signed/step3-pack.yml
+      parameters:
+        osxRuntime: $(parameters.osxRuntime)
+
+  - job: osx_step4
+    displayName: macOS (Sign package)
+    dependsOn: osx_step3
+    condition: succeeded()
+    pool:
+      name: $(signPool)
+    steps:
+    - template: templates/osx/pack.signed/step4-signpack.yml
+
+  - job: osx_step5
+    displayName: macOS (Prepare for distribution)
+    dependsOn: osx_step4
+    condition: succeeded()
+    pool:
+      vmImage: $(osxImage)
+    steps:
+    - template: templates/osx/pack.signed/step5-dist.yml
