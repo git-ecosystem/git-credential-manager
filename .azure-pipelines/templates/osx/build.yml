@@ -1,6 +1,3 @@
-variables:
-  osxImage: macos-latest
-
 jobs:
   - job: osx_step1
     displayName: macOS (Build & Layout)

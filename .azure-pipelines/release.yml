@@ -5,6 +5,7 @@ variables:
   configuration: Release
   signPool: MSEngSS-MicroBuild2019-1ES
   winImage: vs2017-win2016
+  osxImage: macos-latest
 
 jobs:
 - job: windows
