@@ -25,6 +25,8 @@ jobs:
     parameters:
       osxRuntime: osx-x64
   - template: templates/osx/pack.unsigned.yml
+    parameters:
+        osxRuntime: osx-x64
 
 - job: ubuntu1804_x86_64
   displayName: Ubuntu 18.04 LTS x86_64

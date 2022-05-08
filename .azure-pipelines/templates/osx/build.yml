@@ -48,3 +48,5 @@ jobs:
       vmImage: $(osxImage)
     steps:
     - template: templates/osx/pack.signed/step5-dist.yml
+      parameters:
+        osxRuntime: $(parameters.osxRuntime)

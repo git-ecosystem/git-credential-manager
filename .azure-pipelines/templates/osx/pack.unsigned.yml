@@ -15,7 +15,7 @@ steps:
       rootFolderOrFile: '$(Build.StagingDirectory)/publish/payload'
       includeRootFolder: false
       archiveType: 'tar'
-      archiveFile: '$(Build.StagingDirectory)/publish/gcmcore-osx-$(GitBuildVersionSimple).tar.gz'
+      archiveFile: '$(Build.StagingDirectory)/publish/gcmcore-$(parameters.osxRuntime)-$(GitBuildVersionSimple).tar.gz'
       replaceExistingArchive: true
 
   - task: ArchiveFiles@2
@@ -24,7 +24,7 @@ steps:
       rootFolderOrFile: '$(Build.StagingDirectory)/publish/payload.sym/'
       includeRootFolder: false
       archiveType: 'tar'
-      archiveFile: '$(Build.StagingDirectory)/publish/symbols-osx.tar.gz'
+      archiveFile: '$(Build.StagingDirectory)/publish/symbols-$(parameters.osxRuntime).tar.gz'
       replaceExistingArchive: true
 
   - task: PublishPipelineArtifact@0

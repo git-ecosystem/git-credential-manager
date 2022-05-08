@@ -23,7 +23,16 @@ jobs:
   steps:
   - template: templates/osx/build.yml
     parameters:
-      osxRuntime: osx-64
+      osxRuntime: osx-x64
+
+- job: macos-arm64
+  displayName: macOS arm64
+  pool:
+    name: $(signPool)
+  steps:
+  - template: templates/osx/build.yml
+    parameters:
+      osxRuntime: osx-arm64
 
 - job: ubuntu1804_x86_64
   displayName: Ubuntu 18.04 LTS x86_64

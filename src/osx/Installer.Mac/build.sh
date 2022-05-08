@@ -46,7 +46,7 @@ OUTDIR="$INSTALLER_OUT/pkg/$CONFIGURATION"
 PAYLOAD="$OUTDIR/payload"
 COMPONENTDIR="$OUTDIR/components"
 COMPONENTOUT="$COMPONENTDIR/com.microsoft.gitcredentialmanager.component.pkg"
-DISTOUT="$OUTDIR/gcmcore-osx-$VERSION.pkg"
+DISTOUT="$OUTDIR/gcmcore-$RUNTIME-$VERSION.pkg"
 
 # Layout and pack
 "$INSTALLER_SRC/layout.sh" --configuration="$CONFIGURATION" --output="$PAYLOAD" --runtime="$RUNTIME" || exit 1
