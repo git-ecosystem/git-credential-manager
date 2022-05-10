@@ -1,3 +1,8 @@
+parameters:
+- name: osxRuntime
+  type: string
+  default: osx-x64
+
 steps:
   - task: NuGetAuthenticate@0
     displayName: Authenticate to MicroBuild NuGet feed
@@ -13,8 +18,8 @@ steps:
     displayName: Download unsigned payload
     inputs:
       buildType: 'current'
-      artifactName: 'tmp.macpayload_unsigned'
-      downloadPath: '$(Build.StagingDirectory)\payload'
+      artifactName: 'tmp.${{ parameters.osxRuntime }}.payload_unsigned'
+      downloadPath: '$(Build.StagingDirectory)\${{ parameters.osxRuntime }}\payload'
   
   - task: UseDotNet@2
     displayName: Use .NET SDK 6.0.201
@@ -39,10 +44,10 @@ steps:
     displayName: Sign payload
     inputs:
       solution: 'src\osx\SignFiles.Mac\SignFiles.Mac.csproj'
-      msbuildArguments: '/p:RootDir="$(Build.StagingDirectory)\payload"'
+      msbuildArguments: '/p:RootDir="$(Build.StagingDirectory)\${{ parameters.osxRuntime }}\payload"'
 
   - task: PublishPipelineArtifact@0
     displayName: Upload signed payload
     inputs:
-      artifactName: 'tmp.macpayload_signed'
-      targetPath: '$(Build.StagingDirectory)\payload'
+      artifactName: 'tmp.${{ parameters.osxRuntime }}.payload_signed'
+      targetPath: '$(Build.StagingDirectory)\${{ parameters.osxRuntime }}\payload'

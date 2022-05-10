@@ -1,3 +1,8 @@
+parameters:
+- name: osxRuntime
+  type: string
+  default: osx-x64
+
 steps:
   - task: NuGetAuthenticate@0
     displayName: Authenticate to MicroBuild NuGet feed
@@ -13,11 +18,11 @@ steps:
     displayName: Download unsigned package
     inputs:
       buildType: 'current'
-      artifactName: 'tmp.macinstaller_unsigned'
-      downloadPath: '$(Build.StagingDirectory)\pkg'
+      artifactName: 'tmp.${{ parameters.osxRuntime }}.installer_unsigned'
+      downloadPath: '$(Build.StagingDirectory)\${{ parameters.osxRuntime }}\pkg'
 
   - powershell: |
-      $dir="$(Build.StagingDirectory)\pkg"
+      $dir="$(Build.StagingDirectory)\${{ parameters.osxRuntime }}\pkg"
       Compress-Archive -Path $dir\*.pkg $dir\gcmcorepkg.zip
       Remove-Item $dir\*.pkg
     displayName: 'Zip package file for signing'
@@ -25,12 +30,12 @@ steps:
   - task: ms-vseng.MicroBuildTasks.7973a23b-33e3-4b00-a7d9-c06d90f8297f.MicroBuildSignMacFiles@1
     displayName: Sign package
     inputs:
-      SigningTarget: '$(Build.StagingDirectory)\pkg\gcmcorepkg.zip'
+      SigningTarget: '$(Build.StagingDirectory)\${{ parameters.osxRuntime }}\pkg\gcmcorepkg.zip'
       SigningCert: 8003
     condition: and(succeeded(), ne(variables['SignType'], 'test'))
 
   - powershell: |
-      $dir="$(Build.StagingDirectory)\pkg"
+      $dir="$(Build.StagingDirectory)\${{ parameters.osxRuntime }}\pkg"
       Expand-Archive -LiteralPath $dir\gcmcorepkg.zip -DestinationPath $dir -Force
       Remove-Item $dir\gcmcorepkg.zip -Force
     displayName: 'Unzip signed package file'
@@ -38,5 +43,5 @@ steps:
   - task: PublishPipelineArtifact@0
     displayName: Upload signed installer
     inputs:
-      artifactName: 'tmp.macinstaller_signed'
-      targetPath: '$(Build.StagingDirectory)\pkg'
+      artifactName: 'tmp.${{ parameters.osxRuntime }}.installer_signed'
+      targetPath: '$(Build.StagingDirectory)\${{ parameters.osxRuntime }}\pkg'

@@ -16,21 +16,111 @@ jobs:
   - template: templates/windows/compile.signed.yml
   - template: templates/windows/pack.yml
 
-- job: macos-x64
-  displayName: macOS x64
+- job: osx_x64_step1
+  displayName: macOS (Build & Layout) x64
   pool:
-    name: $(signPool)
+    vmImage: $(osxImage)
   steps:
-  - template: templates/osx/build.yml
+  - template: templates/osx/compile.yml
+  - template: templates/osx/pack.signed/step1-layout.yml
     parameters:
       osxRuntime: osx-x64
 
-- job: macos-arm64
-  displayName: macOS arm64
+- job: osx_x64_step2
+  displayName: macOS (Sign payload) x64
+  dependsOn: osx_x64_step1
+  condition: succeeded()
   pool:
     name: $(signPool)
   steps:
-  - template: templates/osx/build.yml
+  - template: templates/osx/pack.signed/step2-signpayload.yml
+    parameters:
+      osxRuntime: osx-x64
+
+- job: osx_x64_step3
+  displayName: macOS (Pack) x64
+  dependsOn: osx_x64_step2
+  condition: succeeded()
+  pool:
+    vmImage: $(osxImage)
+  steps:
+  - template: templates/osx/pack.signed/step3-pack.yml
+    parameters:
+      osxRuntime: osx-x64
+
+- job: osx_x64_step4
+  displayName: macOS (Sign package) x64
+  dependsOn: osx_x64_step3
+  condition: succeeded()
+  pool:
+    name: $(signPool)
+  steps:
+  - template: templates/osx/pack.signed/step4-signpack.yml
+    parameters:
+      osxRuntime: osx-x64
+
+- job: osx_x64_step5
+  displayName: macOS (Prepare for distribution) x64
+  dependsOn: osx_x64_step4
+  condition: succeeded()
+  pool:
+    vmImage: $(osxImage)
+  steps:
+  - template: templates/osx/pack.signed/step5-dist.yml
+    parameters:
+      osxRuntime: osx-x64
+
+- job: osx_arm64_step1
+  displayName: macOS (Build & Layout) arm64
+  pool:
+    vmImage: $(osxImage)
+  steps:
+  - template: templates/osx/compile.yml
+  - template: templates/osx/pack.signed/step1-layout.yml
+    parameters:
+      osxRuntime: osx-arm64
+
+- job: osx_arm64_step2
+  displayName: macOS (Sign payload) arm64
+  dependsOn: osx_arm64_step1
+  condition: succeeded()
+  pool:
+    name: $(signPool)
+  steps:
+  - template: templates/osx/pack.signed/step2-signpayload.yml
+    parameters:
+      osxRuntime: osx-arm64
+
+- job: osx_arm64_step3
+  displayName: macOS (Pack) arm64
+  dependsOn: osx_arm64_step2
+  condition: succeeded()
+  pool:
+    vmImage: $(osxImage)
+  steps:
+  - template: templates/osx/pack.signed/step3-pack.yml
+    parameters:
+      osxRuntime: osx-arm64
+
+- job: osx_arm64_step4
+  displayName: macOS (Sign package) arm64
+  dependsOn: osx_arm64_step3
+  condition: succeeded()
+  pool:
+    name: $(signPool)
+  steps:
+  - template: templates/osx/pack.signed/step4-signpack.yml
+    parameters:
+      osxRuntime: arm64
+
+- job: osx_arm64_step5
+  displayName: macOS (Prepare for distribution) arm64
+  dependsOn: osx_arm64_step4
+  condition: succeeded()
+  pool:
+    vmImage: $(osxImage)
+  steps:
+  - template: templates/osx/pack.signed/step5-dist.yml
     parameters:
       osxRuntime: osx-arm64
 
