@@ -106,9 +106,13 @@ else
     mkdir -p "$INSTALL_LOCATION"
 fi
 
+if [ -z "$DOTNET_ROOT" ]; then
+    DOTNET_ROOT="$(dirname $(which dotnet))"
+fi
+
 # Publish core application executables
 echo "Publishing core application..."
-dotnet publish "$GCM_SRC" \
+$DOTNET_ROOT/dotnet publish "$GCM_SRC" \
 	--configuration="$CONFIGURATION" \
 	--framework="$FRAMEWORK" \
 	--runtime="$RUNTIME" \
@@ -117,7 +121,7 @@ dotnet publish "$GCM_SRC" \
 	--output="$(make_absolute "$PAYLOAD")" || exit 1
 
 echo "Publishing Bitbucket UI helper..."
-dotnet publish "$BITBUCKET_UI_SRC" \
+$DOTNET_ROOT/dotnet publish "$BITBUCKET_UI_SRC" \
 	--configuration="$CONFIGURATION" \
 	--framework="$FRAMEWORK" \
 	--runtime="$RUNTIME" \
@@ -126,7 +130,7 @@ dotnet publish "$BITBUCKET_UI_SRC" \
 	--output="$(make_absolute "$PAYLOAD")" || exit 1
 
 echo "Publishing GitHub UI helper..."
-dotnet publish "$GITHUB_UI_SRC" \
+$DOTNET_ROOT/dotnet publish "$GITHUB_UI_SRC" \
 	--configuration="$CONFIGURATION" \
 	--framework="$FRAMEWORK" \
 	--runtime="$RUNTIME" \
@@ -135,7 +139,7 @@ dotnet publish "$GITHUB_UI_SRC" \
 	--output="$(make_absolute "$PAYLOAD")" || exit 1
 
 echo "Publishing GitLab UI helper..."
-dotnet publish "$GITLAB_UI_SRC" \
+$DOTNET_ROOT/dotnet publish "$GITLAB_UI_SRC" \
 	--configuration="$CONFIGURATION" \
 	--framework="$FRAMEWORK" \
 	--runtime="$RUNTIME" \

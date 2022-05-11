@@ -178,6 +178,10 @@ if [ "z$script_path" = "z$toplevel_path" ] || [ ! -f "$toplevel_path/Git-Credent
     test -d "$toplevel_path" || git clone https://github.com/GitCredentialManager/git-credential-manager
 fi
 
+if [ -z "$DOTNET_ROOT" ]; then
+    DOTNET_ROOT="$(dirname $(which dotnet))"
+fi
+
 cd "$toplevel_path"
-$sudo_cmd dotnet build ./src/linux/Packaging.Linux/Packaging.Linux.csproj -c Release -p:InstallFromSource=true
+$sudo_cmd env "PATH=$PATH" $DOTNET_ROOT/dotnet build ./src/linux/Packaging.Linux/Packaging.Linux.csproj -c Release -p:InstallFromSource=true
 add_to_PATH "/usr/local/bin"
