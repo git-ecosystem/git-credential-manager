@@ -102,6 +102,16 @@ namespace GitCredentialManager
                 }
             }
 
+            // check whether the host specification contains of hostname only
+            // this usually means, the git hosting instance is part of your local
+            // network.
+            if (!(string.IsNullOrWhiteSpace(host) || string.IsNullOrEmpty(host)) &&
+                !host.Contains("."))
+            {
+                yield return $"{schemeAndDelim}{host}";
+                yield break;
+            }
+
             // Unfold the host by sub-domain, left-to-right
             while (!string.IsNullOrWhiteSpace(host))
             {
