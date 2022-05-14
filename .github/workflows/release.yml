@@ -438,3 +438,99 @@ jobs:
         name: linux-sign
         path: |
           signed
+
+# ================================
+#             Publish
+# ================================
+  create-github-release:
+    name: Publish GitHub draft release
+    runs-on: ubuntu-latest
+    needs: [ osx-sign, win-sign, linux-sign ]
+    steps:      
+      - name: Check out repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # Indicate full history so Nerdbank.GitVersioning works.
+
+      - name: Set up dotnet
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: 6.0.201
+      
+      # Install Nerdbank.GitVersioning
+      - uses: dotnet/nbgv@master
+        with:
+          setCommonVars: true
+      
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+
+      - name: Archive macOS payload and symbols
+        run: |
+          mkdir osx-payload-and-symbols
+          tar -C osx-payload-sign -czf osx-payload-and-symbols/gcm-osx-x64-$GitBuildVersionSimple.tar.gz .
+          tar -C tmp.osx-build/symbols -czf osx-payload-and-symbols/gcm-osx-x64-$GitBuildVersionSimple-symbols.tar.gz .
+
+      - name: Archive Windows payload and symbols
+        shell: pwsh
+        run: |
+          mkdir win-x86-payload-and-symbols
+          Compress-Archive -Path win-sign/signed-payload/* win-x86-payload-and-symbols/gcm-win-x86-$env:GitBuildVersionSimple.zip
+          Compress-Archive -Path win-sign/src/windows/Installer.Windows/symbols/* win-x86-payload-and-symbols/gcm-win-x86-$env:GitBuildVersionSimple-symbols.zip
+
+      - uses: actions/github-script@v4
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const version = process.env.GitBuildVersionSimple
+
+            var releaseMetadata = {
+              owner: context.repo.owner,
+              repo: context.repo.repo
+            };
+
+            // Create the release
+            var tagName = `v${version}`;
+            var createdRelease = await github.repos.createRelease({
+              ...releaseMetadata,
+              draft: true,
+              tag_name: tagName,
+              name: `GCM ${version}`
+            });
+            releaseMetadata.release_id = createdRelease.data.id;
+
+            // Uploads contents of directory to the release created above
+            async function uploadDirectoryToRelease(directory, includeExtensions=[]) {
+              return fs.promises.readdir(directory)
+                .then(async(files) => Promise.all(
+                  files.filter(file => {
+                    return includeExtensions.length==0 || includeExtensions.includes(path.extname(file).toLowerCase());
+                  })
+                  .map(async (file) => {
+                    var filePath = path.join(directory, file);
+                    github.repos.uploadReleaseAsset({
+                      ...releaseMetadata,
+                      name: file,
+                      headers: {
+                        "content-length": (await fs.promises.stat(filePath)).size
+                      },
+                      data: fs.createReadStream(filePath)
+                    });
+                  }))
+                );
+            }
+
+            await Promise.all([
+              // Upload Windows artifacts
+              uploadDirectoryToRelease('win-sign/signed'),
+              uploadDirectoryToRelease('win-x86-payload-and-symbols'),
+
+              // Upload macOS artifacts
+              uploadDirectoryToRelease('osx-sign'),
+              uploadDirectoryToRelease('osx-payload-and-symbols'),
+
+              // Upload Linux artifacts
+              uploadDirectoryToRelease('linux-sign'),
+              uploadDirectoryToRelease('linux-build/tar')
+            ]);
