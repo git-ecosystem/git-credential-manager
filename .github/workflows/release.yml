@@ -390,3 +390,51 @@ jobs:
         name: linux-build
         path: |
           linux-build
+
+  linux-sign:
+    name: Sign Debian package
+    # ESRP service requires signing to run on Windows
+    runs-on: windows-latest
+    needs: linux-build
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Download artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: linux-build
+        path: artifacts
+
+    - uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    
+    - name: Set up ESRP client
+      shell: pwsh
+      env:
+        AZURE_STORAGE_KEY: ${{ secrets.AZURE_STORAGE_KEY }}
+        AZURE_VAULT: ${{ secrets.AZURE_VAULT }}
+        AUTH_CERT: ${{ secrets.AZURE_VAULT_AUTH_CERT_NAME }}
+        REQUEST_SIGNING_CERT: ${{ secrets.AZURE_VAULT_REQUEST_SIGNING_CERT_NAME }}
+      run: |
+        .github\set_up_esrp.ps1
+    
+    - name: Run ESRP client
+      shell: pwsh
+      env:
+        AZURE_AAD_ID: ${{ secrets.AZURE_AAD_ID }}
+        # We temporarily need two AAD IDs, as we're using an SSL certificate associated
+        # with an older App Registration until we have the required hardware to approve
+        # the new certificate in SSL Admin.
+        AZURE_AAD_ID_SSL: ${{ secrets.AZURE_AAD_ID_SSL }}
+        LINUX_KEY_CODE: ${{ secrets.LINUX_KEY_CODE }}
+        LINUX_OP_CODE: ${{ secrets.LINUX_OPERATION_CODE }}
+      run: |
+        python .github/run_esrp_signing.py artifacts/deb $env:LINUX_KEY_CODE $env:LINUX_OP_CODE
+
+    - name: Upload signed Debian package
+      uses: actions/upload-artifact@v3
+      with:
+        name: linux-sign
+        path: |
+          signed
