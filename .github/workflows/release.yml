@@ -123,3 +123,43 @@ jobs:
         name: osx-payload-sign
         path: |
           signed
+  
+  osx-pack:
+    name: Package macOS payload
+    runs-on: macos-latest
+    needs: osx-payload-sign
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0 # Indicate full history so Nerdbank.GitVersioning works.
+
+    - name: Set up dotnet
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: 6.0.201
+    
+    # Install Nerdbank.GitVersioning
+    - uses: dotnet/nbgv@master
+      with:
+        setCommonVars: true
+
+    - name: Download signed payload
+      uses: actions/download-artifact@v3
+      with:
+        name: osx-payload-sign
+    
+    - name: Create component package
+      run: |
+        src/osx/Installer.Mac/pack.sh --payload=payload --version=$GitBuildVersionSimple --output=components/com.microsoft.gitcredentialmanager.component.pkg
+    
+    - name: Create product archive
+      run: |
+        src/osx/Installer.Mac/dist.sh --package-path=components --version=$GitBuildVersionSimple --output=pkg/gcm-osx-x64-$GitBuildVersionSimple.pkg || exit 1
+    
+    - name: Upload package
+      uses: actions/upload-artifact@v3
+      with:
+        name: tmp.osx-pack
+        path: |
+          pkg
