@@ -114,7 +114,7 @@ $ git clone https://ghe.example.com/john.doe/myrepo
 fatal: The remote certificate is invalid according to the validation procedure.
 ```
 
-The **recommended and safest option** is to acquire a TLS certificate signed by a public trusted certificate authority (CA). There are multiple public CAs; here is a non-exhaustive list to consider: [Let's Encrypt](https://letsencrypt.org/), [Comodo](https://www.comodoca.com/), [Digicert](https://www.digicert.com/), [GoDaddy](https://www.godaddy.com/web-security/ssl-certificate), [GlobalSign](https://www.globalsign.com/en/ssl/).
+The **recommended and safest option** is to acquire a TLS certificate signed by a public trusted certificate authority (CA). There are multiple public CAs; here is a non-exhaustive list to consider: [Let's Encrypt](https://letsencrypt.org/), [Comodo](https://www.comodoca.com/), [Digicert](https://www.digicert.com/), [GoDaddy](https://www.godaddy.com/), [GlobalSign](https://www.globalsign.com).
 
 If it is not possible to **obtain a TLS certificate from a trusted 3rd party** then you should try to add the _specific_ self-signed certificate or one of the CA certificates in the verification chain to your operating system's trusted certificate store ([macOS](https://support.apple.com/en-gb/guide/keychain-access/kyca2431/mac), [Windows](https://blogs.technet.microsoft.com/sbs/2008/05/08/installing-a-self-signed-certificate-as-a-trusted-root-ca-in-windows-vista/)).
 
