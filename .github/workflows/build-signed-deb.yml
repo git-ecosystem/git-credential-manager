@@ -39,7 +39,7 @@ jobs:
     needs: build
     steps:
     - name: setup python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v3
       with:
         python-version: 3.8
 
