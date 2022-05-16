@@ -26,7 +26,7 @@ jobs:
       run: dotnet build -c Release src/linux/Packaging.Linux/Packaging.Linux.csproj
 
     - name: Upload Installers
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: LinuxInstallers
         path: |
@@ -86,7 +86,7 @@ jobs:
         python .github/run_esrp_signing.py
 
     - name: Upload Installer
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: DebianInstallerSigned
         path: |
