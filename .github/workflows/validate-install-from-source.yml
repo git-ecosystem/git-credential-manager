@@ -22,7 +22,7 @@ jobs:
         - image: alpine
     container: ${{matrix.vector.image}}
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v3
       - run: |
           if [ ${{matrix.vector.image}} == "centos" ]; then
             sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-Linux-*

@@ -10,7 +10,7 @@ jobs:
     name: "Build"
     runs-on: ubuntu-18.04
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         fetch-depth: 0 # Indicate full history so Nerdbank.GitVersioning works.
 
@@ -43,7 +43,7 @@ jobs:
       with:
         python-version: 3.8
 
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: 'Download Installer Artifact'
       uses: actions/download-artifact@v2
