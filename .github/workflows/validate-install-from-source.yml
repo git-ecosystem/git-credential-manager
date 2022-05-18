@@ -23,6 +23,8 @@ jobs:
     container: ${{matrix.vector.image}}
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # Indicate full history so Nerdbank.GitVersioning works.
       - run: |
           if [ ${{matrix.vector.image}} == "centos" ]; then
             sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-Linux-*
