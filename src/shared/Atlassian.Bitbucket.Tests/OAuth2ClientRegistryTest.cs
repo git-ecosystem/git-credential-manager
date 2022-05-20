@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using Atlassian.Bitbucket.Cloud;
+using Atlassian.Bitbucket.DataCenter;
 using GitCredentialManager;
 using Moq;
 using Xunit;
@@ -36,6 +37,30 @@ namespace Atlassian.Bitbucket.Tests
             // Then
             Assert.NotNull(api);
             Assert.IsType<Atlassian.Bitbucket.Cloud.BitbucketOAuth2Client>(api);
+
+        }
+
+        [Fact]
+        public void BitbucketRestApiRegistry_Get_ReturnsDataCenterOAuth2Client_ForBitbucketDC()
+        {
+            var host = "example.com";
+
+            // Given
+            settings.Setup(s => s.RemoteUri).Returns(new System.Uri("https://example.com"));
+            context.Setup(c => c.Settings).Returns(settings.Object);
+            MockSettingOverride(DataCenterConstants.EnvironmentVariables.OAuthClientId, DataCenterConstants.GitConfiguration.Credential.OAuthClientId, "", true);
+            MockSettingOverride(DataCenterConstants.EnvironmentVariables.OAuthClientSecret, DataCenterConstants.GitConfiguration.Credential.OAuthClientSecret, "", true); ;
+            MockSettingOverride(DataCenterConstants.EnvironmentVariables.OAuthRedirectUri, DataCenterConstants.GitConfiguration.Credential.OAuthRedirectUri,  "never used", false);
+            MockHttpClientFactory();
+            var input = MockInputArguments(host);
+
+            // When
+            var registry = new OAuth2ClientRegistry(context.Object);
+            var api = registry.Get(input);
+
+            // Then
+            Assert.NotNull(api);
+            Assert.IsType<Atlassian.Bitbucket.DataCenter.BitbucketOAuth2Client>(api);
 
         }
 

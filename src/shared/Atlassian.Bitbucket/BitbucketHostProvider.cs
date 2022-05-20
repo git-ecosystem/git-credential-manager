@@ -404,7 +404,8 @@ namespace Atlassian.Bitbucket
                 }
                 catch (Exception ex)
                 {
-                    _context.Trace.WriteLine($"Failed to validate existing credentials using OAuth: {ex.Message}");
+                    _context.Trace.WriteLine($"Failed to validate existing credentials using OAuth");
+                    _context.Trace.WriteException(ex);
                 }
             }
 
@@ -418,7 +419,8 @@ namespace Atlassian.Bitbucket
                 }
                 catch (Exception ex)
                 {
-                    _context.Trace.WriteLine($"Failed to validate existing credentials using Basic Auth: {ex.Message}");
+                    _context.Trace.WriteLine($"Failed to validate existing credentials using Basic Auth");
+                    _context.Trace.WriteException(ex);
                     return false;
                 }
             }

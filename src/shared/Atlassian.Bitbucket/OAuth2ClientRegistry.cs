@@ -9,6 +9,7 @@ namespace Atlassian.Bitbucket
         private ISettings settings;
         private readonly ITrace trace;
         private Cloud.BitbucketOAuth2Client cloudClient;
+        private DataCenter.BitbucketOAuth2Client dataCenterClient;
 
         public OAuth2ClientRegistry(ICommandContext context)
         {
@@ -19,6 +20,11 @@ namespace Atlassian.Bitbucket
 
         public BitbucketOAuth2Client Get(InputArguments input)
         {
+            if (!BitbucketHelper.IsBitbucketOrg(input))
+            {
+                return DataCenterClient;
+            }
+
             return CloudClient;
         }
 
@@ -27,8 +33,10 @@ namespace Atlassian.Bitbucket
             http.Dispose();
             settings.Dispose();
             cloudClient = null;
+            dataCenterClient = null;
         }
 
         private Cloud.BitbucketOAuth2Client CloudClient => cloudClient ??= new Cloud.BitbucketOAuth2Client(http, settings, trace);
+        private DataCenter.BitbucketOAuth2Client DataCenterClient => dataCenterClient ??= new DataCenter.BitbucketOAuth2Client(http, settings, trace);
     }
 }

@@ -197,14 +197,15 @@ namespace GitCredentialManager.Authentication.OAuth
             }
         }
 
-        public virtual async Task<OAuth2TokenResult> GetTokenByAuthorizationCodeAsync(OAuth2AuthorizationCodeResult authorizationCodeResult, CancellationToken ct)
+        public async Task<OAuth2TokenResult> GetTokenByAuthorizationCodeAsync(OAuth2AuthorizationCodeResult authorizationCodeResult, CancellationToken ct)
         {
             var formData = new Dictionary<string, string>
             {
                 [OAuth2Constants.TokenEndpoint.GrantTypeParameter] = OAuth2Constants.TokenEndpoint.AuthorizationCodeGrantType,
                 [OAuth2Constants.TokenEndpoint.AuthorizationCodeParameter] = authorizationCodeResult.Code,
                 [OAuth2Constants.TokenEndpoint.PkceVerifierParameter] = authorizationCodeResult.CodeVerifier,
-                [OAuth2Constants.ClientIdParameter] = _clientId
+                [OAuth2Constants.ClientIdParameter] = _clientId,
+                [OAuth2Constants.ClientSecretParameter] = _clientSecret
             };
 
             if (authorizationCodeResult.RedirectUri != null)
@@ -232,13 +233,14 @@ namespace GitCredentialManager.Authentication.OAuth
             }
         }
 
-        public virtual async Task<OAuth2TokenResult> GetTokenByRefreshTokenAsync(string refreshToken, CancellationToken ct)
+        public async Task<OAuth2TokenResult> GetTokenByRefreshTokenAsync(string refreshToken, CancellationToken ct)
         {
             var formData = new Dictionary<string, string>
             {
                 [OAuth2Constants.TokenEndpoint.GrantTypeParameter] = OAuth2Constants.TokenEndpoint.RefreshTokenGrantType,
                 [OAuth2Constants.TokenEndpoint.RefreshTokenParameter] = refreshToken,
                 [OAuth2Constants.ClientIdParameter] = _clientId,
+                [OAuth2Constants.ClientSecretParameter] = _clientSecret
             };
 
             if (_redirectUri != null)
@@ -348,7 +350,7 @@ namespace GitCredentialManager.Authentication.OAuth
 
         #region Helpers
 
-        protected HttpRequestMessage CreateRequestMessage(HttpMethod method, Uri requestUri, HttpContent content = null, bool addAuthHeader = false)
+        private HttpRequestMessage CreateRequestMessage(HttpMethod method, Uri requestUri, HttpContent content = null, bool addAuthHeader = false)
         {
             var request = new HttpRequestMessage(method, requestUri) {Content = content};
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(Constants.Http.MimeTypeJson));

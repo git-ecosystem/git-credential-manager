@@ -7,6 +7,7 @@ namespace Atlassian.Bitbucket
     {
         private readonly ICommandContext context;
         private BitbucketRestApi cloudApi;
+        private DataCenter.BitbucketRestApi dataCenterApi;
 
         public BitbucketRestApiRegistry(ICommandContext context)
         {
@@ -15,6 +16,11 @@ namespace Atlassian.Bitbucket
 
         public IBitbucketRestApi Get(InputArguments input)
         {
+            if(!BitbucketHelper.IsBitbucketOrg(input))
+            {
+                return DataCenterApi;
+            }
+
             return CloudApi;
         }
 
@@ -22,8 +28,10 @@ namespace Atlassian.Bitbucket
         {
             context.Dispose();
             cloudApi?.Dispose();
+            dataCenterApi?.Dispose();
         }
 
         private Cloud.BitbucketRestApi CloudApi => cloudApi ??= new Cloud.BitbucketRestApi(context);
+        private DataCenter.BitbucketRestApi DataCenterApi => dataCenterApi ??= new DataCenter.BitbucketRestApi(context);
     }
 }

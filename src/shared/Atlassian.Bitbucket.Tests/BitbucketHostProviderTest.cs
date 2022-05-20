@@ -1,4 +1,5 @@
 ﻿using Atlassian.Bitbucket.Cloud;
+using Atlassian.Bitbucket.DataCenter;
 using GitCredentialManager;
 using GitCredentialManager.Authentication.OAuth;
 using GitCredentialManager.Tests.Objects;
@@ -297,7 +298,6 @@ namespace Atlassian.Bitbucket.Tests
         }
 
         [Theory]
-        // DC/Server does not currently support OAuth
         [InlineData("https", BITBUCKET_DOT_ORG_HOST, "jsquire", MOCK_ACCESS_TOKEN, MOCK_ACCESS_TOKEN_ALT, MOCK_REFRESH_TOKEN)]
         public async Task BitbucketHostProvider_GetCredentialAsync_AlwaysRefreshCredentials_OAuth_IsRespected(
             string protocol, string host, string username, string storedToken, string newToken, string refreshToken)
@@ -357,6 +357,9 @@ namespace Atlassian.Bitbucket.Tests
         // DC - supports Basic, OAuth
         [InlineData("https", "example.com", "basic", AuthenticationModes.Basic)]
         [InlineData("https", "example.com", "oauth", AuthenticationModes.OAuth)]
+        [InlineData("https", "example.com", "NOT-A-REAL-VALUE", DataCenterConstants.ServerAuthenticationModes)]
+        [InlineData("https", "example.com", "none", DataCenterConstants.ServerAuthenticationModes)]
+        [InlineData("https", "example.com", null, DataCenterConstants.ServerAuthenticationModes)]
         // Cloud - supports Basic, OAuth
         [InlineData("https", "bitbucket.org", "oauth", AuthenticationModes.OAuth)]
         [InlineData("https", "bitbucket.org", "basic", AuthenticationModes.Basic)]
@@ -496,15 +499,13 @@ namespace Atlassian.Bitbucket.Tests
 
         private void MockRemoteBasicValid(InputArguments input, string password, bool twoFactor = true)
         {
-            var userInfo = new UserInfo
-            {
-                UserName = input.UserName,
-                IsTwoFactorAuthenticationEnabled = twoFactor
-            };
+            var userInfo = new Mock<IUserInfo>(MockBehavior.Strict); 
+            userInfo.Setup(ui => ui.IsTwoFactorAuthenticationEnabled).Returns(twoFactor);
+            userInfo.Setup(ui => ui.UserName).Returns(input.UserName);
 
             // Basic
             bitbucketApi.Setup(x => x.GetUserInformationAsync(input.UserName, password, false))
-                .ReturnsAsync(new RestApiResult<IUserInfo>(System.Net.HttpStatusCode.OK, userInfo));
+                .ReturnsAsync(new RestApiResult<IUserInfo>(System.Net.HttpStatusCode.OK, userInfo.Object));
         }
 
         private void MockRemoteAccessTokenExpired(InputArguments input, string token)
@@ -516,15 +517,13 @@ namespace Atlassian.Bitbucket.Tests
 
         private void MockRemoteAccessTokenValid(InputArguments input, string token, bool twoFactor = true)
         {
-            var userInfo = new UserInfo
-            {
-                UserName = input.UserName,
-                IsTwoFactorAuthenticationEnabled = twoFactor
-            };
+            var userInfo = new Mock<IUserInfo>(MockBehavior.Strict); 
+            userInfo.Setup(ui => ui.IsTwoFactorAuthenticationEnabled).Returns(twoFactor);
+            userInfo.Setup(ui => ui.UserName).Returns(input.UserName);
 
             // OAuth
             bitbucketApi.Setup(x => x.GetUserInformationAsync(null, token, true))
-                .ReturnsAsync(new RestApiResult<IUserInfo>(System.Net.HttpStatusCode.OK, userInfo));
+                .ReturnsAsync(new RestApiResult<IUserInfo>(System.Net.HttpStatusCode.OK, userInfo.Object));
         }
 
         private static void MockRemoteOAuthAccountIsInvalid(Mock<IBitbucketRestApi> bitbucketApi)
