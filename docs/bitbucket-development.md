@@ -123,6 +123,76 @@ be accessed using the credentials `admin`/`admin` at
 Atlassian has [documentation][atlassian-sdk] on how to download and install
 their SDK.
 
+## OAuth2 Configuration
+
+Bitbucket DC [7.20](https://confluence.atlassian.com/bitbucketserver/bitbucket-data-center-and-server-7-20-release-notes-1101934428.html)
+added support for OAuth2 Incoming Application Links and this can be used to
+support OAuth2 authentication for Git. This is especially useful in environments
+where Bitbucket uses SSO as it removes the requirement for users to manage
+[SSH keys](https://confluence.atlassian.com/display/BITBUCKETSERVER0717/Using+SSH+keys+to+secure+Git+operations)
+or manual [HTTP access tokens](https://confluence.atlassian.com/display/BITBUCKETSERVER0717/Personal+access+tokens).
+
+### Host Configuration
+
+For more details see
+[Bitbucket's documentation on Data Center and Server Application Links to other Applications](https://confluence.atlassian.com/bitbucketserver/link-to-other-applications-1018764620.html)
+
+Create Incoming OAuth 2 Application Link:
+<!-- markdownlint-disable MD034 -->
+1. Navigate to Administration/Application Links
+1. Create Link
+   1. Screen 1
+      - External Application [check]
+      - Incoming Application [check]
+   1. Screen 2
+      - Name : GCM
+      - Redirect URL : `http://localhost:34106/`
+      - Application Permissions : Repositories.Read [check], Repositories.Write [check]
+   1. Save
+   <!-- markdownlint-enable MD034 -->
+   1. Copy the `ClientId` and `ClientSecret` to configure GCM
+
+### Client Configuration
+
+Set the OAuth2 configuration use the `ClientId` and `ClientSecret` copied above,
+(for details see [credential.bitbucketDataCenterOAuthClientId](configuration.md#credential.bitbucketDataCenterOAuthClientId)
+and [credential.bitbucketDataCenterOAuthClientSecret](configuration.md#credential.bitbucketDataCenterOAuthClientSecret))
+
+    ❯ git config --global credential.bitbucketDataCenterOAuthClientId {`Copied ClientId`}
+
+    ❯ git config --global credential.bitbucketDataCenterOAuthClientSecret {`Copied ClientSecret`}
+<!-- markdownlint-disable MD034 -->
+As described in [Configuration options](configuration.md#Configuration%20options)
+the settings can be made more specific to apply only to a specific Bitbucket DC
+host by specifying the host url, e.g. https://bitbucket.example.com/
+<!-- markdownlint-enable MD034 -->
+
+    ❯ git config --global credential.https://bitbucket.example.com.bitbucketDataCenterOAuthClientId {`Copied ClientId`}
+
+    ❯ git config --global credential.https://bitbucket.example.com.bitbucketDataCenterOAuthClientSecret {`Copied ClientSecret`}
+<!-- markdownlint-disable MD034 -->
+Due to the way GCM resolves hosts and determines REST API urls, if the Bitbucket
+DC instance is hosted under a relative url (e.g. https://example.com/bitbucket)
+it is necessary to configure Git to send the full path to GCM. This is done
+using the [credential.useHttpPath](configuration.md#credential.useHttpPath)  
+setting.
+    ❯ git config --global credential.https://example.com/bitbucket.usehttppath true
+<!-- markdownlint-enable MD034 -->
+
+If a port number is used in the url of the Bitbucket DC instance the Git
+configuration needs to reflect this. However, due to [Issue 608](https://github.com/GitCredentialManager/git-credential-manager/issues/608)
+the port is ignored when resolving [credential.bitbucketDataCenterOAuthClientId](configuration.md#credential.bitbucketDataCenterOAuthClientId)
+and [credential.bitbucketDataCenterOAuthClientSecret](configuration.md#credential.bitbucketDataCenterOAuthClientSecret).
+<!-- markdownlint-disable MD034 -->
+For example, a Bitbucket DC host at https://example.com:7990/bitbucket would
+require configuration in the form:
+<!-- markdownlint-enable MD034 -->
+    ❯ git config --global credential.https://example.com/bitbucket.bitbucketDataCenterOAuthClientId {`Copied ClientId`}
+
+    ❯ git config --global credential.https://example.com/bitbucket.bitbucketDataCenterOAuthClientSecret {`Copied ClientSecret`}
+
+    ❯ git config --global credential.https://example.com:7990/bitbucket.usehttppath true
+
 [additional-info]:https://confluence.atlassian.com/display/BITBUCKET/App+passwords
 [atlas-run-standalone]: https://developer.atlassian.com/server/framework/atlassian-sdk/atlas-run-standalone/
 [bitbucket]: https://bitbucket.org

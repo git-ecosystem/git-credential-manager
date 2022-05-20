@@ -272,12 +272,85 @@ Value|Refresh Credentials Before Returning
 #### Example
 
 ```shell
-git config --global credential.bitbucketAlwaysRefreshCredentials 1
+git config --global credential.bitbucketAlwaysRefreshCredentials true
 ```
 
 Defaults to false/disabled.
 
 **Also see: [GCM_BITBUCKET_ALWAYS_REFRESH_CREDENTIALS][gcm-bitbucket-always-refresh-credentials]**
+
+---
+
+### credential.bitbucketValidateStoredCredentials
+
+Forces GCM to validate any stored credentials before returning them to Git. It
+does this by calling a REST API resource that requires authentication.
+
+Disabling this option reduces the HTTP traffic within GCM when it is retrieving
+credentials. This may improve user performance, but will increase the number of
+times Git remote calls fail to authenticate with the host and therefore require
+the user to re-try the Git remote call.
+
+Enabling this option helps ensure Git is always provided with valid credentials.
+
+Value|Validate credentials
+-|-
+`true`, `1`, `yes`, `on`_(default)_|Always
+`false`, `0`, `no`, `off`|Never
+
+#### Example
+
+```shell
+git config --global credential.bitbucketValidateStoredCredentials true
+```
+
+Defaults to true/enabled.
+
+**Also see: [GCM_BITBUCKET_VALIDATE_STORED_CREDENTIALS](environment.md#GCM_BITBUCKET_VALIDATE_STORED_CREDENTIALS)**
+
+---
+
+### credential.bitbucketDataCenterOAuthClientId
+
+To use OAuth with Bitbucket DC it is necessary to create an external, incoming
+[AppLink](https://confluence.atlassian.com/bitbucketserver/configure-an-incoming-link-1108483657.html).
+
+It is then necessary to configure the local GCM installation with both the OAuth
+[ClientId](configuration.md#credential.bitbucketDataCenterOAuthClientId) and
+[ClientSecret](configuration.md#credential.bitbucketDataCenterOauthSecret) from
+the AppLink.
+
+#### Example
+
+```shell
+git config --global credential.bitbucketDataCenterOAuthClientId 1111111111111111111
+```
+
+Defaults to undefined.
+
+**Also see: [GCM_BITBUCKET_DATACENTER_CLIENTID](environment.md#GCM_BITBUCKET_DATACENTER_CLIENTID)**
+
+---
+
+### credential.bitbucketDataCenterOAuthClientSecret
+
+To use OAuth with Bitbucket DC it is necessary to create an external, incoming
+[AppLink](https://confluence.atlassian.com/bitbucketserver/configure-an-incoming-link-1108483657.html).
+
+It is then necessary to configure the local GCM installation with both the OAuth
+[ClientId](configuration.md#credential.bitbucketDataCenterOAuthClientId) and
+[ClientSecret](configuration.md#credential.bitbucketDataCenterOauthSecret)
+from the AppLink.
+
+#### Example
+
+```shell
+git config --global credential.bitbucketDataCenterOAuthClientSecret 222222222222222222222
+```
+
+Defaults to undefined.
+
+**Also see: [GCM_BITBUCKET_DATACENTER_CLIENTSECRET](environment.md#GCM_BITBUCKET_DATACENTER_CLIENTSECRET)**
 
 ---
 
@@ -336,7 +409,8 @@ git config --global credential.gitLabAuthModes "browser"
 ### credential.namespace
 
 Use a custom namespace prefix for credentials read and written in the OS
-credential store. Credentials will be stored in the format `{namespace}:{service}`.
+credential store. Credentials will be stored in the format
+`{namespace}:{service}`.
 
 Defaults to the value `git`.
 
