@@ -355,3 +355,38 @@ jobs:
           signed
           signed-payload
           src/windows/Installer.Windows/symbols
+
+# ================================
+#             Linux
+# ================================
+  linux-build:
+    name: Build Linux
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0 # Indicate full history so Nerdbank.GitVersioning works.
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: 6.0.201
+
+    - name: Install dependencies
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build --configuration=LinuxRelease
+
+    - name: Lay out
+      run: |
+        mkdir -p linux-build/deb linux-build/tar
+        mv out/linux/Packaging.Linux/deb/Release/*.deb linux-build/deb
+        mv out/linux/Packaging.Linux/tar/Release/*.tar.gz linux-build/tar
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: linux-build
+        path: |
+          linux-build

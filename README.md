@@ -137,7 +137,7 @@ To uninstall:
 
 ```shell
 git-credential-manager-core unconfigure
-sudo dpkg -r gcmcore
+sudo dpkg -r gcm
 ```
 
 #### Other distributions

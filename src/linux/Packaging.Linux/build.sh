@@ -75,12 +75,12 @@ SYMBOLOUT="$PROJ_OUT/payload.sym/$CONFIGURATION"
 
 if [ $INSTALL_FROM_SOURCE = false ]; then
     TAROUT="$PROJ_OUT/tar/$CONFIGURATION"
-    TARBALL="$TAROUT/gcmcore-linux_$ARCH.$VERSION.tar.gz"
-    SYMTARBALL="$TAROUT/symbols-linux_$ARCH.$VERSION.tar.gz"
+    TARBALL="$TAROUT/gcm-linux_$ARCH.$VERSION.tar.gz"
+    SYMTARBALL="$TAROUT/gcm-linux_$ARCH.$VERSION-symbols.tar.gz"
 
     DEBOUT="$PROJ_OUT/deb/$CONFIGURATION"
     DEBROOT="$DEBOUT/root"
-    DEBPKG="$DEBOUT/gcmcore-linux_$ARCH.$VERSION.deb"
+    DEBPKG="$DEBOUT/gcm-linux_$ARCH.$VERSION.deb"
 else
     INSTALL_LOCATION="/usr/local"
 fi
@@ -193,7 +193,7 @@ if [ $INSTALL_FROM_SOURCE = false ]; then
 # https://stackoverflow.com/questions/9349616/bash-eof-in-if-statement
 # for details
 cat >"$DEBROOT/DEBIAN/control" <<EOF
-Package: gcmcore
+Package: gcm
 Version: $VERSION
 Section: vcs
 Priority: optional
