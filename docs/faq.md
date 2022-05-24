@@ -146,3 +146,7 @@ and pick "Revoke access".
 ![Revoke GCM OAuth app access](img/github-oauthapp-revoke.png)
 
 After revoking access, any tokens created by GCM will be invalidated and can no longer be used to access your repositories. The next time GCM attempts to access GitHub.com you will be prompted to consent again.
+
+### I used the install from source script to install GCM on my Linux distribution. Now how can I uninstall GCM and its dependencies?
+
+Please see full instructions [here](./linux-fromsrc-uninstall.md).
