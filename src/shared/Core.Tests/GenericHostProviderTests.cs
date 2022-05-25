@@ -17,9 +17,18 @@ namespace GitCredentialManager.Tests
         [InlineData("https", true)]
         [InlineData("HTTPS", true)]
         [InlineData("hTtPs", true)]
-        [InlineData("ssh", false)]
-        [InlineData("SSH", false)]
-        [InlineData("sSh", false)]
+        [InlineData("ssh", true)]
+        [InlineData("SSH", true)]
+        [InlineData("sSh", true)]
+        [InlineData("smpt", true)]
+        [InlineData("SmtP", true)]
+        [InlineData("SMTP", true)]
+        [InlineData("imap", true)]
+        [InlineData("iMAp", true)]
+        [InlineData("IMAP", true)]
+        [InlineData("file", true)]
+        [InlineData("fIlE", true)]
+        [InlineData("FILE", true)]
         [InlineData("", false)]
         [InlineData(null, false)]
         public void GenericHostProvider_IsSupported(string protocol, bool expected)
@@ -90,7 +99,6 @@ namespace GitCredentialManager.Tests
             basicAuthMock.Verify(x => x.GetCredentials(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
         }
 
-
         [Fact]
         public async Task GenericHostProvider_CreateCredentialAsync_LegacyAuthorityBasic_ReturnsBasicCredentialNoWiaCheck()
         {
@@ -108,6 +116,37 @@ namespace GitCredentialManager.Tests
             {
                 Settings = {LegacyAuthorityOverride = "basic"}
             };
+            var basicAuthMock = new Mock<IBasicAuthentication>();
+            basicAuthMock.Setup(x => x.GetCredentials(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(basicCredential)
+                .Verifiable();
+            var wiaAuthMock = new Mock<IWindowsIntegratedAuthentication>();
+
+            var provider = new GenericHostProvider(context, basicAuthMock.Object, wiaAuthMock.Object);
+
+            ICredential credential = await provider.GenerateCredentialAsync(input);
+
+            Assert.NotNull(credential);
+            Assert.Equal(testUserName, credential.Account);
+            Assert.Equal(testPassword, credential.Password);
+            wiaAuthMock.Verify(x => x.GetIsSupportedAsync(It.IsAny<Uri>()), Times.Never);
+            basicAuthMock.Verify(x => x.GetCredentials(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task GenericHostProvider_CreateCredentialAsync_NonHttpProtocol_ReturnsBasicCredentialNoWiaCheck()
+        {
+            var input = new InputArguments(new Dictionary<string, string>
+            {
+                ["protocol"] = "smtp",
+                ["host"]     = "example.com",
+            });
+
+            const string testUserName = "basicUser";
+            const string testPassword = "basicPass";
+            var basicCredential = new GitCredential(testUserName, testPassword);
+
+            var context = new TestCommandContext();
             var basicAuthMock = new Mock<IBasicAuthentication>();
             basicAuthMock.Setup(x => x.GetCredentials(It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(basicCredential)
