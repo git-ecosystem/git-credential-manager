@@ -1,3 +1,4 @@
+using System;
 using System.ComponentModel;
 using System.Windows.Input;
 using GitCredentialManager;
@@ -10,6 +11,7 @@ namespace Atlassian.Bitbucket.UI.ViewModels
     {
         private readonly IEnvironment _environment;
 
+        private Uri _url;
         private string _userName;
         private string _password;
         private bool _showOAuth;
@@ -64,12 +66,26 @@ namespace Atlassian.Bitbucket.UI.ViewModels
 
         private void ForgotPassword()
         {
-            BrowserUtils.OpenDefaultBrowser(_environment, "https://bitbucket.org/account/password/reset/");
+            Uri passwordResetUri = _url is null
+                ? new Uri(BitbucketConstants.HelpUrls.PasswordReset)
+                : new Uri(_url, BitbucketConstants.HelpUrls.DataCenterPasswordReset);
+
+            BrowserUtils.OpenDefaultBrowser(_environment, passwordResetUri);
         }
 
         private void SignUp()
         {
-            BrowserUtils.OpenDefaultBrowser(_environment, "https://bitbucket.org/account/signup/");
+            Uri signUpUri = _url is null
+                ? new Uri(BitbucketConstants.HelpUrls.SignUp)
+                : new Uri(_url, BitbucketConstants.HelpUrls.DataCenterLogin);
+
+            BrowserUtils.OpenDefaultBrowser(_environment, signUpUri);
+        }
+
+        public Uri Url
+        {
+            get => _url;
+            set => SetAndRaisePropertyChanged(ref _url, value);
         }
 
         public string UserName

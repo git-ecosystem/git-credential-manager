@@ -94,6 +94,11 @@ namespace Atlassian.Bitbucket
                 TryFindHelperExecutablePath(out string helperPath))
             {
                 var cmdArgs = new StringBuilder("userpass");
+                if (!BitbucketHostProvider.IsBitbucketOrg(targetUri))
+                {
+                    cmdArgs.AppendFormat(" --url {0}", QuoteCmdArg(targetUri.ToString()));
+                }
+
                 if (!string.IsNullOrWhiteSpace(userName))
                 {
                     cmdArgs.AppendFormat(" --username {0}", QuoteCmdArg(userName));
