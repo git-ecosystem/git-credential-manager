@@ -93,32 +93,6 @@ sudo /usr/local/share/gcm-core/uninstall.sh
 
 ### Linux
 
-#### Experimental: install from source helper script
-
-If you would like to help dogfood our new install from source helper script,
-run the following:
-
-1. To ensure `curl` is installed:
-
-   ```shell
-   curl --version
-   ```
-
-   If `curl` is not installed, please use your distribution's package manager
-   to install it.
-
-1. To download and run the script:
-
-   ```shell
-   curl -LO https://raw.githubusercontent.com/GitCredentialManager/git-credential-manager/main/src/linux/Packaging.Linux/install-from-source.sh &&
-   sh ./install-from-source.sh &&
-   git-credential-manager-core configure
-   ```
-
-   **Note:** You will be prompted to enter your credentials so that the script
-   can download GCM's dependencies using your distribution's package
-   manager.
-
 #### Ubuntu/Debian distributions
 
 Download the latest [.deb package](https://github.com/GitCredentialManager/git-credential-manager/releases/latest), and run the following:
@@ -142,6 +116,8 @@ sudo dpkg -r gcmcore
 
 #### Other distributions
 
+##### Option 1: Tarball
+
 Download the latest [tarball](https://github.com/GitCredentialManager/git-credential-manager/releases/latest), and run the following:
 
 ```shell
@@ -155,6 +131,33 @@ To uninstall:
 git-credential-manager-core unconfigure
 rm $(command -v git-credential-manager-core)
 ```
+
+#### Option 2: Install from source helper script
+
+1. Ensure `curl` is installed:
+
+   ```shell
+   curl --version
+   ```
+
+   If `curl` is not installed, please use your distribution's package manager
+   to install it.
+
+1. Download and run the script:
+
+   ```shell
+   curl -LO https://raw.githubusercontent.com/GitCredentialManager/git-credential-manager/main/src/linux/Packaging.Linux/install-from-source.sh &&
+   sh ./install-from-source.sh &&
+   git-credential-manager-core configure
+   ```
+
+   **Note:** You will be prompted to enter your credentials so that the script
+   can download GCM's dependencies using your distribution's package
+   manager.
+
+To uninstall:
+
+[Follow these instructions](docs/linux-fromsrc-uninstall.md) for your distribution.
 
 **Note:** all Linux distributions [require additional configuration](https://aka.ms/gcm/credstores) to use GCM.
 
