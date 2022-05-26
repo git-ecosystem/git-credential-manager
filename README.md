@@ -176,11 +176,11 @@ Installing GCM as a standalone package on Windows will forcibly override the ver
 
 There are two flavors of standalone installation on Windows:
 
-- User (preferred) (`gcmcoreuser-win*`):
+- User (preferred) (`gcmuser-win*`):
 
   Does not require administrator rights. Will install only for the current user and updates only the current user's Git configuration.
 
-- System (`gcmcore-win*`):
+- System (`gcm-win*`):
 
   Requires administrator rights. Will install for all users on the system and update the system-wide Git configuration.
 

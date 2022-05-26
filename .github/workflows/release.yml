@@ -238,3 +238,120 @@ jobs:
       with:
         name: osx-sign
         path: signed/*.pkg
+
+# ================================
+#              Windows
+# ================================
+  win-sign:
+    name: Build and Sign Windows
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0 # Indicate full history so Nerdbank.GitVersioning works.
+
+    - name: Set up dotnet
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: 6.0.201
+
+    # Install Nerdbank.GitVersioning
+    - uses: dotnet/nbgv@master
+      with:
+        setCommonVars: true
+    
+    - name: Install dependencies
+      run: dotnet restore
+
+    - name: Build
+      run: |
+        dotnet build --configuration=WindowsRelease
+
+    - name: Run Windows unit tests
+      run: |
+        dotnet test --configuration=WindowsRelease
+
+    - name: Lay out Windows payload and symbols
+      shell: pwsh
+      run: |
+        cd src/windows/Installer.Windows/
+        ./layout.ps1 -Configuration WindowsRelease -Output payload -SymbolOutput symbols
+        mkdir unsigned-payload
+        Get-ChildItem -Path payload/* -Include *.exe, *.dll | Move-Item -Destination unsigned-payload
+
+    - uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    
+    - name: Set up ESRP client
+      shell: pwsh
+      env:
+        AZURE_STORAGE_KEY: ${{ secrets.AZURE_STORAGE_KEY }}
+        AZURE_VAULT: ${{ secrets.AZURE_VAULT }}
+        AUTH_CERT: ${{ secrets.AZURE_VAULT_AUTH_CERT_NAME }}
+        REQUEST_SIGNING_CERT: ${{ secrets.AZURE_VAULT_REQUEST_SIGNING_CERT_NAME }}
+      run: |
+        .github\set_up_esrp.ps1
+    
+    - name: Run ESRP client for unsigned payload
+      shell: pwsh
+      env:
+        AZURE_AAD_ID: ${{ secrets.AZURE_AAD_ID }}
+        # We temporarily need two AAD IDs, as we're using an SSL certificate associated
+        # with an older App Registration until we have the required hardware to approve
+        # the new certificate in SSL Admin.
+        AZURE_AAD_ID_SSL: ${{ secrets.AZURE_AAD_ID_SSL }}
+        WINDOWS_KEY_CODE: ${{ secrets.WINDOWS_KEY_CODE }}
+        WINDOWS_OP_CODE: ${{ secrets.WINDOWS_OPERATION_CODE }}
+      run: |
+        python .github\run_esrp_signing.py `
+          src/windows/Installer.Windows/unsigned-payload `
+          $env:WINDOWS_KEY_CODE $env:WINDOWS_OP_CODE `
+          --params 'OpusName' 'Microsoft' `
+          'OpusInfo' 'http://www.microsoft.com' `
+          'FileDigest' '/fd "SHA256"' 'PageHash' '/NPH' `
+          'TimeStamp' '/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256'
+    
+    - name: Lay out signed payload
+      shell: pwsh
+      run: |
+        mkdir signed-payload
+        Move-Item -Path signed/* -Destination signed-payload
+        # ESRP will not sign the *.exe.config or NOTICE files, but they are needed to build the installers.
+        # Due to this, we copy them after signing.
+        Get-ChildItem -Path src/windows/Installer.Windows/payload/* -Include *.exe.config, NOTICE | Move-Item -Destination signed-payload
+        Remove-Item signed -Recurse -Force
+
+    - name: Build with signed payload
+      shell: pwsh
+      run: |
+        dotnet build src/windows/Installer.Windows /p:PayloadPath=$env:GITHUB_WORKSPACE/signed-payload /p:NoLayout=true --configuration=WindowsRelease
+  
+    - name: Run ESRP client for installers
+      shell: pwsh
+      env:
+        AZURE_AAD_ID: ${{ secrets.AZURE_AAD_ID }}
+        # We temporarily need two AAD IDs, as we're using an SSL certificate associated
+        # with an older App Registration until we have the required hardware to approve
+        # the new certificate in SSL Admin.
+        AZURE_AAD_ID_SSL: ${{ secrets.AZURE_AAD_ID_SSL }}
+        WINDOWS_KEY_CODE: ${{ secrets.WINDOWS_KEY_CODE }}
+        WINDOWS_OP_CODE: ${{ secrets.WINDOWS_OPERATION_CODE }}
+      run: |
+        python .github\run_esrp_signing.py `
+          .\out\windows\Installer.Windows\bin\WindowsRelease\net472 `
+          $env:WINDOWS_KEY_CODE `
+          $env:WINDOWS_OP_CODE `
+          --params 'OpusName' 'Microsoft' `
+          'OpusInfo' 'http://www.microsoft.com' `
+          'FileDigest' '/fd "SHA256"' 'PageHash' '/NPH' `
+          'TimeStamp' '/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256'
+    
+    - name: Publish final artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: win-sign
+        path: |
+          signed
+          signed-payload
+          src/windows/Installer.Windows/symbols
