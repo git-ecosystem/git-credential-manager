@@ -1,0 +1,536 @@
+name: release
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ release ]
+
+jobs:
+# ================================
+#              macOS
+# ================================
+  osx-build:
+    name: Build macOS
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0 # Indicate full history so Nerdbank.GitVersioning works.
+
+    - name: Set up dotnet
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: 6.0.201
+    
+    - name: Install dependencies
+      run: dotnet restore
+
+    - name: Build
+      run: |
+        dotnet build --configuration=MacRelease
+    
+    - name: Run macOS unit tests
+      run: |
+        dotnet test --configuration=MacRelease
+
+    - name: Lay out payload and symbols
+      run: |
+        src/osx/Installer.Mac/layout.sh --configuration=MacRelease --output=payload --symbol-output=symbols
+
+    - name: Create keychain
+      env:
+        CERT_BASE64: ${{ secrets.DEVELOPER_CERTIFICATE_BASE64 }}
+        CERT_PASSPHRASE: ${{ secrets.DEVELOPER_CERTIFICATE_PASSWORD }}
+      run: |
+        security create-keychain -p pwd $RUNNER_TEMP/buildagent.keychain
+        security default-keychain -s $RUNNER_TEMP/buildagent.keychain
+        security unlock-keychain -p pwd $RUNNER_TEMP/buildagent.keychain
+        echo $CERT_BASE64 | base64 -D > $RUNNER_TEMP/cert.p12
+        security import $RUNNER_TEMP/cert.p12 -k $RUNNER_TEMP/buildagent.keychain -P $CERT_PASSPHRASE -T /usr/bin/codesign
+        security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k pwd $RUNNER_TEMP/buildagent.keychain
+    
+    - name: Developer sign
+      env:
+        APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      run: |
+        .github/run_developer_signing.sh payload $APPLE_TEAM_ID $GITHUB_WORKSPACE/src/osx/Installer.Mac/entitlements.xml
+
+    - name: Upload macOS artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: tmp.osx-build
+        path: |
+          payload
+          symbols
+  
+  osx-payload-sign:
+    name: Sign macOS payload
+    # ESRP service requires signing to run on Windows
+    runs-on: windows-latest
+    needs: osx-build
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v3
+
+    - name: Download payload
+      uses: actions/download-artifact@v3
+      with:
+        name: tmp.osx-build
+    
+    - name: Zip unsigned payload
+      shell: pwsh
+      run: |
+        Compress-Archive -Path payload payload/payload.zip
+        cd payload
+        Get-ChildItem -Exclude payload.zip | Remove-Item -Recurse -Force
+    
+    - uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    
+    - name: Set up ESRP client
+      shell: pwsh
+      env:
+        AZURE_STORAGE_KEY: ${{ secrets.AZURE_STORAGE_KEY }}
+        AZURE_VAULT: ${{ secrets.AZURE_VAULT }}
+        AUTH_CERT: ${{ secrets.AZURE_VAULT_AUTH_CERT_NAME }}
+        REQUEST_SIGNING_CERT: ${{ secrets.AZURE_VAULT_REQUEST_SIGNING_CERT_NAME }}
+      run: |
+        .github\set_up_esrp.ps1
+    
+    - name: Run ESRP client
+      shell: pwsh
+      env:
+        AZURE_AAD_ID: ${{ secrets.AZURE_AAD_ID }}
+        # We temporarily need two AAD IDs, as we're using an SSL certificate associated
+        # with an older App Registration until we have the required hardware to approve
+        # the new certificate in SSL Admin.
+        AZURE_AAD_ID_SSL: ${{ secrets.AZURE_AAD_ID_SSL }}
+        APPLE_KEY_CODE: ${{ secrets.APPLE_KEY_CODE }}
+        APPLE_SIGNING_OP_CODE: ${{ secrets.APPLE_SIGNING_OPERATION_CODE }}
+      run: |
+        python .github\run_esrp_signing.py payload $env:APPLE_KEY_CODE $env:APPLE_SIGNING_OP_CODE --params 'Hardening' '--options=runtime'
+    
+    - name: Unzip signed payload
+      shell: pwsh
+      run: |
+        Expand-Archive signed/payload.zip -DestinationPath signed
+        Remove-Item signed/payload.zip
+
+    - name: Upload signed payload
+      uses: actions/upload-artifact@v3
+      with:
+        name: osx-payload-sign
+        path: |
+          signed
+  
+  osx-pack:
+    name: Package macOS payload
+    runs-on: macos-latest
+    needs: osx-payload-sign
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0 # Indicate full history so Nerdbank.GitVersioning works.
+
+    - name: Set up dotnet
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: 6.0.201
+    
+    # Install Nerdbank.GitVersioning
+    - uses: dotnet/nbgv@master
+      with:
+        setCommonVars: true
+
+    - name: Download signed payload
+      uses: actions/download-artifact@v3
+      with:
+        name: osx-payload-sign
+    
+    - name: Create component package
+      run: |
+        src/osx/Installer.Mac/pack.sh --payload=payload --version=$GitBuildVersionSimple --output=components/com.microsoft.gitcredentialmanager.component.pkg
+    
+    - name: Create product archive
+      run: |
+        src/osx/Installer.Mac/dist.sh --package-path=components --version=$GitBuildVersionSimple --output=pkg/gcm-osx-x64-$GitBuildVersionSimple.pkg || exit 1
+    
+    - name: Upload package
+      uses: actions/upload-artifact@v3
+      with:
+        name: tmp.osx-pack
+        path: |
+          pkg
+  
+  osx-sign:
+    name: Sign and notarize macOS package
+    # ESRP service requires signing to run on Windows
+    runs-on: windows-latest
+    needs: osx-pack
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v3
+
+    - name: Download unsigned package
+      uses: actions/download-artifact@v3
+      with:
+        name: tmp.osx-pack
+        path: pkg
+    
+    - name: Zip unsigned package
+      shell: pwsh
+      run: |
+        Compress-Archive -Path pkg/*.pkg pkg/gcm-pkg.zip
+        cd pkg
+        Get-ChildItem -Exclude gcm-pkg.zip | Remove-Item -Recurse -Force
+    
+    - uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    
+    - name: Set up ESRP client
+      shell: pwsh
+      env:
+        AZURE_STORAGE_KEY: ${{ secrets.AZURE_STORAGE_KEY }}
+        AZURE_VAULT: ${{ secrets.AZURE_VAULT }}
+        AUTH_CERT: ${{ secrets.AZURE_VAULT_AUTH_CERT_NAME }}
+        REQUEST_SIGNING_CERT: ${{ secrets.AZURE_VAULT_REQUEST_SIGNING_CERT_NAME }}
+      run: |
+        .github\set_up_esrp.ps1
+    
+    - name: Sign package
+      shell: pwsh
+      env:
+        AZURE_AAD_ID: ${{ secrets.AZURE_AAD_ID }}
+        # We temporarily need two AAD IDs, as we're using an SSL certificate associated
+        # with an older App Registration until we have the required hardware to approve
+        # the new certificate in SSL Admin.
+        AZURE_AAD_ID_SSL: ${{ secrets.AZURE_AAD_ID_SSL }}
+        APPLE_KEY_CODE: ${{ secrets.APPLE_KEY_CODE }}
+        APPLE_SIGNING_OP_CODE: ${{ secrets.APPLE_SIGNING_OPERATION_CODE }}
+      run: |
+        python .github\run_esrp_signing.py pkg $env:APPLE_KEY_CODE $env:APPLE_SIGNING_OP_CODE
+    
+    - name: Unzip signed package
+      shell: pwsh
+      run: |
+        mkdir unsigned
+        Expand-Archive -LiteralPath signed\gcm-pkg.zip -DestinationPath .\unsigned -Force
+        Remove-Item signed\gcm-pkg.zip -Force
+    
+    - name: Notarize signed package
+      shell: pwsh
+      env:
+        AZURE_AAD_ID: ${{ secrets.AZURE_AAD_ID }}
+        # We temporarily need two AAD IDs, as we're using an SSL certificate associated
+        # with an older App Registration until we have the required hardware to approve
+        # the new certificate in SSL Admin.
+        AZURE_AAD_ID_SSL: ${{ secrets.AZURE_AAD_ID_SSL }}
+        APPLE_KEY_CODE: ${{ secrets.APPLE_KEY_CODE }}
+        APPLE_NOTARIZATION_OP_CODE: ${{ secrets.APPLE_NOTARIZATION_OPERATION_CODE }}
+      run: |
+        python .github\run_esrp_signing.py unsigned $env:APPLE_KEY_CODE $env:APPLE_NOTARIZATION_OP_CODE --params 'BundleId' 'com.microsoft.gitcredentialmanager'
+    
+    - name: Publish signed package
+      uses: actions/upload-artifact@v3
+      with:
+        name: osx-sign
+        path: signed/*.pkg
+
+# ================================
+#              Windows
+# ================================
+  win-sign:
+    name: Build and Sign Windows
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0 # Indicate full history so Nerdbank.GitVersioning works.
+
+    - name: Set up dotnet
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: 6.0.201
+
+    # Install Nerdbank.GitVersioning
+    - uses: dotnet/nbgv@master
+      with:
+        setCommonVars: true
+    
+    - name: Install dependencies
+      run: dotnet restore
+
+    - name: Build
+      run: |
+        dotnet build --configuration=WindowsRelease
+
+    - name: Run Windows unit tests
+      run: |
+        dotnet test --configuration=WindowsRelease
+
+    - name: Lay out Windows payload and symbols
+      shell: pwsh
+      run: |
+        cd src/windows/Installer.Windows/
+        ./layout.ps1 -Configuration WindowsRelease -Output payload -SymbolOutput symbols
+        mkdir unsigned-payload
+        Get-ChildItem -Path payload/* -Include *.exe, *.dll | Move-Item -Destination unsigned-payload
+
+    - uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    
+    - name: Set up ESRP client
+      shell: pwsh
+      env:
+        AZURE_STORAGE_KEY: ${{ secrets.AZURE_STORAGE_KEY }}
+        AZURE_VAULT: ${{ secrets.AZURE_VAULT }}
+        AUTH_CERT: ${{ secrets.AZURE_VAULT_AUTH_CERT_NAME }}
+        REQUEST_SIGNING_CERT: ${{ secrets.AZURE_VAULT_REQUEST_SIGNING_CERT_NAME }}
+      run: |
+        .github\set_up_esrp.ps1
+    
+    - name: Run ESRP client for unsigned payload
+      shell: pwsh
+      env:
+        AZURE_AAD_ID: ${{ secrets.AZURE_AAD_ID }}
+        # We temporarily need two AAD IDs, as we're using an SSL certificate associated
+        # with an older App Registration until we have the required hardware to approve
+        # the new certificate in SSL Admin.
+        AZURE_AAD_ID_SSL: ${{ secrets.AZURE_AAD_ID_SSL }}
+        WINDOWS_KEY_CODE: ${{ secrets.WINDOWS_KEY_CODE }}
+        WINDOWS_OP_CODE: ${{ secrets.WINDOWS_OPERATION_CODE }}
+      run: |
+        python .github\run_esrp_signing.py `
+          src/windows/Installer.Windows/unsigned-payload `
+          $env:WINDOWS_KEY_CODE $env:WINDOWS_OP_CODE `
+          --params 'OpusName' 'Microsoft' `
+          'OpusInfo' 'http://www.microsoft.com' `
+          'FileDigest' '/fd "SHA256"' 'PageHash' '/NPH' `
+          'TimeStamp' '/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256'
+    
+    - name: Lay out signed payload
+      shell: pwsh
+      run: |
+        mkdir signed-payload
+        Move-Item -Path signed/* -Destination signed-payload
+        # ESRP will not sign the *.exe.config or NOTICE files, but they are needed to build the installers.
+        # Due to this, we copy them after signing.
+        Get-ChildItem -Path src/windows/Installer.Windows/payload/* -Include *.exe.config, NOTICE | Move-Item -Destination signed-payload
+        Remove-Item signed -Recurse -Force
+
+    - name: Build with signed payload
+      shell: pwsh
+      run: |
+        dotnet build src/windows/Installer.Windows /p:PayloadPath=$env:GITHUB_WORKSPACE/signed-payload /p:NoLayout=true --configuration=WindowsRelease
+  
+    - name: Run ESRP client for installers
+      shell: pwsh
+      env:
+        AZURE_AAD_ID: ${{ secrets.AZURE_AAD_ID }}
+        # We temporarily need two AAD IDs, as we're using an SSL certificate associated
+        # with an older App Registration until we have the required hardware to approve
+        # the new certificate in SSL Admin.
+        AZURE_AAD_ID_SSL: ${{ secrets.AZURE_AAD_ID_SSL }}
+        WINDOWS_KEY_CODE: ${{ secrets.WINDOWS_KEY_CODE }}
+        WINDOWS_OP_CODE: ${{ secrets.WINDOWS_OPERATION_CODE }}
+      run: |
+        python .github\run_esrp_signing.py `
+          .\out\windows\Installer.Windows\bin\WindowsRelease\net472 `
+          $env:WINDOWS_KEY_CODE `
+          $env:WINDOWS_OP_CODE `
+          --params 'OpusName' 'Microsoft' `
+          'OpusInfo' 'http://www.microsoft.com' `
+          'FileDigest' '/fd "SHA256"' 'PageHash' '/NPH' `
+          'TimeStamp' '/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256'
+    
+    - name: Publish final artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: win-sign
+        path: |
+          signed
+          signed-payload
+          src/windows/Installer.Windows/symbols
+
+# ================================
+#             Linux
+# ================================
+  linux-build:
+    name: Build Linux
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0 # Indicate full history so Nerdbank.GitVersioning works.
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: 6.0.201
+
+    - name: Install dependencies
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build --configuration=LinuxRelease
+
+    - name: Lay out
+      run: |
+        mkdir -p linux-build/deb linux-build/tar
+        mv out/linux/Packaging.Linux/deb/Release/*.deb linux-build/deb
+        mv out/linux/Packaging.Linux/tar/Release/*.tar.gz linux-build/tar
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: linux-build
+        path: |
+          linux-build
+
+  linux-sign:
+    name: Sign Debian package
+    # ESRP service requires signing to run on Windows
+    runs-on: windows-latest
+    needs: linux-build
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Download artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: linux-build
+        path: artifacts
+
+    - uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    
+    - name: Set up ESRP client
+      shell: pwsh
+      env:
+        AZURE_STORAGE_KEY: ${{ secrets.AZURE_STORAGE_KEY }}
+        AZURE_VAULT: ${{ secrets.AZURE_VAULT }}
+        AUTH_CERT: ${{ secrets.AZURE_VAULT_AUTH_CERT_NAME }}
+        REQUEST_SIGNING_CERT: ${{ secrets.AZURE_VAULT_REQUEST_SIGNING_CERT_NAME }}
+      run: |
+        .github\set_up_esrp.ps1
+    
+    - name: Run ESRP client
+      shell: pwsh
+      env:
+        AZURE_AAD_ID: ${{ secrets.AZURE_AAD_ID }}
+        # We temporarily need two AAD IDs, as we're using an SSL certificate associated
+        # with an older App Registration until we have the required hardware to approve
+        # the new certificate in SSL Admin.
+        AZURE_AAD_ID_SSL: ${{ secrets.AZURE_AAD_ID_SSL }}
+        LINUX_KEY_CODE: ${{ secrets.LINUX_KEY_CODE }}
+        LINUX_OP_CODE: ${{ secrets.LINUX_OPERATION_CODE }}
+      run: |
+        python .github/run_esrp_signing.py artifacts/deb $env:LINUX_KEY_CODE $env:LINUX_OP_CODE
+
+    - name: Upload signed Debian package
+      uses: actions/upload-artifact@v3
+      with:
+        name: linux-sign
+        path: |
+          signed
+
+# ================================
+#             Publish
+# ================================
+  create-github-release:
+    name: Publish GitHub draft release
+    runs-on: ubuntu-latest
+    needs: [ osx-sign, win-sign, linux-sign ]
+    steps:      
+      - name: Check out repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # Indicate full history so Nerdbank.GitVersioning works.
+
+      - name: Set up dotnet
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: 6.0.201
+      
+      # Install Nerdbank.GitVersioning
+      - uses: dotnet/nbgv@master
+        with:
+          setCommonVars: true
+      
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+
+      - name: Archive macOS payload and symbols
+        run: |
+          mkdir osx-payload-and-symbols
+          tar -C osx-payload-sign -czf osx-payload-and-symbols/gcm-osx-x64-$GitBuildVersionSimple.tar.gz .
+          tar -C tmp.osx-build/symbols -czf osx-payload-and-symbols/gcm-osx-x64-$GitBuildVersionSimple-symbols.tar.gz .
+
+      - name: Archive Windows payload and symbols
+        shell: pwsh
+        run: |
+          mkdir win-x86-payload-and-symbols
+          Compress-Archive -Path win-sign/signed-payload/* win-x86-payload-and-symbols/gcm-win-x86-$env:GitBuildVersionSimple.zip
+          Compress-Archive -Path win-sign/src/windows/Installer.Windows/symbols/* win-x86-payload-and-symbols/gcm-win-x86-$env:GitBuildVersionSimple-symbols.zip
+
+      - uses: actions/github-script@v4
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const version = process.env.GitBuildVersionSimple
+
+            var releaseMetadata = {
+              owner: context.repo.owner,
+              repo: context.repo.repo
+            };
+
+            // Create the release
+            var tagName = `v${version}`;
+            var createdRelease = await github.repos.createRelease({
+              ...releaseMetadata,
+              draft: true,
+              tag_name: tagName,
+              name: `GCM ${version}`
+            });
+            releaseMetadata.release_id = createdRelease.data.id;
+
+            // Uploads contents of directory to the release created above
+            async function uploadDirectoryToRelease(directory, includeExtensions=[]) {
+              return fs.promises.readdir(directory)
+                .then(async(files) => Promise.all(
+                  files.filter(file => {
+                    return includeExtensions.length==0 || includeExtensions.includes(path.extname(file).toLowerCase());
+                  })
+                  .map(async (file) => {
+                    var filePath = path.join(directory, file);
+                    github.repos.uploadReleaseAsset({
+                      ...releaseMetadata,
+                      name: file,
+                      headers: {
+                        "content-length": (await fs.promises.stat(filePath)).size
+                      },
+                      data: fs.createReadStream(filePath)
+                    });
+                  }))
+                );
+            }
+
+            await Promise.all([
+              // Upload Windows artifacts
+              uploadDirectoryToRelease('win-sign/signed'),
+              uploadDirectoryToRelease('win-x86-payload-and-symbols'),
+
+              // Upload macOS artifacts
+              uploadDirectoryToRelease('osx-sign'),
+              uploadDirectoryToRelease('osx-payload-and-symbols'),
+
+              // Upload Linux artifacts
+              uploadDirectoryToRelease('linux-sign'),
+              uploadDirectoryToRelease('linux-build/tar')
+            ]);
