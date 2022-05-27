@@ -2,7 +2,7 @@
 
 These instructions will guide you in removing GCM after running the [install from source script](../src/linux/Packaging.Linux/install-from-source.sh) on your Linux distribution.
 
-:siren: PROCEED WITH CAUTION :siren:
+:rotating_light: PROCEED WITH CAUTION :rotating_light:
 
 For completeness, we provide uninstall instructions for _the GCM application, the GCM repo, and the maximum number of dependencies*_ for all distributions. This repo and these dependencies may or may not have already been present on your system when you ran the install from source script, and uninstalling them could impact other programs and/or your normal workflows. Please keep this in mind when following the instructions below.
 
