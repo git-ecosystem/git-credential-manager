@@ -478,7 +478,7 @@ jobs:
           Compress-Archive -Path win-sign/signed-payload/* win-x86-payload-and-symbols/gcm-win-x86-$env:GitBuildVersionSimple.zip
           Compress-Archive -Path win-sign/src/windows/Installer.Windows/symbols/* win-x86-payload-and-symbols/gcm-win-x86-$env:GitBuildVersionSimple-symbols.zip
 
-      - uses: actions/github-script@v4
+      - uses: actions/github-script@v6
         with:
           script: |
             const fs = require('fs');
