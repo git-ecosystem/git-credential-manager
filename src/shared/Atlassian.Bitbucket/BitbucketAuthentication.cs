@@ -245,7 +245,7 @@ namespace Atlassian.Bitbucket
 
         #region Private Methods
 
-        private bool TryFindHelperExecutablePath(out string path)
+        protected internal virtual bool TryFindHelperExecutablePath(out string path)
         {
             return TryFindHelperExecutablePath(
                 BitbucketConstants.EnvironmentVariables.AuthenticationHelper,
