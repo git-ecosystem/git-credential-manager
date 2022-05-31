@@ -31,13 +31,13 @@
   |   |    |              |                 |                 |
 +-v---v----v--------------v------------+  +-v-----------------v----------------+
 |                                      |  |                                    |
-|    Core   <--+ Core.UI |
+|                 Core                 <--+               Core.UI              |
 |                                      |  |                                    |
 +--------------------------------------+  +------------------------------------+
 ```
 
 Git Credential Manager (GCM) is built to be Git host and platform/OS
-agonstic. Most of the shared logic (command execution, the abstract platform
+agnostic. Most of the shared logic (command execution, the abstract platform
 subsystems, etc) can be found in the `Core` class
 library (C#). The library targets .NET Standard as well as .NET Framework.
 
@@ -74,7 +74,7 @@ the shared, core binaries shell out to. Currently the Bitbucket and GitHub
 providers each have a WPF (Windows only) helper executable that shows
 authentication prompts and messages.
 
-The `Microsoft.Git.CredentialHelper.UI` project is a WPF (Windows only) assembly
+The `Core.UI` project is a WPF (Windows only) assembly
 that contains common WPF components and styles that are shared between provider
 helpers on Windows.
 
@@ -163,7 +163,7 @@ appropriate host provider. The default registry implementation select the a host
 provider by asking each registered provider in turn if they understand the
 request. The provider selection can be overridden by the user via the
 [`credential.provider`](configuration.md#credentialprovider) or [`GCM_PROVIDER`](environment.md#GCM_PROVIDER)
-configuration and environment variable respectively (3)).
+configuration and environment variable respectively (3).
 
 The `Get|Store|EraseCommand`s call the corresponding
 `Get|Store|EraseCredentialAsync` methods on the `IHostProvider`, passing the
