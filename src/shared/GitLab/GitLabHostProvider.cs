@@ -13,6 +13,7 @@ namespace GitLab
         private static readonly string[] GitLabOAuthScopes =
         {
             "write_repository",
+            "read_repository"
         };
 
         private readonly IGitLabAuthentication _gitLabAuth;
