@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using GitCredentialManager.Interop.Posix;
 using GitCredentialManager.Interop.Windows;
 using GitCredentialManager.Tests.Objects;
 using Xunit;
@@ -7,62 +9,116 @@ namespace GitCredentialManager.Tests
 {
     public class EnvironmentTests
     {
+        private const string WindowsPathVar = @"C:\Users\john.doe\bin;C:\Windows\system32;C:\Windows";
+        private const string WindowsExecName = "foo.exe";
+        private const string PosixPathVar = "/home/john.doe/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin";
+        private const string PosixExecName = "foo";
+
         [PlatformFact(Platforms.Windows)]
         public void WindowsEnvironment_TryLocateExecutable_NotExists_ReturnFalse()
         {
-            string pathVar = @"C:\Users\john.doe\bin;C:\Windows\system32;C:\Windows";
-            string execName = "foo.exe";
             var fs = new TestFileSystem();
-            var envars = new Dictionary<string, string> {["PATH"] = pathVar};
+            var envars = new Dictionary<string, string> {["PATH"] = WindowsPathVar};
             var env = new WindowsEnvironment(fs, envars);
 
-            bool actualResult = env.TryLocateExecutable(execName, out string actualPath);
+            bool actualResult = env.TryLocateExecutable(WindowsExecName, out string actualPath);
 
             Assert.False(actualResult);
             Assert.Null(actualPath);
         }
 
         [PlatformFact(Platforms.Windows)]
-        public void WindowsEnvironment_TryLocateExecutable_Windows_Exists_ReturnTrueAndPath()
+        public void WindowsEnvironment_TryLocateExecutable_Exists_ReturnTrueAndPath()
         {
-            string pathVar = @"C:\Users\john.doe\bin;C:\Windows\system32;C:\Windows";
-            string execName = "foo.exe";
             string expectedPath = @"C:\Windows\system32\foo.exe";
             var fs = new TestFileSystem
             {
                 Files = new Dictionary<string, byte[]>
                 {
-                    [@"C:\Windows\system32\foo.exe"] = new byte[0],
+                    [expectedPath] = Array.Empty<byte>()
                 }
             };
-            var envars = new Dictionary<string, string> {["PATH"] = pathVar};
+            var envars = new Dictionary<string, string> {["PATH"] = WindowsPathVar};
             var env = new WindowsEnvironment(fs, envars);
 
-            bool actualResult = env.TryLocateExecutable(execName, out string actualPath);
+            bool actualResult = env.TryLocateExecutable(WindowsExecName, out string actualPath);
 
             Assert.True(actualResult);
             Assert.Equal(expectedPath, actualPath);
         }
 
         [PlatformFact(Platforms.Windows)]
-        public void WindowsEnvironment_TryLocateExecutable_Windows_ExistsMultiple_ReturnTrueAndFirstPath()
+        public void WindowsEnvironment_TryLocateExecutable_ExistsMultiple_ReturnTrueAndFirstPath()
         {
-            string pathVar = @"C:\Users\john.doe\bin;C:\Windows\system32;C:\Windows";
-            string execName = "foo.exe";
             string expectedPath = @"C:\Users\john.doe\bin\foo.exe";
             var fs = new TestFileSystem
             {
                 Files = new Dictionary<string, byte[]>
                 {
-                    [@"C:\Users\john.doe\bin\foo.exe"] = new byte[0],
-                    [@"C:\Windows\system32\foo.exe"] = new byte[0],
-                    [@"C:\Windows\foo.exe"] = new byte[0],
+                    [expectedPath] = Array.Empty<byte>(),
+                    [@"C:\Windows\system32\foo.exe"] = Array.Empty<byte>(),
+                    [@"C:\Windows\foo.exe"] = Array.Empty<byte>(),
                 }
             };
-            var envars = new Dictionary<string, string> {["PATH"] = pathVar};
+            var envars = new Dictionary<string, string> {["PATH"] = WindowsPathVar};
             var env = new WindowsEnvironment(fs, envars);
 
-            bool actualResult = env.TryLocateExecutable(execName, out string actualPath);
+            bool actualResult = env.TryLocateExecutable(WindowsExecName, out string actualPath);
+
+            Assert.True(actualResult);
+            Assert.Equal(expectedPath, actualPath);
+        }
+
+        [PlatformFact(Platforms.Posix)]
+        public void PosixEnvironment_TryLocateExecutable_NotExists_ReturnFalse()
+        {
+            var fs = new TestFileSystem();
+            var envars = new Dictionary<string, string> {["PATH"] = PosixPathVar};
+            var env = new PosixEnvironment(fs, envars);
+
+            bool actualResult = env.TryLocateExecutable(PosixExecName, out string actualPath);
+
+            Assert.False(actualResult);
+            Assert.Null(actualPath);
+        }
+
+        [PlatformFact(Platforms.Posix)]
+        public void PosixEnvironment_TryLocateExecutable_Exists_ReturnTrueAndPath()
+        {
+            string expectedPath = "/usr/local/bin/foo";
+            var fs = new TestFileSystem
+            {
+                Files = new Dictionary<string, byte[]>
+                {
+                    [expectedPath] = Array.Empty<byte>(),
+                }
+            };
+            var envars = new Dictionary<string, string> {["PATH"] = PosixPathVar};
+            var env = new PosixEnvironment(fs, envars);
+
+            bool actualResult = env.TryLocateExecutable(PosixExecName, out string actualPath);
+
+            Assert.True(actualResult);
+            Assert.Equal(expectedPath, actualPath);
+        }
+
+        [PlatformFact(Platforms.Posix)]
+        public void PosixEnvironment_TryLocateExecutable_ExistsMultiple_ReturnTrueAndFirstPath()
+        {
+            string expectedPath = "/home/john.doe/bin/foo";
+            var fs = new TestFileSystem
+            {
+                Files = new Dictionary<string, byte[]>
+                {
+                    [expectedPath] = Array.Empty<byte>(),
+                    ["/usr/local/bin/foo"] = Array.Empty<byte>(),
+                    ["/bin/foo"] = Array.Empty<byte>(),
+                }
+            };
+            var envars = new Dictionary<string, string> {["PATH"] = PosixPathVar};
+            var env = new PosixEnvironment(fs, envars);
+
+            bool actualResult = env.TryLocateExecutable(PosixExecName, out string actualPath);
 
             Assert.True(actualResult);
             Assert.Equal(expectedPath, actualPath);
