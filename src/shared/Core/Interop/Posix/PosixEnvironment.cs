@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 
 namespace GitCredentialManager.Interop.Posix
 {
@@ -27,40 +25,6 @@ namespace GitCredentialManager.Interop.Posix
         protected override string[] SplitPathVariable(string value)
         {
             return value.Split(':');
-        }
-
-        public override bool TryLocateExecutable(string program, out string path)
-        {
-            // The "which" utility scans over the PATH and does not include the current working directory
-            // (unlike the equivalent "where.exe" on Windows), which is exactly what we want. Let's use it.
-            const string whichPath = "/usr/bin/which";
-            var psi = new ProcessStartInfo(whichPath, program)
-            {
-                UseShellExecute = false,
-                RedirectStandardOutput = true
-            };
-
-            using (var where = new Process {StartInfo = psi})
-            {
-                where.Start();
-                where.WaitForExit();
-
-                switch (where.ExitCode)
-                {
-                    case 0: // found
-                        string stdout = where.StandardOutput.ReadToEnd();
-                        string[] results = stdout.Split(new[] {'\n'}, StringSplitOptions.RemoveEmptyEntries);
-                        path = results.First();
-                        return true;
-
-                    case 1: // not found
-                        path = null;
-                        return false;
-
-                    default:
-                        throw new Exception($"Unknown error locating '{program}' using {whichPath}. Exit code: {where.ExitCode}.");
-                }
-            }
         }
 
         #endregion
