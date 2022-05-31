@@ -30,17 +30,18 @@ namespace Atlassian.Bitbucket.UI.ViewModels
 
         private void LearnMore()
         {
-            BrowserUtils.OpenDefaultBrowser(_environment, "https://confluence.atlassian.com/bitbucket/two-step-verification-777023203.html");
+            // 2FA is not supported on Server/DC so this prompt will never be seen outside of Bitbucket Cloud
+            BrowserUtils.OpenDefaultBrowser(_environment, BitbucketConstants.HelpUrls.TwoFactor);
         }
 
         private void ForgotPassword()
         {
-            BrowserUtils.OpenDefaultBrowser(_environment, "https://bitbucket.org/account/password/reset/");
+            BrowserUtils.OpenDefaultBrowser(_environment, BitbucketConstants.HelpUrls.PasswordReset);
         }
 
         private void SignUp()
         {
-            BrowserUtils.OpenDefaultBrowser(_environment, "https://bitbucket.org/account/signup/");
+            BrowserUtils.OpenDefaultBrowser(_environment, BitbucketConstants.HelpUrls.SignUp);
         }
 
         /// <summary>

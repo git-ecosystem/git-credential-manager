@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,6 +15,10 @@ namespace Atlassian.Bitbucket.UI.Commands
         protected OAuthCommand(ICommandContext context)
             : base(context, "oauth", "Show OAuth required prompt.")
         {
+            AddOption(
+                new Option<string>("--url", "Bitbucket Server or Data Center URL")
+            );
+
             Handler = CommandHandler.Create(ExecuteAsync);
         }
 
