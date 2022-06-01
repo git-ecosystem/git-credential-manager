@@ -150,3 +150,17 @@ After revoking access, any tokens created by GCM will be invalidated and can no 
 ### I used the install from source script to install GCM on my Linux distribution. Now how can I uninstall GCM and its dependencies?
 
 Please see full instructions [here](./linux-fromsrc-uninstall.md).
+
+### How do I revoke access for a GitLab OAuth application?
+
+There are some scenarios (e.g. updated scopes) for which you will need to manually revoke and re-authorize access for a GitLab OAuth application. You can do so by:
+
+1. Navigating to [the **Applications** page within your **User Settings**](https://gitlab.com/-/profile/applications).
+2. Scrolling to **Authorized applications**.
+3. Clicking the **Revoke** button next to the name of the application for which you would like to revoke access (Git Credential Manager is used here for demonstration purposes).
+
+   ![Button to revoke GitLab OAuth Application access](./img/gitlab-oauthapp-revoke.png)
+4. Waiting for a notification stating **The application was revoked access**.
+
+   ![Notifaction of successful revocation](./img/gitlab-oauthapp-revoked.png)
+5. Re-authorizing the application with the new scope (GCM should automatically initiate this flow for you next time access is requested).
