@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 
 namespace GitCredentialManager
@@ -89,8 +90,6 @@ namespace GitCredentialManager
 
         protected abstract string[] SplitPathVariable(string value);
 
-        public abstract bool TryLocateExecutable(string program, out string path);
-
         public virtual Process CreateProcess(string path, string args, bool useShellExecute, string workingDirectory)
         {
             var psi = new ProcessStartInfo(path, args)
@@ -103,6 +102,38 @@ namespace GitCredentialManager
             };
 
             return new Process { StartInfo = psi };
+        }
+
+        public bool TryLocateExecutable(string program, out string path)
+        {
+            // On UNIX-like systems we would normally use the "which" utility to locate a program,
+            // but since distributions don't always place "which" in a consistent location we cannot
+            // find it! Oh the irony..
+            // We could also try using "env" to then locate "which", but the same problem exists in
+            // that "env" isn't always in a standard location.
+            //
+            // On Windows we should avoid using the equivalent utility "where.exe" because this will
+            // include the current working directory in the search, and we don't want this.
+            //
+            // The upshot of the above means we cannot use either of "which" or "where.exe" and must
+            // instead manually scan the PATH variable looking for the program.
+            // At least both Windows and UNIX use the same name for the $PATH or %PATH% variable!
+            if (Variables.TryGetValue("PATH", out string pathValue))
+            {
+                string[] paths = SplitPathVariable(pathValue);
+                foreach (var basePath in paths)
+                {
+                    string candidatePath = Path.Combine(basePath, program);
+                    if (FileSystem.FileExists(candidatePath))
+                    {
+                        path = candidatePath;
+                        return true;
+                    }
+                }
+            }
+
+            path = null;
+            return false;
         }
     }
 

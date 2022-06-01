@@ -67,28 +67,6 @@ namespace GitCredentialManager.Interop.Windows
             }
         }
 
-        public override bool TryLocateExecutable(string program, out string path)
-        {
-            // Don't use "where.exe" on Windows as this includes the current working directory
-            // and we don't want to enumerate this location; only the PATH.
-            if (Variables.TryGetValue("PATH", out string pathValue))
-            {
-                string[] paths = SplitPathVariable(pathValue);
-                foreach (var basePath in paths)
-                {
-                    string candidatePath = Path.Combine(basePath, program);
-                    if (FileSystem.FileExists(candidatePath))
-                    {
-                        path = candidatePath;
-                        return true;
-                    }
-                }
-            }
-
-            path = null;
-            return false;
-        }
-
         public override Process CreateProcess(string path, string args, bool useShellExecute, string workingDirectory)
         {
             // If we're asked to start a WSL executable we must launch via the wsl.exe command tool
