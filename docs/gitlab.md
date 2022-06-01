@@ -6,7 +6,7 @@ Git Credential Manager supports [gitlab.com](https://gitlab.com) out the box.
 
 To use on another instance, eg. `https://gitlab.example.com` requires setup and configuration:
 
-1. [Create an OAuth application](https://docs.gitlab.com/ee/integration/oauth_provider.html). This can be at the user, group or instance level. Specify a name and use a redirect URI of `http://127.0.0.1/`. _Unselect_ the 'Confidential' option, and ensure the 'Expire access tokens' option is selected. Set the scope to 'write_repository'.
+1. [Create an OAuth application](https://docs.gitlab.com/ee/integration/oauth_provider.html). This can be at the user, group or instance level. Specify a name and use a redirect URI of `http://127.0.0.1/`. _Unselect_ the 'Confidential' option, and ensure the 'Expire access tokens' option is selected. Set the 'write_repository' and 'read_repository' scopes.
 1. Copy the application ID and configure `git config --global credential.https://gitlab.example.com.GitLabDevClientId <APPLICATION_ID>`
 1. Copy the application secret and configure `git config --global credential.https://gitlab.example.com.GitLabDevClientSecret <APPLICATION_SECRET>`
 1. Configure authentication modes to include 'browser' `git config --global credential.https://gitlab.example.com.gitLabAuthModes browser`
