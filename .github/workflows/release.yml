@@ -139,6 +139,9 @@ jobs:
   osx-pack:
     name: Package macOS payload
     runs-on: macos-latest
+    strategy:
+      matrix:
+        runtime: [ osx-x64, osx-arm64 ] 
     needs: osx-payload-sign
     steps:
     - name: Check out repository
@@ -159,20 +162,24 @@ jobs:
     - name: Download signed payload
       uses: actions/download-artifact@v3
       with:
-        name: osx-payload-sign
+        name: ${{ matrix.runtime }}-payload-sign
     
     - name: Create component package
       run: |
-        src/osx/Installer.Mac/pack.sh --payload=payload --version=$GitBuildVersionSimple --output=components/com.microsoft.gitcredentialmanager.component.pkg
+        src/osx/Installer.Mac/pack.sh --payload=payload \
+         --version=$GitBuildVersionSimple \
+         --output=components/com.microsoft.gitcredentialmanager.component.pkg
     
     - name: Create product archive
       run: |
-        src/osx/Installer.Mac/dist.sh --package-path=components --version=$GitBuildVersionSimple --output=pkg/gcm-osx-x64-$GitBuildVersionSimple.pkg || exit 1
+        src/osx/Installer.Mac/dist.sh --package-path=components \
+         --version=$GitBuildVersionSimple --runtime=${{ matrix.runtime }} \
+         --output=pkg/gcm-${{ matrix.runtime }}-$GitBuildVersionSimple.pkg || exit 1
     
     - name: Upload package
       uses: actions/upload-artifact@v3
       with:
-        name: tmp.osx-pack
+        name: tmp.${{ matrix.runtime }}-pack
         path: |
           pkg
   
