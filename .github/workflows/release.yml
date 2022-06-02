@@ -74,6 +74,9 @@ jobs:
     name: Sign macOS payload
     # ESRP service requires signing to run on Windows
     runs-on: windows-latest
+    strategy:
+      matrix:
+        runtime: [ osx-x64, osx-arm64 ]
     needs: osx-build
     steps:
     - name: Check out repository
@@ -82,7 +85,7 @@ jobs:
     - name: Download payload
       uses: actions/download-artifact@v3
       with:
-        name: tmp.osx-build
+        name: tmp.${{ matrix.runtime }}-build
     
     - name: Zip unsigned payload
       shell: pwsh
@@ -116,7 +119,9 @@ jobs:
         APPLE_KEY_CODE: ${{ secrets.APPLE_KEY_CODE }}
         APPLE_SIGNING_OP_CODE: ${{ secrets.APPLE_SIGNING_OPERATION_CODE }}
       run: |
-        python .github\run_esrp_signing.py payload $env:APPLE_KEY_CODE $env:APPLE_SIGNING_OP_CODE --params 'Hardening' '--options=runtime'
+        python .github\run_esrp_signing.py payload `
+         $env:APPLE_KEY_CODE $env:APPLE_SIGNING_OP_CODE `
+         --params 'Hardening' '--options=runtime'
     
     - name: Unzip signed payload
       shell: pwsh
@@ -127,7 +132,7 @@ jobs:
     - name: Upload signed payload
       uses: actions/upload-artifact@v3
       with:
-        name: osx-payload-sign
+        name: ${{ matrix.runtime }}-payload-sign
         path: |
           signed
   
