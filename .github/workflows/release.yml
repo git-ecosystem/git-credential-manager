@@ -12,6 +12,9 @@ jobs:
   osx-build:
     name: Build macOS
     runs-on: macos-latest
+    strategy:
+      matrix:
+        runtime: [ osx-x64, osx-arm64 ] 
     steps:
     - uses: actions/checkout@v3
       with:
@@ -27,7 +30,9 @@ jobs:
 
     - name: Build
       run: |
-        dotnet build --configuration=MacRelease
+        dotnet build src/osx/Installer.Mac/*.csproj \
+         --configuration=MacRelease --no-self-contained \
+         --runtime=${{ matrix.runtime }}
     
     - name: Run macOS unit tests
       run: |
@@ -35,7 +40,9 @@ jobs:
 
     - name: Lay out payload and symbols
       run: |
-        src/osx/Installer.Mac/layout.sh --configuration=MacRelease --output=payload --symbol-output=symbols
+        src/osx/Installer.Mac/layout.sh \
+         --configuration=MacRelease --output=payload \
+         --symbol-output=symbols --runtime=${{ matrix.runtime }}
 
     - name: Create keychain
       env:
@@ -58,7 +65,7 @@ jobs:
     - name: Upload macOS artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: tmp.osx-build
+        name: tmp.${{ matrix.runtime }}-build
         path: |
           payload
           symbols
