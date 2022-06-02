@@ -490,8 +490,12 @@ jobs:
       - name: Archive macOS payload and symbols
         run: |
           mkdir osx-payload-and-symbols
-          tar -C osx-payload-sign -czf osx-payload-and-symbols/gcm-osx-x64-$GitBuildVersionSimple.tar.gz .
-          tar -C tmp.osx-build/symbols -czf osx-payload-and-symbols/gcm-osx-x64-$GitBuildVersionSimple-symbols.tar.gz .
+
+          tar -C osx-x64-payload-sign -czf osx-payload-and-symbols/gcm-osx-x64-$GitBuildVersionSimple.tar.gz .
+          tar -C tmp.osx-x64-build/symbols -czf osx-payload-and-symbols/gcm-osx-x64-$GitBuildVersionSimple-symbols.tar.gz .
+
+          tar -C osx-arm64-payload-sign -czf osx-payload-and-symbols/gcm-osx-arm64-$GitBuildVersionSimple.tar.gz .
+          tar -C tmp.osx-arm64-build/symbols -czf osx-payload-and-symbols/gcm-osx-arm64-$GitBuildVersionSimple-symbols.tar.gz .
 
       - name: Archive Windows payload and symbols
         shell: pwsh
@@ -549,7 +553,8 @@ jobs:
               uploadDirectoryToRelease('win-x86-payload-and-symbols'),
 
               // Upload macOS artifacts
-              uploadDirectoryToRelease('osx-sign'),
+              uploadDirectoryToRelease('osx-x64-sign'),
+              uploadDirectoryToRelease('osx-arm64-sign'),
               uploadDirectoryToRelease('osx-payload-and-symbols'),
 
               // Upload Linux artifacts
