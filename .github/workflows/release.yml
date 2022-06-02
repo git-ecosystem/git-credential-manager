@@ -187,6 +187,9 @@ jobs:
     name: Sign and notarize macOS package
     # ESRP service requires signing to run on Windows
     runs-on: windows-latest
+    strategy:
+      matrix:
+        runtime: [ osx-x64, osx-arm64 ] 
     needs: osx-pack
     steps:
     - name: Check out repository
@@ -195,7 +198,7 @@ jobs:
     - name: Download unsigned package
       uses: actions/download-artifact@v3
       with:
-        name: tmp.osx-pack
+        name: tmp.${{ matrix.runtime }}-pack
         path: pkg
     
     - name: Zip unsigned package
@@ -255,7 +258,7 @@ jobs:
     - name: Publish signed package
       uses: actions/upload-artifact@v3
       with:
-        name: osx-sign
+        name: ${{ matrix.runtime }}-sign
         path: signed/*.pkg
 
 # ================================
