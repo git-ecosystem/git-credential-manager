@@ -492,7 +492,7 @@ jobs:
 
             // Create the release
             var tagName = `v${version}`;
-            var createdRelease = await github.repos.createRelease({
+            var createdRelease = await github.rest.repos.createRelease({
               ...releaseMetadata,
               draft: true,
               tag_name: tagName,
@@ -509,7 +509,7 @@ jobs:
                   })
                   .map(async (file) => {
                     var filePath = path.join(directory, file);
-                    github.repos.uploadReleaseAsset({
+                    github.rest.repos.uploadReleaseAsset({
                       ...releaseMetadata,
                       name: file,
                       headers: {
