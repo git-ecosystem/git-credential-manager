@@ -12,6 +12,9 @@ jobs:
   osx-build:
     name: Build macOS
     runs-on: macos-latest
+    strategy:
+      matrix:
+        runtime: [ osx-x64, osx-arm64 ] 
     steps:
     - uses: actions/checkout@v3
       with:
@@ -27,7 +30,9 @@ jobs:
 
     - name: Build
       run: |
-        dotnet build --configuration=MacRelease
+        dotnet build src/osx/Installer.Mac/*.csproj \
+         --configuration=MacRelease --no-self-contained \
+         --runtime=${{ matrix.runtime }}
     
     - name: Run macOS unit tests
       run: |
@@ -35,7 +40,9 @@ jobs:
 
     - name: Lay out payload and symbols
       run: |
-        src/osx/Installer.Mac/layout.sh --configuration=MacRelease --output=payload --symbol-output=symbols
+        src/osx/Installer.Mac/layout.sh \
+         --configuration=MacRelease --output=payload \
+         --symbol-output=symbols --runtime=${{ matrix.runtime }}
 
     - name: Create keychain
       env:
@@ -58,7 +65,7 @@ jobs:
     - name: Upload macOS artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: tmp.osx-build
+        name: tmp.${{ matrix.runtime }}-build
         path: |
           payload
           symbols
@@ -67,6 +74,9 @@ jobs:
     name: Sign macOS payload
     # ESRP service requires signing to run on Windows
     runs-on: windows-latest
+    strategy:
+      matrix:
+        runtime: [ osx-x64, osx-arm64 ]
     needs: osx-build
     steps:
     - name: Check out repository
@@ -75,7 +85,7 @@ jobs:
     - name: Download payload
       uses: actions/download-artifact@v3
       with:
-        name: tmp.osx-build
+        name: tmp.${{ matrix.runtime }}-build
     
     - name: Zip unsigned payload
       shell: pwsh
@@ -109,7 +119,9 @@ jobs:
         APPLE_KEY_CODE: ${{ secrets.APPLE_KEY_CODE }}
         APPLE_SIGNING_OP_CODE: ${{ secrets.APPLE_SIGNING_OPERATION_CODE }}
       run: |
-        python .github\run_esrp_signing.py payload $env:APPLE_KEY_CODE $env:APPLE_SIGNING_OP_CODE --params 'Hardening' '--options=runtime'
+        python .github\run_esrp_signing.py payload `
+         $env:APPLE_KEY_CODE $env:APPLE_SIGNING_OP_CODE `
+         --params 'Hardening' '--options=runtime'
     
     - name: Unzip signed payload
       shell: pwsh
@@ -120,13 +132,16 @@ jobs:
     - name: Upload signed payload
       uses: actions/upload-artifact@v3
       with:
-        name: osx-payload-sign
+        name: ${{ matrix.runtime }}-payload-sign
         path: |
           signed
   
   osx-pack:
     name: Package macOS payload
     runs-on: macos-latest
+    strategy:
+      matrix:
+        runtime: [ osx-x64, osx-arm64 ] 
     needs: osx-payload-sign
     steps:
     - name: Check out repository
@@ -147,20 +162,24 @@ jobs:
     - name: Download signed payload
       uses: actions/download-artifact@v3
       with:
-        name: osx-payload-sign
+        name: ${{ matrix.runtime }}-payload-sign
     
     - name: Create component package
       run: |
-        src/osx/Installer.Mac/pack.sh --payload=payload --version=$GitBuildVersionSimple --output=components/com.microsoft.gitcredentialmanager.component.pkg
+        src/osx/Installer.Mac/pack.sh --payload=payload \
+         --version=$GitBuildVersionSimple \
+         --output=components/com.microsoft.gitcredentialmanager.component.pkg
     
     - name: Create product archive
       run: |
-        src/osx/Installer.Mac/dist.sh --package-path=components --version=$GitBuildVersionSimple --output=pkg/gcm-osx-x64-$GitBuildVersionSimple.pkg || exit 1
+        src/osx/Installer.Mac/dist.sh --package-path=components \
+         --version=$GitBuildVersionSimple --runtime=${{ matrix.runtime }} \
+         --output=pkg/gcm-${{ matrix.runtime }}-$GitBuildVersionSimple.pkg || exit 1
     
     - name: Upload package
       uses: actions/upload-artifact@v3
       with:
-        name: tmp.osx-pack
+        name: tmp.${{ matrix.runtime }}-pack
         path: |
           pkg
   
@@ -168,6 +187,9 @@ jobs:
     name: Sign and notarize macOS package
     # ESRP service requires signing to run on Windows
     runs-on: windows-latest
+    strategy:
+      matrix:
+        runtime: [ osx-x64, osx-arm64 ] 
     needs: osx-pack
     steps:
     - name: Check out repository
@@ -176,7 +198,7 @@ jobs:
     - name: Download unsigned package
       uses: actions/download-artifact@v3
       with:
-        name: tmp.osx-pack
+        name: tmp.${{ matrix.runtime }}-pack
         path: pkg
     
     - name: Zip unsigned package
@@ -236,7 +258,7 @@ jobs:
     - name: Publish signed package
       uses: actions/upload-artifact@v3
       with:
-        name: osx-sign
+        name: ${{ matrix.runtime }}-sign
         path: signed/*.pkg
 
 # ================================
@@ -468,8 +490,12 @@ jobs:
       - name: Archive macOS payload and symbols
         run: |
           mkdir osx-payload-and-symbols
-          tar -C osx-payload-sign -czf osx-payload-and-symbols/gcm-osx-x64-$GitBuildVersionSimple.tar.gz .
-          tar -C tmp.osx-build/symbols -czf osx-payload-and-symbols/gcm-osx-x64-$GitBuildVersionSimple-symbols.tar.gz .
+
+          tar -C osx-x64-payload-sign -czf osx-payload-and-symbols/gcm-osx-x64-$GitBuildVersionSimple.tar.gz .
+          tar -C tmp.osx-x64-build/symbols -czf osx-payload-and-symbols/gcm-osx-x64-$GitBuildVersionSimple-symbols.tar.gz .
+
+          tar -C osx-arm64-payload-sign -czf osx-payload-and-symbols/gcm-osx-arm64-$GitBuildVersionSimple.tar.gz .
+          tar -C tmp.osx-arm64-build/symbols -czf osx-payload-and-symbols/gcm-osx-arm64-$GitBuildVersionSimple-symbols.tar.gz .
 
       - name: Archive Windows payload and symbols
         shell: pwsh
@@ -527,7 +553,8 @@ jobs:
               uploadDirectoryToRelease('win-x86-payload-and-symbols'),
 
               // Upload macOS artifacts
-              uploadDirectoryToRelease('osx-sign'),
+              uploadDirectoryToRelease('osx-x64-sign'),
+              uploadDirectoryToRelease('osx-arm64-sign'),
               uploadDirectoryToRelease('osx-payload-and-symbols'),
 
               // Upload Linux artifacts
