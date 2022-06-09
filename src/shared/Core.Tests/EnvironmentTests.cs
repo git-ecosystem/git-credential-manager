@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using GitCredentialManager.Interop.Posix;
 using GitCredentialManager.Interop.Windows;
 using GitCredentialManager.Tests.Objects;
@@ -119,6 +120,32 @@ namespace GitCredentialManager.Tests
             var env = new PosixEnvironment(fs, envars);
 
             bool actualResult = env.TryLocateExecutable(PosixExecName, out string actualPath);
+
+            Assert.True(actualResult);
+            Assert.Equal(expectedPath, actualPath);
+        }
+
+        [PlatformFact(Platforms.MacOS)]
+        public void MacOSEnvironment_TryLocateExecutable_Paths_Are_Ignored()
+        {
+            List<string> pathsToIgnore = new List<string>()
+            {
+                "/home/john.doe/bin/foo"
+            };
+            string expectedPath = "/usr/local/bin/foo";
+
+            var fs = new TestFileSystem
+            {
+                Files = new Dictionary<string, byte[]>
+                {
+                    [pathsToIgnore.FirstOrDefault()] = Array.Empty<byte>(),
+                    [expectedPath] = Array.Empty<byte>(),
+                }
+            };
+            var envars = new Dictionary<string, string> {["PATH"] = PosixPathVar};
+            var env = new PosixEnvironment(fs, envars);
+
+            bool actualResult = env.TryLocateExecutable(PosixExecName, pathsToIgnore, out string actualPath);
 
             Assert.True(actualResult);
             Assert.Equal(expectedPath, actualPath);
