@@ -203,6 +203,55 @@ namespace GitCredentialManager.Tests
             Assert.Equal(gitPath, git.GitPath);
         }
 
+        [Fact]
+        public void Git_AddFile_FileExists_AddsFileToIndex()
+        {
+            string repoPath = CreateRepository(out string workDirPath);
+            string filePath = Path.Combine(workDirPath, "file1.txt");
+            File.WriteAllText(filePath, "test file contents");
+
+            string gitPath = GetGitPath();
+            var trace = new NullTrace();
+            var env = new TestEnvironment();
+
+            var git = new GitProcess(trace, env, gitPath, workDirPath);
+            git.AddFile(filePath);
+
+            GitResult lsResult = ExecGit(repoPath, workDirPath, "ls-files --cached");
+            string lsOutput = lsResult.StandardOutput.Trim();
+            Assert.Equal("file1.txt", lsOutput);
+        }
+
+        [Fact]
+        public void Git_AddFile_MissingFile_ThrowsException()
+        {
+            string repoPath = CreateRepository(out string workDirPath);
+            string filePath = Path.Combine(workDirPath, "file1.txt");
+
+            string gitPath = GetGitPath();
+            var trace = new NullTrace();
+            var env = new TestEnvironment();
+
+            var git = new GitProcess(trace, env, gitPath, workDirPath);
+            Assert.Throws<GitException>(() => git.AddFile(filePath));
+        }
+
+        [Fact]
+        public void Git_AddFile_NotInsideRepository_ThrowsException()
+        {
+            string gitPath = GetGitPath();
+            var trace = new NullTrace();
+            var env = new TestEnvironment();
+
+            string tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N").Substring(8));
+            Directory.CreateDirectory(tempDir);
+            string filePath = Path.Combine(tempDir, "file1.txt");
+            File.WriteAllText(filePath, "test file contents");
+
+            var git = new GitProcess(trace, env, gitPath, tempDir);
+            Assert.Throws<GitException>(() => git.AddFile(filePath));
+        }
+
         #region Test Helpers
 
         private static void AssertRemote(string expectedName, string expectedUrl, GitRemote remote)

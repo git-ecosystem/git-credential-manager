@@ -39,6 +39,12 @@ namespace GitCredentialManager
         IEnumerable<GitRemote> GetRemotes();
 
         /// <summary>
+        /// Add a file to the index.
+        /// </summary>
+        /// <param name="filePath">Path to file to add to the index.</param>
+        void AddFile(string filePath);
+
+        /// <summary>
         /// Get the configuration object.
         /// </summary>
         /// <returns>Git configuration.</returns>
@@ -187,6 +193,28 @@ namespace GitCredentialManager
                     if (pushLine.Length > 1 && !string.IsNullOrWhiteSpace(pushLine[1]))   pushUrl  = pushLine[1].TrimEnd();
 
                     yield return new GitRemote(remoteName, fetchUrl, pushUrl);
+                }
+            }
+        }
+
+        public void AddFile(string filePath)
+        {
+            using (var git = CreateProcess($"add -- {QuoteUtils.QuoteCmdArg(filePath)}"))
+            {
+                git.Start();
+                // To avoid deadlocks, always read the output stream first and then wait
+                // TODO: don't read in all the data at once; stream it
+                string stdout = git.StandardOutput.ReadToEnd();
+                string stderr = git.StandardError.ReadToEnd();
+                git.WaitForExit();
+
+                switch (git.ExitCode)
+                {
+                    case 0: // OK
+                        return;
+                    default:
+                        _trace.WriteLine($"Failed to add file (exit={git.ExitCode})");
+                        throw CreateGitException(git, "Failed to add file");
                 }
             }
         }

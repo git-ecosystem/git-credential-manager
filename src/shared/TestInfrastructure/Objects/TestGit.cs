@@ -41,6 +41,11 @@ namespace GitCredentialManager.Tests.Objects
 
         IEnumerable<GitRemote> IGit.GetRemotes() => Remotes;
 
+        void IGit.AddFile(string filePath)
+        {
+            throw new NotImplementedException();
+        }
+
         IGitConfiguration IGit.GetConfiguration() => Configuration;
 
         Task<IDictionary<string, string>> IGit.InvokeHelperAsync(string args, IDictionary<string, string> standardInput)
