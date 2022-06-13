@@ -33,6 +33,16 @@ namespace GitCredentialManager
             // Ensure the store root exists and permissions are set
             EnsureStoreRoot();
 
+            FileCredential existingCredential = Enumerate(service, account).FirstOrDefault();
+
+            // No need to update existing credential if nothing has changed
+            if (existingCredential != null &&
+                StringComparer.Ordinal.Equals(account, existingCredential.Account) &&
+                StringComparer.Ordinal.Equals(secret, existingCredential.Password))
+            {
+                return;
+            }
+
             string serviceSlug = CreateServiceSlug(service);
             string servicePath = Path.Combine(StoreRoot, serviceSlug);
 
