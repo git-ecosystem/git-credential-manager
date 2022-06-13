@@ -114,6 +114,16 @@ namespace GitCredentialManager.Interop.Linux
             SecretValue* secretValue = null;
             GError *error = null;
 
+            // If there is an existing credential that matches the same account and password
+            // then don't bother writing out anything because they're the same!
+            ICredential existingCred = Get(service, account);
+            if (existingCred != null &&
+                StringComparer.Ordinal.Equals(existingCred.Account, account) &&
+                StringComparer.Ordinal.Equals(existingCred.Password, secret))
+            {
+                return;
+            }
+
             try
             {
                 SecretService* secService = GetSecretService();
