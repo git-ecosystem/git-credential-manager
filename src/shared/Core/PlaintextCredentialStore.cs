@@ -8,16 +8,19 @@ namespace GitCredentialManager
 {
     public class PlaintextCredentialStore : ICredentialStore
     {
-        public PlaintextCredentialStore(IFileSystem fileSystem, string storeRoot, string @namespace = null)
+        public PlaintextCredentialStore(ITrace trace, IFileSystem fileSystem, string storeRoot, string @namespace = null)
         {
+            EnsureArgument.NotNull(trace, nameof(trace));
             EnsureArgument.NotNull(fileSystem, nameof(fileSystem));
             EnsureArgument.NotNullOrWhiteSpace(storeRoot, nameof(storeRoot));
 
+            Trace = trace;
             FileSystem = fileSystem;
             StoreRoot = storeRoot;
             Namespace = @namespace;
         }
 
+        protected ITrace Trace { get; }
         protected IFileSystem FileSystem { get; }
         protected string StoreRoot { get; }
         protected string Namespace { get; }

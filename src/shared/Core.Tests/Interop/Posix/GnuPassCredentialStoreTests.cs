@@ -14,11 +14,12 @@ namespace GitCredentialManager.Tests.Interop.Posix
         [PlatformFact(Platforms.Posix)]
         public void GnuPassCredentialStore_ReadWriteDelete()
         {
+            var trace = new NullTrace();
             var fs = new TestFileSystem();
             var gpg = new TestGpg(fs);
             string storeRoot = InitializePasswordStore(fs, gpg);
 
-            var collection = new GpgPassCredentialStore(fs, gpg, storeRoot, TestNamespace);
+            var collection = new GpgPassCredentialStore(trace, fs, gpg, storeRoot, TestNamespace);
 
             // Create a service that is guaranteed to be unique
             string uniqueGuid = Guid.NewGuid().ToString("N");
@@ -57,11 +58,12 @@ namespace GitCredentialManager.Tests.Interop.Posix
         [PlatformFact(Platforms.Posix)]
         public void GnuPassCredentialStore_Get_NotFound_ReturnsNull()
         {
+            var trace = new NullTrace();
             var fs = new TestFileSystem();
             var gpg = new TestGpg(fs);
             string storeRoot = InitializePasswordStore(fs, gpg);
 
-            var collection = new GpgPassCredentialStore(fs, gpg, storeRoot, TestNamespace);
+            var collection = new GpgPassCredentialStore(trace, fs, gpg, storeRoot, TestNamespace);
 
             // Unique service; guaranteed not to exist!
             string service = $"https://example.com/{Guid.NewGuid():N}";
@@ -73,11 +75,12 @@ namespace GitCredentialManager.Tests.Interop.Posix
         [PlatformFact(Platforms.Posix)]
         public void GnuPassCredentialStore_Remove_NotFound_ReturnsFalse()
         {
+            var trace = new NullTrace();
             var fs = new TestFileSystem();
             var gpg = new TestGpg(fs);
             string storeRoot = InitializePasswordStore(fs, gpg);
 
-            var collection = new GpgPassCredentialStore(fs, gpg, storeRoot, TestNamespace);
+            var collection = new GpgPassCredentialStore(trace, fs, gpg, storeRoot, TestNamespace);
 
             // Unique service; guaranteed not to exist!
             string service = $"https://example.com/{Guid.NewGuid():N}";

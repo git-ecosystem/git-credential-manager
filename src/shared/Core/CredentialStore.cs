@@ -64,7 +64,7 @@ namespace GitCredentialManager
 
                 case StoreNames.Dpapi:
                     ValidateDpapi(out string dpapiStoreRoot);
-                    _backingStore = new DpapiCredentialStore(_context.FileSystem, dpapiStoreRoot, ns);
+                    _backingStore = new DpapiCredentialStore(_context.Trace, _context.FileSystem, dpapiStoreRoot, ns);
                     break;
 
                 case StoreNames.MacOSKeychain:
@@ -80,7 +80,7 @@ namespace GitCredentialManager
                 case StoreNames.Gpg:
                     ValidateGpgPass(out string gpgStoreRoot, out string gpgExec);
                     IGpg gpg = new Gpg(gpgExec, _context.SessionManager);
-                    _backingStore = new GpgPassCredentialStore(_context.FileSystem, gpg, gpgStoreRoot, ns);
+                    _backingStore = new GpgPassCredentialStore(_context.Trace, _context.FileSystem, gpg, gpgStoreRoot, ns);
                     break;
 
                 case StoreNames.Cache:
@@ -90,7 +90,7 @@ namespace GitCredentialManager
 
                 case StoreNames.Plaintext:
                     ValidatePlaintext(out string plainStoreRoot);
-                    _backingStore = new PlaintextCredentialStore(_context.FileSystem, plainStoreRoot, ns);
+                    _backingStore = new PlaintextCredentialStore(_context.Trace, _context.FileSystem, plainStoreRoot, ns);
                     break;
 
                 default:

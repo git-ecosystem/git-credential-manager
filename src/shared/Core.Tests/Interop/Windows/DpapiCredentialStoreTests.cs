@@ -16,8 +16,9 @@ namespace GitCredentialManager.Tests.Interop.Windows
         [PlatformFact(Platforms.Windows)]
         public void DpapiCredentialStore_AddOrUpdate_CreatesUTF8ProtectedFile()
         {
+            var trace = new NullTrace();
             var fs = new TestFileSystem();
-            var store = new DpapiCredentialStore(fs, TestStoreRoot, TestNamespace);
+            var store = new DpapiCredentialStore(trace, fs, TestStoreRoot, TestNamespace);
 
             string service = "https://example.com";
             const string userName = "john.doe";
@@ -52,8 +53,9 @@ namespace GitCredentialManager.Tests.Interop.Windows
         [PlatformFact(Platforms.Windows)]
         public void DpapiCredentialStore_Get_KeyNotFound_ReturnsNull()
         {
+            var trace = new NullTrace();
             var fs = new TestFileSystem();
-            var store = new DpapiCredentialStore(fs, TestStoreRoot, TestNamespace);
+            var store = new DpapiCredentialStore(trace, fs, TestStoreRoot, TestNamespace);
 
             // Unique service; guaranteed not to exist!
             string service = Guid.NewGuid().ToString("N");
@@ -65,8 +67,9 @@ namespace GitCredentialManager.Tests.Interop.Windows
         [PlatformFact(Platforms.Windows)]
         public void DpapiCredentialStore_Get_ReadProtectedFile()
         {
+            var trace = new NullTrace();
             var fs = new TestFileSystem();
-            var store = new DpapiCredentialStore(fs, TestStoreRoot, TestNamespace);
+            var store = new DpapiCredentialStore(trace, fs, TestStoreRoot, TestNamespace);
 
             string service = "https://example.com";
             const string userName = "john.doe";
@@ -100,8 +103,9 @@ namespace GitCredentialManager.Tests.Interop.Windows
         [PlatformFact(Platforms.Windows)]
         public void DpapiCredentialStore_Remove_KeyNotFound_ReturnsFalse()
         {
+            var trace = new NullTrace();
             var fs = new TestFileSystem();
-            var store = new DpapiCredentialStore(fs, TestStoreRoot, TestNamespace);
+            var store = new DpapiCredentialStore(trace, fs, TestStoreRoot, TestNamespace);
 
             // Unique service; guaranteed not to exist!
             string service = Guid.NewGuid().ToString("N");

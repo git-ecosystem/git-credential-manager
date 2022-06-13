@@ -11,8 +11,8 @@ namespace GitCredentialManager.Interop.Posix
 
         private readonly IGpg _gpg;
 
-        public GpgPassCredentialStore(IFileSystem fileSystem, IGpg gpg, string storeRoot, string @namespace = null)
-            : base(fileSystem, storeRoot, @namespace)
+        public GpgPassCredentialStore(ITrace trace, IFileSystem fileSystem, IGpg gpg, string storeRoot, string @namespace = null)
+            : base(trace, fileSystem, storeRoot, @namespace)
         {
             PlatformUtils.EnsurePosix();
             EnsureArgument.NotNull(gpg, nameof(gpg));

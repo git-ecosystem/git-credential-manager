@@ -14,9 +14,10 @@ namespace GitCredentialManager.Tests
         [Fact]
         public void PlaintextCredentialStore_ReadWriteDelete()
         {
+            var trace = new NullTrace();
             var fs = new TestFileSystem();
 
-            var collection = new PlaintextCredentialStore(fs, StoreRoot, TestNamespace);
+            var collection = new PlaintextCredentialStore(trace, fs, StoreRoot, TestNamespace);
 
             // Create a service that is guaranteed to be unique
             string uniqueGuid = Guid.NewGuid().ToString("N");
@@ -60,9 +61,10 @@ namespace GitCredentialManager.Tests
         [Fact]
         public void PlaintextCredentialStore_Get_NotFound_ReturnsNull()
         {
+            var trace = new NullTrace();
             var fs = new TestFileSystem();
 
-            var collection = new PlaintextCredentialStore(fs, StoreRoot, TestNamespace);
+            var collection = new PlaintextCredentialStore(trace, fs, StoreRoot, TestNamespace);
 
             // Unique service; guaranteed not to exist!
             string service = $"https://example.com/{Guid.NewGuid():N}";
@@ -74,9 +76,10 @@ namespace GitCredentialManager.Tests
         [Fact]
         public void PlaintextCredentialStore_Remove_NotFound_ReturnsFalse()
         {
+            var trace = new NullTrace();
             var fs = new TestFileSystem();
 
-            var collection = new PlaintextCredentialStore(fs, StoreRoot, TestNamespace);
+            var collection = new PlaintextCredentialStore(trace, fs, StoreRoot, TestNamespace);
 
             // Unique service; guaranteed not to exist!
             string service = $"https://example.com/{Guid.NewGuid():N}";

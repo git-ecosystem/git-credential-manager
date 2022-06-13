@@ -8,8 +8,8 @@ namespace GitCredentialManager.Interop.Windows
 {
     public class DpapiCredentialStore : PlaintextCredentialStore
     {
-        public DpapiCredentialStore(IFileSystem fileSystem, string storeRoot, string @namespace = null)
-            : base(fileSystem, storeRoot, @namespace)
+        public DpapiCredentialStore(ITrace trace, IFileSystem fileSystem, string storeRoot, string @namespace = null)
+            : base(trace, fileSystem, storeRoot, @namespace)
         {
             PlatformUtils.EnsureWindows();
         }
