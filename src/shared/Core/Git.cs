@@ -9,6 +9,11 @@ namespace GitCredentialManager
     public interface IGit
     {
         /// <summary>
+        /// Path to Git executable tied to this instance.
+        /// </summary>
+        string GitPath { get; }
+
+        /// <summary>
         /// The version of the Git executable tied to this instance.
         /// </summary>
         GitVersion Version { get; }
@@ -80,6 +85,8 @@ namespace GitCredentialManager
             _gitPath = gitPath;
             _workingDirectory = workingDirectory;
         }
+
+        public string GitPath => _gitPath;
 
         private GitVersion _version;
         public GitVersion Version

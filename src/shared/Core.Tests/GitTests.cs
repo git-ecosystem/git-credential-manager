@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Linq;
 using GitCredentialManager.Tests.Objects;
@@ -188,6 +189,18 @@ namespace GitCredentialManager.Tests
             GitVersion version = git.Version;
 
             Assert.NotEqual(new GitVersion(), version);
+        }
+
+        [Fact]
+        public void Git_GitPath_ReturnsGitPath()
+        {
+            string gitPath = GetGitPath();
+            var trace = new NullTrace();
+            var env = new TestEnvironment();
+
+            var git = new GitProcess(trace, env, gitPath, Path.GetTempPath());
+
+            Assert.Equal(gitPath, git.GitPath);
         }
 
         #region Test Helpers

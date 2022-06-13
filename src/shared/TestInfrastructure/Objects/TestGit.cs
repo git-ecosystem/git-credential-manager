@@ -8,6 +8,8 @@ namespace GitCredentialManager.Tests.Objects
 {
     public class TestGit : IGit
     {
+        public string GitPath { get; set; } = "/usr/local/bin/git";
+
         public GitVersion Version { get; set; } = new GitVersion("2.32.0.test.0");
 
         public string CurrentRepository { get; set; }
@@ -25,6 +27,8 @@ namespace GitCredentialManager.Tests.Objects
         }
 
         #region IGit
+
+        string IGit.GitPath => GitPath;
 
         GitVersion IGit.Version => Version;
 
