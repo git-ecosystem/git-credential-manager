@@ -64,8 +64,7 @@ namespace GitCredentialManager
             foreach (FileCredential credential in Enumerate(service, account))
             {
                 // Only delete the first match
-                FileSystem.DeleteFile(credential.FullPath);
-                return true;
+                return DestroyCredential(credential);
             }
 
             return false;
@@ -152,6 +151,13 @@ namespace GitCredentialManager
                     }
                 }
             }
+        }
+
+        protected virtual bool DestroyCredential(FileCredential credential)
+        {
+            // Delete the credential file
+            FileSystem.DeleteFile(credential.FullPath);
+            return true;
         }
 
         /// <summary>
