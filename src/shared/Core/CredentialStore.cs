@@ -79,8 +79,10 @@ namespace GitCredentialManager
 
                 case StoreNames.Gpg:
                     ValidateGpgPass(out string gpgStoreRoot, out string gpgExec);
+                    GitProcess GitFactory(string workDir) =>
+                        new GitProcess(_context.Trace, _context.Environment, _context.Git.GitPath, workDir);
                     IGpg gpg = new Gpg(gpgExec, _context.SessionManager);
-                    _backingStore = new GpgPassCredentialStore(_context.Trace, _context.FileSystem, gpg, gpgStoreRoot, ns);
+                    _backingStore = new GpgPassCredentialStore(_context.Trace, _context.FileSystem, gpg, GitFactory, gpgStoreRoot, ns);
                     break;
 
                 case StoreNames.Cache:

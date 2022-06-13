@@ -7,16 +7,21 @@ namespace GitCredentialManager.Interop.Posix
 {
     public class GpgPassCredentialStore : PlaintextCredentialStore
     {
+        public delegate IGit GitFactory(string workdir);
+
         public const string PasswordStoreDirEnvar = "PASSWORD_STORE_DIR";
 
         private readonly IGpg _gpg;
+        private readonly GitFactory _gitFactory;
 
-        public GpgPassCredentialStore(ITrace trace, IFileSystem fileSystem, IGpg gpg, string storeRoot, string @namespace = null)
+        public GpgPassCredentialStore(ITrace trace, IFileSystem fileSystem, IGpg gpg, GitFactory gitFactory, string storeRoot, string @namespace = null)
             : base(trace, fileSystem, storeRoot, @namespace)
         {
             PlatformUtils.EnsurePosix();
             EnsureArgument.NotNull(gpg, nameof(gpg));
+
             _gpg = gpg;
+            _gitFactory = gitFactory;
         }
 
         protected override string CredentialFileExtension => ".gpg";
@@ -34,6 +39,22 @@ namespace GitCredentialManager.Interop.Posix
             {
                 return reader.ReadLine();
             }
+        }
+
+        private bool TryGetGitRepository(out IGit git)
+        {
+            if (_gitFactory != null)
+            {
+                string gitDir = Path.Combine(StoreRoot, ".git");
+                if (FileSystem.DirectoryExists(gitDir))
+                {
+                    git = _gitFactory(StoreRoot);
+                    return true;
+                }
+            }
+
+            git = null;
+            return false;
         }
 
         protected override bool TryDeserializeCredential(string path, out FileCredential credential)
@@ -90,6 +111,86 @@ namespace GitCredentialManager.Interop.Posix
 
             // Encrypt!
             _gpg.EncryptFile(credential.FullPath, gpgId, fileContents);
+
+            // If the store is a Git repository then add and commit the file addition or modification
+            if (TryGetGitRepository(out IGit git))
+            {
+                bool hasAccount = !string.IsNullOrWhiteSpace(credential.Account);
+
+                sb.Clear();
+                sb.AppendFormat("[GCM] Update credential {0}", credential.Service);
+                if (hasAccount)
+                {
+                    sb.AppendFormat(" ({0})", credential.Account);
+                }
+
+                sb.AppendLine();
+                sb.AppendLine();
+                sb.AppendFormat("Update Git Credential Manager credential:{0}", Environment.NewLine);
+                sb.AppendFormat("  Service: {1}{0}", Environment.NewLine, credential.Service);
+                if (hasAccount)
+                {
+                    sb.AppendFormat("  Account: {1}{0}", Environment.NewLine, credential.Account);
+                }
+                sb.AppendLine();
+
+                string message = sb.ToString();
+
+                try
+                {
+                    git.AddFile(credential.FullPath);
+                    git.Commit(message);
+                }
+                catch (GitException ex)
+                {
+                    // Don't fail just because we failed to commit in the pass store Git repo
+                    Trace.WriteLine("Failed to update Git repository in pass store");
+                    Trace.WriteException(ex);
+                }
+            }
+        }
+
+        protected override bool DestroyCredential(FileCredential credential)
+        {
+            FileSystem.DeleteFile(credential.FullPath);
+
+            // If the store is a Git repository then add and commit the file deletion
+            if (TryGetGitRepository(out IGit git))
+            {
+                bool hasAccount = !string.IsNullOrWhiteSpace(credential.Account);
+
+                var sb = new StringBuilder();
+                sb.AppendFormat("[GCM] Remove credential {0}", credential.Service);
+                if (hasAccount)
+                {
+                    sb.AppendFormat(" ({0})", credential.Account);
+                }
+
+                sb.AppendLine();
+                sb.AppendLine();
+                sb.AppendFormat("Remove Git Credential Manager credential from pass:{0}", Environment.NewLine);
+                sb.AppendFormat("  Service: {0}{1}", credential.Service, Environment.NewLine);
+                if (hasAccount)
+                {
+                    sb.AppendFormat("  Account: {0}{1}", credential.Account, Environment.NewLine);
+                }
+
+                string message = sb.ToString();
+
+                try
+                {
+                    git.AddFile(credential.FullPath);
+                    git.Commit(message);
+                }
+                catch (GitException ex)
+                {
+                    // Don't fail just because we failed to commit in the pass store Git repo
+                    Trace.WriteLine("Failed to update Git repository in pass store");
+                    Trace.WriteException(ex);
+                }
+            }
+
+            return true;
         }
     }
 }
