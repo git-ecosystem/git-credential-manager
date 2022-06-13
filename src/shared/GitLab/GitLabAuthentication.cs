@@ -73,10 +73,10 @@ namespace GitLab
                 var cmdArgs = new StringBuilder("prompt");
                 if (!string.IsNullOrWhiteSpace(userName))
                 {
-                    cmdArgs.AppendFormat(" --username {0}", QuoteCmdArg(userName));
+                    cmdArgs.AppendFormat(" --username {0}", QuoteUtils.QuoteCmdArg(userName));
                 }
 
-                cmdArgs.AppendFormat(" --url {0}", QuoteCmdArg(targetUri.ToString()));
+                cmdArgs.AppendFormat(" --url {0}", QuoteUtils.QuoteCmdArg(targetUri.ToString()));
 
                 if ((modes & AuthenticationModes.Basic) != 0)   cmdArgs.Append(" --basic");
                 if ((modes & AuthenticationModes.Browser) != 0) cmdArgs.Append(" --browser");

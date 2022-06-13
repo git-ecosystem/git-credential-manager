@@ -101,8 +101,8 @@ namespace GitHub
                     if ((modes & AuthenticationModes.Device)  != 0) promptArgs.Append(" --device");
                     if ((modes & AuthenticationModes.Pat)     != 0) promptArgs.Append(" --pat");
                 }
-                if (!GitHubHostProvider.IsGitHubDotCom(targetUri)) promptArgs.AppendFormat(" --enterprise-url {0}", QuoteCmdArg(targetUri.ToString()));
-                if (!string.IsNullOrWhiteSpace(userName)) promptArgs.AppendFormat(" --username {0}", QuoteCmdArg(userName));
+                if (!GitHubHostProvider.IsGitHubDotCom(targetUri)) promptArgs.AppendFormat(" --enterprise-url {0}", QuoteUtils.QuoteCmdArg(targetUri.ToString()));
+                if (!string.IsNullOrWhiteSpace(userName)) promptArgs.AppendFormat(" --username {0}", QuoteUtils.QuoteCmdArg(userName));
 
                 IDictionary<string, string> resultDict = await InvokeHelperAsync(helperPath, promptArgs.ToString(), null);
 
@@ -289,8 +289,8 @@ namespace GitHub
                 TryFindHelperExecutablePath(out string helperPath))
             {
                 var args = new StringBuilder("device");
-                args.AppendFormat(" --code {0} ", QuoteCmdArg(dcr.UserCode));
-                args.AppendFormat(" --url {0}", QuoteCmdArg(dcr.VerificationUri.ToString()));
+                args.AppendFormat(" --code {0} ", QuoteUtils.QuoteCmdArg(dcr.UserCode));
+                args.AppendFormat(" --url {0}", QuoteUtils.QuoteCmdArg(dcr.VerificationUri.ToString()));
 
                 var promptCts = new CancellationTokenSource();
                 var tokenCts = new CancellationTokenSource();

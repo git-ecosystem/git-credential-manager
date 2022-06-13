@@ -96,12 +96,12 @@ namespace Atlassian.Bitbucket
                 var cmdArgs = new StringBuilder("userpass");
                 if (!BitbucketHostProvider.IsBitbucketOrg(targetUri))
                 {
-                    cmdArgs.AppendFormat(" --url {0}", QuoteCmdArg(targetUri.ToString()));
+                    cmdArgs.AppendFormat(" --url {0}", QuoteUtils.QuoteCmdArg(targetUri.ToString()));
                 }
 
                 if (!string.IsNullOrWhiteSpace(userName))
                 {
-                    cmdArgs.AppendFormat(" --username {0}", QuoteCmdArg(userName));
+                    cmdArgs.AppendFormat(" --username {0}", QuoteUtils.QuoteCmdArg(userName));
                 }
 
                 if ((modes & AuthenticationModes.OAuth) != 0)

@@ -1,9 +1,8 @@
-using GitCredentialManager.Authentication;
 using Xunit;
 
-namespace GitCredentialManager.Tests.Authentication
+namespace GitCredentialManager.Tests
 {
-    public class AuthenticationBaseTests
+    public class QuoteUtilsTests
     {
         [Theory]
         [InlineData("foo", "foo")]
@@ -16,9 +15,9 @@ namespace GitCredentialManager.Tests.Authentication
         [InlineData("\"foo", "\"\\\"foo\"")]
         [InlineData("foo\\", "\"foo\\\\\"")]
         [InlineData("foo\\\"", "\"foo\\\\\\\"\"")]
-        public void AuthenticationBase_QuoteCmdArg(string input, string expected)
+        public void QuoteUtils_QuoteCmdArg(string input, string expected)
         {
-            string actual = AuthenticationBase.QuoteCmdArg(input);
+            string actual = QuoteUtils.QuoteCmdArg(input);
             Assert.Equal(expected, actual);
         }
     }
