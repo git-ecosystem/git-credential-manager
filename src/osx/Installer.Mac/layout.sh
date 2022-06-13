@@ -27,7 +27,6 @@ GITLAB_UI_SRC="$SRC/shared/GitLab.UI.Avalonia"
 
 # Build parameters
 FRAMEWORK=net6.0
-RUNTIME=osx-x64
 
 # Parse script arguments
 for i in "$@"
@@ -41,6 +40,10 @@ case "$i" in
     PAYLOAD="${i#*=}"
     shift # past argument=value
     ;;
+    --runtime=*)
+    RUNTIME="${i#*=}"
+    shift # past argument=value
+    ;;
     --symbol-output=*)
     SYMBOLOUT="${i#*=}"
     ;;
@@ -49,6 +52,24 @@ case "$i" in
     ;;
 esac
 done
+
+# Determine a runtime if one was not provided
+if [ -z "$RUNTIME" ]; then
+    TEST_RUNTIME=`uname -m`
+    case $TEST_RUNTIME in
+        "x86_64")
+            RUNTIME="osx-x64"
+            ;;
+        "arm64")
+            RUNTIME="osx-arm64"
+            ;;
+        *)
+            die "Unknown runtime '$TEST_RUNTIME'"
+            ;;
+    esac
+fi
+
+echo "Building for runtime '$RUNTIME'"
 
 # Perform pre-execution checks
 CONFIGURATION="${CONFIGURATION:=Debug}"
