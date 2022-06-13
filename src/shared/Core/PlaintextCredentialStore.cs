@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace GitCredentialManager
@@ -22,37 +23,9 @@ namespace GitCredentialManager
         protected string Namespace { get; }
         protected virtual string CredentialFileExtension => ".credential";
 
-        #region ICredentialStore
-
         public ICredential Get(string service, string account)
         {
-            string serviceSlug = CreateServiceSlug(service);
-            string searchPath = Path.Combine(StoreRoot, serviceSlug);
-            bool anyAccount = string.IsNullOrWhiteSpace(account);
-
-            if (!FileSystem.DirectoryExists(searchPath))
-            {
-                return null;
-            }
-
-            IEnumerable<string> allFiles = FileSystem.EnumerateFiles(searchPath, $"*{CredentialFileExtension}");
-
-            foreach (string fullPath in allFiles)
-            {
-                string accountFile = Path.GetFileNameWithoutExtension(fullPath);
-                if (anyAccount || StringComparer.OrdinalIgnoreCase.Equals(account, accountFile))
-                {
-                    // Validate the credential metadata also matches our search
-                    if (TryDeserializeCredential(fullPath, out FileCredential credential) &&
-                        StringComparer.OrdinalIgnoreCase.Equals(service, credential.Service) &&
-                        (anyAccount || StringComparer.OrdinalIgnoreCase.Equals(account, credential.Account)))
-                    {
-                        return credential;
-                    }
-                }
-            }
-
-            return null;
+            return Enumerate(service, account).FirstOrDefault();
         }
 
         public void AddOrUpdate(string service, string account, string secret)
@@ -75,38 +48,15 @@ namespace GitCredentialManager
 
         public bool Remove(string service, string account)
         {
-            string serviceSlug = CreateServiceSlug(service);
-            string searchPath = Path.Combine(StoreRoot, serviceSlug);
-            bool anyAccount = string.IsNullOrWhiteSpace(account);
-
-            if (!FileSystem.DirectoryExists(searchPath))
+            foreach (FileCredential credential in Enumerate(service, account))
             {
-                return false;
-            }
-
-            IEnumerable<string> allFiles = FileSystem.EnumerateFiles(searchPath, $"*{CredentialFileExtension}");
-
-            foreach (string fullPath in allFiles)
-            {
-                string accountFile = Path.GetFileNameWithoutExtension(fullPath);
-                if (anyAccount || StringComparer.OrdinalIgnoreCase.Equals(account, accountFile))
-                {
-                    // Validate the credential metadata also matches our search
-                    if (TryDeserializeCredential(fullPath, out FileCredential credential) &&
-                        StringComparer.OrdinalIgnoreCase.Equals(service, credential.Service) &&
-                        (anyAccount || StringComparer.OrdinalIgnoreCase.Equals(account, credential.Account)))
-                    {
-                        // Delete the credential file
-                        FileSystem.DeleteFile(fullPath);
-                        return true;
-                    }
-                }
+                // Only delete the first match
+                FileSystem.DeleteFile(credential.FullPath);
+                return true;
             }
 
             return false;
         }
-
-        #endregion
 
         protected virtual bool TryDeserializeCredential(string path, out FileCredential credential)
         {
@@ -159,6 +109,35 @@ namespace GitCredentialManager
                 writer.WriteLine("service={0}", credential.Service);
                 writer.WriteLine("account={0}", credential.Account);
                 writer.Flush();
+            }
+        }
+
+        private IEnumerable<FileCredential> Enumerate(string service, string account)
+        {
+            string serviceSlug = CreateServiceSlug(service);
+            string searchPath = Path.Combine(StoreRoot, serviceSlug);
+            bool anyAccount = string.IsNullOrWhiteSpace(account);
+
+            if (!FileSystem.DirectoryExists(searchPath))
+            {
+                yield break;
+            }
+
+            IEnumerable<string> allFiles = FileSystem.EnumerateFiles(searchPath, $"*{CredentialFileExtension}");
+
+            foreach (string fullPath in allFiles)
+            {
+                string accountFile = Path.GetFileNameWithoutExtension(fullPath);
+                if (anyAccount || StringComparer.OrdinalIgnoreCase.Equals(account, accountFile))
+                {
+                    // Validate the credential metadata also matches our search
+                    if (TryDeserializeCredential(fullPath, out FileCredential credential) &&
+                        StringComparer.OrdinalIgnoreCase.Equals(service, credential.Service) &&
+                        (anyAccount || StringComparer.OrdinalIgnoreCase.Equals(account, credential.Account)))
+                    {
+                        yield return credential;
+                    }
+                }
             }
         }
 
