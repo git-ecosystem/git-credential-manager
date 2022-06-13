@@ -45,6 +45,12 @@ namespace GitCredentialManager
         void AddFile(string filePath);
 
         /// <summary>
+        /// Create a commit based on the current index.
+        /// </summary>
+        /// <param name="message">Commit message.</param>
+        void Commit(string message);
+
+        /// <summary>
         /// Get the configuration object.
         /// </summary>
         /// <returns>Git configuration.</returns>
@@ -215,6 +221,35 @@ namespace GitCredentialManager
                     default:
                         _trace.WriteLine($"Failed to add file (exit={git.ExitCode})");
                         throw CreateGitException(git, "Failed to add file");
+                }
+            }
+        }
+
+        public void Commit(string message)
+        {
+            EnsureArgument.NotNullOrEmpty(message, nameof(message));
+
+            using (var git = CreateProcess("commit -F -"))
+            {
+                git.Start();
+
+                // Pipe commit message over standard input to avoid max command arg length limits
+                git.StandardInput.WriteAsync(message);
+                git.StandardInput.Close();
+
+                // To avoid deadlocks, always read the output stream first and then wait
+                // TODO: don't read in all the data at once; stream it
+                string stdout = git.StandardOutput.ReadToEnd();
+                string stderr = git.StandardError.ReadToEnd();
+                git.WaitForExit();
+
+                switch (git.ExitCode)
+                {
+                    case 0: // OK
+                        return;
+                    default:
+                        _trace.WriteLine($"Failed to create commit (exit={git.ExitCode})");
+                        throw CreateGitException(git, "Failed to create commit");
                 }
             }
         }

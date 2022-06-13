@@ -46,6 +46,11 @@ namespace GitCredentialManager.Tests.Objects
             throw new NotImplementedException();
         }
 
+        void IGit.Commit(string message)
+        {
+            throw new NotImplementedException();
+        }
+
         IGitConfiguration IGit.GetConfiguration() => Configuration;
 
         Task<IDictionary<string, string>> IGit.InvokeHelperAsync(string args, IDictionary<string, string> standardInput)

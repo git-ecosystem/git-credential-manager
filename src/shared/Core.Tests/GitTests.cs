@@ -252,6 +252,82 @@ namespace GitCredentialManager.Tests
             Assert.Throws<GitException>(() => git.AddFile(filePath));
         }
 
+        [Fact]
+        public void Git_Commit_Message_FilesInIndex_CreatesCommit()
+        {
+            string repoPath = CreateRepository(out string workDirPath);
+            ExecGit(repoPath, workDirPath, "config --local user.name 'John Doe'");
+            ExecGit(repoPath, workDirPath, "config --local user.email john.doe@example.com");
+
+            string filePath = Path.Combine(workDirPath, "file1.txt");
+            File.WriteAllText(filePath, "test file contents");
+            ExecGit(repoPath, workDirPath, "add file1.txt");
+
+            string gitPath = GetGitPath();
+            var trace = new NullTrace();
+            var env = new TestEnvironment();
+
+            const string message = "test message";
+
+            var git = new GitProcess(trace, env, gitPath, workDirPath);
+            git.Commit(message);
+
+            GitResult showResult = ExecGit(repoPath, workDirPath, "show HEAD");
+            string showOutput = showResult.StandardOutput.Trim();
+
+            Assert.Contains(message, showOutput);
+        }
+
+        [Fact]
+        public void Git_Commit_EmptyMessage_FilesInIndex_ThrowsException()
+        {
+            string repoPath = CreateRepository(out string workDirPath);
+            string filePath = Path.Combine(workDirPath, "file1.txt");
+            File.WriteAllText(filePath, "test file contents");
+            ExecGit(repoPath, workDirPath, "add file1.txt");
+
+            string gitPath = GetGitPath();
+            var trace = new NullTrace();
+            var env = new TestEnvironment();
+
+            const string message = null;
+
+            var git = new GitProcess(trace, env, gitPath, workDirPath);
+            Assert.Throws<ArgumentNullException>(() => git.Commit(message));
+        }
+
+        [Fact]
+        public void Git_Commit_Message_NoFilesInIndex_ThrowsException()
+        {
+            string repoPath = CreateRepository(out string workDirPath);
+
+            string gitPath = GetGitPath();
+            var trace = new NullTrace();
+            var env = new TestEnvironment();
+
+            const string message = "test message";
+
+            var git = new GitProcess(trace, env, gitPath, workDirPath);
+            Assert.Throws<GitException>(() => git.Commit(message));
+        }
+
+        [Fact]
+        public void Git_Commit_Message_NotInsideRepository_ThrowsException()
+        {
+            string gitPath = GetGitPath();
+            var trace = new NullTrace();
+            var env = new TestEnvironment();
+
+            const string message = "test message";
+
+            string tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N").Substring(8));
+            Directory.CreateDirectory(tempDir);
+
+            var git = new GitProcess(trace, env, gitPath, tempDir);
+            Assert.Throws<GitException>(() => git.Commit(message));
+        }
+
+
         #region Test Helpers
 
         private static void AssertRemote(string expectedName, string expectedUrl, GitRemote remote)
