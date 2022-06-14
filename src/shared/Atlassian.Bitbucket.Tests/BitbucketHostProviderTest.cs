@@ -219,7 +219,7 @@ namespace Atlassian.Bitbucket.Tests
 
             var credential = provider.GetCredentialAsync(input);
 
-            VerifyBasicAuthFlowRan(password, true, input, credential, null);
+            VerifyBasicAuthFlowRan(password, true, input, credential);
 
             VerifyOAuthFlowDidNotRun(password, true, input, credential);
         }
@@ -327,7 +327,7 @@ namespace Atlassian.Bitbucket.Tests
 
             if (alwaysRefreshCredentialsBool)
             {
-                VerifyBasicAuthFlowRan(password, true, input, credential, null);
+                VerifyBasicAuthFlowRan(password, true, input, credential);
             }
             else
             {
@@ -450,21 +450,13 @@ namespace Atlassian.Bitbucket.Tests
             });
         }
 
-        private void VerifyBasicAuthFlowRan(string password, bool expected, InputArguments input, Task<ICredential> credential,
-            string preconfiguredAuthModes)
+        private void VerifyBasicAuthFlowRan(string password, bool expected, InputArguments input, Task<ICredential> credential)
         {
             Assert.Equal(expected, credential != null);
 
             var remoteUri = input.GetRemoteUri();
 
             bitbucketAuthentication.Verify(m => m.GetCredentialsAsync(remoteUri, input.UserName, It.IsAny<AuthenticationModes>()), Times.Once);
-
-            // check username/password for Bitbucket.org
-            if ((preconfiguredAuthModes == null && BITBUCKET_DOT_ORG_HOST == remoteUri.Host)
-                || (preconfiguredAuthModes != null && preconfiguredAuthModes.Contains("oauth")))
-            {
-                bitbucketApi.Verify(m => m.GetUserInformationAsync(input.UserName, password, false), Times.Once);
-            }
         }
 
         private void VerifyInteractiveBasicAuthFlowRan(string password, InputArguments input, Task<ICredential> credential)
@@ -473,12 +465,6 @@ namespace Atlassian.Bitbucket.Tests
 
             // verify users was prompted for username/password credentials
             bitbucketAuthentication.Verify(m => m.GetCredentialsAsync(remoteUri, input.UserName, It.IsAny<AuthenticationModes>()), Times.Once);
-
-            // check username/password for Bitbucket.org
-            if (BITBUCKET_DOT_ORG_HOST == remoteUri.Host)
-            {
-                bitbucketApi.Verify(m => m.GetUserInformationAsync(input.UserName, password, false), Times.Once);
-            }
         }
 
         private void VerifyBasicAuthFlowNeverRan(string password, InputArguments input, bool storedAccount,
@@ -527,13 +513,7 @@ namespace Atlassian.Bitbucket.Tests
                 {
                     // prompt user for basic auth, if basic auth is not excluded
                     bitbucketAuthentication.Verify(m => m.GetCredentialsAsync(remoteUri, input.UserName, It.IsAny<AuthenticationModes>()), Times.Once);
-
-                    // check if entered Basic Auth credentials work, if basic auth is not excluded
-                    bitbucketApi.Verify(m => m.GetUserInformationAsync(input.UserName, password, false), Times.Once);
                 }
-
-                // Basic Auth 403-ed so push user through OAuth flow
-                bitbucketAuthentication.Verify(m => m.ShowOAuthRequiredPromptAsync(), Times.Once);
             }
         }
 
