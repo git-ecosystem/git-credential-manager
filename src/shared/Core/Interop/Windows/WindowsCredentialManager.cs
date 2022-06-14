@@ -13,8 +13,6 @@ namespace GitCredentialManager.Interop.Windows
 
         private readonly string _namespace;
 
-        #region Constructors
-
         /// <summary>
         /// Open the Windows Credential Manager vault for the current user.
         /// </summary>
@@ -25,10 +23,6 @@ namespace GitCredentialManager.Interop.Windows
             PlatformUtils.EnsureWindows();
             _namespace = @namespace;
         }
-
-        #endregion
-
-        #region ICredentialStore
 
         public ICredential Get(string service, string account)
         {
@@ -65,6 +59,15 @@ namespace GitCredentialManager.Interop.Windows
                     {
                         // Create new entry with the account in the target name
                         targetName = CreateTargetName(service, account);
+                    }
+                    else
+                    {
+                        // No need to write out credential if the account and secret/password are the same
+                        string existingSecret = existingCred.GetCredentialBlobAsString();
+                        if (StringComparer.Ordinal.Equals(existingSecret, secret))
+                        {
+                            return;
+                        }
                     }
                 }
 
@@ -128,8 +131,6 @@ namespace GitCredentialManager.Interop.Windows
 
             return false;
         }
-
-        #endregion
 
         /// <summary>
         /// Check if we can persist credentials to for the current process and logon session.
@@ -205,14 +206,7 @@ namespace GitCredentialManager.Interop.Windows
 
         private WindowsCredential CreateCredentialFromStructure(Win32Credential credential)
         {
-            string password = null;
-            if (credential.CredentialBlobSize != 0 && credential.CredentialBlob != IntPtr.Zero)
-            {
-                byte[] passwordBytes = InteropUtils.ToByteArray(
-                    credential.CredentialBlob,
-                    credential.CredentialBlobSize);
-                password = Encoding.Unicode.GetString(passwordBytes);
-            }
+            string password = credential.GetCredentialBlobAsString();
 
             // Recover the target name we gave from the internal (raw) target name
             string targetName = credential.TargetName.TrimUntilIndexOf(TargetNameLegacyGenericPrefix);

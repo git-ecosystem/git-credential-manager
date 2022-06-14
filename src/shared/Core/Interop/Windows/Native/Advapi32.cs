@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
+using System.Text;
 using FILETIME = System.Runtime.InteropServices.ComTypes.FILETIME;
 
 namespace GitCredentialManager.Interop.Windows.Native
@@ -93,5 +94,16 @@ namespace GitCredentialManager.Interop.Windows.Native
         public string TargetAlias;
         [MarshalAs(UnmanagedType.LPWStr)]
         public string UserName;
+
+        public string GetCredentialBlobAsString()
+        {
+            if (CredentialBlobSize != 0 && CredentialBlob != IntPtr.Zero)
+            {
+                byte[] passwordBytes = InteropUtils.ToByteArray(CredentialBlob, CredentialBlobSize);
+                return Encoding.Unicode.GetString(passwordBytes);
+            }
+
+            return null;
+        }
     }
 }
