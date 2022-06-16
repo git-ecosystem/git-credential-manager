@@ -1,3 +1,4 @@
+using System;
 using Atlassian.Bitbucket.UI.ViewModels;
 using Atlassian.Bitbucket.UI.Views;
 using Avalonia;
@@ -53,17 +54,17 @@ namespace Atlassian.Bitbucket.UI.Controls
         {
             var vm = new CredentialsViewModel(_environment)
             {
-                ShowOAuth = true
+                ShowOAuth = this.FindControl<CheckBox>("showOAuth").IsChecked ?? false,
+                ShowBasic = this.FindControl<CheckBox>("showBasic").IsChecked ?? false,
+                UserName = this.FindControl<TextBox>("username").Text
             };
-            var view = new CredentialsView();
-            var window = new DialogWindow(view) {DataContext = vm};
-            window.ShowDialog(this);
-        }
 
-        private void ShowOAuth(object sender, RoutedEventArgs e)
-        {
-            var vm = new OAuthViewModel(_environment);
-            var view = new OAuthView();
+            if (Uri.TryCreate(this.FindControl<TextBox>("url").Text, UriKind.Absolute, out Uri uri))
+            {
+                vm.Url = uri;
+            }
+
+            var view = new CredentialsView();
             var window = new DialogWindow(view) {DataContext = vm};
             window.ShowDialog(this);
         }
