@@ -9,7 +9,7 @@ namespace GitCredentialManager.Interop.Windows
 {
     public class WindowsCredentialManager : ICredentialStore
     {
-        private const string TargetNameLegacyGenericPrefix = "LegacyGeneric:target=";
+        internal const string TargetNameLegacyGenericPrefix = "LegacyGeneric:target=";
 
         private readonly string _namespace;
 
@@ -260,7 +260,7 @@ namespace GitCredentialManager.Interop.Windows
             return url;
         }
 
-        private bool IsMatch(string service, string account, Win32Credential credential)
+        internal /* for testing */ bool IsMatch(string service, string account, Win32Credential credential)
         {
             // Match against the username first
             if (!string.IsNullOrWhiteSpace(account) &&
@@ -286,6 +286,12 @@ namespace GitCredentialManager.Interop.Windows
             if (Uri.TryCreate(service, UriKind.Absolute, out Uri serviceUri) &&
                 Uri.TryCreate(targetName, UriKind.Absolute, out Uri targetUri))
             {
+                // Match scheme/protocol
+                if (!StringComparer.OrdinalIgnoreCase.Equals(serviceUri.Scheme, targetUri.Scheme))
+                {
+                    return false;
+                }
+
                 // Match host name
                 if (!StringComparer.OrdinalIgnoreCase.Equals(serviceUri.Host, targetUri.Host))
                 {
@@ -293,7 +299,7 @@ namespace GitCredentialManager.Interop.Windows
                 }
 
                 // Match port number
-                if (!serviceUri.IsDefaultPort && serviceUri.Port == targetUri.Port)
+                if (serviceUri.Port != targetUri.Port)
                 {
                     return false;
                 }
@@ -313,7 +319,7 @@ namespace GitCredentialManager.Interop.Windows
             return false;
         }
 
-        private string CreateTargetName(string service, string account)
+        internal /* for testing */ string CreateTargetName(string service, string account)
         {
             var serviceUri = new Uri(service, UriKind.Absolute);
             var sb = new StringBuilder();
@@ -339,9 +345,15 @@ namespace GitCredentialManager.Interop.Windows
                 sb.Append(serviceUri.Host);
             }
 
-            if (!string.IsNullOrWhiteSpace(serviceUri.AbsolutePath.TrimEnd('/')))
+            if (!serviceUri.IsDefaultPort)
             {
-                sb.Append(serviceUri.AbsolutePath);
+                sb.AppendFormat(":{0}", serviceUri.Port);
+            }
+
+            string trimmedPath = serviceUri.AbsolutePath.TrimEnd('/');
+            if (!string.IsNullOrWhiteSpace(trimmedPath))
+            {
+                sb.Append(trimmedPath);
             }
 
             return sb.ToString();

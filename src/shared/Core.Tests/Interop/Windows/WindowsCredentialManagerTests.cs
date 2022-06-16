@@ -1,6 +1,7 @@
 using System;
 using Xunit;
 using GitCredentialManager.Interop.Windows;
+using GitCredentialManager.Interop.Windows.Native;
 
 namespace GitCredentialManager.Tests.Interop.Windows
 {
@@ -231,6 +232,76 @@ namespace GitCredentialManager.Tests.Interop.Windows
         public void WindowsCredentialManager_RemoveUriUserInfo(string input, string expected)
         {
             string actual = WindowsCredentialManager.RemoveUriUserInfo(input);
+            Assert.Equal(expected, actual);
+        }
+
+        [PlatformTheory(Platforms.Windows)]
+        [InlineData("https://example.com", null, "https://example.com", "alice", true)]
+        [InlineData("https://example.com", "alice", "https://example.com", "alice", true)]
+        [InlineData("https://example.com", null, "https://example.com:443", "alice", true)]
+        [InlineData("https://example.com", "alice", "https://example.com:443", "alice", true)]
+        [InlineData("https://example.com:1234", null, "https://example.com:1234", "alice", true)]
+        [InlineData("https://example.com:1234", "alice", "https://example.com:1234", "alice", true)]
+        [InlineData("https://example.com", null, "http://example.com", "alice", false)]
+        [InlineData("https://example.com", "alice", "http://example.com", "alice", false)]
+        [InlineData("https://example.com", "alice", "http://example.com:443", "alice", false)]
+        [InlineData("http://example.com:443", "alice", "https://example.com", "alice", false)]
+        [InlineData("https://example.com", "bob", "https://example.com", "alice", false)]
+        [InlineData("https://example.com", "bob", "https://bob@example.com", "bob", true)]
+        [InlineData("https://example.com", "bob", "https://example.com", "bob", true)]
+        [InlineData("https://example.com", "alice", "https://example.com", "ALICE", false)] // username case sensitive
+        [InlineData("https://example.com", "alice", "https://EXAMPLE.com", "alice", true)] // host NOT case sensitive
+        [InlineData("https://example.com/path", "alice", "https://example.com/path", "alice", true)]
+        [InlineData("https://example.com/path", "alice", "https://example.com/PATH", "alice", true)] // path NOT case sensitive
+        public void WindowsCredentialManager_IsMatch(
+            string service, string account, string targetName, string userName, bool expected)
+        {
+            string fullTargetName = $"{WindowsCredentialManager.TargetNameLegacyGenericPrefix}{TestNamespace}:{targetName}";
+            var win32Cred = new Win32Credential
+            {
+                UserName =  userName,
+                TargetName = fullTargetName
+            };
+
+            var credManager = new WindowsCredentialManager(TestNamespace);
+
+            bool actual = credManager.IsMatch(service, account, win32Cred);
+
+            Assert.Equal(expected, actual);
+        }
+
+        [PlatformTheory(Platforms.Windows)]
+        [InlineData("https://example.com", null, "https://example.com")]
+        [InlineData("https://example.com", "bob", "https://bob@example.com")]
+        [InlineData("https://example.com", "bob@id.example.com", "https://bob_id.example.com@example.com")] // @ in user
+        [InlineData("https://example.com:443", null, "https://example.com")] // default port
+        [InlineData("https://example.com:1234", null, "https://example.com:1234")]
+        [InlineData("https://example.com/path", null, "https://example.com/path")]
+        [InlineData("https://example.com/path/with/more/parts", null, "https://example.com/path/with/more/parts")]
+        [InlineData("https://example.com/path/trim/", null, "https://example.com/path/trim")] // path trailing slash
+        [InlineData("https://example.com/", null, "https://example.com")] // no path trailing slash
+        public void WindowsCredentialManager_CreateTargetName(string service, string account, string expected)
+        {
+            string fullExpected = $"{TestNamespace}:{expected}";
+
+            var credManager = new WindowsCredentialManager(TestNamespace);
+
+            string actual = credManager.CreateTargetName(service, account);
+
+            Assert.Equal(fullExpected, actual);
+        }
+
+        [PlatformTheory(Platforms.Windows)]
+        [InlineData(TestNamespace, "https://example.com", null, $"{TestNamespace}:https://example.com")]
+        [InlineData(null, "https://example.com", null, "https://example.com")]
+        [InlineData("", "https://example.com", null, "https://example.com")]
+        [InlineData("    ", "https://example.com", null, "https://example.com")]
+        public void WindowsCredentialManager_CreateTargetName_Namespace(string @namespace, string service, string account, string expected)
+        {
+            var credManager = new WindowsCredentialManager(@namespace);
+
+            string actual = credManager.CreateTargetName(service, account);
+
             Assert.Equal(expected, actual);
         }
     }
