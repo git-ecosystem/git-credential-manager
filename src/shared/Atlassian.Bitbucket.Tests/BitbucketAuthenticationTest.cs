@@ -122,7 +122,7 @@ namespace Atlassian.Bitbucket.Tests
                 ["password"] = expectedPassword
             };
 
-            string expectedArgs = $"userpass --show-oauth";
+            string expectedArgs = $"prompt --show-basic --show-oauth";
 
             var context = new TestCommandContext();
             context.SessionManager.IsDesktopSession = true; // Enable OAuth and UI helper selection
@@ -158,7 +158,7 @@ namespace Atlassian.Bitbucket.Tests
                 ["password"] = expectedPassword
             };
 
-            string expectedArgs = $"userpass --username {expectedUserName}";
+            string expectedArgs = $"prompt --username {expectedUserName} --show-basic";
 
             var context = new TestCommandContext();
             context.SessionManager.IsDesktopSession = true; // Enable UI helper selection
@@ -194,7 +194,7 @@ namespace Atlassian.Bitbucket.Tests
                 ["password"] = expectedPassword
             };
 
-            string expectedArgs = $"userpass --url {targetUri} --show-oauth";
+            string expectedArgs = $"prompt --url {targetUri} --show-basic --show-oauth";
 
             var context = new TestCommandContext();
             context.SessionManager.IsDesktopSession = true; // Enable OAuth and UI helper selection

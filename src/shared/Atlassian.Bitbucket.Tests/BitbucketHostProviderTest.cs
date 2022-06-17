@@ -475,7 +475,7 @@ namespace Atlassian.Bitbucket.Tests
         {
             var remoteUri = input.GetRemoteUri();
 
-            // use refresh token to get new access token and refresh token
+            // Get new access token and refresh token
             bitbucketAuthentication.Verify(m => m.CreateOAuthCredentialsAsync(remoteUri), Times.Once);
 
             // Check access token works/resolve username

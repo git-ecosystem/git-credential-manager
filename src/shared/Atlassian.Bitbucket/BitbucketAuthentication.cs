@@ -90,7 +90,7 @@ namespace Atlassian.Bitbucket
             if (Context.Settings.IsGuiPromptsEnabled && Context.SessionManager.IsDesktopSession &&
                 TryFindHelperExecutablePath(out string helperPath))
             {
-                var cmdArgs = new StringBuilder("userpass");
+                var cmdArgs = new StringBuilder("prompt");
                 if (!BitbucketHostProvider.IsBitbucketOrg(targetUri))
                 {
                     cmdArgs.AppendFormat(" --url {0}", QuoteCmdArg(targetUri.ToString()));
