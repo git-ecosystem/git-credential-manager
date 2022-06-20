@@ -156,26 +156,14 @@ namespace Atlassian.Bitbucket
 
                     switch (result.AuthenticationMode)
                     {
+                        case AuthenticationModes.Basic:
+                            // Return the valid credential
+                            return result.Credential;
+
                         case AuthenticationModes.OAuth:
                             // If the user wants to use OAuth fall through to interactive auth
                             // and avoid the OAuth "continue" confirmation prompt
                             skipOAuthPrompt = true;
-                            break;
-
-                        case AuthenticationModes.Basic:
-                            // We need to check if these user/pass credentials require 2FA
-                            _context.Trace.WriteLine("Checking if two-factor requirements for credentials...");
-
-                            bool requires2Fa = await RequiresTwoFactorAuthenticationAsync(result.Credential);
-                            if (!requires2Fa)
-                            {
-                                _context.Trace.WriteLine("Two-factor authentication not required");
-
-                                // Return the valid credential
-                                return result.Credential;
-                            }
-
-                            // 2FA is required; fall through to interactive OAuth flow
                             break;
 
                         default:
@@ -369,31 +357,6 @@ namespace Atlassian.Bitbucket
             }
 
             throw new Exception($"Failed to resolve username. HTTP: {result.StatusCode}");
-        }
-
-        private async Task<bool> RequiresTwoFactorAuthenticationAsync(ICredential credentials)
-        {
-            _context.Trace.WriteLineSecrets($"Check if 2FA is required for credentials ({credentials.Account}/{{0}})...", new object[] { credentials.Password });
-
-            RestApiResult<UserInfo> result = await _bitbucketApi.GetUserInformationAsync(
-                credentials.Account, credentials.Password, isBearerToken: false);
-            switch (result.StatusCode)
-            {
-                // 2FA may not be required
-                case HttpStatusCode.OK:
-                    return result.Response.IsTwoFactorAuthenticationEnabled;
-
-                // 2FA is required
-                case HttpStatusCode.Forbidden:
-                    return true;
-
-                // Incorrect credentials
-                case HttpStatusCode.Unauthorized:
-                    throw new Exception("Invalid credentials");
-
-                default:
-                    throw new Exception($"Unknown server response: {result.StatusCode}");
-            }
         }
 
         private async Task<bool> ValidateCredentialsWork(Uri remoteUri, ICredential credentials, AuthenticationModes authModes)
