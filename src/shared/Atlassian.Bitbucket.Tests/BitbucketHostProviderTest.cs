@@ -145,7 +145,7 @@ namespace Atlassian.Bitbucket.Tests
             var context = new TestCommandContext();
 
             MockStoredAccount(context, input, password);
-            MockRemoteBasicAuthAccountIsValid(bitbucketApi, input, password, twoFactor: false);
+            MockRemoteBasicValid(bitbucketApi, input, password, twoFactor: false);
 
             var provider = new BitbucketHostProvider(context, bitbucketAuthentication.Object, bitbucketApi.Object);
 
@@ -163,7 +163,7 @@ namespace Atlassian.Bitbucket.Tests
             }
 
             // Stored credentials so don't ask for more
-            VerifyInteractiveBasicAuthFlowNeverRan(password, input, credential);
+            VerifyInteractiveAuthNeverRan(password, input, credential);
 
             // Valid Basic Auth credentials so don't run Oauth
             VerifyInteractiveOAuthFlowNeverRan(input, credential);
@@ -179,7 +179,7 @@ namespace Atlassian.Bitbucket.Tests
             var context = new TestCommandContext();
 
             MockStoredAccount(context, input, token);
-            MockRemoteOAuthAccountIsValid(bitbucketApi, input, token, false);
+            MockRemoteAccessTokenValid(bitbucketApi, input, token, false);
 
             var provider = new BitbucketHostProvider(context, bitbucketAuthentication.Object, bitbucketApi.Object);
 
@@ -189,7 +189,7 @@ namespace Atlassian.Bitbucket.Tests
             VerifyValidateOAuthCredentialsRan();
 
             // Stored credentials so don't ask for more
-            VerifyInteractiveBasicAuthFlowNeverRan(token, input, credential);
+            VerifyInteractiveAuthNeverRan(token, input, credential);
 
             // Valid Basic Auth credentials so don't run Oauth
             VerifyInteractiveOAuthFlowNeverRan(input, credential);
@@ -206,14 +206,14 @@ namespace Atlassian.Bitbucket.Tests
 
             var context = new TestCommandContext();
 
-            MockUserEntersValidBasicCredentials(bitbucketAuthentication, input, password);
+            MockPromptBasic(bitbucketAuthentication, input, password);
 
             if (BITBUCKET_DOT_ORG_HOST.Equals(host))
             {
-                MockRemoteOAuthAccountIsValid(bitbucketApi, input, password, true);
+                MockRemoteAccessTokenValid(bitbucketApi, input, password, true);
             }
 
-            MockRemoteBasicAuthAccountIsValid(bitbucketApi, input, password, twoFactor: false);
+            MockRemoteBasicValid(bitbucketApi, input, password, twoFactor: false);
 
             var provider = new BitbucketHostProvider(context, bitbucketAuthentication.Object, bitbucketApi.Object);
 
@@ -234,10 +234,10 @@ namespace Atlassian.Bitbucket.Tests
             var context = new TestCommandContext();
 
             // user is prompted for basic auth credentials
-            MockUserEntersValidBasicCredentials(bitbucketAuthentication, input, password);
+            MockPromptBasic(bitbucketAuthentication, input, password);
             // basic auth credentials are valid but 2FA is ON
-            MockRemoteBasicAuthAccountIsValid(bitbucketApi, input, password, twoFactor: true);
-            MockRemoteOAuthAccountIsValid(bitbucketApi, input, password, true);
+            MockRemoteBasicValid(bitbucketApi, input, password, twoFactor: true);
+            MockRemoteAccessTokenValid(bitbucketApi, input, password, true);
             MockRemoteValidRefreshToken();
 
             var provider = new BitbucketHostProvider(context, bitbucketAuthentication.Object, bitbucketApi.Object);
@@ -265,8 +265,8 @@ namespace Atlassian.Bitbucket.Tests
                 context.Environment.Variables.Add(BitbucketConstants.EnvironmentVariables.AuthenticationModes, preconfiguredAuthModes);
             }
 
-            MockUserEntersValidBasicCredentials(bitbucketAuthentication, input, password);
-            MockRemoteBasicAuthAccountIsValid(bitbucketApi, input, password, twoFactor: true);
+            MockPromptBasic(bitbucketAuthentication, input, password);
+            MockRemoteBasicValid(bitbucketApi, input, password, twoFactor: true);
             bitbucketAuthentication.Setup(m => m.ShowOAuthRequiredPromptAsync()).ReturnsAsync(true);
 
             var provider = new BitbucketHostProvider(context, bitbucketAuthentication.Object, bitbucketApi.Object);
@@ -283,7 +283,7 @@ namespace Atlassian.Bitbucket.Tests
 
             if (preconfiguredAuthModes.Contains("oauth"))
             {
-                VerifyInteractiveBasicAuthFlowNeverRan(password, input, credential);
+                VerifyInteractiveAuthNeverRan(password, input, credential);
                 VerifyInteractiveOAuthFlowRan(password, input, credential);
             }
         }
@@ -313,9 +313,9 @@ namespace Atlassian.Bitbucket.Tests
             }
 
             MockStoredAccount(context, input, password);
-            MockUserEntersValidBasicCredentials(bitbucketAuthentication, input, password);
-            MockRemoteOAuthAccountIsValid(bitbucketApi, input, password, true);
-            MockRemoteBasicAuthAccountIsValid(bitbucketApi, input, password, twoFactor: false);
+            MockPromptBasic(bitbucketAuthentication, input, password);
+            MockRemoteAccessTokenValid(bitbucketApi, input, password, true);
+            MockRemoteBasicValid(bitbucketApi, input, password, twoFactor: false);
 
             var provider = new BitbucketHostProvider(context, bitbucketAuthentication.Object, bitbucketApi.Object);
 
@@ -389,8 +389,8 @@ namespace Atlassian.Bitbucket.Tests
             }
             else
             {
-                MockUserEntersValidBasicCredentials(bitbucketAuthentication, input, password);
-                MockRemoteBasicAuthAccountIsValid(bitbucketApi, input, password, twoFactor: true);
+                MockPromptBasic(bitbucketAuthentication, input, password);
+                MockRemoteBasicValid(bitbucketApi, input, password, twoFactor: true);
                 MockRemoteValidRefreshToken();
                 bitbucketAuthentication.Setup(m => m.ShowOAuthRequiredPromptAsync()).ReturnsAsync(true);
                 bitbucketAuthentication.Setup(m => m.CreateOAuthCredentialsAsync(It.IsAny<Uri>())).ReturnsAsync(new OAuth2TokenResult(MOCK_ACCESS_TOKEN, "access_token"));
@@ -485,7 +485,7 @@ namespace Atlassian.Bitbucket.Tests
             }
         }
 
-        private void VerifyInteractiveBasicAuthFlowNeverRan(string password, InputArguments input, ICredential credential)
+        private void VerifyInteractiveAuthNeverRan(string password, InputArguments input, ICredential credential)
         {
             var remoteUri = input.GetRemoteUri();
 
@@ -579,14 +579,14 @@ namespace Atlassian.Bitbucket.Tests
             bitbucketAuthentication.Setup(m => m.RefreshOAuthCredentialsAsync(MOCK_REFRESH_TOKEN)).ReturnsAsync(new OAuth2TokenResult(MOCK_ACCESS_TOKEN, "access_token"));
         }
 
-        private static void MockUserEntersValidBasicCredentials(Mock<IBitbucketAuthentication> bitbucketAuthentication, InputArguments input, string password)
+        private static void MockPromptBasic(Mock<IBitbucketAuthentication> bitbucketAuthentication, InputArguments input, string password)
         {
             var remoteUri = input.GetRemoteUri();
             bitbucketAuthentication.Setup(m => m.GetCredentialsAsync(remoteUri, input.UserName, It.IsAny<AuthenticationModes>()))
                 .ReturnsAsync(new CredentialsPromptResult(AuthenticationModes.Basic, new TestCredential(input.Host, input.UserName, password)));
         }
 
-        private static void MockRemoteBasicAuthAccountIsValid(Mock<IBitbucketRestApi> bitbucketApi, InputArguments input, string password, bool twoFactor)
+        private static void MockRemoteBasicValid(Mock<IBitbucketRestApi> bitbucketApi, InputArguments input, string password, bool twoFactor)
         {
             var userInfo = new UserInfo() { IsTwoFactorAuthenticationEnabled = twoFactor };
             // Basic
@@ -595,7 +595,7 @@ namespace Atlassian.Bitbucket.Tests
 
         }
 
-        private static void MockRemoteOAuthAccountIsValid(Mock<IBitbucketRestApi> bitbucketApi, InputArguments input, string password, bool twoFAEnabled)
+        private static void MockRemoteAccessTokenValid(Mock<IBitbucketRestApi> bitbucketApi, InputArguments input, string password, bool twoFAEnabled)
         {
             var userInfo = new UserInfo() { IsTwoFactorAuthenticationEnabled = twoFAEnabled };
             // OAuth
