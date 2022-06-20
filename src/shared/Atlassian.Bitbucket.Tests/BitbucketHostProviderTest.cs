@@ -138,7 +138,7 @@ namespace Atlassian.Bitbucket.Tests
         [Theory]
         [InlineData("https", DC_SERVER_HOST, "jsquire", "password")]
         [InlineData("https", BITBUCKET_DOT_ORG_HOST, "jsquire", "password")]
-        public void BitbucketHostProvider_GetCredentialAsync_Succeeds_ForValidStoredBasicAuthAccount(string protocol, string host, string username,string password)
+        public async Task BitbucketHostProvider_GetCredentialAsync_Succeeds_ForValidStoredBasicAuthAccount(string protocol, string host, string username,string password)
         {
             InputArguments input = MockInput(protocol, host, username);
 
@@ -149,7 +149,7 @@ namespace Atlassian.Bitbucket.Tests
 
             var provider = new BitbucketHostProvider(context, bitbucketAuthentication.Object, bitbucketApi.Object);
 
-            var credential = provider.GetCredentialAsync(input);
+            var credential = await provider.GetCredentialAsync(input);
 
             //verify bitbucket.org credentials were validated
             if (BITBUCKET_DOT_ORG_HOST.Equals(host))
@@ -172,7 +172,7 @@ namespace Atlassian.Bitbucket.Tests
         [Theory]
         // DC/Server does not currently support OAuth
         [InlineData("https", BITBUCKET_DOT_ORG_HOST, "jsquire", "password")]
-        public void BitbucketHostProvider_GetCredentialAsync_Succeeds_ForValidStoredOAuthAccount(string protocol, string host, string username,string token)
+        public async Task BitbucketHostProvider_GetCredentialAsync_Succeeds_ForValidStoredOAuthAccount(string protocol, string host, string username,string token)
         {
             InputArguments input = MockInput(protocol, host, username);
 
@@ -183,7 +183,7 @@ namespace Atlassian.Bitbucket.Tests
 
             var provider = new BitbucketHostProvider(context, bitbucketAuthentication.Object, bitbucketApi.Object);
 
-            var credential = provider.GetCredentialAsync(input);
+            var credential = await provider.GetCredentialAsync(input);
 
             //verify bitbucket.org credentials were validated
             VerifyValidateOAuthCredentialsRan();
@@ -200,7 +200,7 @@ namespace Atlassian.Bitbucket.Tests
         [InlineData("https", DC_SERVER_HOST, "jsquire", "password")]
         // cloud
         [InlineData("https", BITBUCKET_DOT_ORG_HOST, "jsquire", "password")]
-        public void BitbucketHostProvider_GetCredentialAsync_Succeeds_ForFreshValidBasicAuthAccount(string protocol, string host, string username, string password)
+        public async Task BitbucketHostProvider_GetCredentialAsync_Succeeds_ForFreshValidBasicAuthAccount(string protocol, string host, string username, string password)
         {
             InputArguments input = MockInput(protocol, host, username);
 
@@ -217,7 +217,7 @@ namespace Atlassian.Bitbucket.Tests
 
             var provider = new BitbucketHostProvider(context, bitbucketAuthentication.Object, bitbucketApi.Object);
 
-            var credential = provider.GetCredentialAsync(input);
+            var credential = await provider.GetCredentialAsync(input);
 
             VerifyBasicAuthFlowRan(password, true, input, credential);
 
@@ -227,7 +227,7 @@ namespace Atlassian.Bitbucket.Tests
         [Theory]
         // DC/Server does not currently support OAuth
         [InlineData("https", BITBUCKET_DOT_ORG_HOST, "jsquire", MOCK_ACCESS_TOKEN)]
-        public void BitbucketHostProvider_GetCredentialAsync_Succeeds_ForFreshValid2FAAcccount(string protocol, string host, string username, string password)
+        public async Task BitbucketHostProvider_GetCredentialAsync_Succeeds_ForFreshValid2FAAcccount(string protocol, string host, string username, string password)
         {
             var input = MockInput(protocol, host, username);
 
@@ -242,7 +242,7 @@ namespace Atlassian.Bitbucket.Tests
 
             var provider = new BitbucketHostProvider(context, bitbucketAuthentication.Object, bitbucketApi.Object);
 
-            var credential = provider.GetCredentialAsync(input);
+            var credential = await provider.GetCredentialAsync(input);
 
             VerifyOAuthFlowRan(password, false, true, input, credential, null);
 
@@ -254,7 +254,7 @@ namespace Atlassian.Bitbucket.Tests
         [InlineData("https", BITBUCKET_DOT_ORG_HOST, "jsquire", "password", "basic")]
         [InlineData("https", BITBUCKET_DOT_ORG_HOST, "jsquire", "password", "oauth")]
         // Basic Auth works
-        public void BitbucketHostProvider_GetCredentialAsync_ForcedAuthMode_IsRespected(string protocol, string host, string username, string password,
+        public async Task BitbucketHostProvider_GetCredentialAsync_ForcedAuthMode_IsRespected(string protocol, string host, string username, string password,
             string preconfiguredAuthModes)
         {
             var input = MockInput(protocol, host, username);
@@ -271,7 +271,7 @@ namespace Atlassian.Bitbucket.Tests
 
             var provider = new BitbucketHostProvider(context, bitbucketAuthentication.Object, bitbucketApi.Object);
 
-            var credential = provider.GetCredentialAsync(input);
+            var credential = await provider.GetCredentialAsync(input);
 
             Assert.NotNull(credential);
 
@@ -301,7 +301,7 @@ namespace Atlassian.Bitbucket.Tests
         [InlineData("https", DC_SERVER_HOST, "jsquire", "password", "1")]
         [InlineData("https", DC_SERVER_HOST, "jsquire", "password", "true")]
         [InlineData("https", DC_SERVER_HOST, "jsquire", "password", null)]
-        public void BitbucketHostProvider_GetCredentialAsync_AlwaysRefreshCredentials_IsRespected(string protocol, string host, string username, string password,
+        public async Task BitbucketHostProvider_GetCredentialAsync_AlwaysRefreshCredentials_IsRespected(string protocol, string host, string username, string password,
             string alwaysRefreshCredentials)
         {
             var input = MockInput(protocol, host, username);
@@ -319,7 +319,7 @@ namespace Atlassian.Bitbucket.Tests
 
             var provider = new BitbucketHostProvider(context, bitbucketAuthentication.Object, bitbucketApi.Object);
 
-            var credential = provider.GetCredentialAsync(input);
+            var credential = await provider.GetCredentialAsync(input);
 
             var alwaysRefreshCredentialsBool = "1".Equals(alwaysRefreshCredentials)
                 || "on".Equals(alwaysRefreshCredentials)
@@ -450,7 +450,7 @@ namespace Atlassian.Bitbucket.Tests
             });
         }
 
-        private void VerifyBasicAuthFlowRan(string password, bool expected, InputArguments input, Task<ICredential> credential)
+        private void VerifyBasicAuthFlowRan(string password, bool expected, InputArguments input, ICredential credential)
         {
             Assert.Equal(expected, credential != null);
 
@@ -459,7 +459,7 @@ namespace Atlassian.Bitbucket.Tests
             bitbucketAuthentication.Verify(m => m.GetCredentialsAsync(remoteUri, input.UserName, It.IsAny<AuthenticationModes>()), Times.Once);
         }
 
-        private void VerifyInteractiveBasicAuthFlowRan(string password, InputArguments input, Task<ICredential> credential)
+        private void VerifyInteractiveBasicAuthFlowRan(string password, InputArguments input, ICredential credential)
         {
             var remoteUri = input.GetRemoteUri();
 
@@ -485,14 +485,14 @@ namespace Atlassian.Bitbucket.Tests
             }
         }
 
-        private void VerifyInteractiveBasicAuthFlowNeverRan(string password, InputArguments input, Task<ICredential> credential)
+        private void VerifyInteractiveBasicAuthFlowNeverRan(string password, InputArguments input, ICredential credential)
         {
             var remoteUri = input.GetRemoteUri();
 
             bitbucketAuthentication.Verify(m => m.GetCredentialsAsync(remoteUri, input.UserName, It.IsAny<AuthenticationModes>()), Times.Never);
         }
 
-        private void VerifyOAuthFlowRan(string password, bool storedAccount, bool expected, InputArguments input, Task<ICredential> credential,
+        private void VerifyOAuthFlowRan(string password, bool storedAccount, bool expected, InputArguments input, ICredential credential,
             string preconfiguredAuthModes)
         {
             Assert.Equal(expected, credential != null);
@@ -517,7 +517,7 @@ namespace Atlassian.Bitbucket.Tests
             }
         }
 
-        private void VerifyInteractiveOAuthFlowRan(string password, InputArguments input, System.Threading.Tasks.Task<ICredential> credential)
+        private void VerifyInteractiveOAuthFlowRan(string password, InputArguments input, ICredential credential)
         {
             var remoteUri = input.GetRemoteUri();
 
@@ -526,7 +526,7 @@ namespace Atlassian.Bitbucket.Tests
 
         }
 
-        private void VerifyOAuthFlowDidNotRun(string password, bool expected, InputArguments input, System.Threading.Tasks.Task<ICredential> credential)
+        private void VerifyOAuthFlowDidNotRun(string password, bool expected, InputArguments input, ICredential credential)
         {
             Assert.Equal(expected, credential != null);
 
@@ -542,7 +542,7 @@ namespace Atlassian.Bitbucket.Tests
             bitbucketApi.Verify(m => m.GetUserInformationAsync(null, MOCK_ACCESS_TOKEN, true), Times.Never);
         }
 
-        private void VerifyInteractiveOAuthFlowNeverRan(InputArguments input, System.Threading.Tasks.Task<ICredential> credential)
+        private void VerifyInteractiveOAuthFlowNeverRan(InputArguments input, ICredential credential)
         {
             var remoteUri = input.GetRemoteUri();
 
