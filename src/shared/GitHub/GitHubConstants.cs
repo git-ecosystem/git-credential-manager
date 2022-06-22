@@ -9,6 +9,7 @@ namespace GitHub
 
         public const string DefaultAuthenticationHelper = "GitHub.UI";
 
+        // https://github.com/settings/connections/applications/0120e057bd645470c1ed
         public const string OAuthClientId = "0120e057bd645470c1ed";
 
         // [SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification="OAuth2 public client application 'secrets' are required and permitted to be public")]

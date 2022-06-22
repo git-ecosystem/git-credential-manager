@@ -40,8 +40,8 @@ namespace GitCredentialManager
 
         public override bool IsSupported(InputArguments input)
         {
-            return input != null && (StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "http") ||
-                                     StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "https"));
+            // The generic provider should support all possible protocols (HTTP, HTTPS, SMTP, IMAP, etc)
+            return input != null && !string.IsNullOrWhiteSpace(input.Protocol);
         }
 
         public override async Task<ICredential> GenerateCredentialAsync(InputArguments input)
@@ -51,7 +51,12 @@ namespace GitCredentialManager
             Uri uri = input.GetRemoteUri();
 
             // Determine the if the host supports Windows Integration Authentication (WIA)
-            if (IsWindowsAuthAllowed)
+            if (!StringComparer.OrdinalIgnoreCase.Equals(uri.Scheme, "http") &&
+                !StringComparer.OrdinalIgnoreCase.Equals(uri.Scheme, "https"))
+            {
+                // Cannot check WIA support for non-HTTP based protocols
+            }
+            else if (IsWindowsAuthAllowed)
             {
                 if (PlatformUtils.IsWindows())
                 {

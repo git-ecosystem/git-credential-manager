@@ -1,6 +1,10 @@
 using System;
+using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
+using GitCredentialManager;
 using GitCredentialManager.Tests.Objects;
+using Moq;
 using Xunit;
 
 namespace Atlassian.Bitbucket.Tests
@@ -105,18 +109,111 @@ namespace Atlassian.Bitbucket.Tests
         }
 
         [Fact]
-        public async Task BitbucketAuthentication_ShowOAuthRequiredPromptAsync_SucceedsAfterUserInput()
+        public async Task BitbucketAuthentication_GetCredentialsAsync_AllModes_NoUser_BBCloud_HelperCmdLine()
         {
+            var targetUri = new Uri("https://bitbucket.org");
+
+            var helperPath = "/usr/bin/test-helper";
+            var expectedUserName = "jsquire";
+            var expectedPassword = "password";
+            var resultDict = new Dictionary<string, string>
+            {
+                ["username"] = expectedUserName,
+                ["password"] = expectedPassword
+            };
+
+            string expectedArgs = $"prompt --show-basic --show-oauth";
+
             var context = new TestCommandContext();
-            context.Terminal.Prompts["Press enter to continue..."] = " ";
+            context.SessionManager.IsDesktopSession = true; // Enable OAuth and UI helper selection
 
-            var bitbucketAuthentication = new BitbucketAuthentication(context);
+            var authMock = new Mock<BitbucketAuthentication>(context) { CallBase = true };
+            authMock.Setup(x => x.TryFindHelperExecutablePath(out helperPath))
+                .Returns(true);
+            authMock.Setup(x => x.InvokeHelperAsync(It.IsAny<string>(), It.IsAny<string>(), null, CancellationToken.None))
+                .ReturnsAsync(resultDict);
 
-            var result = await bitbucketAuthentication.ShowOAuthRequiredPromptAsync();
+            BitbucketAuthentication auth = authMock.Object;
+            CredentialsPromptResult result = await auth.GetCredentialsAsync(targetUri, null, AuthenticationModes.All);
 
-            Assert.True(result);
-            Assert.Equal($"Your account has two-factor authentication enabled.{Environment.NewLine}" +
-                                           $"To continue you must complete authentication in your web browser.{Environment.NewLine}", context.Terminal.Messages[0].Item1);
+            Assert.Equal(AuthenticationModes.Basic, result.AuthenticationMode);
+            Assert.Equal(result.Credential.Account, expectedUserName);
+            Assert.Equal(result.Credential.Password, expectedPassword);
+
+            authMock.Verify(x => x.InvokeHelperAsync(helperPath, expectedArgs, null, CancellationToken.None),
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task BitbucketAuthentication_GetCredentialsAsync_BasicOnly_User_BBCloud_HelperCmdLine()
+        {
+            var targetUri = new Uri("https://bitbucket.org");
+
+            var helperPath = "/usr/bin/test-helper";
+            var expectedUserName = "jsquire";
+            var expectedPassword = "password";
+            var resultDict = new Dictionary<string, string>
+            {
+                ["username"] = expectedUserName,
+                ["password"] = expectedPassword
+            };
+
+            string expectedArgs = $"prompt --username {expectedUserName} --show-basic";
+
+            var context = new TestCommandContext();
+            context.SessionManager.IsDesktopSession = true; // Enable UI helper selection
+
+            var authMock = new Mock<BitbucketAuthentication>(context) { CallBase = true };
+            authMock.Setup(x => x.TryFindHelperExecutablePath(out helperPath))
+                .Returns(true);
+            authMock.Setup(x => x.InvokeHelperAsync(It.IsAny<string>(), It.IsAny<string>(), null, CancellationToken.None))
+                .ReturnsAsync(resultDict);
+
+            BitbucketAuthentication auth = authMock.Object;
+            CredentialsPromptResult result = await auth.GetCredentialsAsync(targetUri, expectedUserName, AuthenticationModes.Basic);
+
+            Assert.Equal(AuthenticationModes.Basic, result.AuthenticationMode);
+            Assert.Equal(result.Credential.Account, expectedUserName);
+            Assert.Equal(result.Credential.Password, expectedPassword);
+
+            authMock.Verify(x => x.InvokeHelperAsync(helperPath, expectedArgs, null, CancellationToken.None),
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task BitbucketAuthentication_GetCredentialsAsync_AllModes_NoUser_BBServerDC_HelperCmdLine()
+        {
+            var targetUri = new Uri("https://example.com/bitbucket");
+
+            var helperPath = "/usr/bin/test-helper";
+            var expectedUserName = "jsquire";
+            var expectedPassword = "password";
+            var resultDict = new Dictionary<string, string>
+            {
+                ["username"] = expectedUserName,
+                ["password"] = expectedPassword
+            };
+
+            string expectedArgs = $"prompt --url {targetUri} --show-basic --show-oauth";
+
+            var context = new TestCommandContext();
+            context.SessionManager.IsDesktopSession = true; // Enable OAuth and UI helper selection
+
+            var authMock = new Mock<BitbucketAuthentication>(context) { CallBase = true };
+            authMock.Setup(x => x.TryFindHelperExecutablePath(out helperPath))
+                .Returns(true);
+            authMock.Setup(x => x.InvokeHelperAsync(It.IsAny<string>(), It.IsAny<string>(), null, CancellationToken.None))
+                .ReturnsAsync(resultDict);
+
+            BitbucketAuthentication auth = authMock.Object;
+            CredentialsPromptResult result = await auth.GetCredentialsAsync(targetUri, null, AuthenticationModes.All);
+
+            Assert.Equal(AuthenticationModes.Basic, result.AuthenticationMode);
+            Assert.Equal(result.Credential.Account, expectedUserName);
+            Assert.Equal(result.Credential.Password, expectedPassword);
+
+            authMock.Verify(x => x.InvokeHelperAsync(helperPath, expectedArgs, null, CancellationToken.None),
+                Times.Once);
         }
     }
 }

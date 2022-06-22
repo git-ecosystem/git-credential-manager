@@ -107,7 +107,7 @@ namespace GitCredentialManager
                 FileSystem        = new MacOSFileSystem();
                 SessionManager    = new MacOSSessionManager();
                 SystemPrompts     = new MacOSSystemPrompts();
-                Environment       = new PosixEnvironment(FileSystem);
+                Environment       = new MacOSEnvironment(FileSystem);
                 Terminal          = new MacOSTerminal(Trace);
                 string gitPath    = GetGitPath(Environment, FileSystem, Trace);
                 Git               = new GitProcess(

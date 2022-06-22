@@ -49,6 +49,15 @@ namespace Atlassian.Bitbucket
             }
         }
 
+        public static class HelpUrls
+        {
+            public const string DataCenterPasswordReset = "/passwordreset";
+            public const string DataCenterLogin = "/login";
+            public const string PasswordReset = "https://bitbucket.org/account/password/reset/";
+            public const string SignUp = "https://bitbucket.org/account/signup/";
+            public const string TwoFactor = "https://support.atlassian.com/bitbucket-cloud/docs/enable-two-step-verification/";
+        }
+
         /// <summary>
         /// Supported authentication modes for Bitbucket.org
         /// </summary>

@@ -4,12 +4,12 @@ Git Credential Manager (GCM) can be configured using multiple
 different mechanisms. In order of preference, those mechanisms are:
 
 1. [Environment variables](environment.md)
-2. [Standard Git configuration files](configuration.md)
+1. [Standard Git configuration files](configuration.md)
    1. Repository/local configuration (`.git/config`)
-   2. User/global configuration (`$HOME/.gitconfig` or `%HOME%\.gitconfig`)
-   3. Installation/system configuration (`etc/gitconfig`)
-3. Enterprise system administrator defaults
-4. Compiled default values
+   1. User/global configuration (`$HOME/.gitconfig` or `%HOME%\.gitconfig`)
+   1. Installation/system configuration (`etc/gitconfig`)
+1. Enterprise system administrator defaults
+1. Compiled default values
 
 This model largely matches what Git itself supports, namely environment
 variables that take precedence over Git configuration files.
@@ -18,25 +18,25 @@ The addition of the enterprise system administrator defaults enables those
 administrators to configure many GCM settings using familiar MDM tooling, rather
 than having to modify the Git installation configuration files.
 
-### User Freedom
+## User Freedom
 
 We believe the user should _always_ be at liberty to configure
-Git and GCM exactly as they wish. By prefering environment variables and Git
+Git and GCM exactly as they wish. By preferring environment variables and Git
 configuration files over system admin values, these only act as _default values_
-that can always be overriden by the user in the usual ways.
+that can always be overridden by the user in the usual ways.
 
 ## Windows
 
 Default setting values come from the Windows Registry, specifically the
 following keys:
 
-**32-bit Windows**
+### 32-bit Windows
 
 ```text
 HKEY_LOCAL_MACHINE\SOFTWARE\GitCredentialManager\Configuration
 ```
 
-**64-bit Windows**
+### 64-bit Windows
 
 ```text
 HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\GitCredentialManager\Configuration
@@ -54,7 +54,6 @@ those of the [Git configuration](configuration.md) settings.
 
 The type of each registry key can be either `REG_SZ` (string) or `REG_DWORD`
 (integer).
-
 
 ## macOS/Linux
 

@@ -75,12 +75,12 @@ SYMBOLOUT="$PROJ_OUT/payload.sym/$CONFIGURATION"
 
 if [ $INSTALL_FROM_SOURCE = false ]; then
     TAROUT="$PROJ_OUT/tar/$CONFIGURATION"
-    TARBALL="$TAROUT/gcmcore-linux_$ARCH.$VERSION.tar.gz"
-    SYMTARBALL="$TAROUT/symbols-linux_$ARCH.$VERSION.tar.gz"
+    TARBALL="$TAROUT/gcm-linux_$ARCH.$VERSION.tar.gz"
+    SYMTARBALL="$TAROUT/gcm-linux_$ARCH.$VERSION-symbols.tar.gz"
 
     DEBOUT="$PROJ_OUT/deb/$CONFIGURATION"
     DEBROOT="$DEBOUT/root"
-    DEBPKG="$DEBOUT/gcmcore-linux_$ARCH.$VERSION.deb"
+    DEBPKG="$DEBOUT/gcm-linux_$ARCH.$VERSION.deb"
 else
     INSTALL_LOCATION="/usr/local"
 fi
@@ -106,9 +106,13 @@ else
     mkdir -p "$INSTALL_LOCATION"
 fi
 
+if [ -z "$DOTNET_ROOT" ]; then
+    DOTNET_ROOT="$(dirname $(which dotnet))"
+fi
+
 # Publish core application executables
 echo "Publishing core application..."
-dotnet publish "$GCM_SRC" \
+$DOTNET_ROOT/dotnet publish "$GCM_SRC" \
 	--configuration="$CONFIGURATION" \
 	--framework="$FRAMEWORK" \
 	--runtime="$RUNTIME" \
@@ -117,7 +121,7 @@ dotnet publish "$GCM_SRC" \
 	--output="$(make_absolute "$PAYLOAD")" || exit 1
 
 echo "Publishing Bitbucket UI helper..."
-dotnet publish "$BITBUCKET_UI_SRC" \
+$DOTNET_ROOT/dotnet publish "$BITBUCKET_UI_SRC" \
 	--configuration="$CONFIGURATION" \
 	--framework="$FRAMEWORK" \
 	--runtime="$RUNTIME" \
@@ -126,7 +130,7 @@ dotnet publish "$BITBUCKET_UI_SRC" \
 	--output="$(make_absolute "$PAYLOAD")" || exit 1
 
 echo "Publishing GitHub UI helper..."
-dotnet publish "$GITHUB_UI_SRC" \
+$DOTNET_ROOT/dotnet publish "$GITHUB_UI_SRC" \
 	--configuration="$CONFIGURATION" \
 	--framework="$FRAMEWORK" \
 	--runtime="$RUNTIME" \
@@ -135,7 +139,7 @@ dotnet publish "$GITHUB_UI_SRC" \
 	--output="$(make_absolute "$PAYLOAD")" || exit 1
 
 echo "Publishing GitLab UI helper..."
-dotnet publish "$GITLAB_UI_SRC" \
+$DOTNET_ROOT/dotnet publish "$GITLAB_UI_SRC" \
 	--configuration="$CONFIGURATION" \
 	--framework="$FRAMEWORK" \
 	--runtime="$RUNTIME" \
@@ -189,7 +193,7 @@ if [ $INSTALL_FROM_SOURCE = false ]; then
 # https://stackoverflow.com/questions/9349616/bash-eof-in-if-statement
 # for details
 cat >"$DEBROOT/DEBIAN/control" <<EOF
-Package: gcmcore
+Package: gcm
 Version: $VERSION
 Section: vcs
 Priority: optional

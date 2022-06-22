@@ -1,3 +1,4 @@
+using System;
 using System.ComponentModel;
 using System.Windows.Input;
 using GitCredentialManager;
@@ -10,9 +11,11 @@ namespace Atlassian.Bitbucket.UI.ViewModels
     {
         private readonly IEnvironment _environment;
 
+        private Uri _url;
         private string _userName;
         private string _password;
         private bool _showOAuth;
+        private bool _showBasic;
 
         public CredentialsViewModel()
         {
@@ -26,7 +29,7 @@ namespace Atlassian.Bitbucket.UI.ViewModels
             _environment = environment;
 
             Title = "Connect to Bitbucket";
-            LoginCommand = new RelayCommand(Accept, CanLogin);
+            LoginCommand = new RelayCommand(AcceptBasic, CanLogin);
             CancelCommand = new RelayCommand(Cancel);
             OAuthCommand = new RelayCommand(AcceptOAuth, CanAcceptOAuth);
             ForgotPasswordCommand = new RelayCommand(ForgotPassword);
@@ -51,9 +54,15 @@ namespace Atlassian.Bitbucket.UI.ViewModels
             return !string.IsNullOrWhiteSpace(UserName) && !string.IsNullOrWhiteSpace(Password);
         }
 
+        private void AcceptBasic()
+        {
+            SelectedMode = AuthenticationModes.Basic;
+            Accept();
+        }
+
         private void AcceptOAuth()
         {
-            UseOAuth = true;
+            SelectedMode = AuthenticationModes.OAuth;
             Accept();
         }
 
@@ -64,12 +73,26 @@ namespace Atlassian.Bitbucket.UI.ViewModels
 
         private void ForgotPassword()
         {
-            BrowserUtils.OpenDefaultBrowser(_environment, "https://bitbucket.org/account/password/reset/");
+            Uri passwordResetUri = _url is null
+                ? new Uri(BitbucketConstants.HelpUrls.PasswordReset)
+                : new Uri(_url, BitbucketConstants.HelpUrls.DataCenterPasswordReset);
+
+            BrowserUtils.OpenDefaultBrowser(_environment, passwordResetUri);
         }
 
         private void SignUp()
         {
-            BrowserUtils.OpenDefaultBrowser(_environment, "https://bitbucket.org/account/signup/");
+            Uri signUpUri = _url is null
+                ? new Uri(BitbucketConstants.HelpUrls.SignUp)
+                : new Uri(_url, BitbucketConstants.HelpUrls.DataCenterLogin);
+
+            BrowserUtils.OpenDefaultBrowser(_environment, signUpUri);
+        }
+
+        public Uri Url
+        {
+            get => _url;
+            set => SetAndRaisePropertyChanged(ref _url, value);
         }
 
         public string UserName
@@ -85,7 +108,7 @@ namespace Atlassian.Bitbucket.UI.ViewModels
         }
 
         /// <summary>
-        /// Show the direct-to-OAuth button.
+        /// Show the OAuth option.
         /// </summary>
         public bool ShowOAuth
         {
@@ -94,13 +117,15 @@ namespace Atlassian.Bitbucket.UI.ViewModels
         }
 
         /// <summary>
-        /// User indicated a preference to use OAuth authentication over username/password.
+        /// Show the basic authentication options.
         /// </summary>
-        public bool UseOAuth
+        public bool ShowBasic
         {
-            get;
-            private set;
+            get => _showBasic;
+            set => SetAndRaisePropertyChanged(ref _showBasic, value);
         }
+
+        public AuthenticationModes SelectedMode { get; private set; }
 
         /// <summary>
         /// Start the process to validate the username/password

@@ -9,11 +9,9 @@ namespace GitCredentialManager.Interop.Windows
 {
     public class WindowsCredentialManager : ICredentialStore
     {
-        private const string TargetNameLegacyGenericPrefix = "LegacyGeneric:target=";
+        internal const string TargetNameLegacyGenericPrefix = "LegacyGeneric:target=";
 
         private readonly string _namespace;
-
-        #region Constructors
 
         /// <summary>
         /// Open the Windows Credential Manager vault for the current user.
@@ -25,10 +23,6 @@ namespace GitCredentialManager.Interop.Windows
             PlatformUtils.EnsureWindows();
             _namespace = @namespace;
         }
-
-        #endregion
-
-        #region ICredentialStore
 
         public ICredential Get(string service, string account)
         {
@@ -65,6 +59,15 @@ namespace GitCredentialManager.Interop.Windows
                     {
                         // Create new entry with the account in the target name
                         targetName = CreateTargetName(service, account);
+                    }
+                    else
+                    {
+                        // No need to write out credential if the account and secret/password are the same
+                        string existingSecret = existingCred.GetCredentialBlobAsString();
+                        if (StringComparer.Ordinal.Equals(existingSecret, secret))
+                        {
+                            return;
+                        }
                     }
                 }
 
@@ -128,8 +131,6 @@ namespace GitCredentialManager.Interop.Windows
 
             return false;
         }
-
-        #endregion
 
         /// <summary>
         /// Check if we can persist credentials to for the current process and logon session.
@@ -205,14 +206,7 @@ namespace GitCredentialManager.Interop.Windows
 
         private WindowsCredential CreateCredentialFromStructure(Win32Credential credential)
         {
-            string password = null;
-            if (credential.CredentialBlobSize != 0 && credential.CredentialBlob != IntPtr.Zero)
-            {
-                byte[] passwordBytes = InteropUtils.ToByteArray(
-                    credential.CredentialBlob,
-                    credential.CredentialBlobSize);
-                password = Encoding.Unicode.GetString(passwordBytes);
-            }
+            string password = credential.GetCredentialBlobAsString();
 
             // Recover the target name we gave from the internal (raw) target name
             string targetName = credential.TargetName.TrimUntilIndexOf(TargetNameLegacyGenericPrefix);
@@ -266,7 +260,7 @@ namespace GitCredentialManager.Interop.Windows
             return url;
         }
 
-        private bool IsMatch(string service, string account, Win32Credential credential)
+        internal /* for testing */ bool IsMatch(string service, string account, Win32Credential credential)
         {
             // Match against the username first
             if (!string.IsNullOrWhiteSpace(account) &&
@@ -292,6 +286,12 @@ namespace GitCredentialManager.Interop.Windows
             if (Uri.TryCreate(service, UriKind.Absolute, out Uri serviceUri) &&
                 Uri.TryCreate(targetName, UriKind.Absolute, out Uri targetUri))
             {
+                // Match scheme/protocol
+                if (!StringComparer.OrdinalIgnoreCase.Equals(serviceUri.Scheme, targetUri.Scheme))
+                {
+                    return false;
+                }
+
                 // Match host name
                 if (!StringComparer.OrdinalIgnoreCase.Equals(serviceUri.Host, targetUri.Host))
                 {
@@ -299,7 +299,7 @@ namespace GitCredentialManager.Interop.Windows
                 }
 
                 // Match port number
-                if (!serviceUri.IsDefaultPort && serviceUri.Port == targetUri.Port)
+                if (serviceUri.Port != targetUri.Port)
                 {
                     return false;
                 }
@@ -319,7 +319,7 @@ namespace GitCredentialManager.Interop.Windows
             return false;
         }
 
-        private string CreateTargetName(string service, string account)
+        internal /* for testing */ string CreateTargetName(string service, string account)
         {
             var serviceUri = new Uri(service, UriKind.Absolute);
             var sb = new StringBuilder();
@@ -345,9 +345,15 @@ namespace GitCredentialManager.Interop.Windows
                 sb.Append(serviceUri.Host);
             }
 
-            if (!string.IsNullOrWhiteSpace(serviceUri.AbsolutePath.TrimEnd('/')))
+            if (!serviceUri.IsDefaultPort)
             {
-                sb.Append(serviceUri.AbsolutePath);
+                sb.AppendFormat(":{0}", serviceUri.Port);
+            }
+
+            string trimmedPath = serviceUri.AbsolutePath.TrimEnd('/');
+            if (!string.IsNullOrWhiteSpace(trimmedPath))
+            {
+                sb.Append(trimmedPath);
             }
 
             return sb.ToString();

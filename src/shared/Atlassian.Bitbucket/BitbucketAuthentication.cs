@@ -23,7 +23,6 @@ namespace Atlassian.Bitbucket
     public interface IBitbucketAuthentication : IDisposable
     {
         Task<CredentialsPromptResult> GetCredentialsAsync(Uri targetUri, string userName, AuthenticationModes modes);
-        Task<bool> ShowOAuthRequiredPromptAsync();
         Task<OAuth2TokenResult> CreateOAuthCredentialsAsync(Uri targetUri);
         Task<OAuth2TokenResult> RefreshOAuthCredentialsAsync(string refreshToken);
     }
@@ -62,8 +61,6 @@ namespace Atlassian.Bitbucket
         public BitbucketAuthentication(ICommandContext context)
             : base(context) { }
 
-        #region IBitbucketAuthentication
-
         public async Task<CredentialsPromptResult> GetCredentialsAsync(Uri targetUri, string userName, AuthenticationModes modes)
         {
             ThrowIfUserInteractionDisabled();
@@ -93,10 +90,20 @@ namespace Atlassian.Bitbucket
             if (Context.Settings.IsGuiPromptsEnabled && Context.SessionManager.IsDesktopSession &&
                 TryFindHelperExecutablePath(out string helperPath))
             {
-                var cmdArgs = new StringBuilder("userpass");
+                var cmdArgs = new StringBuilder("prompt");
+                if (!BitbucketHostProvider.IsBitbucketOrg(targetUri))
+                {
+                    cmdArgs.AppendFormat(" --url {0}", QuoteCmdArg(targetUri.ToString()));
+                }
+
                 if (!string.IsNullOrWhiteSpace(userName))
                 {
                     cmdArgs.AppendFormat(" --username {0}", QuoteCmdArg(userName));
+                }
+
+                if ((modes & AuthenticationModes.Basic) != 0)
+                {
+                    cmdArgs.Append(" --show-basic");
                 }
 
                 if ((modes & AuthenticationModes.OAuth) != 0)
@@ -182,35 +189,6 @@ namespace Atlassian.Bitbucket
             }
         }
 
-        public async Task<bool> ShowOAuthRequiredPromptAsync()
-        {
-            ThrowIfUserInteractionDisabled();
-
-            // Shell out to the UI helper and show the Bitbucket prompt
-            if (Context.Settings.IsGuiPromptsEnabled && Context.SessionManager.IsDesktopSession &&
-                TryFindHelperExecutablePath(out string helperPath))
-            {
-                IDictionary<string, string> output = await InvokeHelperAsync(helperPath, "oauth");
-
-                if (output.TryGetValue("continue", out string continueStr) && continueStr.IsTruthy())
-                {
-                    return true;
-                }
-
-                return false;
-            }
-            else
-            {
-                ThrowIfTerminalPromptsDisabled();
-
-                Context.Terminal.WriteLine($"Your account has two-factor authentication enabled.{Environment.NewLine}" +
-                                           $"To continue you must complete authentication in your web browser.{Environment.NewLine}");
-
-                var _ = Context.Terminal.Prompt("Press enter to continue...");
-                return true;
-            }
-        }
-
         public async Task<OAuth2TokenResult> CreateOAuthCredentialsAsync(Uri targetUri)
         {
             ThrowIfUserInteractionDisabled();
@@ -236,11 +214,7 @@ namespace Atlassian.Bitbucket
             return await oauthClient.GetTokenByRefreshTokenAsync(refreshToken, CancellationToken.None);
         }
 
-        #endregion
-
-        #region Private Methods
-
-        private bool TryFindHelperExecutablePath(out string path)
+        protected internal virtual bool TryFindHelperExecutablePath(out string path)
         {
             return TryFindHelperExecutablePath(
                 BitbucketConstants.EnvironmentVariables.AuthenticationHelper,
@@ -252,15 +226,9 @@ namespace Atlassian.Bitbucket
         private HttpClient _httpClient;
         private HttpClient HttpClient => _httpClient ??= Context.HttpClientFactory.CreateClient();
 
-        #endregion
-
-        #region IDisposable
-
         public void Dispose()
         {
             _httpClient?.Dispose();
         }
-
-        #endregion
     }
 }

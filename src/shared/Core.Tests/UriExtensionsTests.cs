@@ -27,7 +27,7 @@ namespace GitCredentialManager.Tests
         }
 
         [Theory]
-        [InlineData("http://com")]
+        [InlineData("http://hostname", "http://hostname")]
         [InlineData("http://example.com",
             "http://example.com")]
         [InlineData("http://foo.example.com",

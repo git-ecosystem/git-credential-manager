@@ -14,17 +14,17 @@ Please follow these steps to diagnose or resolve the problem:
 
 1. If all else fails, create an issue [here](https://github.com/GitCredentialManager/git-credential-manager/issues/create), making sure to include the trace log.
 
-### Q: I got an error saying unsecure HTTP is not supported.
+### Q: I got an error saying unsecure HTTP is not supported
 
 To keep your data secure, Git Credential Manager will not send credentials for Azure Repos, Azure DevOps Server (TFS), GitHub, and Bitbucket, over HTTP connections that are not secured using TLS (HTTPS).
 
 Please make sure your remote URLs use "https://" rather than "http://".
 
-### Q: I got an authentication error and I am behind a network proxy.
+### Q: I got an authentication error and I am behind a network proxy
 
 You probably need to configure Git and GCM to use a proxy. Please see detailed information [here](https://aka.ms/gcm/httpproxy).
 
-### Q: I'm getting errors about picking a credential store on Linux.
+### Q: I'm getting errors about picking a credential store on Linux
 
 On Linux you must [select and configure a credential store](https://aka.ms/gcm/credstores), as due to the varied nature of distributions and installations, we cannot guarantee a suitable storage solution is available.
 
@@ -65,7 +65,7 @@ GCM Windows was not designed with a cross-platform architecture.
 
 ### What level of support does GCM have?
 
-Support will be best-effort. We would really appreciate your feedback to make this a great experience across each platform we support. 
+Support will be best-effort. We would really appreciate your feedback to make this a great experience across each platform we support.
 
 ### Q: Why does GCM not support operating system/distribution 'X', or Git hosting provider 'Y'?
 
@@ -136,3 +136,31 @@ information.
 
 You may also set these variables to the empty string `""` to force terminal/
 text-based prompts instead.
+
+### How do I revoke consent for GCM for GitHub.com?
+
+In your GitHub user settings, navigate to
+[Integrations > Applications > Authorized OAuth Apps > Git Credential Manager](https://github.com/settings/connections/applications/0120e057bd645470c1ed)
+and pick "Revoke access".
+
+![Revoke GCM OAuth app access](img/github-oauthapp-revoke.png)
+
+After revoking access, any tokens created by GCM will be invalidated and can no longer be used to access your repositories. The next time GCM attempts to access GitHub.com you will be prompted to consent again.
+
+### I used the install from source script to install GCM on my Linux distribution. Now how can I uninstall GCM and its dependencies?
+
+Please see full instructions [here](./linux-fromsrc-uninstall.md).
+
+### How do I revoke access for a GitLab OAuth application?
+
+There are some scenarios (e.g. updated scopes) for which you will need to manually revoke and re-authorize access for a GitLab OAuth application. You can do so by:
+
+1. Navigating to [the **Applications** page within your **User Settings**](https://gitlab.com/-/profile/applications).
+2. Scrolling to **Authorized applications**.
+3. Clicking the **Revoke** button next to the name of the application for which you would like to revoke access (Git Credential Manager is used here for demonstration purposes).
+
+   ![Button to revoke GitLab OAuth Application access](./img/gitlab-oauthapp-revoke.png)
+4. Waiting for a notification stating **The application was revoked access**.
+
+   ![Notifaction of successful revocation](./img/gitlab-oauthapp-revoked.png)
+5. Re-authorizing the application with the new scope (GCM should automatically initiate this flow for you next time access is requested).

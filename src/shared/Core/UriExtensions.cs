@@ -102,6 +102,16 @@ namespace GitCredentialManager
                 }
             }
 
+            // Check whether the URL only contains hostname.
+            // This usually means the host is on your local network.
+            if (!string.IsNullOrWhiteSpace(host) &&
+                !host.Contains("."))
+            {
+                yield return $"{schemeAndDelim}{host}";
+                // If we have reached this point, there are no more subdomains to unfold, so exit early.
+                yield break;
+            }
+
             // Unfold the host by sub-domain, left-to-right
             while (!string.IsNullOrWhiteSpace(host))
             {

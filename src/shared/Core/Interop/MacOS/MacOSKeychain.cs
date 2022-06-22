@@ -103,7 +103,6 @@ namespace GitCredentialManager.Interop.MacOS
 
             string serviceName = CreateServiceName(service);
 
-
             uint serviceNameLength = (uint) serviceName.Length;
             uint accountLength = (uint) (account?.Length ?? 0);
 
@@ -112,12 +111,12 @@ namespace GitCredentialManager.Interop.MacOS
                 // Check if an entry already exists in the keychain
                 int findResult = SecKeychainFindGenericPassword(
                     IntPtr.Zero, serviceNameLength, serviceName, accountLength, account,
-                    out uint _, out passwordData, out itemRef);
+                    out uint passwordDataLength, out passwordData, out itemRef);
 
                 switch (findResult)
                 {
-                    // Update existing entry
-                    case OK:
+                    // Update existing entry only if the password/secret is different
+                    case OK when !InteropUtils.AreEqual(secretBytes, passwordData, passwordDataLength):
                         ThrowIfError(
                             SecKeychainItemModifyAttributesAndData(itemRef, IntPtr.Zero, (uint) secretBytes.Length, secretBytes),
                             "Could not update existing item"

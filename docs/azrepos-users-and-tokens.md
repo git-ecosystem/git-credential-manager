@@ -5,11 +5,11 @@
 The Azure Repos host provider supports creating multiple types of credential:
 
 - Azure DevOps personal access tokens
-- Microsoft identity OAuth tokens (experimental)
+- Microsoft identity OAuth tokens
 
 To select which type of credential the Azure Repos host provider will create
-and use, you can set the [`credential.azreposCredentialType`](configuration.md#credentialazreposcredentialtype-experimental)
-configuration entry (or [`GCM_AZREPOS_CREDENTIALTYPE`](environment.md#GCM_AZREPOS_CREDENTIALTYPE-experimental)
+and use, you can set the [`credential.azreposCredentialType`](configuration.md#credentialazreposcredentialtype)
+configuration entry (or [`GCM_AZREPOS_CREDENTIALTYPE`](environment.md#GCM_AZREPOS_CREDENTIALTYPE)
 environment variable).
 
 ### Azure DevOps personal access tokens
@@ -24,7 +24,7 @@ PATs have a limited lifetime and new tokens must be created once they expire. In
 Git Credential Manager, when a PAT expired (or was manually revoked) this
 resulted in a new authentication prompt.
 
-### Microsoft identity OAuth tokens (experimental)
+### Microsoft identity OAuth tokens
 
 "Microsoft identity OAuth token" is the generic term for OAuth-based access
 tokens issued by Azure Active Directory for either Work and School Accounts
@@ -64,7 +64,7 @@ credential. This may change in the future.
 
 Normally you won't need to worry about managing which user accounts Git
 Credential Manager is using as this is configured automatically when you first
-authenticate for a particular Azure DevOps organziation.
+authenticate for a particular Azure DevOps organization.
 
 In advanced scenarios (such as using multiple accounts) you can interact with
 and manage remembered user accounts using the 'azure-repos' provider command:
@@ -181,7 +181,7 @@ fabrikam:
 ```
 
 In the above example, the `~/myrepo` repository has a single Git remote named
-`origin` that points to the `contoso` Azure DevOps organziation. There is no
+`origin` that points to the `contoso` Azure DevOps organization. There is no
 user account specifically associated with the `origin` remote, so the global
 user account binding for `contoso` will be used (the global binding is
 inherited).
