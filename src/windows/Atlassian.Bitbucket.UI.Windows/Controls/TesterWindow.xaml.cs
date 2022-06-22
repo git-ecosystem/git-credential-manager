@@ -1,3 +1,4 @@
+using System;
 using System.Windows;
 using Atlassian.Bitbucket.UI.ViewModels;
 using Atlassian.Bitbucket.UI.Views;
@@ -19,17 +20,17 @@ namespace Atlassian.Bitbucket.UI.Controls
         {
             var vm = new CredentialsViewModel(_environment)
             {
-                ShowOAuth = true
+                ShowOAuth = showOAuth.IsChecked ?? false,
+                ShowBasic = showBasic.IsChecked ?? false,
+                UserName = username.Text
             };
-            var view = new CredentialsView();
-            var window = new DialogWindow(view) { DataContext = vm };
-            window.ShowDialog();
-        }
 
-        private void ShowOAuth(object sender, RoutedEventArgs e)
-        {
-            var vm = new OAuthViewModel(_environment);
-            var view = new OAuthView();
+            if (Uri.TryCreate(url.Text, UriKind.Absolute, out Uri uri))
+            {
+                vm.Url = uri;
+            }
+
+            var view = new CredentialsView();
             var window = new DialogWindow(view) { DataContext = vm };
             window.ShowDialog();
         }

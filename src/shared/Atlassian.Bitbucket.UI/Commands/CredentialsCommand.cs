@@ -13,7 +13,7 @@ namespace Atlassian.Bitbucket.UI.Commands
     public abstract class CredentialsCommand : HelperCommand
     {
         protected CredentialsCommand(ICommandContext context)
-            : base(context, "userpass", "Show authentication prompt.")
+            : base(context, "prompt", "Show authentication prompt.")
         {
             AddOption(
                 new Option<string>("--url", "Bitbucket Server or Data Center URL")
@@ -27,40 +27,51 @@ namespace Atlassian.Bitbucket.UI.Commands
                 new Option("--show-oauth", "Show OAuth option.")
             );
 
-            Handler = CommandHandler.Create<Uri, string, bool>(ExecuteAsync);
+            AddOption(
+                new Option("--show-basic", "Show username/password option.")
+            );
+
+            Handler = CommandHandler.Create<Uri, string, bool, bool>(ExecuteAsync);
         }
 
-        private async Task<int> ExecuteAsync(Uri url, string userName, bool showOAuth)
+        private async Task<int> ExecuteAsync(Uri url, string userName, bool showOAuth, bool showBasic)
         {
             var viewModel = new CredentialsViewModel(Context.Environment)
             {
                 Url = url,
                 UserName = userName,
-                ShowOAuth = showOAuth
+                ShowOAuth = showOAuth,
+                ShowBasic = showBasic
             };
 
             await ShowAsync(viewModel, CancellationToken.None);
 
-            if (!viewModel.WindowResult)
+            if (!viewModel.WindowResult || viewModel.SelectedMode == AuthenticationModes.None)
             {
                 throw new Exception("User cancelled dialog.");
             }
 
-            if (viewModel.UseOAuth)
+            switch (viewModel.SelectedMode)
             {
-                WriteResult(new Dictionary<string, string>
-                {
-                    ["mode"] = "oauth"
-                });
-            }
-            else
-            {
-                WriteResult(new Dictionary<string, string>
-                {
-                    ["mode"] = "basic",
-                    ["username"] = viewModel.UserName,
-                    ["password"] = viewModel.Password,
-                });
+                case AuthenticationModes.OAuth:
+                    WriteResult(new Dictionary<string, string>
+                    {
+                        ["mode"] = "oauth"
+                    });
+                    break;
+
+                case AuthenticationModes.Basic:
+                    WriteResult(new Dictionary<string, string>
+                    {
+                        ["mode"] = "basic",
+                        ["username"] = viewModel.UserName,
+                        ["password"] = viewModel.Password,
+                    });
+                    break;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(AuthenticationModes),
+                        "Unknown authentication mode", viewModel.SelectedMode.ToString());
             }
 
             return 0;

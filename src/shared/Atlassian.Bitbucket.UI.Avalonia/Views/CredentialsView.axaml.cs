@@ -7,6 +7,8 @@ namespace Atlassian.Bitbucket.UI.Views
 {
     public class CredentialsView : UserControl, IFocusable
     {
+        private TabControl _tabControl;
+        private Button _oauthLoginButton;
         private TextBox _userNameTextBox;
         private TextBox _passwordTextBox;
 
@@ -19,6 +21,8 @@ namespace Atlassian.Bitbucket.UI.Views
         {
             AvaloniaXamlLoader.Load(this);
 
+            _tabControl = this.FindControl<TabControl>("authModesTabControl");
+            _oauthLoginButton = this.FindControl<Button>("oauthLoginButton");
             _userNameTextBox = this.FindControl<TextBox>("userNameTextBox");
             _passwordTextBox = this.FindControl<TextBox>("passwordTextBox");
         }
@@ -30,13 +34,22 @@ namespace Atlassian.Bitbucket.UI.Views
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(vm.UserName))
+            if (vm.ShowOAuth)
             {
-                _userNameTextBox.Focus();
+                _tabControl.SelectedIndex = 0;
+                _oauthLoginButton.Focus();
             }
-            else
+            else if (vm.ShowBasic)
             {
-                _passwordTextBox.Focus();
+                _tabControl.SelectedIndex = 1;
+                if (string.IsNullOrWhiteSpace(vm.UserName))
+                {
+                    _userNameTextBox.Focus();
+                }
+                else
+                {
+                    _passwordTextBox.Focus();
+                }
             }
         }
     }
