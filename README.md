@@ -18,10 +18,10 @@ Git Credential Manager is currently available for Windows, macOS, and Linux\*. G
 - [GitHub SSH](https://help.github.com/en/articles/connecting-to-github-with-ssh)
 - [Bitbucket SSH](https://confluence.atlassian.com/bitbucket/ssh-keys-935365775.html)
 
-Feature|Windows|macOS|Linux
+Feature|Windows|macOS|Linux\*
 -|:-:|:-:|:-:
-Installer/uninstaller|&#10003;|&#10003;|&#10003;\*
-Secure platform credential storage|&#10003; [(see more)](docs/credstores.md)|&#10003; [(see more)](docs/credstores.md)|&#10003; [(see more)](docs/credstores.md)
+Installer/uninstaller|&#10003;|&#10003;|&#10003;
+Secure platform credential storage [(see more)](docs/credstores.md)|&#10003;|&#10003;|&#10003;
 Multi-factor authentication support for Azure DevOps|&#10003;|&#10003;|&#10003;
 Two-factor authentication support for GitHub|&#10003;|&#10003;|&#10003;
 Two-factor authentication support for Bitbucket|&#10003;|&#10003;|&#10003;
@@ -31,7 +31,7 @@ Basic HTTP authentication support|&#10003;|&#10003;|&#10003;
 Proxy support|&#10003;|&#10003;|&#10003;
 `amd64` support|&#10003;|&#10003;|&#10003;
 `x86` support|&#10003;|_N/A_|&#10007;
-`arm64` support|best effort|via Rosetta 2|best effort, no packages
+`arm64` support|best effort|&#10003;|best effort, no packages
 `armhf` support|_N/A_|_N/A_|best effort, no packages
 
 (\*) GCM guarantees support for the below Linux distributions. GCM maintainers also monitor and evaluate issues opened against other distributions to determine community interest/engagement and whether an emerging platform should become fully-supported.
