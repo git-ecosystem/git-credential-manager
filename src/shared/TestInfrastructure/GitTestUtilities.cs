@@ -21,7 +21,7 @@ namespace GitCredentialManager.Tests
             }
             else
             {
-                psi = new ProcessStartInfo("/usr/bin/which", "git");
+                psi = new ProcessStartInfo("/usr/bin/env", "which git");
             }
 
             psi.RedirectStandardOutput = true;
