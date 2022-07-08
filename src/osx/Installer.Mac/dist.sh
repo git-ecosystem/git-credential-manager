@@ -70,7 +70,7 @@ fi
 
 echo "Building for runtime '$RUNTIME'"
 
-if [ "$RUNTIME" == "osx-x64"]; then
+if [ "$RUNTIME" == "osx-x64" ]; then
     DISTPATH="$INSTALLER_SRC/distribution.x64.xml"
 else
     DISTPATH="$INSTALLER_SRC/distribution.arm64.xml"
