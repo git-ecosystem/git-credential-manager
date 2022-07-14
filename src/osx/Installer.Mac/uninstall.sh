@@ -3,6 +3,15 @@
 THISDIR="$( cd "$(dirname "$0")" ; pwd -P )"
 GCMBIN="$THISDIR/git-credential-manager-core"
 
+# Ensure we use the correct Homebrew prefix for
+# x64 and arm64 binaries.
+if [ ! -z "$HOMEBREW_PREFIX" ]
+then
+	INSTALLATIONPREFIX="$HOMEBREW_PREFIX"
+else
+	INSTALLATIONPREFIX=/usr/local
+fi
+
 # Ensure we're running as root
 if [ $(id -u) != "0" ]
 then
@@ -15,10 +24,10 @@ echo "Unconfiguring credential helper..."
 sudo -u `/usr/bin/logname` -E "$GCMBIN" unconfigure
 
 # Remove symlink
-if [ -L /usr/local/bin/git-credential-manager-core ]
+if [ -L "$INSTALLATIONPREFIX"/bin/git-credential-manager-core ]
 then
 	echo "Deleting symlink..."
-	rm /usr/local/bin/git-credential-manager-core
+	rm "$INSTALLATIONPREFIX"/bin/git-credential-manager-core
 else
 	echo "No symlink found."
 fi
