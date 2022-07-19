@@ -104,7 +104,12 @@ namespace GitCredentialManager
             return new Process { StartInfo = psi };
         }
 
-        public bool TryLocateExecutable(string program, out string path)
+        public virtual bool TryLocateExecutable(string program, out string path)
+        {
+            return TryLocateExecutable(program, null, out path);
+        }
+
+        internal virtual bool TryLocateExecutable(string program, ICollection<string> pathsToIgnore, out string path)
         {
             // On UNIX-like systems we would normally use the "which" utility to locate a program,
             // but since distributions don't always place "which" in a consistent location we cannot
@@ -124,7 +129,8 @@ namespace GitCredentialManager
                 foreach (var basePath in paths)
                 {
                     string candidatePath = Path.Combine(basePath, program);
-                    if (FileSystem.FileExists(candidatePath))
+                    if (FileSystem.FileExists(candidatePath) && (pathsToIgnore is null ||
+                        !pathsToIgnore.Contains(candidatePath, StringComparer.OrdinalIgnoreCase)))
                     {
                         path = candidatePath;
                         return true;

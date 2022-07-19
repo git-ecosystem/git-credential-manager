@@ -109,21 +109,6 @@ namespace Atlassian.Bitbucket.Tests
         }
 
         [Fact]
-        public async Task BitbucketAuthentication_ShowOAuthRequiredPromptAsync_SucceedsAfterUserInput()
-        {
-            var context = new TestCommandContext();
-            context.Terminal.Prompts["Press enter to continue..."] = " ";
-
-            var bitbucketAuthentication = new BitbucketAuthentication(context);
-
-            var result = await bitbucketAuthentication.ShowOAuthRequiredPromptAsync();
-
-            Assert.True(result);
-            Assert.Equal($"Your account has two-factor authentication enabled.{Environment.NewLine}" +
-                                           $"To continue you must complete authentication in your web browser.{Environment.NewLine}", context.Terminal.Messages[0].Item1);
-        }
-
-        [Fact]
         public async Task BitbucketAuthentication_GetCredentialsAsync_AllModes_NoUser_BBCloud_HelperCmdLine()
         {
             var targetUri = new Uri("https://bitbucket.org");
@@ -137,7 +122,7 @@ namespace Atlassian.Bitbucket.Tests
                 ["password"] = expectedPassword
             };
 
-            string expectedArgs = $"userpass --show-oauth";
+            string expectedArgs = $"prompt --show-basic --show-oauth";
 
             var context = new TestCommandContext();
             context.SessionManager.IsDesktopSession = true; // Enable OAuth and UI helper selection
@@ -173,7 +158,7 @@ namespace Atlassian.Bitbucket.Tests
                 ["password"] = expectedPassword
             };
 
-            string expectedArgs = $"userpass --username {expectedUserName}";
+            string expectedArgs = $"prompt --username {expectedUserName} --show-basic";
 
             var context = new TestCommandContext();
             context.SessionManager.IsDesktopSession = true; // Enable UI helper selection
@@ -209,7 +194,7 @@ namespace Atlassian.Bitbucket.Tests
                 ["password"] = expectedPassword
             };
 
-            string expectedArgs = $"userpass --url {targetUri} --show-oauth";
+            string expectedArgs = $"prompt --url {targetUri} --show-basic --show-oauth";
 
             var context = new TestCommandContext();
             context.SessionManager.IsDesktopSession = true; // Enable OAuth and UI helper selection

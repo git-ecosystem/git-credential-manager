@@ -152,8 +152,11 @@ namespace GitCredentialManager
                     Environment.NewLine, StoreNames.Gpg);
             }
 
-            sb.AppendFormat("  {1,-13} : Git's in-memory credential cache{0}",
-                Environment.NewLine, StoreNames.Cache);
+            if (!PlatformUtils.IsWindows())
+            {
+                sb.AppendFormat("  {1,-13} : Git's in-memory credential cache{0}",
+                    Environment.NewLine, StoreNames.Cache);
+            }
 
             sb.AppendFormat("  {1,-13} : store credentials in plain-text files (UNSECURE){0}",
                 Environment.NewLine, StoreNames.Plaintext);
@@ -286,6 +289,15 @@ namespace GitCredentialManager
 
         private void ValidateCredentialCache(out string options)
         {
+            if (PlatformUtils.IsWindows())
+            {
+                throw new Exception(
+                    $"Can not use the '{StoreNames.Cache}' credential store on Windows due to lack of UNIX socket support in Git for Windows." +
+                    Environment.NewLine +
+                    $"See {Constants.HelpUrls.GcmCredentialStores} for more information."
+                );
+            }
+
             // allow for --timeout and other options
             if (!_context.Settings.TryGetSetting(
                 Constants.EnvironmentVariables.GcmCredCacheOptions,

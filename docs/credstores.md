@@ -178,7 +178,7 @@ TTY device path, as returned by the `tty` utility.
 
 ## Git's built-in [credential cache](https://git-scm.com/docs/git-credential-cache)
 
-**Available on:** _Windows, macOS, Linux_
+**Available on:** _macOS, Linux_
 
 ```shell
 export GCM_CREDENTIAL_STORE=cache

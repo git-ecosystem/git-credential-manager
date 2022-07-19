@@ -6,8 +6,30 @@
         mc:Ignorable="d"
         Title="Bitbucket Authentication Dialog Tester"
         Height="240" Width="420" ResizeMode="NoResize">
-    <DockPanel>
-        <Button Content="Show Credentials Dialog" Padding="10" Click="ShowCredentials" />
-        <Button Content="Show OAuth Dialog" Padding="10" Click="ShowOAuth" />
-    </DockPanel>
+    <StackPanel>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Label Grid.Row="0" Grid.Column="0" Content="Auth Modes" />
+            <StackPanel Grid.Row="0" Grid.Column="1"
+                        Orientation="Horizontal" VerticalAlignment="Center">
+                <CheckBox Content="Browser" x:Name="showOAuth" MinWidth="90" IsChecked="True" />
+                <CheckBox Content="Basic" x:Name="showBasic" MinWidth="80" IsChecked="True" />
+            </StackPanel>
+            <Label Grid.Row="1" Grid.Column="0" Content="URL" />
+            <TextBox Grid.Row="1" Grid.Column="1" x:Name="url" />
+            <Label Grid.Row="2" Grid.Column="0" Content="Username" />
+            <TextBox Grid.Row="2" Grid.Column="1" x:Name="username" />
+        </Grid>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10">
+            <Button Content="Show" Click="ShowCredentials" Padding="8,4"/>
+        </StackPanel>
+    </StackPanel>
 </Window>

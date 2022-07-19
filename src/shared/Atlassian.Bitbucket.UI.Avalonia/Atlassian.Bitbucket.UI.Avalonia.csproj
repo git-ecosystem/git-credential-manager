@@ -3,7 +3,7 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
-    <RuntimeIdentifiers>osx-x64;linux-x64</RuntimeIdentifiers>
+    <RuntimeIdentifiers>osx-x64;linux-x64;osx-arm64</RuntimeIdentifiers>
     <RootNamespace>Atlassian.Bitbucket.UI</RootNamespace>
     <AssemblyName>Atlassian.Bitbucket.UI</AssemblyName>
   </PropertyGroup>

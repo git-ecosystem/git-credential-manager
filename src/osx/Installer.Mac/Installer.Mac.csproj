@@ -21,8 +21,8 @@
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 
   <Target Name="CoreCompile" DependsOnTargets="GetBuildVersion" Condition="'$(OSPlatform)'=='osx'">
-    <Message Text="$(MSBuildProjectDirectory)\build.sh --configuration='$(Configuration)' --version='$(BuildVersionSimple)'" Importance="High" />
-    <Exec Command="$(MSBuildProjectDirectory)\build.sh --configuration='$(Configuration)' --version='$(BuildVersionSimple)'" />
+    <Message Text="$(MSBuildProjectDirectory)\build.sh --configuration='$(Configuration)' --version='$(BuildVersionSimple)' --runtime='$(RuntimeIdentifier)'" Importance="High" />
+    <Exec Command="$(MSBuildProjectDirectory)\build.sh --configuration='$(Configuration)' --version='$(BuildVersionSimple)' --runtime='$(RuntimeIdentifier)'" />
   </Target>
 
   <Target Name="CoreClean">

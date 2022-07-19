@@ -22,7 +22,6 @@ namespace Atlassian.Bitbucket.UI
                 }
 
                 app.RegisterCommand(new CredentialsCommandImpl(context));
-                app.RegisterCommand(new OAuthCommandImpl(context));
 
                 int exitCode = app.RunAsync(args)
                     .ConfigureAwait(false)

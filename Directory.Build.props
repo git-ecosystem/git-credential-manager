@@ -18,6 +18,12 @@
     <RepoSrcPath>$(RepoPath)src\</RepoSrcPath>
     <RepoOutPath>$(RepoPath)out\</RepoOutPath>
     <RepoAssetsPath>$(RepoPath)assets\</RepoAssetsPath>
+
+    <!-- Identify projects that output an executable binary (not libraries) -->
+    <_IsExeProject Condition="'$(OutputType)' == 'Exe' OR '$(OutputType)' == 'WinExe'">true</_IsExeProject>
+
+    <!-- Automatically generate a Windows app manifest on Windows for exe projects -->
+    <GenerateWindowsAppManifest Condition="'$(GenerateWindowsAppManifest)' == '' AND '$(OSPlatform)' == 'windows' AND '$(_IsExeProject)' == 'true'">true</GenerateWindowsAppManifest>
   </PropertyGroup>
 
   <ItemGroup>
