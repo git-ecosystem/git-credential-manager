@@ -14,5 +14,5 @@ jobs:
         tap: microsoft/git
         name: git-credential-manager-core
         type: cask
-        releaseAsset: gcm-osx-x64-(.*)\.pkg
+        releaseAsset: gcm-osx-(?<runtime>.*)-(?<version>.*)\.pkg
         alwaysUsePullRequest: true
