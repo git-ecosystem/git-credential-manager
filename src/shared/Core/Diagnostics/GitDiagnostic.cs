@@ -32,8 +32,10 @@ namespace GitCredentialManager.Diagnostics
             log.Append("Listing all Git configuration...");
             Process configProc = _git.CreateProcess("config --list --show-origin");
             configProc.Start();
-            configProc.WaitForExit();
+            // To avoid deadlocks, always read the output stream first and then wait
+            // TODO: don't read in all the data at once; stream it
             string gitConfig = configProc.StandardOutput.ReadToEnd().TrimEnd();
+            configProc.WaitForExit();
             log.AppendLine(" OK");
             log.AppendLine("Git configuration:");
             log.AppendLine(gitConfig);
