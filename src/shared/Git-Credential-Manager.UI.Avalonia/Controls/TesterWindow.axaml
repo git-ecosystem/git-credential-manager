@@ -1,0 +1,49 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="GitCredentialManager.UI.Controls.TesterWindow"
+        CanResize="False" Width="550" SizeToContent="Height"
+        Title="Git Credential Manager Dialog Tester">
+    <TabControl Margin="5,10">
+        <TabControl.Styles>
+            <Style Selector="TabItem">
+                <Setter Property="MinHeight" Value="30" />
+                <Setter Property="FontSize" Value="12"/>
+            </Style>
+            <Style Selector="TabItem > StackPanel">
+                <Setter Property="Margin" Value="0,10,0,0"/>
+            </Style>
+            <Style Selector="TabItem > StackPanel > Grid > Label">
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="Margin" Value="0,0,10,0"/>
+            </Style>
+            <Style Selector="TabItem > StackPanel > Button">
+                <Setter Property="Margin" Value="0,10,0,0" />
+                <Setter Property="Padding" Value="14,10" />
+                <Setter Property="HorizontalAlignment" Value="Right" />
+            </Style>
+        </TabControl.Styles>
+        <TabItem Header="Basic">
+            <StackPanel>
+                <Grid RowDefinitions="Auto,Auto,Auto,Auto" ColumnDefinitions="Auto,*">
+                    <Label Grid.Row="0" Grid.Column="0"
+                           Content="Window Title" />
+                    <TextBox Grid.Row="0" Grid.Column="1"
+                             x:Name="title" Text="Git Credential Manager" />
+                    <Label Grid.Row="1" Grid.Column="0"
+                           Content="Description" />
+                    <TextBox Grid.Row="1" Grid.Column="1"
+                             x:Name="description" Text="Enter credentials for 'https://example.com'" />
+                    <Label Grid.Row="2" Grid.Column="0"
+                           Content="Username" />
+                    <TextBox Grid.Row="2" Grid.Column="1"
+                             x:Name="username" />
+                    <Label Grid.Row="3" Grid.Column="0"
+                           Content="Show Logo" />
+                    <CheckBox Grid.Row="3" Grid.Column="1"
+                             x:Name="showLogo" IsChecked="True" />
+                </Grid>
+                <Button Classes="accent" Content="Show" Click="ShowBasic" />
+            </StackPanel>
+        </TabItem>
+    </TabControl>
+</Window>
