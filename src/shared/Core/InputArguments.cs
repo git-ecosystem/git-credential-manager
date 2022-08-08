@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace GitCredentialManager
 {
@@ -94,10 +95,7 @@ namespace GitCredentialManager
             string[] hostParts = Host.Split(':');
             if (hostParts.Length > 0)
             {
-                var ub = new UriBuilder(Protocol, hostParts[0])
-                {
-                    Path = Path
-                };
+                var ub = new UriBuilder(Protocol, hostParts[0]);
 
                 if (hostParts.Length > 1 && int.TryParse(hostParts[1], out int port))
                 {
@@ -109,6 +107,28 @@ namespace GitCredentialManager
                     ub.UserName = Uri.EscapeDataString(UserName);
                 }
 
+                if (Path != null)
+                {
+                    string[] pathParts = Path.Split('?', '#');
+                    // We know the first piece is the path
+                    ub.Path = pathParts[0];
+
+                    switch (pathParts.Length)
+                    {
+                        // If we have 3 items, that means path, query, and fragment
+                        case 3:
+                            ub.Query = pathParts[1];
+                            ub.Fragment = pathParts[2];
+                            break;
+                        // If we have 2 items, we must distinguish between query and fragment
+                        case 2 when Path.Contains('?'):
+                            ub.Query = pathParts[1];
+                            break;
+                        case 2 when Path.Contains('#'):
+                            ub.Fragment = pathParts[1];
+                            break;
+                    }
+                }
                 return ub.Uri;
             }
 
