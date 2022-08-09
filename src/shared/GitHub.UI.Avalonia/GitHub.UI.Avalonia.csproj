@@ -6,6 +6,8 @@
     <RuntimeIdentifiers>osx-x64;linux-x64;osx-arm64</RuntimeIdentifiers>
     <RootNamespace>GitHub.UI</RootNamespace>
     <AssemblyName>GitHub.UI</AssemblyName>
+    <PackAsTool>true</PackAsTool>
+    <PackageId>git-credential-manager-github-ui</PackageId>
   </PropertyGroup>
 
   <ItemGroup>
