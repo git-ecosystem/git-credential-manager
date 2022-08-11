@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
+using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Identity.Client;
 using Microsoft.Identity.Client.Extensions.Msal;
@@ -247,7 +249,7 @@ namespace GitCredentialManager.Authentication
         {
             try
             {
-                Context.Trace.WriteLine($"Attempting to acquire token silently for user '{userName}'...");
+                Context.Trace.WriteLine($"Attempting to acquire token silently from cache for user '{userName}'...");
 
                 // We can either call `app.GetAccountsAsync` and filter through the IAccount objects for the instance with the correct user name,
                 // or we can just pass the user name string we have as the `loginHint` and let MSAL do exactly that for us instead!
@@ -255,9 +257,48 @@ namespace GitCredentialManager.Authentication
             }
             catch (MsalUiRequiredException)
             {
-                Context.Trace.WriteLine("Failed to acquire token silently; user interaction is required.");
-                return null;
+                Context.Trace.WriteLine("Failed to acquire token silently from cache; user interaction is required.");
             }
+
+            if (PlatformUtils.IsWindows())
+            {
+                string upn = WindowsIntegratedAuthUtils.GetUserPrincipalName();
+
+                if (upn == userName)
+                {
+                    try
+                    {
+                        Context.Trace.WriteLine($"Attempting to acquire token silently from PublicClientApplication.OperatingSystemAccount for user '{userName}'...");
+
+                        // We can either call `app.GetAccountsAsync` and filter through the IAccount objects for the instance with the correct user name,
+                        // or we can just pass the user name string we have as the `loginHint` and let MSAL do exactly that for us instead!
+                        var builder = app.AcquireTokenSilent(scopes, PublicClientApplication.OperatingSystemAccount);
+                        return await builder.ExecuteAsync();
+                    }
+                    catch (Exception)
+                    {
+                        Context.Trace.WriteLine("Failed to acquire token silently from PublicClientApplication.OperatingSystemAccount; user interaction is required.");
+                    }
+
+
+                    try
+                    {
+                        Context.Trace.WriteLine($"Attempting to acquire token silently from WIA for user '{userName}'...");
+
+                        // We can either call `app.GetAccountsAsync` and filter through the IAccount objects for the instance with the correct user name,
+                        // or we can just pass the user name string we have as the `loginHint` and let MSAL do exactly that for us instead!
+                        var builder = app.AcquireTokenByIntegratedWindowsAuth(scopes);
+                        builder.WithUsername(upn);
+                        return await builder.ExecuteAsync();
+                    }
+                    catch (Exception)
+                    {
+                        Context.Trace.WriteLine("Failed to acquire token silently from WIA; user interaction is required.");
+                    }
+                }
+            }
+
+            return null;
         }
 
         private async Task<IPublicClientApplication> CreatePublicClientApplicationAsync(
@@ -291,6 +332,7 @@ namespace GitCredentialManager.Authentication
             if (enableBroker && PlatformUtils.IsWindowsBrokerSupported())
             {
 #if NETFRAMEWORK
+                Context.Trace.WriteLine("Actually using broker");
                 appBuilder.WithExperimentalFeatures();
                 appBuilder.WithWindowsBroker();
 #endif
@@ -542,6 +584,40 @@ namespace GitCredentialManager.Authentication
 
             public string AccessToken => _msalResult.AccessToken;
             public string AccountUpn => _msalResult.Account.Username;
+        }
+
+        private static class WindowsIntegratedAuthUtils
+        {
+            // Adapted from https://github.com/AzureAD/azure-activedirectory-library-for-dotnet/blob/dev/core/src/Platforms/net45/NetDesktopPlatformProxy.cs
+            [DllImport("secur32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+            [return: MarshalAs(UnmanagedType.U1)]
+            private static extern bool GetUserNameEx(int nameFormat, StringBuilder userName, ref uint userNameSize);
+
+            public static string GetUserPrincipalName()
+            {
+                try
+                {
+                    const int NameUserPrincipal = 8;
+                    uint userNameSize = 0;
+                    GetUserNameEx(NameUserPrincipal, null, ref userNameSize);
+                    if (userNameSize == 0)
+                    {
+                        return null;
+                    }
+
+                    StringBuilder sb = new StringBuilder((int)userNameSize);
+                    if (!GetUserNameEx(NameUserPrincipal, sb, ref userNameSize))
+                    {
+                        return null;
+                    }
+
+                    return sb.ToString();
+                }
+                catch
+                {
+                    return null;
+                }
+            }
         }
     }
 }
