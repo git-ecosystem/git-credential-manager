@@ -8,11 +8,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Update Homebrew tap
-      uses: mjcheetham/update-homebrew@v1.1
+      uses: mjcheetham/update-homebrew@v1.2
       with:
         token: ${{ secrets.HOMEBREW_TOKEN }}
         tap: microsoft/git
         name: git-credential-manager-core
         type: cask
-        releaseAsset: gcm-osx-x64-(.*)\.pkg
-        alwaysUsePullRequest: true
+        releaseAsset: |
+          gcm-osx-x64-(.*)\.pkg
+          gcm-osx-arm64-(.*)\.pkg
