@@ -103,6 +103,13 @@ add_to_PATH () {
   done
 }
 
+apt_install() {
+    pkg_name=$1
+
+    $sudo_cmd apt update
+    $sudo_cmd apt install $pkg_name -y 2>/dev/null
+}
+
 sudo_cmd=
 
 # if the user isn't root, we need to use `sudo` for certain commands
@@ -120,22 +127,27 @@ case "$distribution" in
         $sudo_cmd apt update
         install_shared_packages apt install
 
-        # add dotnet package repository/signing key
-        $sudo_cmd apt update && $sudo_cmd apt install wget -y
-        curl -LO https://packages.microsoft.com/config/"$distribution"/"$version"/packages-microsoft-prod.deb
-        $sudo_cmd dpkg -i packages-microsoft-prod.deb
-        rm packages-microsoft-prod.deb
-
-        # proactively install tzdata to prevent prompts
-        export DEBIAN_FRONTEND=noninteractive
-        $sudo_cmd apt install -y --no-install-recommends tzdata
-
         # install dotnet packages and dependencies if needed
         if [ -z "$(verify_existing_dotnet_installation)" ]; then
-            $sudo_cmd apt update
-            $sudo_cmd apt install apt-transport-https -y
-            $sudo_cmd apt update
-            $sudo_cmd apt install dotnet-sdk-6.0 dpkg-dev -y
+            # First try to use native feeds (Ubuntu 22.04 and later).
+            if ! apt_install dotnet6; then
+                # If the native feeds fail, we fall back to
+                # packages.microsoft.com. We begin by adding the dotnet package
+                # repository/signing key.
+                $sudo_cmd apt update && $sudo_cmd apt install wget -y
+                curl -LO https://packages.microsoft.com/config/"$distribution"/"$version"/packages-microsoft-prod.deb
+                $sudo_cmd dpkg -i packages-microsoft-prod.deb
+                rm packages-microsoft-prod.deb
+
+                # Proactively install tzdata to prevent prompts.
+                export DEBIAN_FRONTEND=noninteractive
+                $sudo_cmd apt install -y --no-install-recommends tzdata
+
+                $sudo_cmd apt update
+                $sudo_cmd apt install apt-transport-https -y
+                $sudo_cmd apt update
+                $sudo_cmd apt install dotnet-sdk-6.0 dpkg-dev -y
+            fi
         fi
     ;;
     linuxmint)
