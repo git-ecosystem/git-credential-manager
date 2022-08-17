@@ -1,0 +1,60 @@
+name: maintainer-absence
+
+on:
+  workflow_dispatch:
+    inputs:
+      startDate:
+        description: 'First day of maintainer absence [mm-dd-yyyy]'
+        required: true
+      endDate:
+        description:  'Last day of maintainer absence [mm-dd-yyyy]'
+        required: true
+
+permissions:
+  issues: write
+
+jobs:
+  create-issue:
+    name: create-issue
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v6
+        with:
+          script: |
+            const startDate = new Date('${{ github.event.inputs.startDate }}');
+            const endDate = new Date('${{ github.event.inputs.endDate }}');
+
+            if (startDate > endDate) {
+              throw 'Start date cannot be later than end date.';
+            }
+
+            // Calculate total days of absence
+            const differenceInDays = endDate.getTime() - startDate.getTime();
+            const lengthOfAbsence = differenceInDays/(1000 * 3600 * 24);
+
+            // Create issue
+            issue = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              // Use the briefer input date format in title (instead of JavaScript's full date string)
+              title: `Maintainer(s) will be away from ${{ github.event.inputs.startDate }} until ${{ github.event.inputs.endDate }}`,
+              body: `The ${context.repo.repo} maintainer(s) will be away for ${lengthOfAbsence} day${lengthOfAbsence > 1 ? 's' : ''} beginning on
+              ${startDate.toDateString()} and ending on ${endDate.toDateString()}. During this time, the maintainer(s)
+              will not be actively monitoring PRs, discussions, etc. Please report any issues
+              requiring immediate attention to [@GitCredManager](https://twitter.com/GitCredManager) on Twitter.`
+            });
+
+            // Pin issue - we use GraphQL since there is no GitHub API available for this
+            const mutation = `mutation($issueId: ID!) {
+              pinIssue(input: { issueId: $issueId }) {
+                issue {
+                  repository {
+                    id
+                  }
+                }
+              }
+            }`;
+            const variables = {
+              issueId: issue.data.node_id
+            }
+            const result = await github.graphql(mutation, variables)
