@@ -23,7 +23,7 @@ and what is required to implement and register one.
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
 "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
 specification are to be interpreted as described in
-[[RFC2119](https://tools.ietf.org/html/rfc2119)].
+[[RFC2119][rfc-2119]].
 
 ### 1.2. Abbreviations
 
@@ -35,7 +35,7 @@ Manager for Windows" is abbreviated to "GCM for Windows" or "GCM Windows".
 "Git Credential Manager for Mac & Linux" is abbreviated to "GCM for
 Mac/Linux" or "GCM Mac/Linux".
 
-OAuth2 [[RFC6749](https://tools.ietf.org/html/rfc6749)] "access tokens" are
+OAuth2 [[RFC6749][rfc-6749]] "access tokens" are
 abbreviated to "ATs" and "refresh tokens" to "RTs". "Personal Access Tokens" are
 abbreviated to "PATs".
 
@@ -334,7 +334,7 @@ If a host provider wishes to surface custom commands the SHOULD implement the
 
 Each provider is given the opportunity to create a single `ProviderCommand`
 instance to which further sub-commands can be parented to. Commanding is
-provided by the `System.CommandLine` API library [[1](#references)].
+provided by the `System.CommandLine` API library [[1][references]].
 
 There are no limitations on what format sub-commands, arguments, or options must
 take, but implementors SHOULD attempt to follow existing practices and styles.
@@ -346,3 +346,6 @@ take, but implementors SHOULD attempt to follow existing practices and styles.
 [gcm]: https://github.com/GitCredentialManager/git-credential-manager
 [github-dotnet-cli]: https://github.com/dotnet/command-line-api
 [hostprovider-base-class]: #26-hostprovider-base-class
+[references]: #references
+[rfc-2119]: https://tools.ietf.org/html/rfc2119
+[rfc-6749]: https://tools.ietf.org/html/rfc6749
