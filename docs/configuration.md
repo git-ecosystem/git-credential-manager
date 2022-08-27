@@ -530,7 +530,7 @@ git config --global credential.azreposCredentialType oauth
 **Also see: [GCM_AZREPOS_CREDENTIALTYPE][gcm-azrepos-credentialtype]**
 
 [auto-detection]: autodetect.md
-[azure-tokens]: azrepos-azuretokens.md
+[azure-tokens]: azrepos-users-and-tokens.md
 [use-http-path]: https://git-scm.com/docs/gitcredentials/#Documentation/gitcredentials.txt-useHttpPath
 [credential-credentialstore]: #credentialcredentialstore
 [credential-dpapistorepath]: #credentialdpapistorepath
