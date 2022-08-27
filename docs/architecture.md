@@ -79,7 +79,7 @@ helpers on Windows.
 
 ### Cross-platform UI
 
-We hope to be able to migrate the WPF/Windows only helpers to [Avalonia][]
+We hope to be able to migrate the WPF/Windows only helpers to [Avalonia][avalonia]
 in order to gain cross-platform graphical user interface support. See
 [GCM issue 136][issue-136] for up-to-date progress on this effort.
 
@@ -161,7 +161,7 @@ The `Get|Store|EraseCommand`s consult the host provider registry for the most
 appropriate host provider. The default registry implementation select the a host
 provider by asking each registered provider in turn if they understand the
 request. The provider selection can be overridden by the user via the
-[`credential.provider`][] or [`GCM_PROVIDER`][]
+[`credential.provider`][credential-provider] or [`GCM_PROVIDER`][gcm-provider]
 configuration and environment variable respectively (3).
 
 The `Get|Store|EraseCommand`s call the corresponding
@@ -279,8 +279,8 @@ to the trace object in most places of GCM.
 
 [avalonia]: https://avaloniaui.net/
 [core-program]: ../src/shared/Git-Credential-Manager/Program.cs
-[`credential.provider`]: configuration.md#credentialprovider
+[credential-provider]: configuration.md#credentialprovider
 [issue-113]: https://github.com/GitCredentialManager/git-credential-manager/issues/113
 [issue-136]: https://github.com/GitCredentialManager/git-credential-manager/issues/136
-[`GCM_PROVIDER`]: environment.md#GCM_PROVIDER
+[gcm-provider]: environment.md#GCM_PROVIDER
 [msal]: https://github.com/AzureAD/microsoft-authentication-library-for-dotnet

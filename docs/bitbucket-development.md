@@ -65,7 +65,7 @@ The Access and Refresh Tokens will be stored against the username and the userna
 
 ## On-Premise Bitbucket
 
-On-premise Bitbucket, more correctly known as Bitbucket Server or Bitbucket DC, has a number of differences compared to the cloud instance of Bitbucket, [bitbucket.org][].
+On-premise Bitbucket, more correctly known as Bitbucket Server or Bitbucket DC, has a number of differences compared to the cloud instance of Bitbucket, [bitbucket.org][bitbucket].
 
 As far as GCMC is concerned the main difference it doesn't support OAuth so only Basic Authentication is available.
 
@@ -73,18 +73,18 @@ It is possible to test with Bitbucket Server by running it locally using the fol
 
     ❯ atlas-run-standalone --product bitbucket
 
-See the developer documentation for [atlas-run-standalone][].
+See the developer documentation for [atlas-run-standalone][atlas-run-standalone].
 
 This will download and run a standalone instance of Bitbucket Server which can be accessed using the credentials `admin`/`admin` at
 
     https://localhost:7990/bitbucket
 
-Atlassian has [documentation][] on how to download and install their SDK.
+Atlassian has [documentation][atlassian-sdk] on how to download and install their SDK.
 
 [additional-info]:https://confluence.atlassian.com/display/BITBUCKET/App+passwords
 [atlas-run-standalone]: https://developer.atlassian.com/server/framework/atlassian-sdk/atlas-run-standalone/
-[bitbucket.org]: https://bitbucket.org
+[bitbucket]: https://bitbucket.org
 [2fa-impl]: https://confluence.atlassian.com/bitbucket/two-step-verification-777023203.html
 [oauth-impl]: https://confluence.atlassian.com/bitbucket/oauth-on-bitbucket-cloud-238027431.html
-[documentation]: https://developer.atlassian.com/server/framework/atlassian-sdk/
+[atlassian-sdk]: https://developer.atlassian.com/server/framework/atlassian-sdk/
 [wincred-manager]: https://msdn.microsoft.com/en-us/library/windows/desktop/aa374792(v=vs.85).aspx

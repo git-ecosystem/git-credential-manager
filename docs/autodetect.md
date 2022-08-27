@@ -32,15 +32,15 @@ received by Git. To avoid this network call, please [explicitly configure][expli
 the host provider for your self-hosted instance.
 
 After a successful detection of the host provider, GCM will automatically set
-the [`credential.provider`][] configuration entry
+the [`credential.provider`][credential-provider] configuration entry
 for that remote to avoid needing to perform this expensive network call in
 future requests.
 
 ### Timeout
 
 You can control how long GCM will wait for a response to the remote network call
-by setting the [`GCM_AUTODETECT_TIMEOUT`][]
-environment variable, or the [`credential.autoDetectTimeout`][]
+by setting the [`GCM_AUTODETECT_TIMEOUT`][gcm-autodetect-timeout]
+environment variable, or the [`credential.autoDetectTimeout`][credential-autoDetectTimeout]
 Git configuration setting to the maximum number of milliseconds to wait.
 
 The default value is 2000 milliseconds (2 seconds). You can prevent the network
@@ -52,8 +52,8 @@ If the auto-detection mechanism fails to select the correct host provider, or
 if the remote probing network call is causing performance issues, you can
 configure GCM to always use a particular host provider, for a given remote URL.
 
-You can either use the the [`GCM_PROVIDER`][]
-environment variable, or the [`credential.provider`][]
+You can either use the the [`GCM_PROVIDER`][gcm-provider]
+environment variable, or the [`credential.provider`][credential-provider]
 Git configuration setting for this purpose.
 
 For example to tell GCM to always use the GitHub host provider for the
@@ -63,8 +63,8 @@ For example to tell GCM to always use the GitHub host provider for the
 git config --global credential.ghe.example.com.provider github
 ```
 
-[`credential.autoDetectTimeout`]: configuration.md#credentialautodetecttimeout
-[`credential.provider`]: configuration.md#credentialprovider
+[credential-autoDetectTimeout]: configuration.md#credentialautodetecttimeout
+[credential-provider]: configuration.md#credentialprovider
 [explicit-config]: #manual-configuration
-[`GCM_AUTODETECT_TIMEOUT`]: environment.md#GCM_AUTODETECT_TIMEOUT
-[`GCM_PROVIDER`]: environment.md#GCM_PROVIDER
+[gcm-autodetect-timeout]: environment.md#GCM_AUTODETECT_TIMEOUT
+[gcm-provider]: environment.md#GCM_PROVIDER

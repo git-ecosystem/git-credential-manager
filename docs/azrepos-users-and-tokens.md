@@ -8,8 +8,8 @@ The Azure Repos host provider supports creating multiple types of credential:
 - Microsoft identity OAuth tokens
 
 To select which type of credential the Azure Repos host provider will create
-and use, you can set the [`credential.azreposCredentialType`][]
-configuration entry (or [`GCM_AZREPOS_CREDENTIALTYPE`][]
+and use, you can set the [`credential.azreposCredentialType`][credential-azreposCredentialType]
+configuration entry (or [`GCM_AZREPOS_CREDENTIALTYPE`][gcm-azrepos-credential-type]
 environment variable).
 
 ### Azure DevOps personal access tokens
@@ -219,7 +219,7 @@ fabrikam:
 ```
 
 [azure-devops-pats]: https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate?view=azure-devops&tabs=preview-page
-[`credential.azreposCredentialType`]: configuration.md#credentialazreposcredentialtype
-[`GCM_AZREPOS_CREDENTIALTYPE`]: environment.md#GCM_AZREPOS_CREDENTIALTYPE
+[credential-azreposCredentialType]: configuration.md#credentialazreposcredentialtype
+[gcm-azrepos-credential-type]: environment.md#GCM_AZREPOS_CREDENTIALTYPE
 [azure-devops-api]: https://docs.microsoft.com/en-gb/rest/api/azure/devops/tokens/pats
 [rfc3986-s321]: https://tools.ietf.org/html/rfc3986#section-3.2.1

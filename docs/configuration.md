@@ -50,7 +50,7 @@ git config --global credential.interactive false
 
 Defaults to enabled.
 
-**Also see: [GCM_INTERACTIVE][]**
+**Also see: [GCM_INTERACTIVE][gcm-interactive]**
 
 ---
 
@@ -77,7 +77,7 @@ This setting is typically used with a scoped URL to map a particular set of remo
 git config --global credential.ghe.contoso.com.provider github
 ```
 
-**Also see: [GCM_PROVIDER][]**
+**Also see: [GCM_PROVIDER][gcm-provider]**
 
 ---
 
@@ -104,7 +104,7 @@ Authority|Provider(s)
 git config --global credential.ghe.contoso.com.authority github
 ```
 
-**Also see: [GCM_AUTHORITY][]**
+**Also see: [GCM_AUTHORITY][gcm-authority]**
 
 ---
 
@@ -113,7 +113,7 @@ git config --global credential.ghe.contoso.com.authority github
 Permit or disable GCM from presenting GUI prompts. If an equivalent terminal/
 text-based prompt is available, that will be shown instead.
 
-To disable all interactivity see [credential.interactive][].
+To disable all interactivity see [credential.interactive][credential-interactive].
 
 #### Example
 
@@ -123,7 +123,7 @@ git config --global credential.guiPrompt false
 
 Defaults to enabled.
 
-**Also see: [GCM_GUI_PROMPT][]**
+**Also see: [GCM_GUI_PROMPT][gcm-gui-prompt]**
 
 ---
 
@@ -132,7 +132,7 @@ Defaults to enabled.
 Set the maximum length of time, in milliseconds, that GCM should wait for a
 network response during host provider auto-detection probing.
 
-See [auto-detection][] for more information.
+See [auto-detection][auto-detection] for more information.
 
 **Note:** Use a negative or zero value to disable probing altogether.
 
@@ -144,7 +144,7 @@ Defaults to 2000 milliseconds (2 seconds).
 git config --global credential.autoDetectTimeout -1
 ```
 
-**Also see: [GCM_AUTODETECT_TIMEOUT][]**
+**Also see: [GCM_AUTODETECT_TIMEOUT][gcm-autodetect-timeout]**
 
 ---
 
@@ -167,7 +167,7 @@ Value|WIA detection
 git config --global credential.tfsonprem123.allowWindowsAuth false
 ```
 
-**Also see: [GCM_ALLOW_WINDOWSAUTH][]**
+**Also see: [GCM_ALLOW_WINDOWSAUTH][gcm-allow-windowsauth]**
 
 ---
 
@@ -187,7 +187,7 @@ Configure GCM to use the a proxy for network operations.
 git config --global credential.httpsProxy http://john.doe:password@proxy.contoso.com
 ```
 
-**Also see: [GCM_HTTP_PROXY][]**
+**Also see: [GCM_HTTP_PROXY][gcm-http-proxy]**
 
 ---
 
@@ -212,7 +212,7 @@ _(unset)_|Automatically detect modes
 git config --global credential.bitbucketAuthModes "oauth,basic"
 ```
 
-**Also see: [GCM_BITBUCKET_AUTHMODES][]**
+**Also see: [GCM_BITBUCKET_AUTHMODES][gcm-bitbucket-authmodes]**
 
 ---
 
@@ -239,7 +239,7 @@ git config --global credential.bitbucketAlwaysRefreshCredentials 1
 
 Defaults to false/disabled.
 
-**Also see: [GCM_BITBUCKET_ALWAYS_REFRESH_CREDENTIALS][]**
+**Also see: [GCM_BITBUCKET_ALWAYS_REFRESH_CREDENTIALS][gcm-bitbucket-always-refresh-credentials]**
 
 ---
 
@@ -265,7 +265,7 @@ _(unset)_|Automatically detect modes
 git config --global credential.gitHubAuthModes "oauth,basic"
 ```
 
-**Also see: [GCM_GITHUB_AUTHMODES][]**
+**Also see: [GCM_GITHUB_AUTHMODES][gcm-github-authmodes]**
 
 ---
 
@@ -289,7 +289,7 @@ _(unset)_|Automatically detect modes
 git config --global credential.gitLabAuthModes "browser"
 ```
 
-**Also see: [GCM_GITLAB_AUTHMODES][]**
+**Also see: [GCM_GITLAB_AUTHMODES][gcm-gitlab-authmodes]**
 
 ---
 
@@ -306,7 +306,7 @@ Defaults to the value `git`.
 git config --global credential.namespace "my-namespace"
 ```
 
-**Also see: [GCM_NAMESPACE][]**
+**Also see: [GCM_NAMESPACE][gcm-namespace]**
 
 ---
 
@@ -316,18 +316,18 @@ Select the type of credential store to use on supported platforms.
 
 Default value on Windows is `wincredman`, on macOS is `keychain`, and is unset on Linux.
 
-**Note:** See more information about configuring secret stores in [cred-stores][].
+**Note:** See more information about configuring secret stores in [cred-stores][cred-stores].
 
 Value|Credential Store|Platforms
 -|-|-
 _(unset)_|Windows: `wincredman`, macOS: `keychain`, Linux: _(none)_|-
 `wincredman`|Windows Credential Manager (not available over SSH).|Windows
-`dpapi`|DPAPI protected files. Customize the DPAPI store location with [credential.dpapiStorePath][]|Windows
+`dpapi`|DPAPI protected files. Customize the DPAPI store location with [credential.dpapiStorePath][credential-dpapistorepath]|Windows
 `keychain`|macOS Keychain.|macOS
-`secretservice`|[freedesktop.org Secret Service API][freedesktop-ss] via [libsecret][] (requires a graphical interface to unlock secret collections).|Linux
-`gpg`|Use GPG to store encrypted files that are compatible with the [pass][] (requires GPG and `pass` to initialize the store).|macOS, Linux
+`secretservice`|[freedesktop.org Secret Service API][freedesktop-ss] via [libsecret][libsecret] (requires a graphical interface to unlock secret collections).|Linux
+`gpg`|Use GPG to store encrypted files that are compatible with the [pass][pass] (requires GPG and `pass` to initialize the store).|macOS, Linux
 `cache`|Git's built-in [credential cache][credential-cache].|Windows, macOS, Linux
-`plaintext`|Store credentials in plaintext files (**UNSECURE**). Customize the plaintext store location with [`credential.plaintextStorePath`][].|Windows, macOS, Linux
+`plaintext`|Store credentials in plaintext files (**UNSECURE**). Customize the plaintext store location with [`credential.plaintextStorePath`][credential-plaintextstorepath].|Windows, macOS, Linux
 
 #### Example
 
@@ -335,14 +335,14 @@ _(unset)_|Windows: `wincredman`, macOS: `keychain`, Linux: _(none)_|-
 git config --global credential.credentialStore gpg
 ```
 
-**Also see: [GCM_CREDENTIAL_STORE][]**
+**Also see: [GCM_CREDENTIAL_STORE][gcm-credential-store]**
 
 ---
 
 ### credential.cacheOptions
 
 Pass [options][cache-options] to the Git credential cache when
-[`credential.credentialStore`][]
+[`credential.credentialStore`][credential-credentialstore]
 is set to `cache`. This allows you to select a different amount
 of time to cache credentials (the default is 900 seconds) by passing
 `"--timeout <seconds>"`. Use of other options like `--socket` is untested
@@ -356,13 +356,13 @@ Defaults to empty.
 git config --global credential.cacheOptions "--timeout 300"
 ```
 
-**Also see: [GCM_CREDENTIAL_CACHE_OPTIONS][]**
+**Also see: [GCM_CREDENTIAL_CACHE_OPTIONS][gcm-credential-cache-options]**
 
 ---
 
 ### credential.plaintextStorePath
 
-Specify a custom directory to store plaintext credential files in when [`credential.credentialStore`][] is set to `plaintext`.
+Specify a custom directory to store plaintext credential files in when [`credential.credentialStore`][credential-credentialstore] is set to `plaintext`.
 
 Defaults to the value `~/.gcm/store` or `%USERPROFILE%\.gcm\store`.
 
@@ -372,13 +372,13 @@ Defaults to the value `~/.gcm/store` or `%USERPROFILE%\.gcm\store`.
 git config --global credential.plaintextStorePath /mnt/external-drive/credentials
 ```
 
-**Also see: [GCM_PLAINTEXT_STORE_PATH][]**
+**Also see: [GCM_PLAINTEXT_STORE_PATH][gcm-plaintext-store-path]**
 
 ---
 
 ### credential.dpapiStorePath
 
-Specify a custom directory to store DPAPI protected credential files in when [`credential.credentialStore`][] is set to `dpapi`.
+Specify a custom directory to store DPAPI protected credential files in when [`credential.credentialStore`][credential-credentialstore] is set to `dpapi`.
 
 Defaults to the value `%USERPROFILE%\.gcm\dpapi_store`.
 
@@ -388,7 +388,7 @@ Defaults to the value `%USERPROFILE%\.gcm\dpapi_store`.
 git config --global credential.dpapiStorePath D:\credentials
 ```
 
-**Also see: [GCM_DPAPI_STORE_PATH][]**
+**Also see: [GCM_DPAPI_STORE_PATH][gcm-dpapi-store-path]**
 
 ---
 
@@ -398,7 +398,7 @@ Specify which authentication flow should be used when performing Microsoft authe
 
 Defaults to `auto`.
 
-**Note:** If [`credential.msauthUseBroker`][] is set
+**Note:** If [`credential.msauthUseBroker`][credential-msauthusebroker] is set
 to `true` and the operating system authentication broker is available, all flows
 will be delegated to the broker. If both of those things are true, then the
 value of `credential.msauthFlow` has no effect.
@@ -416,7 +416,7 @@ Value|Authentication Flow
 git config --global credential.msauthFlow devicecode
 ```
 
-**Also see: [GCM_MSAUTH_FLOW][]**
+**Also see: [GCM_MSAUTH_FLOW][gcm-msauth-flow]**
 
 ---
 
@@ -439,7 +439,7 @@ Value|Description
 git config --global credential.msauthUseBroker true
 ```
 
-**Also see: [GCM_MSAUTH_USEBROKER][]**
+**Also see: [GCM_MSAUTH_USEBROKER][gsm-msauth-usebroker]**
 
 ---
 
@@ -527,40 +527,40 @@ Here is more information about [Azure Access tokens][azure-tokens].
 git config --global credential.azreposCredentialType oauth
 ```
 
-**Also see: [GCM_AZREPOS_CREDENTIALTYPE][]**
+**Also see: [GCM_AZREPOS_CREDENTIALTYPE][gcm-azrepos-credentialtype]**
 
 [auto-detection]: autodetect.md
 [azure-tokens]: azrepos-azuretokens.md
 [use-http-path]: https://git-scm.com/docs/gitcredentials/#Documentation/gitcredentials.txt-useHttpPath
-[`credential.credentialStore`]: #credentialcredentialstore
-[credential.dpapiStorePath]: #credentialdpapistorepath
-[credential.interactive]: #credentialinteractive
-[`credential.msauthUseBroker`]: #credentialmsauthusebroker-experimental
-[`credential.plaintextStorePath`]: #credentialplaintextstorepath
+[credential-credentialstore]: #credentialcredentialstore
+[credential-dpapistorepath]: #credentialdpapistorepath
+[credential-interactive]: #credentialinteractive
+[credential-msauthusebroker]: #credentialmsauthusebroker-experimental
+[credential-plaintextstorepath]: #credentialplaintextstorepath
 [credential-cache]: https://git-scm.com/docs/git-credential-cache
 [cred-stores]: credstores.md
 [enterprise-config]: enterprise-config.md
 [envars]: environment.md
 [freedesktop-ss]: https://specifications.freedesktop.org/secret-service/
-[GCM_ALLOW_WINDOWSAUTH]: environment.md#GCM_ALLOW_WINDOWSAUTH
-[GCM_AUTHORITY]: environment.md#GCM_AUTHORITY-deprecated
-[GCM_AUTODETECT_TIMEOUT]: environment.md#GCM_AUTODETECT_TIMEOUT
-[GCM_AZREPOS_CREDENTIALTYPE]: environment.md#GCM_AZREPOS_CREDENTIALTYPE
-[GCM_BITBUCKET_ALWAYS_REFRESH_CREDENTIALS]: environment.md#GCM_BITBUCKET_ALWAYS_REFRESH_CREDENTIALS
-[GCM_BITBUCKET_AUTHMODES]: environment.md#GCM_BITBUCKET_AUTHMODES
-[GCM_CREDENTIAL_CACHE_OPTIONS]: environment.md#GCM_CREDENTIAL_CACHE_OPTIONS
-[GCM_CREDENTIAL_STORE]: environment.md#GCM_CREDENTIAL_STORE
-[GCM_DPAPI_STORE_PATH]: environment.md#GCM_DPAPI_STORE_PATH
-[GCM_GITHUB_AUTHMODES]: environment.md#GCM_GITHUB_AUTHMODES
-[GCM_GITLAB_AUTHMODES]:environment.md#GCM_GITLAB_AUTHMODES
-[GCM_GUI_PROMPT]: environment.md#GCM_GUI_PROMPT
-[GCM_HTTP_PROXY]: environment.md#GCM_HTTP_PROXY-deprecated
-[GCM_INTERACTIVE]: environment.md#GCM_INTERACTIVE
-[GCM_MSAUTH_FLOW]: environment.md#GCM_MSAUTH_FLOW
-[GCM_MSAUTH_USEBROKER]: environment.md#GCM_MSAUTH_USEBROKER-experimental
-[GCM_NAMESPACE]: environment.md#GCM_NAMESPACE
-[GCM_PLAINTEXT_STORE_PATH]: environment.md#GCM_PLAINTEXT_STORE_PATH
-[GCM_PROVIDER]: environment.md#GCM_PROVIDER
+[gcm-allow-windowsauth]: environment.md#GCM_ALLOW_WINDOWSAUTH
+[gcm-authority]: environment.md#GCM_AUTHORITY-deprecated
+[gcm-autodetect-timeout]: environment.md#GCM_AUTODETECT_TIMEOUT
+[gcm-azrepos-credentialtype]: environment.md#GCM_AZREPOS_CREDENTIALTYPE
+[gcm-bitbucket-always-refresh-credentials]: environment.md#GCM_BITBUCKET_ALWAYS_REFRESH_CREDENTIALS
+[gcm-bitbucket-authmodes]: environment.md#GCM_BITBUCKET_AUTHMODES
+[gcm-credential-cache-options]: environment.md#GCM_CREDENTIAL_CACHE_OPTIONS
+[gcm-credential-store]: environment.md#GCM_CREDENTIAL_STORE
+[gcm-dpapi-store-path]: environment.md#GCM_DPAPI_STORE_PATH
+[gcm-github-authmodes]: environment.md#GCM_GITHUB_AUTHMODES
+[gcm-gitlab-authmodes]:environment.md#GCM_GITLAB_AUTHMODES
+[gcm-gui-prompt]: environment.md#GCM_GUI_PROMPT
+[gcm-http-proxy]: environment.md#GCM_HTTP_PROXY-deprecated
+[gcm-interactive]: environment.md#GCM_INTERACTIVE
+[gcm-msauth-flow]: environment.md#GCM_MSAUTH_FLOW
+[gsm-msauth-usebroker]: environment.md#GCM_MSAUTH_USEBROKER-experimental
+[gcm-namespace]: environment.md#GCM_NAMESPACE
+[gcm-plaintext-store-path]: environment.md#GCM_PLAINTEXT_STORE_PATH
+[gcm-provider]: environment.md#GCM_PROVIDER
 [usage]: usage.md
 [git-config-http-proxy]: https://git-scm.com/docs/git-config#Documentation/git-config.txt-httpproxy
 [http-proxy]: netconfig.md#http-proxy
