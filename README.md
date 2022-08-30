@@ -6,7 +6,7 @@
 
 [Git Credential Manager][gcm] (GCM) is a secure Git credential helper built on [.NET][dotnet] that runs on Windows, macOS, and Linux.
 
-Compared to Git's [built-in credential helpers][git-tools-credential-storage] (Windows: wincred, macOS: osxkeychain, Linux: gnome-keyring/libsecret) which provides single-factor authentication support working on any HTTP-enabled Git repository, GCM provides multi-factor authentication support for [Azure DevOps][azure-devops], Azure DevOps Server (formerly Team Foundation Server), GitHub, and Bitbucket, and GitLab.
+Compared to Git's [built-in credential helpers][git-tools-credential-storage] (Windows: wincred, macOS: osxkeychain, Linux: gnome-keyring/libsecret) which provides single-factor authentication support working on any HTTP-enabled Git repository, GCM provides multi-factor authentication support for [Azure DevOps][azure-devops], Azure DevOps Server (formerly Team Foundation Server), GitHub, Bitbucket, and GitLab.
 
 Git Credential Manager (GCM) replaces the .NET Framework-based [Git Credential Manager for Windows][gcm-for-windows] (GCM), and the Java-based [Git Credential Manager for Mac and Linux][gcm-for-mac-and-linux] (Java GCM), providing a consistent authentication experience across all platforms.
 

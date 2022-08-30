@@ -48,7 +48,7 @@ provider with the application via the host provider registry.
 Host providers MUST implement the `IHostProvider` interface. They can choose to
 directly implement the interface they MAY derive from the `HostProvider`
 abstract class (which itself implements the `IHostProvider` interface) - see
-[§2.6][hostprovider-base-class].
+[2.6][hostprovider-base-class].
 
 Implementors MUST implement all interface properties and abstract methods.
 

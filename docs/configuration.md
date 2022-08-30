@@ -439,7 +439,7 @@ Value|Description
 git config --global credential.msauthUseBroker true
 ```
 
-**Also see: [GCM_MSAUTH_USEBROKER][gsm-msauth-usebroker]**
+**Also see: [GCM_MSAUTH_USEBROKER][gcm-msauth-usebroker]**
 
 ---
 
@@ -557,7 +557,7 @@ git config --global credential.azreposCredentialType oauth
 [gcm-http-proxy]: environment.md#GCM_HTTP_PROXY-deprecated
 [gcm-interactive]: environment.md#GCM_INTERACTIVE
 [gcm-msauth-flow]: environment.md#GCM_MSAUTH_FLOW
-[gsm-msauth-usebroker]: environment.md#GCM_MSAUTH_USEBROKER-experimental
+[gcm-msauth-usebroker]: environment.md#GCM_MSAUTH_USEBROKER-experimental
 [gcm-namespace]: environment.md#GCM_NAMESPACE
 [gcm-plaintext-store-path]: environment.md#GCM_PLAINTEXT_STORE_PATH
 [gcm-provider]: environment.md#GCM_PROVIDER
