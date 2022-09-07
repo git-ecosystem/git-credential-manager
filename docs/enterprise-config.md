@@ -3,8 +3,8 @@
 Git Credential Manager (GCM) can be configured using multiple
 different mechanisms. In order of preference, those mechanisms are:
 
-1. [Environment variables](environment.md)
-1. [Standard Git configuration files](configuration.md)
+1. [Environment variables][environment]
+1. Standard [Git configuration][config] files
    1. Repository/local configuration (`.git/config`)
    1. User/global configuration (`$HOME/.gitconfig` or `%HOME%\.gitconfig`)
    1. Installation/system configuration (`etc/gitconfig`)
@@ -50,7 +50,7 @@ By using the Windows Registry, system administrators can use Group Policy to
 easily set defaults for GCM's settings.
 
 The names and possible values of all settings under this key are the same as
-those of the [Git configuration](configuration.md) settings.
+those of the [Git configuration][config] settings.
 
 The type of each registry key can be either `REG_SZ` (string) or `REG_DWORD`
 (integer).
@@ -58,3 +58,6 @@ The type of each registry key can be either `REG_SZ` (string) or `REG_DWORD`
 ## macOS/Linux
 
 Default configuration setting stores has not been implemented.
+
+[environment]: environment.md
+[config]: configuration.md

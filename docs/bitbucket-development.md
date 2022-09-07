@@ -7,15 +7,15 @@ Additionally Bitbucket supports App-specific passwords which can be used via Bas
 To enhance security Bitbucket offers optional Two-Factor Authentication (2FA). When 2FA is enabled username/password Basic Auth access to the REST APIs and to Git repositories is suspended.
 At that point users are left with the choice of username/apps-specific-password Basic Auth for REST APIs and Git interactions, OAuth for REST APIs and Git/Hg interactions or SSH for Git/HG interactions and one of the previous choices for REST APIs.
 SSH and REST API access are beyond the scope of this document.
-Read about [Bitbucket's 2FA implementation](https://confluence.atlassian.com/bitbucket/two-step-verification-777023203.html).
+Read about [Bitbucket's 2FA implementation][2fa-impl].
 
 App-specific passwords are not particularly user friendly as once created Bitbucket hides their value, even from the owner.
 They are intended for use within application that talk to Bitbucket where application can remember and use the app-specific-password.
-[Additional information](https://confluence.atlassian.com/display/BITBUCKET/App+passwords).
+[Additional information][additional-info].
 
 OAuth is the intended authentication method for user interactions with HTTPS remote URL for Git repositories when 2FA is active.
 Essentially once a client application has an OAuth access token it can be used in place of a user's password.
-Read more about information [Bitbucket's OAuth implementation](https://confluence.atlassian.com/bitbucket/oauth-on-bitbucket-cloud-238027431.html).
+Read more about information [Bitbucket's OAuth implementation][oauth-impl].
 
 Bitbucket's OAuth implementation follows the standard specifications for OAuth 2.0, which is out of scope for this document.
 However it implements a comparatively rare part of OAuth 2.0 Refresh Tokens.
@@ -30,7 +30,7 @@ This is explained in more detail below.
 
 ## Multiple User Accounts
 
-Unlike the GitHub implementation within the Git Credential Manager, the Bitbucket implementation stores 'secrets', passwords, app-specific passwords, or OAuth tokens, with usernames in the [Windows Credential Manager](https://msdn.microsoft.com/en-us/library/windows/desktop/aa374792(v=vs.85).aspx) vault.
+Unlike the GitHub implementation within the Git Credential Manager, the Bitbucket implementation stores 'secrets', passwords, app-specific passwords, or OAuth tokens, with usernames in the [Windows Credential Manager][wincred-manager] vault.
 
 Depending on the circumstances this means either saving an explicit username in to the Windows Credential Manager/Vault or including the username in the URL used as the identifying key of entries in the Windows Credential Manager vault, i.e. using a key such as `git:https://mminns@bitbucket.org/` rather than `git:https://bitbucket.org`.
 This means that the Bitbucket implementation in the GCM can support multiple accounts, and usernames,  for a single user against Bitbucket, e.g. a personal account and a work account.
@@ -65,7 +65,7 @@ The Access and Refresh Tokens will be stored against the username and the userna
 
 ## On-Premise Bitbucket
 
-On-premise Bitbucket, more correctly known as Bitbucket Server or Bitbucket DC, has a number of differences compared to the cloud instance of Bitbucket, [bitbucket.org](https://bitbucket.org).
+On-premise Bitbucket, more correctly known as Bitbucket Server or Bitbucket DC, has a number of differences compared to the cloud instance of Bitbucket, [bitbucket.org][bitbucket].
 
 As far as GCMC is concerned the main difference it doesn't support OAuth so only Basic Authentication is available.
 
@@ -73,10 +73,18 @@ It is possible to test with Bitbucket Server by running it locally using the fol
 
     ❯ atlas-run-standalone --product bitbucket
 
-See the developer documentation for [atlas-run-standalone](https://developer.atlassian.com/server/framework/atlassian-sdk/atlas-run-standalone/).
+See the developer documentation for [atlas-run-standalone][atlas-run-standalone].
 
 This will download and run a standalone instance of Bitbucket Server which can be accessed using the credentials `admin`/`admin` at
 
     https://localhost:7990/bitbucket
 
-Atlassian has [documentation](https://developer.atlassian.com/server/framework/atlassian-sdk/) on how to download and install their SDK.
+Atlassian has [documentation][atlassian-sdk] on how to download and install their SDK.
+
+[additional-info]:https://confluence.atlassian.com/display/BITBUCKET/App+passwords
+[atlas-run-standalone]: https://developer.atlassian.com/server/framework/atlassian-sdk/atlas-run-standalone/
+[bitbucket]: https://bitbucket.org
+[2fa-impl]: https://confluence.atlassian.com/bitbucket/two-step-verification-777023203.html
+[oauth-impl]: https://confluence.atlassian.com/bitbucket/oauth-on-bitbucket-cloud-238027431.html
+[atlassian-sdk]: https://developer.atlassian.com/server/framework/atlassian-sdk/
+[wincred-manager]: https://msdn.microsoft.com/en-us/library/windows/desktop/aa374792(v=vs.85).aspx

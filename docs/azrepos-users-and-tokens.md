@@ -8,8 +8,8 @@ The Azure Repos host provider supports creating multiple types of credential:
 - Microsoft identity OAuth tokens
 
 To select which type of credential the Azure Repos host provider will create
-and use, you can set the [`credential.azreposCredentialType`](configuration.md#credentialazreposcredentialtype)
-configuration entry (or [`GCM_AZREPOS_CREDENTIALTYPE`](environment.md#GCM_AZREPOS_CREDENTIALTYPE)
+and use, you can set the [`credential.azreposCredentialType`][credential-azreposCredentialType]
+configuration entry (or [`GCM_AZREPOS_CREDENTIALTYPE`][gcm-azrepos-credential-type]
 environment variable).
 
 ### Azure DevOps personal access tokens
@@ -18,7 +18,7 @@ Historically, the only option supported by the Azure Repos host provider was
 Azure DevOps Personal Access Tokens (PATs).
 
 These PATs are only used by Azure DevOps, and must be [managed through the Azure
-DevOps user settings page](https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate?view=azure-devops&tabs=preview-page) or [REST API](https://docs.microsoft.com/en-gb/rest/api/azure/devops/tokens/pats).
+DevOps user settings page][azure-devops-pats] or [REST API][azure-devops-api].
 
 PATs have a limited lifetime and new tokens must be created once they expire. In
 Git Credential Manager, when a PAT expired (or was manually revoked) this
@@ -188,8 +188,7 @@ inherited).
 
 To associate a user account with a particular Git remote you must manually edit
 the remote URL using `git config` commands to include the username in the
-[user information](https://tools.ietf.org/html/rfc3986#section-3.2.1) part of
-the URL.
+[user information][rfc3986-s321] part of the URL.
 
 ```shell
 git config --local remote.origin.url https://alice-alt%40contoso.com@contoso.visualstudio.com/project/_git/repo
@@ -218,3 +217,9 @@ contoso:
 fabrikam:
   (global) -> alice@fabrikam.com
 ```
+
+[azure-devops-pats]: https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate?view=azure-devops&tabs=preview-page
+[credential-azreposCredentialType]: configuration.md#credentialazreposcredentialtype
+[gcm-azrepos-credential-type]: environment.md#GCM_AZREPOS_CREDENTIALTYPE
+[azure-devops-api]: https://docs.microsoft.com/en-gb/rest/api/azure/devops/tokens/pats
+[rfc3986-s321]: https://tools.ietf.org/html/rfc3986#section-3.2.1

@@ -50,4 +50,6 @@ git remote set-url origin https://employee9999@example.com/big-company/secret-re
 
 ## Azure DevOps
 
-[Azure DevOps has some additional, optional complexity](azrepos-users-and-tokens.md) which you should also be aware of if you're using it.
+[Azure DevOps has some additional, optional complexity][azure-access-tokens] which you should also be aware of if you're using it.
+
+[azure-access-tokens]: azrepos-users-and-tokens.md

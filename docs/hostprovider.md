@@ -1,18 +1,5 @@
 # Git Credential Manager Host Provider
 
-Property|Value
--|-
-Author(s)|Matthew John Cheetham ([@mjcheetham](https://github.com/mjcheetham))
-Revision|1.2
-Last updated|2021-01-08
-
-## Revision Summary
-
-- 1.0. Initial revision.
-- 1.1. Replaced `GetCredentialKey` with `GetServiceName`.
-- 1.2. Added new `IsSupported(HttpResponseMessage)` overload, the optional
-       `ICommandProvider` interface, and registration priorities.
-
 ## Abstract
 
 Git Credential Manger, the cross-platform and cross-host Git credential
@@ -20,37 +7,13 @@ helper, can be extended to support any Git hosting service allowing seamless
 authentication to secured Git repositories by implementing and registering a
 "host provider".
 
-## Table of Contents
-
-- [1. Introduction](#1-introduction)
-  - [1.1. Notational Conventions](#11-notational-conventions)
-  - [1.2. Abbreviations](#12-abbreviations)
-- [2. Implementation](#2-implementation)
-  - [2.1. Registration](#21-registration)
-    - [2.1.2. Ordering](#212-ordering)
-  - [2.2. Handling Requests](#22-handling-requests)
-    - [2.2.1. Rejecting Requests](#221-rejecting-requests)
-  - [2.3. Retrieving Credentials](#23-retrieving-credentials)
-    - [2.3.1 Authentication Prompts](#231-authentication-prompts)
-  - [2.4. Storing Credentials](#24-storing-credentials)
-  - [2.5. Erasing Credentials](#25-erasing-credentials)
-  - [2.6 `HostProvider` base class](#26-hostprovider-base-class)
-    - [2.6.1 `GetServiceName`](#261-getservicename)
-    - [2.6.2 `GenerateCredentialAsync`](#262-generatecredentialasync)
-  - [2.7. External Metadata](#27-external-metadata)
-- [3. Helpers](#3-helpers)
-  - [3.1. Discovery](#31-discovery)
-- [4. Error Handling](#4-error-handling)
-- [5. Custom Commands](#5-custom-commands)
-- [References](#references)
-
 ## 1. Introduction
 
 Git Credential Manager (GCM) is a host and platform agnostic Git
 credential helper application. Support for authenticating to any Git hosting
 service can be added to GCM by creating a custom "host provider" and
 registering it within the product. Host providers can be submitted via a pull
-request on GitHub at <https://github.com/GitCredentialManager/git-credential-manager>.
+request on [the Git Credential Manager repository on GitHub][gcm].
 
 This document outlines the required and expected behaviour of a host provider,
 and what is required to implement and register one.
@@ -60,7 +23,7 @@ and what is required to implement and register one.
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
 "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
 specification are to be interpreted as described in
-[[RFC2119](https://tools.ietf.org/html/rfc2119)].
+[[RFC2119][rfc-2119]].
 
 ### 1.2. Abbreviations
 
@@ -72,7 +35,7 @@ Manager for Windows" is abbreviated to "GCM for Windows" or "GCM Windows".
 "Git Credential Manager for Mac & Linux" is abbreviated to "GCM for
 Mac/Linux" or "GCM Mac/Linux".
 
-OAuth2 [[RFC6749](https://tools.ietf.org/html/rfc6749)] "access tokens" are
+OAuth2 [[RFC6749][rfc-6749]] "access tokens" are
 abbreviated to "ATs" and "refresh tokens" to "RTs". "Personal Access Tokens" are
 abbreviated to "PATs".
 
@@ -85,7 +48,7 @@ provider with the application via the host provider registry.
 Host providers MUST implement the `IHostProvider` interface. They can choose to
 directly implement the interface they MAY derive from the `HostProvider`
 abstract class (which itself implements the `IHostProvider` interface) - see
-[§2.6](#26-hostprovider-base-class).
+[2.6][hostprovider-base-class].
 
 Implementors MUST implement all interface properties and abstract methods.
 
@@ -371,11 +334,18 @@ If a host provider wishes to surface custom commands the SHOULD implement the
 
 Each provider is given the opportunity to create a single `ProviderCommand`
 instance to which further sub-commands can be parented to. Commanding is
-provided by the `System.CommandLine` API library [[1](#references)].
+provided by the `System.CommandLine` API library [[1][references]].
 
 There are no limitations on what format sub-commands, arguments, or options must
 take, but implementors SHOULD attempt to follow existing practices and styles.
 
 ## References
 
-1. `System.CommandLine` API (<https://github.com/dotnet/command-line-api>)
+1. [`System.CommandLine` API][github-dotnet-cli]
+
+[gcm]: https://github.com/GitCredentialManager/git-credential-manager
+[github-dotnet-cli]: https://github.com/dotnet/command-line-api
+[hostprovider-base-class]: #26-hostprovider-base-class
+[references]: #references
+[rfc-2119]: https://tools.ietf.org/html/rfc2119
+[rfc-6749]: https://tools.ietf.org/html/rfc6749

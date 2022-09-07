@@ -44,7 +44,7 @@ library (C#). The library targets .NET Standard as well as .NET Framework.
 > **Note**
 >
 > The reason for also targeting .NET Framework directly is that the
-> `Microsoft.Identity.Client` ([MSAL.NET](https://github.com/AzureAD/microsoft-authentication-library-for-dotnet))
+> `Microsoft.Identity.Client` ([MSAL.NET][msal])
 > library requires a .NET Framework target to be able to show the embedded web
 > browser auth pop-up on Windows platforms.
 >
@@ -52,8 +52,7 @@ library (C#). The library targets .NET Standard as well as .NET Framework.
 > our own browser pop-up handling code on .NET meaning both Windows and
 > Mac. We haven't yet gotten around to exploring this.
 >
-> See [this](https://github.com/GitCredentialManager/git-credential-manager/issues/113)
-> issue for more information.
+> See [GCM issue 113][issue-113] for more information.
 
 The entry-point for GCM can be found in the `Git-Credential-Manager`
 project, a console application that targets both .NET and .NET Framework.
@@ -80,9 +79,9 @@ helpers on Windows.
 
 ### Cross-platform UI
 
-We hope to be able to migrate the WPF/Windows only helpers to [Avalonia](https://avaloniaui.net/)
-in order to gain cross-platform graphical user interface support. See [this](https://github.com/GitCredentialManager/git-credential-manager/issues/136)
-issue for up-to-date progress on this effort.
+We hope to be able to migrate the WPF/Windows only helpers to [Avalonia][avalonia]
+in order to gain cross-platform graphical user interface support. See
+[GCM issue 136][issue-136] for up-to-date progress on this effort.
 
 ### Microsoft authentication
 
@@ -148,7 +147,7 @@ Git Credential Manager maintains a set of known commands including
 GCM also maintains a set of known, registered host providers that implement
 the `IHostProvider` interface. Providers register themselves by adding an
 instance of the provider to the `Application` object via the `RegisterProvider`
-method [in `Core.Program`](../src/shared/Git-Credential-Manager/Program.cs).
+method in [`Core.Program`][core-program].
 The `GenericHostProvider` is registered last so that it can handle all other
 HTTP-based remotes as a catch-all, and provide basic username/password auth and
 detect the presence of Windows Integrated Authentication (Kerberos, NTLM,
@@ -162,7 +161,7 @@ The `Get|Store|EraseCommand`s consult the host provider registry for the most
 appropriate host provider. The default registry implementation select the a host
 provider by asking each registered provider in turn if they understand the
 request. The provider selection can be overridden by the user via the
-[`credential.provider`](configuration.md#credentialprovider) or [`GCM_PROVIDER`](environment.md#GCM_PROVIDER)
+[`credential.provider`][credential-provider] or [`GCM_PROVIDER`][gcm-provider]
 configuration and environment variable respectively (3).
 
 The `Get|Store|EraseCommand`s call the corresponding
@@ -277,3 +276,11 @@ operation/authentication.
 The `ITrace` component can be found on the `ICommandContext` object or passed in
 directly to some constructors. Verbose and diagnostic information is be written
 to the trace object in most places of GCM.
+
+[avalonia]: https://avaloniaui.net/
+[core-program]: ../src/shared/Git-Credential-Manager/Program.cs
+[credential-provider]: configuration.md#credentialprovider
+[issue-113]: https://github.com/GitCredentialManager/git-credential-manager/issues/113
+[issue-136]: https://github.com/GitCredentialManager/git-credential-manager/issues/136
+[gcm-provider]: environment.md#GCM_PROVIDER
+[msal]: https://github.com/AzureAD/microsoft-authentication-library-for-dotnet

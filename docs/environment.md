@@ -1,8 +1,8 @@
 # Environment variables
 
-[Git Credential Manager](usage.md) works out of the box for most users. Configuration options are available to customize or tweak behavior.
+[Git Credential Manager][gcm] works out of the box for most users. Configuration options are available to customize or tweak behavior.
 
-Git Credential Manager (GCM) can be configured using environment variables. **Environment variables take precedence over [configuration](configuration.md) options and enterprise system administrator [default values](enterprise-config.md)**.
+Git Credential Manager (GCM) can be configured using environment variables. **Environment variables take precedence over [configuration][configuration] options and enterprise system administrator [default values][default-values]**.
 
 For the complete list of environment variables GCM understands, see the list below.
 
@@ -156,7 +156,7 @@ export GCM_INTERACTIVE=0
 
 Defaults to enabled.
 
-**Also see: [credential.interactive](configuration.md#credentialinteractive)**
+**Also see: [credential.interactive][credential-interactive]**
 
 ---
 
@@ -166,7 +166,7 @@ Define the host provider to use when authenticating.
 
 ID|Provider
 -|-
-`auto` _(default)_|_\[automatic\]_ ([learn more](autodetect.md))
+`auto` _(default)_|_\[automatic\]_ ([learn more][autodetect])
 `azure-repos`|Azure Repos
 `github`|GitHub
 `gitlab`|GitLab _(supports OAuth in browser, personal access token and Basic Authentication)_
@@ -190,7 +190,7 @@ SET GCM_PROVIDER=github
 export GCM_PROVIDER=github
 ```
 
-**Also see: [credential.provider](configuration.md#credentialprovider)**
+**Also see: [credential.provider][credential-provider]**
 
 ---
 
@@ -198,7 +198,7 @@ export GCM_PROVIDER=github
 
 > This setting is deprecated and should be replaced by `GCM_PROVIDER` with the corresponding provider ID value.
 >
-> Click [here](https://aka.ms/gcm/authority) for more information.
+> See the [migration guide][migration-guide] for more information.
 
 Select the host provider to use when authenticating by which authority is supported by the providers.
 
@@ -224,7 +224,7 @@ SET GCM_AUTHORITY=github
 export GCM_AUTHORITY=github
 ```
 
-**Also see: [credential.authority](configuration.md#credentialauthority-deprecated)**
+**Also see: [credential.authority][credential-authority]**
 
 ---
 
@@ -233,7 +233,7 @@ export GCM_AUTHORITY=github
 Permit or disable GCM from presenting GUI prompts. If an equivalent terminal/
 text-based prompt is available, that will be shown instead.
 
-To disable all interactivity see [GCM_INTERACTIVE](#gcm_interactive).
+To disable all interactivity see [GCM_INTERACTIVE][gcm-interactive].
 
 #### Example
 
@@ -251,7 +251,7 @@ export GCM_GUI_PROMPT=0
 
 Defaults to enabled.
 
-**Also see: [credential.guiPrompt](configuration.md#credentialguiprompt)**
+**Also see: [credential.guiPrompt][credential-guiprompt]**
 
 ---
 
@@ -260,7 +260,7 @@ Defaults to enabled.
 Set the maximum length of time, in milliseconds, that GCM should wait for a
 network response during host provider auto-detection probing.
 
-See [here](autodetect.md) for more information.
+See [autodetection][autodetect] for more information.
 
 **Note:** Use a negative or zero value to disable probing altogether.
 
@@ -280,7 +280,7 @@ SET GCM_AUTODETECT_TIMEOUT=-1
 export GCM_AUTODETECT_TIMEOUT=-1
 ```
 
-**Also see: [credential.autoDetectTimeout](configuration.md#credentialautodetecttimeout)**
+**Also see: [credential.autoDetectTimeout][credential-autodetecttimeout]**
 
 ---
 
@@ -311,15 +311,15 @@ SET GCM_ALLOW_WINDOWSAUTH=0
 export GCM_ALLOW_WINDOWSAUTH=0
 ```
 
-**Also see: [credential.allowWindowsAuth](environment.md#credentialallowWindowsAuth)**
+**Also see: [credential.allowWindowsAuth][credential-allowwindowsauth]**
 
 ---
 
 ### GCM_HTTP_PROXY _(deprecated)_
 
-> This setting is deprecated and should be replaced by the [standard `http.proxy` Git configuration option](https://git-scm.com/docs/git-config#Documentation/git-config.txt-httpproxy).
+> This setting is deprecated and should be replaced by the [standard `http.proxy` Git configuration option][git-httpproxy].
 >
-> Click [here](https://aka.ms/gcm/httpproxy) for more information.
+> See the [HTTP proxy configuration][network-http-proxy] for more information.
 
 Configure GCM to use the a proxy for network operations.
 
@@ -337,7 +337,7 @@ SET GCM_HTTP_PROXY=http://john.doe:password@proxy.contoso.com
 export GCM_HTTP_PROXY=http://john.doe:password@proxy.contoso.com
 ```
 
-**Also see: [credential.httpProxy](configuration.md#credentialhttpProxy-deprecated)**
+**Also see: [credential.httpProxy][credential-httpproxy]**
 
 ---
 
@@ -368,7 +368,7 @@ SET GCM_BITBUCKET_AUTHMODES="oauth,basic"
 export GCM_BITBUCKET_AUTHMODES="oauth,basic"
 ```
 
-**Also see: [credential.bitbucketAuthModes](configuration.md#credentialbitbucketAuthModes)**
+**Also see: [credential.bitbucketAuthModes][credential-bitbucketauthmodes]**
 
 ---
 
@@ -401,7 +401,7 @@ export GCM_BITBUCKET_ALWAYS_REFRESH_CREDENTIALS=1
 
 Defaults to false/disabled.
 
-**Also see: [credential.bitbucketAlwaysRefreshCredentials](configuration.md#bitbucketAlwaysRefreshCredentials)**
+**Also see: [credential.bitbucketAlwaysRefreshCredentials][credential-bitbucketalwaysrefreshcredentials]**
 
 ---
 
@@ -433,7 +433,7 @@ SET GCM_GITHUB_AUTHMODES="oauth,basic"
 export GCM_GITHUB_AUTHMODES="oauth,basic"
 ```
 
-**Also see: [credential.gitHubAuthModes](configuration.md#credentialgitHubAuthModes)**
+**Also see: [credential.gitHubAuthModes][credential-githubauthmodes]**
 
 ---
 
@@ -463,7 +463,7 @@ SET GCM_GITLAB_AUTHMODES="browser"
 export GCM_GITLAB_AUTHMODES="browser"
 ```
 
-**Also see: [credential.gitLabAuthModes](configuration.md#credentialgitLabAuthModes)**
+**Also see: [credential.gitLabAuthModes][credential-gitlabauthmodes]**
 
 ---
 
@@ -486,7 +486,7 @@ SET GCM_NAMESPACE="my-namespace"
 export GCM_NAMESPACE="my-namespace"
 ```
 
-**Also see: [credential.namespace](configuration.md#credentialnamespace)**
+**Also see: [credential.namespace][credential-namespace]**
 
 ---
 
@@ -496,18 +496,18 @@ Select the type of credential store to use on supported platforms.
 
 Default value on Windows is `wincredman`, on macOS is `keychain`, and is unset on Linux.
 
-**Note:** See more information about configuring secret stores [here](credstores.md).
+**Note:** For more information about configuring secret stores see the [credential stores documentation][credential-stores].
 
 Value|Credential Store|Platforms
 -|-|-
 _(unset)_|Windows: `wincredman`, macOS: `keychain`, Linux: _(none)_|-
 `wincredman`|Windows Credential Manager (not available over SSH).|Windows
-`dpapi`|DPAPI protected files. Customize the DPAPI store location with [`GCM_DPAPI_STORE_PATH`](#gcm_dpapi_store_path)|Windows
+`dpapi`|DPAPI protected files. Customize the DPAPI store location with [`GCM_DPAPI_STORE_PATH`][gcm-dpapi-store-path]|Windows
 `keychain`|macOS Keychain.|macOS
-`secretservice`|[freedesktop.org Secret Service API](https://specifications.freedesktop.org/secret-service/) via [libsecret](https://wiki.gnome.org/Projects/Libsecret) (requires a graphical interface to unlock secret collections).|Linux
-`gpg`|Use GPG to store encrypted files that are compatible with the [`pass` utility](https://www.passwordstore.org/) (requires GPG and `pass` to initialize the store).|macOS, Linux
-`cache`|Git's built-in [credential cache](https://git-scm.com/docs/git-credential-cache).|Windows, macOS, Linux
-`plaintext`|Store credentials in plaintext files (**UNSECURE**). Customize the plaintext store location with [`GCM_PLAINTEXT_STORE_PATH`](#gcm_plaintext_store_path).|Windows, macOS, Linux
+`secretservice`|[freedesktop.org Secret Service API][freedesktop-ss] via [libsecret][libsecret] (requires a graphical interface to unlock secret collections).|Linux
+`gpg`|Use GPG to store encrypted files that are compatible with the [`pass` utility][passwordstore] (requires GPG and `pass` to initialize the store).|macOS, Linux
+`cache`|Git's built-in [credential cache][git-credential-cache].|Windows, macOS, Linux
+`plaintext`|Store credentials in plaintext files (**UNSECURE**). Customize the plaintext store location with [`GCM_PLAINTEXT_STORE_PATH`][gcm-plaintext-store-path].|Windows, macOS, Linux
 
 #### Windows
 
@@ -521,14 +521,14 @@ SET GCM_CREDENTIAL_STORE="gpg"
 export GCM_CREDENTIAL_STORE="gpg"
 ```
 
-**Also see: [credential.credentialStore](configuration.md#credentialcredentialstore)**
+**Also see: [credential.credentialStore][credential-credentialstore]**
 
 ---
 
 ### GCM_CREDENTIAL_CACHE_OPTIONS
 
-Pass [options](https://git-scm.com/docs/git-credential-cache#_options)
-to the Git credential cache when [`GCM_CREDENTIAL_STORE`](#GCM_CREDENTIAL_STORE)
+Pass [options][git-cache-options]
+to the Git credential cache when [`GCM_CREDENTIAL_STORE`][gcm-credential-store]
 is set to `cache`. This allows you to select a different amount
 of time to cache credentials (the default is 900 seconds) by passing
 `"--timeout <seconds>"`. Use of other options like `--socket` is untested
@@ -548,13 +548,13 @@ SET GCM_CREDENTIAL_CACHE_OPTIONS="--timeout 300"
 export GCM_CREDENTIAL_CACHE_OPTIONS="--timeout 300"
 ```
 
-**Also see: [credential.cacheOptions](configuration.md#credentialcacheoptions)**
+**Also see: [credential.cacheOptions][credential-cacheoptions]**
 
 ---
 
 ### GCM_PLAINTEXT_STORE_PATH
 
-Specify a custom directory to store plaintext credential files in when [`GCM_CREDENTIAL_STORE`](#GCM_CREDENTIAL_STORE) is set to `plaintext`.
+Specify a custom directory to store plaintext credential files in when [`GCM_CREDENTIAL_STORE`][gcm-credential-store] is set to `plaintext`.
 
 Defaults to the value `~/.gcm/store` or `%USERPROFILE%\.gcm\store`.
 
@@ -570,13 +570,13 @@ SETX GCM_PLAINTEXT_STORE_PATH=D:\credentials
 export GCM_PLAINTEXT_STORE_PATH=/mnt/external-drive/credentials
 ```
 
-**Also see: [credential.plaintextStorePath](configuration.md#credentialplaintextstorepath)**
+**Also see: [credential.plaintextStorePath][credential-plain-text-store]**
 
 ---
 
 ### GCM_DPAPI_STORE_PATH
 
-Specify a custom directory to store DPAPI protected credential files in when [`GCM_CREDENTIAL_STORE`](#GCM_CREDENTIAL_STORE) is set to `dpapi`.
+Specify a custom directory to store DPAPI protected credential files in when [`GCM_CREDENTIAL_STORE`][gcm-credential-store] is set to `dpapi`.
 
 Defaults to the value `%USERPROFILE%\.gcm\dpapi_store`.
 
@@ -586,7 +586,7 @@ Defaults to the value `%USERPROFILE%\.gcm\dpapi_store`.
 SETX GCM_DPAPI_STORE_PATH=D:\credentials
 ```
 
-**Also see: [credential.dpapiStorePath](configuration.md#credentialdpapistorepath)**
+**Also see: [credential.dpapiStorePath][credential-dpapi-store-path]**
 
 ---
 
@@ -612,7 +612,7 @@ Specify which authentication flow should be used when performing Microsoft authe
 
 Defaults to `auto`.
 
-**Note:** If [`GCM_MSAUTH_USEBROKER`](#gcm_msauth_usebroker-experimental) is set to `true`
+**Note:** If [`GCM_MSAUTH_USEBROKER`][gcm-msauth-usebroker] is set to `true`
 and the operating system authentication broker is available, all flows will be
 delegated to the broker. If both of those things are true, then the value of
 `GCM_MSAUTH_FLOW` has no effect.
@@ -636,7 +636,7 @@ SET GCM_MSAUTH_FLOW="devicecode"
 export GCM_MSAUTH_FLOW="devicecode"
 ```
 
-**Also see: [credential.msauthFlow](configuration.md#credentialmsauthflow)**
+**Also see: [credential.msauthFlow][credential-msauth-flow]**
 
 ---
 
@@ -646,7 +646,7 @@ Use the operating system account manager where available.
 
 Defaults to `false`. This default is subject to change in the future.
 
-_**Note:** before you enable this option on Windows, please [review the details](windows-broker.md) about what this means to your local Windows user account._
+_**Note:** before you enable this option on Windows, please [review the details][windows-broker] about what this means to your local Windows user account._
 
 Value|Description
 -|-
@@ -665,7 +665,7 @@ SET GCM_MSAUTH_USEBROKER="true"
 export GCM_MSAUTH_USEBROKER="false"
 ```
 
-**Also see: [credential.msauthUseBroker](configuration.md#credentialmsauthusebroker-experimental)**
+**Also see: [credential.msauthUseBroker][credential-msauth-usebroker]**
 
 ---
 
@@ -680,7 +680,7 @@ Value|Description
 `pat` _(default)_|Azure DevOps personal access tokens
 `oauth`|Microsoft identity OAuth tokens (AAD or MSA tokens)
 
-More information about Azure Access tokens can be found [here](azrepos-users-and-tokens.md).
+More information about Azure Access tokens can be found [here][azure-access-tokens].
 
 #### Windows
 
@@ -694,4 +694,44 @@ SET GCM_AZREPOS_CREDENTIALTYPE="oauth"
 export GCM_AZREPOS_CREDENTIALTYPE="oauth"
 ```
 
-**Also see: [credential.azreposCredentialType](configuration.md#azreposcredentialtype)**
+**Also see: [credential.azreposCredentialType][credential-azrepos-credential-type]**
+
+[autodetect]: autodetect.md
+[azure-access-tokens]: azrepos-users-and-tokens.md
+[configuration]: configuration.md
+[credential-allowwindowsauth]: environment.md#credentialallowWindowsAuth
+[credential-authority]: configuration.md#credentialauthority-deprecated
+[credential-autodetecttimeout]: configuration.md#credentialautodetecttimeout
+[credential-azrepos-credential-type]: configuration.md#azreposcredentialtype
+[credential-bitbucketalwaysrefreshcredentials]: configuration.md#bitbucketAlwaysRefreshCredentials
+[credential-bitbucketauthmodes]: configuration.md#credentialbitbucketAuthModes
+[credential-cacheoptions]: configuration.md#credentialcacheoptions
+[credential-credentialstore]: configuration.md#credentialcredentialstore
+[credential-dpapi-store-path]: configuration.md#credentialdpapistorepath
+[credential-githubauthmodes]: configuration.md#credentialgitHubAuthModes
+[credential-gitlabauthmodes]: configuration.md#credentialgitLabAuthModes
+[credential-guiprompt]: configuration.md#credentialguiprompt
+[credential-httpproxy]: configuration.md#credentialhttpProxy-deprecated
+[credential-interactive]: configuration.md#credentialinteractive
+[credential-namespace]: configuration.md#credentialnamespace
+[credential-msauth-flow]: configuration.md#credentialmsauthflow
+[credential-msauth-usebroker]: configuration.md#credentialmsauthusebroker-experimental
+[credential-plain-text-store]: configuration.md#credentialplaintextstorepath
+[credential-provider]: configuration.md#credentialprovider
+[credential-stores]: credstores.md
+[default-values]: enterprise-config.md
+[freedesktop-ss]: https://specifications.freedesktop.org/secret-service/
+[gcm]: usage.md
+[gcm-interactive]: #gcm_interactive
+[gcm-credential-store]: #GCM_CREDENTIAL_STORE
+[gcm-dpapi-store-path]: #gcm_dpapi_store_path
+[gcm-plaintext-store-path]: #gcm_plaintext_store_path
+[gcm-msauth-usebroker]: #gcm_msauth_usebroker-experimental
+[git-cache-options]: https://git-scm.com/docs/git-credential-cache#_options
+[git-credential-cache]: https://git-scm.com/docs/git-credential-cache
+[git-httpproxy]: https://git-scm.com/docs/git-config#Documentation/git-config.txt-httpproxy
+[network-http-proxy]: netconfig.md#http-proxy
+[libsecret]: https://wiki.gnome.org/Projects/Libsecret
+[migration-guide]: migration.md#gcm_authority
+[passwordstore]: https://www.passwordstore.org/
+[windows-broker]: windows-broker.md
