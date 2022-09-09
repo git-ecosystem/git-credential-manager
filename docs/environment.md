@@ -1,17 +1,22 @@
 # Environment variables
 
-[Git Credential Manager][gcm] works out of the box for most users. Configuration options are available to customize or tweak behavior.
+[Git Credential Manager][gcm] works out of the box for most users. Configuration
+options are available to customize or tweak behavior.
 
-Git Credential Manager (GCM) can be configured using environment variables. **Environment variables take precedence over [configuration][configuration] options and enterprise system administrator [default values][default-values]**.
+Git Credential Manager (GCM) can be configured using environment variables.
+**Environment variables take precedence over [configuration][configuration]
+options and enterprise system administrator [default values][default-values]**.
 
-For the complete list of environment variables GCM understands, see the list below.
+For the complete list of environment variables GCM understands, see the list
+below.
 
 ## Available settings
 
 ### GCM_TRACE
 
 Enables trace logging of all activities.
-Configuring Git and GCM to trace to the same location is often desirable, and GCM is compatible and cooperative with `GIT_TRACE`.
+Configuring Git and GCM to trace to the same location is often desirable, and
+GCM is compatible and cooperative with `GIT_TRACE`.
 
 #### Example
 
@@ -29,7 +34,8 @@ export GIT_TRACE=$HOME/git.log
 export GCM_TRACE=$HOME/git.log
 ```
 
-If the value of `GCM_TRACE` is a full path to a file in an existing directory, logs are appended to the file.
+If the value of `GCM_TRACE` is a full path to a file in an existing directory,
+logs are appended to the file.
 
 If the value of `GCM_TRACE` is `true` or `1`, logs are written to standard error.
 
@@ -41,8 +47,8 @@ _No configuration equivalent._
 
 ### GCM_TRACE_SECRETS
 
-Enables tracing of secret and sensitive information, which is by default masked in trace output.
-Requires that `GCM_TRACE` is also enabled.
+Enables tracing of secret and sensitive information, which is by default masked
+in trace output. Requires that `GCM_TRACE` is also enabled.
 
 #### Example
 
@@ -60,7 +66,8 @@ export GCM_TRACE=$HOME/gcm.log
 export GCM_TRACE_SECRETS=1
 ```
 
-If the value of `GCM_TRACE_SECRETS` is `true` or `1`, trace logs will include secret information.
+If the value of `GCM_TRACE_SECRETS` is `true` or `1`, trace logs will include
+secret information.
 
 Defaults to disabled.
 
@@ -70,8 +77,8 @@ _No configuration equivalent._
 
 ### GCM_TRACE_MSAUTH
 
-Enables inclusion of Microsoft Authentication libraries (ADAL, MSAL) logs in GCM trace output.
-Requires that `GCM_TRACE` is also enabled.
+Enables inclusion of Microsoft Authentication libraries (ADAL, MSAL) logs in GCM
+trace output. Requires that `GCM_TRACE` is also enabled.
 
 #### Example
 
@@ -89,7 +96,8 @@ export GCM_TRACE=$HOME/gcm.log
 export GCM_TRACE_MSAUTH=1
 ```
 
-If the value of `GCM_TRACE_MSAUTH` is `true` or `1`, trace logs will include verbose ADAL/MSAL logs.
+If the value of `GCM_TRACE_MSAUTH` is `true` or `1`, trace logs will include
+verbose ADAL/MSAL logs.
 
 Defaults to disabled.
 
@@ -123,16 +131,21 @@ _No configuration equivalent._
 
 ### GCM_INTERACTIVE
 
-Permit or disable GCM from interacting with the user (showing GUI or TTY prompts). If interaction is required but has been disabled, an error is returned.
+Permit or disable GCM from interacting with the user (showing GUI or TTY
+prompts). If interaction is required but has been disabled, an error is
+returned.
 
-This can be helpful when using GCM in headless and unattended environments, such as build servers, where it would be preferable to fail than to hang indefinitely waiting for a non-existent user.
+This can be helpful when using GCM in headless and unattended environments, such
+as build servers, where it would be preferable to fail than to hang indefinitely
+waiting for a non-existent user.
 
 To disable interactivity set this to `false` or `0`.
 
 #### Compatibility
 
-In previous versions of GCM this setting had a different behavior and accepted other values.
-The following table summarizes the change in behavior and the mapping of older values such as `never`:
+In previous versions of GCM this setting had a different behavior and accepted
+other values. The following table summarizes the change in behavior and the
+mapping of older values such as `never`:
 
 Value(s)|Old meaning|New meaning
 -|-|-
@@ -174,7 +187,9 @@ ID|Provider
 
 Automatic provider selection is based on the remote URL.
 
-This setting is typically used with a scoped URL to map a particular set of remote URLs to providers, for example to mark a host as a GitHub Enterprise instance.
+This setting is typically used with a scoped URL to map a particular set of
+remote URLs to providers, for example to mark a host as a GitHub Enterprise
+instance.
 
 #### Example
 
@@ -196,11 +211,13 @@ export GCM_PROVIDER=github
 
 ### GCM_AUTHORITY _(deprecated)_
 
-> This setting is deprecated and should be replaced by `GCM_PROVIDER` with the corresponding provider ID value.
+> This setting is deprecated and should be replaced by `GCM_PROVIDER` with the
+> corresponding provider ID value.
 >
 > See the [migration guide][migration-guide] for more information.
 
-Select the host provider to use when authenticating by which authority is supported by the providers.
+Select the host provider to use when authenticating by which authority is
+supported by the providers.
 
 Authority|Provider(s)
 -|-
@@ -286,7 +303,9 @@ export GCM_AUTODETECT_TIMEOUT=-1
 
 ### GCM_ALLOW_WINDOWSAUTH
 
-Allow detection of Windows Integrated Authentication (WIA) support for generic host providers. Setting this value to `false` will prevent the use of WIA and force a basic authentication prompt when using the Generic host provider.
+Allow detection of Windows Integrated Authentication (WIA) support for generic
+host providers. Setting this value to `false` will prevent the use of WIA and
+force a basic authentication prompt when using the Generic host provider.
 
 **Note:** WIA is only supported on Windows.
 
@@ -317,7 +336,8 @@ export GCM_ALLOW_WINDOWSAUTH=0
 
 ### GCM_HTTP_PROXY _(deprecated)_
 
-> This setting is deprecated and should be replaced by the [standard `http.proxy` Git configuration option][git-httpproxy].
+> This setting is deprecated and should be replaced by the [standard `http.proxy`
+> Git configuration option][git-httpproxy].
 >
 > See the [HTTP proxy configuration][network-http-proxy] for more information.
 
@@ -343,10 +363,12 @@ export GCM_HTTP_PROXY=http://john.doe:password@proxy.contoso.com
 
 ### GCM_BITBUCKET_AUTHMODES
 
-Override the available authentication modes presented during Bitbucket authentication.
-If this option is not set, then the available authentication modes will be automatically detected.
+Override the available authentication modes presented during Bitbucket
+authentication. If this option is not set, then the available authentication
+modes will be automatically detected.
 
-**Note:** This setting only applies to Bitbucket.org, and not Server or DC instances.
+**Note:** This setting only applies to Bitbucket.org, and not Server or DC
+instances.
 
 **Note:** This setting supports multiple values separated by commas.
 
@@ -374,13 +396,20 @@ export GCM_BITBUCKET_AUTHMODES="oauth,basic"
 
 ### GCM_BITBUCKET_ALWAYS_REFRESH_CREDENTIALS
 
-Forces GCM to ignore any existing stored Basic Auth or OAuth access tokens and always run through the process to refresh the credentials before returning them to Git.
+Forces GCM to ignore any existing stored Basic Auth or OAuth access tokens and
+always run through the process to refresh the credentials before returning them
+to Git.
 
-This is especially relevant to OAuth credentials. Bitbucket.org access tokens expire after 2 hours, after that the refresh token must be used to get a new access token.
+This is especially relevant to OAuth credentials. Bitbucket.org access tokens
+expire after 2 hours, after that the refresh token must be used to get a new
+access token.
 
-Enabling this option will improve performance when using Oauth2 and interacting with Bitbucket.org if, on average, commits are done less frequently than every 2 hours.
+Enabling this option will improve performance when using Oauth2 and interacting
+with Bitbucket.org if, on average, commits are done less frequently than every 2
+hours.
 
-Enabling this option will decrease performance when using Basic Auth by requiring the user the re-enter credentials every time.
+Enabling this option will decrease performance when using Basic Auth by
+requiring the user the re-enter credentials every time.
 
 Value|Refresh Credentials Before Returning
 -|-
@@ -407,8 +436,9 @@ Defaults to false/disabled.
 
 ### GCM_GITHUB_AUTHMODES
 
-Override the available authentication modes presented during GitHub authentication.
-If this option is not set, then the available authentication modes will be automatically detected.
+Override the available authentication modes presented during GitHub
+authentication. If this option is not set, then the available authentication
+modes will be automatically detected.
 
 **Note:** This setting supports multiple values separated by commas.
 
@@ -439,8 +469,9 @@ export GCM_GITHUB_AUTHMODES="oauth,basic"
 
 ### GCM_GITLAB_AUTHMODES
 
-Override the available authentication modes presented during GitLab authentication.
-If this option is not set, then the available authentication modes will be automatically detected.
+Override the available authentication modes presented during GitLab
+authentication. If this option is not set, then the available authentication
+modes will be automatically detected.
 
 **Note:** This setting supports multiple values separated by commas.
 
@@ -469,8 +500,8 @@ export GCM_GITLAB_AUTHMODES="browser"
 
 ### GCM_NAMESPACE
 
-Use a custom namespace prefix for credentials read and written in the OS credential store.
-Credentials will be stored in the format `{namespace}:{service}`.
+Use a custom namespace prefix for credentials read and written in the OS
+credential store. Credentials will be stored in the format `{namespace}:{service}`.
 
 Defaults to the value `git`.
 
@@ -494,9 +525,11 @@ export GCM_NAMESPACE="my-namespace"
 
 Select the type of credential store to use on supported platforms.
 
-Default value on Windows is `wincredman`, on macOS is `keychain`, and is unset on Linux.
+Default value on Windows is `wincredman`, on macOS is `keychain`, and is unset
+on Linux.
 
-**Note:** For more information about configuring secret stores see the [credential stores documentation][credential-stores].
+**Note:** For more information about configuring secret stores see the
+[credential stores documentation][credential-stores].
 
 Value|Credential Store|Platforms
 -|-|-
@@ -554,7 +587,8 @@ export GCM_CREDENTIAL_CACHE_OPTIONS="--timeout 300"
 
 ### GCM_PLAINTEXT_STORE_PATH
 
-Specify a custom directory to store plaintext credential files in when [`GCM_CREDENTIAL_STORE`][gcm-credential-store] is set to `plaintext`.
+Specify a custom directory to store plaintext credential files in when
+[`GCM_CREDENTIAL_STORE`][gcm-credential-store] is set to `plaintext`.
 
 Defaults to the value `~/.gcm/store` or `%USERPROFILE%\.gcm\store`.
 
@@ -576,7 +610,8 @@ export GCM_PLAINTEXT_STORE_PATH=/mnt/external-drive/credentials
 
 ### GCM_DPAPI_STORE_PATH
 
-Specify a custom directory to store DPAPI protected credential files in when [`GCM_CREDENTIAL_STORE`][gcm-credential-store] is set to `dpapi`.
+Specify a custom directory to store DPAPI protected credential files in when
+[`GCM_CREDENTIAL_STORE`][gcm-credential-store] is set to `dpapi`.
 
 Defaults to the value `%USERPROFILE%\.gcm\dpapi_store`.
 
@@ -592,9 +627,13 @@ SETX GCM_DPAPI_STORE_PATH=D:\credentials
 
 ### GCM_GPG_PATH
 
-Specify the path (_including_ the executable name) to the version of `gpg` used by `pass` (`gpg2` if present, otherwise `gpg`). This is primarily meant to allow manual resolution of the conflict that occurs on legacy Linux systems with parallel installs of `gpg` and `gpg2`.
+Specify the path (_including_ the executable name) to the version of `gpg` used
+by `pass` (`gpg2` if present, otherwise `gpg`). This is primarily meant to allow
+manual resolution of the conflict that occurs on legacy Linux systems with
+parallel installs of `gpg` and `gpg2`.
 
-If not specified, GCM defaults to using the version of `gpg2` on the `$PATH`, falling back on `gpg` if `gpg2` is not found.
+If not specified, GCM defaults to using the version of `gpg2` on the `$PATH`,
+falling back on `gpg` if `gpg2` is not found.
 
 #### macOS/Linux
 
@@ -608,7 +647,8 @@ _No configuration equivalent._
 
 ### GCM_MSAUTH_FLOW
 
-Specify which authentication flow should be used when performing Microsoft authentication and an interactive flow is required.
+Specify which authentication flow should be used when performing Microsoft
+authentication and an interactive flow is required.
 
 Defaults to `auto`.
 
@@ -646,7 +686,9 @@ Use the operating system account manager where available.
 
 Defaults to `false`. This default is subject to change in the future.
 
-_**Note:** before you enable this option on Windows, please [review the details][windows-broker] about what this means to your local Windows user account._
+_**Note:** before you enable this option on Windows, please
+[review the details][windows-broker] about what this means to your local Windows
+user account._
 
 Value|Description
 -|-

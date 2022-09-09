@@ -64,7 +64,8 @@ After updating the `WSLENV` environment variable, restart your WSL installation.
 
 If you have installed GCM using the user-only installer (i.e, the `gcmuser-*.exe`
 installer and not the system-wide/admin required installer), you need to modify
-the above instructions to point to `/mnt/c/Users/<USERNAME>/AppData/Local/Programs/Git\ Credential\ Manager\ Core/git-credential-manager-core.exe`
+the above instructions to point to
+`/mnt/c/Users/<USERNAME>/AppData/Local/Programs/Git\ Credential\ Manager\ Core/git-credential-manager-core.exe`
 instead.
 
 ## How it works
@@ -102,7 +103,8 @@ installation, and not shared with others or the Windows host.
 Yes. Rather than install GCM as a Windows application (and have WSL Git invoke
 the Windows GCM), can you install GCM as a Linux application instead.
 
-To do this, simply follow the [GCM installation instructions for Linux][linux-installation].
+To do this, simply follow the
+[GCM installation instructions for Linux][linux-installation].
 
 **Note:** In this scenario, because GCM is running as a Linux application
 it cannot utilize authentication or credential storage features of the host

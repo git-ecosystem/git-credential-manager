@@ -2,22 +2,40 @@
 
 [Git Credential Manager][usage] works out of the box for most users.
 
-Git Credential Manager (GCM) can be configured using Git's configuration files, and follows all of the same rules Git does when consuming the files.
+Git Credential Manager (GCM) can be configured using Git's configuration files,
+and follows all of the same rules Git does when consuming the files.
 
-Global configuration settings override system configuration settings, and local configuration settings override global settings; and because the configuration details exist within Git's configuration files you can use Git's `git config` utility to set, unset, and alter the setting values. All of GCM's configuration settings begin with the term `credential`.
+Global configuration settings override system configuration settings, and local
+configuration settings override global settings; and because the configuration
+details exist within Git's configuration files you can use Git's `git config`
+utility to set, unset, and alter the setting values. All of GCM's configuration
+settings begin with the term `credential`.
 
-GCM honors several levels of settings, in addition to the standard local \> global \> system tiering Git uses.
-URL-specific settings or overrides can be applied to any value in the `credential` namespace with the syntax below.
+GCM honors several levels of settings, in addition to the standard local
+\> global \> system tiering Git uses. URL-specific settings or overrides can be
+applied to any value in the `credential` namespace with the syntax below.
 
-Additionally, GCM respects several GCM-specific [environment variables][envars] **which take precedence over configuration options**. System administrators may also configure [default values][enterprise-config] for many settings used by GCM.
+Additionally, GCM respects several GCM-specific [environment variables][envars]
+**which take precedence over configuration options**. System administrators may
+also configure [default values][enterprise-config] for many settings used by GCM.
 
-GCM will only be used by Git if it is installed and configured. Use `git config --global credential.helper manager-core` to assign GCM as your credential helper. Use `git config credential.helper` to see the current configuration.
+GCM will only be used by Git if it is installed and configured. Use
+`git config --global credential.helper manager-core` to assign GCM as your
+credential helper. Use `git config credential.helper` to see the current
+configuration.
 
 **Example:**
 
-> `credential.microsoft.visualstudio.com.namespace` is more specific than `credential.visualstudio.com.namespace`, which is more specific than `credential.namespace`.
+> `credential.microsoft.visualstudio.com.namespace` is more specific than
+> `credential.visualstudio.com.namespace`, which is more specific than
+> `credential.namespace`.
 
-In the examples above, the `credential.namespace` setting would affect any remote repository; the `credential.visualstudio.com.namespace` would affect any remote repository in the domain, and/or any subdomain (including `www.`) of, 'visualstudio.com'; where as the `credential.microsoft.visualstudio.com.namespace` setting would only be applied to remote repositories hosted at 'microsoft.visualstudio.com'.
+In the examples above, the `credential.namespace` setting would affect any
+remote repository; the `credential.visualstudio.com.namespace` would affect any
+remote repository in the domain, and/or any subdomain (including `www.`) of,
+'visualstudio.com'; where as the
+`credential.microsoft.visualstudio.com.namespace` setting would only be applied
+to remote repositories hosted at 'microsoft.visualstudio.com'.
 
 For the complete list of settings GCM understands, see the list below.
 
@@ -25,16 +43,20 @@ For the complete list of settings GCM understands, see the list below.
 
 ### credential.interactive
 
-Permit or disable GCM from interacting with the user (showing GUI or TTY prompts). If interaction is required but has been disabled, an error is returned.
+Permit or disable GCM from interacting with the user (showing GUI or TTY
+prompts). If interaction is required but has been disabled, an error is returned.
 
-This can be helpful when using GCM in headless and unattended environments, such as build servers, where it would be preferable to fail than to hang indefinitely waiting for a non-existent user.
+This can be helpful when using GCM in headless and unattended environments, such
+as build servers, where it would be preferable to fail than to hang indefinitely
+waiting for a non-existent user.
 
 To disable interactivity set this to `false` or `0`.
 
 #### Compatibility
 
-In previous versions of GCM this setting had a different behavior and accepted other values.
-The following table summarizes the change in behavior and the mapping of older values such as `never`:
+In previous versions of GCM this setting had a different behavior and accepted
+other values. The following table summarizes the change in behavior and the
+mapping of older values such as `never`:
 
 Value(s)|Old meaning|New meaning
 -|-|-
@@ -69,7 +91,9 @@ ID|Provider
 
 Automatic provider selection is based on the remote URL.
 
-This setting is typically used with a scoped URL to map a particular set of remote URLs to providers, for example to mark a host as a GitHub Enterprise instance.
+This setting is typically used with a scoped URL to map a particular set of
+remote URLs to providers, for example to mark a host as a GitHub Enterprise
+instance.
 
 #### Example
 
@@ -83,11 +107,13 @@ git config --global credential.ghe.contoso.com.provider github
 
 ### credential.authority _(deprecated)_
 
-> This setting is deprecated and should be replaced by `credential.provider` with the corresponding provider ID value.
+> This setting is deprecated and should be replaced by `credential.provider`
+> with the corresponding provider ID value.
 >
 > See the [migration guide][provider-migrate] for more information.
 
-Select the host provider to use when authenticating by which authority is supported by the providers.
+Select the host provider to use when authenticating by which authority is
+supported by the providers.
 
 Authority|Provider(s)
 -|-
@@ -150,7 +176,9 @@ git config --global credential.autoDetectTimeout -1
 
 ### credential.allowWindowsAuth
 
-Allow detection of Windows Integrated Authentication (WIA) support for generic host providers. Setting this value to `false` will prevent the use of WIA and force a basic authentication prompt when using the Generic host provider.
+Allow detection of Windows Integrated Authentication (WIA) support for generic
+host providers. Setting this value to `false` will prevent the use of WIA and
+force a basic authentication prompt when using the Generic host provider.
 
 **Note:** WIA is only supported on Windows.
 
@@ -173,7 +201,8 @@ git config --global credential.tfsonprem123.allowWindowsAuth false
 
 ### credential.httpProxy _(deprecated)_
 
-> This setting is deprecated and should be replaced by the [standard `http.proxy` Git configuration option][git-config-http-proxy].
+> This setting is deprecated and should be replaced by the
+> [standard `http.proxy` Git configuration option][git-config-http-proxy].
 >
 > See [HTTP Proxy][http-proxy] for more information.
 
@@ -193,10 +222,12 @@ git config --global credential.httpsProxy http://john.doe:password@proxy.contoso
 
 ### credential.bitbucketAuthModes
 
-Override the available authentication modes presented during Bitbucket authentication.
-If this option is not set, then the available authentication modes will be automatically detected.
+Override the available authentication modes presented during Bitbucket
+authentication. If this option is not set, then the available authentication
+modes will be automatically detected.
 
-**Note:** This setting only applies to Bitbucket.org, and not Server or DC instances.
+**Note:** This setting only applies to Bitbucket.org, and not Server or DC
+instances.
 
 **Note:** This setting supports multiple values separated by commas.
 
@@ -218,13 +249,20 @@ git config --global credential.bitbucketAuthModes "oauth,basic"
 
 ### credential.bitbucketAlwaysRefreshCredentials
 
-Forces GCM to ignore any existing stored Basic Auth or OAuth access tokens and always run through the process to refresh the credentials before returning them to Git.
+Forces GCM to ignore any existing stored Basic Auth or OAuth access tokens and
+always run through the process to refresh the credentials before returning them
+to Git.
 
-This is especially relevant to OAuth credentials. Bitbucket.org access tokens expire after 2 hours, after that the refresh token must be used to get a new access token.
+This is especially relevant to OAuth credentials. Bitbucket.org access tokens
+expire after 2 hours, after that the refresh token must be used to get a new
+access token.
 
-Enabling this option will improve performance when using Oauth2 and interacting with Bitbucket.org if, on average, commits are done less frequently than every 2 hours.
+Enabling this option will improve performance when using Oauth2 and interacting
+with Bitbucket.org if, on average, commits are done less frequently than every
+2 hours.
 
-Enabling this option will decrease performance when using Basic Auth by requiring the user the re-enter credentials everytime.
+Enabling this option will decrease performance when using Basic Auth by
+requiring the user the re-enter credentials every time.
 
 Value|Refresh Credentials Before Returning
 -|-
@@ -245,8 +283,9 @@ Defaults to false/disabled.
 
 ### credential.gitHubAuthModes
 
-Override the available authentication modes presented during GitHub authentication.
-If this option is not set, then the available authentication modes will be automatically detected.
+Override the available authentication modes presented during GitHub
+authentication. If this option is not set, then the available authentication
+modes will be automatically detected.
 
 **Note:** This setting supports multiple values separated by commas.
 
@@ -271,8 +310,9 @@ git config --global credential.gitHubAuthModes "oauth,basic"
 
 ### credential.gitLabAuthModes
 
-Override the available authentication modes presented during GitLab authentication.
-If this option is not set, then the available authentication modes will be automatically detected.
+Override the available authentication modes presented during GitLab
+authentication. If this option is not set, then the available authentication
+modes will be automatically detected.
 
 **Note:** This setting supports multiple values separated by commas.
 
@@ -295,8 +335,8 @@ git config --global credential.gitLabAuthModes "browser"
 
 ### credential.namespace
 
-Use a custom namespace prefix for credentials read and written in the OS credential store.
-Credentials will be stored in the format `{namespace}:{service}`.
+Use a custom namespace prefix for credentials read and written in the OS
+credential store. Credentials will be stored in the format `{namespace}:{service}`.
 
 Defaults to the value `git`.
 
@@ -314,9 +354,11 @@ git config --global credential.namespace "my-namespace"
 
 Select the type of credential store to use on supported platforms.
 
-Default value on Windows is `wincredman`, on macOS is `keychain`, and is unset on Linux.
+Default value on Windows is `wincredman`, on macOS is `keychain`, and is unset
+on Linux.
 
-**Note:** See more information about configuring secret stores in [cred-stores][cred-stores].
+**Note:** See more information about configuring secret stores in
+[cred-stores][cred-stores].
 
 Value|Credential Store|Platforms
 -|-|-
@@ -362,7 +404,8 @@ git config --global credential.cacheOptions "--timeout 300"
 
 ### credential.plaintextStorePath
 
-Specify a custom directory to store plaintext credential files in when [`credential.credentialStore`][credential-credentialstore] is set to `plaintext`.
+Specify a custom directory to store plaintext credential files in when
+[`credential.credentialStore`][credential-credentialstore] is set to `plaintext`.
 
 Defaults to the value `~/.gcm/store` or `%USERPROFILE%\.gcm\store`.
 
@@ -378,7 +421,8 @@ git config --global credential.plaintextStorePath /mnt/external-drive/credential
 
 ### credential.dpapiStorePath
 
-Specify a custom directory to store DPAPI protected credential files in when [`credential.credentialStore`][credential-credentialstore] is set to `dpapi`.
+Specify a custom directory to store DPAPI protected credential files in when
+[`credential.credentialStore`][credential-credentialstore] is set to `dpapi`.
 
 Defaults to the value `%USERPROFILE%\.gcm\dpapi_store`.
 
@@ -394,7 +438,8 @@ git config --global credential.dpapiStorePath D:\credentials
 
 ### credential.msauthFlow
 
-Specify which authentication flow should be used when performing Microsoft authentication and an interactive flow is required.
+Specify which authentication flow should be used when performing Microsoft
+authentication and an interactive flow is required.
 
 Defaults to `auto`.
 
@@ -426,7 +471,9 @@ Use the operating system account manager where available.
 
 Defaults to `false`. This default is subject to change in the future.
 
-_**Note:** before you enable this option on Windows, please review the [Windows Broker][wam] details for what this means to your local Windows user account._
+_**Note:** before you enable this option on Windows, please review the
+[Windows Broker][wam] details for what this means to your local Windows user
+account._
 
 Value|Description
 -|-
@@ -445,15 +492,23 @@ git config --global credential.msauthUseBroker true
 
 ### credential.useHttpPath
 
-Tells Git to pass the entire repository URL, rather than just the hostname, when calling out to a credential provider. (This setting [comes from Git itself][use-http-path], not GCM.)
+Tells Git to pass the entire repository URL, rather than just the hostname, when
+calling out to a credential provider. (This setting
+[comes from Git itself][use-http-path], not GCM.)
 
 Defaults to `false`.
 
-**Note:** GCM sets this value to `true` for `dev.azure.com` (Azure Repos) hosts after installation by default.
+**Note:** GCM sets this value to `true` for `dev.azure.com` (Azure Repos) hosts
+after installation by default.
 
-This is because `dev.azure.com` alone is not enough information to determine the correct Azure authentication authority - we require a part of the path. The fallout of this is that for `dev.azure.com` remote URLs we do not support storing credentials against the full-path. We always store against the `dev.azure.com/org-name` stub.
+This is because `dev.azure.com` alone is not enough information to determine the
+correct Azure authentication authority - we require a part of the path. The
+fallout of this is that for `dev.azure.com` remote URLs we do not support
+storing credentials against the full-path. We always store against the
+`dev.azure.com/org-name` stub.
 
-In order to use Azure Repos and store credentials against a full-path URL, you must use the `org-name.visualstudio.com` remote URL format instead.
+In order to use Azure Repos and store credentials against a full-path URL, you
+must use the `org-name.visualstudio.com` remote URL format instead.
 
 Value|Git Behavior
 -|-
@@ -462,7 +517,9 @@ Value|Git Behavior
 
 #### Example
 
-On Windows using GitHub, for a user whose login is `alice`, and with `credential.useHttpPath` set to `false` (or not set), the following remote URLs will use the same credentials:
+On Windows using GitHub, for a user whose login is `alice`, and with
+`credential.useHttpPath` set to `false` (or not set), the following remote URLs
+will use the same credentials:
 
 ```text
 Credential: "git:https://github.com" (user = alice)
@@ -479,7 +536,8 @@ Credential: "git:https://bob@github.com" (user = bob)
    https://bob@github.com/example/myrepo
 ```
 
-Under the same user but with `credential.useHttpPath` set to `true`, these credentials would be used:
+Under the same user but with `credential.useHttpPath` set to `true`, these
+credentials would be used:
 
 ```text
 Credential: "git:https://github.com/foo/bar" (user = alice)

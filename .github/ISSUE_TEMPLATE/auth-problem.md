@@ -44,7 +44,9 @@ origin https://dev.azure.com/contoso/_git/widgets
 * [ ] https://`{org}`@dev.azure.com/`{org}`/...
 * [ ] https://`{org}`.visualstudio.com/...
 
-**_[Azure DevOps only]_ If the account picker shows more than one identity as you authenticate, check that you selected the same one that has access on the web.**
+**_[Azure DevOps only]_ If the account picker shows more than one identity as
+you authenticate, check that you selected the same one that has access on the
+web.**
 
 * [ ] Not applicable
 * [ ] I only see one identity
@@ -58,13 +60,16 @@ I am authenticated and my Git operation completes successfully.
 
 **Actual behavior**
 
-A clear and concise description of what happens. For example: exception is thrown, UI freezes, etc.
+A clear and concise description of what happens. For example: exception is
+thrown, UI freezes, etc.
 
 **Logs**
 
-Set the environment variables `GCM_TRACE=1` and `GIT_TRACE=1` and re-run your Git command. Review and redact any private information and attach the log.
+Set the environment variables `GCM_TRACE=1` and `GIT_TRACE=1` and re-run your
+Git command. Review and redact any private information and attach the log.
 
-If you are running inside of Windows Subsystem for Linux (WSL), you must also set an additional environment variable to enable tracing: `WSLENV=$WSLENV:GCM_TRACE`.
+If you are running inside of Windows Subsystem for Linux (WSL), you must also
+set an additional environment variable to enable tracing: `WSLENV=$WSLENV:GCM_TRACE`.
 For example:
 
 ```shell
