@@ -14,7 +14,8 @@ _Unselect_ the 'Confidential' option. Set the 'write_repository' and
 1. Copy the application ID and configure
 `git config --global credential.https://gitlab.example.com.GitLabDevClientId <APPLICATION_ID>`
 1. Copy the application secret and configure
-`git config --global credential.https://gitlab.example.com.GitLabDevClientSecret <APPLICATION_SECRET>`
+`git config --global credential.https://gitlab.example.com.GitLabDevClientSecret
+<APPLICATION_SECRET>`
 1. Configure authentication modes to include 'browser'
 `git config --global credential.https://gitlab.example.com.gitLabAuthModes browser`
 1. For good measure, configure
