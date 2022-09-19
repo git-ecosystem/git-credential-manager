@@ -23,7 +23,7 @@ To use on another instance, eg. `https://gitlab.example.com` requires setup and 
 
 ### Config for popular instances
 
-For convenience, here is config for several popular GitLab instances:
+For convenience, here are the config commands for several popular GitLab instances:
 
 ```console
 # https://gitlab.freedesktop.org/
