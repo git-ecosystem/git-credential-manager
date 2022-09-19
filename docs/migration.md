@@ -4,11 +4,17 @@
 
 ### GCM_AUTHORITY
 
-This setting (and the corresponding `credential.authority` configuration) is deprecated and should be replaced with the `GCM_PROVIDER` (or corresponding `credential.authority` configuration) setting.
+This setting (and the corresponding `credential.authority` configuration) is
+deprecated and should be replaced with the `GCM_PROVIDER` (or corresponding
+`credential.authority` configuration) setting.
 
-Because both Basic HTTP authentication and Windows Integrated Authentication (WIA) are now handled by one provider, if you specified `basic` as your authority you also need to disable WIA using `GCM_ALLOW_WINDOWSAUTH` / `credential.allowWindowsAuth`.
+Because both Basic HTTP authentication and Windows Integrated Authentication
+(WIA) are now handled by one provider, if you specified `basic` as your
+authority you also need to disable WIA using `GCM_ALLOW_WINDOWSAUTH` /
+`credential.allowWindowsAuth`.
 
-The following table shows the correct replacement for all legacy authorities values:
+The following table shows the correct replacement for all legacy authorities
+values:
 
 GCM_AUTHORITY (credential.authority)|&rarr;|GCM_PROVIDER (credential.provider)|GCM_ALLOW_WINDOWSAUTH (credential.allowWindowsAuth)
 -|-|-|-
@@ -17,7 +23,8 @@ GCM_AUTHORITY (credential.authority)|&rarr;|GCM_PROVIDER (credential.provider)|G
 `basic`|&rarr;|`generic`|`false`
 `integrated`, `windows`, `kerberos`, `ntlm`, `tfs`, `sso`|&rarr;|`generic`|`true` _(default)_
 
-For example if you had previous set the authority for the `example.com` host to `basic`..
+For example if you had previous set the authority for the `example.com` host to
+`basic`..
 
 ```shell
 git config --global credential.example.com.authority basic

@@ -1,12 +1,17 @@
 # Network and HTTP configuration
 
-Git Credential Manager's network and HTTP(S) behavior can be configured in a few different ways via [environment variables][environment] and [configuration options][configuration].
+Git Credential Manager's network and HTTP(S) behavior can be configured in a few
+different ways via [environment variables][environment] and
+[configuration options][configuration].
 
 ## HTTP Proxy
 
-If your computer sits behind a network firewall that requires the use of a proxy server to reach repository remotes or the wider Internet, there are various methods for configuring GCM to use a proxy.
+If your computer sits behind a network firewall that requires the use of a
+proxy server to reach repository remotes or the wider Internet, there are
+various methods for configuring GCM to use a proxy.
 
-The simplest way to configure a proxy for _all_ HTTP(S) remotes is to [use the standard Git HTTP(S) proxy setting `http.proxy`][git-http-proxy].
+The simplest way to configure a proxy for _all_ HTTP(S) remotes is to
+[use the standard Git HTTP(S) proxy setting `http.proxy`][git-http-proxy].
 
 For example to configure a proxy for all remotes for the current user:
 
@@ -14,31 +19,43 @@ For example to configure a proxy for all remotes for the current user:
 git config --global http.proxy http://proxy.example.com
 ```
 
-To specify a proxy for a particular remote you can [use the `remote.<name>.proxy` repository-level setting][git-remote-name-proxy], for example:
+To specify a proxy for a particular remote you can
+[use the `remote.<name>.proxy` repository-level setting][git-remote-name-proxy],
+for example:
 
 ```shell
 git config --local remote.origin.proxy http://proxy.example.com
 ```
 
-The advantage to using these standard configuration options is that in addition to GCM being configured to use the proxy, Git itself will be configured at the same time. This is probably the most commonly desired case in environments behind an Internet-blocking firewall.
+The advantage to using these standard configuration options is that in addition
+to GCM being configured to use the proxy, Git itself will be configured at the
+same time. This is probably the most commonly desired case in environments
+behind an Internet-blocking firewall.
 
 ### Authenticated proxies
 
-Some proxy servers do not accept anonymous connections and require authentication. In order to specify the credentials to be used with a proxy, you can specify the username and password as part of the proxy URL setting.
+Some proxy servers do not accept anonymous connections and require
+authentication. In order to specify the credentials to be used with a proxy,
+you can specify the username and password as part of the proxy URL setting.
 
-The format follows [RFC 3986 section 3.2.1][rfc-3986-321] by including the credentials in the 'user information' part of the URI. The password is optional.
+The format follows [RFC 3986 section 3.2.1][rfc-3986-321] by including the
+credentials in the 'user information' part of the URI. The password is optional.
 
 ```text
 protocol://username[:password]@hostname
 ```
 
-For example, to specify the username `john.doe` and the password `letmein123` for the proxy server `proxy.example.com`:
+For example, to specify the username `john.doe` and the password `letmein123`
+for the proxy server `proxy.example.com`:
 
 ```text
 https://john.doe:letmein123@proxy.example.com
 ```
 
-If you have special characters (as defined by [RFC 3986 section 2.2][rfc-3986-22]) in your username or password such as `:`, `@`, or any other non-URL friendly character you can URL-encode them ([section 2.1][rfc-3986-21]).
+If you have special characters (as defined by
+[RFC 3986 section 2.2][rfc-3986-22]) in your username or password such as `:`,
+`@`, or any other non-URL friendly character you can URL-encode them
+([section 2.1][rfc-3986-21]).
 
 For example, a space character would be encoded with `%20`.
 
@@ -53,7 +70,8 @@ GCM supports other ways of configuring a proxy for convenience and compatibility
    - `http_proxy`
    - `https_proxy`/`HTTPS_PROXY`
    - `all_proxy`/`ALL_PROXY`
-1. `GCM_HTTP_PROXY` environment variable (_**only** respected by GCM; **deprecated**_)
+1. `GCM_HTTP_PROXY` environment variable (_**only** respected by GCM;
+**deprecated**_)
 
 Note that with the cURL environment variables there are both lowercase and
 uppercase variants.
@@ -106,29 +124,45 @@ no_proxy="contoso.com,www.fabrikam.com"
 
 ## TLS Verification
 
-If you are using self-signed TLS (SSL) certificates with a self-hosted host provider such as GitHub Enterprise Server or Azure DevOps Server (previously TFS), you may see the following error message when attempting to connect using Git and/or GCM:
+If you are using self-signed TLS (SSL) certificates with a self-hosted host
+provider such as GitHub Enterprise Server or Azure DevOps Server (previously
+TFS), you may see the following error message when attempting to connect using
+Git and/or GCM:
 
 ```shell
 $ git clone https://ghe.example.com/john.doe/myrepo
 fatal: The remote certificate is invalid according to the validation procedure.
 ```
 
-The **recommended and safest option** is to acquire a TLS certificate signed by a public trusted certificate authority (CA). There are multiple public CAs; here is a non-exhaustive list to consider: [Let's Encrypt][lets-encrypt], [Comodo][comodo], [Digicert][digicert], [GoDaddy][godaddy], [GlobalSign][globalsign].
+The **recommended and safest option** is to acquire a TLS certificate signed by
+a public trusted certificate authority (CA). There are multiple public CAs; here
+is a non-exhaustive list to consider: [Let's Encrypt][lets-encrypt],
+[Comodo][comodo], [Digicert][digicert], [GoDaddy][godaddy],
+[GlobalSign][globalsign].
 
-If it is not possible to **obtain a TLS certificate from a trusted 3rd party** then you should try to add the _specific_ self-signed certificate or one of the CA certificates in the verification chain to your operating system's trusted certificate store ([macOS][mac-keychain-access], [Windows][install-cert-vista]).
+If it is not possible to **obtain a TLS certificate from a trusted 3rd party**
+then you should try to add the _specific_ self-signed certificate or one of the
+CA certificates in the verification chain to your operating system's trusted
+certificate store ([macOS][mac-keychain-access], [Windows][install-cert-vista]).
 
-If you are _unable_ to either **obtain a trusted certificate**, or trust the self-signed certificate you can disable certificate verification in Git and GCM.
+If you are _unable_ to either **obtain a trusted certificate**, or trust the
+self-signed certificate you can disable certificate verification in Git and GCM.
 
 ---
 **Security Warning** :warning:
 
-Disabling verification of TLS (SSL) certificates removes protection against a [man-in-the-middle (MITM) attack][mitm-attack].
+Disabling verification of TLS (SSL) certificates removes protection against a
+[man-in-the-middle (MITM) attack][mitm-attack].
 
-Only disable certificate verification if you are sure you need to, are aware of all the risks, and are unable to trust specific self-signed certificates (as described above).
+Only disable certificate verification if you are sure you need to, are aware of
+all the risks, and are unable to trust specific self-signed certificates
+(as described above).
 
 ---
 
-The [environment variable `GIT_SSL_NO_VERIFY`][git-ssl-no-verify] and [Git configuration option `http.sslVerify`][git-http-ssl-verify] can be used to control TLS (SSL) certificate verification.
+The [environment variable `GIT_SSL_NO_VERIFY`][git-ssl-no-verify] and
+[Git configuration option `http.sslVerify`][git-http-ssl-verify] can be used to
+control TLS (SSL) certificate verification.
 
 To disable verification for a specific remote (for example `https://example.com`):
 
@@ -136,7 +170,8 @@ To disable verification for a specific remote (for example `https://example.com`
 git config --global http.https://example.com.sslVerify false
 ```
 
-To disable verification for the current user for **_all remotes_** (**not recommended**):
+To disable verification for the current user for **_all remotes_** (**not
+recommended**):
 
 ```shell
 # Environment variable (Windows)
@@ -151,7 +186,10 @@ git config --global http.sslVerify false
 
 ---
 
-**Note:** You may also experience similar verification errors if you are using a network traffic inspection tool such as [Telerik Fiddler][telerik-fiddler]. If you are using such tools please consult their documentation for trusting the proxy root certificates.
+**Note:** You may also experience similar verification errors if you are using a
+network traffic inspection tool such as [Telerik Fiddler][telerik-fiddler]. If
+you are using such tools please consult their documentation for trusting the
+proxy root certificates.
 
 [environment]: environment.md
 [configuration]: configuration.md
