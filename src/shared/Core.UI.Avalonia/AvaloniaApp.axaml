@@ -10,6 +10,7 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceInclude Source="avares://gcmcoreuiavn/Assets/LightBase.axaml"/>
+                <ResourceInclude Source="avares://gcmcoreuiavn/Assets/Images.axaml"/>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>
