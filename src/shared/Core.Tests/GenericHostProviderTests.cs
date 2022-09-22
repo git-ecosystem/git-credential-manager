@@ -83,8 +83,8 @@ namespace GitCredentialManager.Tests
                 Settings = {IsWindowsIntegratedAuthenticationEnabled = false}
             };
             var basicAuthMock = new Mock<IBasicAuthentication>();
-            basicAuthMock.Setup(x => x.GetCredentials(It.IsAny<string>(), It.IsAny<string>()))
-                .Returns(basicCredential)
+            basicAuthMock.Setup(x => x.GetCredentialsAsync(It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(basicCredential)
                 .Verifiable();
             var wiaAuthMock = new Mock<IWindowsIntegratedAuthentication>();
 
@@ -96,7 +96,7 @@ namespace GitCredentialManager.Tests
             Assert.Equal(testUserName, credential.Account);
             Assert.Equal(testPassword, credential.Password);
             wiaAuthMock.Verify(x => x.GetIsSupportedAsync(It.IsAny<Uri>()), Times.Never);
-            basicAuthMock.Verify(x => x.GetCredentials(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+            basicAuthMock.Verify(x => x.GetCredentialsAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
         }
 
         [Fact]
@@ -117,8 +117,8 @@ namespace GitCredentialManager.Tests
                 Settings = {LegacyAuthorityOverride = "basic"}
             };
             var basicAuthMock = new Mock<IBasicAuthentication>();
-            basicAuthMock.Setup(x => x.GetCredentials(It.IsAny<string>(), It.IsAny<string>()))
-                .Returns(basicCredential)
+            basicAuthMock.Setup(x => x.GetCredentialsAsync(It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(basicCredential)
                 .Verifiable();
             var wiaAuthMock = new Mock<IWindowsIntegratedAuthentication>();
 
@@ -130,7 +130,7 @@ namespace GitCredentialManager.Tests
             Assert.Equal(testUserName, credential.Account);
             Assert.Equal(testPassword, credential.Password);
             wiaAuthMock.Verify(x => x.GetIsSupportedAsync(It.IsAny<Uri>()), Times.Never);
-            basicAuthMock.Verify(x => x.GetCredentials(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+            basicAuthMock.Verify(x => x.GetCredentialsAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
         }
 
         [Fact]
@@ -148,8 +148,8 @@ namespace GitCredentialManager.Tests
 
             var context = new TestCommandContext();
             var basicAuthMock = new Mock<IBasicAuthentication>();
-            basicAuthMock.Setup(x => x.GetCredentials(It.IsAny<string>(), It.IsAny<string>()))
-                .Returns(basicCredential)
+            basicAuthMock.Setup(x => x.GetCredentialsAsync(It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(basicCredential)
                 .Verifiable();
             var wiaAuthMock = new Mock<IWindowsIntegratedAuthentication>();
 
@@ -161,7 +161,7 @@ namespace GitCredentialManager.Tests
             Assert.Equal(testUserName, credential.Account);
             Assert.Equal(testPassword, credential.Password);
             wiaAuthMock.Verify(x => x.GetIsSupportedAsync(It.IsAny<Uri>()), Times.Never);
-            basicAuthMock.Verify(x => x.GetCredentials(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+            basicAuthMock.Verify(x => x.GetCredentialsAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
         }
 
         [PlatformFact(Platforms.Posix)]
@@ -194,7 +194,7 @@ namespace GitCredentialManager.Tests
 
             var context = new TestCommandContext();
             var basicAuthMock = new Mock<IBasicAuthentication>();
-            basicAuthMock.Setup(x => x.GetCredentials(It.IsAny<string>(), It.IsAny<string>()))
+            basicAuthMock.Setup(x => x.GetCredentialsAsync(It.IsAny<string>(), It.IsAny<string>()))
                          .Verifiable();
             var wiaAuthMock = new Mock<IWindowsIntegratedAuthentication>();
             wiaAuthMock.Setup(x => x.GetIsSupportedAsync(It.IsAny<Uri>()))
@@ -207,7 +207,7 @@ namespace GitCredentialManager.Tests
             Assert.NotNull(credential);
             Assert.Equal(string.Empty, credential.Account);
             Assert.Equal(string.Empty, credential.Password);
-            basicAuthMock.Verify(x => x.GetCredentials(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+            basicAuthMock.Verify(x => x.GetCredentialsAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
 
         private static async Task TestCreateCredentialAsync_ReturnsBasicCredential(bool wiaSupported)
@@ -224,8 +224,8 @@ namespace GitCredentialManager.Tests
 
             var context = new TestCommandContext();
             var basicAuthMock = new Mock<IBasicAuthentication>();
-            basicAuthMock.Setup(x => x.GetCredentials(It.IsAny<string>(), It.IsAny<string>()))
-                         .Returns(basicCredential)
+            basicAuthMock.Setup(x => x.GetCredentialsAsync(It.IsAny<string>(), It.IsAny<string>()))
+                         .ReturnsAsync(basicCredential)
                          .Verifiable();
             var wiaAuthMock = new Mock<IWindowsIntegratedAuthentication>();
             wiaAuthMock.Setup(x => x.GetIsSupportedAsync(It.IsAny<Uri>()))
@@ -238,7 +238,7 @@ namespace GitCredentialManager.Tests
             Assert.NotNull(credential);
             Assert.Equal(testUserName, credential.Account);
             Assert.Equal(testPassword, credential.Password);
-            basicAuthMock.Verify(x => x.GetCredentials(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+            basicAuthMock.Verify(x => x.GetCredentialsAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
         }
 
         #endregion

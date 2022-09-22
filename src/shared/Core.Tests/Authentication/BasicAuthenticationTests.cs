@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using GitCredentialManager.Authentication;
 using GitCredentialManager.Tests.Objects;
 using Moq;
@@ -14,11 +16,11 @@ namespace GitCredentialManager.Tests.Authentication
             var context = new TestCommandContext();
             var basicAuth = new BasicAuthentication(context);
 
-            Assert.Throws<ArgumentNullException>(() => basicAuth.GetCredentials(null));
+            Assert.ThrowsAsync<ArgumentNullException>(() => basicAuth.GetCredentialsAsync(null));
         }
 
         [Fact]
-        public void BasicAuthentication_GetCredentials_NonDesktopSession_ResourceAndUserName_PasswordPromptReturnsCredentials()
+        public async Task BasicAuthentication_GetCredentials_NonDesktopSession_ResourceAndUserName_PasswordPromptReturnsCredentials()
         {
             const string testResource = "https://example.com";
             const string testUserName = "john.doe";
@@ -29,14 +31,14 @@ namespace GitCredentialManager.Tests.Authentication
 
             var basicAuth = new BasicAuthentication(context);
 
-            ICredential credential = basicAuth.GetCredentials(testResource, testUserName);
+            ICredential credential = await basicAuth.GetCredentialsAsync(testResource, testUserName);
 
             Assert.Equal(testUserName, credential.Account);
             Assert.Equal(testPassword, credential.Password);
         }
 
         [Fact]
-        public void BasicAuthentication_GetCredentials_NonDesktopSession_Resource_UserPassPromptReturnsCredentials()
+        public async Task BasicAuthentication_GetCredentials_NonDesktopSession_Resource_UserPassPromptReturnsCredentials()
         {
             const string testResource = "https://example.com";
             const string testUserName = "john.doe";
@@ -48,7 +50,7 @@ namespace GitCredentialManager.Tests.Authentication
 
             var basicAuth = new BasicAuthentication(context);
 
-            ICredential credential = basicAuth.GetCredentials(testResource);
+            ICredential credential = await basicAuth.GetCredentialsAsync(testResource);
 
             Assert.Equal(testUserName, credential.Account);
             Assert.Equal(testPassword, credential.Password);
@@ -67,11 +69,11 @@ namespace GitCredentialManager.Tests.Authentication
 
             var basicAuth = new BasicAuthentication(context);
 
-            Assert.Throws<InvalidOperationException>(() => basicAuth.GetCredentials(testResource));
+            Assert.ThrowsAsync<InvalidOperationException>(() => basicAuth.GetCredentialsAsync(testResource));
         }
 
-        [PlatformFact(Platforms.Windows)]
-        public void BasicAuthentication_GetCredentials_DesktopSession_Resource_UserPassPromptReturnsCredentials()
+        [Fact]
+        public async Task BasicAuthentication_GetCredentials_DesktopSession_CallsHelper()
         {
             const string testResource = "https://example.com";
             const string testUserName = "john.doe";
@@ -79,30 +81,35 @@ namespace GitCredentialManager.Tests.Authentication
 
             var context = new TestCommandContext
             {
-                SessionManager = {IsDesktopSession = true},
-                SystemPrompts =
-                {
-                    CredentialPrompt = (resource, userName) =>
-                    {
-                        Assert.Equal(testResource, resource);
-                        Assert.Null(userName);
-
-                        return new GitCredential(testUserName, testPassword);
-                    }
-                }
+                SessionManager = {IsDesktopSession = true}
             };
 
-            var basicAuth = new BasicAuthentication(context);
+            context.FileSystem.Files["/usr/local/bin/git-credential-manager-ui"] = new byte[0];
+            context.FileSystem.Files[@"C:\Program Files\Git Credential Manager Core\git-credential-manager-ui.exe"] = new byte[0];
 
-            ICredential credential = basicAuth.GetCredentials(testResource);
+            var auth = new Mock<BasicAuthentication>(MockBehavior.Strict, context);
+            auth.Setup(x => x.InvokeHelperAsync(
+                    It.IsAny<string>(),
+                    $"basic --resource {testResource}",
+                    It.IsAny<IDictionary<string, string>>(),
+                    It.IsAny<System.Threading.CancellationToken>()))
+                .ReturnsAsync(
+                    new Dictionary<string, string>
+                    {
+                        ["username"] = testUserName,
+                        ["password"] = testPassword
+                    }
+                );
+
+            ICredential credential = await auth.Object.GetCredentialsAsync(testResource);
 
             Assert.NotNull(credential);
             Assert.Equal(testUserName, credential.Account);
             Assert.Equal(testPassword, credential.Password);
         }
 
-        [PlatformFact(Platforms.Windows)]
-        public void BasicAuthentication_GetCredentials_DesktopSession_ResourceAndUser_PassPromptReturnsCredentials()
+        [Fact]
+        public async Task BasicAuthentication_GetCredentials_DesktopSession_UserName_CallsHelper()
         {
             const string testResource = "https://example.com";
             const string testUserName = "john.doe";
@@ -110,57 +117,30 @@ namespace GitCredentialManager.Tests.Authentication
 
             var context = new TestCommandContext
             {
-                SessionManager = {IsDesktopSession = true},
-                SystemPrompts =
-                {
-                    CredentialPrompt = (resource, userName) =>
-                    {
-                        Assert.Equal(testResource, resource);
-                        Assert.Equal(testUserName, userName);
-
-                        return new GitCredential(testUserName, testPassword);
-                    }
-                }
+                SessionManager = {IsDesktopSession = true}
             };
 
-            var basicAuth = new BasicAuthentication(context);
+            context.FileSystem.Files["/usr/local/bin/git-credential-manager-ui"] = new byte[0];
+            context.FileSystem.Files[@"C:\Program Files\Git Credential Manager Core\git-credential-manager-ui.exe"] = new byte[0];
 
-            ICredential credential = basicAuth.GetCredentials(testResource, testUserName);
+            var auth = new Mock<BasicAuthentication>(MockBehavior.Strict, context);
+            auth.Setup(x => x.InvokeHelperAsync(
+                    It.IsAny<string>(),
+                    $"basic --resource {testResource} --username {testUserName}",
+                    It.IsAny<IDictionary<string, string>>(),
+                    It.IsAny<System.Threading.CancellationToken>()))
+                .ReturnsAsync(
+                    new Dictionary<string, string>
+                    {
+                        ["username"] = testUserName,
+                        ["password"] = testPassword
+                    }
+                );
+
+            ICredential credential = await auth.Object.GetCredentialsAsync(testResource, testUserName);
 
             Assert.NotNull(credential);
             Assert.Equal(testUserName, credential.Account);
-            Assert.Equal(testPassword, credential.Password);
-        }
-
-        [PlatformFact(Platforms.Windows)]
-        public void BasicAuthentication_GetCredentials_DesktopSession_ResourceAndUser_PassPromptDiffUserReturnsCredentials()
-        {
-            const string testResource = "https://example.com";
-            const string testUserName = "john.doe";
-            const string newUserName  = "jane.doe";
-            const string testPassword = "letmein123"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
-
-            var context = new TestCommandContext
-            {
-                SessionManager = {IsDesktopSession = true},
-                SystemPrompts =
-                {
-                    CredentialPrompt = (resource, userName) =>
-                    {
-                        Assert.Equal(testResource, resource);
-                        Assert.Equal(testUserName, userName);
-
-                        return new GitCredential(newUserName, testPassword);
-                    }
-                }
-            };
-
-            var basicAuth = new BasicAuthentication(context);
-
-            ICredential credential = basicAuth.GetCredentials(testResource, testUserName);
-
-            Assert.NotNull(credential);
-            Assert.Equal(newUserName, credential.Account);
             Assert.Equal(testPassword, credential.Password);
         }
     }
