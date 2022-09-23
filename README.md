@@ -12,7 +12,7 @@ Compared to Git's [built-in credential helpers][git-tools-credential-storage]
 provides single-factor authentication support working on any HTTP-enabled Git
 repository, GCM provides multi-factor authentication support for
 [Azure DevOps][azure-devops], Azure DevOps Server (formerly Team Foundation
-Server), GitHub, Bitbucket, and GitLab.
+Server), GitHub, Bitbucket, GitLab and Gitea.
 
 Git Credential Manager (GCM) replaces the .NET Framework-based
 [Git Credential Manager for Windows][gcm-for-windows] (GCM), and the Java-based
@@ -36,6 +36,7 @@ Multi-factor authentication support for Azure DevOps|&#10003;|&#10003;|&#10003;
 Two-factor authentication support for GitHub|&#10003;|&#10003;|&#10003;
 Two-factor authentication support for Bitbucket|&#10003;|&#10003;|&#10003;
 Two-factor authentication support for GitLab|&#10003;|&#10003;|&#10003;
+Two-factor authentication support for Gitea|&#10003;|&#10003;|&#10003;
 Windows Integrated Authentication (NTLM/Kerberos) support|&#10003;|_N/A_|_N/A_
 Basic HTTP authentication support|&#10003;|&#10003;|&#10003;
 Proxy support|&#10003;|&#10003;|&#10003;
@@ -283,6 +284,7 @@ See detailed information [here][gcm-http-proxy].
 - [Host provider specification][gcm-host-provider]
 - [Azure Repos OAuth tokens][gcm-azure-tokens]
 - [GitLab support][gcm-gitlab]
+- [Gitea support][gcm-gitea]
 
 ## Experimental Features
 
@@ -322,6 +324,7 @@ When using GitHub logos, please be sure to follow the
 [gcm-for-mac-and-linux]: https://github.com/microsoft/Git-Credential-Manager-for-Mac-and-Linux
 [gcm-for-windows]: https://github.com/microsoft/Git-Credential-Manager-for-Windows
 [gcm-gitlab]: docs/gitlab.md
+[gcm-gitea]: docs/gitea.md
 [gcm-host-provider]: docs/hostprovider.md
 [gcm-http-proxy]: docs/netconfig.md#http-proxy
 [gcm-license]: LICENSE

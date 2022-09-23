@@ -183,6 +183,7 @@ ID|Provider
 `azure-repos`|Azure Repos
 `github`|GitHub
 `gitlab`|GitLab _(supports OAuth in browser, personal access token and Basic Authentication)_
+`gitea`|Gitea _(supports OAuth in browser, personal access token and Basic Authentication)_
 `generic`|Generic (any other provider not listed above)
 
 Automatic provider selection is based on the remote URL.
@@ -498,6 +499,37 @@ export GCM_GITLAB_AUTHMODES="browser"
 
 ---
 
+### GCM_GITEA_AUTHMODES
+
+Override the available authentication modes presented during Gitea
+authentication. If this option is not set, then the available authentication
+modes will be automatically detected.
+
+**Note:** This setting supports multiple values separated by commas.
+
+Value|Authentication Mode
+-|-
+_(unset)_|Automatically detect modes
+`browser`|OAuth authentication via a web browser _(requires a GUI)_
+`basic`|Basic authentication using username and password
+`pat`|Personal Access Token (pat)-based authentication
+
+#### Windows
+
+```batch
+SET GCM_GITEA_AUTHMODES="browser"
+```
+
+#### macOS/Linux
+
+```bash
+export GCM_GITEA_AUTHMODES="browser"
+```
+
+**Also see: [credential.giteaAuthModes][credential-giteaauthmodes]**
+
+---
+
 ### GCM_NAMESPACE
 
 Use a custom namespace prefix for credentials read and written in the OS
@@ -752,6 +784,7 @@ export GCM_AZREPOS_CREDENTIALTYPE="oauth"
 [credential-dpapi-store-path]: configuration.md#credentialdpapistorepath
 [credential-githubauthmodes]: configuration.md#credentialgitHubAuthModes
 [credential-gitlabauthmodes]: configuration.md#credentialgitLabAuthModes
+[credential-giteaauthmodes]: configuration.md#credentialgiteaAuthModes
 [credential-guiprompt]: configuration.md#credentialguiprompt
 [credential-httpproxy]: configuration.md#credentialhttpProxy-deprecated
 [credential-interactive]: configuration.md#credentialinteractive

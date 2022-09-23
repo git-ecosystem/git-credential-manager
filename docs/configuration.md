@@ -87,6 +87,7 @@ ID|Provider
 `github`|GitHub
 `bitbucket`|Bitbucket
 `gitlab`|GitLab _(supports OAuth in browser, personal access token and Basic Authentication)_
+`gitea`|Gitea _(supports OAuth in browser, personal access token and Basic Authentication)_
 `generic`|Generic (any other provider not listed above)
 
 Automatic provider selection is based on the remote URL.
@@ -347,6 +348,31 @@ git config --global credential.namespace "my-namespace"
 ```
 
 **Also see: [GCM_NAMESPACE][gcm-namespace]**
+
+---
+
+### credential.giteaAuthModes
+
+Override the available authentication modes presented during Gitea
+authentication. If this option is not set, then the available authentication
+modes will be automatically detected.
+
+**Note:** This setting supports multiple values separated by commas.
+
+Value|Authentication Mode
+-|-
+_(unset)_|Automatically detect modes
+`browser`|OAuth authentication via a web browser _(requires a GUI)_
+`basic`|Basic authentication using username and password
+`pat`|Personal Access Token (pat)-based authentication
+
+#### Example
+
+```shell
+git config --global credential.giteaAuthModes "browser"
+```
+
+**Also see: [GCM_GITEA_AUTHMODES][gcm-gitea-authmodes]**
 
 ---
 
@@ -611,6 +637,7 @@ git config --global credential.azreposCredentialType oauth
 [gcm-dpapi-store-path]: environment.md#GCM_DPAPI_STORE_PATH
 [gcm-github-authmodes]: environment.md#GCM_GITHUB_AUTHMODES
 [gcm-gitlab-authmodes]:environment.md#GCM_GITLAB_AUTHMODES
+[gcm-gitea-authmodes]:environment.md#GCM_GITEA_AUTHMODES
 [gcm-gui-prompt]: environment.md#GCM_GUI_PROMPT
 [gcm-http-proxy]: environment.md#GCM_HTTP_PROXY-deprecated
 [gcm-interactive]: environment.md#GCM_INTERACTIVE
