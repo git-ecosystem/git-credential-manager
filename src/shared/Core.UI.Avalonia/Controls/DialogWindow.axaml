@@ -10,7 +10,7 @@
         ExtendClientAreaChromeHints="{Binding ShowCustomChrome, Converter={x:Static converters:WindowClientAreaConverters.BoolToChromeHints}}"
         Title="{Binding Title}"
         SizeToContent="Height" CanResize="False"
-        Width="420" MaxHeight="520" MinHeight="320"
+        Width="420" MaxHeight="520" MinHeight="280"
         WindowState="Normal" WindowStartupLocation="CenterScreen"
         ShowInTaskbar="True" ShowActivated="True"
         PointerPressed="Window_PointerPressed"

@@ -1,17 +1,20 @@
 using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace GitCredentialManager.Authentication
 {
     public interface IBasicAuthentication
     {
-        ICredential GetCredentials(string resource, string userName);
+        Task<ICredential> GetCredentialsAsync(string resource, string userName);
     }
 
     public static class BasicAuthenticationExtensions
     {
-        public static ICredential GetCredentials(this IBasicAuthentication basicAuth, string resource)
+        public static Task<ICredential> GetCredentialsAsync(this IBasicAuthentication basicAuth, string resource)
         {
-            return basicAuth.GetCredentials(resource, null);
+            return basicAuth.GetCredentialsAsync(resource, null);
         }
     }
 
@@ -25,17 +28,16 @@ namespace GitCredentialManager.Authentication
         public BasicAuthentication(ICommandContext context)
             : base (context) { }
 
-        public ICredential GetCredentials(string resource, string userName)
+        public async Task<ICredential> GetCredentialsAsync(string resource, string userName)
         {
             EnsureArgument.NotNullOrWhiteSpace(resource, nameof(resource));
 
             ThrowIfUserInteractionDisabled();
 
-            // TODO: we only support system GUI prompts on Windows currently
             if (Context.Settings.IsGuiPromptsEnabled && Context.SessionManager.IsDesktopSession &&
-                PlatformUtils.IsWindows())
+                TryFindHelperExecutablePath(out string helperPath))
             {
-                return GetCredentialsByUi(resource, userName);
+                return await GetCredentialsByUiAsync(helperPath, resource, userName);
             }
 
             ThrowIfTerminalPromptsDisabled();
@@ -64,14 +66,42 @@ namespace GitCredentialManager.Authentication
             return new GitCredential(userName, password);
         }
 
-        private ICredential GetCredentialsByUi(string resource, string userName)
+        private async Task<ICredential> GetCredentialsByUiAsync(string helperPath, string resource, string userName)
         {
-            if (!Context.SystemPrompts.ShowCredentialPrompt(resource, userName, out ICredential credential))
+            var promptArgs = new StringBuilder("basic");
+
+            if (!string.IsNullOrWhiteSpace(resource))
             {
-                throw new Exception("User cancelled the authentication prompt.");
+                promptArgs.AppendFormat(" --resource {0}", QuoteCmdArg(resource));
             }
 
-            return credential;
+            if (!string.IsNullOrWhiteSpace(userName))
+            {
+                promptArgs.AppendFormat(" --username {0}", QuoteCmdArg(userName));
+            }
+
+            IDictionary<string, string> resultDict = await InvokeHelperAsync(helperPath, promptArgs.ToString(), null);
+
+            if (!resultDict.TryGetValue("username", out userName))
+            {
+                throw new Exception("Missing 'username' in response");
+            }
+
+            if (!resultDict.TryGetValue("password", out string password))
+            {
+                throw new Exception("Missing 'password' in response");
+            }
+
+            return new GitCredential(userName, password);
+        }
+
+        private bool TryFindHelperExecutablePath(out string path)
+        {
+            return TryFindHelperExecutablePath(
+                Constants.EnvironmentVariables.GcmUiHelper,
+                Constants.GitConfiguration.Credential.UiHelper,
+                Constants.DefaultUiHelper,
+                out path);
         }
     }
 }

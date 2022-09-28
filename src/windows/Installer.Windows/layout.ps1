@@ -8,6 +8,7 @@ $THISDIR = $pwd.path
 $ROOT = (Get-Item $THISDIR).parent.parent.parent.FullName
 $SRC = "$ROOT/src"
 $GCM_SRC = "$SRC/shared/Git-Credential-Manager"
+$GCM_UI_SRC = "$SRC/windows/Git-Credential-Manager.UI.Windows"
 $BITBUCKET_UI_SRC = "$SRC/windows/Atlassian.Bitbucket.UI.Windows"
 $GITHUB_UI_SRC = "$SRC/windows/GitHub.UI.Windows"
 $GITLAB_UI_SRC = "$SRC/windows/GitLab.UI.Windows"
@@ -41,6 +42,13 @@ mkdir -p "$PAYLOAD","$SYMBOLS"
 Write-Output "Publishing core application..."
 dotnet publish "$GCM_SRC" `
     --framework net472 `
+	--configuration "$CONFIGURATION" `
+	--runtime win-x86 `
+	--output "$PAYLOAD"
+
+Write-Output "Publishing core UI helper..."
+dotnet publish "$GCM_UI_SRC" `
+	--framework net472 `
 	--configuration "$CONFIGURATION" `
 	--runtime win-x86 `
 	--output "$PAYLOAD"

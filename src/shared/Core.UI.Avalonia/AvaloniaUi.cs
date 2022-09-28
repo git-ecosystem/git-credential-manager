@@ -88,6 +88,15 @@ namespace GitCredentialManager.UI
             window.Activate();
             window.Focus();
 
+            // Workaround an issue where "Activate()" and "Focus()" don't actually
+            // cause the window to become the top-most window. Avalonia is correctly
+            // calling 'makeKeyAndOrderFront' but this isn't working for some reason.
+            if (PlatformUtils.IsMacOS())
+            {
+                window.Topmost = true;
+                window.Topmost = false;
+            }
+
             return tcs.Task;
         }
 

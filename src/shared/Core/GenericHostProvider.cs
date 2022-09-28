@@ -87,7 +87,7 @@ namespace GitCredentialManager
             }
 
             Context.Trace.WriteLine("Prompting for basic credentials...");
-            return _basicAuth.GetCredentials(uri.AbsoluteUri, input.UserName);
+            return await _basicAuth.GetCredentialsAsync(uri.AbsoluteUri, input.UserName);
         }
 
         /// <summary>
