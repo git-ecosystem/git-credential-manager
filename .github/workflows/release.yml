@@ -538,11 +538,10 @@ jobs:
           tar -C tmp.osx-arm64-build/symbols -czf osx-payload-and-symbols/gcm-osx-arm64-$GitBuildVersionSimple-symbols.tar.gz .
 
       - name: Archive Windows payload and symbols
-        shell: pwsh
         run: |
           mkdir win-x86-payload-and-symbols
-          Compress-Archive -Path win-sign/signed-payload/* win-x86-payload-and-symbols/gcm-win-x86-$env:GitBuildVersionSimple.zip
-          Compress-Archive -Path win-sign/src/windows/Installer.Windows/symbols/* win-x86-payload-and-symbols/gcm-win-x86-$env:GitBuildVersionSimple-symbols.zip
+          zip -jr win-x86-payload-and-symbols/gcm-win-x86-$GitBuildVersionSimple.zip win-sign/signed-payload
+          zip -jr win-x86-payload-and-symbols/gcm-win-x86-$GitBuildVersionSimple-symbols.zip win-sign/src/windows/Installer.Windows/symbols
 
       - uses: actions/github-script@v6
         with:
