@@ -71,7 +71,7 @@ There is a workaround which should work and doesn't require installing anything.
 
 1. Enter a name ("note") for the token and ensure the `repo`, `gist`, and
    `workflow` scopes are selected:
-   ![image][github-pat-name-image]
+   ![image][github-pat-note-image]
    ...
    ![image][github-pat-repo-scope-image]
    ...
@@ -100,7 +100,7 @@ There is a workaround which should work and doesn't require installing anything.
       You will be prompted to enter a password – copy the newly generated PAT in
       step 4 and paste it here, and press the `Enter` key
 
-      ![image][windows-save-pat-cli-image]
+      ![image][windows-cli-save-pat-image]
 
    1. If you do not wish to use the command-line, [open the Credential Manager
       via Control Panel][windows-credential-manager]
@@ -131,18 +131,18 @@ the new token-based authentication requirements **DO NOT** apply to GHES:
 [gcm-new-issue]: https://github.com/GitCredentialManager/git-credential-manager/issues/new/choose
 [gcm-windows]: https://github.com/microsoft/Git-Credential-Manager-for-Windows
 [git-windows]: https://git-scm.com/download/win
-[github-display-pat-image]: https://user-images.githubusercontent.com/5658207/95448288-ff4ee800-095a-11eb-9709-8e37bde8b716.png
-[github-generate-pat-image]: https://user-images.githubusercontent.com/5658207/95448393-31f8e080-095b-11eb-9568-cfd1c567a65c.png
+[github-display-pat-image]: img/github-display-pat.png
+[github-generate-pat-image]: img/github-generate-pat.png
 [github-pat]: https://github.com/settings/tokens/new?scopes=repo,gist,workflow
 [github-pat-docs]: https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token
-[github-pat-gist-scope-image]: https://user-images.githubusercontent.com/5658207/95447450-a3d02a80-0959-11eb-82a8-2d2834d5aa16.png
-[github-pat-name-image]: https://user-images.githubusercontent.com/5658207/95448332-1beb2000-095b-11eb-9a48-9c05b1926a6b.png
-[github-pat-repo-scope-image]: https://user-images.githubusercontent.com/5658207/95447304-6f5c6e80-0959-11eb-924b-50b86c2b3d77.png
-[github-pat-workflow-scope-image]: https://user-images.githubusercontent.com/5658207/95447343-7b483080-0959-11eb-8e00-151d53893f3f.png
+[github-pat-gist-scope-image]: img/github-pat-gist-scope.png
+[github-pat-note-image]: img/github-pat-note.png
+[github-pat-repo-scope-image]: img/github-pat-repo-scope.png
+[github-pat-workflow-scope-image]: img/github-pat-workflow-scope.png
 [github-token-authentication-requirements]: https://github.blog/2020-07-30-token-authentication-requirements-for-api-and-git-operations/
-[windows-save-pat-cli-image]: https://user-images.githubusercontent.com/5658207/95448479-4fc64580-095b-11eb-9970-0b6faf7f4ae7.png
+[windows-cli-save-pat-image]: img/windows-cli-save-pat.png
 [vs-2019]: https://docs.microsoft.com/en-us/visualstudio/install/update-visual-studio?view=vs-2019
 [vs-2017]: https://docs.microsoft.com/en-us/visualstudio/install/update-visual-studio?view=vs-2017
 [windows-credential-manager]: https://support.microsoft.com/en-us/windows/accessing-credential-manager-1b5c916a-6a16-889f-8581-fc16e8165ac0
-[windows-gui-add-pat-image]: https://user-images.githubusercontent.com/5658207/96468318-ddd7e100-1223-11eb-8cd4-aa118493c538.png
-[windows-gui-credentials-image]: https://user-images.githubusercontent.com/5658207/96468389-f6e09200-1223-11eb-9993-ae7b4096b769.png
+[windows-gui-add-pat-image]: img/windows-gui-add-pat.png
+[windows-gui-credentials-image]: img/windows-gui-credentials.png
