@@ -195,9 +195,9 @@ proxy root certificates.
 [configuration]: configuration.md
 [git-http-proxy]: https://git-scm.com/docs/git-config#Documentation/git-config.txt-httpproxy
 [git-remote-name-proxy]: https://git-scm.com/docs/git-config#Documentation/git-config.txt-remoteltnamegtproxy
-[rfc-3986-321]: https://tools.ietf.org/html/rfc3986#section-3.2.1
-[rfc-3986-22]: https://tools.ietf.org/html/rfc3986#section-2.2
-[rfc-3986-21]: https://tools.ietf.org/html/rfc3986#section-2.1
+[rfc-3986-321]: https://www.rfc-editor.org/rfc/rfc3986#section-3.2.1
+[rfc-3986-22]: https://www.rfc-editor.org/rfc/rfc3986#section-2.2
+[rfc-3986-21]: https://www.rfc-editor.org/rfc/rfc3986#section-2.1
 [curl-proxy-env-vars]: https://everything.curl.dev/usingcurl/proxies#proxy-environment-variables
 [other-proxy-options]: #other-proxy-options
 [curlopt-noproxy]: https://curl.se/libcurl/c/CURLOPT_NOPROXY.html
