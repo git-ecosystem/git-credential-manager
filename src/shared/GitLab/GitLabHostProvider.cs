@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using GitCredentialManager;
 using GitCredentialManager.Authentication.OAuth;
 using System.Net.Http.Headers;
+using System.Globalization;
 
 namespace GitLab
 {
@@ -173,11 +174,24 @@ namespace GitLab
         {
             string service = GetServiceName(input);
             ICredential credential = Context.CredentialStore.Get(service, input.UserName);
-            if (credential?.Account == "oauth2" && await IsOAuthTokenExpired(input.GetRemoteUri(), credential.Password))
+            string expiryService = GetExpiryServiceName(input);
+
+            if (credential?.Account == "oauth2")
             {
-                Context.Trace.WriteLine("Removing expired OAuth access token...");
-                Context.CredentialStore.Remove(service, credential.Account);
-                credential = null;
+                string expiryString = Context.CredentialStore.Get(expiryService, input.UserName)?.Password;
+                DateTimeOffset? expiry = null;
+                if (expiryString != null && Int64.TryParse(expiryString, out long unixSeconds)) {
+                    expiry = DateTimeOffset.FromUnixTimeSeconds(unixSeconds);
+                    Context.Trace.WriteLine($"OAuth access token {(DateTimeOffset.Now >= expiry ? "expired" : "expires")} at {expiry.Value.ToString("o", CultureInfo.InvariantCulture)}");
+                }
+                // remove access token if expired or about to expire
+                bool expired = expiry != null && DateTimeOffset.Now >= expiry.Value - TimeSpan.FromMinutes(1);
+                if (expired) {
+                    Context.Trace.WriteLine("Removing expired OAuth access token...");
+                    Context.CredentialStore.Remove(service, credential.Account);
+                    Context.CredentialStore.Remove(expiryService, credential.Account);
+                    credential = null;
+                }
             }
 
             if (credential != null)
@@ -210,30 +224,12 @@ namespace GitLab
                 Context.CredentialStore.AddOrUpdate(service, oAuthCredential.Account, oAuthCredential.AccessToken);
                 // store refresh token under a separate service
                 Context.CredentialStore.AddOrUpdate(refreshService, oAuthCredential.Account, oAuthCredential.RefreshToken);
+                // store expiry date under separate service
+                if (oAuthCredential.Expiry.HasValue) {
+                    Context.CredentialStore.AddOrUpdate(expiryService, oAuthCredential.Account, oAuthCredential.Expiry.Value.ToUnixTimeSeconds().ToString(CultureInfo.InvariantCulture));
+                }
             }
             return credential;
-        }
-
-        private async Task<bool> IsOAuthTokenExpired(Uri baseUri, string accessToken)
-        {
-            // https://docs.gitlab.com/ee/api/oauth2.html#retrieve-the-token-information
-            Uri infoUri = new Uri(baseUri, "/oauth/token/info");
-            using (HttpClient httpClient = Context.HttpClientFactory.CreateClient())
-            {
-                httpClient.Timeout = TimeSpan.FromSeconds(15);
-                httpClient.DefaultRequestHeaders.Authorization
-                         = new AuthenticationHeaderValue("Bearer", accessToken);
-                try
-                {
-                    HttpResponseMessage response = await httpClient.GetAsync(infoUri);
-                    return response.StatusCode == System.Net.HttpStatusCode.Unauthorized;
-                }
-                catch (Exception e)
-                {
-                    Context.Terminal.WriteLine($"OAuth token info request failed: {e.Message}");
-                    return false;
-                }
-            }
         }
 
         internal class OAuthCredential : ICredential
@@ -242,12 +238,16 @@ namespace GitLab
             {
                 AccessToken = oAuth2TokenResult.AccessToken;
                 RefreshToken = oAuth2TokenResult.RefreshToken;
+                if (oAuth2TokenResult.ExpiresIn.HasValue) {
+                    Expiry = DateTimeOffset.Now.Add(oAuth2TokenResult.ExpiresIn.Value);
+                }
             }
 
             // username must be 'oauth2' https://docs.gitlab.com/ee/api/oauth2.html#access-git-over-https-with-access-token
             public string Account => "oauth2";
             public string AccessToken { get; }
             public string RefreshToken { get; }
+            public DateTimeOffset? Expiry {get; }
             string ICredential.Password => AccessToken;
         }
 
@@ -276,9 +276,18 @@ namespace GitLab
             return builder.Uri.ToString();
         }
 
+        private string GetExpiryServiceName(InputArguments input)
+        {
+            var builder = new UriBuilder(GetServiceName(input));
+            builder.Host = "oauth-access-token-expiry." + builder.Host;
+            return builder.Uri.ToString();
+        }
+
         public override Task EraseCredentialAsync(InputArguments input)
         {
-            // delete any refresh token too
+            Context.Trace.WriteLine("Removing OAuth access token expiry date...");
+            Context.CredentialStore.Remove(GetExpiryServiceName(input), input.UserName);
+            Context.Trace.WriteLine("Removing OAuth refresh token...");
             Context.CredentialStore.Remove(GetRefreshTokenServiceName(input), "oauth2");
             return base.EraseCredentialAsync(input);
         }
