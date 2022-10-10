@@ -1,64 +1,35 @@
-using System;
+﻿using System;
+using System.Collections.Generic;
 using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
 using GitCredentialManager;
 using GitCredentialManager.Authentication.OAuth;
-using GitCredentialManager.Authentication.OAuth.Json;
-using Newtonsoft.Json;
 
 namespace Atlassian.Bitbucket
 {
-    public class BitbucketOAuth2Client : OAuth2Client
+    public abstract class BitbucketOAuth2Client : OAuth2Client
     {
-        private static readonly OAuth2ServerEndpoints Endpoints = new OAuth2ServerEndpoints(
-            BitbucketConstants.OAuth2AuthorizationEndpoint,
-            BitbucketConstants.OAuth2TokenEndpoint);
-
-        public BitbucketOAuth2Client(HttpClient httpClient, ISettings settings)
-            : base(httpClient, Endpoints,
-                GetClientId(settings), GetRedirectUri(settings), GetClientSecret(settings))
+        public BitbucketOAuth2Client(HttpClient httpClient, OAuth2ServerEndpoints endpoints, string clientId, Uri redirectUri, string clientSecret, ITrace trace) : base(httpClient, endpoints, clientId, redirectUri, clientSecret, trace, false)
         {
         }
 
-        private static string GetClientId(ISettings settings)
-        {
-            // Check for developer override value
-            if (settings.TryGetSetting(
-                BitbucketConstants.EnvironmentVariables.DevOAuthClientId,
-                Constants.GitConfiguration.Credential.SectionName, BitbucketConstants.GitConfiguration.Credential.DevOAuthClientId,
-                out string clientId))
-            {
-                return clientId;
-            }
+        public abstract IEnumerable<string> Scopes { get; }
 
-            return BitbucketConstants.OAuth2ClientId;
+        public string GetRefreshTokenServiceName(InputArguments input)
+        {
+            Uri baseUri = input.GetRemoteUri(includeUser: false);
+
+            // The refresh token key never includes the path component.
+            // Instead we use the path component to specify this is the "refresh_token".
+            Uri uri = new UriBuilder(baseUri) { Path = "/refresh_token" }.Uri;
+
+            return uri.AbsoluteUri.TrimEnd('/');
         }
 
-        private static Uri GetRedirectUri(ISettings settings)
+        public Task<OAuth2AuthorizationCodeResult> GetAuthorizationCodeAsync(IOAuth2WebBrowser browser, CancellationToken ct) 
         {
-            // Check for developer override value
-            if (settings.TryGetSetting(
-                BitbucketConstants.EnvironmentVariables.DevOAuthRedirectUri,
-                Constants.GitConfiguration.Credential.SectionName, BitbucketConstants.GitConfiguration.Credential.DevOAuthRedirectUri,
-                out string redirectUriStr) && Uri.TryCreate(redirectUriStr, UriKind.Absolute, out Uri redirectUri))
-            {
-                return redirectUri;
-            }
-
-            return BitbucketConstants.OAuth2RedirectUri;
-        }
-
-        private static string GetClientSecret(ISettings settings)
-        {
-            // Check for developer override value
-            if (settings.TryGetSetting(
-                BitbucketConstants.EnvironmentVariables.DevOAuthClientSecret,
-                Constants.GitConfiguration.Credential.SectionName, BitbucketConstants.GitConfiguration.Credential.DevOAuthClientSecret,
-                out string clientId))
-            {
-                return clientId;
-            }
-
-            return BitbucketConstants.OAuth2ClientSecret;
+            return GetAuthorizationCodeAsync(Scopes, browser, ct);
         }
 
         protected override bool TryCreateTokenEndpointResult(string json, out OAuth2TokenResult result)
@@ -74,13 +45,6 @@ namespace Atlassian.Bitbucket
 
             result = null;
             return false;
-        }
-
-        private class BitbucketTokenEndpointResponseJson : TokenEndpointResponseJson
-        {
-            // Bitbucket uses "scopes" for the scopes property name rather than the standard "scope" name
-            [JsonProperty("scopes")]
-            public override string Scope { get; set; }
         }
     }
 }

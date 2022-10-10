@@ -2,11 +2,12 @@ using System;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Atlassian.Bitbucket.Cloud;
 using GitCredentialManager.Tests;
 using GitCredentialManager.Tests.Objects;
 using Xunit;
 
-namespace Atlassian.Bitbucket.Tests
+namespace Atlassian.Bitbucket.Tests.Cloud
 {
     public class BitbucketRestApiTest
     {
@@ -51,9 +52,9 @@ namespace Atlassian.Bitbucket.Tests
 
             Assert.NotNull(result);
             Assert.Equal(username, result.Response.UserName);
-            Assert.Equal(accountId, result.Response.AccountId);
-            Assert.Equal(uuid, result.Response.Uuid);
             Assert.Equal(twoFactorAuthenticationEnabled, result.Response.IsTwoFactorAuthenticationEnabled);
+            Assert.Equal(accountId, ((UserInfo)result.Response).AccountId);
+            Assert.Equal(uuid, ((UserInfo)result.Response).Uuid);
 
             httpHandler.AssertRequest(HttpMethod.Get, expectedRequestUri, 1);
         }

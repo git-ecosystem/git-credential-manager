@@ -4,7 +4,6 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using GitCredentialManager.Authentication;
 using Xunit;
 
 namespace GitCredentialManager.Tests.Objects
@@ -23,6 +22,8 @@ namespace GitCredentialManager.Tests.Objects
 
         public bool ThrowOnUnexpectedRequest { get; set; }
         public bool SimulateNoNetwork { get; set; }
+
+        public IDictionary<(HttpMethod method, Uri uri), int> RequestCounts => _requestCounts;
 
         public void Setup(HttpMethod method, Uri uri, AsyncRequestHandler handler)
         {
@@ -58,6 +59,11 @@ namespace GitCredentialManager.Tests.Objects
             }
 
             Assert.Equal(expectedNumberOfCalls, numCalls);
+        }
+
+        public void AssertNoRequests()
+        {
+            Assert.Equal(0, _requestCounts.Count);
         }
 
         #region HttpMessageHandler
