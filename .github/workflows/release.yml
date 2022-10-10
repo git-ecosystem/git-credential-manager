@@ -16,7 +16,7 @@ jobs:
       matrix:
         runtime: [ osx-x64, osx-arm64 ] 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
       with:
         fetch-depth: 0 # Indicate full history so Nerdbank.GitVersioning works.
 
@@ -80,7 +80,7 @@ jobs:
     needs: osx-build
     steps:
     - name: Check out repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
 
     - name: Download payload
       uses: actions/download-artifact@v3
@@ -140,7 +140,7 @@ jobs:
     needs: osx-payload-sign
     steps:
     - name: Check out repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
       with:
         fetch-depth: 0 # Indicate full history so Nerdbank.GitVersioning works.
 
@@ -188,7 +188,7 @@ jobs:
     needs: osx-pack
     steps:
     - name: Check out repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
 
     - name: Download unsigned package
       uses: actions/download-artifact@v3
@@ -254,7 +254,7 @@ jobs:
     name: Build and Sign Windows
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
       with:
         fetch-depth: 0 # Indicate full history so Nerdbank.GitVersioning works.
 
@@ -362,7 +362,7 @@ jobs:
     name: Build Linux
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
       with:
         fetch-depth: 0 # Indicate full history so Nerdbank.GitVersioning works.
 
@@ -396,7 +396,7 @@ jobs:
     runs-on: windows-latest
     needs: linux-build
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
 
     - name: Download artifacts
       uses: actions/download-artifact@v3
@@ -457,7 +457,7 @@ jobs:
     runs-on: ${{ matrix.component.os }}
     needs: [ osx-sign, win-sign, linux-sign ]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
         with:
           fetch-depth: 0 # Indicate full history so Nerdbank.GitVersioning works.
 
@@ -510,7 +510,7 @@ jobs:
     needs: [ validate ]
     steps:      
       - name: Check out repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
         with:
           fetch-depth: 0 # Indicate full history so Nerdbank.GitVersioning works.
 
