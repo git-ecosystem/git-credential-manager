@@ -21,7 +21,7 @@ jobs:
         fetch-depth: 0 # Indicate full history so Nerdbank.GitVersioning works.
 
     - name: Set up dotnet
-      uses: actions/setup-dotnet@v3.0.0
+      uses: actions/setup-dotnet@v3.0.1
       with:
         dotnet-version: 6.0.201
     
@@ -145,7 +145,7 @@ jobs:
         fetch-depth: 0 # Indicate full history so Nerdbank.GitVersioning works.
 
     - name: Set up dotnet
-      uses: actions/setup-dotnet@v3.0.0
+      uses: actions/setup-dotnet@v3.0.1
       with:
         dotnet-version: 6.0.201
     
@@ -259,7 +259,7 @@ jobs:
         fetch-depth: 0 # Indicate full history so Nerdbank.GitVersioning works.
 
     - name: Set up dotnet
-      uses: actions/setup-dotnet@v3.0.0
+      uses: actions/setup-dotnet@v3.0.1
       with:
         dotnet-version: 6.0.201
 
@@ -367,7 +367,7 @@ jobs:
         fetch-depth: 0 # Indicate full history so Nerdbank.GitVersioning works.
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v3.0.0
+      uses: actions/setup-dotnet@v3.0.1
       with:
         dotnet-version: 6.0.201
 
@@ -515,7 +515,7 @@ jobs:
           fetch-depth: 0 # Indicate full history so Nerdbank.GitVersioning works.
 
       - name: Set up dotnet
-        uses: actions/setup-dotnet@v3.0.0
+        uses: actions/setup-dotnet@v3.0.1
         with:
           dotnet-version: 6.0.201
       
