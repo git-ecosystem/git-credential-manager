@@ -163,8 +163,8 @@ rm $(command -v git-credential-manager-core)
 1. Download and run the script:
 
    ```shell
-   curl -LO https://raw.githubusercontent.com/GitCredentialManager/git-credential-manager/main/src/linux/Packaging.Linux/install-from-source.sh &&
-   sh ./install-from-source.sh &&
+   curl -LO https://aka.ms/gcm/linux-install-source.sh &&
+   sh ./linux-install-source.sh &&
    git-credential-manager-core configure
    ```
 
