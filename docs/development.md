@@ -150,6 +150,23 @@ or
 report coverage - win
 ```
 
+## Linting Documentation
+
+Documents are linted using [markdownlint][markdownlint] which can be installed
+as a CLI tool via NPM or as an [extension in VSCode][vscode-markdownlint]. See
+the [documentation on GitHub][markdownlint]. The configuration used for
+markdownlint is in [.markdownlint.jsonc][markdownlint-config].
+
+Documents are checked for link validity using [lychee][lychee]. Lychee can be
+installed in a variety of ways depending on your platform, see the [docs on GitHub][lychee-docs].
+Some URLs are ignored by lychee, per the [lycheeignore][lycheeignore].
+
 [dotnet-web]: https://dotnet.microsoft.com/
 [custom-helpers]: https://git-scm.com/docs/gitcredentials#_custom_helpers
 [ioformat]: https://git-scm.com/docs/git-credential#IOFMT
+[lychee]: https://lychee.cli.rs/
+[lychee-docs]: https://github.com/lycheeverse/lychee
+[lycheeignore]: ../.lycheeignore
+[markdownlint]: https://github.com/DavidAnson/markdownlint-cli2
+[markdownlint-config]: ../.markdownlint.jsonc
+[vscode-markdownlint]: https://github.com/DavidAnson/vscode-markdownlint
