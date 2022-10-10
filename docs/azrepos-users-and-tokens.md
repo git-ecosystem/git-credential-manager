@@ -222,4 +222,4 @@ fabrikam:
 [credential-azreposCredentialType]: configuration.md#credentialazreposcredentialtype
 [gcm-azrepos-credential-type]: environment.md#GCM_AZREPOS_CREDENTIALTYPE
 [azure-devops-api]: https://docs.microsoft.com/en-gb/rest/api/azure/devops/tokens/pats
-[rfc3986-s321]: https://tools.ietf.org/html/rfc3986#section-3.2.1
+[rfc3986-s321]: https://www.rfc-editor.org/rfc/rfc3986#section-3.2.1

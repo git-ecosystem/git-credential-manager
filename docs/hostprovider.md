@@ -347,5 +347,5 @@ take, but implementors SHOULD attempt to follow existing practices and styles.
 [github-dotnet-cli]: https://github.com/dotnet/command-line-api
 [hostprovider-base-class]: #26-hostprovider-base-class
 [references]: #references
-[rfc-2119]: https://tools.ietf.org/html/rfc2119
-[rfc-6749]: https://tools.ietf.org/html/rfc6749
+[rfc-2119]: https://www.rfc-editor.org/rfc/rfc2119
+[rfc-6749]: https://www.rfc-editor.org/rfc/rfc6749

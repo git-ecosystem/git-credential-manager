@@ -350,7 +350,7 @@ namespace GitHub.Tests
 
             var expectedRequestUri = new Uri("https://api.github.com/authorizations");
 
-            // https://tools.ietf.org/html/rfc2324#section-2.3.2
+            // https://www.rfc-editor.org/rfc/rfc2324#section-2.3.2
             const HttpStatusCode httpIAmATeaPot = (HttpStatusCode) 418;
             var httpResponse = new HttpResponseMessage(httpIAmATeaPot)
             {
