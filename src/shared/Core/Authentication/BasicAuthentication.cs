@@ -35,9 +35,9 @@ namespace GitCredentialManager.Authentication
             ThrowIfUserInteractionDisabled();
 
             if (Context.Settings.IsGuiPromptsEnabled && Context.SessionManager.IsDesktopSession &&
-                TryFindHelperExecutablePath(out string helperPath))
+                TryFindHelperCommand(out string command, out string args))
             {
-                return await GetCredentialsByUiAsync(helperPath, resource, userName);
+                return await GetCredentialsByUiAsync(command, args, resource, userName);
             }
 
             ThrowIfTerminalPromptsDisabled();
@@ -66,9 +66,10 @@ namespace GitCredentialManager.Authentication
             return new GitCredential(userName, password);
         }
 
-        private async Task<ICredential> GetCredentialsByUiAsync(string helperPath, string resource, string userName)
+        private async Task<ICredential> GetCredentialsByUiAsync(string command, string args, string resource, string userName)
         {
-            var promptArgs = new StringBuilder("basic");
+            var promptArgs = new StringBuilder(args);
+            promptArgs.Append("basic");
 
             if (!string.IsNullOrWhiteSpace(resource))
             {
@@ -80,7 +81,7 @@ namespace GitCredentialManager.Authentication
                 promptArgs.AppendFormat(" --username {0}", QuoteCmdArg(userName));
             }
 
-            IDictionary<string, string> resultDict = await InvokeHelperAsync(helperPath, promptArgs.ToString(), null);
+            IDictionary<string, string> resultDict = await InvokeHelperAsync(command, promptArgs.ToString(), null);
 
             if (!resultDict.TryGetValue("username", out userName))
             {
@@ -95,13 +96,14 @@ namespace GitCredentialManager.Authentication
             return new GitCredential(userName, password);
         }
 
-        private bool TryFindHelperExecutablePath(out string path)
+        private bool TryFindHelperCommand(out string command, out string args)
         {
-            return TryFindHelperExecutablePath(
+            return TryFindHelperCommand(
                 Constants.EnvironmentVariables.GcmUiHelper,
                 Constants.GitConfiguration.Credential.UiHelper,
                 Constants.DefaultUiHelper,
-                out path);
+                out command,
+                out args);
         }
     }
 }

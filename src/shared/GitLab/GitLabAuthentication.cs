@@ -68,21 +68,22 @@ namespace GitLab
             }
 
             if (Context.Settings.IsGuiPromptsEnabled && Context.SessionManager.IsDesktopSession &&
-                TryFindHelperExecutablePath(out string helperPath))
+                TryFindHelperCommand(out string helperCommand, out string args))
             {
-                var cmdArgs = new StringBuilder("prompt");
+                var promptArgs = new StringBuilder(args);
+                promptArgs.Append("prompt");
                 if (!string.IsNullOrWhiteSpace(userName))
                 {
-                    cmdArgs.AppendFormat(" --username {0}", QuoteCmdArg(userName));
+                    promptArgs.AppendFormat(" --username {0}", QuoteCmdArg(userName));
                 }
 
-                cmdArgs.AppendFormat(" --url {0}", QuoteCmdArg(targetUri.ToString()));
+                promptArgs.AppendFormat(" --url {0}", QuoteCmdArg(targetUri.ToString()));
 
-                if ((modes & AuthenticationModes.Basic) != 0)   cmdArgs.Append(" --basic");
-                if ((modes & AuthenticationModes.Browser) != 0) cmdArgs.Append(" --browser");
-                if ((modes & AuthenticationModes.Pat) != 0)     cmdArgs.Append(" --pat");
+                if ((modes & AuthenticationModes.Basic) != 0)   promptArgs.Append(" --basic");
+                if ((modes & AuthenticationModes.Browser) != 0) promptArgs.Append(" --browser");
+                if ((modes & AuthenticationModes.Pat) != 0)     promptArgs.Append(" --pat");
 
-                IDictionary<string, string> resultDict = await InvokeHelperAsync(helperPath, cmdArgs.ToString());
+                IDictionary<string, string> resultDict = await InvokeHelperAsync(helperCommand, promptArgs.ToString());
 
                 if (!resultDict.TryGetValue("mode", out string responseMode))
                 {
@@ -226,13 +227,14 @@ namespace GitLab
             return await oauthClient.GetTokenByRefreshTokenAsync(refreshToken, CancellationToken.None);
         }
 
-        private bool TryFindHelperExecutablePath(out string path)
+        private bool TryFindHelperCommand(out string command, out string args)
         {
-            return TryFindHelperExecutablePath(
+            return TryFindHelperCommand(
                 GitLabConstants.EnvironmentVariables.AuthenticationHelper,
                 GitLabConstants.GitConfiguration.Credential.AuthenticationHelper,
                 GitLabConstants.DefaultAuthenticationHelper,
-                out path);
+                out command,
+                out args);
         }
 
         private HttpClient _httpClient;
