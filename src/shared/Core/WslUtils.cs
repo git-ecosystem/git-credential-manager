@@ -7,18 +7,32 @@ using System.Text.RegularExpressions;
 
 namespace GitCredentialManager
 {
+    public enum WindowsShell
+    {
+        Cmd,
+        PowerShell,
+    }
+
     public static class WslUtils
     {
         private const string WslUncPrefix = @"\\wsl$\";
         private const string WslLocalHostUncPrefix = @"\\wsl.localhost\";
         private const string WslCommandName = "wsl.exe";
         private const string WslInteropEnvar = "WSL_INTEROP";
+        private const string WslConfFilePath = "/etc/wsl.conf";
+        private const string DefaultWslMountPrefix = "/mnt";
+        private const string DefaultWslSysDriveMountName = "c";
 
         /// <summary>
         /// Cached WSL version.
         /// </summary>
         /// <remarks>A value of 0 represents "not WSL", and a value less than 0 represents "unknown".</remarks>
         private static int _wslVersion = -1;
+
+        /// <summary>
+        /// Cached Windows system drive mount path.
+        /// </summary>
+        private static string _sysDriveMountPath = null;
 
         public static bool IsWslDistribution(IEnvironment env, IFileSystem fs, out int wslVersion)
         {
@@ -111,6 +125,93 @@ namespace GitCredentialManager
             };
 
             return new ChildProcess(trace2, psi);
+        }
+
+        /// <summary>
+        /// Create a command to be executed in a shell in the host Windows operating system.
+        /// </summary>
+        /// <param name="fs">File system.</param>
+        /// <param name="shell">Shell used to execute the command in Windows.</param>
+        /// <param name="command">Command to execute.</param>
+        /// <param name="workingDirectory">Optional working directory.</param>
+        /// <returns><see cref="Process"/> object ready to start.</returns>
+        public static Process CreateWindowsShellProcess(IFileSystem fs,
+            WindowsShell shell, string command, string workingDirectory = null)
+        {
+            string sysDrive = GetSystemDriveMountPath(fs);
+
+            string launcher;
+            var args = new StringBuilder();
+
+            switch (shell)
+            {
+                case WindowsShell.Cmd:
+                    launcher = Path.Combine(sysDrive, "Windows/cmd.exe");
+                    args.AppendFormat("/C {0}", command);
+                    break;
+
+                case WindowsShell.PowerShell:
+                    const string psStreamSetup =
+                        "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8; " +
+                        "[Console]::InputEncoding = [System.Text.Encoding]::UTF8; ";
+
+                    launcher = Path.Combine(sysDrive, "Windows/System32/WindowsPowerShell/v1.0/powershell.exe");
+                    args.Append(" -NoProfile -NonInteractive -ExecutionPolicy Bypass");
+                    args.AppendFormat(" -Command \"{0} {1}\"", psStreamSetup, command);
+                    break;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(shell));
+            }
+
+            var psi = new ProcessStartInfo(launcher, args.ToString())
+            {
+                RedirectStandardInput = true,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                WorkingDirectory = workingDirectory ?? string.Empty
+            };
+
+            return new Process { StartInfo = psi };
+        }
+
+        private static string GetSystemDriveMountPath(IFileSystem fs)
+        {
+            if (_sysDriveMountPath is null)
+            {
+                string mountPrefix = DefaultWslMountPrefix;
+
+                // If the wsl.conf file exists in this distribution the user may
+                // have changed the Windows volume mount point prefix. Use it!
+                if (fs.FileExists(WslConfFilePath))
+                {
+                    // Read wsl.conf for [automount] root = <path>
+                    IniFile wslConf = IniSerializer.Deserialize(fs, WslConfFilePath);
+                    if (wslConf.TryGetSection("automount", out IniSection automountSection) &&
+                        automountSection.TryGetProperty("root", out string value))
+                    {
+                        mountPrefix = value;
+                    }
+                }
+
+                // Try to locate the system volume by looking for the Windows\System32 directory
+                IEnumerable<string> mountPoints = fs.EnumerateDirectories(mountPrefix);
+                foreach (string mountPoint in mountPoints)
+                {
+                    string sys32Path = Path.Combine(mountPoint, "Windows", "System32");
+
+                    if (fs.DirectoryExists(sys32Path))
+                    {
+                        _sysDriveMountPath = mountPoint;
+                        return _sysDriveMountPath;
+                    }
+                }
+
+                _sysDriveMountPath = Path.Combine(mountPrefix, DefaultWslSysDriveMountName);
+            }
+
+            return _sysDriveMountPath;
         }
 
         public static string ConvertToDistroPath(string path, out string distribution)
