@@ -23,6 +23,14 @@ namespace GitCredentialManager
         private const string DefaultWslMountPrefix = "/mnt";
         private const string DefaultWslSysDriveMountName = "c";
 
+        internal const string WslViewShellHandlerName = "wslview";
+
+        /// <summary>
+        /// Cached Windows host session ID.
+        /// </summary>
+        /// <remarks>A value less than 0 represents "unknown".</remarks>
+        private static int _windowsSessionId = -1;
+
         /// <summary>
         /// Cached WSL version.
         /// </summary>
@@ -174,6 +182,34 @@ namespace GitCredentialManager
             };
 
             return new Process { StartInfo = psi };
+        }
+
+        /// <summary>
+        /// Get the host Windows session ID.
+        /// </summary>
+        /// <returns>Windows session ID, or a negative value if it is not known.</returns>
+        public static int GetWindowsSessionId(IFileSystem fs)
+        {
+            if (_windowsSessionId < 0)
+            {
+                const string script = @"(Get-Process -ID $PID).SessionId";
+                using (Process proc = CreateWindowsShellProcess(fs, WindowsShell.PowerShell, script))
+                {
+                    proc.Start();
+                    proc.WaitForExit();
+
+                    if (proc.ExitCode == 0)
+                    {
+                        string output = proc.StandardOutput.ReadToEnd().Trim();
+                        if (int.TryParse(output, out int sessionId))
+                        {
+                            _windowsSessionId = sessionId;
+                        }
+                    }
+                }
+            }
+
+            return _windowsSessionId;
         }
 
         private static string GetSystemDriveMountPath(IFileSystem fs)

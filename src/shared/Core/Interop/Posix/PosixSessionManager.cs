@@ -1,17 +1,15 @@
-using System;
-
 namespace GitCredentialManager.Interop.Posix
 {
-    public class PosixSessionManager : SessionManager
+    public abstract class PosixSessionManager : SessionManager
     {
-        public PosixSessionManager()
+        protected PosixSessionManager(IEnvironment env, IFileSystem fs) : base(env, fs)
         {
             PlatformUtils.EnsurePosix();
         }
 
         // Check if we have an X11 or Wayland display environment available
         public override bool IsDesktopSession =>
-            !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("DISPLAY")) ||
-            !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("WAYLAND_DISPLAY"));
+            !string.IsNullOrWhiteSpace(System.Environment.GetEnvironmentVariable("DISPLAY")) ||
+            !string.IsNullOrWhiteSpace(System.Environment.GetEnvironmentVariable("WAYLAND_DISPLAY"));
     }
 }

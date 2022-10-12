@@ -5,7 +5,7 @@ namespace GitCredentialManager.Interop.Windows
 {
     public class WindowsSessionManager : SessionManager
     {
-        public WindowsSessionManager()
+        public WindowsSessionManager(IEnvironment env, IFileSystem fs) : base(env, fs)
         {
             PlatformUtils.EnsureWindows();
         }

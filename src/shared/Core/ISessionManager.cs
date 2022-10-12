@@ -17,6 +17,15 @@ namespace GitCredentialManager
     
     public abstract class SessionManager : ISessionManager
     {
+        protected IEnvironment Environment { get; }
+        protected IFileSystem FileSystem { get; }
+
+        protected SessionManager(IEnvironment env, IFileSystem fs)
+        {
+            Environment = env;
+            FileSystem = fs;
+        }
+        
         public abstract bool IsDesktopSession { get; }
 
         public virtual bool IsWebBrowserAvailable => IsDesktopSession;
