@@ -191,5 +191,18 @@ namespace GitCredentialManager
 
             throw new Exception($"Failed to locate '{program}' executable on the path.");
         }
+
+        /// <summary>
+        /// Retrieves the value of an environment variable from the current process.
+        /// </summary>
+        /// <param name="environment">The <see cref="IEnvironment"/>.</param>
+        /// <param name="variable">The name of the environment variable.</param>
+        /// <returns>
+        /// The value of the environment variable specified by variable, or null if the environment variable is not found.
+        /// </returns>
+        public static string GetEnvironmentVariable(this IEnvironment environment, string variable)
+        {
+            return environment.Variables.TryGetValue(variable, out string value) ? value : null;
+        }
     }
 }

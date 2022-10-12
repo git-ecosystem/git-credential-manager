@@ -28,6 +28,7 @@ namespace GitCredentialManager
             ProcessStartInfo psi = null;
             if (PlatformUtils.IsLinux())
             {
+                //
                 // On Linux, 'shell execute' utilities like xdg-open launch a process without
                 // detaching from the standard in/out descriptors. Some applications (like
                 // Chromium) write messages to stdout, which is currently hooked up and being

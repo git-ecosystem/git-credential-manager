@@ -55,8 +55,8 @@ namespace GitLab
 
         public async Task<AuthenticationPromptResult> GetAuthenticationAsync(Uri targetUri, string userName, AuthenticationModes modes)
         {
-            // If we don't have a desktop session/GUI then we cannot offer browser
-            if (!Context.SessionManager.IsDesktopSession)
+            // If we cannot start a browser then don't offer the option
+            if (!Context.SessionManager.IsWebBrowserAvailable)
             {
                 modes = modes & ~AuthenticationModes.Browser;
             }

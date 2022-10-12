@@ -2,7 +2,7 @@ using System;
 
 namespace GitCredentialManager.Interop.Posix
 {
-    public class PosixSessionManager : ISessionManager
+    public class PosixSessionManager : SessionManager
     {
         public PosixSessionManager()
         {
@@ -10,7 +10,7 @@ namespace GitCredentialManager.Interop.Posix
         }
 
         // Check if we have an X11 or Wayland display environment available
-        public virtual bool IsDesktopSession =>
+        public override bool IsDesktopSession =>
             !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("DISPLAY")) ||
             !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("WAYLAND_DISPLAY"));
     }
