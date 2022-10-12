@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace GitCredentialManager
 {
@@ -10,6 +12,60 @@ namespace GitCredentialManager
         private const string WslUncPrefix = @"\\wsl$\";
         private const string WslLocalHostUncPrefix = @"\\wsl.localhost\";
         private const string WslCommandName = "wsl.exe";
+        private const string WslInteropEnvar = "WSL_INTEROP";
+
+        /// <summary>
+        /// Cached WSL version.
+        /// </summary>
+        /// <remarks>A value of 0 represents "not WSL", and a value less than 0 represents "unknown".</remarks>
+        private static int _wslVersion = -1;
+
+        public static bool IsWslDistribution(IEnvironment env, IFileSystem fs, out int wslVersion)
+        {
+            if (_wslVersion < 0)
+            {
+                _wslVersion = GetWslVersion(env, fs);
+            }
+
+            wslVersion = _wslVersion;
+            return _wslVersion > 0;
+        }
+
+        private static int GetWslVersion(IEnvironment env, IFileSystem fs)
+        {
+            // All WSL distributions are Linux.. obviously!
+            if (!PlatformUtils.IsLinux())
+            {
+                return 0;
+            }
+
+            // The WSL_INTEROP variable is set in WSL2 distributions
+            if (env.Variables.TryGetValue(WslInteropEnvar, out _))
+            {
+                return 2;
+            }
+
+            const string procVersionPath = "/proc/version";
+            if (fs.FileExists(procVersionPath))
+            {
+                // Both WSL1 and WSL2 distributions include "[Mm]icrosoft" in the version string
+                string procVersion = fs.ReadAllText(procVersionPath);
+                if (!Regex.IsMatch(procVersion, "[Mm]icrosoft"))
+                {
+                    return 0;
+                }
+
+                // WSL2 distributions return "WSL2" in the version string
+                if (Regex.IsMatch(procVersion, "wsl2", RegexOptions.IgnoreCase))
+                {
+                    return 2;
+                }
+
+                return 1;
+            }
+
+            return 0;
+        }
 
         /// <summary>
         /// Test if a file path points to a location in a Windows Subsystem for Linux distribution.
