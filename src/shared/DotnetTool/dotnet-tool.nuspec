@@ -1,10 +1,10 @@
 
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
     <metadata>
-        <id>GitCredentialManager.Cli</id>
+        <id>git-credential-manager</id>
         <version>$version$</version>
         <description>Secure, cross-platform Git credential storage with authentication to Azure Repos, GitHub, and other popular Git hosting services.</description>
-        <authors>Git Credential Manager</authors>
+        <authors>git-credential-manager</authors>
         <packageTypes>
             <packageType name="DotnetTool" />
         </packageTypes>
