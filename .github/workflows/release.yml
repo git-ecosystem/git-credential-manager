@@ -600,3 +600,29 @@ jobs:
               uploadDirectoryToRelease('linux-sign'),
               uploadDirectoryToRelease('linux-build/tar')
             ]);
+
+  create-dotnet-tool:
+    name: Publish dotnet tool
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0 # Indicate full history so Nerdbank.GitVersioning works.
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: 6.0.201
+
+    - uses: dotnet/nbgv@master
+      with:
+        setCommonVars: true
+
+    - name: Package tool
+      run: |
+        src/shared/DotnetTool/pack-tool.sh
+
+    - name: Publish tool
+      run: |
+        dotnet nuget push ./out/nupkg/*.nupkg \
+          --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json

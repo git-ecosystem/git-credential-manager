@@ -110,58 +110,111 @@ namespace GitCredentialManager.Authentication
             }
         }
 
-        protected bool TryFindHelperExecutablePath(string envar, string configName, string defaultValue, out string path)
+        protected bool TryFindHelperCommand(string envar, string configName, string defaultValue, out string command, out string args)
         {
-            bool isOverride = false;
+            command = null;
+            args = null;
+
+            //
+            // Search for UI helpers with the following precedence and logic..
+            //
+            // 1. (unset): use the default helper name that's in the source code and go to #3
+            // 2. <absolute>: use the absolute path only and exactly as entered
+            // 3. <relative>: search for..
+            //     a. <appdir>/<relative>(.exe) - run this directly
+            //     b. <appdir>/<relative>(.dll) - use `dotnet exec` to run
+            //     c. Search PATH for <relative>(.exe) - run this directly
+            //        NOTE: do NOT search PATH for <relative>(.dll) as we don't know if this is a dotnet executable..
+            //
+            // We print warning messages for missing helpers specified by the user, not the in-box ones.
+            //
             if (Context.Settings.TryGetPathSetting(
-                envar, Constants.GitConfiguration.Credential.SectionName, configName, out string helperName))
+                   envar, Constants.GitConfiguration.Credential.SectionName, configName, out string helperName))
             {
-                Context.Trace.WriteLine($"UI helper override specified: '{helperName}'.");
-                isOverride = true;
-            }
-            else
-            {
-                // Use the default helper if none was specified.
-                // On Windows append ".exe" for the default helpers only. If a user has specified their own
-                // helper they should append the correct extension.
-                helperName = PlatformUtils.IsWindows() ? $"{defaultValue}.exe" : defaultValue;
-            }
-
-            // If the user set the helper override to the empty string then they are signalling not to use a helper
-            if (string.IsNullOrEmpty(helperName))
-            {
-                path = null;
-                return false;
-            }
-
-            if (Path.IsPathRooted(helperName))
-            {
-                path = helperName;
-            }
-            else
-            {
-                string executableDirectory = Path.GetDirectoryName(Context.ApplicationPath);
-                path = Path.Combine(executableDirectory!, helperName);
-            }
-
-            if (!Context.FileSystem.FileExists(path))
-            {
-                // Only warn for missing helpers specified by the user, not in-box ones
-                if (isOverride)
+                // If the user set the helper override to the empty string then they are signalling not to use a helper
+                if (string.IsNullOrEmpty(helperName))
                 {
-                    Context.Trace.WriteLine($"UI helper '{helperName}' was not found at '{path}'.");
-                    Context.Streams.Error.WriteLine($"warning: could not find configured UI helper '{helperName}'");
+                    Context.Trace.WriteLine("UI helper override specified as the empty string.");
+                    return false;
                 }
 
+                Context.Trace.WriteLine($"UI helper override specified: '{helperName}'.");
+            }
+            else
+            {
+                Context.Trace.WriteLine($"Using default UI helper: '{defaultValue}'.");
+                helperName = defaultValue;
+            }
+
+            //
+            // Check for an absolute path.. run this directly without intermediaries or modification
+            //
+            if (Path.IsPathRooted(helperName))
+            {
+                if (Context.FileSystem.FileExists(helperName))
+                {
+                    Context.Trace.WriteLine($"UI helper found at '{helperName}'.");
+                    command = helperName;
+                    return true;
+                }
+
+                Context.Trace.WriteLine($"UI helper was not found at '{helperName}'.");
+                Context.Streams.Error.WriteLine($"warning: could not find configured UI helper '{helperName}'");
                 return false;
             }
 
-            return true;
+            //
+            // Search the installation directory for an in-box helper
+            //
+            string appDir = Path.GetDirectoryName(Context.ApplicationPath);
+            string inBoxExePath = Path.Combine(appDir, PlatformUtils.IsWindows() ? $"{helperName}.exe" : helperName);
+            string inBoxDllPath = Path.Combine(appDir, $"{helperName}.dll");
+
+            // Look for in-box native executables
+            if (Context.FileSystem.FileExists(inBoxExePath))
+            {
+                Context.Trace.WriteLine($"Found in-box native UI helper: '{inBoxExePath}'");
+                command = inBoxExePath;
+                return true;
+            }
+
+            // Look for in-box .NET framework-dependent executables
+            if (Context.FileSystem.FileExists(inBoxDllPath))
+            {
+                string dotnetName = PlatformUtils.IsWindows() ? "dotnet.exe" : "dotnet";
+                if (!Context.Environment.TryLocateExecutable(dotnetName, out string dotnetPath))
+                {
+                    Context.Trace.WriteLine($"Unable to run UI helper '{inBoxDllPath}' without the .NET CLI.");
+                    Context.Streams.Error.WriteLine($"warning: could not find .NET CLI to run UI helper '{inBoxDllPath}'");
+                    return false;
+                }
+
+                Context.Trace.WriteLine($"Found in-box framework-dependent UI helper: '{inBoxDllPath}'");
+                command = dotnetPath;
+                args = $"exec {QuoteCmdArg(inBoxDllPath)} ";
+                return true;
+            }
+
+            //
+            // Search the PATH for a native executable (do NOT search for out-of-box .NET framework-dependent DLLs)
+            //
+            if (Context.Environment.TryLocateExecutable(helperName, out command))
+            {
+                Context.Trace.WriteLine($"Found UI helper on PATH: '{helperName}'");
+                return true;
+            }
+
+            //
+            // No helper found!
+            //
+            Context.Trace.WriteLine($"UI helper '{helperName}' was not found.");
+            Context.Streams.Error.WriteLine($"warning: could not find UI helper '{helperName}'");
+            return false;
         }
 
         public static string QuoteCmdArg(string str)
         {
-            char[] needsQuoteChars = {'"', ' ', '\\', '\n', '\r', '\t'};
+            char[] needsQuoteChars = { '"', ' ', '\\', '\n', '\r', '\t' };
             bool needsQuotes = str.Any(x => needsQuoteChars.Contains(x));
 
             if (!needsQuotes)

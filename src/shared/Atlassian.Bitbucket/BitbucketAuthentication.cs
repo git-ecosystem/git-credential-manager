@@ -93,30 +93,31 @@ namespace Atlassian.Bitbucket
 
             // Shell out to the UI helper and show the Bitbucket u/p prompt
             if (Context.Settings.IsGuiPromptsEnabled && Context.SessionManager.IsDesktopSession &&
-                TryFindHelperExecutablePath(out string helperPath))
+                TryFindHelperCommand(out string helperCommand, out string args))
             {
-                var cmdArgs = new StringBuilder("prompt");
+                var promptArgs = new StringBuilder(args);
+                promptArgs.Append("prompt");
                 if (!BitbucketHelper.IsBitbucketOrg(targetUri))
                 {
-                    cmdArgs.AppendFormat(" --url {0}", QuoteCmdArg(targetUri.ToString()));
+                    promptArgs.AppendFormat(" --url {0}", QuoteCmdArg(targetUri.ToString()));
                 }
 
                 if (!string.IsNullOrWhiteSpace(userName))
                 {
-                    cmdArgs.AppendFormat(" --username {0}", QuoteCmdArg(userName));
+                    promptArgs.AppendFormat(" --username {0}", QuoteCmdArg(userName));
                 }
 
                 if ((modes & AuthenticationModes.Basic) != 0)
                 {
-                    cmdArgs.Append(" --show-basic");
+                    promptArgs.Append(" --show-basic");
                 }
 
                 if ((modes & AuthenticationModes.OAuth) != 0)
                 {
-                    cmdArgs.Append(" --show-oauth");
+                    promptArgs.Append(" --show-oauth");
                 }
 
-                IDictionary<string, string> output = await InvokeHelperAsync(helperPath, cmdArgs.ToString());
+                IDictionary<string, string> output = await InvokeHelperAsync(helperCommand, promptArgs.ToString());
 
                 if (output.TryGetValue("mode", out string mode) &&
                     StringComparer.OrdinalIgnoreCase.Equals(mode, "oauth"))
@@ -223,13 +224,14 @@ namespace Atlassian.Bitbucket
             return client.GetRefreshTokenServiceName(input);
         }
 
-        protected internal virtual bool TryFindHelperExecutablePath(out string path)
+        protected internal virtual bool TryFindHelperCommand(out string command, out string args)
         {
-            return TryFindHelperExecutablePath(
+            return TryFindHelperCommand(
                 BitbucketConstants.EnvironmentVariables.AuthenticationHelper,
                 BitbucketConstants.GitConfiguration.Credential.AuthenticationHelper,
                 BitbucketConstants.DefaultAuthenticationHelper,
-                out path);
+                out command,
+                out args);
         }
 
         private HttpClient _httpClient;

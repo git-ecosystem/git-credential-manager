@@ -87,9 +87,10 @@ namespace GitHub
             ThrowIfUserInteractionDisabled();
 
             if (Context.Settings.IsGuiPromptsEnabled && Context.SessionManager.IsDesktopSession &&
-                TryFindHelperExecutablePath(out string helperPath))
+                TryFindHelperCommand(out string command, out string args))
             {
-                var promptArgs = new StringBuilder("prompt");
+                var promptArgs = new StringBuilder(args);
+                promptArgs.Append("prompt");
                 if (modes == AuthenticationModes.All)
                 {
                     promptArgs.Append(" --all");
@@ -104,7 +105,7 @@ namespace GitHub
                 if (!GitHubHostProvider.IsGitHubDotCom(targetUri)) promptArgs.AppendFormat(" --enterprise-url {0}", QuoteCmdArg(targetUri.ToString()));
                 if (!string.IsNullOrWhiteSpace(userName)) promptArgs.AppendFormat(" --username {0}", QuoteCmdArg(userName));
 
-                IDictionary<string, string> resultDict = await InvokeHelperAsync(helperPath, promptArgs.ToString(), null);
+                IDictionary<string, string> resultDict = await InvokeHelperAsync(command, promptArgs.ToString(), null);
 
                 if (!resultDict.TryGetValue("mode", out string responseMode))
                 {
@@ -216,12 +217,13 @@ namespace GitHub
             ThrowIfUserInteractionDisabled();
 
             if (Context.Settings.IsGuiPromptsEnabled && Context.SessionManager.IsDesktopSession &&
-                TryFindHelperExecutablePath(out string helperPath))
+                TryFindHelperCommand(out string command, out string args))
             {
-                var args = new StringBuilder("2fa");
-                if (isSms) args.Append(" --sms");
+                var promptArgs = new StringBuilder(args);
+                promptArgs.Append("2fa");
+                if (isSms) promptArgs.Append(" --sms");
 
-                IDictionary<string, string> resultDict = await InvokeHelperAsync(helperPath, args.ToString(), null);
+                IDictionary<string, string> resultDict = await InvokeHelperAsync(command, promptArgs.ToString(), null);
 
                 if (!resultDict.TryGetValue("code", out string authCode))
                 {
@@ -286,17 +288,18 @@ namespace GitHub
 
             // If we have a desktop session show the device code in a dialog
             if (Context.Settings.IsGuiPromptsEnabled && Context.SessionManager.IsDesktopSession &&
-                TryFindHelperExecutablePath(out string helperPath))
+                TryFindHelperCommand(out string command, out string args))
             {
-                var args = new StringBuilder("device");
-                args.AppendFormat(" --code {0} ", QuoteCmdArg(dcr.UserCode));
-                args.AppendFormat(" --url {0}", QuoteCmdArg(dcr.VerificationUri.ToString()));
+                var promptArgs = new StringBuilder(args);
+                promptArgs.Append("device");
+                promptArgs.AppendFormat(" --code {0} ", QuoteCmdArg(dcr.UserCode));
+                promptArgs.AppendFormat(" --url {0}", QuoteCmdArg(dcr.VerificationUri.ToString()));
 
                 var promptCts = new CancellationTokenSource();
                 var tokenCts = new CancellationTokenSource();
 
                 // Show the dialog with the device code but don't await its closure
-                Task promptTask = InvokeHelperAsync(helperPath, args.ToString(), null, promptCts.Token);
+                Task promptTask = InvokeHelperAsync(command, promptArgs.ToString(), null, promptCts.Token);
 
                 // Start the request for an OAuth token but don't wait
                 Task<OAuth2TokenResult> tokenTask = oauthClient.GetTokenByDeviceCodeAsync(dcr, tokenCts.Token);
@@ -337,13 +340,14 @@ namespace GitHub
             }
         }
 
-        private bool TryFindHelperExecutablePath(out string path)
+        private bool TryFindHelperCommand(out string command, out string args)
         {
-            return TryFindHelperExecutablePath(
+            return TryFindHelperCommand(
                 GitHubConstants.EnvironmentVariables.AuthenticationHelper,
                 GitHubConstants.GitConfiguration.Credential.AuthenticationHelper,
                 GitHubConstants.DefaultAuthenticationHelper,
-                out path);
+                out command,
+                out args);
         }
 
         private HttpClient _httpClient;
