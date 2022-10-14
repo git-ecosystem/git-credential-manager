@@ -620,9 +620,11 @@ jobs:
 
     - name: Package tool
       run: |
-        src/shared/DotnetTool/pack-tool.sh
+        src/shared/DotnetTool/pack-tool.sh \
+          --version=$GitBuildVersionSimple \
+          --configuration=Release
 
     - name: Publish tool
       run: |
-        dotnet nuget push ./out/nupkg/*.nupkg \
+        dotnet nuget push ./out/shared/DotnetTool/nupkg/Release/*.nupkg \
           --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json

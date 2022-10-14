@@ -18,7 +18,6 @@ make_absolute () {
 #####################################################################
 # Lay out
 #####################################################################
-echo "Laying out files for dotnet tool..."
 # Parse script arguments
 for i in "$@"
 do
@@ -38,7 +37,7 @@ esac
 done
 
 if [ -z "$VERSION" ]; then
-    VERSION="$GitBuildVersionSimple"
+    die "--version was not set"
 fi
 
 # Directories
@@ -47,42 +46,32 @@ ROOT="$( cd "$THISDIR"/../../.. ; pwd -P )"
 SRC="$ROOT/src"
 OUT="$ROOT/out"
 GCM_SRC="$SRC/shared/Git-Credential-Manager"
+GCM_UI_SRC="$SRC/shared/Git-Credential-Manager.UI.Avalonia"
 BITBUCKET_UI_SRC="$SRC/shared/Atlassian.Bitbucket.UI.Avalonia"
 GITHUB_UI_SRC="$SRC/shared/GitHub.UI.Avalonia"
 GITLAB_UI_SRC="$SRC/shared/GitLab.UI.Avalonia"
 DOTNET_TOOL="shared/DotnetTool"
 PROJ_OUT="$OUT/$DOTNET_TOOL"
 
-PACKAGE="$ROOT/nuget"
-CONFIGURATION="${CONFIGURATION:=Release}"
+CONFIGURATION="${CONFIGURATION:=Debug}"
 
 # Build parameters
 FRAMEWORK=net6.0
 
 # Outputs
-PAYLOAD="$PROJ_OUT/payload/$CONFIGURATION"
-SYMBOLOUT="$PROJ_OUT/payload.sym/$CONFIGURATION"
+OUTDIR="$PROJ_OUT/nupkg/$CONFIGURATION"
+IMGOUT="$OUTDIR/images"
+PAYLOAD="$OUTDIR/payload"
+SYMBOLOUT="$OUTDIR/payload.sym"
 
-# Cleanup payload directory
-if [ -d "$PAYLOAD" ]; then
-    echo "Cleaning existing payload directory '$PAYLOAD'..."
-    rm -rf "$PAYLOAD"
+# Cleanup output directory
+if [ -d "$OUTDIR" ]; then
+    echo "Cleaning existing output directory '$OUTDIR'..."
+    rm -rf "$OUTDIR"
 fi
 
-# Cleanup symbol directory
-if [ -d "$SYMBOLOUT" ]; then
-    echo "Cleaning existing symbols directory '$SYMBOLOUT'..."
-    rm -rf "$SYMBOLOUT"
-fi
-
-# Cleanup package directory
-if [ -d "$PACKAGE" ]; then
-    echo "Cleaning existing package directory '$PACKAGE'..."
-    rm -rf "$PACKAGE"
-fi
-
-# Ensure directories exist
-mkdir -p "$PAYLOAD" "$SYMBOLOUT" "$PACKAGE"
+# Ensure output directories exist
+mkdir -p "$PAYLOAD" "$SYMBOLOUT" "$IMGOUT"
 
 if [ -z "$DOTNET_ROOT" ]; then
     DOTNET_ROOT="$(dirname $(which dotnet))"
@@ -91,35 +80,50 @@ fi
 # Publish core application executables
 echo "Publishing core application..."
 $DOTNET_ROOT/dotnet publish "$GCM_SRC" \
-	--configuration="$CONFIGURATION" \
-	--framework="$FRAMEWORK" \
-	--output="$(make_absolute "$PAYLOAD")" \
+    --configuration="$CONFIGURATION" \
+    --framework="$FRAMEWORK" \
+    --output="$(make_absolute "$PAYLOAD")" \
+    -p:UseAppHost=false || exit 1
+
+echo "Publishing core UI helper..."
+$DOTNET_ROOT/dotnet publish "$GCM_UI_SRC" \
+    --configuration="$CONFIGURATION" \
+    --framework="$FRAMEWORK" \
+    --output="$(make_absolute "$PAYLOAD")" \
     -p:UseAppHost=false || exit 1
 
 echo "Publishing Bitbucket UI helper..."
 $DOTNET_ROOT/dotnet publish "$BITBUCKET_UI_SRC" \
-	--configuration="$CONFIGURATION" \
-	--framework="$FRAMEWORK" \
-	--output="$(make_absolute "$PAYLOAD")" \
+    --configuration="$CONFIGURATION" \
+    --framework="$FRAMEWORK" \
+    --output="$(make_absolute "$PAYLOAD")" \
     -p:UseAppHost=false || exit 1
 
 echo "Publishing GitHub UI helper..."
 $DOTNET_ROOT/dotnet publish "$GITHUB_UI_SRC" \
-	--configuration="$CONFIGURATION" \
-	--framework="$FRAMEWORK" \
-	--output="$(make_absolute "$PAYLOAD")" \
+    --configuration="$CONFIGURATION" \
+    --framework="$FRAMEWORK" \
+    --output="$(make_absolute "$PAYLOAD")" \
     -p:UseAppHost=false || exit 1
 
 echo "Publishing GitLab UI helper..."
 $DOTNET_ROOT/dotnet publish "$GITLAB_UI_SRC" \
-	--configuration="$CONFIGURATION" \
-	--framework="$FRAMEWORK" \
-	--output="$(make_absolute "$PAYLOAD")" \
+    --configuration="$CONFIGURATION" \
+    --framework="$FRAMEWORK" \
+    --output="$(make_absolute "$PAYLOAD")" \
     -p:UseAppHost=false || exit 1
 
 # Collect symbols
 echo "Collecting managed symbols..."
 mv "$PAYLOAD"/*.pdb "$SYMBOLOUT" || exit 1
+
+# Copy DotnetToolSettings.xml file
+echo "Copying out package configuration files..."
+cp "$SRC/$DOTNET_TOOL/DotnetToolSettings.xml" "$PAYLOAD/"
+
+# Copy package icon image
+echo "Copying images..."
+cp "$SRC/$DOTNET_TOOL/icon.png" "$IMGOUT" || exit 1
 
 echo "Build complete."
 
@@ -128,12 +132,9 @@ echo "Build complete."
 #####################################################################
 echo "Creating dotnet tool package..."
 
-mkdir -p "$PACKAGE" || exit 1
-echo "Laying out files..."
-cp -r "$SRC/$DOTNET_TOOL/DotnetToolSettings.xml" \
-    "$PAYLOAD/." \
-    "$PACKAGE/"
-
-dotnet pack "$SRC/$DOTNET_TOOL/DotnetTool.csproj" /p:PackageVersion="$VERSION" /p:PublishDir="$PACKAGE/"
+dotnet pack "$SRC/$DOTNET_TOOL/DotnetTool.csproj" \
+    /p:Configuration="$CONFIGURATION" \
+    /p:PackageVersion="$VERSION" \
+    /p:PublishDir="$OUTDIR/"
 
 echo "Dotnet tool pack complete."
