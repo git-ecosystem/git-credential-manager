@@ -68,6 +68,13 @@ dotnet publish "$GITLAB_UI_SRC" `
 	--configuration "$CONFIGURATION" `
 	--output "$PAYLOAD" 
 
+# Create copy of main GCM executable with older "GCM Core" name
+Copy-Item -Path "$PAYLOAD/git-credential-manager.exe" `
+	-Destination "$PAYLOAD/git-credential-manager-core.exe"
+
+Copy-Item -Path "$PAYLOAD/git-credential-manager.exe.config" `
+	-Destination "$PAYLOAD/git-credential-manager-core.exe.config"
+
 # Collect symbols
 Write-Output "Collecting managed symbols..."
 Move-Item -Path "$PAYLOAD/*.pdb" -Destination "$SYMBOLS"

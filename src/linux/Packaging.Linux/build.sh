@@ -235,6 +235,12 @@ if [ ! -f "$LINK_TO/git-credential-manager" ]; then
         "$LINK_TO/git-credential-manager" || exit 1
 fi
 
+# Create legacy symlink with older name
+if [ ! -f "$LINK_TO/git-credential-manager-core" ]; then
+    ln -s -r "$INSTALL_TO/git-credential-manager" \
+        "$LINK_TO/git-credential-manager-core" || exit 1
+fi
+
 if [ $INSTALL_FROM_SOURCE = false ]; then
     dpkg-deb --build "$DEBROOT" "$DEBPKG" || exit 1
 fi

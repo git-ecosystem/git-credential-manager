@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Runtime.InteropServices;
 using GitCredentialManager.Interop.Posix.Native;
 
@@ -174,6 +175,63 @@ namespace GitCredentialManager
 
             return false;
         }
+
+        #region Platform argv[0] Utils
+
+        public static string GetNativeArgv0()
+        {
+            try
+            {
+                if (IsWindows())
+                {
+                    return GetWindowsArgv0();
+                }
+
+                if (IsMacOS())
+                {
+                    return GetMacOSArgv0();
+                }
+
+                if (IsLinux())
+                {
+                    return GetLinuxArgv0();
+                }
+            }
+            catch
+            {
+                // If there are any issues getting the native argv[0]
+                // we should not throw, and certainly not crash!
+                // Just return null instead.
+            }
+
+            return null;
+        }
+
+        private static string GetLinuxArgv0()
+        {
+            string cmdline = File.ReadAllText("/proc/self/cmdline");
+            return cmdline.Split('\0')[0];
+        }
+
+        private static string GetMacOSArgv0()
+        {
+            IntPtr ptr = Interop.MacOS.Native.LibC._NSGetArgv();
+            IntPtr argvPtr = Marshal.ReadIntPtr(ptr);
+            IntPtr argv0Ptr = Marshal.ReadIntPtr(argvPtr);
+            return Marshal.PtrToStringAnsi(argv0Ptr);
+        }
+
+        private static string GetWindowsArgv0()
+        {
+            IntPtr argvPtr = Interop.Windows.Native.Shell32.CommandLineToArgvW(
+                Interop.Windows.Native.Kernel32.GetCommandLine(), out _);
+            IntPtr argv0Ptr = Marshal.ReadIntPtr(argvPtr);
+            string argv0 = Marshal.PtrToStringAuto(argv0Ptr);
+            Interop.Windows.Native.Kernel32.LocalFree(argvPtr);
+            return argv0;
+        }
+
+        #endregion
 
         #region Platform information helper methods
 

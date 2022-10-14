@@ -23,6 +23,15 @@ else
 	echo "No symlink found."
 fi
 
+# Remove legacy symlink
+if [ -L /usr/local/bin/git-credential-manager-core ]
+then
+	echo "Deleting legacy symlink..."
+	rm /usr/local/bin/git-credential-manager-core
+else
+	echo "No legacy symlink found."
+fi
+
 # Forget package installation/delete receipt
 echo "Removing installation receipt..."
 pkgutil --forget com.microsoft.gitcredentialmanager
