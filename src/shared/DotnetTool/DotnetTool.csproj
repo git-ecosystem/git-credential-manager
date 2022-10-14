@@ -9,6 +9,7 @@
       publishDir=$(PublishDir);
     </NuspecProperties>
     <NoBuild>true</NoBuild>
-    <OutputPath>../../../out/nupkg</OutputPath>
+    <OutputPath>$(ProjectOutPath)nupkg\$(Configuration)\</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
   </PropertyGroup>
 </Project>
