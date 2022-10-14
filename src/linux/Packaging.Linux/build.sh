@@ -230,9 +230,9 @@ mkdir -p "$INSTALL_TO" "$LINK_TO"
 cp -R "$PAYLOAD"/* "$INSTALL_TO" || exit 1
 
 # Create symlink
-if [ ! -f "$LINK_TO/git-credential-manager-core" ]; then
-    ln -s -r "$INSTALL_TO/git-credential-manager-core" \
-        "$LINK_TO/git-credential-manager-core" || exit 1
+if [ ! -f "$LINK_TO/git-credential-manager" ]; then
+    ln -s -r "$INSTALL_TO/git-credential-manager" \
+        "$LINK_TO/git-credential-manager" || exit 1
 fi
 
 if [ $INSTALL_FROM_SOURCE = false ]; then

@@ -32,4 +32,4 @@ jobs:
           fi
 
           sh "${GITHUB_WORKSPACE}/src/linux/Packaging.Linux/install-from-source.sh" -y
-          git-credential-manager-core --help || exit 1
+          git-credential-manager --help || exit 1

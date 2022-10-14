@@ -25,8 +25,8 @@ pre-existing clone or the directory from which you ran the install from source
 script.
 
 ```console
-git-credential-manager-core unconfigure &&
-sudo rm $(command -v git-credential-manager-core) &&
+git-credential-manager unconfigure &&
+sudo rm $(command -v git-credential-manager) &&
 sudo rm -rf /usr/local/share/gcm-core &&
 sudo rm -rf ~/git-credential-manager &&
 sudo rm ~/install-from-source.sh

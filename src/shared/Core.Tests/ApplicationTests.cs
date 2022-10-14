@@ -11,7 +11,7 @@ namespace GitCredentialManager.Tests
         public async Task Application_ConfigureAsync_NoHelpers_AddsEmptyAndGcm()
         {
             const string emptyHelper = "";
-            const string executablePath = "/usr/local/share/gcm-core/git-credential-manager-core";
+            const string executablePath = "/usr/local/share/gcm-core/git-credential-manager";
             string key = $"{Constants.GitConfiguration.Credential.SectionName}.{Constants.GitConfiguration.Credential.Helper}";
 
             var context = new TestCommandContext {AppPath = executablePath};
@@ -29,7 +29,7 @@ namespace GitCredentialManager.Tests
         public async Task Application_ConfigureAsync_Gcm_AddsEmptyBeforeGcm()
         {
             const string emptyHelper = "";
-            const string executablePath = "/usr/local/share/gcm-core/git-credential-manager-core";
+            const string executablePath = "/usr/local/share/gcm-core/git-credential-manager";
             string key = $"{Constants.GitConfiguration.Credential.SectionName}.{Constants.GitConfiguration.Credential.Helper}";
 
             var context = new TestCommandContext {AppPath = executablePath};
@@ -50,7 +50,7 @@ namespace GitCredentialManager.Tests
         public async Task Application_ConfigureAsync_EmptyAndGcm_DoesNothing()
         {
             const string emptyHelper = "";
-            const string executablePath = "/usr/local/share/gcm-core/git-credential-manager-core";
+            const string executablePath = "/usr/local/share/gcm-core/git-credential-manager";
             string key = $"{Constants.GitConfiguration.Credential.SectionName}.{Constants.GitConfiguration.Credential.Helper}";
 
             var context = new TestCommandContext {AppPath = executablePath};
@@ -75,7 +75,7 @@ namespace GitCredentialManager.Tests
         {
             const string emptyHelper = "";
             const string beforeHelper = "foo";
-            const string executablePath = "/usr/local/share/gcm-core/git-credential-manager-core";
+            const string executablePath = "/usr/local/share/gcm-core/git-credential-manager";
             string key = $"{Constants.GitConfiguration.Credential.SectionName}.{Constants.GitConfiguration.Credential.Helper}";
 
             var context = new TestCommandContext {AppPath = executablePath};
@@ -101,7 +101,7 @@ namespace GitCredentialManager.Tests
         {
             const string emptyHelper = "";
             const string afterHelper = "foo";
-            const string executablePath = "/usr/local/share/gcm-core/git-credential-manager-core";
+            const string executablePath = "/usr/local/share/gcm-core/git-credential-manager";
             string key = $"{Constants.GitConfiguration.Credential.SectionName}.{Constants.GitConfiguration.Credential.Helper}";
 
             var context = new TestCommandContext {AppPath = executablePath};
@@ -128,7 +128,7 @@ namespace GitCredentialManager.Tests
             const string emptyHelper = "";
             const string beforeHelper = "foo";
             const string afterHelper = "bar";
-            const string executablePath = "/usr/local/share/gcm-core/git-credential-manager-core";
+            const string executablePath = "/usr/local/share/gcm-core/git-credential-manager";
             string key = $"{Constants.GitConfiguration.Credential.SectionName}.{Constants.GitConfiguration.Credential.Helper}";
 
             var context = new TestCommandContext {AppPath = executablePath};
@@ -155,7 +155,7 @@ namespace GitCredentialManager.Tests
         {
             const string emptyHelper = "";
             const string afterHelper = "foo";
-            const string executablePath = "/usr/local/share/gcm-core/git-credential-manager-core";
+            const string executablePath = "/usr/local/share/gcm-core/git-credential-manager";
             string key = $"{Constants.GitConfiguration.Credential.SectionName}.{Constants.GitConfiguration.Credential.Helper}";
 
             var context = new TestCommandContext {AppPath = executablePath};
@@ -181,7 +181,7 @@ namespace GitCredentialManager.Tests
         [Fact]
         public async Task Application_UnconfigureAsync_NoHelpers_DoesNothing()
         {
-            const string executablePath = "/usr/local/share/gcm-core/git-credential-manager-core";
+            const string executablePath = "/usr/local/share/gcm-core/git-credential-manager";
             string key = $"{Constants.GitConfiguration.Credential.SectionName}.{Constants.GitConfiguration.Credential.Helper}";
 
             var context = new TestCommandContext {AppPath = executablePath};
@@ -194,7 +194,7 @@ namespace GitCredentialManager.Tests
         [Fact]
         public async Task Application_UnconfigureAsync_Gcm_RemovesGcm()
         {
-            const string executablePath = "/usr/local/share/gcm-core/git-credential-manager-core";
+            const string executablePath = "/usr/local/share/gcm-core/git-credential-manager";
             string key = $"{Constants.GitConfiguration.Credential.SectionName}.{Constants.GitConfiguration.Credential.Helper}";
 
             var context = new TestCommandContext {AppPath = executablePath};
@@ -211,7 +211,7 @@ namespace GitCredentialManager.Tests
         public async Task Application_UnconfigureAsync_EmptyAndGcm_RemovesEmptyAndGcm()
         {
             const string emptyHelper = "";
-            const string executablePath = "/usr/local/share/gcm-core/git-credential-manager-core";
+            const string executablePath = "/usr/local/share/gcm-core/git-credential-manager";
             string key = $"{Constants.GitConfiguration.Credential.SectionName}.{Constants.GitConfiguration.Credential.Helper}";
 
             var context = new TestCommandContext {AppPath = executablePath};
@@ -229,7 +229,7 @@ namespace GitCredentialManager.Tests
         {
             const string emptyHelper = "";
             const string beforeHelper = "foo";
-            const string executablePath = "/usr/local/share/gcm-core/git-credential-manager-core";
+            const string executablePath = "/usr/local/share/gcm-core/git-credential-manager";
             string key = $"{Constants.GitConfiguration.Credential.SectionName}.{Constants.GitConfiguration.Credential.Helper}";
 
             var context = new TestCommandContext {AppPath = executablePath};
@@ -253,7 +253,7 @@ namespace GitCredentialManager.Tests
         {
             const string emptyHelper = "";
             const string afterHelper = "bar";
-            const string executablePath = "/usr/local/share/gcm-core/git-credential-manager-core";
+            const string executablePath = "/usr/local/share/gcm-core/git-credential-manager";
             string key = $"{Constants.GitConfiguration.Credential.SectionName}.{Constants.GitConfiguration.Credential.Helper}";
 
             var context = new TestCommandContext {AppPath = executablePath};
@@ -279,7 +279,7 @@ namespace GitCredentialManager.Tests
             const string emptyHelper = "";
             const string beforeHelper = "foo";
             const string afterHelper = "bar";
-            const string executablePath = "/usr/local/share/gcm-core/git-credential-manager-core";
+            const string executablePath = "/usr/local/share/gcm-core/git-credential-manager";
             string key = $"{Constants.GitConfiguration.Credential.SectionName}.{Constants.GitConfiguration.Credential.Helper}";
 
             var context = new TestCommandContext {AppPath = executablePath};

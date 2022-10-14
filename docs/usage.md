@@ -9,7 +9,7 @@ Assuming GCM has been installed, use your favorite terminal to execute the
 following commands to interact directly with GCM.
 
 ```shell
-git credential-manager-core [<command> [<args>]]
+git credential-manager [<command> [<args>]]
 ```
 
 ## Commands

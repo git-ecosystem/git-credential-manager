@@ -56,7 +56,7 @@ library (C#). The library targets .NET Standard as well as .NET Framework.
 
 The entry-point for GCM can be found in the `Git-Credential-Manager`
 project, a console application that targets both .NET and .NET Framework.
-This project emits the `git-credential-manager-core(.exe)` executable, and
+This project emits the `git-credential-manager(.exe)` executable, and
 contains very little code - registration of all supported host providers and
 running the `Application` object found in `Core`.
 

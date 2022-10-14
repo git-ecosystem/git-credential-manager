@@ -20,7 +20,7 @@ Additionally, GCM respects several GCM-specific [environment variables][envars]
 also configure [default values][enterprise-config] for many settings used by GCM.
 
 GCM will only be used by Git if it is installed and configured. Use
-`git config --global credential.helper manager-core` to assign GCM as your
+`git config --global credential.helper manager` to assign GCM as your
 credential helper. Use `git config credential.helper` to see the current
 configuration.
 

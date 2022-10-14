@@ -443,17 +443,17 @@ jobs:
         component:
           - os: ubuntu-latest
             artifact: linux-sign
-            command: git-credential-manager-core
+            command: git-credential-manager
           - os: macos-latest
             artifact: osx-x64-sign
-            command: git-credential-manager-core
+            command: git-credential-manager
           - os: windows-latest
             artifact: win-sign
             # Even when a standalone GCM version is installed, GitHub actions
             # runners still only recognize the version bundled with Git for
             # Windows due to its placement on the PATH. For this reason, we use
             # the full path to our installation to validate the Windows version.
-            command: "$PROGRAMFILES (x86)/Git Credential Manager/git-credential-manager-core.exe"
+            command: "$PROGRAMFILES (x86)/Git Credential Manager/git-credential-manager.exe"
     runs-on: ${{ matrix.component.os }}
     needs: [ osx-sign, win-sign, linux-sign ]
     steps:
