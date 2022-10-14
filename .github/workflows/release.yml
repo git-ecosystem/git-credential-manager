@@ -620,7 +620,9 @@ jobs:
 
     - name: Package tool
       run: |
-        src/shared/DotnetTool/pack-tool.sh
+        src/shared/DotnetTool/pack-tool.sh \
+          --version=$GitBuildVersionSimple \
+          --configuration=Release
 
     - name: Publish tool
       run: |

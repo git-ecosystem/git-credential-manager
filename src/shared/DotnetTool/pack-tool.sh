@@ -38,7 +38,7 @@ esac
 done
 
 if [ -z "$VERSION" ]; then
-    VERSION="$GitBuildVersionSimple"
+    die "--version was not set"
 fi
 
 # Directories
@@ -54,7 +54,7 @@ DOTNET_TOOL="shared/DotnetTool"
 PROJ_OUT="$OUT/$DOTNET_TOOL"
 
 PACKAGE="$ROOT/nuget"
-CONFIGURATION="${CONFIGURATION:=Release}"
+CONFIGURATION="${CONFIGURATION:=Debug}"
 
 # Build parameters
 FRAMEWORK=net6.0
