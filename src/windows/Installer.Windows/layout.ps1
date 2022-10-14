@@ -48,9 +48,7 @@ dotnet publish "$GCM_SRC" `
 
 Write-Output "Publishing core UI helper..."
 dotnet publish "$GCM_UI_SRC" `
-	--framework net472 `
 	--configuration "$CONFIGURATION" `
-	--runtime win-x86 `
 	--output "$PAYLOAD"
 
 Write-Output "Publishing Bitbucket UI helper..."
