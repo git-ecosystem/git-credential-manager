@@ -164,7 +164,10 @@ rm $(command -v git-credential-manager-core)
 
    ```shell
    curl -LO https://aka.ms/gcm/linux-install-source.sh &&
-   sh ./linux-install-source.sh &&
+   sh ./linux-install-source.sh && 
+   #NOTE: if your Linux distro is any of the RHEL variants (e.g. Rocky, Alma, ...) you'll need to edit the script before
+   #      to include your distro to the distribution case check.  Specifically the "fedora | centos | rhel)" line, change to
+   #      "fedora | centos | rhel | rocky)" and the script will work just fine.
    git-credential-manager-core configure
    ```
 
