@@ -158,7 +158,7 @@ case "$distribution" in
         $sudo_cmd apt install libc6 libgcc1 libgssapi-krb5-2 libssl1.1 libstdc++6 zlib1g libicu66 -y
         ensure_dotnet_installed
     ;;
-    fedora | centos | rhel)
+    fedora | centos | rhel | rocky)
         $sudo_cmd dnf update -y
         install_shared_packages dnf install
 
