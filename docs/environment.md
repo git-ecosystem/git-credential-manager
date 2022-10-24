@@ -837,7 +837,6 @@ export GCM_AZREPOS_CREDENTIALTYPE="oauth"
 [credential-authority]: configuration.md#credentialauthority-deprecated
 [credential-autodetecttimeout]: configuration.md#credentialautodetecttimeout
 [credential-azrepos-credential-type]: configuration.md#azreposcredentialtype
-[credential-bitbucketalwaysrefreshcredentials]: configuration.md#bitbucketAlwaysRefreshCredentials
 [credential-bitbucketauthmodes]: configuration.md#credentialbitbucketAuthModes
 [credential-cacheoptions]: configuration.md#credentialcacheoptions
 [credential-credentialstore]: configuration.md#credentialcredentialstore
@@ -857,7 +856,7 @@ export GCM_AZREPOS_CREDENTIALTYPE="oauth"
 [freedesktop-ss]: https://specifications.freedesktop.org/secret-service/
 [gcm]: usage.md
 [gcm-interactive]: #gcm_interactive
-[gcm-credential-store]: #GCM_CREDENTIAL_STORE
+[gcm-credential-store]: #gcm_credential_store
 [gcm-dpapi-store-path]: #gcm_dpapi_store_path
 [gcm-plaintext-store-path]: #gcm_plaintext_store_path
 [gcm-msauth-usebroker]: #gcm_msauth_usebroker-experimental
