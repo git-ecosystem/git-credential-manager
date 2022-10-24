@@ -116,7 +116,7 @@ Download the latest [.deb package][latest-release], and run the following:
 
 ```shell
 sudo dpkg -i <path-to-package>
-git-credential-manager-core configure
+git-credential-manager configure
 ```
 
 **Note:** Although packages were previously offered on certain
@@ -127,7 +127,7 @@ Debian package using the above instructions instead.
 To uninstall:
 
 ```shell
-git-credential-manager-core unconfigure
+git-credential-manager unconfigure
 sudo dpkg -r gcmcore
 ```
 
@@ -139,14 +139,14 @@ Download the latest [tarball][latest-release], and run the following:
 
 ```shell
 tar -xvf <path-to-tarball> -C /usr/local/bin
-git-credential-manager-core configure
+git-credential-manager configure
 ```
 
 To uninstall:
 
 ```shell
-git-credential-manager-core unconfigure
-rm $(command -v git-credential-manager-core)
+git-credential-manager unconfigure
+rm $(command -v git-credential-manager)
 ```
 
 #### Option 2: Install from source helper script
