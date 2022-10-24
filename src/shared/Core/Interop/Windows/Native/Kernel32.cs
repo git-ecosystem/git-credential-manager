@@ -249,6 +249,7 @@ namespace GitCredentialManager.Interop.Windows.Native
         /// <para/>
         /// To get extended error information, call GetLastError.
         /// </returns>
+        [DllImport(LibraryName, CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode, SetLastError = true)]
         public static extern IntPtr LocalFree(IntPtr ptr);
     }
 
