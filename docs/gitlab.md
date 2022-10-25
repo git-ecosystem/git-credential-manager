@@ -44,6 +44,9 @@ git config --global credential.https://gitlab.freedesktop.org.gitlabdevclientsec
 # https://gitlab.gnome.org/
 git config --global credential.https://gitlab.gnome.org.gitlabdevclientid adf21361d32eddc87bf6baf8366f242dfe07a7d4335b46e8e101303364ccc470
 git config --global credential.https://gitlab.gnome.org.gitlabdevclientsecret cdca4678f64e5b0be9febc0d5e7aab0d81d27696d7adb1cf8022ccefd0a58fc0
+# https://invent.kde.org/
+git config --global credential.https://invent.kde.org.gitlabdevclientid cd7cb4342c7cd83d8c2fcc22c87320f88d0bde14984432ffca07ee24d0bf0699
+git config --global credential.https://invent.kde.org.gitlabdevclientsecret 9cc8440b280c792ac429b3615ae1c8e0702e6b2479056f899d314f05afd94211
 # https://salsa.debian.org/
 git config --global credential.https://salsa.debian.org.gitlabdevclientid 213f5fd32c6a14a0328048c0a77cc12c19138cc165ab957fb83d0add74656f89
 git config --global credential.https://salsa.debian.org.gitlabdevclientsecret 3616b974b59451ecf553f951cb7b8e6e3c91c6d84dd3247dcb0183dac93c2a26
