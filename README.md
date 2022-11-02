@@ -57,11 +57,6 @@ fully-supported.
 - Fedora/CentOS/RHEL
 - Alpine
 
-## Install
-
-See [install.md](install) for installation instructions for your operating
-system.
-
 ## Supported Git versions
 
 Git Credential Manager tries to be compatible with the broadest set of Git
@@ -99,18 +94,7 @@ See detailed information [here][gcm-http-proxy].
 
 ## Additional Resources
 
-- [Frequently asked questions][gcm-faq]
-- [Development and debugging][gcm-dev]
-- [Command-line usage][gcm-usage]
-- [Configuration options][gcm-config]
-- [Environment variables][gcm-env]
-- [Enterprise configuration][gcm-enterprise-config]
-- [Network and HTTP configuration][gcm-net-config]
-- [Credential stores][gcm-credstores]
-- [Architectural overview][gcm-arch]
-- [Host provider specification][gcm-host-provider]
-- [Azure Repos OAuth tokens][gcm-azure-tokens]
-- [GitLab support][gcm-gitlab]
+See the [documentation index][docs-index] for links to additional resources.
 
 ## Experimental Features
 
@@ -134,26 +118,17 @@ When using GitHub logos, please be sure to follow the
 [bitbucket]: https://bitbucket.org
 [bitbucket-ssh]: https://confluence.atlassian.com/bitbucket/ssh-keys-935365775.html
 [build-status-badge]: https://github.com/GitCredentialManager/git-credential-manager/actions/workflows/continuous-integration.yml/badge.svg
+[docs-index]: docs/README.md
 [dotnet]: https://dotnet.microsoft.com
 [gcm]: https://github.com/GitCredentialManager/git-credential-manager
-[gcm-arch]: docs/architecture.md
-[gcm-azure-tokens]: docs/azrepos-users-and-tokens.md
 [gcm-coc]: CODE_OF_CONDUCT.md
 [gcm-commit-12294990]: https://github.com/git/git/commit/12294990c90e043862be9eb7eb22c3784b526340
-[gcm-config]: docs/configuration.md
 [gcm-contributing]: CONTRIBUTING.md
 [gcm-credstores]: docs/credstores.md
-[gcm-dev]: docs/development.md
-[gcm-enterprise-config]: docs/enterprise-config.md
-[gcm-env]: docs/environment.md
-[gcm-faq]: docs/faq.md
 [gcm-for-mac-and-linux]: https://github.com/microsoft/Git-Credential-Manager-for-Mac-and-Linux
 [gcm-for-windows]: https://github.com/microsoft/Git-Credential-Manager-for-Windows
-[gcm-gitlab]: docs/gitlab.md
-[gcm-host-provider]: docs/hostprovider.md
 [gcm-http-proxy]: docs/netconfig.md#http-proxy
 [gcm-license]: LICENSE
-[gcm-net-config]: docs/netconfig.md
 [gcm-usage]: docs/usage.md
 [gcm-windows-broker]: docs/windows-broker.md
 [git-tools-credential-storage]: https://git-scm.com/book/en/v2/Git-Tools-Credential-Storage
