@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Atlassian.Bitbucket.Cloud;
 using GitCredentialManager;
 using GitCredentialManager.Authentication;
 using GitCredentialManager.Authentication.OAuth;
@@ -23,8 +24,9 @@ namespace Atlassian.Bitbucket
     public interface IBitbucketAuthentication : IDisposable
     {
         Task<CredentialsPromptResult> GetCredentialsAsync(Uri targetUri, string userName, AuthenticationModes modes);
-        Task<OAuth2TokenResult> CreateOAuthCredentialsAsync(Uri targetUri);
-        Task<OAuth2TokenResult> RefreshOAuthCredentialsAsync(string refreshToken);
+        Task<OAuth2TokenResult> CreateOAuthCredentialsAsync(InputArguments input);
+        Task<OAuth2TokenResult> RefreshOAuthCredentialsAsync(InputArguments input, string refreshToken);
+        string GetRefreshTokenServiceName(InputArguments input);
     }
 
     public class CredentialsPromptResult
@@ -49,17 +51,20 @@ namespace Atlassian.Bitbucket
     {
         public static readonly string[] AuthorityIds =
         {
-            "bitbucket",
+            BitbucketConstants.Id,
         };
 
-        private static readonly string[] Scopes =
-        {
-            BitbucketConstants.OAuthScopes.RepositoryWrite,
-            BitbucketConstants.OAuthScopes.Account,
-        };
+        private readonly IRegistry<BitbucketOAuth2Client> _oauth2ClientRegistry;
 
         public BitbucketAuthentication(ICommandContext context)
-            : base(context) { }
+            : this(context, new OAuth2ClientRegistry(context)) { }
+
+        public BitbucketAuthentication(ICommandContext context, IRegistry<BitbucketOAuth2Client> oauth2ClientRegistry)
+    : base(context)
+        {
+            EnsureArgument.NotNull(oauth2ClientRegistry, nameof(oauth2ClientRegistry));
+            this._oauth2ClientRegistry = oauth2ClientRegistry;
+        }
 
         public async Task<CredentialsPromptResult> GetCredentialsAsync(Uri targetUri, string userName, AuthenticationModes modes)
         {
@@ -88,30 +93,31 @@ namespace Atlassian.Bitbucket
 
             // Shell out to the UI helper and show the Bitbucket u/p prompt
             if (Context.Settings.IsGuiPromptsEnabled && Context.SessionManager.IsDesktopSession &&
-                TryFindHelperExecutablePath(out string helperPath))
+                TryFindHelperCommand(out string helperCommand, out string args))
             {
-                var cmdArgs = new StringBuilder("prompt");
-                if (!BitbucketHostProvider.IsBitbucketOrg(targetUri))
+                var promptArgs = new StringBuilder(args);
+                promptArgs.Append("prompt");
+                if (!BitbucketHelper.IsBitbucketOrg(targetUri))
                 {
-                    cmdArgs.AppendFormat(" --url {0}", QuoteCmdArg(targetUri.ToString()));
+                    promptArgs.AppendFormat(" --url {0}", QuoteCmdArg(targetUri.ToString()));
                 }
 
                 if (!string.IsNullOrWhiteSpace(userName))
                 {
-                    cmdArgs.AppendFormat(" --username {0}", QuoteCmdArg(userName));
+                    promptArgs.AppendFormat(" --username {0}", QuoteCmdArg(userName));
                 }
 
                 if ((modes & AuthenticationModes.Basic) != 0)
                 {
-                    cmdArgs.Append(" --show-basic");
+                    promptArgs.Append(" --show-basic");
                 }
 
                 if ((modes & AuthenticationModes.OAuth) != 0)
                 {
-                    cmdArgs.Append(" --show-oauth");
+                    promptArgs.Append(" --show-oauth");
                 }
 
-                IDictionary<string, string> output = await InvokeHelperAsync(helperPath, cmdArgs.ToString());
+                IDictionary<string, string> output = await InvokeHelperAsync(helperCommand, promptArgs.ToString());
 
                 if (output.TryGetValue("mode", out string mode) &&
                     StringComparer.OrdinalIgnoreCase.Equals(mode, "oauth"))
@@ -189,11 +195,9 @@ namespace Atlassian.Bitbucket
             }
         }
 
-        public async Task<OAuth2TokenResult> CreateOAuthCredentialsAsync(Uri targetUri)
+        public async Task<OAuth2TokenResult> CreateOAuthCredentialsAsync(InputArguments input)
         {
             ThrowIfUserInteractionDisabled();
-
-            var oauthClient = new BitbucketOAuth2Client(HttpClient, Context.Settings);
 
             var browserOptions = new OAuth2WebBrowserOptions
             {
@@ -202,25 +206,32 @@ namespace Atlassian.Bitbucket
             };
 
             var browser = new OAuth2SystemWebBrowser(Context.Environment, browserOptions);
-            var authCodeResult = await oauthClient.GetAuthorizationCodeAsync(Scopes, browser, CancellationToken.None);
+            var oauth2Client = _oauth2ClientRegistry.Get(input);
 
-            return await oauthClient.GetTokenByAuthorizationCodeAsync(authCodeResult, CancellationToken.None);
+            var authCodeResult = await oauth2Client.GetAuthorizationCodeAsync(browser, CancellationToken.None);
+            return await oauth2Client.GetTokenByAuthorizationCodeAsync(authCodeResult, CancellationToken.None);
         }
 
-        public async Task<OAuth2TokenResult> RefreshOAuthCredentialsAsync(string refreshToken)
+        public async Task<OAuth2TokenResult> RefreshOAuthCredentialsAsync(InputArguments input, string refreshToken)
         {
-            var oauthClient = new BitbucketOAuth2Client(HttpClient, Context.Settings);
-
-            return await oauthClient.GetTokenByRefreshTokenAsync(refreshToken, CancellationToken.None);
+            var client = _oauth2ClientRegistry.Get(input);
+            return await client.GetTokenByRefreshTokenAsync(refreshToken, CancellationToken.None);
         }
 
-        protected internal virtual bool TryFindHelperExecutablePath(out string path)
+        public string GetRefreshTokenServiceName(InputArguments input)
         {
-            return TryFindHelperExecutablePath(
+            var client = _oauth2ClientRegistry.Get(input);
+            return client.GetRefreshTokenServiceName(input);
+        }
+
+        protected internal virtual bool TryFindHelperCommand(out string command, out string args)
+        {
+            return TryFindHelperCommand(
                 BitbucketConstants.EnvironmentVariables.AuthenticationHelper,
                 BitbucketConstants.GitConfiguration.Credential.AuthenticationHelper,
                 BitbucketConstants.DefaultAuthenticationHelper,
-                out path);
+                out command,
+                out args);
         }
 
         private HttpClient _httpClient;

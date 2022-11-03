@@ -1,54 +1,16 @@
 using System;
-using System.Net;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 using GitCredentialManager;
 using Newtonsoft.Json;
 
-namespace Atlassian.Bitbucket
+namespace Atlassian.Bitbucket.Cloud
 {
-    public interface IBitbucketRestApi : IDisposable
-    {
-        Task<RestApiResult<UserInfo>> GetUserInformationAsync(string userName, string password, bool isBearerToken);
-    }
-
-    public class RestApiResult<T>
-    {
-        public RestApiResult(HttpStatusCode statusCode)
-            : this(statusCode, default(T)) { }
-
-        public RestApiResult(HttpStatusCode statusCode, T response)
-        {
-            StatusCode = statusCode;
-            Response = response;
-        }
-
-        public HttpStatusCode StatusCode { get; }
-
-        public T Response { get; }
-
-        public bool Succeeded => 199 < (int) StatusCode && (int) StatusCode < 300;
-    }
-
-    public class UserInfo
-    {
-        [JsonProperty("has_2fa_enabled")]
-        public bool IsTwoFactorAuthenticationEnabled { get; set; }
-
-        [JsonProperty("username")]
-        public string UserName { get; set; }
-
-        [JsonProperty("account_id")]
-        public string AccountId { get; set; }
-
-        [JsonProperty("uuid")]
-        public Guid Uuid { get; set; }
-    }
-
     public class BitbucketRestApi : IBitbucketRestApi
     {
         private readonly ICommandContext _context;
-        private readonly Uri _apiUri = BitbucketConstants.BitbucketApiUri;
+        private readonly Uri _apiUri = CloudConstants.BitbucketApiUri;
 
         public BitbucketRestApi(ICommandContext context)
         {
@@ -57,7 +19,7 @@ namespace Atlassian.Bitbucket
             _context = context;
         }
 
-        public async Task<RestApiResult<UserInfo>> GetUserInformationAsync(string userName, string password, bool isBearerToken)
+        public async Task<RestApiResult<IUserInfo>> GetUserInformationAsync(string userName, string password, bool isBearerToken)
         {
             var requestUri = new Uri(_apiUri, "2.0/user");
             using (HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUri))
@@ -82,12 +44,25 @@ namespace Atlassian.Bitbucket
                     {
                         var obj = JsonConvert.DeserializeObject<UserInfo>(json, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
 
-                        return new RestApiResult<UserInfo>(response.StatusCode, obj);
+                        return new RestApiResult<IUserInfo>(response.StatusCode, obj);
                     }
 
-                    return new RestApiResult<UserInfo>(response.StatusCode);
+                    return new RestApiResult<IUserInfo>(response.StatusCode);
                 }
             }
+        }
+
+        public Task<bool> IsOAuthInstalledAsync()
+        {
+            return Task.FromResult(true);
+        }
+
+        public Task<List<AuthenticationMethod>> GetAuthenticationMethodsAsync()
+        {
+            // For Bitbucket Cloud there is no REST API to determine login methods 
+            // instead this is determined later in the process by attempting 
+            // authenticated REST API requests and checking the response. 
+            return Task.FromResult(new List<AuthenticationMethod>());
         }
 
         private HttpClient _httpClient;

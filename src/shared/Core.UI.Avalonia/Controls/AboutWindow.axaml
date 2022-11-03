@@ -7,13 +7,6 @@
         Title="About Git Credential Manager"
         CanResize="False" Width="300" SizeToContent="Height"
         Background="#F6F6F6">
-    <Window.Resources>
-        <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceInclude Source="avares://gcmcoreuiavn/Assets/Images.axaml"/>
-            </ResourceDictionary.MergedDictionaries>
-        </ResourceDictionary>
-    </Window.Resources>
     <Window.Styles>
         <StyleInclude Source="avares://gcmcoreuiavn/Assets/Controls.axaml"/>
     </Window.Styles>
@@ -37,6 +30,6 @@
         <TextBlock HorizontalAlignment="Center"
                    Margin="0,10,0,0"
                    FontSize="11"
-                   Text="Copyright © Microsoft Corporation"/>
+                   Text="Copyright © GitHub"/>
     </StackPanel>
 </Window>

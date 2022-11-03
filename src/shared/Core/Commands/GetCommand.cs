@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -34,6 +35,9 @@ namespace GitCredentialManager.Commands
             // Return the credential to Git
             output["username"] = credential.Account;
             output["password"] = credential.Password;
+
+            Context.Trace.WriteLine("Writing credentials to output:");
+            Context.Trace.WriteDictionarySecrets(output, new []{ "password" }, StringComparer.OrdinalIgnoreCase);
 
             // Write the values to standard out
             Context.Streams.Out.WriteDictionary(output);

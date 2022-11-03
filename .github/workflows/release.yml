@@ -2,8 +2,6 @@ name: release
 
 on:
   workflow_dispatch:
-  push:
-    branches: [ release ]
 
 jobs:
 # ================================
@@ -16,12 +14,12 @@ jobs:
       matrix:
         runtime: [ osx-x64, osx-arm64 ] 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
       with:
         fetch-depth: 0 # Indicate full history so Nerdbank.GitVersioning works.
 
     - name: Set up dotnet
-      uses: actions/setup-dotnet@v2
+      uses: actions/setup-dotnet@v3.0.3
       with:
         dotnet-version: 6.0.201
     
@@ -80,7 +78,7 @@ jobs:
     needs: osx-build
     steps:
     - name: Check out repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
 
     - name: Download payload
       uses: actions/download-artifact@v3
@@ -101,7 +99,6 @@ jobs:
     - name: Set up ESRP client
       shell: pwsh
       env:
-        AZURE_STORAGE_KEY: ${{ secrets.AZURE_STORAGE_KEY }}
         AZURE_VAULT: ${{ secrets.AZURE_VAULT }}
         AUTH_CERT: ${{ secrets.AZURE_VAULT_AUTH_CERT_NAME }}
         REQUEST_SIGNING_CERT: ${{ secrets.AZURE_VAULT_REQUEST_SIGNING_CERT_NAME }}
@@ -112,10 +109,6 @@ jobs:
       shell: pwsh
       env:
         AZURE_AAD_ID: ${{ secrets.AZURE_AAD_ID }}
-        # We temporarily need two AAD IDs, as we're using an SSL certificate associated
-        # with an older App Registration until we have the required hardware to approve
-        # the new certificate in SSL Admin.
-        AZURE_AAD_ID_SSL: ${{ secrets.AZURE_AAD_ID_SSL }}
         APPLE_KEY_CODE: ${{ secrets.APPLE_KEY_CODE }}
         APPLE_SIGNING_OP_CODE: ${{ secrets.APPLE_SIGNING_OPERATION_CODE }}
       run: |
@@ -145,12 +138,12 @@ jobs:
     needs: osx-payload-sign
     steps:
     - name: Check out repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
       with:
         fetch-depth: 0 # Indicate full history so Nerdbank.GitVersioning works.
 
     - name: Set up dotnet
-      uses: actions/setup-dotnet@v2
+      uses: actions/setup-dotnet@v3.0.3
       with:
         dotnet-version: 6.0.201
     
@@ -193,7 +186,7 @@ jobs:
     needs: osx-pack
     steps:
     - name: Check out repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
 
     - name: Download unsigned package
       uses: actions/download-artifact@v3
@@ -215,7 +208,6 @@ jobs:
     - name: Set up ESRP client
       shell: pwsh
       env:
-        AZURE_STORAGE_KEY: ${{ secrets.AZURE_STORAGE_KEY }}
         AZURE_VAULT: ${{ secrets.AZURE_VAULT }}
         AUTH_CERT: ${{ secrets.AZURE_VAULT_AUTH_CERT_NAME }}
         REQUEST_SIGNING_CERT: ${{ secrets.AZURE_VAULT_REQUEST_SIGNING_CERT_NAME }}
@@ -226,10 +218,6 @@ jobs:
       shell: pwsh
       env:
         AZURE_AAD_ID: ${{ secrets.AZURE_AAD_ID }}
-        # We temporarily need two AAD IDs, as we're using an SSL certificate associated
-        # with an older App Registration until we have the required hardware to approve
-        # the new certificate in SSL Admin.
-        AZURE_AAD_ID_SSL: ${{ secrets.AZURE_AAD_ID_SSL }}
         APPLE_KEY_CODE: ${{ secrets.APPLE_KEY_CODE }}
         APPLE_SIGNING_OP_CODE: ${{ secrets.APPLE_SIGNING_OPERATION_CODE }}
       run: |
@@ -246,10 +234,6 @@ jobs:
       shell: pwsh
       env:
         AZURE_AAD_ID: ${{ secrets.AZURE_AAD_ID }}
-        # We temporarily need two AAD IDs, as we're using an SSL certificate associated
-        # with an older App Registration until we have the required hardware to approve
-        # the new certificate in SSL Admin.
-        AZURE_AAD_ID_SSL: ${{ secrets.AZURE_AAD_ID_SSL }}
         APPLE_KEY_CODE: ${{ secrets.APPLE_KEY_CODE }}
         APPLE_NOTARIZATION_OP_CODE: ${{ secrets.APPLE_NOTARIZATION_OPERATION_CODE }}
       run: |
@@ -268,12 +252,12 @@ jobs:
     name: Build and Sign Windows
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
       with:
         fetch-depth: 0 # Indicate full history so Nerdbank.GitVersioning works.
 
     - name: Set up dotnet
-      uses: actions/setup-dotnet@v2
+      uses: actions/setup-dotnet@v3.0.3
       with:
         dotnet-version: 6.0.201
 
@@ -308,7 +292,6 @@ jobs:
     - name: Set up ESRP client
       shell: pwsh
       env:
-        AZURE_STORAGE_KEY: ${{ secrets.AZURE_STORAGE_KEY }}
         AZURE_VAULT: ${{ secrets.AZURE_VAULT }}
         AUTH_CERT: ${{ secrets.AZURE_VAULT_AUTH_CERT_NAME }}
         REQUEST_SIGNING_CERT: ${{ secrets.AZURE_VAULT_REQUEST_SIGNING_CERT_NAME }}
@@ -319,10 +302,6 @@ jobs:
       shell: pwsh
       env:
         AZURE_AAD_ID: ${{ secrets.AZURE_AAD_ID }}
-        # We temporarily need two AAD IDs, as we're using an SSL certificate associated
-        # with an older App Registration until we have the required hardware to approve
-        # the new certificate in SSL Admin.
-        AZURE_AAD_ID_SSL: ${{ secrets.AZURE_AAD_ID_SSL }}
         WINDOWS_KEY_CODE: ${{ secrets.WINDOWS_KEY_CODE }}
         WINDOWS_OP_CODE: ${{ secrets.WINDOWS_OPERATION_CODE }}
       run: |
@@ -353,10 +332,6 @@ jobs:
       shell: pwsh
       env:
         AZURE_AAD_ID: ${{ secrets.AZURE_AAD_ID }}
-        # We temporarily need two AAD IDs, as we're using an SSL certificate associated
-        # with an older App Registration until we have the required hardware to approve
-        # the new certificate in SSL Admin.
-        AZURE_AAD_ID_SSL: ${{ secrets.AZURE_AAD_ID_SSL }}
         WINDOWS_KEY_CODE: ${{ secrets.WINDOWS_KEY_CODE }}
         WINDOWS_OP_CODE: ${{ secrets.WINDOWS_OPERATION_CODE }}
       run: |
@@ -385,12 +360,12 @@ jobs:
     name: Build Linux
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
       with:
         fetch-depth: 0 # Indicate full history so Nerdbank.GitVersioning works.
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v2
+      uses: actions/setup-dotnet@v3.0.3
       with:
         dotnet-version: 6.0.201
 
@@ -419,7 +394,7 @@ jobs:
     runs-on: windows-latest
     needs: linux-build
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
 
     - name: Download artifacts
       uses: actions/download-artifact@v3
@@ -434,7 +409,6 @@ jobs:
     - name: Set up ESRP client
       shell: pwsh
       env:
-        AZURE_STORAGE_KEY: ${{ secrets.AZURE_STORAGE_KEY }}
         AZURE_VAULT: ${{ secrets.AZURE_VAULT }}
         AUTH_CERT: ${{ secrets.AZURE_VAULT_AUTH_CERT_NAME }}
         REQUEST_SIGNING_CERT: ${{ secrets.AZURE_VAULT_REQUEST_SIGNING_CERT_NAME }}
@@ -445,10 +419,6 @@ jobs:
       shell: pwsh
       env:
         AZURE_AAD_ID: ${{ secrets.AZURE_AAD_ID }}
-        # We temporarily need two AAD IDs, as we're using an SSL certificate associated
-        # with an older App Registration until we have the required hardware to approve
-        # the new certificate in SSL Admin.
-        AZURE_AAD_ID_SSL: ${{ secrets.AZURE_AAD_ID_SSL }}
         LINUX_KEY_CODE: ${{ secrets.LINUX_KEY_CODE }}
         LINUX_OP_CODE: ${{ secrets.LINUX_OPERATION_CODE }}
       run: |
@@ -462,20 +432,88 @@ jobs:
           signed
 
 # ================================
+#           Validate
+# ================================
+  validate:
+    name: Validate installers
+    strategy:
+      matrix:
+        component:
+          - os: ubuntu-latest
+            artifact: linux-sign
+            command: git-credential-manager
+          - os: macos-latest
+            artifact: osx-x64-sign
+            command: git-credential-manager
+          - os: windows-latest
+            artifact: win-sign
+            # Even when a standalone GCM version is installed, GitHub actions
+            # runners still only recognize the version bundled with Git for
+            # Windows due to its placement on the PATH. For this reason, we use
+            # the full path to our installation to validate the Windows version.
+            command: "$PROGRAMFILES (x86)/Git Credential Manager/git-credential-manager.exe"
+    runs-on: ${{ matrix.component.os }}
+    needs: [ osx-sign, win-sign, linux-sign ]
+    steps:
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+        with:
+          fetch-depth: 0 # Indicate full history so Nerdbank.GitVersioning works.
+
+      - uses: dotnet/nbgv@master
+        with:
+          setCommonVars: true
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ matrix.component.artifact }}
+
+      - name: Install Windows
+        if: contains(matrix.component.os, 'windows')
+        shell: pwsh
+        run: |
+          $exePaths = Get-ChildItem -Path ./signed/*.exe | %{$_.FullName}
+          foreach ($exePath in $exePaths)
+          {
+            Start-Process -Wait -FilePath "$exePath" -ArgumentList "/SILENT /VERYSILENT /NORESTART"
+          }
+
+      - name: Install Linux
+        if: contains(matrix.component.os, 'ubuntu')
+        run: |
+          debpath=$(find ./*.deb)
+          sudo apt install $debpath
+          "${{ matrix.component.command }}" configure
+
+      - name: Install macOS
+        if: contains(matrix.component.os, 'macos')
+        run: |
+          # Only validate x64, given arm64 agents are not available
+          pkgpath=$(find ./*.pkg)
+          sudo installer -pkg $pkgpath -target /
+
+      - name: Validate
+        shell: bash
+        run: |
+          "${{ matrix.component.command }}" --version | sed 's/+.*//' >actual
+          echo $GitBuildVersionSimple >expect
+          cmp expect actual || exit 1
+
+# ================================
 #             Publish
 # ================================
   create-github-release:
     name: Publish GitHub draft release
     runs-on: ubuntu-latest
-    needs: [ osx-sign, win-sign, linux-sign ]
+    needs: [ validate ]
     steps:      
       - name: Check out repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
         with:
           fetch-depth: 0 # Indicate full history so Nerdbank.GitVersioning works.
 
       - name: Set up dotnet
-        uses: actions/setup-dotnet@v2
+        uses: actions/setup-dotnet@v3.0.3
         with:
           dotnet-version: 6.0.201
       
@@ -498,11 +536,10 @@ jobs:
           tar -C tmp.osx-arm64-build/symbols -czf osx-payload-and-symbols/gcm-osx-arm64-$GitBuildVersionSimple-symbols.tar.gz .
 
       - name: Archive Windows payload and symbols
-        shell: pwsh
         run: |
           mkdir win-x86-payload-and-symbols
-          Compress-Archive -Path win-sign/signed-payload/* win-x86-payload-and-symbols/gcm-win-x86-$env:GitBuildVersionSimple.zip
-          Compress-Archive -Path win-sign/src/windows/Installer.Windows/symbols/* win-x86-payload-and-symbols/gcm-win-x86-$env:GitBuildVersionSimple-symbols.zip
+          zip -jr win-x86-payload-and-symbols/gcm-win-x86-$GitBuildVersionSimple.zip win-sign/signed-payload
+          zip -jr win-x86-payload-and-symbols/gcm-win-x86-$GitBuildVersionSimple-symbols.zip win-sign/src/windows/Installer.Windows/symbols
 
       - uses: actions/github-script@v6
         with:
@@ -561,3 +598,31 @@ jobs:
               uploadDirectoryToRelease('linux-sign'),
               uploadDirectoryToRelease('linux-build/tar')
             ]);
+
+  create-dotnet-tool:
+    name: Publish dotnet tool
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0 # Indicate full history so Nerdbank.GitVersioning works.
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3.0.3
+      with:
+        dotnet-version: 6.0.201
+
+    - uses: dotnet/nbgv@master
+      with:
+        setCommonVars: true
+
+    - name: Package tool
+      run: |
+        src/shared/DotnetTool/pack-tool.sh \
+          --version=$GitBuildVersionSimple \
+          --configuration=Release
+
+    - name: Publish tool
+      run: |
+        dotnet nuget push ./out/shared/DotnetTool/nupkg/Release/*.nupkg \
+          --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json

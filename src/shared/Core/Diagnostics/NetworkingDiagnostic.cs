@@ -25,23 +25,11 @@ namespace GitCredentialManager.Diagnostics
 
         protected override async Task<bool> RunInternalAsync(StringBuilder log, IList<string> additionalFiles)
         {
-            log.AppendLine("Checking basic networking and HTTP stack...");
+            log.AppendLine("Checking networking and HTTP stack...");
             log.Append("Creating HTTP client...");
-            using var rawHttpClient = new HttpClient();
+            using var httpClient = _httpFactory.CreateClient();
             log.AppendLine(" OK");
 
-            if (!await RunTestAsync(log, rawHttpClient)) return false;
-
-            log.AppendLine("Testing with IHttpClientFactory created HTTP client...");
-            log.Append("Creating HTTP client...");
-            using var contextHttpClient = _httpFactory.CreateClient();
-            log.AppendLine(" OK");
-
-            return await RunTestAsync(log, rawHttpClient);
-        }
-
-        private static async Task<bool> RunTestAsync(StringBuilder log, HttpClient httpClient)
-        {
             bool hasNetwork = NetworkInterface.GetIsNetworkAvailable();
             log.AppendLine($"IsNetworkAvailable: {hasNetwork}");
 

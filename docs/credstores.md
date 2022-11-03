@@ -5,9 +5,9 @@ There are several options for storing credentials that GCM supports:
 - Windows Credential Manager
 - DPAPI protected files
 - macOS Keychain
-- [freedesktop.org Secret Service API](https://specifications.freedesktop.org/secret-service/)
-- GPG/[`pass`](https://www.passwordstore.org/) compatible files
-- Git's built-in [credential cache](https://git-scm.com/docs/git-credential-cache)
+- [freedesktop.org Secret Service API][freedesktop-secret-service]
+- GPG/[`pass`][passwordstore] compatible files
+- Git's built-in [credential cache][credential-cache]
 - Plaintext files
 
 The default credential stores on macOS and Windows are the macOS Keychain and
@@ -15,8 +15,8 @@ the Windows Credential Manager, respectively.
 
 GCM comes without a default store on Linux distributions.
 
-You can select which credential store to use by setting the [`GCM_CREDENTIAL_STORE`](environment.md#GCM_CREDENTIAL_STORE)
-environment variable, or the [`credential.credentialStore`](configuration.md#credentialcredentialstore)
+You can select which credential store to use by setting the [`GCM_CREDENTIAL_STORE`][gcm-credential-store]
+environment variable, or the [`credential.credentialStore`][credential-store]
 Git configuration setting. For example:
 
 ```shell
@@ -49,8 +49,8 @@ This credential store uses the Windows Credential APIs (`wincred.h`) to store
 data securely in the Windows Credential Manager (also known as the Windows
 Credential Vault in earlier versions of Windows).
 
-You can [access and manage data in the credential manager](https://support.microsoft.com/en-us/windows/accessing-credential-manager-1b5c916a-6a16-889f-8581-fc16e8165ac0)
-from the control panel, or via the [`cmdkey` command-line tool](https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/cmdkey).
+You can [access and manage data in the credential manager][access-windows-credential-manager]
+from the control panel, or via the [`cmdkey` command-line tool][cmdkey].
 
 When connecting to a Windows machine over a network session (such as SSH), GCM
 is unable to persist credentials to the Windows Credential Manager due to
@@ -73,7 +73,7 @@ git config --global credential.credentialStore dpapi
 
 This credential store uses Windows DPAPI to encrypt credentials which are stored
 as files in your file system. The file structure is the same as the
-[plaintext files credential store](#plaintext-files) except the first line (the
+[plaintext files credential store][plaintext-files] except the first line (the
 secret value) is protected by DPAPI.
 
 By default files are stored in `%USERPROFILE%\.gcm\dpapi_store`. This can be
@@ -97,10 +97,10 @@ git config --global credential.credentialStore keychain
 This credential store uses the default macOS Keychain, which is typically the
 `login` keychain.
 
-You can [manage data stored in the keychain](https://support.apple.com/en-gb/guide/mac-help/mchlf375f392/mac)
+You can [manage data stored in the keychain][mac-keychain-management]
 using the Keychain Access application.
 
-## [freedesktop.org Secret Service API](https://specifications.freedesktop.org/secret-service/)
+## [freedesktop.org Secret Service API][freedesktop-secret-service]
 
 **Available on:** _Linux_
 
@@ -119,7 +119,7 @@ tools such as `secret-tool` and `seahorse`.
 A graphical user interface is required in order to show a secure prompt to
 request a secret collection be unlocked.
 
-## GPG/[`pass`](https://www.passwordstore.org/) compatible files
+## GPG/[`pass`][passwordstore] compatible files
 
 **Available on:** _macOS, Linux_
 
@@ -133,7 +133,7 @@ git config --global credential.credentialStore gpg
 
 This credential store uses GPG to encrypt files containing credentials which are
 stored in your file system. The file structure is compatible with the popular
-[`pass`](https://www.passwordstore.org/) tool. By default files are stored in
+[`pass`][passwordstore] tool. By default files are stored in
 `~/.password-store` but this can be configured using the `pass` environment
 variable `PASSWORD_STORE_DIR`.
 
@@ -176,7 +176,7 @@ export GPG_TTY=$(tty)
 **Note:** Using `/dev/tty` does not appear to work here - you must use the real
 TTY device path, as returned by the `tty` utility.
 
-## Git's built-in [credential cache](https://git-scm.com/docs/git-credential-cache)
+## Git's built-in [credential cache][credential-cache]
 
 **Available on:** _macOS, Linux_
 
@@ -187,17 +187,16 @@ git config --global credential.credentialStore cache
 ```
 
 This credential store uses Git's built-in ephemeral
-[in-memory credential cache](https://git-scm.com/docs/git-credential-cache).
+in-memory [credential cache][credential-cache].
 This helps you reduce the number of times you have to authenticate but
 doesn't require storing credentials on persistent storage. It's good for
-scenarios like [Azure Cloud Shell](https://docs.microsoft.com/azure/cloud-shell/overview)
-or [AWS CloudShell](https://aws.amazon.com/cloudshell/), where you don't want to
+scenarios like [Azure Cloud Shell][azure-cloudshell]
+or [AWS CloudShell][aws-cloudshell], where you don't want to
 leave credentials on disk but also don't want to re-authenticate on every Git
 operation.
 
 By default, `git credential-cache` stores your credentials for 900 seconds.
-That, and any other
-[options it accepts](https://git-scm.com/docs/git-credential-cache#_options),
+That, and any other [options it accepts][git-credential-cache-options],
 may be altered by setting them in the environment variable
 `GCM_CREDENTIAL_CACHE_OPTIONS` or the Git config value
 `credential.cacheOptions`. (Using the `--socket` option is untested
@@ -232,7 +231,8 @@ On POSIX platforms the newly created store directory will have permissions set
 such that only the owner can `r`ead/`w`rite/e`x`ecute (`700` or `drwx---`).
 Permissions on existing directories will not be modified.
 
-NB. GCM's plaintext store is distinct from [git-credential-store](https://git-scm.com/docs/git-credential-store), though the formats are similar. The default paths differ.
+NB. GCM's plaintext store is distinct from [git-credential-store][git-credential-store],
+though the formats are similar. The default paths differ.
 
 ---
 
@@ -251,4 +251,16 @@ permissions on this directory such that no other users or applications can
 access files within. If possible, use a path that exists on an external volume
 that you take with you and use full-disk encryption.
 
----
+[access-windows-credential-manager]: https://support.microsoft.com/en-us/windows/accessing-credential-manager-1b5c916a-6a16-889f-8581-fc16e8165ac0
+[aws-cloudshell]: https://aws.amazon.com/cloudshell/
+[azure-cloudshell]: https://docs.microsoft.com/azure/cloud-shell/overview
+[cmdkey]: https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/cmdkey
+[credential-store]: configuration.md#credentialcredentialstore
+[credential-cache]: https://git-scm.com/docs/git-credential-cache
+[freedesktop-secret-service]: https://specifications.freedesktop.org/secret-service/
+[gcm-credential-store]: environment.md#GCM_CREDENTIAL_STORE
+[git-credential-store]: https://git-scm.com/docs/git-credential-store
+[mac-keychain-management]: https://support.apple.com/en-gb/guide/mac-help/mchlf375f392/mac
+[git-credential-cache-options]: https://git-scm.com/docs/git-credential-cache#_options
+[passwordstore]: https://www.passwordstore.org/
+[plaintext-files]: #plaintext-files

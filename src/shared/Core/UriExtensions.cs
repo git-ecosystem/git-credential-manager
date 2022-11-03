@@ -48,7 +48,7 @@ namespace GitCredentialManager
                 return false;
             }
 
-            /* According to RFC 3986 section 3.2.1 (https://tools.ietf.org/html/rfc3986#section-3.2.1)
+            /* According to RFC 3986 section 3.2.1 (https://www.rfc-editor.org/rfc/rfc3986#section-3.2.1)
              * the user information component of a URI should look like:
              *
              *     url-encode(username):url-encode(password)

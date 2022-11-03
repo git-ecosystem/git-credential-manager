@@ -66,11 +66,6 @@ namespace GitCredentialManager
         /// The current process environment.
         /// </summary>
         IEnvironment Environment { get; }
-
-        /// <summary>
-        /// Native UI prompts.
-        /// </summary>
-        ISystemPrompts SystemPrompts { get; }
     }
 
     /// <summary>
@@ -90,7 +85,6 @@ namespace GitCredentialManager
             {
                 FileSystem        = new WindowsFileSystem();
                 SessionManager    = new WindowsSessionManager();
-                SystemPrompts     = new WindowsSystemPrompts();
                 Environment       = new WindowsEnvironment(FileSystem);
                 Terminal          = new WindowsTerminal(Trace);
                 string gitPath    = GetGitPath(Environment, FileSystem, Trace);
@@ -106,7 +100,6 @@ namespace GitCredentialManager
             {
                 FileSystem        = new MacOSFileSystem();
                 SessionManager    = new MacOSSessionManager();
-                SystemPrompts     = new MacOSSystemPrompts();
                 Environment       = new MacOSEnvironment(FileSystem);
                 Terminal          = new MacOSTerminal(Trace);
                 string gitPath    = GetGitPath(Environment, FileSystem, Trace);
@@ -123,7 +116,6 @@ namespace GitCredentialManager
                 FileSystem        = new LinuxFileSystem();
                 // TODO: support more than just 'Posix' or X11
                 SessionManager    = new PosixSessionManager();
-                SystemPrompts     = new LinuxSystemPrompts();
                 Environment       = new PosixEnvironment(FileSystem);
                 Terminal          = new LinuxTerminal(Trace);
                 string gitPath    = GetGitPath(Environment, FileSystem, Trace);
@@ -142,9 +134,6 @@ namespace GitCredentialManager
 
             HttpClientFactory = new HttpClientFactory(FileSystem, Trace, Settings, Streams);
             CredentialStore   = new CredentialStore(this);
-
-            // Set the parent window handle/ID
-            SystemPrompts.ParentWindowId = Settings.ParentWindowId;
         }
 
         private static string GetGitPath(IEnvironment environment, IFileSystem fileSystem, ITrace trace)
@@ -202,8 +191,6 @@ namespace GitCredentialManager
         public IGit Git { get; }
 
         public IEnvironment Environment { get; }
-
-        public ISystemPrompts SystemPrompts { get; }
 
         #endregion
 

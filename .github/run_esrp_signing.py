@@ -18,10 +18,6 @@ args = parser.parse_args()
 esrp_tool = os.path.join("esrp", "tools", "EsrpClient.exe")
 
 aad_id = os.environ['AZURE_AAD_ID'].strip()
-# We temporarily need two AAD IDs, as we're using an SSL certificate associated
-# with an older App Registration until we have the required hardware to approve
-# the new certificate in SSL Admin.
-aad_id_ssl = os.environ['AZURE_AAD_ID_SSL'].strip()
 workspace = os.environ['GITHUB_WORKSPACE'].strip()
 
 source_location = args.path
@@ -36,9 +32,10 @@ auth_json = {
     "TenantId": "72f988bf-86f1-41af-91ab-2d7cd011db47",
     "ClientId": f"{aad_id}",
     "AuthCert": {
-            "SubjectName": f"CN={aad_id_ssl}.microsoft.com",
+            "SubjectName": f"CN={aad_id}.microsoft.com",
             "StoreLocation": "LocalMachine",
-            "StoreName": "My"
+            "StoreName": "My",
+            "SendX5c" : "true"
     },
     "RequestSigningCert": {
             "SubjectName": f"CN={aad_id}",

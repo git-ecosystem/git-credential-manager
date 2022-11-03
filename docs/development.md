@@ -6,15 +6,18 @@ Start by cloning this repository:
 git clone https://github.com/GitCredentialManager/git-credential-manager
 ```
 
-You also need the latest version of the .NET SDK which can be downloaded and installed from [here](https://dotnet.microsoft.com/).
+You also need the latest version of the .NET SDK which can be downloaded and
+installed from the [.NET website][dotnet-web].
 
 ## Building
 
-The `Git-Credential-Manager.sln` solution can be opened and built in Visual Studio, Visual Studio for Mac, Visual Studio Code, or JetBrains Rider.
+The `Git-Credential-Manager.sln` solution can be opened and built in Visual
+Studio, Visual Studio for Mac, Visual Studio Code, or JetBrains Rider.
 
 ### macOS
 
-To build from inside an IDE, make sure to select the `MacDebug` or `MacRelease` solution configurations.
+To build from inside an IDE, make sure to select the `MacDebug` or `MacRelease`
+solution configurations.
 
 To build from the command line, run:
 
@@ -28,7 +31,8 @@ The flat binaries can also be found in `out/osx/Installer.Mac/pkg/Debug/payload`
 
 ### Windows
 
-To build from inside an IDE, make sure to select the `WindowsDebug` or `WindowsRelease` solution configurations.
+To build from inside an IDE, make sure to select the `WindowsDebug` or
+`WindowsRelease` solution configurations.
 
 To build from the command line, run:
 
@@ -56,9 +60,12 @@ The flat binaries can also be found in `out/linux/Packaging.Linux/payload/Debug`
 
 ## Debugging
 
-To debug from inside an IDE you'll want to set `Git-Credential-Manager` as the startup project, and specify one of `get`, `store`, or `erase` as a program argument.
+To debug from inside an IDE you'll want to set `Git-Credential-Manager` as the
+startup project, and specify one of `get`, `store`, or `erase` as a program
+argument.
 
-To simulate Git interacting with GCM, when you start from your IDE of choice, you'll need to enter the following [information over standard input](https://git-scm.com/docs/git-credential#IOFMT):
+To simulate Git interacting with GCM, when you start from your IDE of choice,
+you'll need to enter the following [information over standard input][ioformat]:
 
 ```text
 protocol=http<LF>
@@ -67,7 +74,8 @@ host=<HOSTNAME><LF>
 <LF>
 ```
 
-..where `<HOSTNAME>` is a supported hostname such as `github.com`, and `<LF>` is a line feed (or CRLF, we support both!).
+..where `<HOSTNAME>` is a supported hostname such as `github.com`, and `<LF>` is
+a line feed (or CRLF, we support both!).
 
 You may also include the following optional fields, depending on your scenario:
 
@@ -76,29 +84,36 @@ username=<USERNAME><LF>
 password=<PASSWORD><LF>
 ```
 
-For more information about how Git interacts with credential helpers, please read Git's [documentation](https://git-scm.com/docs/gitcredentials#_custom_helpers).
+For more information about how Git interacts with credential helpers, please
+read Git's documentation on [custom helpers][custom-helpers].
 
 ### Attaching to a running process
 
-If you want to debug an already running GCM process, set the `GCM_DEBUG` environment variable to `1` or `true`. The process will wait on launch for a debugger to attach before continuing.
+If you want to debug an already running GCM process, set the `GCM_DEBUG`
+environment variable to `1` or `true`. The process will wait on launch for a
+debugger to attach before continuing.
 
-This is useful when debugging interactions between GCM and Git, and you want Git to be the one launching us.
+This is useful when debugging interactions between GCM and Git, and you want
+Git to be the one launching us.
 
 ### Collect trace output
 
-If you want to debug a release build or installation of GCM, you can set the `GCM_TRACE` environment variable to `1` to print trace information to standard error, or to an absolute file path to write trace information to a file.
+If you want to debug a release build or installation of GCM, you can set the
+`GCM_TRACE` environment variable to `1` to print trace information to standard
+error, or to an absolute file path to write trace information to a file.
 
 For example:
 
 ```shell
-$ GCM_TRACE=1 git-credential-manager-core version
+$ GCM_TRACE=1 git-credential-manager version
 > 18:47:56.526712 ...er/Application.cs:69 trace: [RunInternalAsync] Git Credential Manager version 2.0.124-beta+e1ebbe1517 (macOS, .NET 5.0) 'version'
 > Git Credential Manager version 2.0.124-beta+e1ebbe1517 (macOS, .NET 5.0)
 ```
 
 ### Code coverage metrics
 
-If you want code coverage metrics these can be generated either from the command line:
+If you want code coverage metrics these can be generated either from the command
+line:
 
 ```shell
 dotnet test --collect:"XPlat Code Coverage" --settings=./.code-coverage/coverlet.settings.xml
@@ -110,7 +125,8 @@ Or via the VSCode Terminal/Run Task:
 test with coverage
 ```
 
-HTML reports can be generated using ReportGenerator, this should be installed during the build process, from the command line:
+HTML reports can be generated using ReportGenerator, this should be installed
+during the build process, from the command line:
 
 ```shell
 dotnet ~/.nuget/packages/reportgenerator/*/*/net6.0/ReportGenerator.dll -reports:./**/TestResults/**/coverage.cobertura.xml -targetdir:./out/code-coverage
@@ -133,3 +149,24 @@ or
 ```console
 report coverage - win
 ```
+
+## Linting Documentation
+
+Documents are linted using [markdownlint][markdownlint] which can be installed
+as a CLI tool via NPM or as an [extension in VSCode][vscode-markdownlint]. See
+the [documentation on GitHub][markdownlint]. The configuration used for
+markdownlint is in [.markdownlint.jsonc][markdownlint-config].
+
+Documents are checked for link validity using [lychee][lychee]. Lychee can be
+installed in a variety of ways depending on your platform, see the [docs on GitHub][lychee-docs].
+Some URLs are ignored by lychee, per the [lycheeignore][lycheeignore].
+
+[dotnet-web]: https://dotnet.microsoft.com/
+[custom-helpers]: https://git-scm.com/docs/gitcredentials#_custom_helpers
+[ioformat]: https://git-scm.com/docs/git-credential#IOFMT
+[lychee]: https://lychee.cli.rs/
+[lychee-docs]: https://github.com/lycheeverse/lychee
+[lycheeignore]: ../.lycheeignore
+[markdownlint]: https://github.com/DavidAnson/markdownlint-cli2
+[markdownlint-config]: ../.markdownlint.jsonc
+[vscode-markdownlint]: https://github.com/DavidAnson/vscode-markdownlint

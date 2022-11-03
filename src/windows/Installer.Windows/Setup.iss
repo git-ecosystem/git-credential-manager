@@ -39,7 +39,7 @@
 #define GcmReadme "https://github.com/GitCredentialManager/git-credential-manager/blob/main/README.md"
 #define GcmRepoRoot "..\..\.."
 #define GcmAssets GcmRepoRoot + "\assets"
-#define GcmExe "git-credential-manager-core.exe"
+#define GcmExe "git-credential-manager.exe"
 #define GcmArch "x86"
 
 #ifnexist PayloadDir + "\" + GcmExe
@@ -107,8 +107,12 @@ Source: "{#PayloadDir}\Atlassian.Bitbucket.dll";                        DestDir:
 Source: "{#PayloadDir}\Atlassian.Bitbucket.UI.exe";                     DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PayloadDir}\Atlassian.Bitbucket.UI.exe.config";              DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PayloadDir}\Atlassian.Bitbucket.UI.Shared.dll";              DestDir: "{app}"; Flags: ignoreversion
+Source: "{#PayloadDir}\git-credential-manager.exe";                     DestDir: "{app}"; Flags: ignoreversion
+Source: "{#PayloadDir}\git-credential-manager.exe.config";              DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PayloadDir}\git-credential-manager-core.exe";                DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PayloadDir}\git-credential-manager-core.exe.config";         DestDir: "{app}"; Flags: ignoreversion
+Source: "{#PayloadDir}\git-credential-manager-ui.exe";                  DestDir: "{app}"; Flags: ignoreversion
+Source: "{#PayloadDir}\git-credential-manager-ui.exe.config";           DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PayloadDir}\GitHub.dll";                                     DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PayloadDir}\GitHub.UI.exe";                                  DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PayloadDir}\GitHub.UI.exe.config";                           DestDir: "{app}"; Flags: ignoreversion

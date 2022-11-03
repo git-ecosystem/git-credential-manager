@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.Build.NoTargets/3.5.6">
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <PackAsTool>true</PackAsTool>
+    <NuSpecFile>dotnet-tool.nuspec</NuSpecFile>
+    <!-- Inject correct properties into NuSpec -->
+    <NuspecProperties>
+      version=$(PackageVersion);
+      publishDir=$(PublishDir);
+    </NuspecProperties>
+    <NoBuild>true</NoBuild>
+    <OutputPath>$(ProjectOutPath)nupkg\$(Configuration)\</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+  </PropertyGroup>
+</Project>

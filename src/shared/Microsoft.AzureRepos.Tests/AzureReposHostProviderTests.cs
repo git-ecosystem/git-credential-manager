@@ -571,6 +571,22 @@ namespace Microsoft.AzureRepos.Tests
         }
 
         [PlatformFact(Platforms.Windows)]
+        public async Task AzureReposHostProvider_UnconfigureAsync_System_Windows_UseHttpPathSetAndManagerHelper_DoesNotRemoveEntry()
+        {
+            var context = new TestCommandContext();
+            var provider = new AzureReposHostProvider(context);
+
+            context.Git.Configuration.System[HelperKey] = new List<string> {"manager"};
+            context.Git.Configuration.System[AzDevUseHttpPathKey] = new List<string> {"true"};
+
+            await provider.UnconfigureAsync(ConfigurationTarget.System);
+
+            Assert.True(context.Git.Configuration.System.TryGetValue(AzDevUseHttpPathKey, out IList<string> actualValues));
+            Assert.Single(actualValues);
+            Assert.Equal("true", actualValues[0]);
+        }
+
+        [PlatformFact(Platforms.Windows)]
         public async Task AzureReposHostProvider_UnconfigureAsync_System_Windows_UseHttpPathSetAndManagerCoreHelper_DoesNotRemoveEntry()
         {
             var context = new TestCommandContext();
@@ -597,6 +613,20 @@ namespace Microsoft.AzureRepos.Tests
             await provider.UnconfigureAsync(ConfigurationTarget.System);
 
             Assert.Empty(context.Git.Configuration.System);
+        }
+
+        [PlatformFact(Platforms.Windows)]
+        public async Task AzureReposHostProvider_UnconfigureAsync_User_Windows_UseHttpPathSetAndManagerHelper_RemovesEntry()
+        {
+            var context = new TestCommandContext();
+            var provider = new AzureReposHostProvider(context);
+
+            context.Git.Configuration.Global[HelperKey] = new List<string> {"manager"};
+            context.Git.Configuration.Global[AzDevUseHttpPathKey] = new List<string> {"true"};
+
+            await provider.UnconfigureAsync(ConfigurationTarget.User);
+
+            Assert.False(context.Git.Configuration.Global.TryGetValue(AzDevUseHttpPathKey, out _));
         }
 
         [PlatformFact(Platforms.Windows)]

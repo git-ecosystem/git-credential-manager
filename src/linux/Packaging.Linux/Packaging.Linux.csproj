@@ -17,6 +17,10 @@
 
   <ItemGroup>
     <ProjectReference Include="../../shared/Git-Credential-Manager/Git-Credential-Manager.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="../../shared/Atlassian.Bitbucket.UI.Avalonia/Atlassian.Bitbucket.UI.Avalonia.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="../../shared/GitHub.UI.Avalonia/GitHub.UI.Avalonia.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="../../shared/GitLab.UI.Avalonia/GitLab.UI.Avalonia.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="../../shared/Core.UI.Avalonia/Core.UI.Avalonia.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <!-- Implicit SDK targets import (so we can override the default targets below) -->
