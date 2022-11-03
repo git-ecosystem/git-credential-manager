@@ -77,13 +77,13 @@ Download the latest [.deb package][latest-release], and run the following:
 
 ```shell
 sudo dpkg -i <path-to-package>
-git-credential-manager configure
+git credential-manager-store configure
 ```
 
 #### Uninstall
 
 ```shell
-git-credential-manager unconfigure
+git credential-manager-store unconfigure
 sudo dpkg -r gcmcore
 ```
 
