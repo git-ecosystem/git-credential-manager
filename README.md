@@ -4,20 +4,21 @@
 
 ---
 
-[Git Credential Manager][gcm] (GCM) is a secure Git credential helper built on
-[.NET][dotnet] that runs on Windows, macOS, and Linux.
+[Git Credential Manager][gcm] (GCM) is a secure
+[Git credential helper][git-credential-helper] built on [.NET][dotnet] that runs
+on Windows, macOS, and Linux. It aims to provide a consistent and secure
+authentication experience, including multi-factor auth, to every major source
+control hosting service and platform.
 
-Compared to Git's [built-in credential helpers][git-tools-credential-storage]
-(Windows: wincred, macOS: osxkeychain, Linux: gnome-keyring/libsecret) which
-provides single-factor authentication support working on any HTTP-enabled Git
-repository, GCM provides multi-factor authentication support for
-[Azure DevOps][azure-devops], Azure DevOps Server (formerly Team Foundation
-Server), GitHub, Bitbucket, and GitLab.
+GCM supports (in alphabetical order) [Azure DevOps][azure-devops], Azure DevOps
+Server (formerly Team Foundation Server), Bitbucket, GitHub, and GitLab.
+Compare to Git's [built-in credential helpers][git-tools-credential-storage]
+(Windows: wincred, macOS: osxkeychain, Linux: gnome-keyring/libsecret), which
+provide single-factor authentication support for username/password only.
 
-Git Credential Manager (GCM) replaces the .NET Framework-based
-[Git Credential Manager for Windows][gcm-for-windows] (GCM), and the Java-based
-[Git Credential Manager for Mac and Linux][gcm-for-mac-and-linux] (Java GCM),
-providing a consistent authentication experience across all platforms.
+GCM replaces both the .NET Framework-based
+[Git Credential Manager for Windows][gcm-for-windows] and the Java-based
+[Git Credential Manager for Mac and Linux][gcm-for-mac-and-linux].
 
 ## Install
 
@@ -120,6 +121,7 @@ When using GitHub logos, please be sure to follow the
 [build-status-badge]: https://github.com/GitCredentialManager/git-credential-manager/actions/workflows/continuous-integration.yml/badge.svg
 [docs-index]: docs/README.md
 [dotnet]: https://dotnet.microsoft.com
+[git-credential-helper]: https://git-scm.com/docs/gitcredentials
 [gcm]: https://github.com/GitCredentialManager/git-credential-manager
 [gcm-coc]: CODE_OF_CONDUCT.md
 [gcm-commit-12294990]: https://github.com/git/git/commit/12294990c90e043862be9eb7eb22c3784b526340
