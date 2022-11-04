@@ -12,7 +12,8 @@ namespace GitCredentialManager
         public static void Main(string[] args)
         {
             string appPath = ApplicationBase.GetEntryApplicationPath();
-            using (var context = new CommandContext(appPath))
+            string installDir = ApplicationBase.GetInstallationDirectory();
+            using (var context = new CommandContext(appPath, installDir))
             using (var app = new Application(context))
             {
                 // Workaround for https://github.com/AzureAD/microsoft-authentication-library-for-dotnet/issues/2560

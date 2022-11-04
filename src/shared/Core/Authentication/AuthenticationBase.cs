@@ -166,7 +166,7 @@ namespace GitCredentialManager.Authentication
             //
             // Search the installation directory for an in-box helper
             //
-            string appDir = Path.GetDirectoryName(Context.ApplicationPath);
+            string appDir = Context.InstallationDirectory;
             string inBoxExePath = Path.Combine(appDir, PlatformUtils.IsWindows() ? $"{helperName}.exe" : helperName);
             string inBoxDllPath = Path.Combine(appDir, $"{helperName}.dll");
 

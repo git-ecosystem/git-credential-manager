@@ -1,8 +1,5 @@
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.IO;
-using System.Text;
 
 namespace GitCredentialManager.Tests.Objects
 {
@@ -13,6 +10,8 @@ namespace GitCredentialManager.Tests.Objects
             AppPath = PlatformUtils.IsWindows()
                 ? @"C:\Program Files\Git Credential Manager Core\git-credential-manager.exe"
                 : "/usr/local/bin/git-credential-manager";
+
+            InstallDir = Path.GetDirectoryName(AppPath);
 
             Streams = new TestStandardStreams();
             Terminal = new TestTerminal();
@@ -28,6 +27,7 @@ namespace GitCredentialManager.Tests.Objects
         }
 
         public string AppPath { get; set; }
+        public string InstallDir { get; set; }
         public TestSettings Settings { get; set; }
         public TestStandardStreams Streams { get; set; }
         public TestTerminal Terminal { get; set; }
@@ -42,6 +42,8 @@ namespace GitCredentialManager.Tests.Objects
         #region ICommandContext
 
         string ICommandContext.ApplicationPath => AppPath;
+
+        string ICommandContext.InstallationDirectory => InstallDir;
 
         IStandardStreams ICommandContext.Streams => Streams;
 
