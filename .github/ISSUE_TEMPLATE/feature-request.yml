@@ -1,0 +1,10 @@
+name: Feature Request
+description: A suggestion for a new feature in Git Credential Manager.
+labels: ["enhancement"]
+
+body:
+  - type: textarea
+    id: featureDescription
+    attributes:
+      label: Feature Description
+      description: A clear description of the new feature.
