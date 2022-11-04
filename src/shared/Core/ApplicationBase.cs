@@ -84,7 +84,7 @@ namespace GitCredentialManager
 
         public static string GetEntryApplicationPath()
         {
-            return PlatformUtils.GetNativeArgv0() ??
+            return PlatformUtils.GetNativeEntryPath() ??
                    Process.GetCurrentProcess().MainModule?.FileName ??
                    Environment.GetCommandLineArgs()[0];
         }
