@@ -24,7 +24,6 @@ jobs:
         with:
           globs: |
             "**/*.md"
-            "!.github/ISSUE_TEMPLATE"
 
   check-links:
     name: Check for broken links
