@@ -50,14 +50,8 @@ Proxy support|&#10003;|&#10003;|&#10003;
 `arm64` support|best effort|&#10003;|best effort, no packages
 `armhf` support|_N/A_|_N/A_|best effort, no packages
 
-(\*) GCM guarantees support for the below Linux distributions. GCM maintainers
-also monitor and evaluate issues opened against other distributions to determine
-community interest/engagement and whether an emerging platform should become
-fully-supported.
-
-- Debian/Ubuntu/Linux Mint
-- Fedora/CentOS/RHEL
-- Alpine
+(\*) GCM guarantees support only for [the Linux distributions that are officially
+supported by dotnet][dotnet-distributions].
 
 ## Supported Git versions
 
@@ -122,6 +116,7 @@ When using GitHub logos, please be sure to follow the
 [build-status-badge]: https://github.com/GitCredentialManager/git-credential-manager/actions/workflows/continuous-integration.yml/badge.svg
 [docs-index]: https://github.com/GitCredentialManager/git-credential-manager/blob/release/docs/README.md
 [dotnet]: https://dotnet.microsoft.com
+[dotnet-distributions]: https://learn.microsoft.com/en-us/dotnet/core/install/linux
 [git-credential-helper]: https://git-scm.com/docs/gitcredentials
 [gcm]: https://github.com/GitCredentialManager/git-credential-manager
 [gcm-coc]: CODE_OF_CONDUCT.md

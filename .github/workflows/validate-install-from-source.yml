@@ -15,21 +15,29 @@ jobs:
         vector:
         - image: ubuntu
         - image: debian
-        - image: linuxmintd/mint20-amd64
         - image: fedora
-        - image: centos
+        # Centos no longer officially maintains images on Docker Hub. However,
+        # tgagor is a contributor who pushes updated images weekly, which should
+        # be sufficient for our validation needs.
+        - image: tgagor/centos
+        - image: tgagor/centos-stream
         - image: redhat/ubi8
         - image: alpine
+        - image: opensuse/leap
+        - image: opensuse/tumbleweed
+        - image: registry.suse.com/suse/sle15:15.4.27.11.31
+        - image: archlinux
     container: ${{matrix.vector.image}}
     steps:
+      - run: |
+          if [[ ${{matrix.vector.image}} == *"suse"* ]]; then
+            zypper -n install tar gzip
+          elif [[ ${{matrix.vector.image}} == *"centos"* ]]; then
+            dnf install which -y
+          fi       
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
         with:
           fetch-depth: 0 # Indicate full history so Nerdbank.GitVersioning works.
       - run: |
-          if [ ${{matrix.vector.image}} == "centos" ]; then
-            sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-Linux-*
-            sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-Linux-*
-          fi
-
           sh "${GITHUB_WORKSPACE}/src/linux/Packaging.Linux/install-from-source.sh" -y
           git-credential-manager --help || exit 1

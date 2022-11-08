@@ -41,12 +41,12 @@ Git Credential Manager is licensed under the MIT License: https://aka.ms/gcm/lic
     done
 fi
 
-install_shared_packages() {
+install_packages() {
     pkg_manager=$1
     install_verb=$2
+    packages=$3
 
-    local shared_packages="git curl"
-    for package in $shared_packages; do
+    for package in $packages; do
         # Ensure we don't stomp on existing installations.
         if [ ! -z $(which $package) ]; then
             continue
@@ -54,6 +54,10 @@ install_shared_packages() {
 
         if [ $pkg_manager = apk ]; then
             $sudo_cmd $pkg_manager $install_verb $package
+        elif [ $pkg_manager = zypper ]; then
+            $sudo_cmd $pkg_manager -n $install_verb $package
+        elif [ $pkg_manager = pacman ]; then
+            $sudo_cmd $pkg_manager --noconfirm $install_verb $package
         else
             $sudo_cmd $pkg_manager $install_verb $package -y
         fi
@@ -125,7 +129,7 @@ eval "$(sed -n 's/^VERSION_ID=/version=/p' /etc/os-release | tr -d '"')"
 case "$distribution" in
     debian | ubuntu)
         $sudo_cmd apt update
-        install_shared_packages apt install
+        install_packages apt install "curl git"
 
         # Install dotnet packages and dependencies if needed.
         if [ -z "$(verify_existing_dotnet_installation)" ]; then
@@ -150,29 +154,36 @@ case "$distribution" in
             fi
         fi
     ;;
-    linuxmint)
-        $sudo_cmd apt update
-        install_shared_packages apt install
-
-        # Install dotnet packages and dependencies.
-        $sudo_cmd apt install libc6 libgcc1 libgssapi-krb5-2 libssl1.1 libstdc++6 zlib1g libicu66 -y
-        ensure_dotnet_installed
-    ;;
     fedora | centos | rhel)
         $sudo_cmd dnf update -y
-        install_shared_packages dnf install
 
         # Install dotnet/GCM dependencies.
-        $sudo_cmd dnf install krb5-libs libicu openssl-libs zlib findutils which bash -y
+        install_packages dnf install "curl git krb5-libs libicu openssl-libs zlib findutils which bash"
 
         ensure_dotnet_installed
     ;;
     alpine)
         $sudo_cmd apk update
-        install_shared_packages apk add
 
         # Install dotnet/GCM dependencies.
-        $sudo_cmd apk add icu-libs krb5-libs libgcc libintl libssl1.1 libstdc++ zlib which bash coreutils gcompat
+        install_packages apk add "curl git icu-libs krb5-libs libgcc libintl libssl1.1 libstdc++ zlib which bash coreutils gcompat"
+
+        ensure_dotnet_installed
+    ;;
+    sles | opensuse*)
+        $sudo_cmd zypper -n update
+
+        # Install dotnet/GCM dependencies.
+        install_packages zypper install "curl git find krb5 libicu libopenssl1_1"
+
+        ensure_dotnet_installed
+    ;;
+    arch)
+        # --noconfirm required when running from container
+        $sudo_cmd pacman -Syu --noconfirm
+
+        # Install dotnet/GCM dependencies.
+        install_packages pacman -Sy "curl git glibc gcc krb5 icu openssl libc++ zlib"
 
         ensure_dotnet_installed
     ;;
