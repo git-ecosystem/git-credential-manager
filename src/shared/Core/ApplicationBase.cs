@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -83,18 +84,14 @@ namespace GitCredentialManager
 
         public static string GetEntryApplicationPath()
         {
-            string argv0 = PlatformUtils.GetNativeArgv0()
-                           ?? Process.GetCurrentProcess().MainModule?.FileName
-                           ?? Environment.GetCommandLineArgs()[0];
+            return PlatformUtils.GetNativeEntryPath() ??
+                   Process.GetCurrentProcess().MainModule?.FileName ??
+                   Environment.GetCommandLineArgs()[0];
+        }
 
-            if (Path.IsPathRooted(argv0))
-            {
-                return argv0;
-            }
-
-            return Path.GetFullPath(
-                Path.Combine(Environment.CurrentDirectory, argv0)
-            );
+        public static string GetInstallationDirectory()
+        {
+            return Path.GetDirectoryName(Environment.GetCommandLineArgs()[0]);
         }
 
         /// <summary>

@@ -97,6 +97,7 @@ namespace GitCredentialManager
             Context.Trace.WriteLine($"Platform: {info.OperatingSystemType} ({info.CpuArchitecture})");
             Context.Trace.WriteLine($"OSVersion: {info.OperatingSystemVersion}");
             Context.Trace.WriteLine($"AppPath: {Context.ApplicationPath}");
+            Context.Trace.WriteLine($"InstallDir: {Context.InstallationDirectory}");
             Context.Trace.WriteLine($"Arguments: {string.Join(" ", args)}");
 
             var parser = new CommandLineBuilder(rootCommand)
@@ -252,23 +253,11 @@ namespace GitCredentialManager
                 }
 
                 // Clear app entry
-                config.UnsetAll(configLevel, helperKey, Regex.Escape(appPath));
+                string appEntryValue = currentValues[appIndex];
+                config.UnsetAll(configLevel, helperKey, Regex.Escape(appEntryValue));
             }
 
             return Task.CompletedTask;
-        }
-
-        private string GetGitConfigAppName()
-        {
-            const string gitCredentialPrefix = "git-credential-";
-
-            string appName = Path.GetFileNameWithoutExtension(Context.ApplicationPath);
-            if (appName != null && appName.StartsWith(gitCredentialPrefix, StringComparison.OrdinalIgnoreCase))
-            {
-                return appName.Substring(gitCredentialPrefix.Length);
-            }
-
-            return Context.ApplicationPath;
         }
 
         private string GetGitConfigAppPath()

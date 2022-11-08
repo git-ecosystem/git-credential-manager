@@ -18,6 +18,11 @@ namespace GitCredentialManager
         string ApplicationPath { get; }
 
         /// <summary>
+        /// Absolute path to the Git Credential Manager installation directory.
+        /// </summary>
+        string InstallationDirectory { get; }
+
+        /// <summary>
         /// Settings and configuration for Git Credential Manager.
         /// </summary>
         ISettings Settings { get; }
@@ -73,11 +78,13 @@ namespace GitCredentialManager
     /// </summary>
     public class CommandContext : DisposableObject, ICommandContext
     {
-        public CommandContext(string appPath)
+        public CommandContext(string appPath, string installDir)
         {
             EnsureArgument.NotNullOrWhiteSpace(appPath, nameof (appPath));
 
             ApplicationPath = appPath;
+            InstallationDirectory = installDir;
+
             Streams = new StandardStreams();
             Trace   = new Trace();
 
@@ -171,6 +178,8 @@ namespace GitCredentialManager
         #region ICommandContext
 
         public string ApplicationPath { get; }
+
+        public string InstallationDirectory { get; }
 
         public ISettings Settings { get; }
 

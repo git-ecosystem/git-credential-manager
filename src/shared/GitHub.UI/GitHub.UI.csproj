@@ -1,7 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>net6.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(OSPlatform)'=='windows'">net6.0;net472</TargetFrameworks>
     <RootNamespace>GitHub.UI</RootNamespace>
     <AssemblyName>GitHub.UI.Shared</AssemblyName>
   </PropertyGroup>
