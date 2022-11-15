@@ -86,7 +86,7 @@ namespace GitCredentialManager.Commands
             fullLog.WriteLine($"AppPath: {_context.ApplicationPath}");
             fullLog.WriteLine($"InstallDir: {_context.InstallationDirectory}");
             fullLog.WriteLine(
-                TryGetAssemblyVersion(out string version)
+                AssemblyUtils.TryGetAssemblyVersion(out string version)
                     ? $"Version: {version}"
                     : "Version: [!] Failed to get version information [!]"
             );
@@ -196,24 +196,6 @@ namespace GitCredentialManager.Commands
 
             fullLog.Close();
             return numFailed;
-        }
-
-        private bool TryGetAssemblyVersion(out string version)
-        {
-            try
-            {
-                var assembly = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
-                var assemblyVersionAttribute = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>();
-                version = assemblyVersionAttribute is null
-                    ? assembly.GetName().Version.ToString()
-                    : assemblyVersionAttribute.InformationalVersion;
-                return true;
-            }
-            catch
-            {
-                version = null;
-                return false;
-            }
         }
 
         private static class ConsoleEx
