@@ -70,7 +70,7 @@ namespace GitCredentialManager
         {
 #if NETFRAMEWORK
             return Environment.OSVersion.Platform == PlatformID.MacOSX;
-#elif NETSTANDARD
+#else
             return RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
 #endif
         }
@@ -83,7 +83,7 @@ namespace GitCredentialManager
         {
 #if NETFRAMEWORK
             return Environment.OSVersion.Platform == PlatformID.Win32NT;
-#elif NETSTANDARD
+#else
             return RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 #endif
         }
@@ -96,7 +96,7 @@ namespace GitCredentialManager
         {
 #if NETFRAMEWORK
             return Environment.OSVersion.Platform == PlatformID.Unix;
-#elif NETSTANDARD
+#else
             return RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
 #endif
         }
@@ -176,30 +176,34 @@ namespace GitCredentialManager
             return false;
         }
 
-        #region Platform argv[0] Utils
+        #region Platform Entry Path Utils
 
-        public static string GetNativeArgv0()
+        /// <summary>
+        /// Get the native entry executable absolute path.
+        /// </summary>
+        /// <returns>Entry absolute path or null if there was an error.</returns>
+        public static string GetNativeEntryPath()
         {
             try
             {
                 if (IsWindows())
                 {
-                    return GetWindowsArgv0();
+                    return GetWindowsEntryPath();
                 }
 
                 if (IsMacOS())
                 {
-                    return GetMacOSArgv0();
+                    return GetMacOSEntryPath();
                 }
 
                 if (IsLinux())
                 {
-                    return GetLinuxArgv0();
+                    return GetLinuxEntryPath();
                 }
             }
             catch
             {
-                // If there are any issues getting the native argv[0]
+                // If there are any issues getting the native entry path
                 // we should not throw, and certainly not crash!
                 // Just return null instead.
             }
@@ -207,21 +211,78 @@ namespace GitCredentialManager
             return null;
         }
 
-        private static string GetLinuxArgv0()
+        private static string GetLinuxEntryPath()
         {
+            // Try to extract our native argv[0] from the original cmdline
             string cmdline = File.ReadAllText("/proc/self/cmdline");
-            return cmdline.Split('\0')[0];
+            string argv0 = cmdline.Split('\0')[0];
+
+            // argv[0] is an absolute file path
+            if (Path.IsPathRooted(argv0))
+            {
+                return argv0;
+            }
+
+            string path = Path.GetFullPath(
+                Path.Combine(Environment.CurrentDirectory, argv0)
+            );
+
+            // argv[0] is relative to current directory (./app) or a relative
+            // name resolved from the current directory (subdir/app).
+            // Note that we do NOT want to consider the case when it is just
+            // a simple filename (argv[0] == "app") because that would actually
+            // have been resolved from the $PATH instead (handled below)!
+            if ((argv0.StartsWith("./") || argv0.IndexOf('/') > 0) && File.Exists(path))
+            {
+                return path;
+            }
+
+            // argv[0] is a name that was resolved from the $PATH
+            string pathVar = Environment.GetEnvironmentVariable("PATH");
+            if (pathVar != null)
+            {
+                string[] paths = pathVar.Split(':');
+                foreach (string pathBase in paths)
+                {
+                    path = Path.Combine(pathBase, argv0);
+                    if (File.Exists(path))
+                    {
+                        return path;
+                    }
+                }
+            }
+
+#if NETFRAMEWORK
+            return null;
+#else
+            //
+            // We cannot determine the absolute file path from argv[0]
+            // (how we were launched), so let's now try to extract the
+            // fully resolved executable path from /proc/self/exe.
+            // Note that this means we may miss if we've been invoked
+            // via a symlink, but it's better than nothing at this point!
+            //
+            FileSystemInfo fsi = File.ResolveLinkTarget("/proc/self/exe", returnFinalTarget: false);
+            return fsi?.FullName;
+#endif
         }
 
-        private static string GetMacOSArgv0()
+        private static string GetMacOSEntryPath()
         {
-            IntPtr ptr = Interop.MacOS.Native.LibC._NSGetArgv();
-            IntPtr argvPtr = Marshal.ReadIntPtr(ptr);
-            IntPtr argv0Ptr = Marshal.ReadIntPtr(argvPtr);
-            return Marshal.PtrToStringAnsi(argv0Ptr);
+            // Determine buffer size by passing NULL initially
+            Interop.MacOS.Native.LibC._NSGetExecutablePath(IntPtr.Zero, out int size);
+
+            IntPtr bufPtr = Marshal.AllocHGlobal(size);
+            int result = Interop.MacOS.Native.LibC._NSGetExecutablePath(bufPtr, out size);
+
+            // buf is null-byte terminated
+            string name = result == 0 ? Marshal.PtrToStringAuto(bufPtr) : null;
+            Marshal.FreeHGlobal(bufPtr);
+
+            return name;
         }
 
-        private static string GetWindowsArgv0()
+        private static string GetWindowsEntryPath()
         {
             IntPtr argvPtr = Interop.Windows.Native.Shell32.CommandLineToArgvW(
                 Interop.Windows.Native.Kernel32.GetCommandLine(), out _);
@@ -309,7 +370,7 @@ namespace GitCredentialManager
         {
 #if NETFRAMEWORK
             return Environment.Is64BitOperatingSystem ? "x86-64" : "x86";
-#elif NETSTANDARD
+#else
             switch (RuntimeInformation.OSArchitecture)
             {
                 case Architecture.Arm:
@@ -330,7 +391,7 @@ namespace GitCredentialManager
         {
 #if NETFRAMEWORK
             return $".NET Framework {Environment.Version}";
-#elif NETSTANDARD
+#else
             return RuntimeInformation.FrameworkDescription;
 #endif
         }

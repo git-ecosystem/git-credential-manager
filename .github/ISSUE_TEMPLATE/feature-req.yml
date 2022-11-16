@@ -1,0 +1,22 @@
+name: Feature request
+description: A suggestion for a new feature in Git Credential Manager.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this feature request!
+
+        Please be as detailed as possible describing your idea; how it fixes a problem or makes something easier.
+
+        Although we cannot guarentee we will accept all requests, we will still take time to consider your ideas. Whilst we may be supportive of an idea in principal, as maintainers we may not always be able to dedicate time to implementing them. We always welcome community support and contributions however! :heart:
+  - type: textarea
+    id: description
+    attributes:
+      label: Feature description
+      description: |
+        A clear and concise description of the new feature.
+      placeholder: |
+        ex: Add spline reticulation option to widget authentication mechanism.
+    validations:
+      required: true

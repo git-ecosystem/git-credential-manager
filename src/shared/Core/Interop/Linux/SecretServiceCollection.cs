@@ -65,7 +65,7 @@ namespace GitCredentialManager.Interop.Linux
                     throw new InteropException("Failed to search for credentials", code, new Exception(message));
                 }
 
-                if (results != null && results->data != null)
+                if (results != null && results->data != IntPtr.Zero)
                 {
                     SecretItem* item = (SecretItem*) results->data;
 

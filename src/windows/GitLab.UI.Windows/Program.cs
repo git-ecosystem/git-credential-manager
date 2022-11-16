@@ -12,7 +12,8 @@ namespace GitLab.UI
         public static async Task Main(string[] args)
         {
             string appPath = ApplicationBase.GetEntryApplicationPath();
-            using (var context = new CommandContext(appPath))
+            string installDir = ApplicationBase.GetInstallationDirectory();
+            using (var context = new CommandContext(appPath, installDir))
             using (var app = new HelperApplication(context))
             {
                 if (args.Length == 0)

@@ -83,7 +83,8 @@ namespace GitCredentialManager.Commands
             using var fullLog = new StreamWriter(logFilePath, append: false, Encoding.UTF8);
             fullLog.WriteLine("Diagnose log at {0:s}Z", DateTime.UtcNow);
             fullLog.WriteLine();
-            fullLog.WriteLine($"Executable: {_context.ApplicationPath}");
+            fullLog.WriteLine($"AppPath: {_context.ApplicationPath}");
+            fullLog.WriteLine($"InstallDir: {_context.InstallationDirectory}");
             fullLog.WriteLine(
                 TryGetAssemblyVersion(out string version)
                     ? $"Version: {version}"

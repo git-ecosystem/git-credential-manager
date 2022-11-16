@@ -8,9 +8,6 @@ namespace GitCredentialManager.Interop.MacOS.Native
         private const string LibCLib = "libc";
 
         [DllImport(LibCLib, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr _NSGetArgv();
-
-        [DllImport(LibCLib, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr _NSGetProgname();
+        public static extern int _NSGetExecutablePath(IntPtr buf, out int bufsize);
     }
 }

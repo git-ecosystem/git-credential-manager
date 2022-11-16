@@ -85,7 +85,7 @@ namespace GitCredentialManager
 
 #if NETFRAMEWORK
                 ServicePointManager.ServerCertificateValidationCallback = (req, cert, chain, errors) => true;
-#elif NETSTANDARD
+#else
                 handler.ServerCertificateCustomValidationCallback = (req, cert, chain, errors) => true;
 #endif
             }
@@ -174,7 +174,7 @@ namespace GitCredentialManager
                         return validationCallback(cert2, chain, errors);
                     }
                 };
-#elif NETSTANDARD
+#else
                 handler.ServerCertificateCustomValidationCallback = (_, cert, chain, errors) => validationCallback(cert, chain, errors);
 #endif
             }
