@@ -13,7 +13,6 @@ INSTALLER_SRC="$SRC/osx/Installer.Mac"
 
 # Product information
 IDENTIFIER="com.microsoft.gitcredentialmanager"
-INSTALL_LOCATION="/usr/local/share/gcm-core"
 
 # Parse script arguments
 for i in "$@"
@@ -31,11 +30,33 @@ case "$i" in
     PKGOUT="${i#*=}"
     shift # past argument=value
     ;;
+    --runtime=*)
+    RUNTIME="${i#*=}"
+    shift # past argument=value
+    ;;
     *)
           # unknown option
     ;;
 esac
 done
+
+if [ -z "$RUNTIME" ]; then
+    die "--runtime was not set"
+fi
+
+case "$RUNTIME" in
+    "osx-x64")
+        PREFIX="/usr/local"
+        ;;
+    "osx-arm64")
+        PREFIX="/opt/homebrew"
+        ;;
+    *)
+        die "Unknown runtime '$RUNTIME'"
+        ;;
+esac
+
+INSTALL_LOCATION="$PREFIX/share/gcm-core"
 
 # Perform pre-execution checks
 if [ -z "$VERSION" ]; then

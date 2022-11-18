@@ -160,7 +160,7 @@ jobs:
     - name: Create component package
       run: |
         src/osx/Installer.Mac/pack.sh --payload=payload \
-         --version=$GitBuildVersionSimple \
+         --version=$GitBuildVersionSimple --runtime=${{ matrix.runtime }} \
          --output=components/com.microsoft.gitcredentialmanager.component.pkg
     
     - name: Create product archive
