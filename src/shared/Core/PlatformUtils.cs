@@ -289,7 +289,11 @@ namespace GitCredentialManager
             IntPtr argv0Ptr = Marshal.ReadIntPtr(argvPtr);
             string argv0 = Marshal.PtrToStringAuto(argv0Ptr);
             Interop.Windows.Native.Kernel32.LocalFree(argvPtr);
-            return argv0;
+
+            // If this isn't absolute then we should return null to prevent any
+            // caller that expect only an absolute path from mis-using this result.
+            // They will have to fall-back to other mechanisms for getting the entry path.
+            return Path.IsPathRooted(argv0) ? argv0 : null;
         }
 
         #endregion
