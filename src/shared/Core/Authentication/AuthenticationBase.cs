@@ -140,6 +140,11 @@ namespace GitCredentialManager.Authentication
 
                 Context.Trace.WriteLine($"UI helper override specified: '{helperName}'.");
             }
+            else if (string.IsNullOrWhiteSpace(defaultValue))
+            {
+                Context.Trace.WriteLine("No default UI supplied.");
+                return false;
+            }
             else
             {
                 Context.Trace.WriteLine($"Using default UI helper: '{defaultValue}'.");
