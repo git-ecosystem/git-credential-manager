@@ -43,16 +43,24 @@ namespace GitCredentialManager
                 //
                 // On UNIX systems we do the same check, except instead of a copy we use a symlink.
                 //
-                string oldName = PlatformUtils.IsWindows()
-                    ? "git-credential-manager-core.exe"
-                    : "git-credential-manager-core";
 
-                if (appPath?.EndsWith(oldName, StringComparison.OrdinalIgnoreCase) ?? false)
+                if (!string.IsNullOrWhiteSpace(appPath))
                 {
-                    context.Streams.Error.WriteLine(
-                        "warning: git-credential-manager-core was renamed to git-credential-manager");
-                    context.Streams.Error.WriteLine(
-                        $"warning: see {Constants.HelpUrls.GcmExecRename} for more information");
+                    // Trim any (.exe) file extension if we're on Windows
+                    // Note that in some circumstances (like being called by Git when config is set
+                    // to just `helper = manager-core`) we don't always have ".exe" at the end.
+                    if (PlatformUtils.IsWindows() && appPath.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
+                    {
+                        appPath = appPath.Substring(0, appPath.Length - 4);
+                    }
+
+                    if (appPath.EndsWith("git-credential-manager-core", StringComparison.OrdinalIgnoreCase))
+                    {
+                        context.Streams.Error.WriteLine(
+                            "warning: git-credential-manager-core was renamed to git-credential-manager");
+                        context.Streams.Error.WriteLine(
+                            $"warning: see {Constants.HelpUrls.GcmExecRename} for more information");
+                    }
                 }
 
                 // Register all supported host providers at the normal priority.
