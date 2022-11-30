@@ -84,7 +84,7 @@ git-credential-manager configure
 
 ```shell
 git-credential-manager unconfigure
-sudo dpkg -r gcmcore
+sudo dpkg -r gcm
 ```
 
 ---
