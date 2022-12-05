@@ -378,29 +378,28 @@ jobs:
     - name: Lay out
       run: |
         mkdir -p linux-build/deb linux-build/tar
-        mv out/linux/Packaging.Linux/deb/Release/*.deb linux-build/deb
-        mv out/linux/Packaging.Linux/tar/Release/*.tar.gz linux-build/tar
+        mv out/linux/Packaging.Linux/Release/deb/*.deb linux-build/deb
+        mv out/linux/Packaging.Linux/Release/tar/*.tar.gz linux-build/tar
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: linux-build
+        name: tmp.linux-build
         path: |
           linux-build
 
   linux-sign:
-    name: Sign Debian package
+    name: Sign Linux tarball and Debian package
+    needs: linux-build
     # ESRP service requires signing to run on Windows
     runs-on: windows-latest
-    needs: linux-build
     steps:
     - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
 
     - name: Download artifacts
       uses: actions/download-artifact@v3
       with:
-        name: linux-build
-        path: artifacts
+        name: tmp.linux-build
 
     - uses: azure/login@v1
       with:
@@ -422,9 +421,10 @@ jobs:
         LINUX_KEY_CODE: ${{ secrets.LINUX_KEY_CODE }}
         LINUX_OP_CODE: ${{ secrets.LINUX_OPERATION_CODE }}
       run: |
-        python .github/run_esrp_signing.py artifacts/deb $env:LINUX_KEY_CODE $env:LINUX_OP_CODE
+        python .github/run_esrp_signing.py deb $env:LINUX_KEY_CODE $env:LINUX_OP_CODE
+        python .github/run_esrp_signing.py tar $env:LINUX_KEY_CODE $env:LINUX_OP_CODE
 
-    - name: Upload signed Debian package
+    - name: Upload signed tarball and Debian package
       uses: actions/upload-artifact@v3
       with:
         name: linux-sign
@@ -596,7 +596,6 @@ jobs:
 
               // Upload Linux artifacts
               uploadDirectoryToRelease('linux-sign'),
-              uploadDirectoryToRelease('linux-build/tar')
             ]);
 
   create-dotnet-tool:
