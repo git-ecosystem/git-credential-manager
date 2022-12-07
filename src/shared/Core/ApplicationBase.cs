@@ -91,7 +91,7 @@ namespace GitCredentialManager
 
         public static string GetInstallationDirectory()
         {
-            return Path.GetDirectoryName(Environment.GetCommandLineArgs()[0]);
+            return AppContext.BaseDirectory;
         }
 
         /// <summary>

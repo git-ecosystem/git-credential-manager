@@ -22,7 +22,10 @@ namespace GitCredentialManager.Interop.Windows
 
         protected override string[] SplitPathVariable(string value)
         {
-            return value.Split(';');
+            // Ensure we don't return empty values here - callers may use this as the base
+            // path for `Path.Combine(..)`, for which an empty value means 'current directory'.
+            // We only ever want to use the current directory for path resolution explicitly.
+            return value.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
         }
 
         public override void AddDirectoryToPath(string directoryPath, EnvironmentVariableTarget target)
