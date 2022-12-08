@@ -45,6 +45,9 @@ fi
 OUTDIR="$INSTALLER_OUT/$CONFIGURATION"
 PAYLOAD="$OUTDIR/payload"
 
+# Lay out payload
+"$INSTALLER_SRC/layout.sh" --configuration="$CONFIGURATION" || exit 1
+
 if [ $INSTALL_FROM_SOURCE = true ]; then
     INSTALL_LOCATION="/usr/local"
     mkdir -p "$INSTALL_LOCATION"
@@ -74,8 +77,7 @@ if [ $INSTALL_FROM_SOURCE = true ]; then
 
     echo "Install complete."
 else
-    # Layout and pack
-    "$INSTALLER_SRC/layout.sh" --configuration="$CONFIGURATION" --output="$PAYLOAD" --symbol-output="$" || exit 1
+    # Pack
     "$INSTALLER_SRC/pack.sh" --configuration="$CONFIGURATION" --payload="$PAYLOAD" --version="$VERSION" || exit 1
 fi
 
