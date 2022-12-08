@@ -430,6 +430,188 @@ jobs:
         name: linux-sign
         path: |
           signed
+  
+# ================================
+#           .NET Tool
+# ================================
+  dotnet-tool-build:
+    name: Build .NET tool
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0 # Indicate full history so Nerdbank.GitVersioning works.
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3.0.3
+      with:
+        dotnet-version: 6.0.201
+
+    - uses: dotnet/nbgv@master
+      with:
+        setCommonVars: true
+
+    - name: Build .NET tool
+      run: |
+        src/shared/DotnetTool/layout.sh --configuration=Release
+
+    - name: Upload .NET tool artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: tmp.dotnet-tool-build
+        path: |
+          out/shared/DotnetTool/nupkg/Release
+
+  dotnet-tool-payload-sign:
+    name: Sign .NET tool payload
+    # ESRP service requires signing to run on Windows
+    runs-on: windows-latest
+    needs: dotnet-tool-build
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+
+    - name: Download payload
+      uses: actions/download-artifact@v3
+      with:
+        name: tmp.dotnet-tool-build
+    
+    - name: Zip unsigned payload
+      shell: pwsh
+      run: |
+        Compress-Archive -Path payload payload/payload.zip
+        cd payload
+        Get-ChildItem -Exclude payload.zip | Remove-Item -Recurse -Force
+    
+    - uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    
+    - name: Set up ESRP client
+      shell: pwsh
+      env:
+        AZURE_VAULT: ${{ secrets.AZURE_VAULT }}
+        AUTH_CERT: ${{ secrets.AZURE_VAULT_AUTH_CERT_NAME }}
+        REQUEST_SIGNING_CERT: ${{ secrets.AZURE_VAULT_REQUEST_SIGNING_CERT_NAME }}
+      run: |
+        .github\set_up_esrp.ps1
+    
+    - name: Run ESRP client
+      shell: pwsh
+      env:
+        AZURE_AAD_ID: ${{ secrets.AZURE_AAD_ID }}
+        NUGET_KEY_CODE: ${{ secrets.NUGET_KEY_CODE }}
+        NUGET_OPERATION_CODE: ${{ secrets.NUGET_OPERATION_CODE }}
+      run: |
+        python .github\run_esrp_signing.py payload `
+         $env:NUGET_KEY_CODE $env:NUGET_OPERATION_CODE
+    
+    - name: Lay out signed payload, images, and symbols
+      shell: bash
+      run: |
+        mkdir dotnet-tool-payload-sign
+        rm -rf payload
+        mv images payload.sym -t dotnet-tool-payload-sign
+        unzip signed/payload.zip -d dotnet-tool-payload-sign
+
+    - name: Upload signed payload
+      uses: actions/upload-artifact@v3
+      with:
+        name: dotnet-tool-payload-sign
+        path: |
+          dotnet-tool-payload-sign
+  
+  dotnet-tool-pack:
+    name: Package .NET tool
+    runs-on: ubuntu-latest
+    needs: dotnet-tool-payload-sign
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0 # Indicate full history so Nerdbank.GitVersioning works.
+
+    - name: Download signed payload
+      uses: actions/download-artifact@v3
+      with:
+        name: dotnet-tool-payload-sign
+        path: signed
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3.0.3
+      with:
+        dotnet-version: 6.0.201
+
+    - uses: dotnet/nbgv@master
+      with:
+        setCommonVars: true
+
+    - name: Package tool
+      run: |
+        src/shared/DotnetTool/pack.sh --configuration=Release \
+          --version=$GitBuildVersionSimple --publish-dir=$(pwd)/signed
+
+    - name: Upload unsigned package
+      uses: actions/upload-artifact@v3
+      with:
+        name: tmp.dotnet-tool-package-unsigned
+        path: |
+          out/shared/DotnetTool/nupkg/Release/*.nupkg
+
+  dotnet-tool-sign:
+    name: Sign .NET tool package
+    # ESRP service requires signing to run on Windows
+    runs-on: windows-latest
+    needs: dotnet-tool-pack
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+
+    - name: Download unsigned package
+      uses: actions/download-artifact@v3
+      with:
+        name: tmp.dotnet-tool-package-unsigned
+        path: nupkg
+    
+    - name: Zip unsigned package
+      shell: pwsh
+      run: |
+        Compress-Archive -Path nupkg/*.nupkg nupkg/gcm-nupkg.zip
+        cd nupkg
+        Get-ChildItem -Exclude gcm-nupkg.zip | Remove-Item -Recurse -Force
+    
+    - uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    
+    - name: Set up ESRP client
+      shell: pwsh
+      env:
+        AZURE_VAULT: ${{ secrets.AZURE_VAULT }}
+        AUTH_CERT: ${{ secrets.AZURE_VAULT_AUTH_CERT_NAME }}
+        REQUEST_SIGNING_CERT: ${{ secrets.AZURE_VAULT_REQUEST_SIGNING_CERT_NAME }}
+      run: |
+        .github\set_up_esrp.ps1
+    
+    - name: Sign package
+      shell: pwsh
+      env:
+        AZURE_AAD_ID: ${{ secrets.AZURE_AAD_ID }}
+        NUGET_KEY_CODE: ${{ secrets.NUGET_KEY_CODE }}
+        NUGET_OPERATION_CODE: ${{ secrets.NUGET_OPERATION_CODE }}
+      run: |
+        python .github\run_esrp_signing.py nupkg $env:NUGET_KEY_CODE $env:NUGET_OPERATION_CODE
+    
+    - name: Unzip signed package
+      shell: pwsh
+      run: |
+        Expand-Archive -LiteralPath signed\gcm-nupkg.zip -DestinationPath .\signed -Force
+        Remove-Item signed\gcm-nupkg.zip -Force
+    
+    - name: Publish signed package
+      uses: actions/upload-artifact@v3
+      with:
+        name: dotnet-tool-sign
+        path: signed/*.nupkg
 
 # ================================
 #           Validate
@@ -452,8 +634,11 @@ jobs:
             # Windows due to its placement on the PATH. For this reason, we use
             # the full path to our installation to validate the Windows version.
             command: "$PROGRAMFILES (x86)/Git Credential Manager/git-credential-manager.exe"
+          - os: ubuntu-latest
+            artifact: dotnet-tool-sign
+            command: git-credential-manager
     runs-on: ${{ matrix.component.os }}
-    needs: [ osx-sign, win-sign, linux-sign ]
+    needs: [ osx-sign, win-sign, linux-sign, dotnet-tool-sign ]
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
         with:
@@ -479,7 +664,7 @@ jobs:
           }
 
       - name: Install Linux
-        if: contains(matrix.component.os, 'ubuntu')
+        if: contains(matrix.component.os, 'ubuntu') && contains(matrix.component.artifact, 'linux')
         run: |
           debpath=$(find ./*.deb)
           sudo apt install $debpath
@@ -491,6 +676,13 @@ jobs:
           # Only validate x64, given arm64 agents are not available
           pkgpath=$(find ./*.pkg)
           sudo installer -pkg $pkgpath -target /
+      
+      - name: Install .NET tool
+        if: contains(matrix.component.os, 'ubuntu') && contains(matrix.component.artifact, 'dotnet-tool')
+        run: |
+          nupkgpath=$(find ./*.nupkg)
+          dotnet tool install -g --add-source $(dirname "$nupkgpath") git-credential-manager
+          "${{ matrix.component.command }}" configure
 
       - name: Validate
         shell: bash
@@ -596,32 +788,12 @@ jobs:
 
               // Upload Linux artifacts
               uploadDirectoryToRelease('linux-sign'),
+
+              // Upload .NET tool package
+              uploadDirectoryToRelease('dotnet-tool-sign'),
             ]);
 
-  create-dotnet-tool:
-    name: Publish dotnet tool
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
-      with:
-        fetch-depth: 0 # Indicate full history so Nerdbank.GitVersioning works.
-
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v3.0.3
-      with:
-        dotnet-version: 6.0.201
-
-    - uses: dotnet/nbgv@master
-      with:
-        setCommonVars: true
-
-    - name: Package tool
-      run: |
-        src/shared/DotnetTool/pack-tool.sh \
-          --version=$GitBuildVersionSimple \
-          --configuration=Release
-
-    - name: Publish tool
-      run: |
-        dotnet nuget push ./out/shared/DotnetTool/nupkg/Release/*.nupkg \
-          --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+      - name: Publish .NET tool to nuget.org
+        run: |
+          dotnet nuget push dotnet-tool-sign/signed/*.nupkg \
+            --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
