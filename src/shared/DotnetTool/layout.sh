@@ -1,9 +1,4 @@
 #!/bin/bash
-die () {
-    echo "$*" >&2
-    exit 1
-}
-
 make_absolute () {
     case "$1" in
     /*)
@@ -26,19 +21,11 @@ case "$i" in
     CONFIGURATION="${i#*=}"
     shift # past argument=value
     ;;
-    --version=*)
-    VERSION="${i#*=}"
-    shift # past argument=value
-    ;;
     *)
           # unknown option
     ;;
 esac
 done
-
-if [ -z "$VERSION" ]; then
-    die "--version was not set"
-fi
 
 # Directories
 THISDIR="$( cd "$(dirname "$0")" ; pwd -P )"
@@ -126,15 +113,3 @@ echo "Copying images..."
 cp "$SRC/$DOTNET_TOOL/icon.png" "$IMGOUT" || exit 1
 
 echo "Build complete."
-
-#####################################################################
-# Pack dotnet tool
-#####################################################################
-echo "Creating dotnet tool package..."
-
-dotnet pack "$SRC/$DOTNET_TOOL/DotnetTool.csproj" \
-    /p:Configuration="$CONFIGURATION" \
-    /p:PackageVersion="$VERSION" \
-    /p:PublishDir="$OUTDIR/"
-
-echo "Dotnet tool pack complete."
