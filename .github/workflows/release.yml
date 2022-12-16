@@ -795,5 +795,5 @@ jobs:
 
       - name: Publish .NET tool to nuget.org
         run: |
-          dotnet nuget push dotnet-tool-sign/signed/*.nupkg \
+          dotnet nuget push dotnet-tool-sign/*.nupkg \
             --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
