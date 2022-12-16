@@ -291,7 +291,6 @@ namespace GitCredentialManager.Interop.Linux
                 if (accountKeyPtr != IntPtr.Zero) Marshal.FreeHGlobal(accountKeyPtr);
                 if (serviceKeyPtr != IntPtr.Zero) Marshal.FreeHGlobal(serviceKeyPtr);
                 if (value != null) secret_value_unref(value);
-                if (passwordPtr != IntPtr.Zero) secret_password_free(passwordPtr);
                 if (error != null) g_error_free(error);
             }
         }
