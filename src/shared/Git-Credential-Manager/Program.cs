@@ -2,6 +2,7 @@ using System;
 using Atlassian.Bitbucket;
 using GitHub;
 using GitLab;
+using Gitee;
 using Microsoft.AzureRepos;
 using GitCredentialManager.Authentication;
 
@@ -69,6 +70,7 @@ namespace GitCredentialManager
                 app.RegisterProvider(new BitbucketHostProvider(context),  HostProviderPriority.Normal);
                 app.RegisterProvider(new GitHubHostProvider(context),     HostProviderPriority.Normal);
                 app.RegisterProvider(new GitLabHostProvider(context),     HostProviderPriority.Normal);
+                app.RegisterProvider(new GiteeHostProvider(context),     HostProviderPriority.Normal);
                 app.RegisterProvider(new GenericHostProvider(context),    HostProviderPriority.Low);
 
                 int exitCode = app.RunAsync(args)

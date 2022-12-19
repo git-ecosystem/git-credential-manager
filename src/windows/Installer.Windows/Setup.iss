@@ -121,6 +121,10 @@ Source: "{#PayloadDir}\GitLab.dll";                                     DestDir:
 Source: "{#PayloadDir}\GitLab.UI.exe";                                  DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PayloadDir}\GitLab.UI.exe.config";                           DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PayloadDir}\GitLab.UI.Shared.dll";                           DestDir: "{app}"; Flags: ignoreversion
+Source: "{#PayloadDir}\Gitee.dll";                                     DestDir: "{app}"; Flags: ignoreversion
+Source: "{#PayloadDir}\Gitee.UI.exe";                                  DestDir: "{app}"; Flags: ignoreversion
+Source: "{#PayloadDir}\Gitee.UI.exe.config";                           DestDir: "{app}"; Flags: ignoreversion
+Source: "{#PayloadDir}\Gitee.UI.Shared.dll";                           DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PayloadDir}\Microsoft.AzureRepos.dll";                       DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PayloadDir}\gcmcore.dll";                                    DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PayloadDir}\gcmcoreui.dll";                                  DestDir: "{app}"; Flags: ignoreversion
