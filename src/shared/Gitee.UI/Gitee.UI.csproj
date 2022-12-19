@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net6.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(OSPlatform)'=='windows'">net6.0;net472</TargetFrameworks>
+    <RootNamespace>Gitee.UI</RootNamespace>
+    <AssemblyName>Gitee.UI.Shared</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Gitee\Gitee.csproj" />
+    <ProjectReference Include="..\Core.UI\Core.UI.csproj" />
+  </ItemGroup>
+
+</Project>
