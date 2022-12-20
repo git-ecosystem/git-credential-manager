@@ -12,6 +12,7 @@ $GCM_UI_SRC = "$SRC/windows/Git-Credential-Manager.UI.Windows"
 $BITBUCKET_UI_SRC = "$SRC/windows/Atlassian.Bitbucket.UI.Windows"
 $GITHUB_UI_SRC = "$SRC/windows/GitHub.UI.Windows"
 $GITLAB_UI_SRC = "$SRC/windows/GitLab.UI.Windows"
+$GITEE_UI_SRC = "$SRC/windows/Gitee.UI.Windows"
 
 # Perform pre-execution checks
 $PAYLOAD = "$OUTPUT"
@@ -63,6 +64,11 @@ dotnet publish "$GITHUB_UI_SRC" `
 
 Write-Output "Publishing GitLab UI helper..."
 dotnet publish "$GITLAB_UI_SRC" `
+	--configuration "$CONFIGURATION" `
+	--output "$PAYLOAD" 
+
+Write-Output "Publishing Gitee UI helper..."
+dotnet publish "$GITEE_UI_SRC" `
 	--configuration "$CONFIGURATION" `
 	--output "$PAYLOAD" 
 

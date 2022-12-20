@@ -37,6 +37,7 @@ GCM_UI_SRC="$SRC/shared/Git-Credential-Manager.UI.Avalonia"
 BITBUCKET_UI_SRC="$SRC/shared/Atlassian.Bitbucket.UI.Avalonia"
 GITHUB_UI_SRC="$SRC/shared/GitHub.UI.Avalonia"
 GITLAB_UI_SRC="$SRC/shared/GitLab.UI.Avalonia"
+GITEE_UI_SRC="$SRC/shared/Gitee.UI.Avalonia"
 DOTNET_TOOL="shared/DotnetTool"
 PROJ_OUT="$OUT/$DOTNET_TOOL"
 
@@ -95,6 +96,13 @@ $DOTNET_ROOT/dotnet publish "$GITHUB_UI_SRC" \
 
 echo "Publishing GitLab UI helper..."
 $DOTNET_ROOT/dotnet publish "$GITLAB_UI_SRC" \
+    --configuration="$CONFIGURATION" \
+    --framework="$FRAMEWORK" \
+    --output="$(make_absolute "$PAYLOAD")" \
+    -p:UseAppHost=false || exit 1
+
+echo "Publishing Gitee UI helper..."
+$DOTNET_ROOT/dotnet publish "$GITEE_UI_SRC" \
     --configuration="$CONFIGURATION" \
     --framework="$FRAMEWORK" \
     --output="$(make_absolute "$PAYLOAD")" \
