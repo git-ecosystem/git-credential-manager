@@ -12,7 +12,7 @@ namespace Gitee
         public const string OAuthClientId = "09776da975878a86ed655d5ada62a5d4e6faf8e89514ec982794eb61f4092d01";
         public const string OAuthClientSecret = "1d52e7bb3c53b396ad3c4e256ca1eaff27df20a782cd4f1f3dfefa32f44bafc9";
 
-        public static readonly Uri OAuthRedirectUri = new Uri("http://127.0.0.1/");
+        public static readonly Uri OAuthRedirectUri = new Uri("http://127.0.0.1:52344/");
         // https://gitee.com/api/v5/oauth_doc#/
         public static readonly Uri OAuthAuthorizationEndpointRelativeUri = new Uri("/oauth/authorize", UriKind.Relative);
         public static readonly Uri OAuthTokenEndpointRelativeUri = new Uri("/oauth/token", UriKind.Relative);
