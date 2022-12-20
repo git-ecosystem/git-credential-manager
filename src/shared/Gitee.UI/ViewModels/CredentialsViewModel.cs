@@ -60,7 +60,7 @@ namespace Gitee.UI.ViewModels
 
         private void SignUp()
         {
-            BrowserUtils.OpenDefaultBrowser(_environment, "https://about.Gitee.com/");
+            BrowserUtils.OpenDefaultBrowser(_environment, "https://gitee.com/signup");
         }
 
         private void SignInBrowser()

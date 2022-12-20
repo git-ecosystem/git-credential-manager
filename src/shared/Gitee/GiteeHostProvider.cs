@@ -28,7 +28,7 @@ namespace Gitee
             _GiteeAuth = GiteeAuth;
         }
 
-        public override string Id => "Gitee";
+        public override string Id => "gitee";
 
         public override string Name => "Gitee";
 
@@ -63,7 +63,7 @@ namespace Gitee
 
             // Gitee[.subdomain].domain.tld
             if (domains.Length >= 3 &&
-                StringComparer.OrdinalIgnoreCase.Equals(domains[0], "Gitee"))
+                StringComparer.OrdinalIgnoreCase.Equals(domains[0], "gitee"))
             {
                 return true;
             }
@@ -214,7 +214,6 @@ namespace Gitee
 
         private async Task<bool> IsOAuthTokenExpired(Uri baseUri, string accessToken)
         {
-            // https://docs.Gitee.com/ee/api/oauth2.html#retrieve-the-token-information
             Uri infoUri = new Uri(baseUri, "/oauth/token/info");
             using (HttpClient httpClient = Context.HttpClientFactory.CreateClient())
             {
@@ -242,7 +241,6 @@ namespace Gitee
                 RefreshToken = oAuth2TokenResult.RefreshToken;
             }
 
-            // username must be 'oauth2' https://docs.Gitee.com/ee/api/oauth2.html#access-git-over-https-with-access-token
             public string Account => "oauth2";
             public string AccessToken { get; }
             public string RefreshToken { get; }
