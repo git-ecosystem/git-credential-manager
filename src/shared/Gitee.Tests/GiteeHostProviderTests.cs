@@ -9,9 +9,9 @@ namespace Gitee.Tests
     public class GiteeHostProviderTests
     {
         [Theory]
-        [InlineData("https", "Gitee.com", true)]
-        [InlineData("http", "Gitee.com", true)]
-        [InlineData("https", "Gitee.example.com", true)]
+        [InlineData("https", "gitee.com", true)]
+        [InlineData("http", "gitee.com", true)]
+        [InlineData("https", "gitee.example.com", true)]
         [InlineData("https", "github.com", false)]
         [InlineData("https", "github.example.com", false)]
         public void GiteeHostProvider_IsSupported(string protocol, string host, bool expected)
@@ -42,7 +42,7 @@ namespace Gitee.Tests
         [Fact]
         public void GiteeHostProvider_GetSupportedAuthenticationModes_Custom_NoOAuthConfig_ReturnsBasicPat()
         {
-            var targetUri = new Uri("https://Gitee.example.com");
+            var targetUri = new Uri("https://gitee.example.com");
             var expected = AuthenticationModes.Basic
                                           | AuthenticationModes.Pat;
 
@@ -56,7 +56,7 @@ namespace Gitee.Tests
         [Fact]
         public void GiteeHostProvider_GetSupportedAuthenticationModes_Custom_WithOAuthConfig_ReturnsBasicPatBrowser()
         {
-            var targetUri = new Uri("https://Gitee.example.com");
+            var targetUri = new Uri("https://gitee.example.com");
             var expected = AuthenticationModes.Basic
                                           | AuthenticationModes.Pat
                                           | AuthenticationModes.Browser;
