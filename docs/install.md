@@ -64,7 +64,7 @@ sudo /usr/local/share/gcm-core/uninstall.sh
 
 ### .NET tool :star:
 
-See the [.NET tool](#.NET-tool) section below for instructions on this
+See the [.NET tool](#net-tool) section below for instructions on this
 installation method.
 
 ---
