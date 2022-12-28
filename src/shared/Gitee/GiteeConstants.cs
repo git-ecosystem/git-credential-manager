@@ -8,7 +8,7 @@ namespace Gitee
 
         public const string DefaultAuthenticationHelper = "Gitee.UI";
 
-        // Owned by https://gitee.com/maikebing/git-credential-manager
+        // Owned by https://gitee.com/GitCredentialManager/git-credential-manager/issues
         public const string OAuthClientId = "09776da975878a86ed655d5ada62a5d4e6faf8e89514ec982794eb61f4092d01";
         public const string OAuthClientSecret = "1d52e7bb3c53b396ad3c4e256ca1eaff27df20a782cd4f1f3dfefa32f44bafc9";
 
@@ -42,7 +42,7 @@ namespace Gitee
 
         public static class HelpUrls
         {
-            public const string Gitee = "https://gitee.com/maikebing/git-credential-manager/issues";
+            public const string Gitee = "https://gitee.com/GitCredentialManager/git-credential-manager/issues";
         }
 
         public static bool IsGiteeDotCom(Uri uri) => StringComparer.OrdinalIgnoreCase.Equals(uri.Host, GiteeDotCom.Host);
