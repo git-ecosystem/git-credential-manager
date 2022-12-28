@@ -15,7 +15,7 @@ namespace Gitee
             "projects "
         };
 
-        private readonly IGiteeAuthentication _GiteeAuth;
+        private readonly IGiteeAuthentication _giteeAuth;
 
         public GiteeHostProvider(ICommandContext context)
             : this(context, new GiteeAuthentication(context)) { }
@@ -25,7 +25,7 @@ namespace Gitee
         {
             EnsureArgument.NotNull(GiteeAuth, nameof(GiteeAuth));
 
-            _GiteeAuth = GiteeAuth;
+            _giteeAuth = GiteeAuth;
         }
 
         public override string Id => "gitee";
@@ -96,7 +96,7 @@ namespace Gitee
 
             AuthenticationModes authModes = GetSupportedAuthenticationModes(remoteUri);
 
-            AuthenticationPromptResult promptResult = await _GiteeAuth.GetAuthenticationAsync(remoteUri, input.UserName, authModes);
+            AuthenticationPromptResult promptResult = await _giteeAuth.GetAuthenticationAsync(remoteUri, input.UserName, authModes);
 
             switch (promptResult.AuthenticationMode)
             {
@@ -154,15 +154,11 @@ namespace Gitee
                 Context.Streams.Error.WriteLine(
                     $"warning: missing OAuth configuration for {targetUri.Host} - see {GiteeConstants.HelpUrls.Gitee} for more information");
             }
-
-            // Would like to query password_authentication_enabled_for_git, but can't unless logged in https://Gitee.com/Gitee-org/Gitee/-/issues/349463.
-            // For now assume password auth is always available.
             bool supportsBasic = true;
             if (supportsBasic)
             {
                 modes |= AuthenticationModes.Basic;
             }
-
             return modes;
         }
 
@@ -249,19 +245,19 @@ namespace Gitee
 
         private async Task<OAuthCredential> GenerateOAuthCredentialAsync(InputArguments input)
         {
-            OAuth2TokenResult result = await _GiteeAuth.GetOAuthTokenViaBrowserAsync(input.GetRemoteUri(), GiteeOAuthScopes);
+            OAuth2TokenResult result = await _giteeAuth.GetOAuthTokenViaBrowserAsync(input.GetRemoteUri(), GiteeOAuthScopes);
             return new OAuthCredential(result);
         }
 
         private async Task<OAuthCredential> RefreshOAuthCredentialAsync(InputArguments input, string refreshToken)
         {
-            OAuth2TokenResult result = await _GiteeAuth.GetOAuthTokenViaRefresh(input.GetRemoteUri(), refreshToken);
+            OAuth2TokenResult result = await _giteeAuth.GetOAuthTokenViaRefresh(input.GetRemoteUri(), refreshToken);
             return new OAuthCredential(result);
         }
 
         protected override void ReleaseManagedResources()
         {
-            _GiteeAuth.Dispose();
+            _giteeAuth.Dispose();
             base.ReleaseManagedResources();
         }
 

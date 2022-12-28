@@ -15,7 +15,7 @@ namespace Gitee.UI.Views
         private TextBox _patUserNameTextBox;
         private TextBox _userNameTextBox;
         private TextBox _passwordTextBox;
-        private DrawingImage _GiteeLogoImage;
+        private DrawingImage _giteeLogoImage;
 
         public CredentialsView()
         {
@@ -71,7 +71,7 @@ namespace Gitee.UI.Views
         {
             get
             {
-                if (_GiteeLogoImage is null)
+                if (_giteeLogoImage is null)
                 {
                     var brush1 = SolidColorBrush.Parse("#C71D23");
                     var brush2 = SolidColorBrush.Parse("#000000");
@@ -186,7 +186,7 @@ namespace Gitee.UI.Views
                     );
                    
 
-                    _GiteeLogoImage = new DrawingImage
+                    _giteeLogoImage = new DrawingImage
                     {
                         Drawing = new DrawingGroup
                         {
@@ -200,7 +200,7 @@ namespace Gitee.UI.Views
                     };
                 }
 
-                return _GiteeLogoImage;
+                return _giteeLogoImage;
             }
         }
 

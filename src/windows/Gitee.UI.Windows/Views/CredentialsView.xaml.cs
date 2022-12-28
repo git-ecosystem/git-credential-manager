@@ -11,7 +11,7 @@ namespace Gitee.UI.Views
     {
         private readonly BrushConverter _brushConverter = new BrushConverter();
 
-        private DrawingImage _GiteeLogoImage;
+        private DrawingImage _giteeLogoImage;
 
         public CredentialsView()
         {
@@ -84,7 +84,7 @@ namespace Gitee.UI.Views
         {
             get
             {
-                if (_GiteeLogoImage is null)
+                if (_giteeLogoImage is null)
                 {
                     SolidColorBrush brush1 = (SolidColorBrush)_brushConverter.ConvertFrom("#C71D23");
                     SolidColorBrush brush2 = (SolidColorBrush)_brushConverter.ConvertFrom("#000000");
@@ -196,7 +196,7 @@ namespace Gitee.UI.Views
                         "19.7856875 167.150655,19.7856875 C168.409183,19.7856875 169.353079,20.1423754 169.982344,20.8557512 C170.611608,21.569127 170.954207,22.5272886 " +
                         "171.010142,23.730236 L171.010142,23.730236 L171.010142,23.7721993 C171.010142,23.968028 170.898273,24.0659423 170.674534,24.0659423 L170.674534,24.0659423 Z"
                     );
-                    _GiteeLogoImage = new DrawingImage
+                    _giteeLogoImage = new DrawingImage
                     {
                         Drawing = new DrawingGroup
                         {
@@ -209,7 +209,7 @@ namespace Gitee.UI.Views
                     };
                 }
 
-                return _GiteeLogoImage;
+                return _giteeLogoImage;
             }
         }
 
