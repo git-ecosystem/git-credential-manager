@@ -12,10 +12,6 @@ OUT="$ROOT/out"
 PROJ_OUT="$OUT/linux/Packaging.Linux"
 INSTALLER_SRC="$SRC/osx/Installer.Mac"
 
-# Product information
-IDENTIFIER="com.microsoft.gitcredentialmanager"
-INSTALL_LOCATION="/usr/local/share/gcm-core"
-
 # Parse script arguments
 for i in "$@"
 do
@@ -51,6 +47,10 @@ fi
 
 ARCH="`dpkg-architecture -q DEB_HOST_ARCH`"
 
+if test -z "$ARCH"; then
+    die "Could not determine host architecture!"
+fi
+
 TAROUT="$PROJ_OUT/$CONFIGURATION/tar/"
 TARBALL="$TAROUT/gcm-linux_$ARCH.$VERSION.tar.gz"
 SYMTARBALL="$TAROUT/gcm-linux_$ARCH.$VERSION-symbols.tar.gz"
@@ -59,10 +59,6 @@ DEBOUT="$PROJ_OUT/$CONFIGURATION/deb"
 DEBROOT="$DEBOUT/root"
 DEBPKG="$DEBOUT/gcm-linux_$ARCH.$VERSION.deb"
 mkdir -p "$DEBROOT"
-
-if test -z "$ARCH"; then
-    die "Could not determine host architecture!"
-fi
 
 # Set full read, write, execute permissions for owner and just read and execute permissions for group and other
 echo "Setting file permissions..."
@@ -114,8 +110,6 @@ Description: Cross Platform Git Credential Manager command line utility.
  For more information see https://aka.ms/gcm
 EOF
 
-mkdir -p "$INSTALL_TO" "$LINK_TO"
-
 # Copy all binaries and shared libraries to target installation location
 cp -R "$PAYLOAD"/* "$INSTALL_TO" || exit 1
 
@@ -131,6 +125,6 @@ if [ ! -f "$LINK_TO/git-credential-manager-core" ]; then
         "$LINK_TO/git-credential-manager-core" || exit 1
 fi
 
-dpkg-deb --build "$DEBROOT" "$DEBPKG" || exit 1
+dpkg-deb -Zxz --build "$DEBROOT" "$DEBPKG" || exit 1
 
 echo $MESSAGE
