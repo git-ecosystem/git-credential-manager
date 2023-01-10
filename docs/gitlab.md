@@ -17,7 +17,7 @@ _Unselect_ the 'Confidential' option. Set the 'read_repository' and
 `git config --global credential.https://gitlab.example.com.GitLabDevClientSecret
 <APPLICATION_SECRET>`
 1. Configure authentication modes to include 'browser'
-`git config --global credential.https://gitlab.example.com.gitLabAuthModes browser`
+`git config --global credential.https://gitlab.example.com.GitLabAuthModes browser`
 1. For good measure, configure
 `git config --global credential.https://gitlab.example.com.provider gitlab`.
 This may be necessary to recognise the domain as a GitLab instance.
@@ -74,7 +74,7 @@ If you have a preferred authentication mode, you can specify
 [credential.gitLabAuthModes][config-gitlab-auth-modes]:
 
 ```console
-git config --global credential.gitlabauthmodes browser
+git config --global credential.GitLabAuthModes browser
 ```
 
 ## Caveats
