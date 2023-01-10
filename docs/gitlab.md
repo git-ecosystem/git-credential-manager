@@ -9,7 +9,8 @@ configuration:
 
 1. [Create an OAuth application][gitlab-oauth]. This can be at the user, group
 or instance level. Specify a name and use a redirect URI of `http://127.0.0.1/`.
-_Unselect_ the 'Confidential' option. Set the 'write_repository' scope.
+_Unselect_ the 'Confidential' option. Set the 'read_repository' and
+'write_repository' scopes.
 1. Copy the application ID and configure
 `git config --global credential.https://gitlab.example.com.GitLabDevClientId <APPLICATION_ID>`
 1. Copy the application secret and configure
