@@ -2,7 +2,7 @@
 
 Git Credential Manager supports [gitlab.com][gitlab] out the box.
 
-## Using on a another instance
+## Using on another instance
 
 To use on another instance, eg. `https://gitlab.example.com` requires setup and
 configuration:
