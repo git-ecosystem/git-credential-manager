@@ -16,7 +16,7 @@ _Unselect_ the 'Confidential' option. Set the 'read_repository' and
 1. Copy the application secret and configure
 `git config --global credential.https://gitlab.example.com.gitLabDevClientSecret
 <APPLICATION_SECRET>`
-1. Configure authentication modes to include 'browser'
+1. Optional if you want to force OAuth:
 `git config --global credential.https://gitlab.example.com.gitLabAuthModes browser`
 1. For good measure, configure
 `git config --global credential.https://gitlab.example.com.provider gitlab`.
