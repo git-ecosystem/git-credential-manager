@@ -128,6 +128,33 @@ namespace GitCredentialManager
                 Context.Trace,
                 config.UseAuthHeader);
 
+            //
+            // Prepend "refresh_token" to the hostname to get a (hopefully) unique service name that
+            // doesn't clash with an existing credential service.
+            //
+            // Appending "/refresh_token" to the end of the remote URI may not always result in a unique
+            // service because users may set credential.useHttpPath and include "/refresh_token" as a
+            // path name.
+            //
+            string refreshService = new UriBuilder(remoteUri) { Host = $"refresh_token.{remoteUri.Host}" }
+                .Uri.AbsoluteUri.TrimEnd('/');
+
+            // Try to use a refresh token if we have one
+            ICredential refreshToken = Context.CredentialStore.Get(refreshService, userName);
+            if (refreshToken != null)
+            {
+                 var refreshResult = await client.GetTokenByRefreshTokenAsync(refreshToken.Password, CancellationToken.None);
+
+                 // Store new refresh token if we have been given one
+                 if (!string.IsNullOrWhiteSpace(refreshResult.RefreshToken))
+                 {
+                     Context.CredentialStore.AddOrUpdate(refreshService, refreshToken.Account, refreshToken.Password);
+                 }
+
+                 // Return the new access token
+                 return new GitCredential(oauthUser,refreshResult.AccessToken);
+            }
+
             // Determine which interactive OAuth mode to use. Start by checking for mode preference in config
             var supportedModes = OAuthAuthenticationModes.All;
             if (Context.Settings.TryGetSetting(
@@ -168,6 +195,12 @@ namespace GitCredentialManager
 
                 default:
                     throw new Exception("No authentication mode selected!");
+            }
+
+            // Store the refresh token if we have one
+            if (!string.IsNullOrWhiteSpace(tokenResult.RefreshToken))
+            {
+                Context.CredentialStore.AddOrUpdate(refreshService, oauthUser, tokenResult.RefreshToken);
             }
 
             return new GitCredential(oauthUser, tokenResult.AccessToken);
