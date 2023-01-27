@@ -58,6 +58,18 @@ namespace GitCredentialManager.Tests.Objects
                 return true;
             }
 
+            if (RemoteUri != null)
+            {
+                foreach (string scope in RemoteUri.GetGitConfigurationScopes())
+                {
+                    string key = $"{section}.{scope}.{property}";
+                    if (GitConfiguration?.TryGet(key, false, out value) ?? false)
+                    {
+                        return true;
+                    }
+                }
+            }
+
             if (GitConfiguration?.TryGet($"{section}.{property}", false, out value) ?? false)
             {
                 return true;
@@ -79,15 +91,25 @@ namespace GitCredentialManager.Tests.Objects
                 yield return envarValue;
             }
 
-            foreach (string scope in RemoteUri.GetGitConfigurationScopes())
+            IEnumerable<string> configValues;
+            if (RemoteUri != null)
             {
-                string key = $"{section}.{scope}.{property}";
-
-                IEnumerable<string> configValues = GitConfiguration.GetAll(key);
-                foreach (string value in configValues)
+                foreach (string scope in RemoteUri.GetGitConfigurationScopes())
                 {
-                    yield return value;
+                    string key = $"{section}.{scope}.{property}";
+
+                    configValues = GitConfiguration.GetAll(key);
+                    foreach (string value in configValues)
+                    {
+                        yield return value;
+                    }
                 }
+            }
+
+            configValues = GitConfiguration.GetAll($"{section}.{property}");
+            foreach (string value in configValues)
+            {
+                yield return value;
             }
         }
 
