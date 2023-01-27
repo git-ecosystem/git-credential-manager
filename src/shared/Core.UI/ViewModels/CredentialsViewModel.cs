@@ -56,7 +56,7 @@ namespace GitCredentialManager.UI.ViewModels
         public bool ShowProductHeader
         {
             get => _showProductHeader;
-            set => _showProductHeader = value;
+            set => SetAndRaisePropertyChanged(ref _showProductHeader, value);
         }
 
         public RelayCommand SignInCommand
