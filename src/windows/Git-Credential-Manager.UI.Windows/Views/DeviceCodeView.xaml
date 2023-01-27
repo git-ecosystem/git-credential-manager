@@ -1,0 +1,54 @@
+<UserControl x:Class="GitCredentialManager.UI.Views.DeviceCodeView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:viewModels="clr-namespace:GitCredentialManager.UI.ViewModels;assembly=Core.UI"
+             xmlns:converters="clr-namespace:GitCredentialManager.UI.Converters;assembly=gcmcoreuiwpf"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance viewModels:DeviceCodeViewModel}"
+             d:DesignHeight="300" d:DesignWidth="300">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../Assets/Styles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+            <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <DockPanel>
+        <StackPanel DockPanel.Dock="Top" Margin="10,0,0,10">
+            <StackPanel Margin="0"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Center"
+                        Visibility="{Binding ShowProductHeader, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <Image Source="{StaticResource GcmLogo}"
+                       Height="32" VerticalAlignment="Center"
+                       Margin="0,0,10,0"/>
+                <TextBlock Text="Git Credential Manager"
+                           VerticalAlignment="Center"
+                           FontSize="18"
+                           FontWeight="Light" />
+            </StackPanel>
+        </StackPanel>
+
+        <StackPanel Orientation="Vertical" VerticalAlignment="Center">
+            <TextBlock Text="Visit the URL below, sign in, and enter the following device code to continue."
+                       Margin="0,0,0,20"
+                       TextWrapping="Wrap" TextAlignment="Center" FontSize="14"/>
+            <TextBox Text="{Binding UserCode}"
+                     Margin="0,0,0,20"
+                     HorizontalAlignment="Center"
+                     FontSize="24"
+                     TextAlignment="Center"
+                     Style="{StaticResource DeviceCodeBox}"/>
+            <TextBlock FontSize="14"
+                       HorizontalAlignment="Center">
+                <Hyperlink Command="{Binding VerificationUrlCommand}">
+                    <Run Text="{Binding VerificationUrl}"/>
+                </Hyperlink>
+            </TextBlock>
+        </StackPanel>
+    </DockPanel>
+</UserControl>
