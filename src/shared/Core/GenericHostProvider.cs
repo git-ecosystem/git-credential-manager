@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using GitCredentialManager.Authentication;
+using GitCredentialManager.Authentication.OAuth;
 
 namespace GitCredentialManager
 {
@@ -10,20 +13,25 @@ namespace GitCredentialManager
     {
         private readonly IBasicAuthentication _basicAuth;
         private readonly IWindowsIntegratedAuthentication _winAuth;
+        private readonly IOAuthAuthentication _oauth;
 
         public GenericHostProvider(ICommandContext context)
-            : this(context, new BasicAuthentication(context), new WindowsIntegratedAuthentication(context)) { }
+            : this(context, new BasicAuthentication(context), new WindowsIntegratedAuthentication(context),
+                new OAuthAuthentication(context)) { }
 
         public GenericHostProvider(ICommandContext context,
                                    IBasicAuthentication basicAuth,
-                                   IWindowsIntegratedAuthentication winAuth)
+                                   IWindowsIntegratedAuthentication winAuth,
+                                   IOAuthAuthentication oauth)
             : base(context)
         {
             EnsureArgument.NotNull(basicAuth, nameof(basicAuth));
             EnsureArgument.NotNull(winAuth, nameof(winAuth));
+            EnsureArgument.NotNull(oauth, nameof(oauth));
 
             _basicAuth = basicAuth;
             _winAuth = winAuth;
+            _oauth = oauth;
         }
 
         public override string Id => "generic";
@@ -68,7 +76,7 @@ namespace GitCredentialManager
                 Context.Trace.WriteLine($"\tUseAuthHeader   = {oauthConfig.UseAuthHeader}");
                 Context.Trace.WriteLine($"\tDefaultUserName = {oauthConfig.DefaultUserName}");
 
-                throw new NotImplementedException();
+                return await GetOAuthAccessToken(uri, input.UserName, oauthConfig);
             }
             // Try detecting WIA for this remote, if permitted
             else if (IsWindowsAuthAllowed)
@@ -106,6 +114,65 @@ namespace GitCredentialManager
             return await _basicAuth.GetCredentialsAsync(uri.AbsoluteUri, input.UserName);
         }
 
+        private async Task<ICredential> GetOAuthAccessToken(Uri remoteUri, string userName, GenericOAuthConfig config)
+        {
+            // TODO: Determined user info from a webcall? ID token? Need OIDC support
+            string oauthUser = userName ?? config.DefaultUserName;
+
+            var client = new OAuth2Client(
+                HttpClient,
+                config.Endpoints,
+                config.ClientId,
+                config.RedirectUri,
+                config.ClientSecret,
+                Context.Trace,
+                config.UseAuthHeader);
+
+            // Determine which interactive OAuth mode to use. Start by checking for mode preference in config
+            var supportedModes = OAuthAuthenticationModes.All;
+            if (Context.Settings.TryGetSetting(
+                    Constants.EnvironmentVariables.OAuthAuthenticationModes,
+                    Constants.GitConfiguration.Credential.SectionName,
+                    Constants.GitConfiguration.Credential.OAuthAuthenticationModes,
+                    out string authModesStr))
+            {
+                if (Enum.TryParse(authModesStr, true, out supportedModes) && supportedModes != OAuthAuthenticationModes.None)
+                {
+                    Context.Trace.WriteLine($"Supported authentication modes override present: {supportedModes}");
+                }
+                else
+                {
+                    Context.Trace.WriteLine($"Invalid value for supported authentication modes override setting: '{authModesStr}'");
+                }
+            }
+
+            // If the server doesn't support device code we need to remove it as an option here
+            if (!config.SupportsDeviceCode)
+            {
+                supportedModes &= ~OAuthAuthenticationModes.DeviceCode;
+            }
+
+            // Prompt the user to select a mode
+            OAuthAuthenticationModes mode = await _oauth.GetAuthenticationModeAsync(remoteUri.ToString(), supportedModes);
+
+            OAuth2TokenResult tokenResult;
+            switch (mode)
+            {
+                case OAuthAuthenticationModes.Browser:
+                    tokenResult = await _oauth.GetTokenByBrowserAsync(client, config.Scopes);
+                    break;
+
+                case OAuthAuthenticationModes.DeviceCode:
+                    tokenResult = await _oauth.GetTokenByDeviceCodeAsync(client, config.Scopes);
+                    break;
+
+                default:
+                    throw new Exception("No authentication mode selected!");
+            }
+
+            return new GitCredential(oauthUser, tokenResult.AccessToken);
+        }
+
         /// <summary>
         /// Check if the user permits checking for Windows Integrated Authentication.
         /// </summary>
@@ -131,9 +198,13 @@ namespace GitCredentialManager
             }
         }
 
+        private HttpClient _httpClient;
+        private HttpClient HttpClient => _httpClient ?? (_httpClient = Context.HttpClientFactory.CreateClient());
+
         protected override void ReleaseManagedResources()
         {
             _winAuth.Dispose();
+            _httpClient?.Dispose();
             base.ReleaseManagedResources();
         }
     }

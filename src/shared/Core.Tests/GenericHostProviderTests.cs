@@ -87,8 +87,9 @@ namespace GitCredentialManager.Tests
                 .ReturnsAsync(basicCredential)
                 .Verifiable();
             var wiaAuthMock = new Mock<IWindowsIntegratedAuthentication>();
+            var oauthMock = new Mock<IOAuthAuthentication>();
 
-            var provider = new GenericHostProvider(context, basicAuthMock.Object, wiaAuthMock.Object);
+            var provider = new GenericHostProvider(context, basicAuthMock.Object, wiaAuthMock.Object, oauthMock.Object);
 
             ICredential credential = await provider.GenerateCredentialAsync(input);
 
@@ -121,8 +122,9 @@ namespace GitCredentialManager.Tests
                 .ReturnsAsync(basicCredential)
                 .Verifiable();
             var wiaAuthMock = new Mock<IWindowsIntegratedAuthentication>();
+            var oauthMock = new Mock<IOAuthAuthentication>();
 
-            var provider = new GenericHostProvider(context, basicAuthMock.Object, wiaAuthMock.Object);
+            var provider = new GenericHostProvider(context, basicAuthMock.Object, wiaAuthMock.Object, oauthMock.Object);
 
             ICredential credential = await provider.GenerateCredentialAsync(input);
 
@@ -152,8 +154,9 @@ namespace GitCredentialManager.Tests
                 .ReturnsAsync(basicCredential)
                 .Verifiable();
             var wiaAuthMock = new Mock<IWindowsIntegratedAuthentication>();
+            var oauthMock = new Mock<IOAuthAuthentication>();
 
-            var provider = new GenericHostProvider(context, basicAuthMock.Object, wiaAuthMock.Object);
+            var provider = new GenericHostProvider(context, basicAuthMock.Object, wiaAuthMock.Object, oauthMock.Object);
 
             ICredential credential = await provider.GenerateCredentialAsync(input);
 
@@ -199,8 +202,9 @@ namespace GitCredentialManager.Tests
             var wiaAuthMock = new Mock<IWindowsIntegratedAuthentication>();
             wiaAuthMock.Setup(x => x.GetIsSupportedAsync(It.IsAny<Uri>()))
                        .ReturnsAsync(wiaSupported);
+            var oauthMock = new Mock<IOAuthAuthentication>();
 
-            var provider = new GenericHostProvider(context, basicAuthMock.Object, wiaAuthMock.Object);
+            var provider = new GenericHostProvider(context, basicAuthMock.Object, wiaAuthMock.Object, oauthMock.Object);
 
             ICredential credential = await provider.GenerateCredentialAsync(input);
 
@@ -230,8 +234,9 @@ namespace GitCredentialManager.Tests
             var wiaAuthMock = new Mock<IWindowsIntegratedAuthentication>();
             wiaAuthMock.Setup(x => x.GetIsSupportedAsync(It.IsAny<Uri>()))
                        .ReturnsAsync(wiaSupported);
+            var oauthMock = new Mock<IOAuthAuthentication>();
 
-            var provider = new GenericHostProvider(context, basicAuthMock.Object, wiaAuthMock.Object);
+            var provider = new GenericHostProvider(context, basicAuthMock.Object, wiaAuthMock.Object, oauthMock.Object);
 
             ICredential credential = await provider.GenerateCredentialAsync(input);
 
