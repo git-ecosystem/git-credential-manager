@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Threading.Tasks;
 using GitCredentialManager.Authentication;
+using GitCredentialManager.Authentication.OAuth;
 using GitCredentialManager.Tests.Objects;
 using Moq;
 using Xunit;
@@ -183,6 +185,90 @@ namespace GitCredentialManager.Tests
         public async Task GenericHostProvider_CreateCredentialAsync_WiaNotSupported_ReturnsBasicCredential()
         {
             await TestCreateCredentialAsync_ReturnsBasicCredential(wiaSupported: false);
+        }
+
+        [Fact]
+        public async Task GenericHostProvider_GenerateCredentialAsync_OAuth_CompleteOAuthConfig_UsesOAuth()
+        {
+            var input = new InputArguments(new Dictionary<string, string>
+            {
+                ["protocol"] = "https",
+                ["host"]     = "git.example.com",
+                ["path"]     = "foo"
+            });
+
+            const string testUserName = "TEST_OAUTH_USER";
+            const string testAcessToken = "OAUTH_TOKEN";
+            const string testRefreshToken = "OAUTH_REFRESH_TOKEN";
+            const string testResource = "https://git.example.com/foo";
+            const string expectedRefreshTokenService = "https://refresh_token.git.example.com/foo";
+
+            var authMode = OAuthAuthenticationModes.Browser;
+            string[] scopes = { "code:write", "code:read" };
+            string clientId = "3eadfc62-9e91-45d3-8c60-20ccd6d0c7cf";
+            string clientSecret = "C1DA8B93CCB5F5B93DA";
+            string redirectUri = "http://localhost";
+            string authzEndpoint = "/oauth/authorize";
+            string tokenEndpoint = "/oauth/token";
+            string deviceEndpoint = "/oauth/device";
+
+            string GetKey(string name) => $"{Constants.GitConfiguration.Credential.SectionName}.https://example.com.{name}";
+
+            var context = new TestCommandContext
+            {
+                Git =
+                {
+                    Configuration =
+                    {
+                        Global =
+                        {
+                            [GetKey(Constants.GitConfiguration.Credential.OAuthClientId)] = new[] { clientId },
+                            [GetKey(Constants.GitConfiguration.Credential.OAuthClientSecret)] = new[] { clientSecret },
+                            [GetKey(Constants.GitConfiguration.Credential.OAuthRedirectUri)] = new[] { redirectUri },
+                            [GetKey(Constants.GitConfiguration.Credential.OAuthScopes)] = new[] { string.Join(' ', scopes) },
+                            [GetKey(Constants.GitConfiguration.Credential.OAuthAuthzEndpoint)] = new[] { authzEndpoint },
+                            [GetKey(Constants.GitConfiguration.Credential.OAuthTokenEndpoint)] = new[] { tokenEndpoint },
+                            [GetKey(Constants.GitConfiguration.Credential.OAuthDeviceEndpoint)] = new[] { deviceEndpoint },
+                            [GetKey(Constants.GitConfiguration.Credential.OAuthDefaultUserName)] = new[] { testUserName },
+                        }
+                    }
+                },
+                Settings =
+                {
+                    RemoteUri = new Uri(testResource)
+                }
+            };
+
+            var basicAuthMock = new Mock<IBasicAuthentication>();
+            var wiaAuthMock = new Mock<IWindowsIntegratedAuthentication>();
+            var oauthMock = new Mock<IOAuthAuthentication>();
+            oauthMock.Setup(x =>
+                x.GetAuthenticationModeAsync(It.IsAny<string>(), It.IsAny<OAuthAuthenticationModes>()))
+                .ReturnsAsync(authMode);
+            oauthMock.Setup(x => x.GetTokenByBrowserAsync(It.IsAny<OAuth2Client>(), It.IsAny<string[]>()))
+                .ReturnsAsync(new OAuth2TokenResult(testAcessToken, "access_token")
+                {
+                    Scopes = scopes,
+                    RefreshToken = testRefreshToken
+                });
+
+            var provider = new GenericHostProvider(context, basicAuthMock.Object, wiaAuthMock.Object, oauthMock.Object);
+
+            ICredential credential = await provider.GenerateCredentialAsync(input);
+
+            Assert.NotNull(credential);
+            Assert.Equal(testUserName, credential.Account);
+            Assert.Equal(testAcessToken, credential.Password);
+
+            Assert.True(context.CredentialStore.TryGet(expectedRefreshTokenService, null, out TestCredential refreshToken));
+            Assert.Equal(testUserName, refreshToken.Account);
+            Assert.Equal(testRefreshToken, refreshToken.Password);
+
+            oauthMock.Verify(x => x.GetAuthenticationModeAsync(testResource, OAuthAuthenticationModes.All), Times.Once);
+            oauthMock.Verify(x => x.GetTokenByBrowserAsync(It.IsAny<OAuth2Client>(), scopes), Times.Once);
+            oauthMock.Verify(x => x.GetTokenByDeviceCodeAsync(It.IsAny<OAuth2Client>(), scopes), Times.Never);
+            wiaAuthMock.Verify(x => x.GetIsSupportedAsync(It.IsAny<Uri>()), Times.Never);
+            basicAuthMock.Verify(x => x.GetCredentialsAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
 
         #region Helpers
