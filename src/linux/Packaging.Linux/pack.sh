@@ -24,6 +24,10 @@ case "$i" in
     PAYLOAD="${i#*=}"
     shift # past argument=value
     ;;
+    --symbols=*)
+    SYMBOLS="${i#*=}"
+    shift # past argument=value
+    ;;
     --configuration=*)
     CONFIGURATION="${i#*=}"
     shift # past argument=value
@@ -43,6 +47,9 @@ if [ -z "$PAYLOAD" ]; then
     die "--payload was not set"
 elif [ ! -d "$PAYLOAD" ]; then
     die "Could not find '$PAYLOAD'. Did you run layout.sh first?"
+fi
+if [ -z "$SYMBOLS" ]; then
+    die "--symbols was not set"
 fi
 
 ARCH="`dpkg-architecture -q DEB_HOST_ARCH`"
@@ -83,7 +90,7 @@ popd
 
 # Build symbols tarball
 echo "Building symbols tarball..."
-pushd "$SYMBOLOUT"
+pushd "$SYMBOLS"
 tar -czvf "$SYMTARBALL" * || exit 1
 popd
 
