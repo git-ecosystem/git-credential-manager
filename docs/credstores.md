@@ -106,6 +106,8 @@ using the Keychain Access application.
 
 **:warning: Requires a graphical user interface session.**
 
+**:warning: Per February 2023 this might be affected by [#694](https://github.com/GitCredentialManager/git-credential-manager/issues/694). Use GPG or plaintext as alternatives.**
+
 ```shell
 export GCM_CREDENTIAL_STORE=secretservice
 # or
