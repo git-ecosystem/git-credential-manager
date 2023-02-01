@@ -21,6 +21,8 @@ namespace GitCredentialManager.UI
                 }
 
                 app.RegisterCommand(new CredentialsCommandImpl(context));
+                app.RegisterCommand(new OAuthCommandImpl(context));
+                app.RegisterCommand(new DeviceCodeCommandImpl(context));
 
                 int exitCode = app.RunAsync(args)
                     .ConfigureAwait(false)
