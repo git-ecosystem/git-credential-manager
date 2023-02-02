@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace GitCredentialManager.Interop.Windows
@@ -9,13 +10,12 @@ namespace GitCredentialManager.Interop.Windows
     public class WindowsEnvironment : EnvironmentBase
     {
         public WindowsEnvironment(IFileSystem fileSystem)
-            : this(fileSystem, GetCurrentVariables()) { }
+            : this(fileSystem, null) { }
 
         internal WindowsEnvironment(IFileSystem fileSystem, IReadOnlyDictionary<string, string> variables)
             : base(fileSystem)
         {
-            EnsureArgument.NotNull(variables, nameof(variables));
-            Variables = variables;
+            Variables = variables ?? GetCurrentVariables();
         }
 
         #region EnvironmentBase
@@ -84,7 +84,7 @@ namespace GitCredentialManager.Interop.Windows
 
         #endregion
 
-        private static IReadOnlyDictionary<string, string> GetCurrentVariables()
+        protected override IReadOnlyDictionary<string, string> GetCurrentVariables()
         {
             // On Windows it is technically possible to get env vars which differ only by case
             // even though the general assumption is that they are case insensitive on Windows.

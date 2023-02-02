@@ -25,6 +25,17 @@ public class Trace2 : DisposableObject, ITrace2
     private readonly object _writersLock = new object();
     private List<ITrace2Writer> _writers = new List<ITrace2Writer>();
 
+    private const string GitSidVariable = "GIT_TRACE2_PARENT_SID";
+
+    private IEnvironment _environment;
+    private string _sid;
+
+    public Trace2(IEnvironment environment)
+    {
+        _environment = environment;
+        _sid = SetSid();
+    }
+
     protected override void ReleaseManagedResources()
     {
         lock (_writersLock)
@@ -60,6 +71,22 @@ public class Trace2 : DisposableObject, ITrace2
 
             _writers.Add(writer);
         }
+    }
+
+    internal string SetSid()
+    {
+        var sids = new List<string>();
+        if (_environment.Variables.TryGetValue(GitSidVariable, out string parentSid))
+        {
+            sids.Add(parentSid);
+        }
+
+        // Add GCM "child" sid
+        sids.Add(Guid.NewGuid().ToString("D"));
+        var combinedSid = string.Join("/", sids);
+
+        _environment.SetEnvironmentVariable(GitSidVariable, combinedSid);
+        return combinedSid;
     }
 
     private void WriteMessage(Trace2Message message)
