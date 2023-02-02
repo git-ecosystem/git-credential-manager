@@ -106,4 +106,6 @@ public abstract class Trace2Message
 
     [JsonProperty("line", Order = 6)]
     public int Line { get; set; }
+
+    public abstract string ToJson();
 }
