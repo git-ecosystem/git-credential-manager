@@ -3,7 +3,7 @@
 In November 2021, _"Git Credential Manager Core"_ was [renamed][rename-pr] to
 simply _"Git Credential Manager"_, dropping the "Core" moniker. We announced the
 new name in a [GitHub blog post][rename-blog], along with the new home for the
-project in it's own [organization][gcm-org].
+project in its own [organization][gcm-org].
 
 ![Git Credential Manager Core renamed](img/gcmcore-rename.png)
 

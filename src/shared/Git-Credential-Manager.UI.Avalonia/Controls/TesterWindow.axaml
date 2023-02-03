@@ -45,5 +45,54 @@
                 <Button Classes="accent" Content="Show" Click="ShowBasic" />
             </StackPanel>
         </TabItem>
+        <TabItem Header="OAuth">
+            <StackPanel>
+                <Grid RowDefinitions="Auto,Auto,Auto,Auto" ColumnDefinitions="Auto,*">
+                    <Label Grid.Row="0" Grid.Column="0"
+                           Content="Window Title" />
+                    <TextBox Grid.Row="0" Grid.Column="1"
+                             x:Name="oauthTitle" Text="Git Credential Manager" />
+                    <Label Grid.Row="1" Grid.Column="0"
+                           Content="Description" />
+                    <TextBox Grid.Row="1" Grid.Column="1"
+                             x:Name="oauthDescription" Text="Sign in to 'https://example.com'" />
+                    <Label Grid.Row="2" Grid.Column="0"
+                           Content="Modes" />
+                    <StackPanel Grid.Row="2" Grid.Column="1"
+                                Orientation="Horizontal" VerticalAlignment="Center">
+                        <CheckBox Content="Browser" x:Name="oauthBrowser" MinWidth="90" IsChecked="True" />
+                        <CheckBox Content="Device Code" x:Name="oauthDeviceCode" MinWidth="80" IsChecked="True" />
+                    </StackPanel>
+                    <Label Grid.Row="3" Grid.Column="0"
+                           Content="Show Logo" />
+                    <CheckBox Grid.Row="3" Grid.Column="1"
+                              x:Name="oauthShowLogo" IsChecked="True" />
+                </Grid>
+                <Button Classes="accent" Content="Show" Click="ShowOAuth" />
+            </StackPanel>
+        </TabItem>
+        <TabItem Header="Device Code">
+            <StackPanel>
+                <Grid RowDefinitions="Auto,Auto,Auto,Auto" ColumnDefinitions="Auto,*">
+                    <Label Grid.Row="0" Grid.Column="0"
+                           Content="Window Title" />
+                    <TextBox Grid.Row="0" Grid.Column="1"
+                             x:Name="deviceTitle" Text="Git Credential Manager" />
+                    <Label Grid.Row="1" Grid.Column="0"
+                           Content="User Code" />
+                    <TextBox Grid.Row="1" Grid.Column="1"
+                             x:Name="deviceUserCode" Text="ABCD-EFGH-1234" />
+                    <Label Grid.Row="2" Grid.Column="0"
+                           Content="Verification URL" />
+                    <TextBox Grid.Row="2" Grid.Column="1"
+                             x:Name="deviceVerificationUrl" Text="https://example.com/signin/device" />
+                    <Label Grid.Row="3" Grid.Column="0"
+                           Content="Show Logo" />
+                    <CheckBox Grid.Row="3" Grid.Column="1"
+                              x:Name="deviceShowLogo" IsChecked="True" />
+                </Grid>
+                <Button Classes="accent" Content="Show" Click="ShowDeviceCode" />
+            </StackPanel>
+        </TabItem>
     </TabControl>
 </Window>

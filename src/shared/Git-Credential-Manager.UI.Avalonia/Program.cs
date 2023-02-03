@@ -48,6 +48,8 @@ namespace GitCredentialManager.UI
             using (var app = new HelperApplication(context))
             {
                 app.RegisterCommand(new CredentialsCommandImpl(context));
+                app.RegisterCommand(new OAuthCommandImpl(context));
+                app.RegisterCommand(new DeviceCodeCommandImpl(context));
 
                 int exitCode = app.RunAsync(args)
                     .ConfigureAwait(false)

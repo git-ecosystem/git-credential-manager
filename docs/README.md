@@ -12,6 +12,7 @@ The following are links to GCM user support documentation:
 - [Host provider specification][gcm-host-provider]
 - [Azure Repos OAuth tokens][gcm-azure-tokens]
 - [GitLab support][gcm-gitlab]
+- [Generic OAuth support][gcm-oauth]
 
 [gcm-azure-tokens]: azrepos-users-and-tokens.md
 [gcm-config]: configuration.md
@@ -23,4 +24,5 @@ The following are links to GCM user support documentation:
 [gcm-gitlab]: gitlab.md
 [gcm-host-provider]: hostprovider.md
 [gcm-net-config]: netconfig.md
+[gcm-oauth]: generic-oauth.md
 [gcm-usage]: usage.md
