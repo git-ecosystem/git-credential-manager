@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Pipes;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -16,7 +17,12 @@ namespace GitCredentialManager;
 /// system.
 /// </summary>
 public enum Trace2Event
-{ }
+{
+    [EnumMember(Value = "version")]
+    Version = 0,
+    [EnumMember(Value = "start")]
+    Start = 1,
+}
 
 public class Trace2Settings
 {
@@ -36,7 +42,13 @@ public interface ITrace2 : IDisposable
     /// <param name="error">The standard error text stream connected back to the calling process.</param>
     /// <param name="fileSystem">File system abstraction.</param>
     /// <param name="appPath">The path to the GCM application.</param>
-    void Start(TextWriter error, IFileSystem fileSystem, string appPath);
+    /// <param name="filePath">Path of the file this method is called from.</param>
+    /// <param name="lineNumber">Line number of file this method is called from.</param>
+    void Start(TextWriter error,
+        IFileSystem fileSystem,
+        string appPath,
+        [System.Runtime.CompilerServices.CallerFilePath] string filePath = "",
+        [System.Runtime.CompilerServices.CallerLineNumber] int lineNumber = 0);
 }
 
 public class Trace2 : DisposableObject, ITrace2
@@ -63,9 +75,22 @@ public class Trace2 : DisposableObject, ITrace2
         _sid = SetSid();
     }
 
-    public void Start(TextWriter error, IFileSystem fileSystem, string appPath)
+    public void Start(TextWriter error,
+        IFileSystem fileSystem,
+        string appPath,
+        string filePath,
+        int lineNumber)
     {
         TryParseSettings(error, fileSystem);
+
+        if (!AssemblyUtils.TryGetAssemblyVersion(out string version))
+        {
+            // A version is required for TRACE2, so if this call fails
+            // manually set the version.
+            version = "0.0.0";
+        }
+        WriteVersion(version, filePath, lineNumber);
+        WriteStart(appPath, filePath, lineNumber);
     }
 
     protected override void ReleaseManagedResources()
@@ -164,6 +189,50 @@ public class Trace2 : DisposableObject, ITrace2
         }
     }
 
+    private void WriteVersion(
+        string gcmVersion,
+        string filePath,
+        int lineNumber,
+        string eventFormatVersion = "3")
+    {
+        EnsureArgument.NotNull(gcmVersion, nameof(gcmVersion));
+
+        WriteMessage(new VersionMessage()
+        {
+            Event = Trace2Event.Version,
+            Sid = _sid,
+            Time = DateTimeOffset.UtcNow,
+            File = Path.GetFileName(filePath).ToLower(),
+            Line = lineNumber,
+            Evt = eventFormatVersion,
+            Exe = gcmVersion
+        });
+    }
+
+    private void WriteStart(
+        string appPath,
+        string filePath,
+        int lineNumber)
+    {
+        // Prepend GCM exe to arguments
+        var argv = new List<string>()
+        {
+            Path.GetFileName(appPath),
+        };
+        argv.AddRange(_argv);
+
+        WriteMessage(new StartMessage()
+        {
+            Event = Trace2Event.Start,
+            Sid = _sid,
+            Time = DateTimeOffset.UtcNow,
+            File = Path.GetFileName(filePath).ToLower(),
+            Line = lineNumber,
+            Argv = argv,
+            ElapsedTime = (DateTimeOffset.UtcNow - _applicationStartTime).TotalSeconds
+        });
+    }
+
     private void AddWriter(ITrace2Writer writer)
     {
         ThrowIfDisposed();
@@ -203,6 +272,7 @@ public class Trace2 : DisposableObject, ITrace2
 public abstract class Trace2Message
 {
     protected const string TimeFormat = "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'ffffff'Z'";
+    private const int SourceColumnMaxWidth = 23;
 
     [JsonProperty("event", Order = 1)]
     public Trace2Event Event { get; set; }
@@ -226,4 +296,69 @@ public abstract class Trace2Message
     public abstract string ToJson();
 
     public abstract string ToNormalString();
+
+    protected string BuildNormalString(string message)
+    {
+        // The normal format uses local time rather than UTC time.
+        string time = Time.ToLocalTime().ToString("HH:mm:ss.ffffff");
+
+        // Source column format is file:line
+        string source = $"{File.ToLower()}:{Line}";
+        if (source.Length > SourceColumnMaxWidth)
+        {
+            source = TraceUtils.FormatSource(source, SourceColumnMaxWidth);
+        }
+
+        // Git's TRACE2 normal format is:
+        // [<time> SP <filename>:<line> SP+] <event-name> [[SP] <event-message>] LF
+        return $"{time} {source,-33} {Event.ToString().ToLower()} {message}";
+    }
+}
+
+public class VersionMessage : Trace2Message
+{
+    [JsonProperty("evt", Order = 7)]
+    public string Evt { get; set; }
+
+    [JsonProperty("exe", Order = 8)]
+    public string Exe { get; set; }
+
+    public override string ToJson()
+    {
+        return JsonConvert.SerializeObject(this,
+                new StringEnumConverter(),
+            new IsoDateTimeConverter()
+            {
+                DateTimeFormat = TimeFormat
+            });
+    }
+
+    public override string ToNormalString()
+    {
+        return BuildNormalString(Exe.ToLower());
+    }
+}
+
+public class StartMessage : Trace2Message
+{
+    [JsonProperty("t_abs", Order = 7)]
+    public double ElapsedTime { get; set; }
+
+    [JsonProperty("argv", Order = 8)]
+    public List<string> Argv { get; set; }
+
+    public override string ToJson()
+    {
+        return JsonConvert.SerializeObject(this,
+            new StringEnumConverter(),
+            new IsoDateTimeConverter()
+            {
+                DateTimeFormat = TimeFormat
+            });
+    }
+
+    public override string ToNormalString()
+    {
+        return BuildNormalString(string.Join(" ", Argv));
+    }
 }
