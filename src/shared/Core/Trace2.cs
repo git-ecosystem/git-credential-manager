@@ -108,4 +108,6 @@ public abstract class Trace2Message
     public int Line { get; set; }
 
     public abstract string ToJson();
+
+    public abstract string ToNormalString();
 }
