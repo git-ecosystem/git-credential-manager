@@ -22,6 +22,8 @@ public enum Trace2Event
     Version = 0,
     [EnumMember(Value = "start")]
     Start = 1,
+    [EnumMember(Value = "exit")]
+    Exit = 2
 }
 
 public class Trace2Settings
@@ -47,6 +49,16 @@ public interface ITrace2 : IDisposable
     void Start(TextWriter error,
         IFileSystem fileSystem,
         string appPath,
+        [System.Runtime.CompilerServices.CallerFilePath] string filePath = "",
+        [System.Runtime.CompilerServices.CallerLineNumber] int lineNumber = 0);
+
+    /// <summary>
+    /// Shut down TRACE2 tracing by writing Exit event and disposing of writers.
+    /// </summary>
+    /// <param name="exitCode">The exit code of the GCM application.</param>
+    /// <param name="filePath">Path of the file this method is called from.</param>
+    /// <param name="lineNumber">Line number of file this method is called from.</param>
+    void Stop(int exitCode,
         [System.Runtime.CompilerServices.CallerFilePath] string filePath = "",
         [System.Runtime.CompilerServices.CallerLineNumber] int lineNumber = 0);
 }
@@ -91,6 +103,12 @@ public class Trace2 : DisposableObject, ITrace2
         }
         WriteVersion(version, filePath, lineNumber);
         WriteStart(appPath, filePath, lineNumber);
+    }
+
+    public void Stop(int exitCode, string filePath, int lineNumber)
+    {
+        WriteExit(exitCode, filePath, lineNumber);
+        ReleaseManagedResources();
     }
 
     protected override void ReleaseManagedResources()
@@ -233,6 +251,22 @@ public class Trace2 : DisposableObject, ITrace2
         });
     }
 
+    private void WriteExit(int code, string filePath = "", int lineNumber = 0)
+    {
+        EnsureArgument.NotNull(code, nameof(code));
+
+        WriteMessage(new ExitMessage()
+        {
+            Event = Trace2Event.Exit,
+            Sid = _sid,
+            Time = DateTimeOffset.Now,
+            File = Path.GetFileName(filePath).ToLower(),
+            Line = lineNumber,
+            Code = code,
+            ElapsedTime = (DateTimeOffset.UtcNow - _applicationStartTime).TotalSeconds
+        });
+    }
+
     private void AddWriter(ITrace2Writer writer)
     {
         ThrowIfDisposed();
@@ -360,5 +394,29 @@ public class StartMessage : Trace2Message
     public override string ToNormalString()
     {
         return BuildNormalString(string.Join(" ", Argv));
+    }
+}
+
+public class ExitMessage : Trace2Message
+{
+    [JsonProperty("t_abs", Order = 7)]
+    public double ElapsedTime { get; set; }
+
+    [JsonProperty("code", Order = 8)]
+    public int Code { get; set; }
+
+    public override string ToJson()
+    {
+        return JsonConvert.SerializeObject(this,
+            new StringEnumConverter(),
+            new IsoDateTimeConverter()
+            {
+                DateTimeFormat = TimeFormat
+            });
+    }
+
+    public override string ToNormalString()
+    {
+        return BuildNormalString($"elapsed:{ElapsedTime} code:{Code}");
     }
 }

@@ -59,6 +59,8 @@ namespace GitCredentialManager.Tests.Objects
             string filePath = "",
             int lineNumber = 0) { }
 
+        public void Stop(int exitCode, string fileName, int lineNumber) { }
+
         #endregion
 
         #region IDisposable
