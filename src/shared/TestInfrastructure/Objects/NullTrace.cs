@@ -63,6 +63,23 @@ namespace GitCredentialManager.Tests.Objects
             string fileName,
             int lineNumber) { }
 
+        public void WriteChildStart(DateTimeOffset startTime,
+            Trace2ProcessClass processClass,
+            bool useShell,
+            string appName,
+            string argv,
+            string filePath = "",
+            int lineNumber = 0) { }
+
+        public void WriteChildExit(
+            double elapsedTime,
+            int pid,
+            int code,
+            string filePath = "",
+            int lineNumber = 0) { }
+
+        public string SetSid() { return ""; }
+
         #endregion
 
         #region IDisposable

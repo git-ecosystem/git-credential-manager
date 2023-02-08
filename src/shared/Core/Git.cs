@@ -90,7 +90,7 @@ namespace GitCredentialManager
                 {
                     using (var git = CreateProcess("version"))
                     {
-                        git.Start();
+                        git.Start(Trace2ProcessClass.Git);
 
                         string data = git.StandardOutput.ReadToEnd();
                         git.WaitForExit();
@@ -120,7 +120,7 @@ namespace GitCredentialManager
         {
             using (var git = CreateProcess("rev-parse --absolute-git-dir"))
             {
-                git.Start();
+                git.Start(Trace2ProcessClass.Git);
                 string data = git.StandardOutput.ReadToEnd();
                 git.WaitForExit();
 
@@ -141,7 +141,7 @@ namespace GitCredentialManager
         {
             using (var git = CreateProcess("remote -v show"))
             {
-                git.Start();
+                git.Start(Trace2ProcessClass.Git);
                 // To avoid deadlocks, always read the output stream first and then wait
                 // TODO: don't read in all the data at once; stream it
                 string data = git.StandardOutput.ReadToEnd();

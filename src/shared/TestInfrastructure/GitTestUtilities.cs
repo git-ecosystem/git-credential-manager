@@ -29,7 +29,7 @@ namespace GitCredentialManager.Tests
 
             using (var which = new ChildProcess(new NullTrace2(), psi))
             {
-                which.Start();
+                which.Start(Trace2ProcessClass.None);
                 which.WaitForExit();
 
                 if (which.ExitCode != 0)
@@ -80,7 +80,7 @@ namespace GitCredentialManager.Tests
 
             procInfo.Environment["GIT_DIR"] = repositoryPath;
 
-            var proc = ChildProcess.Start(new NullTrace2(), procInfo);
+            var proc = ChildProcess.Start(new NullTrace2(), procInfo, Trace2ProcessClass.None);
             if (proc is null)
             {
                 throw new Exception("Failed to start Git process");

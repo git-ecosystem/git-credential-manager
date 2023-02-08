@@ -338,7 +338,7 @@ namespace GitCredentialManager
 
                 using (var swvers = new ChildProcess(trace2, psi))
                 {
-                    swvers.Start();
+                    swvers.Start(Trace2ProcessClass.Other);
                     swvers.WaitForExit();
 
                     if (swvers.ExitCode == 0)
@@ -359,7 +359,7 @@ namespace GitCredentialManager
 
                 using (var uname = new ChildProcess(trace2, psi))
                 {
-                    uname.Start();
+                    uname.Start(Trace2ProcessClass.Other);
                     uname.Process.WaitForExit();
 
                     if (uname.ExitCode == 0)
