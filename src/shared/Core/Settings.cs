@@ -166,6 +166,12 @@ namespace GitCredentialManager
         /// of host provider auto-detection. Use a zero or negative value to disable probing.
         /// </summary>
         int AutoDetectProviderTimeout { get; }
+
+        /// <summary>
+        /// Get TRACE2 settings.
+        /// </summary>
+        /// <returns>TRACE2 settings object.</returns>
+        Trace2Settings GetTrace2Settings();
     }
 
     public class ProxyConfiguration
@@ -503,6 +509,25 @@ namespace GitCredentialManager
         }
 
         public bool GetTracingEnabled(out string value) => _environment.Variables.TryGetValue(KnownEnvars.GcmTrace, out value) && !value.IsFalsey();
+
+        public Trace2Settings GetTrace2Settings()
+        {
+            var settings = new Trace2Settings();
+
+            if (TryGetSetting(Constants.EnvironmentVariables.GitTrace2Event, KnownGitCfg.Trace2.SectionName,
+                    Constants.GitConfiguration.Trace2.EventTarget, out string value))
+            {
+                settings.FormatTargetsAndValues.Add(Trace2FormatTarget.Event, value);
+            }
+
+            if (TryGetSetting(Constants.EnvironmentVariables.GitTrace2Normal, KnownGitCfg.Trace2.SectionName,
+                    Constants.GitConfiguration.Trace2.NormalTarget, out value))
+            {
+                settings.FormatTargetsAndValues.Add(Trace2FormatTarget.Normal, value);
+            }
+
+            return settings;
+        }
 
         public bool IsSecretTracingEnabled => _environment.Variables.GetBooleanyOrDefault(KnownEnvars.GcmTraceSecrets, false);
 

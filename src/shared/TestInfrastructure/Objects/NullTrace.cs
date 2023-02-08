@@ -47,4 +47,20 @@ namespace GitCredentialManager.Tests.Objects
 
         #endregion
     }
+    
+    public class NullTrace2 : ITrace2
+    {
+        #region ITrace2
+        public void AddWriter(ITrace2Writer writer) { }
+        
+        public void Start(TextWriter error, IFileSystem fileSystem, string appPath) { }
+
+        #endregion
+
+        #region IDisposable
+
+        void IDisposable.Dispose() { }
+
+        #endregion
+    }
 }

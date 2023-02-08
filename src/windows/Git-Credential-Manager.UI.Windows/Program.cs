@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using GitCredentialManager.UI.Commands;
 using GitCredentialManager.UI.Controls;
@@ -9,9 +10,7 @@ namespace GitCredentialManager.UI
     {
         public static async Task Main(string[] args)
         {
-            string appPath = ApplicationBase.GetEntryApplicationPath();
-            string installDir = ApplicationBase.GetInstallationDirectory();
-            using (var context = new CommandContext(appPath, installDir))
+            using (var context = new CommandContext(args))
             using (var app = new HelperApplication(context))
             {
                 if (args.Length == 0)

@@ -46,6 +46,16 @@ namespace GitCredentialManager.Tests.Objects
         public bool UseCustomCertificateBundleWithSchannel { get; set; }
 
         public int AutoDetectProviderTimeout { get; set; } = Constants.DefaultAutoDetectProviderTimeoutMs;
+        public Trace2Settings GetTrace2Settings()
+        {
+            return new Trace2Settings()
+            {
+                FormatTargetsAndValues = new Dictionary<Trace2FormatTarget, string>()
+                {
+                    { Trace2FormatTarget.Event, "foo" }
+                }
+            };
+        }
 
         #region ISettings
 
