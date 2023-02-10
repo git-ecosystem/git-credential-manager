@@ -46,18 +46,6 @@ namespace GitCredentialManager
         bool TryLocateExecutable(string program, out string path);
 
         /// <summary>
-        /// Create a process ready to start, with redirected streams.
-        /// </summary>
-        /// <param name="path">Absolute file path of executable or command to start.</param>
-        /// <param name="args">Command line arguments to pass to executable.</param>
-        /// <param name="useShellExecute">
-        /// True to resolve <paramref name="path"/> using the OS shell, false to use as an absolute file path.
-        /// </param>
-        /// <param name="workingDirectory">Working directory for the new process.</param>
-        /// <returns><see cref="Process"/> object ready to start.</returns>
-        Process CreateProcess(string path, string args, bool useShellExecute, string workingDirectory);
-
-        /// <summary>
         /// Set an environment variable at the specified target level.
         /// </summary>
         /// <param name="variable">Name of the environment variable to set.</param>
@@ -78,8 +66,6 @@ namespace GitCredentialManager
 
         public IReadOnlyDictionary<string, string> Variables { get; protected set; }
 
-        protected ITrace Trace { get; }
-
         protected IFileSystem FileSystem { get; }
 
         public bool IsDirectoryOnPath(string directoryPath)
@@ -98,20 +84,6 @@ namespace GitCredentialManager
         public abstract void RemoveDirectoryFromPath(string directoryPath, EnvironmentVariableTarget target);
 
         protected abstract string[] SplitPathVariable(string value);
-
-        public virtual Process CreateProcess(string path, string args, bool useShellExecute, string workingDirectory)
-        {
-            var psi = new ProcessStartInfo(path, args)
-            {
-                RedirectStandardInput = true,
-                RedirectStandardOutput = true,
-                RedirectStandardError = false, // Do not redirect stderr as tracing might be enabled
-                UseShellExecute = useShellExecute,
-                WorkingDirectory = workingDirectory ?? string.Empty
-            };
-
-            return new Process { StartInfo = psi };
-        }
 
         public virtual bool TryLocateExecutable(string program, out string path)
         {
@@ -178,33 +150,6 @@ namespace GitCredentialManager
             }
 
             throw new Exception($"Failed to locate '{program}' executable on the path.");
-        }
-
-        /// <summary>
-        /// Create a process ready to start, with redirected streams.
-        /// </summary>
-        /// <param name="environment">The <see cref="IEnvironment"/>.</param>
-        /// <param name="path">Absolute file path of executable or command to start.</param>
-        /// <param name="args">Command line arguments to pass to executable.</param>
-        /// <param name="useShellExecute">
-        /// True to resolve <paramref name="path"/> using the OS shell, false to use as an absolute file path.
-        /// </param>
-        /// <returns><see cref="Process"/> object ready to start.</returns>
-        public static Process CreateProcess(this IEnvironment environment, string path, string args, bool useShellExecute)
-        {
-            return environment.CreateProcess(path, args, useShellExecute, string.Empty);
-        }
-
-        /// <summary>
-        /// Create a process ready to start, with redirected streams.
-        /// </summary>
-        /// <param name="environment">The <see cref="IEnvironment"/>.</param>
-        /// <param name="path">Absolute file path of executable to start.</param>
-        /// <param name="args">Command line arguments to pass to executable.</param>
-        /// <returns><see cref="Process"/> object ready to start.</returns>
-        public static Process CreateProcess(this IEnvironment environment, string path, string args)
-        {
-            return environment.CreateProcess(path, args, false, string.Empty);
         }
     }
 }

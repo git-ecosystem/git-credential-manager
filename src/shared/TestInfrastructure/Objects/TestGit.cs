@@ -28,7 +28,7 @@ namespace GitCredentialManager.Tests.Objects
 
         GitVersion IGit.Version => Version;
 
-        public Process CreateProcess(string args)
+        public ChildProcess CreateProcess(string args)
         {
             throw new NotImplementedException();
         }

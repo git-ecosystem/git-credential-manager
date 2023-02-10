@@ -24,7 +24,7 @@ namespace GitCredentialManager.Diagnostics
             log.AppendLine(thisRepo is null ? "Not inside a Git repository." : $"Git repository at '{thisRepo}'");
 
             log.Append("Listing all Git configuration...");
-            Process configProc = CommandContext.Git.CreateProcess("config --list --show-origin");
+            ChildProcess configProc = CommandContext.Git.CreateProcess("config --list --show-origin");
             configProc.Start();
             // To avoid deadlocks, always read the output stream first and then wait
             // TODO: don't read in all the data at once; stream it

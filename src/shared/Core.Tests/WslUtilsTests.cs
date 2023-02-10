@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using Moq;
 using Xunit;
 
 namespace GitCredentialManager.Tests
@@ -100,7 +101,7 @@ namespace GitCredentialManager.Tests
             string expectedFileName = WslUtils.GetWslPath();
             string expectedArgs = $"--distribution {distribution} --exec {command}";
 
-            Process process = WslUtils.CreateWslProcess(distribution, command);
+            ChildProcess process = WslUtils.CreateWslProcess(distribution, command, Mock.Of<ITrace2>());
 
             Assert.NotNull(process);
             Assert.Equal(expectedArgs, process.StartInfo.Arguments);
@@ -121,7 +122,7 @@ namespace GitCredentialManager.Tests
             string expectedFileName = WslUtils.GetWslPath();
             string expectedArgs = $"--distribution {distribution} --exec {command}";
 
-            Process process = WslUtils.CreateWslProcess(distribution, command, expectedWorkingDirectory);
+            ChildProcess process = WslUtils.CreateWslProcess(distribution, command, Mock.Of<ITrace2>(), expectedWorkingDirectory);
 
             Assert.NotNull(process);
             Assert.Equal(expectedArgs, process.StartInfo.Arguments);

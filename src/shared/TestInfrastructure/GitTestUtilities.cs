@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using GitCredentialManager.Tests.Objects;
 using Xunit;
 
 namespace GitCredentialManager.Tests
@@ -26,7 +27,7 @@ namespace GitCredentialManager.Tests
 
             psi.RedirectStandardOutput = true;
 
-            using (var which = new Process {StartInfo = psi})
+            using (var which = new ChildProcess(new NullTrace2(), psi))
             {
                 which.Start();
                 which.WaitForExit();
@@ -79,7 +80,7 @@ namespace GitCredentialManager.Tests
 
             procInfo.Environment["GIT_DIR"] = repositoryPath;
 
-            Process proc = Process.Start(procInfo);
+            var proc = ChildProcess.Start(new NullTrace2(), procInfo);
             if (proc is null)
             {
                 throw new Exception("Failed to start Git process");

@@ -59,7 +59,7 @@ namespace GitHub.UI.Commands
 
         private async Task<int> ExecuteAsync(CommandOptions options)
         {
-            var viewModel = new CredentialsViewModel(Context.Environment)
+            var viewModel = new CredentialsViewModel(Context.Environment, Context.ProcessManager)
             {
                 ShowBrowserLogin = options.All || options.Browser,
                 ShowDeviceLogin  = options.All || options.Device,

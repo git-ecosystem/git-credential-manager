@@ -127,7 +127,7 @@ namespace GitCredentialManager
         public void Enumerate(GitConfigurationLevel level, GitConfigurationEnumerationCallback cb)
         {
             string levelArg = GetLevelFilterArg(level);
-            using (Process git = _git.CreateProcess($"config --null {levelArg} --list"))
+            using (ChildProcess git = _git.CreateProcess($"config --null {levelArg} --list"))
             {
                 git.Start();
                 // To avoid deadlocks, always read the output stream first and then wait
@@ -196,7 +196,7 @@ namespace GitCredentialManager
         {
             string levelArg = GetLevelFilterArg(level);
             string typeArg = GetCanonicalizeTypeArg(type);
-            using (Process git = _git.CreateProcess($"config --null {levelArg} {typeArg} {QuoteCmdArg(name)}"))
+            using (ChildProcess git = _git.CreateProcess($"config --null {levelArg} {typeArg} {QuoteCmdArg(name)}"))
             {
                 git.Start();
                 // To avoid deadlocks, always read the output stream first and then wait
@@ -234,7 +234,7 @@ namespace GitCredentialManager
             EnsureSpecificLevel(level);
 
             string levelArg = GetLevelFilterArg(level);
-            using (Process git = _git.CreateProcess($"config {levelArg} {QuoteCmdArg(name)} {QuoteCmdArg(value)}"))
+            using (ChildProcess git = _git.CreateProcess($"config {levelArg} {QuoteCmdArg(name)} {QuoteCmdArg(value)}"))
             {
                 git.Start();
                 git.WaitForExit();
@@ -255,7 +255,7 @@ namespace GitCredentialManager
             EnsureSpecificLevel(level);
 
             string levelArg = GetLevelFilterArg(level);
-            using (Process git = _git.CreateProcess($"config {levelArg} --add {QuoteCmdArg(name)} {QuoteCmdArg(value)}"))
+            using (ChildProcess git = _git.CreateProcess($"config {levelArg} --add {QuoteCmdArg(name)} {QuoteCmdArg(value)}"))
             {
                 git.Start();
                 git.WaitForExit();
@@ -276,7 +276,7 @@ namespace GitCredentialManager
             EnsureSpecificLevel(level);
 
             string levelArg = GetLevelFilterArg(level);
-            using (Process git = _git.CreateProcess($"config {levelArg} --unset {QuoteCmdArg(name)}"))
+            using (ChildProcess git = _git.CreateProcess($"config {levelArg} --unset {QuoteCmdArg(name)}"))
             {
                 git.Start();
                 git.WaitForExit();
@@ -300,7 +300,7 @@ namespace GitCredentialManager
 
             var gitArgs = $"config --null {levelArg} {typeArg} --get-all {QuoteCmdArg(name)}";
 
-            using (Process git = _git.CreateProcess(gitArgs))
+            using (ChildProcess git = _git.CreateProcess(gitArgs))
             {
                 git.Start();
                 // To avoid deadlocks, always read the output stream first and then wait
@@ -342,7 +342,7 @@ namespace GitCredentialManager
                 gitArgs += $" {QuoteCmdArg(valueRegex)}";
             }
 
-            using (Process git = _git.CreateProcess(gitArgs))
+            using (ChildProcess git = _git.CreateProcess(gitArgs))
             {
                 git.Start();
                 // To avoid deadlocks, always read the output stream first and then wait
@@ -384,7 +384,7 @@ namespace GitCredentialManager
                 gitArgs += $" {QuoteCmdArg(valueRegex)}";
             }
 
-            using (Process git = _git.CreateProcess(gitArgs))
+            using (ChildProcess git = _git.CreateProcess(gitArgs))
             {
                 git.Start();
                 git.WaitForExit();
@@ -411,7 +411,7 @@ namespace GitCredentialManager
                 gitArgs += $" {QuoteCmdArg(valueRegex)}";
             }
 
-            using (Process git = _git.CreateProcess(gitArgs))
+            using (ChildProcess git = _git.CreateProcess(gitArgs))
             {
                 git.Start();
                 git.WaitForExit();

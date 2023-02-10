@@ -14,14 +14,16 @@ namespace GitCredentialManager
     {
         private readonly string _gpgPath;
         private readonly ISessionManager _sessionManager;
+        private readonly IProcessManager _processManager;
 
-        public Gpg(string gpgPath, ISessionManager sessionManager)
+        public Gpg(string gpgPath, ISessionManager sessionManager, IProcessManager processManager)
         {
             EnsureArgument.NotNullOrWhiteSpace(gpgPath, nameof(gpgPath));
             EnsureArgument.NotNull(sessionManager, nameof(sessionManager));
 
             _gpgPath = gpgPath;
             _sessionManager = sessionManager;
+            _processManager = processManager;
         }
 
         public string DecryptFile(string path)
@@ -37,7 +39,7 @@ namespace GitCredentialManager
 
             PrepareEnvironment(psi);
 
-            using (var gpg = Process.Start(psi))
+            using (var gpg = _processManager.CreateProcess(psi))
             {
                 if (gpg is null)
                 {
@@ -69,7 +71,7 @@ namespace GitCredentialManager
 
             PrepareEnvironment(psi);
 
-            using (var gpg = Process.Start(psi))
+            using (var gpg = _processManager.CreateProcess(psi))
             {
                 if (gpg is null)
                 {

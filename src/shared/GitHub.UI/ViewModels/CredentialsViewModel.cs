@@ -9,6 +9,7 @@ namespace GitHub.UI.ViewModels
     public class CredentialsViewModel : WindowViewModel
     {
         private readonly IEnvironment _environment;
+        private readonly IProcessManager _processManager;
 
         private string _enterpriseUrl;
         private string _token;
@@ -29,11 +30,13 @@ namespace GitHub.UI.ViewModels
             // Constructor the XAML designer
         }
 
-        public CredentialsViewModel(IEnvironment environment)
+        public CredentialsViewModel(IEnvironment environment, IProcessManager processManager)
         {
             EnsureArgument.NotNull(environment, nameof(environment));
+            EnsureArgument.NotNull(processManager, nameof(processManager));
 
             _environment = environment;
+            _processManager = processManager;
 
             Title = "Connect to GitHub";
             SignUpCommand = new RelayCommand(SignUp);

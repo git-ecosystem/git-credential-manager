@@ -9,6 +9,7 @@ namespace GitHub.UI.ViewModels
     public class TwoFactorViewModel : WindowViewModel
     {
         private readonly IEnvironment _environment;
+        private readonly IProcessManager _processManager;
 
         private string _code;
         private ICommand _learnMoreCommand;
@@ -20,11 +21,13 @@ namespace GitHub.UI.ViewModels
             // Constructor the XAML designer
         }
 
-        public TwoFactorViewModel(IEnvironment environment)
+        public TwoFactorViewModel(IEnvironment environment, IProcessManager processManager)
         {
             EnsureArgument.NotNull(environment, nameof(environment));
+            EnsureArgument.NotNull(processManager, nameof(processManager));
 
             _environment = environment;
+            _processManager = processManager;
 
             Title = "Two-factor authentication required";
             LearnMoreCommand = new RelayCommand(LearnMore);
