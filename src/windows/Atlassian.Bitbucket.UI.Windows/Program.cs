@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Atlassian.Bitbucket.UI.Commands;
 using Atlassian.Bitbucket.UI.Controls;
@@ -11,9 +12,7 @@ namespace Atlassian.Bitbucket.UI
     {
         public static async Task Main(string[] args)
         {
-            string appPath = ApplicationBase.GetEntryApplicationPath();
-            string installDir = ApplicationBase.GetInstallationDirectory();
-            using (var context = new CommandContext(appPath, installDir))
+            using (var context = new CommandContext(args))
             using (var app = new HelperApplication(context))
             {
                 if (args.Length == 0)

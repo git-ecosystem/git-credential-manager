@@ -1,5 +1,5 @@
 ﻿using System;
-using System.CommandLine;
+using System.Diagnostics;
 using System.Threading;
 using Atlassian.Bitbucket.UI.Commands;
 using Atlassian.Bitbucket.UI.Controls;
@@ -45,9 +45,7 @@ namespace Atlassian.Bitbucket.UI
         {
             string[] args = (string[]) o;
 
-            string appPath = ApplicationBase.GetEntryApplicationPath();
-            string installDir = ApplicationBase.GetInstallationDirectory();
-            using (var context = new CommandContext(appPath, installDir))
+            using (var context = new CommandContext(args))
             using (var app = new HelperApplication(context))
             {
                 app.RegisterCommand(new CredentialsCommandImpl(context));

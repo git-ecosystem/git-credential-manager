@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading;
 using Avalonia;
 using GitLab.UI.Controls;
@@ -43,10 +44,7 @@ namespace GitLab.UI
         private static void AppMain(object o)
         {
             string[] args = (string[]) o;
-
-            string appPath = ApplicationBase.GetEntryApplicationPath();
-            string installDir = ApplicationBase.GetInstallationDirectory();
-            using (var context = new CommandContext(appPath, installDir))
+            using (var context = new CommandContext(args))
             using (var app = new HelperApplication(context))
             {
                 app.RegisterCommand(new CredentialsCommandImpl(context));

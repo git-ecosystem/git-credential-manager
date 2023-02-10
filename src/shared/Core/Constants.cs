@@ -54,6 +54,8 @@ namespace GitCredentialManager
             public const string GcmAuthority          = "GCM_AUTHORITY";
             public const string GitTerminalPrompts    = "GIT_TERMINAL_PROMPT";
             public const string GcmAllowWia           = "GCM_ALLOW_WINDOWSAUTH";
+            public const string GitTrace2Event        = "GIT_TRACE2_EVENT";
+            public const string GitTrace2Normal       = "GIT_TRACE2";
 
             /*
              * Unlike other environment variables, these proxy variables are normally lowercase only.
@@ -163,6 +165,13 @@ namespace GitCredentialManager
                 public const string SectionName = "remote";
                 public const string FetchUrl = "url";
                 public const string PushUrl = "pushUrl";
+            }
+
+            public static class Trace2
+            {
+                public const string SectionName = "trace2";
+                public const string EventTarget = "eventtarget";
+                public const string NormalTarget = "normaltarget";
             }
         }
 

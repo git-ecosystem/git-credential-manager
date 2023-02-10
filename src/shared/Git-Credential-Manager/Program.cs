@@ -11,9 +11,7 @@ namespace GitCredentialManager
     {
         public static void Main(string[] args)
         {
-            string appPath = ApplicationBase.GetEntryApplicationPath();
-            string installDir = ApplicationBase.GetInstallationDirectory();
-            using (var context = new CommandContext(appPath, installDir))
+            using (var context = new CommandContext(args))
             using (var app = new Application(context))
             {
                 // Workaround for https://github.com/AzureAD/microsoft-authentication-library-for-dotnet/issues/2560
@@ -31,7 +29,7 @@ namespace GitCredentialManager
                         );
                     }
                 }
-
+                
                 //
                 // Git Credential Manager's executable used to be named "git-credential-manager-core" before
                 // dropping the "-core" suffix. In order to prevent "helper not found" errors for users who
@@ -43,18 +41,19 @@ namespace GitCredentialManager
                 //
                 // On UNIX systems we do the same check, except instead of a copy we use a symlink.
                 //
-
-                if (!string.IsNullOrWhiteSpace(appPath))
+                if (!string.IsNullOrWhiteSpace(context.ApplicationPath))
                 {
                     // Trim any (.exe) file extension if we're on Windows
                     // Note that in some circumstances (like being called by Git when config is set
                     // to just `helper = manager-core`) we don't always have ".exe" at the end.
-                    if (PlatformUtils.IsWindows() && appPath.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
+                    if (PlatformUtils.IsWindows() && context.ApplicationPath.EndsWith(".exe",
+                            StringComparison.OrdinalIgnoreCase))
                     {
-                        appPath = appPath.Substring(0, appPath.Length - 4);
+                        context.ApplicationPath = context.ApplicationPath
+                            .Substring(0, context.ApplicationPath.Length - 4);
                     }
-
-                    if (appPath.EndsWith("git-credential-manager-core", StringComparison.OrdinalIgnoreCase))
+                    if (context.ApplicationPath.EndsWith("git-credential-manager-core",
+                            StringComparison.OrdinalIgnoreCase))
                     {
                         context.Streams.Error.WriteLine(
                             "warning: git-credential-manager-core was renamed to git-credential-manager");
@@ -76,6 +75,7 @@ namespace GitCredentialManager
                                   .GetAwaiter()
                                   .GetResult();
 
+                context.Trace2.Stop(exitCode);
                 Environment.Exit(exitCode);
             }
         }

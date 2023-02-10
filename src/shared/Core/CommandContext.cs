@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using GitCredentialManager.Interop.Linux;
 using GitCredentialManager.Interop.MacOS;
@@ -15,7 +17,7 @@ namespace GitCredentialManager
         /// <summary>
         /// Absolute path the application entry executable.
         /// </summary>
-        string ApplicationPath { get; }
+        string ApplicationPath { get; set; }
 
         /// <summary>
         /// Absolute path to the Git Credential Manager installation directory.
@@ -48,6 +50,11 @@ namespace GitCredentialManager
         ITrace Trace { get; }
 
         /// <summary>
+        /// Application TRACE2 tracing system.
+        /// </summary>
+        ITrace2 Trace2 { get; }
+
+        /// <summary>
         /// File system abstraction (exists mainly for testing).
         /// </summary>
         IFileSystem FileSystem { get; }
@@ -78,12 +85,11 @@ namespace GitCredentialManager
     /// </summary>
     public class CommandContext : DisposableObject, ICommandContext
     {
-        public CommandContext(string appPath, string installDir)
+        public CommandContext(string[] argv)
         {
-            EnsureArgument.NotNullOrWhiteSpace(appPath, nameof (appPath));
-
-            ApplicationPath = appPath;
-            InstallationDirectory = installDir;
+            var applicationStartTime = DateTimeOffset.UtcNow;
+            ApplicationPath = GetEntryApplicationPath();
+            InstallationDirectory = GetInstallationDirectory();
 
             Streams = new StandardStreams();
             Trace   = new Trace();
@@ -139,6 +145,7 @@ namespace GitCredentialManager
                 throw new PlatformNotSupportedException();
             }
 
+            Trace2 = new Trace2(Environment, Settings.GetTrace2Settings(), argv, applicationStartTime);
             HttpClientFactory = new HttpClientFactory(FileSystem, Trace, Settings, Streams);
             CredentialStore   = new CredentialStore(this);
         }
@@ -177,7 +184,7 @@ namespace GitCredentialManager
 
         #region ICommandContext
 
-        public string ApplicationPath { get; }
+        public string ApplicationPath { get; set; }
 
         public string InstallationDirectory { get; }
 
@@ -190,6 +197,8 @@ namespace GitCredentialManager
         public ISessionManager SessionManager { get; }
 
         public ITrace Trace { get; }
+
+        public ITrace2 Trace2 { get; }
 
         public IFileSystem FileSystem { get; }
 
@@ -214,5 +223,17 @@ namespace GitCredentialManager
         }
 
         #endregion
+
+        public static string GetEntryApplicationPath()
+        {
+            return PlatformUtils.GetNativeEntryPath() ??
+                   Process.GetCurrentProcess().MainModule?.FileName ??
+                   System.Environment.GetCommandLineArgs()[0];
+        }
+
+        public static string GetInstallationDirectory()
+        {
+            return AppContext.BaseDirectory;
+        }
     }
 }
