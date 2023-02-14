@@ -200,11 +200,6 @@ public class Trace2 : DisposableObject, ITrace2
                 }
             }
         }
-
-        if (_writers.Count == 0)
-        {
-            error.WriteLine("warning: unable to set up TRACE2 tracing. No traces will be written.");
-        }
     }
 
     private void WriteVersion(
