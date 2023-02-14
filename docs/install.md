@@ -64,7 +64,7 @@ sudo /usr/local/share/gcm-core/uninstall.sh
 
 ### .NET tool :star:
 
-See the [.NET tool](#.NET-tool) section below for instructions on this
+See the [.NET tool](#net-tool) section below for instructions on this
 installation method.
 
 ---
@@ -206,7 +206,7 @@ the preferred install method for Linux because you can use it to install on any
 distribution][dotnet-supported-distributions]. You
 can also use this method on macOS or Windows if you so choose.
 
-**Note:** Make sure you have installed .NET before attempting to run the
+**Note:** Make sure you have installed the .NET SDK before attempting to run the
 following `dotnet tool` commands.
 
 #### Install
