@@ -133,7 +133,7 @@ Look out for entries that include `git-credential-manager-core` or
 or `manager` respectively.
 
 > **Note:** When updating the Git configuration file in your home directory
-> (`$HOME/.gitconfig` or `%USERPROFILE\.gitconfig%`) you should ensure there are
+> (`$HOME/.gitconfig` or `%USERPROFILE%\.gitconfig`) you should ensure there are
 > is an additional blank entry for `credential.helper` before the GCM entry.
 >
 > **Mac/Linux**
