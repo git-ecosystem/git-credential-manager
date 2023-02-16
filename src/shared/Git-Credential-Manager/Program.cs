@@ -29,7 +29,7 @@ namespace GitCredentialManager
                         );
                     }
                 }
-                
+
                 //
                 // Git Credential Manager's executable used to be named "git-credential-manager-core" before
                 // dropping the "-core" suffix. In order to prevent "helper not found" errors for users who
