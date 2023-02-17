@@ -309,8 +309,9 @@ public abstract class Trace2Message
     [JsonProperty("sid", Order = 2)]
     public string Sid { get; set; }
 
+    // TODO: Remove this default value when TRACE2 regions are introduced.
     [JsonProperty("thread", Order = 3)]
-    public string Thread { get; set; }
+    public string Thread { get; set; } = "main";
 
     [JsonProperty("time", Order = 4)]
     public DateTimeOffset Time { get; set; }
