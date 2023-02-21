@@ -54,6 +54,7 @@ namespace GitLab.UI
                     .GetAwaiter()
                     .GetResult();
 
+                context.Trace2.Stop(exitCode);
                 Environment.Exit(exitCode);
             }
         }
