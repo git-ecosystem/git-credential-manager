@@ -35,22 +35,25 @@ public class Trace2Settings
 public interface ITrace2 : IDisposable
 {
     /// <summary>
-    /// Initialize TRACE2 tracing by setting up any configured target formats and
-    /// writing Version and Start events.
+    /// Initialize TRACE2 tracing by initializing multi-use fields and setting up any configured target formats.
     /// </summary>
-    /// <param name="error">The standard error text stream connected back to the calling process.</param>
-    /// <param name="fileSystem">File system abstraction.</param>
-    /// <param name="appPath">The path to the GCM application.</param>
+    /// <param name="startTime">Approximate time calling application began executing.</param>
+    void Initialize(DateTimeOffset startTime);
+
+    /// <summary>
+    /// Write Version and Start events.
+    /// </summary>
+    /// <param name="appPath">The path to the application.</param>
+    /// <param name="args">Args passed to the application (if applicable).</param>
     /// <param name="filePath">Path of the file this method is called from.</param>
     /// <param name="lineNumber">Line number of file this method is called from.</param>
-    void Start(TextWriter error,
-        IFileSystem fileSystem,
-        string appPath,
+    void Start(string appPath,
+        string[] args,
         [System.Runtime.CompilerServices.CallerFilePath] string filePath = "",
         [System.Runtime.CompilerServices.CallerLineNumber] int lineNumber = 0);
 
     /// <summary>
-    /// Shut down TRACE2 tracing by writing Exit event and disposing of writers.
+    /// Write Exit event and dispose of writers.
     /// </summary>
     /// <param name="exitCode">The exit code of the GCM application.</param>
     /// <param name="filePath">Path of the file this method is called from.</param>
@@ -62,36 +65,45 @@ public interface ITrace2 : IDisposable
 
 public class Trace2 : DisposableObject, ITrace2
 {
+    private readonly ICommandContext _commandContext;
     private readonly object _writersLock = new object();
     private readonly Encoding _utf8NoBomEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+    private readonly List<ITrace2Writer> _writers = new List<ITrace2Writer>();
 
     private const string GitSidVariable = "GIT_TRACE2_PARENT_SID";
 
-    private List<ITrace2Writer> _writers = new List<ITrace2Writer>();
-    private IEnvironment _environment;
-    private Trace2Settings _settings;
-    private string[] _argv;
     private DateTimeOffset _applicationStartTime;
+    private Trace2Settings _settings;
     private string _sid;
 
-    public Trace2(IEnvironment environment, Trace2Settings settings, string[] argv, DateTimeOffset applicationStartTime)
-    {
-        _environment = environment;
-        _settings = settings;
-        _argv = argv;
-        _applicationStartTime = applicationStartTime;
+    private bool _initialized;
 
-        _sid = SidManager.Sid;
+    public Trace2(ICommandContext commandContext)
+    {
+        _commandContext = commandContext;
     }
 
-    public void Start(TextWriter error,
-        IFileSystem fileSystem,
-        string appPath,
+    public void Initialize(DateTimeOffset startTime)
+    {
+        if (_initialized)
+        {
+            return;
+        }
+
+        _applicationStartTime = startTime;
+        _settings = _commandContext.Settings.GetTrace2Settings();
+        _sid = SidManager.Sid;
+
+        InitializeWriters();
+
+        _initialized = true;
+    }
+
+    public void Start(string appPath,
+        string[] args,
         string filePath,
         int lineNumber)
     {
-        TryParseSettings(error, fileSystem);
-
         if (!AssemblyUtils.TryGetAssemblyVersion(out string version))
         {
             // A version is required for TRACE2, so if this call fails
@@ -99,13 +111,12 @@ public class Trace2 : DisposableObject, ITrace2
             version = "0.0.0";
         }
         WriteVersion(version, filePath, lineNumber);
-        WriteStart(appPath, filePath, lineNumber);
+        WriteStart(appPath, args, filePath, lineNumber);
     }
 
     public void Stop(int exitCode, string filePath, int lineNumber)
     {
         WriteExit(exitCode, filePath, lineNumber);
-        ReleaseManagedResources();
     }
 
     protected override void ReleaseManagedResources()
@@ -131,7 +142,7 @@ public class Trace2 : DisposableObject, ITrace2
         base.ReleaseManagedResources();
     }
 
-    internal bool TryGetPipeName(string eventTarget, out string name)
+    internal static bool TryGetPipeName(string eventTarget, out string name)
     {
         // Use prefixes to determine whether target is a named pipe/socket
         if (eventTarget.Contains("af_unix:", StringComparison.OrdinalIgnoreCase) ||
@@ -148,7 +159,7 @@ public class Trace2 : DisposableObject, ITrace2
         return false;
     }
 
-    private void TryParseSettings(TextWriter error, IFileSystem fileSystem)
+    private void InitializeWriters()
     {
         // Set up the correct writer for every enabled format target.
         foreach (var formatTarget in _settings.FormatTargetsAndValues)
@@ -164,7 +175,7 @@ public class Trace2 : DisposableObject, ITrace2
             }
             else if (formatTarget.Value.IsTruthy()) // Write to stderr
             {
-                AddWriter(new Trace2StreamWriter(formatTarget.Key, error));
+                AddWriter(new Trace2StreamWriter(formatTarget.Key, _commandContext.Streams.Error));
             }
             else if (Path.IsPathRooted(formatTarget.Value)) // Write to file
             {
@@ -174,7 +185,7 @@ public class Trace2 : DisposableObject, ITrace2
                 }
                 catch (Exception ex)
                 {
-                    error.WriteLine($"warning: unable to trace to file '{formatTarget.Value}': {ex.Message}");
+                    Console.Error.WriteLine($"warning: unable to trace to file '{formatTarget.Value}': {ex.Message}");
                 }
             }
         }
@@ -202,6 +213,7 @@ public class Trace2 : DisposableObject, ITrace2
 
     private void WriteStart(
         string appPath,
+        string[] args,
         string filePath,
         int lineNumber)
     {
@@ -210,7 +222,11 @@ public class Trace2 : DisposableObject, ITrace2
         {
             Path.GetFileName(appPath),
         };
-        argv.AddRange(_argv);
+
+        if (args.Length > 0)
+        {
+            argv.AddRange(args);
+        }
 
         WriteMessage(new StartMessage()
         {
@@ -257,6 +273,11 @@ public class Trace2 : DisposableObject, ITrace2
     private void WriteMessage(Trace2Message message)
     {
         ThrowIfDisposed();
+
+        if (!_initialized)
+        {
+            return;
+        }
 
         lock (_writersLock)
         {

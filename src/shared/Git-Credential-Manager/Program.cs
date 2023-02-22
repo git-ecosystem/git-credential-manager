@@ -11,12 +11,20 @@ namespace GitCredentialManager
     {
         public static void Main(string[] args)
         {
-            // Set the session id (sid) for the GCM process, to be
+            var startTime = DateTimeOffset.UtcNow;
+            // Set the session id (sid) and start time for the GCM process, to be
             // used when TRACE2 tracing is enabled.
             SidManager.CreateSid();
-            using (var context = new CommandContext(args))
+
+            using (var context = new CommandContext())
             using (var app = new Application(context))
             {
+                // Initialize TRACE2 system
+                context.Trace2.Initialize(startTime);
+
+                // Write the start and version events
+                context.Trace2.Start(context.ApplicationPath, args);
+
                 // Workaround for https://github.com/AzureAD/microsoft-authentication-library-for-dotnet/issues/2560
                 if (MicrosoftAuthentication.CanUseBroker(context))
                 {
@@ -68,15 +76,15 @@ namespace GitCredentialManager
                 // Register all supported host providers at the normal priority.
                 // The generic provider should never win against a more specific one, so register it with low priority.
                 app.RegisterProvider(new AzureReposHostProvider(context), HostProviderPriority.Normal);
-                app.RegisterProvider(new BitbucketHostProvider(context),  HostProviderPriority.Normal);
-                app.RegisterProvider(new GitHubHostProvider(context),     HostProviderPriority.Normal);
-                app.RegisterProvider(new GitLabHostProvider(context),     HostProviderPriority.Normal);
-                app.RegisterProvider(new GenericHostProvider(context),    HostProviderPriority.Low);
+                app.RegisterProvider(new BitbucketHostProvider(context), HostProviderPriority.Normal);
+                app.RegisterProvider(new GitHubHostProvider(context), HostProviderPriority.Normal);
+                app.RegisterProvider(new GitLabHostProvider(context), HostProviderPriority.Normal);
+                app.RegisterProvider(new GenericHostProvider(context), HostProviderPriority.Low);
 
                 int exitCode = app.RunAsync(args)
-                                  .ConfigureAwait(false)
-                                  .GetAwaiter()
-                                  .GetResult();
+                    .ConfigureAwait(false)
+                    .GetAwaiter()
+                    .GetResult();
 
                 context.Trace2.Stop(exitCode);
                 Environment.Exit(exitCode);

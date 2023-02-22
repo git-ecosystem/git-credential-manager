@@ -13,9 +13,15 @@ namespace GitCredentialManager.UI
             // Set the session id (sid) for the helper process, to be
             // used when TRACE2 tracing is enabled.
             SidManager.CreateSid();
-            using (var context = new CommandContext(args))
+            using (var context = new CommandContext())
             using (var app = new HelperApplication(context))
             {
+                // Initialize TRACE2 system
+                context.Trace2.Initialize(DateTimeOffset.UtcNow);
+
+                context.Trace2.Start(context.ApplicationPath, args);
+
+                // Write the start and version events
                 if (args.Length == 0)
                 {
                     await Gui.ShowWindow(() => new TesterWindow(), IntPtr.Zero);

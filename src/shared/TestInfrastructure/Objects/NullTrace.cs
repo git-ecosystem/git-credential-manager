@@ -51,15 +51,17 @@ namespace GitCredentialManager.Tests.Objects
     public class NullTrace2 : ITrace2
     {
         #region ITrace2
-        public void AddWriter(ITrace2Writer writer) { }
 
-        public void Start(TextWriter error,
-            IFileSystem fileSystem,
-            string appPath,
+        public void Initialize(DateTimeOffset startTime) { }
+
+        public void Start(string appPath,
+            string[] args,
             string filePath = "",
             int lineNumber = 0) { }
 
-        public void Stop(int exitCode, string fileName, int lineNumber) { }
+        public void Stop(int exitCode,
+            string fileName,
+            int lineNumber) { }
 
         #endregion
 

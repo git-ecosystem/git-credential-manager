@@ -85,14 +85,14 @@ namespace GitCredentialManager
     /// </summary>
     public class CommandContext : DisposableObject, ICommandContext
     {
-        public CommandContext(string[] argv)
+        public CommandContext()
         {
-            var applicationStartTime = DateTimeOffset.UtcNow;
             ApplicationPath = GetEntryApplicationPath();
             InstallationDirectory = GetInstallationDirectory();
 
             Streams = new StandardStreams();
             Trace   = new Trace();
+            Trace2  = new Trace2(this);
 
             if (PlatformUtils.IsWindows())
             {
@@ -145,7 +145,6 @@ namespace GitCredentialManager
                 throw new PlatformNotSupportedException();
             }
 
-            Trace2 = new Trace2(Environment, Settings.GetTrace2Settings(), argv, applicationStartTime);
             HttpClientFactory = new HttpClientFactory(FileSystem, Trace, Settings, Streams);
             CredentialStore   = new CredentialStore(this);
         }
