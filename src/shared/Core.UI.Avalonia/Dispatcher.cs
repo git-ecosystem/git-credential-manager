@@ -59,7 +59,7 @@ namespace GitCredentialManager.UI
         /// Post work to be run on the thread associated with this dispatcher.
         /// </summary>
         /// <param name="work">Work to be run.</param>
-        public void Post(Action work)
+        public void Post(Action<CancellationToken> work)
         {
             Task _ = InvokeAsync(work);
         }
@@ -69,14 +69,14 @@ namespace GitCredentialManager.UI
         /// synchronously until the work is complete.
         /// </summary>
         /// <param name="work">Work to be run.</param>
-        public Task InvokeAsync(Action work)
+        public Task InvokeAsync(Action<CancellationToken> work)
         {
             var tcs = new TaskCompletionSource<object>();
             _queue.AddJob(new DispatcherJob(work, tcs));
             return tcs.Task;
         }
 
-        public Task<TResult> InvokeAsync<TResult>(Func<TResult> work)
+        public Task<TResult> InvokeAsync<TResult>(Func<CancellationToken, TResult> work)
         {
             var tcs = new TaskCompletionSource<TResult>();
             _queue.AddJob(new DispatcherJob<TResult>(work, tcs));
@@ -85,41 +85,41 @@ namespace GitCredentialManager.UI
 
         private interface IDispatcherJob
         {
-            void Execute();
+            void Execute(CancellationToken ct);
         }
 
         private class DispatcherJob : IDispatcherJob
         {
-            private readonly Action _work;
+            private readonly Action<CancellationToken> _work;
             private readonly TaskCompletionSource<object> _tcs;
 
-            public DispatcherJob(Action work, TaskCompletionSource<object> tcs)
+            public DispatcherJob(Action<CancellationToken> work, TaskCompletionSource<object> tcs)
             {
                 _work = work;
                 _tcs = tcs;
             }
 
-            public void Execute()
+            public void Execute(CancellationToken ct)
             {
-                _work();
+                _work(ct);
                 _tcs?.SetResult(null);
             }
         }
 
         private class DispatcherJob<TResult> : IDispatcherJob
         {
-            private readonly Func<TResult> _work;
+            private readonly Func<CancellationToken, TResult> _work;
             private readonly TaskCompletionSource<TResult> _tcs;
 
-            public DispatcherJob(Func<TResult> work, TaskCompletionSource<TResult> tcs)
+            public DispatcherJob(Func<CancellationToken, TResult> work, TaskCompletionSource<TResult> tcs)
             {
                 _work = work;
                 _tcs = tcs;
             }
 
-            public void Execute()
+            public void Execute(CancellationToken ct)
             {
-                TResult result = _work();
+                TResult result = _work(ct);
                 _tcs?.SetResult(result);
             }
         }
@@ -127,6 +127,7 @@ namespace GitCredentialManager.UI
         private class DispatcherJobQueue
         {
             private readonly Queue<IDispatcherJob> _queue = new();
+            private readonly CancellationTokenSource _cts = new();
 
             private enum State
             {
@@ -157,7 +158,7 @@ namespace GitCredentialManager.UI
 
                 while (TryTake(out IDispatcherJob job))
                 {
-                    job.Execute();
+                    job.Execute(_cts.Token);
                 }
             }
 
@@ -175,6 +176,7 @@ namespace GitCredentialManager.UI
                             throw new InvalidOperationException("Dispatcher has already shut down.");
                     }
                     _state = State.Stopping;
+                    _cts.Cancel();
                     Monitor.Pulse(_queue);
                 }
             }

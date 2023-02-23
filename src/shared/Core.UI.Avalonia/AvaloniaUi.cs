@@ -40,9 +40,9 @@ namespace GitCredentialManager.UI
 
                 var appRunning = new ManualResetEventSlim();
 
-                // Fire and forget (this action never returns) the Avalonia app main loop
-                // over to our dispatcher (running on the main/entry thread).
-                Dispatcher.MainThread.Post(() =>
+                // Fire and forget the Avalonia app main loop over to our dispatcher (running on the main/entry thread).
+                // This action only returns on our dispatcher shutdown.
+                Dispatcher.MainThread.Post(appCancelToken =>
                 {
                     AppBuilder appBuilder = AppBuilder.Configure<AvaloniaApp>()
                         .UsePlatformDetect()
@@ -51,9 +51,8 @@ namespace GitCredentialManager.UI
 
                     appRunning.Set();
 
-                    // Run the application loop (never exits!)
-                    var appCts = new CancellationTokenSource();
-                    appBuilder.Instance.Run(appCts.Token);
+                    // Run the application loop (only exit when the dispatcher is shutting down)
+                    appBuilder.Instance.Run(appCancelToken);
                 });
 
                 // Wait for the action posted above to be dequeued from the dispatcher's job queue
