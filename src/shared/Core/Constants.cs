@@ -54,6 +54,8 @@ namespace GitCredentialManager
             public const string GcmAuthority          = "GCM_AUTHORITY";
             public const string GitTerminalPrompts    = "GIT_TERMINAL_PROMPT";
             public const string GcmAllowWia           = "GCM_ALLOW_WINDOWSAUTH";
+            public const string GitTrace2Event        = "GIT_TRACE2_EVENT";
+            public const string GitTrace2Normal       = "GIT_TRACE2";
 
             /*
              * Unlike other environment variables, these proxy variables are normally lowercase only.
@@ -89,6 +91,16 @@ namespace GitCredentialManager
             public const string GcmAutoDetectTimeout  = "GCM_AUTODETECT_TIMEOUT";
             public const string GcmGuiPromptsEnabled  = "GCM_GUI_PROMPT";
             public const string GcmUiHelper           = "GCM_UI_HELPER";
+            public const string OAuthAuthenticationModes = "GCM_OAUTH_AUTHMODES";
+            public const string OAuthClientId            = "GCM_OAUTH_CLIENTID";
+            public const string OAuthClientSecret        = "GCM_OAUTH_CLIENTSECRET";
+            public const string OAuthRedirectUri         = "GCM_OAUTH_REDIRECTURI";
+            public const string OAuthScopes              = "GCM_OAUTH_SCOPES";
+            public const string OAuthAuthzEndpoint       = "GCM_OAUTH_AUTHORIZE_ENDPOINT";
+            public const string OAuthTokenEndpoint       = "GCM_OAUTH_TOKEN_ENDPOINT";
+            public const string OAuthDeviceEndpoint      = "GCM_OAUTH_DEVICE_ENDPOINT";
+            public const string OAuthClientAuthHeader    = "GCM_OAUTH_USE_CLIENT_AUTH_HEADER";
+            public const string OAuthDefaultUserName     = "GCM_OAUTH_DEFAULT_USERNAME";
         }
 
         public static class Http
@@ -125,6 +137,17 @@ namespace GitCredentialManager
                 public const string AutoDetectTimeout = "autoDetectTimeout";
                 public const string GuiPromptsEnabled = "guiPrompt";
                 public const string UiHelper = "uiHelper";
+
+                public const string OAuthAuthenticationModes = "oauthAuthModes";
+                public const string OAuthClientId            = "oauthClientId";
+                public const string OAuthClientSecret        = "oauthClientSecret";
+                public const string OAuthRedirectUri         = "oauthRedirectUri";
+                public const string OAuthScopes              = "oauthScopes";
+                public const string OAuthAuthzEndpoint       = "oauthAuthorizeEndpoint";
+                public const string OAuthTokenEndpoint       = "oauthTokenEndpoint";
+                public const string OAuthDeviceEndpoint      = "oauthDeviceEndpoint";
+                public const string OAuthClientAuthHeader    = "oauthUseClientAuthHeader";
+                public const string OAuthDefaultUserName     = "oauthDefaultUserName";
             }
 
             public static class Http
@@ -142,6 +165,13 @@ namespace GitCredentialManager
                 public const string SectionName = "remote";
                 public const string FetchUrl = "url";
                 public const string PushUrl = "pushUrl";
+            }
+
+            public static class Trace2
+            {
+                public const string SectionName = "trace2";
+                public const string EventTarget = "eventtarget";
+                public const string NormalTarget = "normaltarget";
             }
         }
 

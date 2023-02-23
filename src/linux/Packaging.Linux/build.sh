@@ -44,6 +44,7 @@ fi
 
 OUTDIR="$INSTALLER_OUT/$CONFIGURATION"
 PAYLOAD="$OUTDIR/payload"
+SYMBOLS="$OUTDIR/payload.sym"
 
 # Lay out payload
 "$INSTALLER_SRC/layout.sh" --configuration="$CONFIGURATION" || exit 1
@@ -78,7 +79,7 @@ if [ $INSTALL_FROM_SOURCE = true ]; then
     echo "Install complete."
 else
     # Pack
-    "$INSTALLER_SRC/pack.sh" --configuration="$CONFIGURATION" --payload="$PAYLOAD" --version="$VERSION" || exit 1
+    "$INSTALLER_SRC/pack.sh" --configuration="$CONFIGURATION" --payload="$PAYLOAD" --symbols="$SYMBOLS" --version="$VERSION" || exit 1
 fi
 
 echo "Build of Packaging.Linux complete."

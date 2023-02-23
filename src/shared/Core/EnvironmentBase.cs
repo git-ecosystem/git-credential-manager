@@ -56,6 +56,15 @@ namespace GitCredentialManager
         /// <param name="workingDirectory">Working directory for the new process.</param>
         /// <returns><see cref="Process"/> object ready to start.</returns>
         Process CreateProcess(string path, string args, bool useShellExecute, string workingDirectory);
+
+        /// <summary>
+        /// Set an environment variable at the specified target level.
+        /// </summary>
+        /// <param name="variable">Name of the environment variable to set.</param>
+        /// <param name="value">Value of the environment variable to set.</param>
+        /// <param name="target">Target level of environment variable to set (Machine, Process, or User).</param>
+        void SetEnvironmentVariable(string variable, string value,
+            EnvironmentVariableTarget target = EnvironmentVariableTarget.Process);
     }
 
     public abstract class EnvironmentBase : IEnvironment
@@ -141,6 +150,16 @@ namespace GitCredentialManager
             path = null;
             return false;
         }
+
+        public void SetEnvironmentVariable(string variable, string value,
+            EnvironmentVariableTarget target = EnvironmentVariableTarget.Process)
+        {
+            if (Variables.Keys.Contains(variable)) return;
+            Environment.SetEnvironmentVariable(variable, value, target);
+            Variables = GetCurrentVariables();
+        }
+
+        protected abstract IReadOnlyDictionary<string, string> GetCurrentVariables();
     }
 
     public static class EnvironmentExtensions

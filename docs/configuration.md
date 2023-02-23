@@ -442,7 +442,7 @@ _(unset)_|Windows: `wincredman`, macOS: `keychain`, Linux: _(none)_|-
 `keychain`|macOS Keychain.|macOS
 `secretservice`|[freedesktop.org Secret Service API][freedesktop-ss] via [libsecret][libsecret] (requires a graphical interface to unlock secret collections).|Linux
 `gpg`|Use GPG to store encrypted files that are compatible with the [pass][pass] (requires GPG and `pass` to initialize the store).|macOS, Linux
-`cache`|Git's built-in [credential cache][credential-cache].|Windows, macOS, Linux
+`cache`|Git's built-in [credential cache][credential-cache].|macOS, Linux
 `plaintext`|Store credentials in plaintext files (**UNSECURE**). Customize the plaintext store location with [`credential.plaintextStorePath`][credential-plaintextstorepath].|Windows, macOS, Linux
 
 #### Example

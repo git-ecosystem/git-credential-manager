@@ -116,6 +116,14 @@ namespace GitCredentialManager.Tests.Objects
 
             return new Process { StartInfo = psi };
         }
+        
+        public void SetEnvironmentVariable(string variable, string value,
+            EnvironmentVariableTarget target = EnvironmentVariableTarget.Process)
+        {
+            if (Variables.Keys.Contains(variable)) return;
+            Environment.SetEnvironmentVariable(variable, value, target);
+            Variables.Add(variable, value);
+        }
 
         #endregion
     }

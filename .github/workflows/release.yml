@@ -384,7 +384,7 @@ jobs:
     - name: Upload artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: tmp.linux-build
+        name: linux-build
         path: |
           linux-build
 
@@ -399,7 +399,11 @@ jobs:
     - name: Download artifacts
       uses: actions/download-artifact@v3
       with:
-        name: tmp.linux-build
+        name: linux-build
+    
+    - name: Remove symbols
+      run: |
+        rm tar/*symbols*
 
     - uses: azure/login@v1
       with:
@@ -423,6 +427,12 @@ jobs:
       run: |
         python .github/run_esrp_signing.py deb $env:LINUX_KEY_CODE $env:LINUX_OP_CODE
         python .github/run_esrp_signing.py tar $env:LINUX_KEY_CODE $env:LINUX_OP_CODE
+    
+    - name: Re-name tarball signature file
+      shell: bash
+      run: |
+        signaturepath=$(find signed/*.tar.gz)
+        mv "$signaturepath" "${signaturepath%.tar.gz}.asc"
 
     - name: Upload signed tarball and Debian package
       uses: actions/upload-artifact@v3
@@ -624,9 +634,15 @@ jobs:
           - os: ubuntu-latest
             artifact: linux-sign
             command: git-credential-manager
+            description: debian
+          - os: ubuntu-latest
+            artifact: linux-build
+            command: git-credential-manager
+            description: tarball
           - os: macos-latest
             artifact: osx-x64-sign
             command: git-credential-manager
+            description: osx-x64
           - os: windows-latest
             artifact: win-sign
             # Even when a standalone GCM version is installed, GitHub actions
@@ -634,9 +650,11 @@ jobs:
             # Windows due to its placement on the PATH. For this reason, we use
             # the full path to our installation to validate the Windows version.
             command: "$PROGRAMFILES (x86)/Git Credential Manager/git-credential-manager.exe"
+            description: windows
           - os: ubuntu-latest
             artifact: dotnet-tool-sign
             command: git-credential-manager
+            description: dotnet-tool
     runs-on: ${{ matrix.component.os }}
     needs: [ osx-sign, win-sign, linux-sign, dotnet-tool-sign ]
     steps:
@@ -654,7 +672,7 @@ jobs:
           name: ${{ matrix.component.artifact }}
 
       - name: Install Windows
-        if: contains(matrix.component.os, 'windows')
+        if: contains(matrix.component.description, 'windows')
         shell: pwsh
         run: |
           $exePaths = Get-ChildItem -Path ./signed/*.exe | %{$_.FullName}
@@ -663,22 +681,30 @@ jobs:
             Start-Process -Wait -FilePath "$exePath" -ArgumentList "/SILENT /VERYSILENT /NORESTART"
           }
 
-      - name: Install Linux
-        if: contains(matrix.component.os, 'ubuntu') && contains(matrix.component.artifact, 'linux')
+      - name: Install Linux (Debian package)
+        if: contains(matrix.component.description, 'debian')
         run: |
           debpath=$(find ./*.deb)
           sudo apt install $debpath
           "${{ matrix.component.command }}" configure
+      
+      - name: Install Linux (tarball)
+        if: contains(matrix.component.description, 'tarball')
+        run: |
+          # Ensure we find only the source tarball, not the symbols
+          tarpath=$(find ./tar -name '*[[:digit:]].tar.gz')
+          tar -xvf $tarpath -C /usr/local/bin
+          "${{ matrix.component.command }}" configure
 
       - name: Install macOS
-        if: contains(matrix.component.os, 'macos')
+        if: contains(matrix.component.description, 'osx-x64')
         run: |
           # Only validate x64, given arm64 agents are not available
           pkgpath=$(find ./*.pkg)
           sudo installer -pkg $pkgpath -target /
       
       - name: Install .NET tool
-        if: contains(matrix.component.os, 'ubuntu') && contains(matrix.component.artifact, 'dotnet-tool')
+        if: contains(matrix.component.description, 'dotnet-tool')
         run: |
           nupkgpath=$(find ./*.nupkg)
           dotnet tool install -g --add-source $(dirname "$nupkgpath") git-credential-manager
@@ -787,6 +813,7 @@ jobs:
               uploadDirectoryToRelease('osx-payload-and-symbols'),
 
               // Upload Linux artifacts
+              uploadDirectoryToRelease('linux-build/tar'),
               uploadDirectoryToRelease('linux-sign'),
 
               // Upload .NET tool package
@@ -795,5 +822,5 @@ jobs:
 
       - name: Publish .NET tool to nuget.org
         run: |
-          dotnet nuget push dotnet-tool-sign/signed/*.nupkg \
+          dotnet nuget push dotnet-tool-sign/*.nupkg \
             --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json

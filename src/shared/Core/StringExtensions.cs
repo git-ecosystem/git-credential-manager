@@ -228,5 +228,17 @@ namespace GitCredentialManager
 
             return str;
         }
+
+        /// <summary>
+        /// Check whether string contains a specified substring.
+        /// </summary>
+        /// <param name="str">String to check.</param>
+        /// <param name="value">String to locate.</param>
+        /// <param name="comparisonType">Comparison rule for comparing the strings.</param>
+        /// <returns>True if the string contains the substring, false if not.</returns>
+        public static bool Contains(this string str, string value, StringComparison comparisonType)
+        {
+            return str?.IndexOf(value, comparisonType) >= 0;
+        }
     }
 }

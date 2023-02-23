@@ -3,7 +3,7 @@
 In November 2021, _"Git Credential Manager Core"_ was [renamed][rename-pr] to
 simply _"Git Credential Manager"_, dropping the "Core" moniker. We announced the
 new name in a [GitHub blog post][rename-blog], along with the new home for the
-project in it's own [organization][gcm-org].
+project in its own [organization][gcm-org].
 
 ![Git Credential Manager Core renamed](img/gcmcore-rename.png)
 
@@ -133,7 +133,7 @@ Look out for entries that include `git-credential-manager-core` or
 or `manager` respectively.
 
 > **Note:** When updating the Git configuration file in your home directory
-> (`$HOME/.gitconfig` or `%USERPROFILE\.gitconfig%`) you should ensure there are
+> (`$HOME/.gitconfig` or `%USERPROFILE%\.gitconfig`) you should ensure there are
 > is an additional blank entry for `credential.helper` before the GCM entry.
 >
 > **Mac/Linux**
