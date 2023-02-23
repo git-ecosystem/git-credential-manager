@@ -5,7 +5,7 @@ namespace GitCredentialManager.UI.ViewModels
     public class OAuthViewModel : WindowViewModel
     {
         private string _description;
-        private bool _showProductHeader;
+        private bool _showProductHeader = true;
         private bool _showBrowserLogin;
         private bool _showDeviceCodeLogin;
         private RelayCommand _signInBrowserCommand;

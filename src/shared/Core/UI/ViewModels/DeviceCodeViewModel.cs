@@ -9,7 +9,7 @@ namespace GitCredentialManager.UI.ViewModels
         private ICommand _verificationUrlCommand;
         private string _verificationUrl;
         private string _userCode;
-        private bool _showProductHeader;
+        private bool _showProductHeader = true;
 
         public DeviceCodeViewModel()
         {

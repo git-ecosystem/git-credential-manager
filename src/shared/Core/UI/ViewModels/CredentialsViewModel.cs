@@ -7,7 +7,7 @@ namespace GitCredentialManager.UI.ViewModels
         private string _userName;
         private string _password;
         private string _description;
-        private bool _showProductHeader;
+        private bool _showProductHeader = true;
         private RelayCommand _signInCommand;
 
         public CredentialsViewModel()
