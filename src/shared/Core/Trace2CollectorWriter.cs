@@ -35,17 +35,17 @@ namespace GitCredentialManager
 
             Start();
         }
-        
+
         public void Write(Trace2Message message)
         {
            _queue.TryAdd(message.ToJson());
         }
-        
+
         protected override void ReleaseManagedResources()
         {
             Stop();
 
-            _pipeClient.Dispose();
+            _pipeClient?.Dispose();
             _queue.Dispose();
             base.ReleaseManagedResources();
 
