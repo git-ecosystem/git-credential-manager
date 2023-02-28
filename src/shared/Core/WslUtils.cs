@@ -45,7 +45,7 @@ namespace GitCredentialManager
             {
                 RedirectStandardInput = true,
                 RedirectStandardOutput = true,
-                RedirectStandardError = true,
+                RedirectStandardError = false, // Do not redirect stderr as tracing might be enabled
                 UseShellExecute = false,
                 WorkingDirectory = workingDirectory ?? string.Empty
             };

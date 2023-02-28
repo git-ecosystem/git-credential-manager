@@ -107,7 +107,7 @@ namespace GitCredentialManager.Tests.Objects
             {
                 RedirectStandardInput = true,
                 RedirectStandardOutput = true,
-                RedirectStandardError = true,
+                RedirectStandardError = true, // Ok to redirect stderr for testing
                 UseShellExecute = useShellExecute,
                 WorkingDirectory = workingDirectory ?? string.Empty
             };
@@ -116,7 +116,7 @@ namespace GitCredentialManager.Tests.Objects
 
             return new Process { StartInfo = psi };
         }
-        
+
         public void SetEnvironmentVariable(string variable, string value,
             EnvironmentVariableTarget target = EnvironmentVariableTarget.Process)
         {

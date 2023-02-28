@@ -107,7 +107,7 @@ namespace GitCredentialManager.Tests
             Assert.Equal(expectedFileName, process.StartInfo.FileName);
             Assert.True(process.StartInfo.RedirectStandardInput);
             Assert.True(process.StartInfo.RedirectStandardOutput);
-            Assert.True(process.StartInfo.RedirectStandardError);
+            Assert.False(process.StartInfo.RedirectStandardError);
             Assert.False(process.StartInfo.UseShellExecute);
         }
 
@@ -128,7 +128,7 @@ namespace GitCredentialManager.Tests
             Assert.Equal(expectedFileName, process.StartInfo.FileName);
             Assert.True(process.StartInfo.RedirectStandardInput);
             Assert.True(process.StartInfo.RedirectStandardOutput);
-            Assert.True(process.StartInfo.RedirectStandardError);
+            Assert.False(process.StartInfo.RedirectStandardError);
             Assert.False(process.StartInfo.UseShellExecute);
             Assert.Equal(expectedWorkingDirectory, process.StartInfo.WorkingDirectory);
         }

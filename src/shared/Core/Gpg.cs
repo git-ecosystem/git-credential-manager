@@ -30,7 +30,9 @@ namespace GitCredentialManager
             {
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
-                RedirectStandardError = true, // Suppress verbose decryption messages
+                // Suppress verbose decryption messages
+                // Ok to redirect stderr for non-Git-related processes
+                RedirectStandardError = true,
             };
 
             PrepareEnvironment(psi);
@@ -62,7 +64,7 @@ namespace GitCredentialManager
                 UseShellExecute = false,
                 RedirectStandardInput = true,
                 RedirectStandardOutput = true,
-                RedirectStandardError = true,
+                RedirectStandardError = true, // Ok to redirect stderr for non-git-related processes
             };
 
             PrepareEnvironment(psi);

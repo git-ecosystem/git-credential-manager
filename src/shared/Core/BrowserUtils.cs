@@ -50,6 +50,7 @@ namespace GitCredentialManager
                         psi = new ProcessStartInfo(shellExecPath, url)
                         {
                             RedirectStandardOutput = true,
+                            // Ok to redirect stderr for non-git-related processes
                             RedirectStandardError = true
                         };
 
