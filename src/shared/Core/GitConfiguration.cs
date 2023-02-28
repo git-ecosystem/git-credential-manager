@@ -199,6 +199,9 @@ namespace GitCredentialManager
             using (Process git = _git.CreateProcess($"config --null {levelArg} {typeArg} {QuoteCmdArg(name)}"))
             {
                 git.Start();
+                // To avoid deadlocks, always read the output stream first and then wait
+                // TODO: don't read in all the data at once; stream it
+                string data = git.StandardOutput.ReadToEnd();
                 git.WaitForExit();
 
                 switch (git.ExitCode)
@@ -214,7 +217,6 @@ namespace GitCredentialManager
                         return false;
                 }
 
-                string data = git.StandardOutput.ReadToEnd();
                 string[] entries = data.Split('\0');
                 if (entries.Length > 0)
                 {
@@ -301,7 +303,7 @@ namespace GitCredentialManager
             using (Process git = _git.CreateProcess(gitArgs))
             {
                 git.Start();
-
+                // To avoid deadlocks, always read the output stream first and then wait
                 // TODO: don't read in all the data at once; stream it
                 string data = git.StandardOutput.ReadToEnd();
                 git.WaitForExit();
