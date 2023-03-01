@@ -9,7 +9,7 @@ using GitCredentialManager.Diagnostics;
 
 namespace GitHub
 {
-    public class GitHubHostProvider : HostProvider, IDiagnosticProvider
+    public class GitHubHostProvider : DisposableObject, IHostProvider, IDiagnosticProvider
     {
         private static readonly string[] GitHubOAuthScopes =
         {
@@ -26,27 +26,29 @@ namespace GitHub
 
         private readonly IGitHubRestApi _gitHubApi;
         private readonly IGitHubAuthentication _gitHubAuth;
+        private readonly ICommandContext _context;
 
         public GitHubHostProvider(ICommandContext context)
             : this(context, new GitHubRestApi(context), new GitHubAuthentication(context)) { }
 
         public GitHubHostProvider(ICommandContext context, IGitHubRestApi gitHubApi, IGitHubAuthentication gitHubAuth)
-            : base(context)
         {
+            EnsureArgument.NotNull(context, nameof(context));
             EnsureArgument.NotNull(gitHubApi, nameof(gitHubApi));
             EnsureArgument.NotNull(gitHubAuth, nameof(gitHubAuth));
 
+            _context = context;
             _gitHubApi = gitHubApi;
             _gitHubAuth = gitHubAuth;
         }
 
-        public override string Id => "github";
+        public string Id => "github";
 
-        public override string Name => "GitHub";
+        public string Name => "GitHub";
 
-        public override IEnumerable<string> SupportedAuthorityIds => GitHubAuthentication.AuthorityIds;
+        public IEnumerable<string> SupportedAuthorityIds => GitHubAuthentication.AuthorityIds;
 
-        public override bool IsSupported(InputArguments input)
+        public bool IsSupported(InputArguments input)
         {
             if (input is null)
             {
@@ -94,7 +96,7 @@ namespace GitHub
             return false;
         }
 
-        public override bool IsSupported(HttpResponseMessage response)
+        public bool IsSupported(HttpResponseMessage response)
         {
             if (response is null)
             {
@@ -105,9 +107,10 @@ namespace GitHub
             return response.Headers.Contains("X-GitHub-Request-Id");
         }
 
-        public override string GetServiceName(InputArguments input)
+        internal /* for testing purposes */ string GetServiceName(InputArguments input)
         {
-            var baseUri = new Uri(base.GetServiceName(input));
+            // Get the remote URI without user information
+            var baseUri = input.GetRemoteUri(includeUser: false);
 
             // Normalise the URI
             string url = NormalizeUri(baseUri).AbsoluteUri;
@@ -116,14 +119,78 @@ namespace GitHub
             return url.TrimEnd('/');
         }
 
-        public override async Task<ICredential> GenerateCredentialAsync(InputArguments input)
+        public async Task<ICredential> GetCredentialAsync(InputArguments input)
+        {
+            // Try and locate an existing credential in the OS credential store
+            string service = GetServiceName(input);
+            _context.Trace.WriteLine($"Looking for existing credential in store with service={service} account={input.UserName}...");
+
+            ICredential credential = _context.CredentialStore.Get(service, input.UserName);
+            if (credential == null)
+            {
+                _context.Trace.WriteLine("No existing credentials found.");
+
+                // No existing credential was found, create a new one
+                _context.Trace.WriteLine("Creating new credential...");
+                credential = await GenerateCredentialAsync(input);
+                _context.Trace.WriteLine("Credential created.");
+            }
+            else
+            {
+                _context.Trace.WriteLine("Existing credential found.");
+            }
+
+            return credential;
+        }
+
+        public virtual Task StoreCredentialAsync(InputArguments input)
+        {
+            string service = GetServiceName(input);
+
+            // WIA-authentication is signaled to Git as an empty username/password pair
+            // and we will get called to 'store' these WIA credentials.
+            // We avoid storing empty credentials.
+            if (string.IsNullOrWhiteSpace(input.UserName) && string.IsNullOrWhiteSpace(input.Password))
+            {
+                _context.Trace.WriteLine("Not storing empty credential.");
+            }
+            else
+            {
+                // Add or update the credential in the store.
+                _context.Trace.WriteLine($"Storing credential with service={service} account={input.UserName}...");
+                _context.CredentialStore.AddOrUpdate(service, input.UserName, input.Password);
+                _context.Trace.WriteLine("Credential was successfully stored.");
+            }
+
+            return Task.CompletedTask;
+        }
+
+        public virtual Task EraseCredentialAsync(InputArguments input)
+        {
+            string service = GetServiceName(input);
+
+            // Try to locate an existing credential
+            _context.Trace.WriteLine($"Erasing stored credential in store with service={service} account={input.UserName}...");
+            if (_context.CredentialStore.Remove(service, input.UserName))
+            {
+                _context.Trace.WriteLine("Credential was successfully erased.");
+            }
+            else
+            {
+                _context.Trace.WriteLine("No credential was erased.");
+            }
+
+            return Task.CompletedTask;
+        }
+
+        internal /* for testing purposes */ async Task<ICredential> GenerateCredentialAsync(InputArguments input)
         {
             ThrowIfDisposed();
 
             // We should not allow unencrypted communication and should inform the user
             if (StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "http"))
             {
-                throw new Trace2Exception(Context.Trace2,
+                throw new Trace2Exception(_context.Trace2,
                     "Unencrypted HTTP is not supported for GitHub. Ensure the repository remote URL is using HTTPS.");
             }
 
@@ -147,7 +214,7 @@ namespace GitHub
                     // We must store the PAT now so they can resume/repeat the operation with the same,
                     // now SSO authorized, PAT.
                     // See: https://github.com/git-ecosystem/git-credential-manager/issues/133
-                    Context.CredentialStore.AddOrUpdate(service, patCredential.Account, patCredential.Password);
+                    _context.CredentialStore.AddOrUpdate(service, patCredential.Account, patCredential.Password);
                     return patCredential;
 
                 case AuthenticationModes.Browser:
@@ -198,7 +265,7 @@ namespace GitHub
 
             if (result.Type == GitHubAuthenticationResultType.Success)
             {
-                Context.Trace.WriteLine($"Token acquisition for '{targetUri}' succeeded");
+                _context.Trace.WriteLine($"Token acquisition for '{targetUri}' succeeded");
 
                 token = result.Token;
             }
@@ -213,7 +280,7 @@ namespace GitHub
 
                 if (result.Type == GitHubAuthenticationResultType.Success)
                 {
-                    Context.Trace.WriteLine($"Token acquisition for '{targetUri}' succeeded.");
+                    _context.Trace.WriteLine($"Token acquisition for '{targetUri}' succeeded.");
 
                     token = result.Token;
                 }
@@ -229,25 +296,25 @@ namespace GitHub
 
             var format = "Interactive logon for '{0}' failed.";
             var message = string.Format(format, targetUri);
-            throw new Trace2Exception(Context.Trace2, message, format);
+            throw new Trace2Exception(_context.Trace2, message, format);
         }
 
         internal async Task<AuthenticationModes> GetSupportedAuthenticationModesAsync(Uri targetUri)
         {
             // Check for an explicit override for supported authentication modes
-            if (Context.Settings.TryGetSetting(
+            if (_context.Settings.TryGetSetting(
                 GitHubConstants.EnvironmentVariables.AuthenticationModes,
                 Constants.GitConfiguration.Credential.SectionName, GitHubConstants.GitConfiguration.Credential.AuthenticationModes,
                 out string authModesStr))
             {
                 if (Enum.TryParse(authModesStr, true, out AuthenticationModes authModes) && authModes != AuthenticationModes.None)
                 {
-                    Context.Trace.WriteLine($"Supported authentication modes override present: {authModes}");
+                    _context.Trace.WriteLine($"Supported authentication modes override present: {authModes}");
                     return authModes;
                 }
                 else
                 {
-                    Context.Trace.WriteLine($"Invalid value for supported authentication modes override setting: '{authModesStr}'");
+                    _context.Trace.WriteLine($"Invalid value for supported authentication modes override setting: '{authModesStr}'");
                 }
             }
 
@@ -255,12 +322,12 @@ namespace GitHub
             // https://developer.github.com/changes/2020-02-14-deprecating-oauth-auth-endpoint
             if (IsGitHubDotCom(targetUri))
             {
-                Context.Trace.WriteLine($"{targetUri} is github.com - authentication schemes: '{GitHubConstants.DotComAuthenticationModes}'");
+                _context.Trace.WriteLine($"{targetUri} is github.com - authentication schemes: '{GitHubConstants.DotComAuthenticationModes}'");
                 return GitHubConstants.DotComAuthenticationModes;
             }
 
             // For GitHub Enterprise we must do some detection of supported modes
-            Context.Trace.WriteLine($"{targetUri} is GitHub Enterprise - checking for supported authentication schemes...");
+            _context.Trace.WriteLine($"{targetUri} is GitHub Enterprise - checking for supported authentication schemes...");
 
             try
             {
@@ -283,7 +350,7 @@ namespace GitHub
                     modes |= AuthenticationModes.OAuth;
                 }
 
-                Context.Trace.WriteLine($"GitHub Enterprise instance has version '{metaInfo.InstalledVersion}' and supports authentication schemes: {modes}");
+                _context.Trace.WriteLine($"GitHub Enterprise instance has version '{metaInfo.InstalledVersion}' and supports authentication schemes: {modes}");
                 return modes;
             }
             catch (Exception ex)
@@ -291,11 +358,11 @@ namespace GitHub
                 var format = "Failed to query '{0}' for supported authentication schemes.";
                 var message = string.Format(format, targetUri);
 
-                Context.Trace.WriteLine(message);
-                Context.Trace.WriteException(ex);
-                Context.Trace2.WriteError(message, format);
+                _context.Trace.WriteLine(message);
+                _context.Trace.WriteException(ex);
+                _context.Trace2.WriteError(message, format);
 
-                Context.Terminal.WriteLine($"warning: {message}");
+                _context.Terminal.WriteLine($"warning: {message}");
 
                 // Fall-back to offering all modes so the user is never blocked from authenticating by at least one mode
                 return AuthenticationModes.All;
@@ -311,7 +378,7 @@ namespace GitHub
 
         public IEnumerable<IDiagnostic> GetDiagnostics()
         {
-            yield return new GitHubApiDiagnostic(_gitHubApi, Context);
+            yield return new GitHubApiDiagnostic(_gitHubApi, _context);
         }
 
         #region Private Methods
