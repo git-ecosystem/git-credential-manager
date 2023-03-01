@@ -89,6 +89,40 @@ namespace GitCredentialManager.Tests.Authentication
         }
 
         [Fact]
+        public async Task OAuth2Client_GetAuthorizationCodeAsync_ExtraQueryParams_OverrideStandardArgs_ThrowsException()
+        {
+            const string expectedAuthCode = "68c39cbd8d";
+
+            var baseUri = new Uri("https://example.com");
+            OAuth2ServerEndpoints endpoints = CreateEndpoints(baseUri);
+
+            var httpHandler = new TestHttpMessageHandler {ThrowOnUnexpectedRequest = true};
+
+            string[] expectedScopes = {"read", "write", "delete"};
+
+            var extraParams = new Dictionary<string, string>
+            {
+                ["param1"] = "value1",
+                [OAuth2Constants.ClientIdParameter] = "value2",
+                ["param3"] = "value3"
+            };
+
+            OAuth2Application app = CreateTestApplication();
+
+            var server = new TestOAuth2Server(endpoints);
+            server.RegisterApplication(app);
+            server.Bind(httpHandler);
+            server.TokenGenerator.AuthCodes.Add(expectedAuthCode);
+
+            IOAuth2WebBrowser browser = new TestOAuth2WebBrowser(httpHandler);
+
+            OAuth2Client client = CreateClient(httpHandler, endpoints);
+
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+                client.GetAuthorizationCodeAsync(expectedScopes, browser, extraParams, CancellationToken.None));
+        }
+
+        [Fact]
         public async Task OAuth2Client_GetDeviceCodeAsync()
         {
             const string expectedUserCode = "254583";
