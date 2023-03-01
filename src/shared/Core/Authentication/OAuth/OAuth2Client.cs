@@ -20,9 +20,15 @@ namespace GitCredentialManager.Authentication.OAuth
         /// </summary>
         /// <param name="scopes">Scopes to request.</param>
         /// <param name="browser">User agent to use to start the authorization code grant flow.</param>
+        /// <param name="extraQueryParams">Extra parameters to add to the URL query component.</param>
         /// <param name="ct">Token to cancel the operation.</param>
         /// <returns>Authorization code.</returns>
-        Task<OAuth2AuthorizationCodeResult> GetAuthorizationCodeAsync(IEnumerable<string> scopes, IOAuth2WebBrowser browser, CancellationToken ct);
+        Task<OAuth2AuthorizationCodeResult> GetAuthorizationCodeAsync(
+            IEnumerable<string> scopes,
+            IOAuth2WebBrowser browser,
+            IDictionary<string, string> extraQueryParams,
+            CancellationToken ct
+        );
 
         /// <summary>
         /// Retrieve a device code grant.
@@ -87,7 +93,8 @@ namespace GitCredentialManager.Authentication.OAuth
 
         #region IOAuth2Client
 
-        public async Task<OAuth2AuthorizationCodeResult> GetAuthorizationCodeAsync(IEnumerable<string> scopes, IOAuth2WebBrowser browser, CancellationToken ct)
+        public async Task<OAuth2AuthorizationCodeResult> GetAuthorizationCodeAsync(IEnumerable<string> scopes,
+            IOAuth2WebBrowser browser, IDictionary<string, string> extraQueryParams, CancellationToken ct)
         {
             string state = CodeGenerator.CreateNonce();
             string codeVerifier = CodeGenerator.CreatePkceCodeVerifier();
@@ -103,6 +110,21 @@ namespace GitCredentialManager.Authentication.OAuth
                     OAuth2Constants.AuthorizationEndpoint.PkceChallengeMethodS256,
                 [OAuth2Constants.AuthorizationEndpoint.PkceChallengeParameter] = codeChallenge
             };
+
+            if (extraQueryParams?.Count > 0)
+            {
+                foreach (var kvp in extraQueryParams)
+                {
+                    if (queryParams.ContainsKey(kvp.Key))
+                    {
+                        throw new ArgumentException(
+                            $"Extra query parameter '{kvp.Key}' would override required standard OAuth parameters.",
+                            nameof(extraQueryParams));
+                    }
+
+                    queryParams[kvp.Key] = kvp.Value;
+                }
+            }
 
             Uri redirectUri = null;
             if (_redirectUri != null)
@@ -374,5 +396,14 @@ namespace GitCredentialManager.Authentication.OAuth
         }
 
         #endregion
+    }
+
+    public static class OAuth2ClientExtensions
+    {
+        public static Task<OAuth2AuthorizationCodeResult> GetAuthorizationCodeAsync(
+            this IOAuth2Client client, IEnumerable<string> scopes, IOAuth2WebBrowser browser, CancellationToken ct)
+        {
+            return client.GetAuthorizationCodeAsync(scopes, browser, null, ct);
+        }
     }
 }
