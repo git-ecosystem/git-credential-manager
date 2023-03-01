@@ -15,17 +15,24 @@ namespace GitCredentialManager
     /// </remarks>
     public class InputArguments
     {
-        private readonly IReadOnlyDictionary<string, string> _dict;
+        private readonly IReadOnlyDictionary<string, IList<string>> _dict;
 
         public InputArguments(IDictionary<string, string> dict)
         {
-            if (dict == null)
-            {
-                throw new ArgumentNullException(nameof(dict));
-            }
+            EnsureArgument.NotNull(dict, nameof(dict));
+
+            // Transform input from 1:1 to 1:n and store as readonly
+            _dict = new ReadOnlyDictionary<string, IList<string>>(
+                dict.ToDictionary(x => x.Key, x => (IList<string>)new[] { x.Value })
+            );
+        }
+
+        public InputArguments(IDictionary<string, IList<string>> dict)
+        {
+            EnsureArgument.NotNull(dict, nameof(dict));
 
             // Wrap the dictionary internally as readonly
-            _dict = new ReadOnlyDictionary<string, string>(dict);
+            _dict = new ReadOnlyDictionary<string, IList<string>>(dict);
         }
 
         #region Common Arguments
@@ -35,6 +42,7 @@ namespace GitCredentialManager
         public string Path     => GetArgumentOrDefault("path");
         public string UserName => GetArgumentOrDefault("username");
         public string Password => GetArgumentOrDefault("password");
+        public IList<string> WwwAuth => GetMultiArgumentOrDefault("wwwauth");
 
         #endregion
 
@@ -50,9 +58,33 @@ namespace GitCredentialManager
             return TryGetArgument(key, out string value) ? value : null;
         }
 
+        public IList<string> GetMultiArgumentOrDefault(string key)
+        {
+            return TryGetMultiArgument(key, out IList<string> values) ? values : Array.Empty<string>();
+        }
+
         public bool TryGetArgument(string key, out string value)
         {
-            return _dict.TryGetValue(key, out value);
+            if (_dict.TryGetValue(key, out IList<string> values))
+            {
+                value = values.FirstOrDefault();
+                return value != null;
+            }
+
+            value = null;
+            return false;
+        }
+
+        public bool TryGetMultiArgument(string key, out IList<string> value)
+        {
+            if (_dict.TryGetValue(key, out IList<string> values))
+            {
+                value = values;
+                return true;
+            }
+
+            value = null;
+            return false;
         }
 
         public bool TryGetHostAndPort(out string host, out int? port)

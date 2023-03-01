@@ -217,24 +217,25 @@ namespace GitCredentialManager
                 bool isSecretEntry = !(secretKeys is null) &&
                                      secretKeys.Contains(entry.Key, keyComparer ?? EqualityComparer<TKey>.Default);
 
-                void WriteSecretLine(object value)
+                void WriteSecretLine(string keySuffix, object value)
                 {
                     var message = isSecretEntry && !IsSecretTracingEnabled
-                        ? $"\t{entry.Key}={SecretMask}"
-                        : $"\t{entry.Key}={value}";
+                        ? $"\t{entry.Key}{keySuffix}={SecretMask}"
+                        : $"\t{entry.Key}{keySuffix}={value}";
                     WriteLine(message, filePath, lineNumber, memberName);
                 }
 
                 if (entry.Value is IEnumerable<string> values)
                 {
-                    foreach (string value in values)
+                    List<string> valueList = values.ToList();
+                    foreach (string value in valueList)
                     {
-                        WriteSecretLine(value);
+                        WriteSecretLine(valueList.Count > 1 ? "[]" : string.Empty, value);
                     }
                 }
                 else
                 {
-                    WriteSecretLine(entry.Value);
+                    WriteSecretLine(string.Empty, entry.Value);
                 }
             }
         }

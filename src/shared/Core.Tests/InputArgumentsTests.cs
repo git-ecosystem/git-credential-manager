@@ -9,19 +9,25 @@ namespace GitCredentialManager.Tests
         [Fact]
         public void InputArguments_Ctor_Null_ThrowsArgNullException()
         {
-            Assert.Throws<ArgumentNullException>(() => new InputArguments(null));
+            Assert.Throws<ArgumentNullException>(() => new InputArguments((IDictionary<string, string>)null));
+            Assert.Throws<ArgumentNullException>(() => new InputArguments((IDictionary<string, IList<string>>)null));
         }
 
         [Fact]
         public void InputArguments_CommonArguments_ValuePresent_ReturnsValues()
         {
-            var dict = new Dictionary<string, string>
+            var dict = new Dictionary<string, IList<string>>
             {
-                ["protocol"] = "https",
-                ["host"]     = "example.com",
-                ["path"]     = "an/example/path",
-                ["username"] = "john.doe",
-                ["password"] = "password123"
+                ["protocol"] = new[] { "https" },
+                ["host"]     = new[] { "example.com" },
+                ["path"]     = new[] { "an/example/path" },
+                ["username"] = new[] { "john.doe" },
+                ["password"] = new[] { "password123" },
+                ["wwwauth"]  = new[]
+                {
+                    "basic realm=\"example.com\"",
+                    "bearer authorize_uri=https://id.example.com p=1 q=0"
+                }
             };
 
             var inputArgs = new InputArguments(dict);
@@ -31,10 +37,16 @@ namespace GitCredentialManager.Tests
             Assert.Equal("an/example/path", inputArgs.Path);
             Assert.Equal("john.doe",        inputArgs.UserName);
             Assert.Equal("password123",     inputArgs.Password);
+            Assert.Equal(new[]
+                {
+                    "basic realm=\"example.com\"",
+                    "bearer authorize_uri=https://id.example.com p=1 q=0"
+                },
+                inputArgs.WwwAuth);
         }
 
         [Fact]
-        public void InputArguments_CommonArguments_ValueMissing_ReturnsNull()
+        public void InputArguments_CommonArguments_ValueMissing_ReturnsNullOrEmptyCollection()
         {
             var dict = new Dictionary<string, string>();
 
@@ -45,20 +57,23 @@ namespace GitCredentialManager.Tests
             Assert.Null(inputArgs.Path);
             Assert.Null(inputArgs.UserName);
             Assert.Null(inputArgs.Password);
+            Assert.Empty(inputArgs.WwwAuth);
         }
 
         [Fact]
         public void InputArguments_OtherArguments()
         {
-            var dict = new Dictionary<string, string>
+            var dict = new Dictionary<string, IList<string>>
             {
-                ["foo"] = "bar"
+                ["foo"] = new[] { "bar" },
+                ["multi"] = new[] { "val1", "val2", "val3" },
             };
 
             var inputArgs = new InputArguments(dict);
 
             Assert.Equal("bar", inputArgs["foo"]);
             Assert.Equal("bar", inputArgs.GetArgumentOrDefault("foo"));
+            Assert.Equal(new[] { "val1", "val2", "val3" }, inputArgs.GetMultiArgumentOrDefault("multi"));
         }
 
         [Fact]
