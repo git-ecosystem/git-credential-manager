@@ -10,7 +10,7 @@ namespace Atlassian.Bitbucket
 {
     public abstract class BitbucketOAuth2Client : OAuth2Client
     {
-        public BitbucketOAuth2Client(HttpClient httpClient, OAuth2ServerEndpoints endpoints, string clientId, Uri redirectUri, string clientSecret, ITrace trace) : base(httpClient, endpoints, clientId, redirectUri, clientSecret, trace, false)
+        public BitbucketOAuth2Client(HttpClient httpClient, OAuth2ServerEndpoints endpoints, string clientId, Uri redirectUri, string clientSecret, ITrace trace) : base(httpClient, endpoints, clientId, redirectUri, clientSecret, false)
         {
         }
 

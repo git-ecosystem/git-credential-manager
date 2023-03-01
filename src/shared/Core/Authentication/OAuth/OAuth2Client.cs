@@ -65,19 +65,17 @@ namespace GitCredentialManager.Authentication.OAuth
         private readonly Uri _redirectUri;
         private readonly string _clientId;
         private readonly string _clientSecret;
-        private readonly ITrace _trace;
         private readonly bool _addAuthHeader;
 
         private IOAuth2CodeGenerator _codeGenerator;
 
-        public OAuth2Client(HttpClient httpClient, OAuth2ServerEndpoints endpoints, string clientId, Uri redirectUri = null, string clientSecret = null, ITrace trace = null, bool addAuthHeader = true)
+        public OAuth2Client(HttpClient httpClient, OAuth2ServerEndpoints endpoints, string clientId, Uri redirectUri = null, string clientSecret = null, bool addAuthHeader = true)
         {
             _httpClient = httpClient;
             _endpoints = endpoints;
             _clientId = clientId;
             _redirectUri = redirectUri;
             _clientSecret = clientSecret;
-            _trace = trace;
             _addAuthHeader = addAuthHeader;
         }
 
@@ -86,18 +84,6 @@ namespace GitCredentialManager.Authentication.OAuth
             get => _codeGenerator ?? (_codeGenerator = new OAuth2CryptographicCodeGenerator());
             set => _codeGenerator = value;
         }
-
-        protected string ClientId => _clientId;
-
-        protected string ClientSecret => _clientSecret;
-
-        protected ITrace Trace => _trace;
-
-        protected OAuth2ServerEndpoints Endpoints => _endpoints;
-
-        protected HttpClient HttpClient => _httpClient;
-
-        protected Uri RedirectUri => _redirectUri;
 
         #region IOAuth2Client
 
