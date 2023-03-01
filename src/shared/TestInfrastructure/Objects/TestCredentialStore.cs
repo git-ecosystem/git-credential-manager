@@ -14,6 +14,11 @@ namespace GitCredentialManager.Tests.Objects
 
         #region ICredentialStore
 
+        public IList<string> GetAccounts(string service)
+        {
+            return Query(service, null).Select(x => x.Account).ToList();
+        }
+
         ICredential ICredentialStore.Get(string service, string account)
         {
             return TryGet(service, account, out TestCredential credential) ? credential : null;
