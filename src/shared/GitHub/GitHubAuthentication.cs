@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.IO;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
@@ -15,6 +16,8 @@ namespace GitHub
 {
     public interface IGitHubAuthentication : IDisposable
     {
+        Task<string> SelectAccountAsync(Uri targetUri, IEnumerable<string> accounts);
+
         Task<AuthenticationPromptResult> GetAuthenticationAsync(Uri targetUri, string userName, AuthenticationModes modes);
 
         Task<string> GetTwoFactorCodeAsync(Uri targetUri, bool isSms);
@@ -64,6 +67,66 @@ namespace GitHub
 
         public GitHubAuthentication(ICommandContext context)
             : base(context) {}
+
+        public async Task<string> SelectAccountAsync(Uri targetUri, IEnumerable<string> accounts)
+        {
+            ThrowIfUserInteractionDisabled();
+
+            if (Context.Settings.IsGuiPromptsEnabled && Context.SessionManager.IsDesktopSession)
+            {
+                if (TryFindHelperCommand(out string command, out string args))
+                {
+                    var promptArgs = new StringBuilder(args);
+                    promptArgs.Append("select-account");
+
+                    if (!GitHubHostProvider.IsGitHubDotCom(targetUri))
+                    {
+                        promptArgs.AppendFormat(" --enterprise-url {0}", QuoteCmdArg(targetUri.ToString()));
+                    }
+
+                    // Write the accounts to the standard input of the helper process to avoid any issues
+                    // with escaping special characters, and to avoid max argument length problems.
+                    byte[] bytes = Encoding.UTF8.GetBytes(string.Join("\n", accounts));
+                    using var ms = new MemoryStream(bytes);
+                    using var stdin = new StreamReader(ms);
+
+                    IDictionary<string, string> resultDict = await InvokeHelperAsync(command, promptArgs.ToString(), stdin);
+
+                    if (!resultDict.TryGetValue("account", out string selectedAccount))
+                    {
+                        throw new Exception("Missing 'account' in response");
+                    }
+
+                    return string.IsNullOrWhiteSpace(selectedAccount) ? null : selectedAccount;
+                }
+
+                var viewModel = new SelectAccountViewModel(Context.Environment, accounts);
+
+                if (!GitHubHostProvider.IsGitHubDotCom(targetUri))
+                {
+                    viewModel.EnterpriseUrl = targetUri.ToString();
+                }
+
+                await AvaloniaUi.ShowViewAsync<SelectAccountView>(viewModel, GetParentWindowHandle(), CancellationToken.None);
+
+                ThrowIfWindowCancelled(viewModel);
+
+                return viewModel.SelectedAccount?.UserName;
+            }
+
+            ThrowIfTerminalPromptsDisabled();
+            var menuTitle = $"Select an account for '{targetUri}'";
+            var menu = new TerminalMenu(Context.Terminal, menuTitle);
+            var addNewItem = menu.Add("Add a new account");
+
+            foreach (string account in accounts)
+            {
+                menu.Add(account);
+            }
+
+            TerminalMenuItem choice = menu.Show();
+            return choice == addNewItem ? null : choice.Name;
+        }
 
         public async Task<AuthenticationPromptResult> GetAuthenticationAsync(Uri targetUri, string userName, AuthenticationModes modes)
         {
