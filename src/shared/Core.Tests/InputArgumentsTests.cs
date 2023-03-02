@@ -220,6 +220,29 @@ namespace GitCredentialManager.Tests
             Assert.Equal(expectedUri, actualUri);
         }
 
+        [Theory]
+        [InlineData("foo?query=true")]
+        [InlineData("foo#fragment")]
+        [InlineData("foo?query=true#fragment")]
+        public void InputArguments_GetRemoteUri_PathQueryFragment_ReturnsCorrectUri(string path)
+        {
+            var expectedUri = new Uri($"https://example.com/{path}");
+
+            var dict = new Dictionary<string, string>
+            {
+                ["protocol"] = "https",
+                ["host"]     = "example.com",
+                ["path"]     = path
+            };
+
+            var inputArgs = new InputArguments(dict);
+
+            Uri actualUri = inputArgs.GetRemoteUri();
+
+            Assert.NotNull(actualUri);
+            Assert.Equal(expectedUri, actualUri);
+        }
+
         [Fact]
         public void InputArguments_GetRemoteUri_IncludeUser_AuthorityPathUserInfo_ReturnsUriWithAll()
         {
