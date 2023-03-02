@@ -1,6 +1,3 @@
-using System;
-using System.Text.RegularExpressions;
-using GitCredentialManager.Tests.Objects;
 using Xunit;
 
 namespace GitCredentialManager.Tests;
@@ -29,5 +26,15 @@ public class Trace2Tests
 
         Assert.True(isSuccessful);
         Assert.Matches(actual, expected);
+    }
+
+    [Theory]
+    [InlineData(0.013772,    "  0.013772 ")]
+    [InlineData(26.316083,   " 26.316083 ")]
+    [InlineData(100.316083,  "100.316083 ")]
+    public void BuildTimeSpan_Match_Returns_Expected_String(double input, string expected)
+    {
+        var actual = Trace2Message.BuildTimeSpan(input);
+        Assert.Equal(expected, actual);
     }
 }
