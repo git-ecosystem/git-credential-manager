@@ -27,6 +27,10 @@ namespace GitCredentialManager.Tests.Objects
 
         public TestOAuth2ServerTokenGenerator TokenGenerator = new TestOAuth2ServerTokenGenerator();
 
+        public event EventHandler<HttpRequestMessage> AuthorizationEndpointInvoked;
+        public event EventHandler<HttpRequestMessage> DeviceAuthorizationEndpointInvoked;
+        public event EventHandler<HttpRequestMessage> TokenEndpointInvoked;
+
         public void RegisterApplication(OAuth2Application application)
         {
             _apps[application.Id] = application;
@@ -52,6 +56,8 @@ namespace GitCredentialManager.Tests.Objects
 
         private Task<HttpResponseMessage> OnAuthorizationEndpointAsync(HttpRequestMessage request)
         {
+            AuthorizationEndpointInvoked?.Invoke(this, request);
+
             IDictionary<string, string> reqQuery = request.RequestUri.GetQueryParameters();
 
             // The only support response type so far is 'code'
@@ -128,6 +134,8 @@ namespace GitCredentialManager.Tests.Objects
 
         private async Task<HttpResponseMessage> OnDeviceAuthorizationEndpointAsync(HttpRequestMessage request)
         {
+            DeviceAuthorizationEndpointInvoked?.Invoke(this, request);
+
             IDictionary<string, string> formData = await request.Content.ReadAsFormContentAsync();
 
             // The client/app ID must be specified and must match a known application
@@ -162,6 +170,8 @@ namespace GitCredentialManager.Tests.Objects
 
         private async Task<HttpResponseMessage> OnTokenEndpointAsync(HttpRequestMessage request)
         {
+            TokenEndpointInvoked?.Invoke(this, request);
+
             IDictionary<string, string> formData = await request.Content.ReadAsFormContentAsync();
 
             if (!formData.TryGetValue(OAuth2Constants.TokenEndpoint.GrantTypeParameter, out string grantType))

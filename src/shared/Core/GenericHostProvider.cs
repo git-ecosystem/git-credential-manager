@@ -125,7 +125,6 @@ namespace GitCredentialManager
                 config.ClientId,
                 config.RedirectUri,
                 config.ClientSecret,
-                Context.Trace,
                 config.UseAuthHeader);
 
             //

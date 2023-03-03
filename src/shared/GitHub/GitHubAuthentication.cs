@@ -16,7 +16,7 @@ namespace GitHub
 
         Task<string> GetTwoFactorCodeAsync(Uri targetUri, bool isSms);
 
-        Task<OAuth2TokenResult> GetOAuthTokenViaBrowserAsync(Uri targetUri, IEnumerable<string> scopes);
+        Task<OAuth2TokenResult> GetOAuthTokenViaBrowserAsync(Uri targetUri, IEnumerable<string> scopes, string loginHint);
 
         Task<OAuth2TokenResult> GetOAuthTokenViaDeviceCodeAsync(Uri targetUri, IEnumerable<string> scopes);
     }
@@ -251,7 +251,7 @@ namespace GitHub
             }
         }
 
-        public async Task<OAuth2TokenResult> GetOAuthTokenViaBrowserAsync(Uri targetUri, IEnumerable<string> scopes)
+        public async Task<OAuth2TokenResult> GetOAuthTokenViaBrowserAsync(Uri targetUri, IEnumerable<string> scopes, string loginHint)
         {
             ThrowIfUserInteractionDisabled();
 
@@ -270,11 +270,21 @@ namespace GitHub
             };
             var browser = new OAuth2SystemWebBrowser(Context.Environment, browserOptions);
 
+            // If we have a login hint we should pass this to GitHub as an extra query parameter
+            IDictionary<string, string> queryParams = null;
+            if (loginHint != null)
+            {
+                queryParams = new Dictionary<string, string>
+                {
+                    ["login"] = loginHint
+                };
+            }
+
             // Write message to the terminal (if any is attached) for some feedback that we're waiting for a web response
             Context.Terminal.WriteLine("info: please complete authentication in your browser...");
 
             OAuth2AuthorizationCodeResult authCodeResult =
-                await oauthClient.GetAuthorizationCodeAsync(scopes, browser, CancellationToken.None);
+                await oauthClient.GetAuthorizationCodeAsync(scopes, browser, queryParams, CancellationToken.None);
 
             return await oauthClient.GetTokenByAuthorizationCodeAsync(authCodeResult, CancellationToken.None);
         }
