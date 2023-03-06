@@ -7,19 +7,13 @@ namespace GitCredentialManager.Diagnostics
 {
     public class CredentialStoreDiagnostic : Diagnostic
     {
-        private readonly ICredentialStore _credentialStore;
-
-        public CredentialStoreDiagnostic(ICredentialStore credentialStore)
-            : base("Credential storage")
-        {
-            EnsureArgument.NotNull(credentialStore, nameof(credentialStore));
-
-            _credentialStore = credentialStore;
-        }
+        public CredentialStoreDiagnostic(ICommandContext commandContext)
+            : base("Credential storage", commandContext)
+        { }
 
         protected override Task<bool> RunInternalAsync(StringBuilder log, IList<string> additionalFiles)
         {
-            log.AppendLine($"ICredentialStore instance is of type: {_credentialStore.GetType().Name}");
+            log.AppendLine($"ICredentialStore instance is of type: {CommandContext.CredentialStore.GetType().Name}");
 
             // Create a service that is guaranteed to be unique
             string service = $"https://example.com/{Guid.NewGuid():N}";
@@ -29,11 +23,11 @@ namespace GitCredentialManager.Diagnostics
             try
             {
                 log.Append("Writing test credential...");
-                _credentialStore.AddOrUpdate(service, account, password);
+                CommandContext.CredentialStore.AddOrUpdate(service, account, password);
                 log.AppendLine(" OK");
 
                 log.Append("Reading test credential...");
-                ICredential outCredential = _credentialStore.Get(service, account);
+                ICredential outCredential = CommandContext.CredentialStore.Get(service, account);
                 if (outCredential is null)
                 {
                     log.AppendLine(" Failed");
@@ -62,7 +56,7 @@ namespace GitCredentialManager.Diagnostics
             finally
             {
                 log.Append("Deleting test credential...");
-                _credentialStore.Remove(service, account);
+                CommandContext.CredentialStore.Remove(service, account);
                 log.AppendLine(" OK");
             }
 

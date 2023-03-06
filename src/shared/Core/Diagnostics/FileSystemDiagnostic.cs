@@ -8,15 +8,9 @@ namespace GitCredentialManager.Diagnostics
 {
     public class FileSystemDiagnostic : Diagnostic
     {
-        private readonly IFileSystem _fs;
-
-        public FileSystemDiagnostic(IFileSystem fs)
-            : base("File system")
-        {
-            EnsureArgument.NotNull(fs, nameof(fs));
-
-            _fs = fs;
-        }
+        public FileSystemDiagnostic(ICommandContext commandContext)
+            : base("File system", commandContext)
+        {  }
 
         protected override Task<bool> RunInternalAsync(StringBuilder log, IList<string> additionalFiles)
         {
@@ -49,9 +43,9 @@ namespace GitCredentialManager.Diagnostics
             log.AppendLine(" OK");
 
             log.AppendLine("Testing IFileSystem instance...");
-            log.AppendLine($"UserHomePath: {_fs.UserHomePath}");
-            log.AppendLine($"UserDataDirectoryPath: {_fs.UserDataDirectoryPath}");
-            log.AppendLine($"GetCurrentDirectory(): {_fs.GetCurrentDirectory()}");
+            log.AppendLine($"UserHomePath: {CommandContext.FileSystem.UserHomePath}");
+            log.AppendLine($"UserDataDirectoryPath: {CommandContext.FileSystem.UserDataDirectoryPath}");
+            log.AppendLine($"GetCurrentDirectory(): {CommandContext.FileSystem.GetCurrentDirectory()}");
 
             return Task.FromResult(true);
         }

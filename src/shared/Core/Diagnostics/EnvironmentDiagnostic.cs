@@ -8,15 +8,9 @@ namespace GitCredentialManager.Diagnostics
 {
     public class EnvironmentDiagnostic : Diagnostic
     {
-        private readonly IEnvironment _env;
-
-        public EnvironmentDiagnostic(IEnvironment env)
-            : base("Environment")
-        {
-            EnsureArgument.NotNull(env, nameof(env));
-
-            _env = env;
-        }
+        public EnvironmentDiagnostic(ICommandContext commandContext)
+            : base("Environment", commandContext)
+        { }
 
         protected override Task<bool> RunInternalAsync(StringBuilder log, IList<string> additionalFiles)
         {

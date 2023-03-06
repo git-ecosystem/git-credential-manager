@@ -16,9 +16,12 @@ namespace GitCredentialManager.Diagnostics
 
     public abstract class Diagnostic : IDiagnostic
     {
-        protected Diagnostic(string name)
+        protected ICommandContext CommandContext;
+
+        protected Diagnostic(string name, ICommandContext commandContext)
         {
             Name = name;
+            CommandContext = commandContext;
         }
 
         public string Name { get; }

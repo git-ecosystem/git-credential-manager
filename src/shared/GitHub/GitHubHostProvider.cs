@@ -304,7 +304,7 @@ namespace GitHub
 
         public IEnumerable<IDiagnostic> GetDiagnostics()
         {
-            yield return new GitHubApiDiagnostic(_gitHubApi);
+            yield return new GitHubApiDiagnostic(_gitHubApi, Context);
         }
 
         #region Private Methods
