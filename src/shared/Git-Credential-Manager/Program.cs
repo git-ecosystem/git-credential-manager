@@ -11,6 +11,9 @@ namespace GitCredentialManager
     {
         public static void Main(string[] args)
         {
+            // Set the session id (sid) for the GCM process, to be
+            // used when TRACE2 tracing is enabled.
+            SidManager.CreateSid();
             using (var context = new CommandContext(args))
             using (var app = new Application(context))
             {

@@ -84,7 +84,7 @@ public class Trace2 : DisposableObject, ITrace2
         _argv = argv;
         _applicationStartTime = applicationStartTime;
 
-        _sid = SetSid();
+        _sid = SidManager.Sid;
     }
 
     public void Start(TextWriter error,
@@ -132,22 +132,6 @@ public class Trace2 : DisposableObject, ITrace2
         }
 
         base.ReleaseManagedResources();
-    }
-
-    internal string SetSid()
-    {
-        var sids = new List<string>();
-        if (_environment.Variables.TryGetValue(GitSidVariable, out string parentSid))
-        {
-            sids.Add(parentSid);
-        }
-
-        // Add GCM "child" sid
-        sids.Add(Guid.NewGuid().ToString("D"));
-        var combinedSid = string.Join("/", sids);
-
-        _environment.SetEnvironmentVariable(GitSidVariable, combinedSid);
-        return combinedSid;
     }
 
     internal bool TryGetPipeName(string eventTarget, out string name)

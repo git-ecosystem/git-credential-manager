@@ -38,21 +38,4 @@ public class Trace2Tests
         Assert.True(isSuccessful);
         Assert.Matches(actual, expected);
     }
-
-    [Theory]
-    [InlineData("20190408T191610.507018Z-H9b68c35f-P000059a8")]
-    [InlineData("")]
-    public void SetSid_Envar_Returns_Expected_Value(string parentSid)
-    {
-        Regex rx = new Regex(@$"{parentSid}\/[\d\w-]*");
-
-        var environment = new TestEnvironment();
-        environment.Variables.Add("GIT_TRACE2_PARENT_SID", parentSid);
-
-        var settings = new TestSettings();
-        var trace2 = new Trace2(environment, settings.GetTrace2Settings(), new []{""}, DateTimeOffset.UtcNow);
-        var sid = trace2.SetSid();
-
-        Assert.Matches(rx, sid);
-    }
 }

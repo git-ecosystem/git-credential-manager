@@ -44,6 +44,10 @@ namespace GitLab.UI
         private static void AppMain(object o)
         {
             string[] args = (string[]) o;
+
+            // Set the session id (sid) for the helper process, to be
+            // used when TRACE2 tracing is enabled.
+            SidManager.CreateSid();
             using (var context = new CommandContext(args))
             using (var app = new HelperApplication(context))
             {
