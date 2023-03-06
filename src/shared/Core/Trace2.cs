@@ -18,11 +18,8 @@ namespace GitCredentialManager;
 /// </summary>
 public enum Trace2Event
 {
-    [EnumMember(Value = "version")]
     Version = 0,
-    [EnumMember(Value = "start")]
     Start = 1,
-    [EnumMember(Value = "exit")]
     Exit = 2
 }
 
@@ -337,7 +334,7 @@ public class VersionMessage : Trace2Message
     public override string ToJson()
     {
         return JsonConvert.SerializeObject(this,
-                new StringEnumConverter(),
+                new StringEnumConverter(typeof(SnakeCaseNamingStrategy)),
             new IsoDateTimeConverter()
             {
                 DateTimeFormat = TimeFormat
@@ -361,7 +358,7 @@ public class StartMessage : Trace2Message
     public override string ToJson()
     {
         return JsonConvert.SerializeObject(this,
-            new StringEnumConverter(),
+            new StringEnumConverter(typeof(SnakeCaseNamingStrategy)),
             new IsoDateTimeConverter()
             {
                 DateTimeFormat = TimeFormat
@@ -385,7 +382,7 @@ public class ExitMessage : Trace2Message
     public override string ToJson()
     {
         return JsonConvert.SerializeObject(this,
-            new StringEnumConverter(),
+            new StringEnumConverter(typeof(SnakeCaseNamingStrategy)),
             new IsoDateTimeConverter()
             {
                 DateTimeFormat = TimeFormat
