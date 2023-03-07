@@ -190,7 +190,7 @@ namespace GitCredentialManager
         }
 
         // This code was originally copied from
-        // src/shared/GitCredentialManager/Authentication/AuthenticationBase.cs
+        // src/shared/Core/Authentication/AuthenticationBase.cs
         // That code is for GUI helpers in this codebase, while the below is for
         // communicating over Git's stdin/stdout helper protocol. The GUI helper
         // protocol will one day use a different IPC mechanism, whereas this code

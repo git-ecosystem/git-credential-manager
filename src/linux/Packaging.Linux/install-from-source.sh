@@ -34,7 +34,7 @@ Git Credential Manager is licensed under the MIT License: https://aka.ms/gcm/lic
             [Nn]*)
                 exit
             ;;
-            *) 
+            *)
                 echo "Please answer yes or no."
             ;;
         esac
@@ -198,7 +198,7 @@ script_path="$(cd "$(dirname "$0")" && pwd)"
 toplevel_path="${script_path%/src/linux/Packaging.Linux}"
 if [ "z$script_path" = "z$toplevel_path" ] || [ ! -f "$toplevel_path/Git-Credential-Manager.sln" ]; then
     toplevel_path="$PWD/git-credential-manager"
-    test -d "$toplevel_path" || git clone https://github.com/GitCredentialManager/git-credential-manager
+    test -d "$toplevel_path" || git clone https://github.com/git-ecosystem/git-credential-manager
 fi
 
 if [ -z "$DOTNET_ROOT" ]; then

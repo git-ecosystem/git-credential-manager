@@ -236,6 +236,6 @@ dotnet tool uninstall -g git-credential-manager
 [gcm-wsl]: wsl.md
 [git-for-windows]: https://gitforwindows.org/
 [git-for-windows-screenshot]: https://user-images.githubusercontent.com/5658207/140082529-1ac133c1-0922-4a24-af03-067e27b3988b.png
-[latest-release]: https://github.com/GitCredentialManager/git-credential-manager/releases/latest
+[latest-release]: https://github.com/git-ecosystem/git-credential-manager/releases/latest
 [linux-uninstall]: linux-fromsrc-uninstall.md
 [ms-wsl]: https://aka.ms/wsl#
