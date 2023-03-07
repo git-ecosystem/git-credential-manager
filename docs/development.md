@@ -3,7 +3,7 @@
 Start by cloning this repository:
 
 ```shell
-git clone https://github.com/GitCredentialManager/git-credential-manager
+git clone https://github.com/git-ecosystem/git-credential-manager
 ```
 
 You also need the latest version of the .NET SDK which can be downloaded and

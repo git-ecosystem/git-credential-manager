@@ -49,7 +49,7 @@ namespace GitHub.Tests
             Assert.Equal("Cannot prompt because terminal prompts have been disabled.", exception.Message);
         }
 
-        // reproduces https://github.com/GitCredentialManager/git-credential-manager/issues/453
+        // reproduces https://github.com/git-ecosystem/git-credential-manager/issues/453
         [Fact]
         public async Task GitHubAuthentication_GetAuthenticationAsync_Terminal()
         {

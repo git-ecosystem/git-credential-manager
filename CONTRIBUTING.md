@@ -52,10 +52,10 @@ request being accepted:
 [code-of-conduct]: CODE_OF_CONDUCT.md
 [commits]: https://www.youtube.com/watch?v=4qLtKx9S9a8
 [contribute-under-repo-license]: https://help.github.com/articles/github-terms-of-service/#6-contributions-under-repository-license
-[fork]: https://github.com/GitCredentialManager/git-credential-manager/fork
+[fork]: https://github.com/git-ecosystem/git-credential-manager/fork
 [github-help]: https://help.github.com
 [how-to-contribute]: https://opensource.guide/how-to-contribute/
-[issue]: https://github.com/GitCredentialManager/git-credential-manager/issues/new/choose
+[issue]: https://github.com/git-ecosystem/git-credential-manager/issues/new/choose
 [license]: LICENSE
-[pr]: https://github.com/GitCredentialManager/git-credential-manager/compare
+[pr]: https://github.com/git-ecosystem/git-credential-manager/compare
 [prs]: https://help.github.com/articles/about-pull-requests/
