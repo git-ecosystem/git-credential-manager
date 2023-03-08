@@ -158,7 +158,7 @@ public class Trace2 : DisposableObject, ITrace2
         {
             if (TryGetPipeName(formatTarget.Value, out string name)) // Write to named pipe/socket
             {
-                AddWriter(new Trace2CollectorWriter((
+                AddWriter(new Trace2CollectorWriter(formatTarget.Key, (
                         () => new NamedPipeClientStream(".", name,
                             PipeDirection.Out,
                             PipeOptions.Asynchronous)
@@ -167,16 +167,13 @@ public class Trace2 : DisposableObject, ITrace2
             }
             else if (formatTarget.Value.IsTruthy()) // Write to stderr
             {
-                AddWriter(new Trace2StreamWriter(error, formatTarget.Key));
+                AddWriter(new Trace2StreamWriter(formatTarget.Key, error));
             }
             else if (Path.IsPathRooted(formatTarget.Value)) // Write to file
             {
                 try
                 {
-                    Stream stream = fileSystem.OpenFileStream(formatTarget.Value, FileMode.Append,
-                        FileAccess.Write, FileShare.ReadWrite);
-                    AddWriter(new Trace2StreamWriter(new StreamWriter(stream, _utf8NoBomEncoding,
-                        4096, leaveOpen: false), formatTarget.Key));
+                    AddWriter(new Trace2FileWriter(formatTarget.Key, formatTarget.Value));
                 }
                 catch (Exception ex)
                 {
