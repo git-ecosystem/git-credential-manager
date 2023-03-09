@@ -142,18 +142,27 @@ namespace GitCredentialManager
             ICredential refreshToken = Context.CredentialStore.Get(refreshService, userName);
             if (refreshToken != null)
             {
-                 var refreshResult = await client.GetTokenByRefreshTokenAsync(refreshToken.Password, CancellationToken.None);
+                try
+                {
+                    var refreshResult = await client.GetTokenByRefreshTokenAsync(refreshToken.Password, CancellationToken.None);
 
-                 // Store new refresh token if we have been given one
-                 if (!string.IsNullOrWhiteSpace(refreshResult.RefreshToken))
-                 {
-                     Context.CredentialStore.AddOrUpdate(refreshService, refreshToken.Account, refreshToken.Password);
-                 }
+                    // Store new refresh token if we have been given one
+                    if (!string.IsNullOrWhiteSpace(refreshResult.RefreshToken))
+                    {
+                        Context.CredentialStore.AddOrUpdate(refreshService, refreshToken.Account, refreshToken.Password);
+                    }
 
-                 // Return the new access token
+                    // Return the new access token
                  return new GitCredential(oauthUser,refreshResult.AccessToken);
-            }
+                }
+                catch (OAuth2Exception ex)
+                {
+                    Context.Trace.WriteLine($"OAuth2Exception: {ex.Message},remove it");
+                    Context.CredentialStore.Remove(refreshService, refreshToken.Account);
+                    throw;
+                }
 
+            }
             // Determine which interactive OAuth mode to use. Start by checking for mode preference in config
             var supportedModes = OAuthAuthenticationModes.All;
             if (Context.Settings.TryGetSetting(

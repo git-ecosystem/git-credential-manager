@@ -266,7 +266,6 @@ namespace GitCredentialManager.Authentication.OAuth
                 {
                     return result;
                 }
-
                 throw CreateExceptionFromResponse(json);
             }
         }
