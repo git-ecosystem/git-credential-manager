@@ -150,5 +150,37 @@ namespace GitCredentialManager.Tests
             Assert.True(actualResult);
             Assert.Equal(expectedPath, actualPath);
         }
+        
+        [PlatformFact(Platforms.Posix)]
+        public void PosixEnvironment_SetEnvironmentVariable_Sets_Expected_Value()
+        {
+            var variable = "FOO_BAR";
+            var value = "baz";
+                
+            var fs = new TestFileSystem();
+            var envars = new Dictionary<string, string>();
+            var env = new PosixEnvironment(fs, envars);
+
+            env.SetEnvironmentVariable(variable, value);
+
+            Assert.Contains(env.Variables, item 
+                => item.Key.Equals(variable) && item.Value.Equals(value));
+        }
+        
+        [PlatformFact(Platforms.Windows)]
+        public void WindowsEnvironment_SetEnvironmentVariable_Sets_Expected_Value()
+        {
+            var variable = "FOO_BAR";
+            var value = "baz";
+                
+            var fs = new TestFileSystem();
+            var envars = new Dictionary<string, string>();
+            var env = new WindowsEnvironment(fs, envars);
+
+            env.SetEnvironmentVariable(variable, value);
+
+            Assert.Contains(env.Variables, item 
+                => item.Key.Equals(variable) && item.Value.Equals(value));
+        }
     }
 }

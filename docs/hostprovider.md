@@ -343,7 +343,7 @@ take, but implementors SHOULD attempt to follow existing practices and styles.
 
 1. [`System.CommandLine` API][github-dotnet-cli]
 
-[gcm]: https://github.com/GitCredentialManager/git-credential-manager
+[gcm]: https://github.com/git-ecosystem/git-credential-manager
 [github-dotnet-cli]: https://github.com/dotnet/command-line-api
 [hostprovider-base-class]: #26-hostprovider-base-class
 [references]: #references

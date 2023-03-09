@@ -33,6 +33,7 @@ namespace GitCredentialManager.Tests.Objects
         public TestTerminal Terminal { get; set; }
         public TestSessionManager SessionManager { get; set; }
         public ITrace Trace { get; set; }
+        public ITrace2 Trace2 { get; set; }
         public TestFileSystem FileSystem { get; set; }
         public TestCredentialStore CredentialStore { get; set; }
         public TestHttpClientFactory HttpClientFactory { get; set; }
@@ -41,7 +42,11 @@ namespace GitCredentialManager.Tests.Objects
 
         #region ICommandContext
 
-        string ICommandContext.ApplicationPath => AppPath;
+        string ICommandContext.ApplicationPath
+        {
+            get => AppPath;
+            set => AppPath = value;
+        }
 
         string ICommandContext.InstallationDirectory => InstallDir;
 

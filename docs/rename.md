@@ -133,7 +133,7 @@ Look out for entries that include `git-credential-manager-core` or
 or `manager` respectively.
 
 > **Note:** When updating the Git configuration file in your home directory
-> (`$HOME/.gitconfig` or `%USERPROFILE\.gitconfig%`) you should ensure there are
+> (`$HOME/.gitconfig` or `%USERPROFILE%\.gitconfig`) you should ensure there are
 > is an additional blank entry for `credential.helper` before the GCM entry.
 >
 > **Mac/Linux**
@@ -156,10 +156,10 @@ or `manager` respectively.
 > helper that is configured, and overrides any helpers configured at the system/
 > machine-wide level.
 
-[rename-pr]: https://github.com/GitCredentialManager/git-credential-manager/pull/541
+[rename-pr]: https://github.com/git-ecosystem/git-credential-manager/pull/541
 [rename-blog]: https://github.blog/2022-04-07-git-credential-manager-authentication-for-everyone/#universal-git-authentication
-[gcm-org]: https://github.com/GitCredentialManager
-[rename-ver]: https://github.com/GitCredentialManager/git-credential-manager/releases
+[gcm-org]: https://github.com/git-ecosystem
+[rename-ver]: https://github.com/git-ecosystem/git-credential-manager/releases
 [git-windows]: https://git-scm.com/download/win
 [gcm-latest]: https://aka.ms/gcm/latest
 [warnings]: #rename-transition

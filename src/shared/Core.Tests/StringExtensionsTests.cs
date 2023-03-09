@@ -245,6 +245,7 @@ namespace GitCredentialManager.Tests
         [InlineData("foo://", "://", "")]
         [InlineData("foo://bar", "://", "bar")]
         [InlineData("foo://bar/", "://", "bar/")]
+        [InlineData("foo:/bar/baz", ":", "/bar/baz")]
         public void StringExtensions_TrimUntilLastIndexOf_String(string input, string trim, string expected)
         {
             string actual = StringExtensions.TrimUntilLastIndexOf(input, trim);

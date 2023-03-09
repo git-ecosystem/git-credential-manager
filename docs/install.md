@@ -204,10 +204,11 @@ tool][dotnet-tool]. This is
 the preferred install method for Linux because you can use it to install on any
 [.NET-supported
 distribution][dotnet-supported-distributions]. You
-can also use this method on macOS or Windows if you so choose.
+can also use this method on macOS if you so choose.
 
-**Note:** Make sure you have installed .NET before attempting to run the
-following `dotnet tool` commands.
+**Note:** Make sure you have installed the [latest version of the .NET 6.0
+SDK](https://dotnet.microsoft.com/en-us/download/dotnet/6.0) before attempting
+to run the following `dotnet tool` commands.
 
 #### Install
 
@@ -235,6 +236,6 @@ dotnet tool uninstall -g git-credential-manager
 [gcm-wsl]: wsl.md
 [git-for-windows]: https://gitforwindows.org/
 [git-for-windows-screenshot]: https://user-images.githubusercontent.com/5658207/140082529-1ac133c1-0922-4a24-af03-067e27b3988b.png
-[latest-release]: https://github.com/GitCredentialManager/git-credential-manager/releases/latest
+[latest-release]: https://github.com/git-ecosystem/git-credential-manager/releases/latest
 [linux-uninstall]: linux-fromsrc-uninstall.md
 [ms-wsl]: https://aka.ms/wsl#

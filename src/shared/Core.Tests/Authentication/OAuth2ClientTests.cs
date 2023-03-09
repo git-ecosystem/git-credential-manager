@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -37,9 +38,88 @@ namespace GitCredentialManager.Tests.Authentication
 
             OAuth2Client client = CreateClient(httpHandler, endpoints);
 
-            OAuth2AuthorizationCodeResult result = await client.GetAuthorizationCodeAsync(expectedScopes, browser, CancellationToken.None);
+            OAuth2AuthorizationCodeResult result = await client.GetAuthorizationCodeAsync(expectedScopes, browser, null, CancellationToken.None);
 
             Assert.Equal(expectedAuthCode, result.Code);
+        }
+
+        [Fact]
+        public async Task OAuth2Client_GetAuthorizationCodeAsync_ExtraQueryParams()
+        {
+            const string expectedAuthCode = "68c39cbd8d";
+
+            var baseUri = new Uri("https://example.com");
+            OAuth2ServerEndpoints endpoints = CreateEndpoints(baseUri);
+
+            var httpHandler = new TestHttpMessageHandler {ThrowOnUnexpectedRequest = true};
+
+            string[] expectedScopes = {"read", "write", "delete"};
+
+            var extraParams = new Dictionary<string, string>
+            {
+                ["param1"] = "value1",
+                ["param2"] = "value2",
+                ["param3"] = "value3"
+            };
+
+            OAuth2Application app = CreateTestApplication();
+
+            var server = new TestOAuth2Server(endpoints);
+            server.RegisterApplication(app);
+            server.Bind(httpHandler);
+            server.TokenGenerator.AuthCodes.Add(expectedAuthCode);
+
+            server.AuthorizationEndpointInvoked += (_, request) =>
+            {
+                IDictionary<string, string> actualParams = request.RequestUri.GetQueryParameters();
+                foreach (var expected in extraParams)
+                {
+                    Assert.True(actualParams.TryGetValue(expected.Key, out string actualValue));
+                    Assert.Equal(expected.Value, actualValue);
+                }
+            };
+
+            IOAuth2WebBrowser browser = new TestOAuth2WebBrowser(httpHandler);
+
+            OAuth2Client client = CreateClient(httpHandler, endpoints);
+
+            OAuth2AuthorizationCodeResult result = await client.GetAuthorizationCodeAsync(expectedScopes, browser, extraParams, CancellationToken.None);
+
+            Assert.Equal(expectedAuthCode, result.Code);
+        }
+
+        [Fact]
+        public async Task OAuth2Client_GetAuthorizationCodeAsync_ExtraQueryParams_OverrideStandardArgs_ThrowsException()
+        {
+            const string expectedAuthCode = "68c39cbd8d";
+
+            var baseUri = new Uri("https://example.com");
+            OAuth2ServerEndpoints endpoints = CreateEndpoints(baseUri);
+
+            var httpHandler = new TestHttpMessageHandler {ThrowOnUnexpectedRequest = true};
+
+            string[] expectedScopes = {"read", "write", "delete"};
+
+            var extraParams = new Dictionary<string, string>
+            {
+                ["param1"] = "value1",
+                [OAuth2Constants.ClientIdParameter] = "value2",
+                ["param3"] = "value3"
+            };
+
+            OAuth2Application app = CreateTestApplication();
+
+            var server = new TestOAuth2Server(endpoints);
+            server.RegisterApplication(app);
+            server.Bind(httpHandler);
+            server.TokenGenerator.AuthCodes.Add(expectedAuthCode);
+
+            IOAuth2WebBrowser browser = new TestOAuth2WebBrowser(httpHandler);
+
+            OAuth2Client client = CreateClient(httpHandler, endpoints);
+
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+                client.GetAuthorizationCodeAsync(expectedScopes, browser, extraParams, CancellationToken.None));
         }
 
         [Fact]
@@ -217,7 +297,7 @@ namespace GitCredentialManager.Tests.Authentication
             OAuth2Client client = CreateClient(httpHandler, endpoints);
 
             OAuth2AuthorizationCodeResult authCodeResult = await client.GetAuthorizationCodeAsync(
-                expectedScopes, browser, CancellationToken.None);
+                expectedScopes, browser, null, CancellationToken.None);
 
             OAuth2TokenResult result1 = await client.GetTokenByAuthorizationCodeAsync(authCodeResult, CancellationToken.None);
 

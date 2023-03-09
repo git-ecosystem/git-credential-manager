@@ -174,13 +174,13 @@ host by specifying the host url, e.g. https://bitbucket.example.com/
 Due to the way GCM resolves hosts and determines REST API urls, if the Bitbucket
 DC instance is hosted under a relative url (e.g. https://example.com/bitbucket)
 it is necessary to configure Git to send the full path to GCM. This is done
-using the [credential.useHttpPath](configuration.md#credential.useHttpPath)  
+using the [credential.useHttpPath](configuration.md#credential.useHttpPath)
 setting.
     ❯ git config --global credential.https://example.com/bitbucket.usehttppath true
 <!-- markdownlint-enable MD034 -->
 
 If a port number is used in the url of the Bitbucket DC instance the Git
-configuration needs to reflect this. However, due to [Issue 608](https://github.com/GitCredentialManager/git-credential-manager/issues/608)
+configuration needs to reflect this. However, due to [Issue 608](https://github.com/git-ecosystem/git-credential-manager/issues/608)
 the port is ignored when resolving [credential.bitbucketDataCenterOAuthClientId](configuration.md#credential.bitbucketDataCenterOAuthClientId)
 and [credential.bitbucketDataCenterOAuthClientSecret](configuration.md#credential.bitbucketDataCenterOAuthClientSecret).
 <!-- markdownlint-disable MD034 -->

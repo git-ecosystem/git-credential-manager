@@ -145,15 +145,15 @@ namespace GitHub
                     // the PAT permissions manually on the web and then retry the Git operation.
                     // We must store the PAT now so they can resume/repeat the operation with the same,
                     // now SSO authorized, PAT.
-                    // See: https://github.com/GitCredentialManager/git-credential-manager/issues/133
+                    // See: https://github.com/git-ecosystem/git-credential-manager/issues/133
                     Context.CredentialStore.AddOrUpdate(service, patCredential.Account, patCredential.Password);
                     return patCredential;
 
                 case AuthenticationModes.Browser:
-                    return await GenerateOAuthCredentialAsync(remoteUri, useBrowser: true);
+                    return await GenerateOAuthCredentialAsync(remoteUri, loginHint: input.UserName, useBrowser: true);
 
                 case AuthenticationModes.Device:
-                    return await GenerateOAuthCredentialAsync(remoteUri, useBrowser: false);
+                    return await GenerateOAuthCredentialAsync(remoteUri, loginHint: input.UserName, useBrowser: false);
 
                 case AuthenticationModes.Pat:
                     // The token returned by the user should be good to use directly as the password for Git
@@ -176,10 +176,10 @@ namespace GitHub
             }
         }
 
-        private async Task<GitCredential> GenerateOAuthCredentialAsync(Uri targetUri, bool useBrowser)
+        private async Task<GitCredential> GenerateOAuthCredentialAsync(Uri targetUri, string loginHint, bool useBrowser)
         {
             OAuth2TokenResult result = useBrowser
-                ? await _gitHubAuth.GetOAuthTokenViaBrowserAsync(targetUri, GitHubOAuthScopes)
+                ? await _gitHubAuth.GetOAuthTokenViaBrowserAsync(targetUri, GitHubOAuthScopes, loginHint)
                 : await _gitHubAuth.GetOAuthTokenViaDeviceCodeAsync(targetUri, GitHubOAuthScopes);
 
             // Resolve the GitHub user handle

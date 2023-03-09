@@ -36,7 +36,7 @@
 #define GcmPublisherUrl "https://www.github.com"
 #define GcmCopyright "Copyright (c) GitHub, Inc. and contributors"
 #define GcmUrl "https://aka.ms/gcm"
-#define GcmReadme "https://github.com/GitCredentialManager/git-credential-manager/blob/main/README.md"
+#define GcmReadme "https://github.com/git-ecosystem/git-credential-manager/blob/main/README.md"
 #define GcmRepoRoot "..\..\.."
 #define GcmAssets GcmRepoRoot + "\assets"
 #define GcmExe "git-credential-manager.exe"

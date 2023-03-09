@@ -128,7 +128,7 @@ the new token-based authentication requirements **DO NOT** apply to GHES:
 [gcm]: https://aka.ms/gcm
 [gcm-install]: ../README.md#download-and-install
 [gcm-latest]: https://aka.ms/gcm/latest
-[gcm-new-issue]: https://github.com/GitCredentialManager/git-credential-manager/issues/new/choose
+[gcm-new-issue]: https://github.com/git-ecosystem/git-credential-manager/issues/new/choose
 [gcm-windows]: https://github.com/microsoft/Git-Credential-Manager-for-Windows
 [git-windows]: https://git-scm.com/download/win
 [github-display-pat-image]: img/github-display-pat.png

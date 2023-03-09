@@ -280,7 +280,7 @@ to the trace object in most places of GCM.
 [avalonia]: https://avaloniaui.net/
 [core-program]: ../src/shared/Git-Credential-Manager/Program.cs
 [credential-provider]: configuration.md#credentialprovider
-[issue-113]: https://github.com/GitCredentialManager/git-credential-manager/issues/113
-[issue-136]: https://github.com/GitCredentialManager/git-credential-manager/issues/136
+[issue-113]: https://github.com/git-ecosystem/git-credential-manager/issues/113
+[issue-136]: https://github.com/git-ecosystem/git-credential-manager/issues/136
 [gcm-provider]: environment.md#GCM_PROVIDER
 [msal]: https://github.com/AzureAD/microsoft-authentication-library-for-dotnet
