@@ -1,14 +1,10 @@
-using System.Diagnostics;
-
 namespace GitCredentialManager.Interop.Windows;
 
 public class WindowsProcessManager : ProcessManager
 {
-    private readonly ITrace2 _trace2;
-
     public WindowsProcessManager(ITrace2 trace2) : base(trace2)
     {
-        _trace2 = trace2;
+        PlatformUtils.EnsureWindows();
     }
 
     public override ChildProcess CreateProcess(string path, string args, bool useShellExecute, string workingDirectory)
@@ -17,7 +13,7 @@ public class WindowsProcessManager : ProcessManager
         if (!useShellExecute && WslUtils.IsWslPath(path))
         {
             string wslPath = WslUtils.ConvertToDistroPath(path, out string distro);
-            return WslUtils.CreateWslProcess(distro, $"{wslPath} {args}", _trace2, workingDirectory);
+            return WslUtils.CreateWslProcess(distro, $"{wslPath} {args}", Trace2, workingDirectory);
         }
 
         return base.CreateProcess(path, args, useShellExecute, workingDirectory);

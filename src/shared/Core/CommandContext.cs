@@ -104,7 +104,7 @@ namespace GitCredentialManager
                 FileSystem        = new WindowsFileSystem();
                 SessionManager    = new WindowsSessionManager();
                 Environment       = new WindowsEnvironment(FileSystem);
-                ProcessManager    = new ProcessManager(Trace2);
+                ProcessManager    = new WindowsProcessManager(Trace2);
                 Terminal          = new WindowsTerminal(Trace);
                 string gitPath    = GetGitPath(Environment, FileSystem, Trace);
                 Git               = new GitProcess(
@@ -120,7 +120,7 @@ namespace GitCredentialManager
                 FileSystem        = new MacOSFileSystem();
                 SessionManager    = new MacOSSessionManager();
                 Environment       = new MacOSEnvironment(FileSystem);
-                ProcessManager    = new WindowsProcessManager(Trace2);
+                ProcessManager    = new ProcessManager(Trace2);
                 Terminal          = new MacOSTerminal(Trace);
                 string gitPath    = GetGitPath(Environment, FileSystem, Trace);
                 Git               = new GitProcess(
