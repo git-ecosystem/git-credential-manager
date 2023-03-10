@@ -18,7 +18,7 @@ namespace GitCredentialManager
         /// </summary>
         /// <param name="args">Arguments to pass to the Git process.</param>
         /// <returns>Process object ready to be started.</returns>
-        Process CreateProcess(string args);
+        ChildProcess CreateProcess(string args);
 
         /// <summary>
         /// Return the path to the current repository, or null if this instance is not
@@ -65,18 +65,18 @@ namespace GitCredentialManager
     public class GitProcess : IGit
     {
         private readonly ITrace _trace;
-        private readonly IEnvironment _environment;
+        private readonly IProcessManager _processManager;
         private readonly string _gitPath;
         private readonly string _workingDirectory;
 
-        public GitProcess(ITrace trace, IEnvironment environment, string gitPath, string workingDirectory = null)
+        public GitProcess(ITrace trace, IProcessManager processManager, string gitPath, string workingDirectory = null)
         {
             EnsureArgument.NotNull(trace, nameof(trace));
-            EnsureArgument.NotNull(environment, nameof(environment));
+            EnsureArgument.NotNull(processManager, nameof(processManager));
             EnsureArgument.NotNullOrWhiteSpace(gitPath, nameof(gitPath));
 
             _trace = trace;
-            _environment = environment;
+            _processManager = processManager;
             _gitPath = gitPath;
             _workingDirectory = workingDirectory;
         }
@@ -90,7 +90,7 @@ namespace GitCredentialManager
                 {
                     using (var git = CreateProcess("version"))
                     {
-                        git.Start();
+                        git.Start(Trace2ProcessClass.Git);
 
                         string data = git.StandardOutput.ReadToEnd();
                         git.WaitForExit();
@@ -120,9 +120,7 @@ namespace GitCredentialManager
         {
             using (var git = CreateProcess("rev-parse --absolute-git-dir"))
             {
-                git.Start();
-                // To avoid deadlocks, always read the output stream first and then wait
-                // TODO: don't read in all the data at once; stream it
+                git.Start(Trace2ProcessClass.Git);
                 string data = git.StandardOutput.ReadToEnd();
                 git.WaitForExit();
 
@@ -143,7 +141,7 @@ namespace GitCredentialManager
         {
             using (var git = CreateProcess("remote -v show"))
             {
-                git.Start();
+                git.Start(Trace2ProcessClass.Git);
                 // To avoid deadlocks, always read the output stream first and then wait
                 // TODO: don't read in all the data at once; stream it
                 string data = git.StandardOutput.ReadToEnd();
@@ -184,9 +182,9 @@ namespace GitCredentialManager
             }
         }
 
-        public Process CreateProcess(string args)
+        public ChildProcess CreateProcess(string args)
         {
-            return _environment.CreateProcess(_gitPath, args, false, _workingDirectory);
+            return _processManager.CreateProcess(_gitPath, args, false, _workingDirectory);
         }
 
         // This code was originally copied from
@@ -206,7 +204,7 @@ namespace GitCredentialManager
                 UseShellExecute = false
             };
 
-            var process = Process.Start(procStartInfo);
+            var process = _processManager.CreateProcess(procStartInfo);
             if (process is null)
             {
                 throw new Exception($"Failed to start Git helper '{args}'");
@@ -238,7 +236,7 @@ namespace GitCredentialManager
             return resultDict;
         }
 
-        public static GitException CreateGitException(Process git, string message)
+        public static GitException CreateGitException(ChildProcess git, string message)
         {
             string gitMessage = git.StandardError.ReadToEnd();
             throw new GitException(message, gitMessage, git.ExitCode);

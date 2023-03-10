@@ -24,7 +24,7 @@ namespace GitHub.UI.Commands
 
         private async Task<int> ExecuteAsync(bool sms)
         {
-            var viewModel = new TwoFactorViewModel(Context.Environment)
+            var viewModel = new TwoFactorViewModel(Context.Environment, Context.ProcessManager)
             {
                 IsSms = sms
             };

@@ -24,7 +24,6 @@ namespace GitLab.UI.Controls
 #if DEBUG
             this.AttachDevTools();
 #endif
-
             if (PlatformUtils.IsWindows())
             {
                 _environment = new WindowsEnvironment(new WindowsFileSystem());

@@ -18,12 +18,22 @@ namespace GitCredentialManager;
 /// </summary>
 public enum Trace2Event
 {
-    [EnumMember(Value = "version")]
     Version = 0,
-    [EnumMember(Value = "start")]
     Start = 1,
-    [EnumMember(Value = "exit")]
-    Exit = 2
+    Exit = 2,
+    ChildStart = 3,
+    ChildExit = 4
+}
+
+/// <summary>
+/// Classifications of processes invoked by GCM.
+/// </summary>
+public enum Trace2ProcessClass
+{
+    None = 0,
+    UIHelper = 1,
+    Git = 2,
+    Other = 3
 }
 
 public class Trace2Settings
@@ -38,22 +48,25 @@ public class Trace2Settings
 public interface ITrace2 : IDisposable
 {
     /// <summary>
-    /// Initialize TRACE2 tracing by setting up any configured target formats and
-    /// writing Version and Start events.
+    /// Initialize TRACE2 tracing by initializing multi-use fields and setting up any configured target formats.
     /// </summary>
-    /// <param name="error">The standard error text stream connected back to the calling process.</param>
-    /// <param name="fileSystem">File system abstraction.</param>
-    /// <param name="appPath">The path to the GCM application.</param>
+    /// <param name="startTime">Approximate time calling application began executing.</param>
+    void Initialize(DateTimeOffset startTime);
+
+    /// <summary>
+    /// Write Version and Start events.
+    /// </summary>
+    /// <param name="appPath">The path to the application.</param>
+    /// <param name="args">Args passed to the application (if applicable).</param>
     /// <param name="filePath">Path of the file this method is called from.</param>
     /// <param name="lineNumber">Line number of file this method is called from.</param>
-    void Start(TextWriter error,
-        IFileSystem fileSystem,
-        string appPath,
+    void Start(string appPath,
+        string[] args,
         [System.Runtime.CompilerServices.CallerFilePath] string filePath = "",
         [System.Runtime.CompilerServices.CallerLineNumber] int lineNumber = 0);
 
     /// <summary>
-    /// Shut down TRACE2 tracing by writing Exit event and disposing of writers.
+    /// Write Exit event and dispose of writers.
     /// </summary>
     /// <param name="exitCode">The exit code of the GCM application.</param>
     /// <param name="filePath">Path of the file this method is called from.</param>
@@ -61,40 +74,90 @@ public interface ITrace2 : IDisposable
     void Stop(int exitCode,
         [System.Runtime.CompilerServices.CallerFilePath] string filePath = "",
         [System.Runtime.CompilerServices.CallerLineNumber] int lineNumber = 0);
+
+    /// <summary>
+    /// Writes information related to startup of child process to trace writer.
+    /// </summary>
+    /// <param name="startTime">Time at which child process began executing.</param>
+    /// <param name="processClass">Process classification.</param>
+    /// <param name="useShell">Specifies whether or not OS shell was used to start the process.</param>
+    /// <param name="appName">Name of application running in child process.</param>
+    /// <param name="argv">Arguments specific to the child process.</param>
+    /// <param name="sid">The child process's session id.</param>
+    /// <param name="filePath">Path of the file this method is called from.</param>
+    /// <param name="lineNumber">Line number of file this method is called from.</param>
+    void WriteChildStart(DateTimeOffset startTime,
+        Trace2ProcessClass processClass,
+        bool useShell,
+        string appName,
+        string argv,
+        [System.Runtime.CompilerServices.CallerFilePath]
+        string filePath = "",
+        [System.Runtime.CompilerServices.CallerLineNumber]
+        int lineNumber = 0);
+
+    /// <summary>
+    /// Writes information related to exit of child process to trace writer.
+    /// </summary>
+    /// <param name="elapsedTime">Runtime of child process.</param>
+    /// <param name="pid">Id of exiting process.</param>
+    /// <param name="code">Process exit code.</param>
+    /// <param name="sid">The child process's session id.</param>
+    /// <param name="filePath">Path of the file this method is called from.</param>
+    /// <param name="lineNumber">Line number of file this method is called from.</param>
+    void WriteChildExit(
+        double elapsedTime,
+        int pid,
+        int code,
+        [System.Runtime.CompilerServices.CallerFilePath]
+        string filePath = "",
+        [System.Runtime.CompilerServices.CallerLineNumber]
+        int lineNumber = 0);
 }
 
 public class Trace2 : DisposableObject, ITrace2
 {
+    private readonly ICommandContext _commandContext;
     private readonly object _writersLock = new object();
     private readonly Encoding _utf8NoBomEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+    private readonly List<ITrace2Writer> _writers = new List<ITrace2Writer>();
 
     private const string GitSidVariable = "GIT_TRACE2_PARENT_SID";
 
-    private List<ITrace2Writer> _writers = new List<ITrace2Writer>();
-    private IEnvironment _environment;
-    private Trace2Settings _settings;
-    private string[] _argv;
     private DateTimeOffset _applicationStartTime;
+    private Trace2Settings _settings;
     private string _sid;
 
-    public Trace2(IEnvironment environment, Trace2Settings settings, string[] argv, DateTimeOffset applicationStartTime)
-    {
-        _environment = environment;
-        _settings = settings;
-        _argv = argv;
-        _applicationStartTime = applicationStartTime;
+    private bool _initialized;
+    // Increment with each new child process that is tracked
+    private int _childProcCounter = 0;
 
-        _sid = SetSid();
+    public Trace2(ICommandContext commandContext)
+    {
+        _commandContext = commandContext;
     }
 
-    public void Start(TextWriter error,
-        IFileSystem fileSystem,
-        string appPath,
+    public void Initialize(DateTimeOffset startTime)
+    {
+        if (_initialized)
+        {
+            return;
+        }
+
+        _applicationStartTime = startTime;
+        _settings = _commandContext.Settings.GetTrace2Settings();
+        _sid = SidManager.Sid;
+
+        InitializeWriters();
+
+        _initialized = true;
+    }
+
+    public void Start(string appPath,
+        string[] args,
         string filePath,
         int lineNumber)
     {
-        TryParseSettings(error, fileSystem);
-
         if (!AssemblyUtils.TryGetAssemblyVersion(out string version))
         {
             // A version is required for TRACE2, so if this call fails
@@ -102,13 +165,85 @@ public class Trace2 : DisposableObject, ITrace2
             version = "0.0.0";
         }
         WriteVersion(version, filePath, lineNumber);
-        WriteStart(appPath, filePath, lineNumber);
+        WriteStart(appPath, args, filePath, lineNumber);
     }
 
     public void Stop(int exitCode, string filePath, int lineNumber)
     {
         WriteExit(exitCode, filePath, lineNumber);
-        ReleaseManagedResources();
+    }
+
+    public void WriteChildStart(DateTimeOffset startTime,
+        Trace2ProcessClass processClass,
+        bool useShell,
+        string appName,
+        string argv,
+        string filePath = "",
+        int lineNumber = 0)
+    {
+        // Some child processes are started before TRACE2 can be initialized.
+        // Since certain dependencies are not available until initialization,
+        // we must immediately return if this method is invoked prior to
+        // initialization.
+        if (!_initialized)
+        {
+            return;
+        }
+
+        // Always add name of the application the process is executing
+        var procArgs = new List<string>()
+        {
+            Path.GetFileName(appName)
+        };
+
+        // If the process has arguments, append them.
+        if (!string.IsNullOrEmpty(argv))
+        {
+            procArgs.AddRange(argv.Split(' '));
+        }
+
+        WriteMessage(new ChildStartMessage()
+        {
+            Event = Trace2Event.ChildStart,
+            Sid = _sid,
+            Time = startTime,
+            File = Path.GetFileName(filePath).ToLower(),
+            Line = lineNumber,
+            Id = ++_childProcCounter,
+            Classification = processClass,
+            UseShell = useShell,
+            Argv = procArgs
+        });
+    }
+
+    public void WriteChildExit(
+        double elapsedTime,
+        int pid,
+        int code,
+        string filePath = "",
+        int lineNumber = 0)
+    {
+        // Some child processes are started before TRACE2 can be initialized.
+        // Since certain dependencies are not available until initialization,
+        // we must immediately return if this method is invoked prior to
+        // initialization.
+        if (!_initialized)
+        {
+            return;
+        }
+
+        WriteMessage(new ChildExitMessage()
+        {
+            Event = Trace2Event.ChildExit,
+            Sid = _sid,
+            Time = DateTimeOffset.UtcNow,
+            File = Path.GetFileName(filePath).ToLower(),
+            Line = lineNumber,
+            Id = _childProcCounter,
+            Pid = pid,
+            Code = code,
+            ElapsedTime = elapsedTime
+        });
     }
 
     protected override void ReleaseManagedResources()
@@ -134,23 +269,7 @@ public class Trace2 : DisposableObject, ITrace2
         base.ReleaseManagedResources();
     }
 
-    internal string SetSid()
-    {
-        var sids = new List<string>();
-        if (_environment.Variables.TryGetValue(GitSidVariable, out string parentSid))
-        {
-            sids.Add(parentSid);
-        }
-
-        // Add GCM "child" sid
-        sids.Add(Guid.NewGuid().ToString("D"));
-        var combinedSid = string.Join("/", sids);
-
-        _environment.SetEnvironmentVariable(GitSidVariable, combinedSid);
-        return combinedSid;
-    }
-
-    internal bool TryGetPipeName(string eventTarget, out string name)
+    internal static bool TryGetPipeName(string eventTarget, out string name)
     {
         // Use prefixes to determine whether target is a named pipe/socket
         if (eventTarget.Contains("af_unix:", StringComparison.OrdinalIgnoreCase) ||
@@ -167,14 +286,14 @@ public class Trace2 : DisposableObject, ITrace2
         return false;
     }
 
-    private void TryParseSettings(TextWriter error, IFileSystem fileSystem)
+    private void InitializeWriters()
     {
         // Set up the correct writer for every enabled format target.
         foreach (var formatTarget in _settings.FormatTargetsAndValues)
         {
             if (TryGetPipeName(formatTarget.Value, out string name)) // Write to named pipe/socket
             {
-                AddWriter(new Trace2CollectorWriter((
+                AddWriter(new Trace2CollectorWriter(formatTarget.Key, (
                         () => new NamedPipeClientStream(".", name,
                             PipeDirection.Out,
                             PipeOptions.Asynchronous)
@@ -183,20 +302,17 @@ public class Trace2 : DisposableObject, ITrace2
             }
             else if (formatTarget.Value.IsTruthy()) // Write to stderr
             {
-                AddWriter(new Trace2StreamWriter(error, formatTarget.Key));
+                AddWriter(new Trace2StreamWriter(formatTarget.Key, _commandContext.Streams.Error));
             }
             else if (Path.IsPathRooted(formatTarget.Value)) // Write to file
             {
                 try
                 {
-                    Stream stream = fileSystem.OpenFileStream(formatTarget.Value, FileMode.Append,
-                        FileAccess.Write, FileShare.ReadWrite);
-                    AddWriter(new Trace2StreamWriter(new StreamWriter(stream, _utf8NoBomEncoding,
-                        4096, leaveOpen: false), formatTarget.Key));
+                    AddWriter(new Trace2FileWriter(formatTarget.Key, formatTarget.Value));
                 }
                 catch (Exception ex)
                 {
-                    error.WriteLine($"warning: unable to trace to file '{formatTarget.Value}': {ex.Message}");
+                    Console.Error.WriteLine($"warning: unable to trace to file '{formatTarget.Value}': {ex.Message}");
                 }
             }
         }
@@ -224,6 +340,7 @@ public class Trace2 : DisposableObject, ITrace2
 
     private void WriteStart(
         string appPath,
+        string[] args,
         string filePath,
         int lineNumber)
     {
@@ -232,7 +349,11 @@ public class Trace2 : DisposableObject, ITrace2
         {
             Path.GetFileName(appPath),
         };
-        argv.AddRange(_argv);
+
+        if (args.Length > 0)
+        {
+            argv.AddRange(args);
+        }
 
         WriteMessage(new StartMessage()
         {
@@ -279,6 +400,11 @@ public class Trace2 : DisposableObject, ITrace2
     private void WriteMessage(Trace2Message message)
     {
         ThrowIfDisposed();
+
+        if (!_initialized)
+        {
+            return;
+        }
 
         lock (_writersLock)
         {
@@ -356,7 +482,7 @@ public class VersionMessage : Trace2Message
     public override string ToJson()
     {
         return JsonConvert.SerializeObject(this,
-                new StringEnumConverter(),
+                new StringEnumConverter(typeof(SnakeCaseNamingStrategy)),
             new IsoDateTimeConverter()
             {
                 DateTimeFormat = TimeFormat
@@ -380,7 +506,7 @@ public class StartMessage : Trace2Message
     public override string ToJson()
     {
         return JsonConvert.SerializeObject(this,
-            new StringEnumConverter(),
+            new StringEnumConverter(typeof(SnakeCaseNamingStrategy)),
             new IsoDateTimeConverter()
             {
                 DateTimeFormat = TimeFormat
@@ -404,7 +530,7 @@ public class ExitMessage : Trace2Message
     public override string ToJson()
     {
         return JsonConvert.SerializeObject(this,
-            new StringEnumConverter(),
+            new StringEnumConverter(typeof(SnakeCaseNamingStrategy)),
             new IsoDateTimeConverter()
             {
                 DateTimeFormat = TimeFormat
@@ -414,5 +540,65 @@ public class ExitMessage : Trace2Message
     public override string ToNormalString()
     {
         return BuildNormalString($"elapsed:{ElapsedTime} code:{Code}");
+    }
+}
+
+public class ChildStartMessage : Trace2Message
+{
+    [JsonProperty("child_id", Order = 7)]
+    public long Id { get; set; }
+
+    [JsonProperty("child_class", Order = 8)]
+    public Trace2ProcessClass Classification { get; set; }
+
+    [JsonProperty("use_shell", Order = 9)]
+    public bool UseShell { get; set; }
+
+    [JsonProperty("argv", Order = 10)]
+    public IList<string> Argv { get; set; }
+
+    public override string ToJson()
+    {
+        return JsonConvert.SerializeObject(this,
+            new StringEnumConverter(typeof(SnakeCaseNamingStrategy)),
+            new IsoDateTimeConverter()
+            {
+                DateTimeFormat = TimeFormat
+            });
+    }
+
+    public override string ToNormalString()
+    {
+        return BuildNormalString($"[{Id}] {string.Join(" ", Argv)}");
+    }
+}
+
+public class ChildExitMessage : Trace2Message
+{
+    [JsonProperty("child_id", Order = 7)]
+    public long Id { get; set; }
+
+    [JsonProperty("pid", Order = 8)]
+    public int Pid { get; set; }
+
+    [JsonProperty("code", Order = 9)]
+    public int Code { get; set; }
+
+    [JsonProperty("t_rel", Order = 10)]
+    public double ElapsedTime { get; set; }
+
+    public override string ToJson()
+    {
+        return JsonConvert.SerializeObject(this,
+            new StringEnumConverter(typeof(SnakeCaseNamingStrategy)),
+            new IsoDateTimeConverter()
+            {
+                DateTimeFormat = TimeFormat
+            });
+    }
+
+    public override string ToNormalString()
+    {
+        return BuildNormalString($"[{Id}] pid:{Pid} code:{Code} elapsed:{ElapsedTime}");
     }
 }

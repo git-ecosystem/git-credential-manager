@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using Moq;
 using Xunit;
 
 namespace GitCredentialManager.Tests
@@ -100,14 +101,14 @@ namespace GitCredentialManager.Tests
             string expectedFileName = WslUtils.GetWslPath();
             string expectedArgs = $"--distribution {distribution} --exec {command}";
 
-            Process process = WslUtils.CreateWslProcess(distribution, command);
+            ChildProcess process = WslUtils.CreateWslProcess(distribution, command, Mock.Of<ITrace2>());
 
             Assert.NotNull(process);
             Assert.Equal(expectedArgs, process.StartInfo.Arguments);
             Assert.Equal(expectedFileName, process.StartInfo.FileName);
             Assert.True(process.StartInfo.RedirectStandardInput);
             Assert.True(process.StartInfo.RedirectStandardOutput);
-            Assert.True(process.StartInfo.RedirectStandardError);
+            Assert.False(process.StartInfo.RedirectStandardError);
             Assert.False(process.StartInfo.UseShellExecute);
         }
 
@@ -121,14 +122,14 @@ namespace GitCredentialManager.Tests
             string expectedFileName = WslUtils.GetWslPath();
             string expectedArgs = $"--distribution {distribution} --exec {command}";
 
-            Process process = WslUtils.CreateWslProcess(distribution, command, expectedWorkingDirectory);
+            ChildProcess process = WslUtils.CreateWslProcess(distribution, command, Mock.Of<ITrace2>(), expectedWorkingDirectory);
 
             Assert.NotNull(process);
             Assert.Equal(expectedArgs, process.StartInfo.Arguments);
             Assert.Equal(expectedFileName, process.StartInfo.FileName);
             Assert.True(process.StartInfo.RedirectStandardInput);
             Assert.True(process.StartInfo.RedirectStandardOutput);
-            Assert.True(process.StartInfo.RedirectStandardError);
+            Assert.False(process.StartInfo.RedirectStandardError);
             Assert.False(process.StartInfo.UseShellExecute);
             Assert.Equal(expectedWorkingDirectory, process.StartInfo.WorkingDirectory);
         }

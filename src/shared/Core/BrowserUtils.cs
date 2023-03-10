@@ -50,6 +50,7 @@ namespace GitCredentialManager
                         psi = new ProcessStartInfo(shellExecPath, url)
                         {
                             RedirectStandardOutput = true,
+                            // Ok to redirect stderr for non-git-related processes
                             RedirectStandardError = true
                         };
 
@@ -70,6 +71,10 @@ namespace GitCredentialManager
                 psi = new ProcessStartInfo(url) {UseShellExecute = true};
             }
 
+            // We purposefully do not use a ChildProcess here, as the purpose of that
+            // class is to allow us to collect child process information using TRACE2.
+            // Since we will not be collecting TRACE2 data from the browser, there
+            // is no need to add the extra overhead associated with ChildProcess here.
             Process.Start(psi);
         }
     }

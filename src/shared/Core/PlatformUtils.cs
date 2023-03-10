@@ -12,10 +12,10 @@ namespace GitCredentialManager
         /// Get information about the current platform (OS and CLR details).
         /// </summary>
         /// <returns>Platform information.</returns>
-        public static PlatformInformation GetPlatformInformation()
+        public static PlatformInformation GetPlatformInformation(ITrace2 trace2)
         {
             string osType = GetOSType();
-            string osVersion = GetOSVersion();
+            string osVersion = GetOSVersion(trace2);
             string cpuArch = GetCpuArchitecture();
             string clrVersion = GetClrVersion();
 
@@ -320,7 +320,7 @@ namespace GitCredentialManager
             return "Unknown";
         }
 
-        private static string GetOSVersion()
+        private static string GetOSVersion(ITrace2 trace2)
         {
             if (IsWindows() && RtlGetVersionEx(out RTL_OSVERSIONINFOEX osvi) == 0)
             {
@@ -336,10 +336,11 @@ namespace GitCredentialManager
                     RedirectStandardOutput = true
                 };
 
-                using (var swvers = new Process { StartInfo = psi })
+                using (var swvers = new ChildProcess(trace2, psi))
                 {
-                    swvers.Start();
+                    swvers.Start(Trace2ProcessClass.Other);
                     swvers.WaitForExit();
+
                     if (swvers.ExitCode == 0)
                     {
                         return swvers.StandardOutput.ReadToEnd().Trim();
@@ -356,10 +357,11 @@ namespace GitCredentialManager
                     RedirectStandardOutput = true
                 };
 
-                using (var uname = new Process { StartInfo = psi })
+                using (var uname = new ChildProcess(trace2, psi))
                 {
-                    uname.Start();
-                    uname.WaitForExit();
+                    uname.Start(Trace2ProcessClass.Other);
+                    uname.Process.WaitForExit();
+
                     if (uname.ExitCode == 0)
                     {
                         return uname.StandardOutput.ReadToEnd().Trim();

@@ -37,10 +37,11 @@ namespace GitCredentialManager
     {
         private readonly IFileSystem _fileSystem;
         private readonly ITrace _trace;
+        private readonly ITrace2 _trace2;
         private readonly ISettings _settings;
         private readonly IStandardStreams _streams;
 
-        public HttpClientFactory(IFileSystem fileSystem, ITrace trace, ISettings settings, IStandardStreams streams)
+        public HttpClientFactory(IFileSystem fileSystem, ITrace trace, ITrace2 trace2, ISettings settings, IStandardStreams streams)
         {
             EnsureArgument.NotNull(fileSystem, nameof(fileSystem));
             EnsureArgument.NotNull(trace, nameof(trace));
@@ -49,6 +50,7 @@ namespace GitCredentialManager
 
             _fileSystem = fileSystem;
             _trace = trace;
+            _trace2 = trace2;
             _settings = settings;
             _streams = streams;
         }
@@ -182,7 +184,7 @@ namespace GitCredentialManager
             var client = new HttpClient(handler);
 
             // Add default headers
-            client.DefaultRequestHeaders.UserAgent.ParseAdd(Constants.GetHttpUserAgent());
+            client.DefaultRequestHeaders.UserAgent.ParseAdd(Constants.GetHttpUserAgent(_trace2));
             client.DefaultRequestHeaders.CacheControl = new CacheControlHeaderValue
             {
                 NoCache = true

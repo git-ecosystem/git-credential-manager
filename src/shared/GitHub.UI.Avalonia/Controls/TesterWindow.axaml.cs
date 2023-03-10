@@ -17,6 +17,7 @@ namespace GitHub.UI.Controls
     public class TesterWindow : Window
     {
         private readonly IEnvironment _environment;
+        private readonly IProcessManager _processManager;
 
         public TesterWindow()
         {
@@ -24,10 +25,13 @@ namespace GitHub.UI.Controls
 #if DEBUG
             this.AttachDevTools();
 #endif
+            ICommandContext commandContext = new CommandContext();
+            ITrace2 trace2 = new Trace2(commandContext);
 
             if (PlatformUtils.IsWindows())
             {
                 _environment = new WindowsEnvironment(new WindowsFileSystem());
+                _processManager = new WindowsProcessManager(trace2);
             }
             else
             {
@@ -42,6 +46,7 @@ namespace GitHub.UI.Controls
                 }
 
                 _environment = new PosixEnvironment(fs);
+                _processManager = new ProcessManager(trace2);
             }
         }
 
@@ -52,7 +57,7 @@ namespace GitHub.UI.Controls
 
         private void ShowCredentials(object sender, RoutedEventArgs e)
         {
-            var vm = new CredentialsViewModel(_environment)
+            var vm = new CredentialsViewModel(_environment, _processManager)
             {
                 ShowBrowserLogin = this.FindControl<CheckBox>("useBrowser").IsChecked ?? false,
                 ShowDeviceLogin = this.FindControl<CheckBox>("useDevice").IsChecked ?? false,
@@ -68,7 +73,7 @@ namespace GitHub.UI.Controls
 
         private void ShowTwoFactorCode(object sender, RoutedEventArgs e)
         {
-            var vm = new TwoFactorViewModel(_environment)
+            var vm = new TwoFactorViewModel(_environment, _processManager)
             {
                 IsSms = this.FindControl<CheckBox>("2faSms").IsChecked ?? false,
             };

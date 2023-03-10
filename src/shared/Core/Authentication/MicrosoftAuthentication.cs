@@ -299,7 +299,7 @@ namespace GitCredentialManager.Authentication
             IPublicClientApplication app = appBuilder.Build();
 
             // Register the application token cache
-            await RegisterTokenCacheAsync(app);
+            await RegisterTokenCacheAsync(app, Context.Trace2);
 
             return app;
         }
@@ -308,14 +308,14 @@ namespace GitCredentialManager.Authentication
 
         #region Helpers
 
-        private async Task RegisterTokenCacheAsync(IPublicClientApplication app)
+        private async Task RegisterTokenCacheAsync(IPublicClientApplication app, ITrace2 trace2)
         {
             Context.Trace.WriteLine(
                 "Configuring Microsoft Authentication token cache to instance shared with Microsoft developer tools...");
 
             if (!PlatformUtils.IsWindows() && !PlatformUtils.IsPosix())
             {
-                string osType = PlatformUtils.GetPlatformInformation().OperatingSystemType;
+                string osType = PlatformUtils.GetPlatformInformation(trace2).OperatingSystemType;
                 Context.Trace.WriteLine($"Token cache integration is not supported on {osType}.");
                 return;
             }
