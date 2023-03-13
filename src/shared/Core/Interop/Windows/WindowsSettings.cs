@@ -17,7 +17,7 @@ namespace GitCredentialManager.Interop.Windows
             PlatformUtils.EnsureWindows();
         }
 
-        protected override bool TryGetExternalDefault(string section, string property, out string value)
+        protected override bool TryGetExternalDefault(string section, string scope, string property, out string value)
         {
             value = null;
 
@@ -32,7 +32,10 @@ namespace GitCredentialManager.Interop.Windows
                     return false;
                 }
 
-                string name = $"{section}.{property}";
+                string name = string.IsNullOrWhiteSpace(scope)
+                    ? $"{section}.{property}"
+                    : $"{section}.{scope}.{property}";
+
                 object registryValue = configKey.GetValue(name);
                 if (registryValue is null)
                 {
@@ -46,7 +49,7 @@ namespace GitCredentialManager.Interop.Windows
                 return true;
             }
 #else
-            return base.TryGetExternalDefault(section, property, out value);
+            return base.TryGetExternalDefault(section, scope, property, out value);
 #endif
         }
     }
