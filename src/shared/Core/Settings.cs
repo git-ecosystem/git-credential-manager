@@ -408,6 +408,12 @@ namespace GitCredentialManager
                         {
                             yield return value;
                         }
+
+                        // Check for an externally specified default value
+                        if (TryGetExternalDefault(section, scope, property, out value))
+                        {
+                            yield return value;
+                        }
                     }
                 }
 
@@ -423,10 +429,10 @@ namespace GitCredentialManager
                     yield return value;
                 }
 
-                // Check for an externally specified default value
-                if (TryGetExternalDefault(section, property, out string defaultValue))
+                // Check for an externally specified default value without a scope
+                if (TryGetExternalDefault(section, null, property, out value))
                 {
-                    yield return defaultValue;
+                    yield return value;
                 }
             }
         }
@@ -436,10 +442,11 @@ namespace GitCredentialManager
         /// This may come from external policies or the Operating System.
         /// </summary>
         /// <param name="section">Configuration section name.</param>
+        /// <param name="scope">Optional configuration scope.</param>
         /// <param name="property">Configuration property name.</param>
         /// <param name="value">Value of the configuration setting, or null.</param>
         /// <returns>True if a default setting has been set, false otherwise.</returns>
-        protected virtual bool TryGetExternalDefault(string section, string property, out string value)
+        protected virtual bool TryGetExternalDefault(string section, string scope, string property, out string value)
         {
             value = null;
             return false;
