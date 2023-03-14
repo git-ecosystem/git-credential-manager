@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Linq;
 
 namespace GitCredentialManager.Tests.Objects
@@ -104,6 +103,11 @@ namespace GitCredentialManager.Tests.Objects
             if (Variables.Keys.Contains(variable)) return;
             Environment.SetEnvironmentVariable(variable, value, target);
             Variables.Add(variable, value);
+        }
+
+        public void Refresh()
+        {
+            // Nothing to do!
         }
 
         #endregion
