@@ -31,11 +31,6 @@ namespace GitHub
         public static readonly Version MinimumOnPremOAuthVersion = new Version("3.2");
 
         /// <summary>
-        /// The version string returned from the meta API endpoint for GitHub AE instances.
-        /// </summary>
-        public const string GitHubAeVersionString = "GitHub AE";
-
-        /// <summary>
         /// Supported authentication modes for GitHub.com.
         /// </summary>
         /// <remarks>

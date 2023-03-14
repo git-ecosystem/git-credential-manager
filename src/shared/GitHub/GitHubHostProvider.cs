@@ -263,20 +263,20 @@ namespace GitHub
             {
                 GitHubMetaInfo metaInfo = await _gitHubApi.GetMetaInfoAsync(targetUri);
 
+                // All Enterprise/AE instances support PATs
                 var modes = AuthenticationModes.Pat;
+
+                // If the server says it supports basic auth, we can use that too!
                 if (metaInfo.VerifiablePasswordAuthentication)
                 {
                     modes |= AuthenticationModes.Basic;
                 }
 
-                if (StringComparer.OrdinalIgnoreCase.Equals(metaInfo.InstalledVersion, GitHubConstants.GitHubAeVersionString))
+                // If the version is unknown, we *assume* it supports OAuth.
+                // If the server version at least the minimum required, we *know* we can use OAuth.
+                if (!Version.TryParse(metaInfo.InstalledVersion, out var version) ||
+                    version >= GitHubConstants.MinimumOnPremOAuthVersion)
                 {
-                    // Assume all GHAE instances have the GCM OAuth application deployed
-                    modes |= AuthenticationModes.OAuth;
-                }
-                else if (Version.TryParse(metaInfo.InstalledVersion, out var version) && version >= GitHubConstants.MinimumOnPremOAuthVersion)
-                {
-                    // Only GHES versions beyond the minimum version have the GCM OAuth application deployed
                     modes |= AuthenticationModes.OAuth;
                 }
 
