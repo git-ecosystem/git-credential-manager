@@ -146,7 +146,7 @@ public class Trace2 : DisposableObject, ITrace2
 
         _applicationStartTime = startTime;
         _settings = _commandContext.Settings.GetTrace2Settings();
-        _sid = SidManager.Sid;
+        _sid = ProcessManager.Sid;
 
         InitializeWriters();
 
