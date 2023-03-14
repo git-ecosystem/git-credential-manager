@@ -467,7 +467,7 @@ public abstract class Trace2Message
 
         // Git's TRACE2 normal format is:
         // [<time> SP <filename>:<line> SP+] <event-name> [[SP] <event-message>] LF
-        return $"{time} {source,-33} {Event.ToString().ToLower()} {message}";
+        return $"{time} {source,-33} {Event.ToString().ToSnakeCase()} {message}";
     }
 }
 
