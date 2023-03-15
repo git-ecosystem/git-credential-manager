@@ -333,9 +333,11 @@ namespace GitCredentialManager.Authentication
             }
             catch (MsalCachePersistenceException ex)
             {
+                var message = "Cannot persist Microsoft Authentication data securely!";
                 Context.Streams.Error.WriteLine("warning: cannot persist Microsoft authentication token cache securely!");
-                Context.Trace.WriteLine("Cannot persist Microsoft Authentication data securely!");
+                Context.Trace.WriteLine(message);
                 Context.Trace.WriteException(ex);
+                Context.Trace2.WriteError(message);
 
                 if (PlatformUtils.IsMacOS())
                 {
@@ -498,10 +500,12 @@ namespace GitCredentialManager.Authentication
 #if NETFRAMEWORK
             if (!Context.SessionManager.IsDesktopSession)
             {
-                throw new InvalidOperationException("Embedded web view is not available without a desktop session.");
+                throw new Trace2InvalidOperationException(Context.Trace2,
+                    "Embedded web view is not available without a desktop session.");
             }
 #else
-            throw new InvalidOperationException("Embedded web view is not available on .NET Core.");
+            throw new Trace2InvalidOperationException(Context.Trace2,
+                "Embedded web view is not available on .NET Core.");
 #endif
         }
 
@@ -515,17 +519,20 @@ namespace GitCredentialManager.Authentication
         {
             if (!Context.SessionManager.IsWebBrowserAvailable)
             {
-                throw new InvalidOperationException("System web view is not available without a way to start a browser.");
+                throw new Trace2InvalidOperationException(Context.Trace2,
+                    "System web view is not available without a way to start a browser.");
             }
 
             if (!app.IsSystemWebViewAvailable)
             {
-                throw new InvalidOperationException("System web view is not available on this platform.");
+                throw new Trace2InvalidOperationException(Context.Trace2,
+                    "System web view is not available on this platform.");
             }
 
             if (!redirectUri.IsLoopback)
             {
-                throw new InvalidOperationException("System web view is not available for this service configuration.");
+                throw new Trace2InvalidOperationException(Context.Trace2,
+                    "System web view is not available for this service configuration.");
             }
         }
 

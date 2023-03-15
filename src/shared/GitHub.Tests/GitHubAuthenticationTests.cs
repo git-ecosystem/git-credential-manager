@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using GitCredentialManager;
 using GitCredentialManager.Tests.Objects;
 using Moq;
 using Moq.Protected;
@@ -43,7 +44,7 @@ namespace GitHub.Tests
             var context = new TestCommandContext();
             context.Settings.IsTerminalPromptsEnabled = false;
             var auth = new GitHubAuthentication(context);
-            var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            var exception = await Assert.ThrowsAsync<Trace2InvalidOperationException>(
                 () => auth.GetAuthenticationAsync(null, null, AuthenticationModes.All)
             );
             Assert.Equal("Cannot prompt because terminal prompts have been disabled.", exception.Message);
@@ -68,7 +69,7 @@ namespace GitHub.Tests
             var context = new TestCommandContext();
             context.Settings.IsInteractionAllowed = false;
             var auth = new GitHubAuthentication(context);
-            var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            var exception = await Assert.ThrowsAsync<Trace2InvalidOperationException>(
                 () => auth.GetAuthenticationAsync(new Uri("https://github.com"), null, AuthenticationModes.All)
             );
             Assert.Equal("Cannot prompt because user interactivity has been disabled.", exception.Message);

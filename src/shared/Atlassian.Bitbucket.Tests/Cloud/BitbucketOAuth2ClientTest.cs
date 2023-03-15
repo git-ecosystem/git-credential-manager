@@ -70,7 +70,7 @@ namespace Atlassian.Bitbucket.Tests.Cloud
         {
             var trace2 = new NullTrace2();
             var client = new Bitbucket.Cloud.BitbucketOAuth2Client(httpClient.Object, settings.Object, trace2);
-            await Assert.ThrowsAsync<InvalidOperationException>(async () => await client.GetDeviceCodeAsync(scopes, ct));
+            await Assert.ThrowsAsync<Trace2InvalidOperationException>(async () => await client.GetDeviceCodeAsync(scopes, ct));
         }
 
         [Theory]

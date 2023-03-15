@@ -115,7 +115,9 @@ namespace GitCredentialManager
                 // Throw exception if cert bundle file not found
                 if (!_fileSystem.FileExists(certBundlePath))
                 {
-                    throw new FileNotFoundException($"Custom certificate bundle not found at path: {certBundlePath}", certBundlePath);
+                    var format = "Custom certificate bundle not found at path: {0}";
+                    var message = string.Format(format, certBundlePath);
+                    throw new Trace2FileNotFoundException(_trace2, message, format, certBundlePath);
                 }
 
                 Func<X509Certificate2, X509Chain, SslPolicyErrors, bool> validationCallback = (cert, chain, errors) =>
@@ -280,8 +282,11 @@ namespace GitCredentialManager
                     }
                     catch (Exception ex)
                     {
-                        _trace.WriteLine("Failed to convert proxy bypass hosts to regular expressions; ignoring bypass list");
+                        var message =
+                            "Failed to convert proxy bypass hosts to regular expressions; ignoring bypass list";
+                        _trace.WriteLine(message);
                         _trace.WriteException(ex);
+                        _trace2.WriteError(message);
                         dict["bypass"] = "<< failed to convert >>";
                     }
                 }

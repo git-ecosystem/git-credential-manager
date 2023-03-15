@@ -60,7 +60,7 @@ namespace GitCredentialManager.Interop.Windows
                              numberOfCharsWritten: out uint written,
                                          reserved: IntPtr.Zero))
                 {
-                    Win32Error.ThrowIfError(Marshal.GetLastWin32Error());
+                    Win32Error.ThrowIfError(Marshal.GetLastWin32Error(), trace2: _trace2);
                 }
             }
         }
@@ -118,13 +118,13 @@ namespace GitCredentialManager.Interop.Windows
                              numberOfCharsWritten: out written,
                                          reserved: IntPtr.Zero))
                 {
-                    Win32Error.ThrowIfError(Marshal.GetLastWin32Error(), "Failed to write prompt text");
+                    Win32Error.ThrowIfError(Marshal.GetLastWin32Error(), "Failed to write prompt text", _trace2);
                 }
 
                 sb.Clear();
 
                 // Read input from the user
-                using (new TtyContext(_trace, stdin, echo))
+                using (new TtyContext(_trace, _trace2, stdin, echo))
                 {
                     if (!Kernel32.ReadConsole(buffer: sb,
                                   consoleInputHandle: stdin,
@@ -132,7 +132,8 @@ namespace GitCredentialManager.Interop.Windows
                                    numberOfCharsRead: out read,
                                             reserved: IntPtr.Zero))
                     {
-                        Win32Error.ThrowIfError(Marshal.GetLastWin32Error(), "Unable to read prompt input from standard input");
+                        Win32Error.ThrowIfError(Marshal.GetLastWin32Error(),
+                            "Unable to read prompt input from standard input", _trace2);
                     }
 
                     // Record input from the user into local storage, stripping any EOL chars
@@ -152,7 +153,8 @@ namespace GitCredentialManager.Interop.Windows
                                  numberOfCharsWritten: out written,
                                              reserved: IntPtr.Zero))
                     {
-                        Win32Error.ThrowIfError(Marshal.GetLastWin32Error(), "Failed to write final newline in secret prompting");
+                        Win32Error.ThrowIfError(Marshal.GetLastWin32Error(),
+                            "Failed to write final newline in secret prompting", _trace2);
                     }
                 }
 
@@ -163,23 +165,25 @@ namespace GitCredentialManager.Interop.Windows
         private class TtyContext : IDisposable
         {
             private readonly ITrace _trace;
+            private readonly ITrace2 _trace2;
             private readonly SafeFileHandle _stream;
 
             private ConsoleMode _originalMode;
             private bool _isDisposed;
 
-            public TtyContext(ITrace trace, SafeFileHandle stream, bool echo)
+            public TtyContext(ITrace trace, ITrace2 trace2, SafeFileHandle stream, bool echo)
             {
                 EnsureArgument.NotNull(stream, nameof(stream));
 
                 _trace = trace;
+                _trace2 = trace2;
                 _stream = stream;
 
                 // Capture current console mode so we can restore it later
                 ConsoleMode consoleMode;
                 if (!Kernel32.GetConsoleMode(consoleMode: out consoleMode, consoleHandle: stream))
                 {
-                    Win32Error.ThrowIfError(Marshal.GetLastWin32Error(), "Failed to get initial console mode");
+                    Win32Error.ThrowIfError(Marshal.GetLastWin32Error(), "Failed to get initial console mode", trace2);
                 }
 
                 _originalMode = consoleMode;
@@ -191,7 +195,8 @@ namespace GitCredentialManager.Interop.Windows
                     ConsoleMode newConsoleMode = consoleMode ^ ConsoleMode.EchoInput;
                     if (!Kernel32.SetConsoleMode(consoleMode: newConsoleMode, consoleHandle: _stream))
                     {
-                        Win32Error.ThrowIfError(Marshal.GetLastWin32Error(), "Failed to set console mode");
+                        Win32Error.ThrowIfError(
+                            Marshal.GetLastWin32Error(), "Failed to set console mode", trace2);
                     }
                 }
             }

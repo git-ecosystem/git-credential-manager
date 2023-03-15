@@ -109,7 +109,7 @@ namespace GitHub
 
                 if (!resultDict.TryGetValue("mode", out string responseMode))
                 {
-                    throw new Exception("Missing 'mode' in response");
+                    throw new Trace2Exception(Context.Trace2, "Missing 'mode' in response");
                 }
 
                 switch (responseMode.ToLowerInvariant())
@@ -117,7 +117,7 @@ namespace GitHub
                     case "pat":
                         if (!resultDict.TryGetValue("pat", out string pat))
                         {
-                            throw new Exception("Missing 'pat' in response");
+                            throw new Trace2Exception(Context.Trace2, "Missing 'pat' in response");
                         }
 
                         return new AuthenticationPromptResult(
@@ -132,19 +132,20 @@ namespace GitHub
                     case "basic":
                         if (!resultDict.TryGetValue("username", out userName))
                         {
-                            throw new Exception("Missing 'username' in response");
+                            throw new Trace2Exception(Context.Trace2, "Missing 'username' in response");
                         }
 
                         if (!resultDict.TryGetValue("password", out string password))
                         {
-                            throw new Exception("Missing 'password' in response");
+                            throw new Trace2Exception(Context.Trace2, "Missing 'password' in response");
                         }
 
                         return new AuthenticationPromptResult(
                             AuthenticationModes.Basic, new GitCredential(userName, password));
 
                     default:
-                        throw new Exception($"Unknown mode value in response '{responseMode}'");
+                        throw new Trace2Exception(Context.Trace2,
+                            $"Unknown mode value in response '{responseMode}'");
                 }
             }
             else
@@ -227,7 +228,7 @@ namespace GitHub
 
                 if (!resultDict.TryGetValue("code", out string authCode))
                 {
-                    throw new Exception("Missing 'code' in response");
+                    throw new Trace2Exception(Context.Trace2, "Missing 'code' in response");
                 }
 
                 return authCode;
@@ -260,7 +261,8 @@ namespace GitHub
             // Can we launch the user's default web browser?
             if (!Context.SessionManager.IsWebBrowserAvailable)
             {
-                throw new InvalidOperationException("Browser authentication requires a desktop session");
+                throw new Trace2InvalidOperationException(Context.Trace2,
+                    "Browser authentication requires a desktop session");
             }
 
             var browserOptions = new OAuth2WebBrowserOptions
@@ -329,7 +331,8 @@ namespace GitHub
                 }
                 catch (OperationCanceledException)
                 {
-                    throw new Exception("User canceled device code authentication");
+                    throw new Trace2InvalidOperationException(Context.Trace2,
+                        "User canceled device code authentication");
                 }
 
                 // Close the dialog

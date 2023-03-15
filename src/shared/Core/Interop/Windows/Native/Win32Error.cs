@@ -100,6 +100,18 @@ namespace GitCredentialManager.Interop.Windows.Native
         /// <summary>
         /// Throw an <see cref="InteropException"/> if <paramref name="succeeded"/> is not true.
         /// </summary>
+        /// <param name="trace2">The application's TRACE2 tracer.</param>
+        /// <param name="succeeded">Windows API return code.</param>
+        /// <param name="defaultErrorMessage">Default error message.</param>
+        /// <exception cref="InteropException">Throw if <paramref name="succeeded"/> is not true.</exception>
+        public static void ThrowIfError(ITrace2 trace2, bool succeeded, string defaultErrorMessage = "Unknown error.")
+        {
+            ThrowIfError(GetLastError(succeeded), defaultErrorMessage, trace2);
+        }
+
+        /// <summary>
+        /// Throw an <see cref="InteropException"/> if <paramref name="succeeded"/> is not true.
+        /// </summary>
         /// <param name="succeeded">Windows API return code.</param>
         /// <param name="defaultErrorMessage">Default error message.</param>
         /// <exception cref="InteropException">Throw if <paramref name="succeeded"/> is not true.</exception>
@@ -113,8 +125,9 @@ namespace GitCredentialManager.Interop.Windows.Native
         /// </summary>
         /// <param name="error">Windows API error code.</param>
         /// <param name="defaultErrorMessage">Default error message.</param>
+        /// <param name="trace2">The application's TRACE2 tracer.</param>
         /// <exception cref="InteropException">Throw if <paramref name="error"/> is not <see cref="Success"/>.</exception>
-        public static void ThrowIfError(int error, string defaultErrorMessage = "Unknown error.")
+        public static void ThrowIfError(int error, string defaultErrorMessage = "Unknown error.", ITrace2 trace2 = null)
         {
             switch (error)
             {
@@ -123,6 +136,8 @@ namespace GitCredentialManager.Interop.Windows.Native
                 default:
                     // The Win32Exception constructor will automatically get the human-readable
                     // message for the error code.
+                    if (trace2 != null)
+                        throw new Trace2InteropException(trace2, defaultErrorMessage, new Win32Exception(error));
                     throw new InteropException(defaultErrorMessage, new Win32Exception(error));
             }
         }

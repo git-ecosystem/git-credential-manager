@@ -87,7 +87,7 @@ namespace GitLab
 
                 if (!resultDict.TryGetValue("mode", out string responseMode))
                 {
-                    throw new Exception("Missing 'mode' in response");
+                    throw new Trace2Exception(Context.Trace2, "Missing 'mode' in response");
                 }
 
                 switch (responseMode.ToLowerInvariant())
@@ -95,7 +95,7 @@ namespace GitLab
                     case "pat":
                         if (!resultDict.TryGetValue("pat", out string pat))
                         {
-                            throw new Exception("Missing 'pat' in response");
+                            throw new Trace2Exception(Context.Trace2, "Missing 'pat' in response");
                         }
 
                         if (!resultDict.TryGetValue("username", out string patUserName))
@@ -112,19 +112,20 @@ namespace GitLab
                     case "basic":
                         if (!resultDict.TryGetValue("username", out userName))
                         {
-                            throw new Exception("Missing 'username' in response");
+                            throw new Trace2Exception(Context.Trace2, "Missing 'username' in response");
                         }
 
                         if (!resultDict.TryGetValue("password", out string password))
                         {
-                            throw new Exception("Missing 'password' in response");
+                            throw new Trace2Exception(Context.Trace2, "Missing 'password' in response");
                         }
 
                         return new AuthenticationPromptResult(
                             AuthenticationModes.Basic, new GitCredential(userName, password));
 
                     default:
-                        throw new Exception($"Unknown mode value in response '{responseMode}'");
+                        throw new Trace2Exception(Context.Trace2,
+                            $"Unknown mode value in response '{responseMode}'");
                 }
             }
             else
@@ -206,7 +207,8 @@ namespace GitLab
             // We require a desktop session to launch the user's default web browser
             if (!Context.SessionManager.IsDesktopSession)
             {
-                throw new InvalidOperationException("Browser authentication requires a desktop session");
+                throw new Trace2InvalidOperationException(Context.Trace2,
+                    "Browser authentication requires a desktop session");
             }
 
             var browserOptions = new OAuth2WebBrowserOptions { };

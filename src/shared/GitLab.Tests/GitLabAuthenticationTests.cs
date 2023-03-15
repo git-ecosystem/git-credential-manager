@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using GitCredentialManager;
 using GitCredentialManager.Tests.Objects;
 using Xunit;
 
@@ -36,7 +37,7 @@ namespace GitLab.Tests
             var context = new TestCommandContext();
             context.Settings.IsTerminalPromptsEnabled = false;
             var auth = new GitLabAuthentication(context);
-            var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            var exception = await Assert.ThrowsAsync<Trace2InvalidOperationException>(
                 () => auth.GetAuthenticationAsync(null, null, AuthenticationModes.All)
             );
             Assert.Equal("Cannot prompt because terminal prompts have been disabled.", exception.Message);
@@ -87,7 +88,7 @@ namespace GitLab.Tests
             var context = new TestCommandContext();
             context.Settings.IsInteractionAllowed = false;
             var auth = new GitLabAuthentication(context);
-            var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            var exception = await Assert.ThrowsAsync<Trace2InvalidOperationException>(
                 () => auth.GetAuthenticationAsync(new Uri("https://GitLab.com"), null, AuthenticationModes.All)
             );
             Assert.Equal("Cannot prompt because user interactivity has been disabled.", exception.Message);

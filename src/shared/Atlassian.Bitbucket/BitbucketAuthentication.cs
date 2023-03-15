@@ -4,7 +4,6 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Atlassian.Bitbucket.Cloud;
 using GitCredentialManager;
 using GitCredentialManager.Authentication;
 using GitCredentialManager.Authentication.OAuth;
@@ -128,12 +127,12 @@ namespace Atlassian.Bitbucket
                 {
                     if (!output.TryGetValue("username", out userName))
                     {
-                        throw new Exception("Missing username in response");
+                        throw new Trace2Exception(Context.Trace2, "Missing username in response");
                     }
 
                     if (!output.TryGetValue("password", out password))
                     {
-                        throw new Exception("Missing password in response");
+                        throw new Trace2Exception(Context.Trace2, "Missing password in response");
                     }
 
                     return new CredentialsPromptResult(

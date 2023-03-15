@@ -36,7 +36,7 @@ namespace GitCredentialManager.Interop.Linux
                 // Capture current terminal settings so we can restore them later
                 if ((error = Termios_Linux.tcgetattr(_fd, out termios_Linux t)) != 0)
                 {
-                    throw new InteropException("Failed to get initial terminal settings", error);
+                    throw new Trace2InteropException(trace2, "Failed to get initial terminal settings", error);
                 }
 
                 _originalTerm = t;
@@ -50,7 +50,7 @@ namespace GitCredentialManager.Interop.Linux
 
                 if ((error = Termios_Linux.tcsetattr(_fd, SetActionFlags.TCSAFLUSH, ref t)) != 0)
                 {
-                    throw new InteropException("Failed to set terminal settings", error);
+                    throw new Trace2InteropException(trace2, "Failed to set terminal settings", error);
                 }
             }
 

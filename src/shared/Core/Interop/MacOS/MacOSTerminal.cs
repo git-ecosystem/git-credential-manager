@@ -36,7 +36,7 @@ namespace GitCredentialManager.Interop.MacOS
                 // Capture current terminal settings so we can restore them later
                 if ((error = Termios_MacOS.tcgetattr(_fd, out termios_MacOS t)) != 0)
                 {
-                    throw new InteropException("Failed to get initial terminal settings", error);
+                    throw new Trace2InteropException(trace2, "Failed to get initial terminal settings", error);
                 }
 
                 _originalTerm = t;
@@ -50,7 +50,7 @@ namespace GitCredentialManager.Interop.MacOS
 
                 if ((error = Termios_MacOS.tcsetattr(_fd, SetActionFlags.TCSAFLUSH, ref t)) != 0)
                 {
-                    throw new InteropException("Failed to set terminal settings", error);
+                    throw new Trace2InteropException(trace2, "Failed to set terminal settings", error);
                 }
             }
 

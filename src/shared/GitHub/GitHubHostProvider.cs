@@ -123,7 +123,8 @@ namespace GitHub
             // We should not allow unencrypted communication and should inform the user
             if (StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "http"))
             {
-                throw new Exception("Unencrypted HTTP is not supported for GitHub. Ensure the repository remote URL is using HTTPS.");
+                throw new Trace2Exception(Context.Trace2,
+                    "Unencrypted HTTP is not supported for GitHub. Ensure the repository remote URL is using HTTPS.");
             }
 
             Uri remoteUri = input.GetRemoteUri();
@@ -226,7 +227,9 @@ namespace GitHub
                 return new GitCredential(userInfo.Login, token);
             }
 
-            throw new Exception($"Interactive logon for '{targetUri}' failed.");
+            var format = "Interactive logon for '{0}' failed.";
+            var message = string.Format(format, targetUri);
+            throw new Trace2Exception(Context.Trace2, message, format);
         }
 
         internal async Task<AuthenticationModes> GetSupportedAuthenticationModesAsync(Uri targetUri)
@@ -285,10 +288,14 @@ namespace GitHub
             }
             catch (Exception ex)
             {
-                Context.Trace.WriteLine($"Failed to query '{targetUri}' for supported authentication schemes.");
-                Context.Trace.WriteException(ex);
+                var format = "Failed to query '{0}' for supported authentication schemes.";
+                var message = string.Format(format, targetUri);
 
-                Context.Terminal.WriteLine($"warning: failed to query '{targetUri}' for supported authentication schemes.");
+                Context.Trace.WriteLine(message);
+                Context.Trace.WriteException(ex);
+                Context.Trace2.WriteError(message, format);
+
+                Context.Terminal.WriteLine($"warning: {message}");
 
                 // Fall-back to offering all modes so the user is never blocked from authenticating by at least one mode
                 return AuthenticationModes.All;

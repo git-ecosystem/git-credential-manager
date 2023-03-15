@@ -142,13 +142,13 @@ namespace Microsoft.AzureRepos
                     {
                         if (TryGetFirstJsonStringField(responseText, "message", out string errorMessage))
                         {
-                            throw new Exception($"Failed to create PAT: {errorMessage}");
+                            throw new Trace2Exception(_context.Trace2, $"Failed to create PAT: {errorMessage}");
                         }
                     }
                 }
             }
 
-            throw new Exception("Failed to create PAT");
+            throw new Trace2Exception(_context.Trace2, "Failed to create PAT");
         }
 
         #region Private Methods
@@ -181,7 +181,7 @@ namespace Microsoft.AzureRepos
                 }
             }
 
-            throw new Exception("Failed to find location service");
+            throw new Trace2Exception(_context.Trace2, "Failed to find location service");
         }
 
         #endregion

@@ -134,8 +134,9 @@ namespace GitCredentialManager
                     case 128: // Not inside a Git repository
                         return null;
                     default:
-                        _trace.WriteLine($"Failed to get current Git repository (exit={git.ExitCode})");
-                        throw CreateGitException(git, "Failed to get current Git repository");
+                        var message = "Failed to get current Git repository";
+                        _trace.WriteLine($"{message} (exit={git.ExitCode})");
+                        throw CreateGitException(git, message, _trace2);
                 }
             }
         }
@@ -158,8 +159,9 @@ namespace GitCredentialManager
                     case 128 when stderr.Contains("not a git repository"): // Not inside a Git repository
                         yield break;
                     default:
-                        _trace.WriteLine($"Failed to enumerate Git remotes (exit={git.ExitCode})");
-                        throw CreateGitException(git, "Failed to enumerate Git remotes");
+                        var message = "Failed to enumerate Git remotes";
+                        _trace.WriteLine($"{message} (exit={git.ExitCode})");
+                        throw CreateGitException(git, message, _trace2);
                 }
 
                 string[] lines = data.Split('\n');
@@ -210,7 +212,9 @@ namespace GitCredentialManager
             var process = _processManager.CreateProcess(procStartInfo);
             if (process is null)
             {
-                throw new Exception($"Failed to start Git helper '{args}'");
+                var format = "Failed to start Git helper '{0}'";
+                var message = string.Format(format, args);
+                throw new Trace2Exception(_trace2, message, format);
             }
 
             if (!(standardInput is null))
@@ -239,9 +243,13 @@ namespace GitCredentialManager
             return resultDict;
         }
 
-        public static GitException CreateGitException(ChildProcess git, string message)
+        public static GitException CreateGitException(ChildProcess git, string message, ITrace2 trace2 = null)
         {
-            string gitMessage = git.StandardError.ReadToEnd();
+            var gitMessage = git.StandardError.ReadToEnd();
+
+            if (trace2 != null)
+                throw new Trace2GitException(trace2, message, git.ExitCode, gitMessage);
+
             throw new GitException(message, gitMessage, git.ExitCode);
         }
     }

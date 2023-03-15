@@ -20,7 +20,7 @@ namespace Atlassian.Bitbucket.DataCenter
             EnsureArgument.NotNull(context, nameof(context));
 
             _context = context;
-        
+
         }
 
         public async Task<RestApiResult<IUserInfo>> GetUserInformationAsync(string userName, string password, bool isBearerToken)
@@ -35,7 +35,7 @@ namespace Atlassian.Bitbucket.DataCenter
             }
 
             // Bitbucket Server/DC doesn't actually provide a REST API we can use to trade an access_token for the owning username,
-            // therefore this is always going to return a placeholder username, however this call does provide a way to validate the 
+            // therefore this is always going to return a placeholder username, however this call does provide a way to validate the
             // credentials we do have
             var requestUri = new Uri(ApiUri, "api/1.0/users");
             using (HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUri))
@@ -131,9 +131,9 @@ namespace Atlassian.Bitbucket.DataCenter
 
         private HttpClient HttpClient => _httpClient ??= _context.HttpClientFactory.CreateClient();
 
-        private Uri ApiUri 
+        private Uri ApiUri
         {
-            get 
+            get
             {
                 var remoteUri = _context.Settings?.RemoteUri;
                 if (remoteUri == null)

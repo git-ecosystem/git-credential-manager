@@ -194,7 +194,7 @@ namespace GitCredentialManager
                     break;
 
                 default:
-                    throw new Exception("No authentication mode selected!");
+                    throw new Trace2Exception(Context.Trace2, "No authentication mode selected!");
             }
 
             // Store the refresh token if we have one
