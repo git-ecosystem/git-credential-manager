@@ -14,7 +14,7 @@ namespace GitCredentialManager
             var startTime = DateTimeOffset.UtcNow;
             // Set the session id (sid) and start time for the GCM process, to be
             // used when TRACE2 tracing is enabled.
-            SidManager.CreateSid();
+            ProcessManager.CreateSid();
 
             using (var context = new CommandContext())
             using (var app = new Application(context))

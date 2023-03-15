@@ -14,7 +14,7 @@ namespace GitHub.UI
         {
             // Set the session id (sid) for the helper process, to be
             // used when TRACE2 tracing is enabled.
-            SidManager.CreateSid();
+            ProcessManager.CreateSid();
             using (var context = new CommandContext())
             using (var app = new HelperApplication(context))
             {

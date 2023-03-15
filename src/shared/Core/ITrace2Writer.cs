@@ -3,6 +3,17 @@ using System.Text;
 
 namespace GitCredentialManager;
 
+/// <summary>
+/// The different format targets supported in the TRACE2 tracing
+/// system.
+/// </summary>
+public enum Trace2FormatTarget
+{
+    Event,
+    Normal,
+    Performance
+}
+
 public interface ITrace2Writer : IDisposable
 {
     bool Failed { get; }
@@ -33,6 +44,9 @@ public class Trace2Writer : DisposableObject, ITrace2Writer
                 break;
             case Trace2FormatTarget.Normal:
                 sb.Append(message.ToNormalString());
+                break;
+            case Trace2FormatTarget.Performance:
+                sb.Append(message.ToPerformanceString());
                 break;
             default:
                 Console.WriteLine($"warning: unrecognized format target '{_formatTarget}', disabling TRACE2 tracing.");

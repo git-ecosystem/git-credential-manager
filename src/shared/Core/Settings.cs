@@ -538,6 +538,12 @@ namespace GitCredentialManager
                 settings.FormatTargetsAndValues.Add(Trace2FormatTarget.Normal, value);
             }
 
+            if (TryGetSetting(Constants.EnvironmentVariables.GitTrace2Performance, KnownGitCfg.Trace2.SectionName,
+                    Constants.GitConfiguration.Trace2.PerformanceTarget, out value))
+            {
+                settings.FormatTargetsAndValues.Add(Trace2FormatTarget.Performance, value);
+            }
+
             return settings;
         }
 

@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics;
 
 namespace GitCredentialManager;
@@ -26,7 +27,13 @@ public interface IProcessManager
 
 public class ProcessManager : IProcessManager
 {
+    private const string SidEnvar = "GIT_TRACE2_PARENT_SID";
+
     protected readonly ITrace2 Trace2;
+
+    public static string Sid { get; internal set; }
+
+    public static int Depth { get; internal set; }
 
     public ProcessManager(ITrace2 trace2)
     {
@@ -49,9 +56,51 @@ public class ProcessManager : IProcessManager
         return CreateProcess(psi);
     }
 
-
     public virtual ChildProcess CreateProcess(ProcessStartInfo psi)
     {
         return new ChildProcess(Trace2, psi);
+    }
+
+    /// <summary>
+    /// Create a TRACE2 "session id" (sid) for this process.
+    /// </summary>
+    public static void CreateSid()
+    {
+        Sid = Environment.GetEnvironmentVariable(SidEnvar);
+
+        if (!string.IsNullOrEmpty(Sid))
+        {
+            // Use trim to ensure no accidental leading or trailing slashes
+            Sid = $"{Sid.Trim('/')}/{Guid.NewGuid():D}";
+            // Only check for process depth if there is a parent.
+            // If there is not a parent, depth defaults to 0.
+            Depth = GetProcessDepth();
+        }
+        else
+        {
+            // We are the root process; create our own 'root' SID
+            Sid = Guid.NewGuid().ToString("D");
+        }
+
+        Environment.SetEnvironmentVariable(SidEnvar, Sid);
+    }
+
+    /// <summary>
+    /// Get "depth" of current process relative to top-level GCM process.
+    /// </summary>
+    /// <returns>Depth of current process.</returns>
+    internal static int GetProcessDepth()
+    {
+        char processSeparator = '/';
+
+        int count = 0;
+        // Use AsSpan() for slight performance bump over traditional foreach loop.
+        foreach (var c in Sid.AsSpan())
+        {
+            if (c == processSeparator)
+                count++;
+        }
+
+        return count;
     }
 }

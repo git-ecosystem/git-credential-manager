@@ -56,6 +56,7 @@ namespace GitCredentialManager
             public const string GcmAllowWia           = "GCM_ALLOW_WINDOWSAUTH";
             public const string GitTrace2Event        = "GIT_TRACE2_EVENT";
             public const string GitTrace2Normal       = "GIT_TRACE2";
+            public const string GitTrace2Performance  = "GIT_TRACE2_PERF";
 
             /*
              * Unlike other environment variables, these proxy variables are normally lowercase only.
@@ -170,9 +171,10 @@ namespace GitCredentialManager
 
             public static class Trace2
             {
-                public const string SectionName = "trace2";
-                public const string EventTarget = "eventtarget";
-                public const string NormalTarget = "normaltarget";
+                public const string SectionName       = "trace2";
+                public const string EventTarget       = "eventtarget";
+                public const string NormalTarget      = "normaltarget";
+                public const string PerformanceTarget = "perftarget";
             }
         }
 

@@ -3,16 +3,6 @@ using System.IO;
 
 namespace GitCredentialManager;
 
-/// <summary>
-/// The different format targets supported in the TRACE2 tracing
-/// system.
-/// </summary>
-public enum Trace2FormatTarget
-{
-    Event,
-    Normal
-}
-
 public class Trace2StreamWriter : Trace2Writer
 {
     private readonly TextWriter _writer;
