@@ -31,6 +31,8 @@ namespace GitCredentialManager.Tests.Objects
 
         public bool IsCertificateVerificationEnabled { get; set; } = true;
 
+        public bool AutomaticallyUseClientCertificates { get; set; }
+
         public ProxyConfiguration ProxyConfiguration { get; set; }
 
         public string ParentWindowId { get; set; }
