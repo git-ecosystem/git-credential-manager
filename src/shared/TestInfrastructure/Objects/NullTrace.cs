@@ -78,6 +78,12 @@ namespace GitCredentialManager.Tests.Objects
             string filePath = "",
             int lineNumber = 0) { }
 
+        public void WriteError(string errorMessage,
+            string parameterizedMessage = null,
+            string filePath = "",
+            int lineNumber = 0)
+        { }
+
         public string SetSid() { return ""; }
 
         #endregion

@@ -20,7 +20,8 @@ public enum Trace2Event
     Start = 1,
     Exit = 2,
     ChildStart = 3,
-    ChildExit = 4
+    ChildExit = 4,
+    Error = 5,
 }
 
 /// <summary>
@@ -116,6 +117,21 @@ public interface ITrace2 : IDisposable
         double elapsedTime,
         int pid,
         int code,
+        [System.Runtime.CompilerServices.CallerFilePath]
+        string filePath = "",
+        [System.Runtime.CompilerServices.CallerLineNumber]
+        int lineNumber = 0);
+
+    /// <summary>
+    /// Writes an error as a message to the trace writer.
+    /// </summary>
+    /// <param name="errorMessage">The error message to write.</param>
+    /// <param name="parameterizedMessage">The error format string.</param>
+    /// <param name="filePath">Path of the file this method is called from.</param>
+    /// <param name="lineNumber">Line number of file this method is called from.</param>
+    void WriteError(
+        string errorMessage,
+        string parameterizedMessage = null,
         [System.Runtime.CompilerServices.CallerFilePath]
         string filePath = "",
         [System.Runtime.CompilerServices.CallerLineNumber]
@@ -251,6 +267,34 @@ public class Trace2 : DisposableObject, ITrace2
             Pid = pid,
             Code = code,
             ElapsedTime = elapsedTime,
+            Depth = ProcessManager.Depth
+        });
+    }
+
+    public void WriteError(
+        string errorMessage,
+        string parameterizedMessage = null,
+        [System.Runtime.CompilerServices.CallerFilePath] string filePath = "",
+        [System.Runtime.CompilerServices.CallerLineNumber] int lineNumber = 0)
+    {
+        // It is possible for an error to be thrown before TRACE2 can be initialized.
+        // Since certain dependencies are not available until initialization,
+        // we must immediately return if this method is invoked prior to
+        // initialization.
+        if (!_initialized)
+        {
+            return;
+        }
+
+        WriteMessage(new ErrorMessage()
+        {
+            Event = Trace2Event.Error,
+            Sid = _sid,
+            Time = DateTimeOffset.UtcNow,
+            File = Path.GetFileName(filePath),
+            Line = lineNumber,
+            Message = errorMessage,
+            ParameterizedMessage = parameterizedMessage ?? errorMessage,
             Depth = ProcessManager.Depth
         });
     }
@@ -794,5 +838,44 @@ public class ChildExitMessage : Trace2Message
 
         sb.Append($" pid:{Pid} code:{Code} elapsed:{ElapsedTime}");
         return sb.ToString();
+    }
+}
+
+public class ErrorMessage : Trace2Message
+{
+    [JsonProperty("msg")]
+    public string Message { get; set; }
+
+    [JsonProperty("format")]
+    public string ParameterizedMessage { get; set; }
+
+    public override string ToJson()
+    {
+        return JsonConvert.SerializeObject(this,
+            new StringEnumConverter(typeof(SnakeCaseNamingStrategy)),
+            new IsoDateTimeConverter()
+            {
+                DateTimeFormat = TimeFormat
+            });
+    }
+
+    public override string ToNormalString()
+    {
+        return BuildNormalString();
+    }
+
+    public override string ToPerformanceString()
+    {
+        return BuildPerformanceString();
+    }
+
+    protected override string BuildPerformanceSpan()
+    {
+        return EmptyPerformanceSpan;
+    }
+
+    protected override string GetEventMessage(Trace2FormatTarget formatTarget)
+    {
+        return Message;
     }
 }
