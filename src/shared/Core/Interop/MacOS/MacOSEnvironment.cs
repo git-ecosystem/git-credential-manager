@@ -15,11 +15,7 @@ namespace GitCredentialManager.Interop.MacOS
             : base(fileSystem) { }
 
         internal MacOSEnvironment(IFileSystem fileSystem, IReadOnlyDictionary<string, string> variables)
-            : base(fileSystem)
-        {
-            EnsureArgument.NotNull(variables, nameof(variables));
-            Variables = variables;
-        }
+            : base(fileSystem, variables) { }
 
         public override bool TryLocateExecutable(string program, out string path)
         {

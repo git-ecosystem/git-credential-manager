@@ -53,18 +53,45 @@ namespace GitCredentialManager
         /// <param name="target">Target level of environment variable to set (Machine, Process, or User).</param>
         void SetEnvironmentVariable(string variable, string value,
             EnvironmentVariableTarget target = EnvironmentVariableTarget.Process);
+
+        /// <summary>
+        /// Refresh the current process environment variables. See <see cref="Variables"/>.
+        /// </summary>
+        /// <remarks>This is automatically called after <see cref="SetEnvironmentVariable"/>.</remarks>
+        void Refresh();
     }
 
     public abstract class EnvironmentBase : IEnvironment
     {
+        private IReadOnlyDictionary<string, string> _variables;
+
         protected EnvironmentBase(IFileSystem fileSystem)
         {
             EnsureArgument.NotNull(fileSystem, nameof(fileSystem));
-
             FileSystem = fileSystem;
         }
 
-        public IReadOnlyDictionary<string, string> Variables { get; protected set; }
+        internal EnvironmentBase(IFileSystem fileSystem, IReadOnlyDictionary<string, string> variables)
+            : this(fileSystem)
+        {
+            EnsureArgument.NotNull(variables, nameof(variables));
+            _variables = variables;
+        }
+
+        public IReadOnlyDictionary<string, string> Variables
+        {
+            get
+            {
+                // Variables are lazily loaded
+                if (_variables is null)
+                {
+                    Refresh();
+                }
+
+                Debug.Assert(_variables != null);
+                return _variables;
+            }
+        }
 
         protected IFileSystem FileSystem { get; }
 
@@ -126,9 +153,22 @@ namespace GitCredentialManager
         public void SetEnvironmentVariable(string variable, string value,
             EnvironmentVariableTarget target = EnvironmentVariableTarget.Process)
         {
-            if (Variables.Keys.Contains(variable)) return;
+            // Don't bother setting the variable if it already has the same value
+            if (Variables.TryGetValue(variable, out var currentValue) &&
+                StringComparer.Ordinal.Equals(currentValue, value))
+            {
+                return;
+            }
+
             Environment.SetEnvironmentVariable(variable, value, target);
-            Variables = GetCurrentVariables();
+
+            // Immediately refresh the variables so that the new value is available to callers using IEnvironment
+            Refresh();
+        }
+
+        public void Refresh()
+        {
+            _variables = GetCurrentVariables();
         }
 
         protected abstract IReadOnlyDictionary<string, string> GetCurrentVariables();
@@ -150,6 +190,19 @@ namespace GitCredentialManager
             }
 
             throw new Exception($"Failed to locate '{program}' executable on the path.");
+        }
+
+        /// <summary>
+        /// Retrieves the value of an environment variable from the current process.
+        /// </summary>
+        /// <param name="environment">The <see cref="IEnvironment"/>.</param>
+        /// <param name="variable">The name of the environment variable.</param>
+        /// <returns>
+        /// The value of the environment variable specified by variable, or null if the environment variable is not found.
+        /// </returns>
+        public static string GetEnvironmentVariable(this IEnvironment environment, string variable)
+        {
+            return environment.Variables.TryGetValue(variable, out string value) ? value : null;
         }
     }
 }

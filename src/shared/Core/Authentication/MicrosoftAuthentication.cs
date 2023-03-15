@@ -508,14 +508,14 @@ namespace GitCredentialManager.Authentication
         private bool CanUseSystemWebView(IPublicClientApplication app, Uri redirectUri)
         {
             // MSAL requires the application redirect URI is a loopback address to use the System WebView
-            return Context.SessionManager.IsDesktopSession && app.IsSystemWebViewAvailable && redirectUri.IsLoopback;
+            return Context.SessionManager.IsWebBrowserAvailable && app.IsSystemWebViewAvailable && redirectUri.IsLoopback;
         }
 
         private void EnsureCanUseSystemWebView(IPublicClientApplication app, Uri redirectUri)
         {
-            if (!Context.SessionManager.IsDesktopSession)
+            if (!Context.SessionManager.IsWebBrowserAvailable)
             {
-                throw new InvalidOperationException("System web view is not available without a desktop session.");
+                throw new InvalidOperationException("System web view is not available without a way to start a browser.");
             }
 
             if (!app.IsSystemWebViewAvailable)

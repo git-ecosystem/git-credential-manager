@@ -102,8 +102,8 @@ namespace GitCredentialManager
             if (PlatformUtils.IsWindows())
             {
                 FileSystem        = new WindowsFileSystem();
-                SessionManager    = new WindowsSessionManager();
                 Environment       = new WindowsEnvironment(FileSystem);
+                SessionManager    = new WindowsSessionManager(Environment, FileSystem);
                 ProcessManager    = new WindowsProcessManager(Trace2);
                 Terminal          = new WindowsTerminal(Trace);
                 string gitPath    = GetGitPath(Environment, FileSystem, Trace);
@@ -118,7 +118,7 @@ namespace GitCredentialManager
             else if (PlatformUtils.IsMacOS())
             {
                 FileSystem        = new MacOSFileSystem();
-                SessionManager    = new MacOSSessionManager();
+                SessionManager    = new MacOSSessionManager(Environment, FileSystem);
                 Environment       = new MacOSEnvironment(FileSystem);
                 ProcessManager    = new ProcessManager(Trace2);
                 Terminal          = new MacOSTerminal(Trace);
@@ -134,8 +134,7 @@ namespace GitCredentialManager
             else if (PlatformUtils.IsLinux())
             {
                 FileSystem        = new LinuxFileSystem();
-                // TODO: support more than just 'Posix' or X11
-                SessionManager    = new PosixSessionManager();
+                SessionManager    = new LinuxSessionManager(Environment, FileSystem);
                 Environment       = new PosixEnvironment(FileSystem);
                 ProcessManager    = new ProcessManager(Trace2);
                 Terminal          = new LinuxTerminal(Trace);

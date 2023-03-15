@@ -10,13 +10,10 @@ namespace GitCredentialManager.Interop.Windows
     public class WindowsEnvironment : EnvironmentBase
     {
         public WindowsEnvironment(IFileSystem fileSystem)
-            : this(fileSystem, null) { }
+            : base(fileSystem) { }
 
         internal WindowsEnvironment(IFileSystem fileSystem, IReadOnlyDictionary<string, string> variables)
-            : base(fileSystem)
-        {
-            Variables = variables ?? GetCurrentVariables();
-        }
+            : base(fileSystem, variables) { }
 
         #region EnvironmentBase
 
@@ -48,7 +45,7 @@ namespace GitCredentialManager.Interop.Windows
             Environment.SetEnvironmentVariable("PATH", newValue, target);
 
             // Update the cached PATH variable to the latest value (as well as all other variables)
-            Variables = GetCurrentVariables();
+            Refresh();
         }
 
         public override void RemoveDirectoryFromPath(string directoryPath, EnvironmentVariableTarget target)
@@ -66,7 +63,7 @@ namespace GitCredentialManager.Interop.Windows
                 Environment.SetEnvironmentVariable("PATH", newValue, target);
 
                 // Update the cached PATH variable to the latest value (as well as all other variables)
-                Variables = GetCurrentVariables();
+                Refresh();
             }
         }
 

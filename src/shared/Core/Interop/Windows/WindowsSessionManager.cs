@@ -3,14 +3,14 @@ using GitCredentialManager.Interop.Windows.Native;
 
 namespace GitCredentialManager.Interop.Windows
 {
-    public class WindowsSessionManager : ISessionManager
+    public class WindowsSessionManager : SessionManager
     {
-        public WindowsSessionManager()
+        public WindowsSessionManager(IEnvironment env, IFileSystem fs) : base(env, fs)
         {
             PlatformUtils.EnsureWindows();
         }
 
-        public unsafe bool IsDesktopSession
+        public override unsafe bool IsDesktopSession
         {
             get
             {

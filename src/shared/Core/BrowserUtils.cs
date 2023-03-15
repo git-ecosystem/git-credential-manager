@@ -25,9 +25,10 @@ namespace GitCredentialManager
 
             string url = uri.ToString();
 
-            ProcessStartInfo psi = null;
+            ProcessStartInfo psi;
             if (PlatformUtils.IsLinux())
             {
+                //
                 // On Linux, 'shell execute' utilities like xdg-open launch a process without
                 // detaching from the standard in/out descriptors. Some applications (like
                 // Chromium) write messages to stdout, which is currently hooked up and being
@@ -40,29 +41,17 @@ namespace GitCredentialManager
                 // We try and use the same 'shell execute' utilities as the Framework does,
                 // searching for them in the same order until we find one.
                 //
-                // One additional 'shell execute' utility we also attempt to use is `wslview`
-                // that is commonly found on WSL (Windows Subsystem for Linux) distributions that
-                // opens the browser on the Windows host.
-                foreach (string shellExec in new[] {"xdg-open", "gnome-open", "kfmclient", "wslview"})
-                {
-                    if (environment.TryLocateExecutable(shellExec, out string shellExecPath))
-                    {
-                        psi = new ProcessStartInfo(shellExecPath, url)
-                        {
-                            RedirectStandardOutput = true,
-                            // Ok to redirect stderr for non-git-related processes
-                            RedirectStandardError = true
-                        };
-
-                        // We found a way to open the URI; stop searching!
-                        break;
-                    }
-                }
-
-                if (psi is null)
+                if (!TryGetLinuxShellExecuteHandler(environment, out string shellExecPath))
                 {
                     throw new Exception("Failed to locate a utility to launch the default web browser.");
                 }
+
+                psi = new ProcessStartInfo(shellExecPath, url)
+                {
+                    RedirectStandardOutput = true,
+                    // Ok to redirect stderr for non-git-related processes
+                    RedirectStandardError = true
+                };
             }
             else
             {
@@ -76,6 +65,24 @@ namespace GitCredentialManager
             // Since we will not be collecting TRACE2 data from the browser, there
             // is no need to add the extra overhead associated with ChildProcess here.
             Process.Start(psi);
+        }
+
+        public static bool TryGetLinuxShellExecuteHandler(IEnvironment env, out string shellExecPath)
+        {
+            // One additional 'shell execute' utility we also attempt to use over the Framework
+            // is `wslview` that is commonly found on WSL (Windows Subsystem for Linux) distributions
+            // that opens the browser on the Windows host.
+            string[] shellHandlers = { "xdg-open", "gnome-open", "kfmclient", WslUtils.WslViewShellHandlerName };
+            foreach (string shellExec in shellHandlers)
+            {
+                if (env.TryLocateExecutable(shellExec, out shellExecPath))
+                {
+                    return true;
+                }
+            }
+
+            shellExecPath = null;
+            return false;
         }
     }
 }
