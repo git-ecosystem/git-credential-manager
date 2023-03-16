@@ -65,17 +65,20 @@ namespace GitCredentialManager
     public class GitProcess : IGit
     {
         private readonly ITrace _trace;
+        private readonly ITrace2 _trace2;
         private readonly IProcessManager _processManager;
         private readonly string _gitPath;
         private readonly string _workingDirectory;
 
-        public GitProcess(ITrace trace, IProcessManager processManager, string gitPath, string workingDirectory = null)
+        public GitProcess(ITrace trace, ITrace2 trace2, IProcessManager processManager, string gitPath, string workingDirectory = null)
         {
             EnsureArgument.NotNull(trace, nameof(trace));
+            EnsureArgument.NotNull(trace2, nameof(trace2));
             EnsureArgument.NotNull(processManager, nameof(processManager));
             EnsureArgument.NotNullOrWhiteSpace(gitPath, nameof(gitPath));
 
             _trace = trace;
+            _trace2 = trace2;
             _processManager = processManager;
             _gitPath = gitPath;
             _workingDirectory = workingDirectory;
