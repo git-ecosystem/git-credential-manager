@@ -13,8 +13,9 @@ namespace GitCredentialManager.Interop.Posix
         private const byte DeleteChar = 127;
 
         protected readonly ITrace Trace;
+        protected readonly ITrace2 Trace2;
 
-        public PosixTerminal(ITrace trace)
+        public PosixTerminal(ITrace trace, ITrace2 trace2)
         {
             PlatformUtils.EnsurePosix();
             EnsureArgument.NotNull(trace, nameof(trace));

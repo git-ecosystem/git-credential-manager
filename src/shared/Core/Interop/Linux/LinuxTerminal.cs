@@ -7,12 +7,12 @@ namespace GitCredentialManager.Interop.Linux
 {
     public class LinuxTerminal : PosixTerminal
     {
-        public LinuxTerminal(ITrace trace)
-            : base(trace) { }
+        public LinuxTerminal(ITrace trace, ITrace2 trace2)
+            : base(trace, trace2) { }
 
         protected override IDisposable CreateTtyContext(int fd, bool echo)
         {
-            return new TtyContext(Trace, fd, echo);
+            return new TtyContext(Trace, Trace2, fd, echo);
         }
 
         private class TtyContext : IDisposable
@@ -23,7 +23,7 @@ namespace GitCredentialManager.Interop.Linux
             private termios_Linux _originalTerm;
             private bool _isDisposed;
 
-            public TtyContext(ITrace trace, int fd, bool echo)
+            public TtyContext(ITrace trace, ITrace2 trace2, int fd, bool echo)
             {
                 EnsureArgument.NotNull(trace, nameof(trace));
                 EnsureArgument.PositiveOrZero(fd, nameof(fd));

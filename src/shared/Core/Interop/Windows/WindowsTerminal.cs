@@ -17,12 +17,14 @@ namespace GitCredentialManager.Interop.Windows
         private const string ConsoleOutName = "CONOUT$";
 
         private readonly ITrace _trace;
+        private readonly ITrace2 _trace2;
 
-        public WindowsTerminal(ITrace trace)
+        public WindowsTerminal(ITrace trace, ITrace2 trace2)
         {
             PlatformUtils.EnsureWindows();
 
             _trace = trace;
+            _trace2 = trace2;
         }
 
         public void WriteLine(string format, params object[] args)
