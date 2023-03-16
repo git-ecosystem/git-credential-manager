@@ -15,15 +15,18 @@ namespace GitCredentialManager
         private readonly string _gpgPath;
         private readonly ISessionManager _sessionManager;
         private readonly IProcessManager _processManager;
+        private readonly ITrace2 _trace2;
 
-        public Gpg(string gpgPath, ISessionManager sessionManager, IProcessManager processManager)
+        public Gpg(string gpgPath, ISessionManager sessionManager, IProcessManager processManager, ITrace2 trace2)
         {
             EnsureArgument.NotNullOrWhiteSpace(gpgPath, nameof(gpgPath));
             EnsureArgument.NotNull(sessionManager, nameof(sessionManager));
+            EnsureArgument.NotNull(trace2, nameof(trace2));
 
             _gpgPath = gpgPath;
             _sessionManager = sessionManager;
             _processManager = processManager;
+            _trace2 = trace2;
         }
 
         public string DecryptFile(string path)
