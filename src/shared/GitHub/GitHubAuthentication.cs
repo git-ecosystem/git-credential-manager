@@ -255,7 +255,7 @@ namespace GitHub
         {
             ThrowIfUserInteractionDisabled();
 
-            var oauthClient = new GitHubOAuth2Client(HttpClient, Context.Settings, targetUri);
+            var oauthClient = new GitHubOAuth2Client(HttpClient, Context.Settings, targetUri, Context.Trace2);
 
             // Can we launch the user's default web browser?
             if (!Context.SessionManager.IsWebBrowserAvailable)
@@ -293,7 +293,7 @@ namespace GitHub
         {
             ThrowIfUserInteractionDisabled();
 
-            var oauthClient = new GitHubOAuth2Client(HttpClient, Context.Settings, targetUri);
+            var oauthClient = new GitHubOAuth2Client(HttpClient, Context.Settings, targetUri, Context.Trace2);
             OAuth2DeviceCodeResult dcr = await oauthClient.GetDeviceCodeAsync(scopes, CancellationToken.None);
 
             // If we have a desktop session show the device code in a dialog

@@ -76,7 +76,7 @@ namespace GitCredentialManager
                 Context.Trace.WriteLine($"\tUseAuthHeader   = {oauthConfig.UseAuthHeader}");
                 Context.Trace.WriteLine($"\tDefaultUserName = {oauthConfig.DefaultUserName}");
 
-                return await GetOAuthAccessToken(uri, input.UserName, oauthConfig);
+                return await GetOAuthAccessToken(uri, input.UserName, oauthConfig, Context.Trace2);
             }
             // Try detecting WIA for this remote, if permitted
             else if (IsWindowsAuthAllowed)
@@ -114,7 +114,7 @@ namespace GitCredentialManager
             return await _basicAuth.GetCredentialsAsync(uri.AbsoluteUri, input.UserName);
         }
 
-        private async Task<ICredential> GetOAuthAccessToken(Uri remoteUri, string userName, GenericOAuthConfig config)
+        private async Task<ICredential> GetOAuthAccessToken(Uri remoteUri, string userName, GenericOAuthConfig config, ITrace2 trace2)
         {
             // TODO: Determined user info from a webcall? ID token? Need OIDC support
             string oauthUser = userName ?? config.DefaultUserName;
@@ -123,6 +123,7 @@ namespace GitCredentialManager
                 HttpClient,
                 config.Endpoints,
                 config.ClientId,
+                trace2,
                 config.RedirectUri,
                 config.ClientSecret,
                 config.UseAuthHeader);

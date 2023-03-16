@@ -10,9 +10,9 @@ namespace Atlassian.Bitbucket.Cloud
 {
     public class BitbucketOAuth2Client : Bitbucket.BitbucketOAuth2Client
     {
-        public BitbucketOAuth2Client(HttpClient httpClient, ISettings settings, ITrace trace)
+        public BitbucketOAuth2Client(HttpClient httpClient, ISettings settings, ITrace2 trace2)
             : base(httpClient, GetEndpoints(),
-                GetClientId(settings), GetRedirectUri(settings), GetClientSecret(settings), trace)
+                GetClientId(settings), GetRedirectUri(settings), GetClientSecret(settings), trace2)
         {
         }
 
@@ -62,7 +62,7 @@ namespace Atlassian.Bitbucket.Cloud
 
             return CloudConstants.OAuth2ClientSecret;
         }
-        
+
         private static OAuth2ServerEndpoints GetEndpoints()
         {
             return new OAuth2ServerEndpoints(

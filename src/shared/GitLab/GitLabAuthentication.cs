@@ -201,7 +201,7 @@ namespace GitLab
         {
             ThrowIfUserInteractionDisabled();
 
-            var oauthClient = new GitLabOAuth2Client(HttpClient, Context.Settings, targetUri);
+            var oauthClient = new GitLabOAuth2Client(HttpClient, Context.Settings, targetUri, Context.Trace2);
 
             // We require a desktop session to launch the user's default web browser
             if (!Context.SessionManager.IsDesktopSession)
@@ -223,7 +223,7 @@ namespace GitLab
 
         public async Task<OAuth2TokenResult> GetOAuthTokenViaRefresh(Uri targetUri, string refreshToken)
         {
-            var oauthClient = new GitLabOAuth2Client(HttpClient, Context.Settings, targetUri);
+            var oauthClient = new GitLabOAuth2Client(HttpClient, Context.Settings, targetUri, Context.Trace2);
             return await oauthClient.GetTokenByRefreshTokenAsync(refreshToken, CancellationToken.None);
         }
 

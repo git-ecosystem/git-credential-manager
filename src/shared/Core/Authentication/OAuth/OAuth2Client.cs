@@ -70,16 +70,24 @@ namespace GitCredentialManager.Authentication.OAuth
         private readonly OAuth2ServerEndpoints _endpoints;
         private readonly Uri _redirectUri;
         private readonly string _clientId;
+        private readonly ITrace2 _trace2;
         private readonly string _clientSecret;
         private readonly bool _addAuthHeader;
 
         private IOAuth2CodeGenerator _codeGenerator;
 
-        public OAuth2Client(HttpClient httpClient, OAuth2ServerEndpoints endpoints, string clientId, Uri redirectUri = null, string clientSecret = null, bool addAuthHeader = true)
+        public OAuth2Client(HttpClient httpClient,
+            OAuth2ServerEndpoints endpoints,
+            string clientId,
+            ITrace2 trace2,
+            Uri redirectUri = null,
+            string clientSecret = null,
+            bool addAuthHeader = true)
         {
             _httpClient = httpClient;
             _endpoints = endpoints;
             _clientId = clientId;
+            _trace2 = trace2;
             _redirectUri = redirectUri;
             _clientSecret = clientSecret;
             _addAuthHeader = addAuthHeader;
