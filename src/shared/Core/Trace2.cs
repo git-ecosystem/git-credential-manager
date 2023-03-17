@@ -214,7 +214,7 @@ public class Trace2 : DisposableObject, ITrace2
             Event = Trace2Event.ChildStart,
             Sid = _sid,
             Time = startTime,
-            File = Path.GetFileName(filePath).ToLower(),
+            File = Path.GetFileName(filePath),
             Line = lineNumber,
             Id = ++_childProcCounter,
             Classification = processClass,
@@ -245,7 +245,7 @@ public class Trace2 : DisposableObject, ITrace2
             Event = Trace2Event.ChildExit,
             Sid = _sid,
             Time = DateTimeOffset.UtcNow,
-            File = Path.GetFileName(filePath).ToLower(),
+            File = Path.GetFileName(filePath),
             Line = lineNumber,
             Id = _childProcCounter,
             Pid = pid,
@@ -340,7 +340,7 @@ public class Trace2 : DisposableObject, ITrace2
             Event = Trace2Event.Version,
             Sid = _sid,
             Time = DateTimeOffset.UtcNow,
-            File = Path.GetFileName(filePath).ToLower(),
+            File = Path.GetFileName(filePath),
             Line = lineNumber,
             Evt = eventFormatVersion,
             Exe = gcmVersion
@@ -369,7 +369,7 @@ public class Trace2 : DisposableObject, ITrace2
             Event = Trace2Event.Start,
             Sid = _sid,
             Time = DateTimeOffset.UtcNow,
-            File = Path.GetFileName(filePath).ToLower(),
+            File = Path.GetFileName(filePath),
             Line = lineNumber,
             Argv = argv,
             ElapsedTime = (DateTimeOffset.UtcNow - _applicationStartTime).TotalSeconds
@@ -385,7 +385,7 @@ public class Trace2 : DisposableObject, ITrace2
             Event = Trace2Event.Exit,
             Sid = _sid,
             Time = DateTimeOffset.Now,
-            File = Path.GetFileName(filePath).ToLower(),
+            File = Path.GetFileName(filePath),
             Line = lineNumber,
             Code = code,
             ElapsedTime = (DateTimeOffset.UtcNow - _applicationStartTime).TotalSeconds
@@ -539,7 +539,7 @@ public abstract class Trace2Message
     private string GetSource()
     {
         // Source column format is file:line
-        string source = $"{File.ToLower()}:{Line}";
+        string source = $"{File}:{Line}";
         if (source.Length > SourceColumnMaxWidth)
         {
             return TraceUtils.FormatSource(source, SourceColumnMaxWidth);
