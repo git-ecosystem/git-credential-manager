@@ -7,12 +7,12 @@ namespace GitCredentialManager.Interop.Linux
 {
     public class LinuxTerminal : PosixTerminal
     {
-        public LinuxTerminal(ITrace trace)
-            : base(trace) { }
+        public LinuxTerminal(ITrace trace, ITrace2 trace2)
+            : base(trace, trace2) { }
 
         protected override IDisposable CreateTtyContext(int fd, bool echo)
         {
-            return new TtyContext(Trace, fd, echo);
+            return new TtyContext(Trace, Trace2, fd, echo);
         }
 
         private class TtyContext : IDisposable
@@ -23,7 +23,7 @@ namespace GitCredentialManager.Interop.Linux
             private termios_Linux _originalTerm;
             private bool _isDisposed;
 
-            public TtyContext(ITrace trace, int fd, bool echo)
+            public TtyContext(ITrace trace, ITrace2 trace2, int fd, bool echo)
             {
                 EnsureArgument.NotNull(trace, nameof(trace));
                 EnsureArgument.PositiveOrZero(fd, nameof(fd));
@@ -36,7 +36,7 @@ namespace GitCredentialManager.Interop.Linux
                 // Capture current terminal settings so we can restore them later
                 if ((error = Termios_Linux.tcgetattr(_fd, out termios_Linux t)) != 0)
                 {
-                    throw new InteropException("Failed to get initial terminal settings", error);
+                    throw new Trace2InteropException(trace2, "Failed to get initial terminal settings", error);
                 }
 
                 _originalTerm = t;
@@ -50,7 +50,7 @@ namespace GitCredentialManager.Interop.Linux
 
                 if ((error = Termios_Linux.tcsetattr(_fd, SetActionFlags.TCSAFLUSH, ref t)) != 0)
                 {
-                    throw new InteropException("Failed to set terminal settings", error);
+                    throw new Trace2InteropException(trace2, "Failed to set terminal settings", error);
                 }
             }
 

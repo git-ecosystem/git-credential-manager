@@ -46,7 +46,10 @@ namespace GitCredentialManager.Authentication
             var process = ChildProcess.Start(Context.Trace2, procStartInfo, Trace2ProcessClass.UIHelper);
             if (process is null)
             {
-                throw new Exception($"Failed to start helper process: {path} {args}");
+                var format = "Failed to start helper process: {0} {1}";
+                var message = string.Format(format, path, args);
+
+                throw new Trace2Exception(Context.Trace2, message, format);
             }
 
             // Kill the process upon a cancellation request
@@ -69,7 +72,7 @@ namespace GitCredentialManager.Authentication
                     errorMessage = "Unknown";
                 }
 
-                throw new Exception($"helper error ({exitCode}): {errorMessage}");
+                throw new Trace2Exception(Context.Trace2, $"helper error ({exitCode}): {errorMessage}");
             }
 
             return resultDict;
@@ -85,8 +88,7 @@ namespace GitCredentialManager.Authentication
                     Constants.GitConfiguration.Credential.Interactive);
 
                 Context.Trace.WriteLine($"{envName} / {cfgName} is false/never; user interactivity has been disabled.");
-
-                throw new InvalidOperationException("Cannot prompt because user interactivity has been disabled.");
+                throw new Trace2InvalidOperationException(Context.Trace2, "Cannot prompt because user interactivity has been disabled.");
             }
         }
 
@@ -95,8 +97,7 @@ namespace GitCredentialManager.Authentication
             if (!Context.Settings.IsGuiPromptsEnabled)
             {
                 Context.Trace.WriteLine($"{Constants.EnvironmentVariables.GitTerminalPrompts} is 0; GUI prompts have been disabled.");
-
-                throw new InvalidOperationException("Cannot show prompt because GUI prompts have been disabled.");
+                throw new Trace2InvalidOperationException(Context.Trace2, "Cannot show prompt because GUI prompts have been disabled.");
             }
         }
 
@@ -105,8 +106,7 @@ namespace GitCredentialManager.Authentication
             if (!Context.Settings.IsTerminalPromptsEnabled)
             {
                 Context.Trace.WriteLine($"{Constants.EnvironmentVariables.GitTerminalPrompts} is 0; terminal prompts have been disabled.");
-
-                throw new InvalidOperationException("Cannot prompt because terminal prompts have been disabled.");
+                throw new Trace2InvalidOperationException(Context.Trace2, "Cannot prompt because terminal prompts have been disabled.");
             }
         }
 

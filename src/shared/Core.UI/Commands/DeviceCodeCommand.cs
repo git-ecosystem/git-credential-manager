@@ -41,7 +41,7 @@ namespace GitCredentialManager.UI.Commands
 
             if (!viewModel.WindowResult)
             {
-                throw new Exception("User cancelled dialog.");
+                throw new Trace2Exception(Context.Trace2, "User cancelled dialog.");
             }
 
             return 0;

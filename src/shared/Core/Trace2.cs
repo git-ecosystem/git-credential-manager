@@ -20,7 +20,8 @@ public enum Trace2Event
     Start = 1,
     Exit = 2,
     ChildStart = 3,
-    ChildExit = 4
+    ChildExit = 4,
+    Error = 5,
 }
 
 /// <summary>
@@ -120,6 +121,21 @@ public interface ITrace2 : IDisposable
         string filePath = "",
         [System.Runtime.CompilerServices.CallerLineNumber]
         int lineNumber = 0);
+
+    /// <summary>
+    /// Writes an error as a message to the trace writer.
+    /// </summary>
+    /// <param name="errorMessage">The error message to write.</param>
+    /// <param name="parameterizedMessage">The error format string.</param>
+    /// <param name="filePath">Path of the file this method is called from.</param>
+    /// <param name="lineNumber">Line number of file this method is called from.</param>
+    void WriteError(
+        string errorMessage,
+        string parameterizedMessage = null,
+        [System.Runtime.CompilerServices.CallerFilePath]
+        string filePath = "",
+        [System.Runtime.CompilerServices.CallerLineNumber]
+        int lineNumber = 0);
 }
 
 public class Trace2 : DisposableObject, ITrace2
@@ -214,7 +230,7 @@ public class Trace2 : DisposableObject, ITrace2
             Event = Trace2Event.ChildStart,
             Sid = _sid,
             Time = startTime,
-            File = Path.GetFileName(filePath).ToLower(),
+            File = Path.GetFileName(filePath),
             Line = lineNumber,
             Id = ++_childProcCounter,
             Classification = processClass,
@@ -245,12 +261,40 @@ public class Trace2 : DisposableObject, ITrace2
             Event = Trace2Event.ChildExit,
             Sid = _sid,
             Time = DateTimeOffset.UtcNow,
-            File = Path.GetFileName(filePath).ToLower(),
+            File = Path.GetFileName(filePath),
             Line = lineNumber,
             Id = _childProcCounter,
             Pid = pid,
             Code = code,
             ElapsedTime = elapsedTime,
+            Depth = ProcessManager.Depth
+        });
+    }
+
+    public void WriteError(
+        string errorMessage,
+        string parameterizedMessage = null,
+        [System.Runtime.CompilerServices.CallerFilePath] string filePath = "",
+        [System.Runtime.CompilerServices.CallerLineNumber] int lineNumber = 0)
+    {
+        // It is possible for an error to be thrown before TRACE2 can be initialized.
+        // Since certain dependencies are not available until initialization,
+        // we must immediately return if this method is invoked prior to
+        // initialization.
+        if (!_initialized)
+        {
+            return;
+        }
+
+        WriteMessage(new ErrorMessage()
+        {
+            Event = Trace2Event.Error,
+            Sid = _sid,
+            Time = DateTimeOffset.UtcNow,
+            File = Path.GetFileName(filePath),
+            Line = lineNumber,
+            Message = errorMessage,
+            ParameterizedMessage = parameterizedMessage ?? errorMessage,
             Depth = ProcessManager.Depth
         });
     }
@@ -340,7 +384,7 @@ public class Trace2 : DisposableObject, ITrace2
             Event = Trace2Event.Version,
             Sid = _sid,
             Time = DateTimeOffset.UtcNow,
-            File = Path.GetFileName(filePath).ToLower(),
+            File = Path.GetFileName(filePath),
             Line = lineNumber,
             Evt = eventFormatVersion,
             Exe = gcmVersion
@@ -369,7 +413,7 @@ public class Trace2 : DisposableObject, ITrace2
             Event = Trace2Event.Start,
             Sid = _sid,
             Time = DateTimeOffset.UtcNow,
-            File = Path.GetFileName(filePath).ToLower(),
+            File = Path.GetFileName(filePath),
             Line = lineNumber,
             Argv = argv,
             ElapsedTime = (DateTimeOffset.UtcNow - _applicationStartTime).TotalSeconds
@@ -385,7 +429,7 @@ public class Trace2 : DisposableObject, ITrace2
             Event = Trace2Event.Exit,
             Sid = _sid,
             Time = DateTimeOffset.Now,
-            File = Path.GetFileName(filePath).ToLower(),
+            File = Path.GetFileName(filePath),
             Line = lineNumber,
             Code = code,
             ElapsedTime = (DateTimeOffset.UtcNow - _applicationStartTime).TotalSeconds
@@ -441,27 +485,27 @@ public abstract class Trace2Message
     protected const string EmptyPerformanceSpan =  "|     |           |           |             ";
     protected const string TimeFormat = "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'ffffff'Z'";
 
-    [JsonProperty("event", Order = 1)]
+    [JsonProperty("event")]
     public Trace2Event Event { get; set; }
 
-    [JsonProperty("sid", Order = 2)]
+    [JsonProperty("sid")]
     public string Sid { get; set; }
 
     // TODO: Remove this default value when TRACE2 regions are introduced.
-    [JsonProperty("thread", Order = 3)]
+    [JsonProperty("thread")]
     public string Thread { get; set; } = "main";
 
-    [JsonProperty("time", Order = 4)]
+    [JsonProperty("time")]
     public DateTimeOffset Time { get; set; }
 
-    [JsonProperty("file", Order = 5)]
+    [JsonProperty("file")]
 
     public string File { get; set; }
 
-    [JsonProperty("line", Order = 6)]
+    [JsonProperty("line")]
     public int Line { get; set; }
 
-    [JsonProperty("depth", Order = 7)]
+    [JsonProperty("depth")]
     public int Depth { get; set; }
 
     public abstract string ToJson();
@@ -539,7 +583,7 @@ public abstract class Trace2Message
     private string GetSource()
     {
         // Source column format is file:line
-        string source = $"{File.ToLower()}:{Line}";
+        string source = $"{File}:{Line}";
         if (source.Length > SourceColumnMaxWidth)
         {
             return TraceUtils.FormatSource(source, SourceColumnMaxWidth);
@@ -573,10 +617,10 @@ public abstract class Trace2Message
 
 public class VersionMessage : Trace2Message
 {
-    [JsonProperty("evt", Order = 8)]
+    [JsonProperty("evt")]
     public string Evt { get; set; }
 
-    [JsonProperty("exe", Order = 9)]
+    [JsonProperty("exe")]
     public string Exe { get; set; }
 
     public override string ToJson()
@@ -612,10 +656,10 @@ public class VersionMessage : Trace2Message
 
 public class StartMessage : Trace2Message
 {
-    [JsonProperty("t_abs", Order = 8)]
+    [JsonProperty("t_abs")]
     public double ElapsedTime { get; set; }
 
-    [JsonProperty("argv", Order = 9)]
+    [JsonProperty("argv")]
     public List<string> Argv { get; set; }
 
     public override string ToJson()
@@ -651,10 +695,10 @@ public class StartMessage : Trace2Message
 
 public class ExitMessage : Trace2Message
 {
-    [JsonProperty("t_abs", Order = 8)]
+    [JsonProperty("t_abs")]
     public double ElapsedTime { get; set; }
 
-    [JsonProperty("code", Order = 9)]
+    [JsonProperty("code")]
     public int Code { get; set; }
 
     public override string ToJson()
@@ -690,16 +734,16 @@ public class ExitMessage : Trace2Message
 
 public class ChildStartMessage : Trace2Message
 {
-    [JsonProperty("child_id", Order = 7)]
+    [JsonProperty("child_id")]
     public long Id { get; set; }
 
-    [JsonProperty("child_class", Order = 8)]
+    [JsonProperty("child_class")]
     public Trace2ProcessClass Classification { get; set; }
 
-    [JsonProperty("use_shell", Order = 9)]
+    [JsonProperty("use_shell")]
     public bool UseShell { get; set; }
 
-    [JsonProperty("argv", Order = 10)]
+    [JsonProperty("argv")]
     public IList<string> Argv { get; set; }
 
     public override string ToJson()
@@ -745,16 +789,16 @@ public class ChildStartMessage : Trace2Message
 
 public class ChildExitMessage : Trace2Message
 {
-    [JsonProperty("child_id", Order = 7)]
+    [JsonProperty("child_id")]
     public long Id { get; set; }
 
-    [JsonProperty("pid", Order = 8)]
+    [JsonProperty("pid")]
     public int Pid { get; set; }
 
-    [JsonProperty("code", Order = 9)]
+    [JsonProperty("code")]
     public int Code { get; set; }
 
-    [JsonProperty("t_rel", Order = 10)]
+    [JsonProperty("t_rel")]
     public double ElapsedTime { get; set; }
 
     public override string ToJson()
@@ -794,5 +838,44 @@ public class ChildExitMessage : Trace2Message
 
         sb.Append($" pid:{Pid} code:{Code} elapsed:{ElapsedTime}");
         return sb.ToString();
+    }
+}
+
+public class ErrorMessage : Trace2Message
+{
+    [JsonProperty("msg")]
+    public string Message { get; set; }
+
+    [JsonProperty("format")]
+    public string ParameterizedMessage { get; set; }
+
+    public override string ToJson()
+    {
+        return JsonConvert.SerializeObject(this,
+            new StringEnumConverter(typeof(SnakeCaseNamingStrategy)),
+            new IsoDateTimeConverter()
+            {
+                DateTimeFormat = TimeFormat
+            });
+    }
+
+    public override string ToNormalString()
+    {
+        return BuildNormalString();
+    }
+
+    public override string ToPerformanceString()
+    {
+        return BuildPerformanceString();
+    }
+
+    protected override string BuildPerformanceSpan()
+    {
+        return EmptyPerformanceSpan;
+    }
+
+    protected override string GetEventMessage(Trace2FormatTarget formatTarget)
+    {
+        return Message;
     }
 }

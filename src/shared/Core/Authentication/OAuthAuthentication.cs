@@ -82,7 +82,7 @@ namespace GitCredentialManager.Authentication
 
                 if (!resultDict.TryGetValue("mode", out string responseMode))
                 {
-                    throw new Exception("Missing 'mode' in response");
+                    throw new Trace2Exception(Context.Trace2, "Missing 'mode' in response");
                 }
 
                 switch (responseMode.ToLowerInvariant())
@@ -94,7 +94,8 @@ namespace GitCredentialManager.Authentication
                         return OAuthAuthenticationModes.DeviceCode;
 
                     default:
-                        throw new Exception($"Unknown mode value in response '{responseMode}'");
+                        throw new Trace2Exception(Context.Trace2,
+                            $"Unknown mode value in response '{responseMode}'");
                 }
             }
             else
@@ -137,7 +138,8 @@ namespace GitCredentialManager.Authentication
             // We require a desktop session to launch the user's default web browser
             if (!Context.SessionManager.IsDesktopSession)
             {
-                throw new InvalidOperationException("Browser authentication requires a desktop session");
+                throw new Trace2InvalidOperationException(Context.Trace2,
+                    "Browser authentication requires a desktop session");
             }
 
             var browserOptions = new OAuth2WebBrowserOptions();
@@ -185,7 +187,7 @@ namespace GitCredentialManager.Authentication
                 }
                 catch (OperationCanceledException)
                 {
-                    throw new Exception("User canceled device code authentication");
+                    throw new Trace2Exception(Context.Trace2, "User canceled device code authentication");
                 }
 
                 // Close the dialog

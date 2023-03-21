@@ -23,7 +23,7 @@ namespace GitCredentialManager.Tests.Authentication
 
             var msAuth = new MicrosoftAuthentication(context);
 
-            await Assert.ThrowsAsync<InvalidOperationException>(
+            await Assert.ThrowsAsync<Trace2InvalidOperationException>(
                 () => msAuth.GetTokenAsync(authority, clientId, redirectUri, scopes, userName));
         }
     }

@@ -70,16 +70,24 @@ namespace GitCredentialManager.Authentication.OAuth
         private readonly OAuth2ServerEndpoints _endpoints;
         private readonly Uri _redirectUri;
         private readonly string _clientId;
+        private readonly ITrace2 _trace2;
         private readonly string _clientSecret;
         private readonly bool _addAuthHeader;
 
         private IOAuth2CodeGenerator _codeGenerator;
 
-        public OAuth2Client(HttpClient httpClient, OAuth2ServerEndpoints endpoints, string clientId, Uri redirectUri = null, string clientSecret = null, bool addAuthHeader = true)
+        public OAuth2Client(HttpClient httpClient,
+            OAuth2ServerEndpoints endpoints,
+            string clientId,
+            ITrace2 trace2,
+            Uri redirectUri = null,
+            string clientSecret = null,
+            bool addAuthHeader = true)
         {
             _httpClient = httpClient;
             _endpoints = endpoints;
             _clientId = clientId;
+            _trace2 = trace2;
             _redirectUri = redirectUri;
             _clientSecret = clientSecret;
             _addAuthHeader = addAuthHeader;
@@ -155,17 +163,19 @@ namespace GitCredentialManager.Authentication.OAuth
             IDictionary<string, string> redirectQueryParams = finalUri.GetQueryParameters();
             if (!redirectQueryParams.TryGetValue(OAuth2Constants.AuthorizationGrantResponse.StateParameter, out string replyState))
             {
-                throw new OAuth2Exception($"Missing '{OAuth2Constants.AuthorizationGrantResponse.StateParameter}' in response.");
+                throw new Trace2OAuth2Exception(_trace2, $"Missing '{OAuth2Constants.AuthorizationGrantResponse.StateParameter}' in response.");
             }
             if (!StringComparer.Ordinal.Equals(state, replyState))
             {
-                throw new OAuth2Exception($"Invalid '{OAuth2Constants.AuthorizationGrantResponse.StateParameter}' in response. Does not match initial request.");
+                throw new Trace2OAuth2Exception(_trace2,
+                    $"Missing '{OAuth2Constants.AuthorizationGrantResponse.StateParameter}' in response.");
             }
 
             // We expect to have the auth code in the response otherwise terminate the flow (we failed authentication for some reason)
             if (!redirectQueryParams.TryGetValue(OAuth2Constants.AuthorizationGrantResponse.AuthorizationCodeParameter, out string authCode))
             {
-                throw new OAuth2Exception($"Missing '{OAuth2Constants.AuthorizationGrantResponse.AuthorizationCodeParameter}' in response.");
+                throw new Trace2OAuth2Exception(_trace2,
+                    $"Missing '{OAuth2Constants.AuthorizationGrantResponse.AuthorizationCodeParameter}' in response.");
             }
 
             return new OAuth2AuthorizationCodeResult(authCode, redirectUri, codeVerifier);
@@ -175,7 +185,8 @@ namespace GitCredentialManager.Authentication.OAuth
         {
             if (_endpoints.DeviceAuthorizationEndpoint is null)
             {
-                throw new InvalidOperationException("No device authorization endpoint has been configured for this client.");
+                throw new Trace2InvalidOperationException(_trace2,
+                    "No device authorization endpoint has been configured for this client.");
             }
 
             string scopesStr = string.Join(" ", scopes);
@@ -375,10 +386,13 @@ namespace GitCredentialManager.Authentication.OAuth
         {
             if (TryCreateExceptionFromResponse(json, out OAuth2Exception exception))
             {
+                _trace2.WriteError(exception.Message);
                 return exception;
             }
 
-            return new OAuth2Exception($"Unknown OAuth error: {json}");
+            var format = "Unknown OAuth error: {0}";
+            var message = string.Format(format, json);
+            return new Trace2OAuth2Exception(_trace2, message, format);
         }
 
         protected static bool TryDeserializeJson<T>(string json, out T obj)

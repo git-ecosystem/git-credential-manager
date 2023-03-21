@@ -105,10 +105,11 @@ namespace GitCredentialManager
                 Environment       = new WindowsEnvironment(FileSystem);
                 SessionManager    = new WindowsSessionManager(Environment, FileSystem);
                 ProcessManager    = new WindowsProcessManager(Trace2);
-                Terminal          = new WindowsTerminal(Trace);
+                Terminal          = new WindowsTerminal(Trace, Trace2);
                 string gitPath    = GetGitPath(Environment, FileSystem, Trace);
                 Git               = new GitProcess(
                                             Trace,
+                                            Trace2,
                                             ProcessManager,
                                             gitPath,
                                             FileSystem.GetCurrentDirectory()
@@ -121,10 +122,11 @@ namespace GitCredentialManager
                 SessionManager    = new MacOSSessionManager(Environment, FileSystem);
                 Environment       = new MacOSEnvironment(FileSystem);
                 ProcessManager    = new ProcessManager(Trace2);
-                Terminal          = new MacOSTerminal(Trace);
+                Terminal          = new MacOSTerminal(Trace, Trace2);
                 string gitPath    = GetGitPath(Environment, FileSystem, Trace);
                 Git               = new GitProcess(
                                             Trace,
+                                            Trace2,
                                             ProcessManager,
                                             gitPath,
                                             FileSystem.GetCurrentDirectory()
@@ -137,10 +139,11 @@ namespace GitCredentialManager
                 SessionManager    = new LinuxSessionManager(Environment, FileSystem);
                 Environment       = new PosixEnvironment(FileSystem);
                 ProcessManager    = new ProcessManager(Trace2);
-                Terminal          = new LinuxTerminal(Trace);
+                Terminal          = new LinuxTerminal(Trace, Trace2);
                 string gitPath    = GetGitPath(Environment, FileSystem, Trace);
                 Git               = new GitProcess(
                                             Trace,
+                                            Trace2,
                                             ProcessManager,
                                             gitPath,
                                             FileSystem.GetCurrentDirectory()
