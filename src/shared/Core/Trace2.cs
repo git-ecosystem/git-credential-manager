@@ -441,27 +441,27 @@ public abstract class Trace2Message
     protected const string EmptyPerformanceSpan =  "|     |           |           |             ";
     protected const string TimeFormat = "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'ffffff'Z'";
 
-    [JsonProperty("event", Order = 1)]
+    [JsonProperty("event")]
     public Trace2Event Event { get; set; }
 
-    [JsonProperty("sid", Order = 2)]
+    [JsonProperty("sid")]
     public string Sid { get; set; }
 
     // TODO: Remove this default value when TRACE2 regions are introduced.
-    [JsonProperty("thread", Order = 3)]
+    [JsonProperty("thread")]
     public string Thread { get; set; } = "main";
 
-    [JsonProperty("time", Order = 4)]
+    [JsonProperty("time")]
     public DateTimeOffset Time { get; set; }
 
-    [JsonProperty("file", Order = 5)]
+    [JsonProperty("file")]
 
     public string File { get; set; }
 
-    [JsonProperty("line", Order = 6)]
+    [JsonProperty("line")]
     public int Line { get; set; }
 
-    [JsonProperty("depth", Order = 7)]
+    [JsonProperty("depth")]
     public int Depth { get; set; }
 
     public abstract string ToJson();
@@ -573,10 +573,10 @@ public abstract class Trace2Message
 
 public class VersionMessage : Trace2Message
 {
-    [JsonProperty("evt", Order = 8)]
+    [JsonProperty("evt")]
     public string Evt { get; set; }
 
-    [JsonProperty("exe", Order = 9)]
+    [JsonProperty("exe")]
     public string Exe { get; set; }
 
     public override string ToJson()
@@ -612,10 +612,10 @@ public class VersionMessage : Trace2Message
 
 public class StartMessage : Trace2Message
 {
-    [JsonProperty("t_abs", Order = 8)]
+    [JsonProperty("t_abs")]
     public double ElapsedTime { get; set; }
 
-    [JsonProperty("argv", Order = 9)]
+    [JsonProperty("argv")]
     public List<string> Argv { get; set; }
 
     public override string ToJson()
@@ -651,10 +651,10 @@ public class StartMessage : Trace2Message
 
 public class ExitMessage : Trace2Message
 {
-    [JsonProperty("t_abs", Order = 8)]
+    [JsonProperty("t_abs")]
     public double ElapsedTime { get; set; }
 
-    [JsonProperty("code", Order = 9)]
+    [JsonProperty("code")]
     public int Code { get; set; }
 
     public override string ToJson()
@@ -690,16 +690,16 @@ public class ExitMessage : Trace2Message
 
 public class ChildStartMessage : Trace2Message
 {
-    [JsonProperty("child_id", Order = 7)]
+    [JsonProperty("child_id")]
     public long Id { get; set; }
 
-    [JsonProperty("child_class", Order = 8)]
+    [JsonProperty("child_class")]
     public Trace2ProcessClass Classification { get; set; }
 
-    [JsonProperty("use_shell", Order = 9)]
+    [JsonProperty("use_shell")]
     public bool UseShell { get; set; }
 
-    [JsonProperty("argv", Order = 10)]
+    [JsonProperty("argv")]
     public IList<string> Argv { get; set; }
 
     public override string ToJson()
@@ -745,16 +745,16 @@ public class ChildStartMessage : Trace2Message
 
 public class ChildExitMessage : Trace2Message
 {
-    [JsonProperty("child_id", Order = 7)]
+    [JsonProperty("child_id")]
     public long Id { get; set; }
 
-    [JsonProperty("pid", Order = 8)]
+    [JsonProperty("pid")]
     public int Pid { get; set; }
 
-    [JsonProperty("code", Order = 9)]
+    [JsonProperty("code")]
     public int Code { get; set; }
 
-    [JsonProperty("t_rel", Order = 10)]
+    [JsonProperty("t_rel")]
     public double ElapsedTime { get; set; }
 
     public override string ToJson()
