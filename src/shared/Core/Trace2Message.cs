@@ -7,18 +7,7 @@ using Newtonsoft.Json.Serialization;
 
 namespace GitCredentialManager;
 
-public interface ITrace2Message
-{
-    Trace2Event Event { get; set; }
-    string Sid { get; set; }
-    string Thread { get; set; }
-    DateTimeOffset Time { get; set; }
-    string File { get; set; }
-    int Line { get; set; }
-    int Depth { get; set; }
-}
-
-public abstract class Trace2Message : ITrace2Message
+public abstract class Trace2Message
 {
     private const int SourceColumnMaxWidth = 23;
     private const string NormalPerfTimeFormat = "HH:mm:ss.ffffff";
@@ -173,7 +162,8 @@ public abstract class Trace2Message : ITrace2Message
 
         if (data.Length < dataLimit)
         {
-            component.EndPadding += Math.Abs(sizeDifference);
+            // Increase end padding for short values
+            component.EndPadding += sizeDifference;
         }
 
         var beginPadding = new string(' ', component.BeginPadding);
@@ -440,6 +430,98 @@ public class ErrorMessage : Trace2Message
     protected override string BuildPerformanceSpan()
     {
         return EmptyPerformanceSpan;
+    }
+
+    protected override string GetEventMessage(Trace2FormatTarget formatTarget)
+    {
+        return Message;
+    }
+}
+
+public abstract class RegionMessage : Trace2Message
+{
+    [JsonProperty("repo")]
+
+    // Defaults to 1, as does Git.
+    // See https://git-scm.com/docs/api-trace2#Documentation/technical/api-trace2.txt-codeltrepo-idgtcode for details.
+    public int Repo { get; set; } = 1;
+
+    // Nested regions are not currently supported in GCM, so this value should always be 1.
+    [JsonProperty("nesting")]
+    public int Nesting { get; set; } = 1;
+
+    [JsonProperty("category")]
+    public string Category { get; set; }
+
+    [JsonProperty("label")]
+    public string Label { get; set; }
+
+    [JsonProperty("msg")]
+    public string Message { get; set; }
+
+    public double ElapsedTime { get; set; }
+}
+
+public class RegionEnterMessage : RegionMessage
+{
+    public override string ToJson()
+    {
+        return JsonConvert.SerializeObject(this,
+            new StringEnumConverter(typeof(SnakeCaseNamingStrategy)),
+            new IsoDateTimeConverter()
+            {
+                DateTimeFormat = TimeFormat
+            });
+    }
+
+    public override string ToNormalString()
+    {
+        return BuildNormalString();
+    }
+
+    public override string ToPerformanceString()
+    {
+        return BuildPerformanceString();
+    }
+
+    protected override string BuildPerformanceSpan()
+    {
+        return $"|{BuildRepoSpan(Repo)}|{BuildTimeSpan(ElapsedTime)}|           |{BuildCategorySpan(Category)}";
+    }
+
+    protected override string GetEventMessage(Trace2FormatTarget formatTarget)
+    {
+        return Message;
+    }
+}
+
+public class RegionLeaveMessage : RegionMessage
+{
+    public double RelativeTime { get; set; }
+
+    public override string ToJson()
+    {
+        return JsonConvert.SerializeObject(this,
+            new StringEnumConverter(typeof(SnakeCaseNamingStrategy)),
+            new IsoDateTimeConverter()
+            {
+                DateTimeFormat = TimeFormat
+            });
+    }
+
+    public override string ToNormalString()
+    {
+        return BuildNormalString();
+    }
+
+    public override string ToPerformanceString()
+    {
+        return BuildPerformanceString();
+    }
+
+    protected override string BuildPerformanceSpan()
+    {
+        return $"|{BuildRepoSpan(Repo)}|{BuildTimeSpan(ElapsedTime)}|{BuildTimeSpan(RelativeTime)}|{BuildCategorySpan(Category)}";
     }
 
     protected override string GetEventMessage(Trace2FormatTarget formatTarget)

@@ -89,6 +89,33 @@ namespace GitCredentialManager.Tests.Objects
             string filePath = "",
             int lineNumber = 0) { }
 
+        public Region CreateRegion(
+            string category,
+            string label,
+            string filePath = "",
+            int lineNumber = 0,
+            string message = "")
+        {
+            return new Region(this, category, label, filePath, lineNumber, message);
+        }
+
+        public void WriteRegionEnter(
+            string category,
+            string label,
+            string threadName,
+            string message = "",
+            string filePath = "",
+            int lineNumber = 0) { }
+
+        public void WriteRegionLeave(
+            double relativeTime,
+            string category,
+            string label,
+            string threadName,
+            string message = "",
+            string filePath = "",
+            int lineNumber = 0) { }
+
         #endregion
 
         #region IDisposable
