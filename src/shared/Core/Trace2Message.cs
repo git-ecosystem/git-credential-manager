@@ -93,23 +93,6 @@ public abstract class Trace2Message : ITrace2Message
 
     protected abstract string GetEventMessage(Trace2FormatTarget formatTarget);
 
-    internal static string BuildTimeSpan(double time)
-    {
-        var timeString = time.ToString("F6");
-        var component = new PerformanceFormatSpan()
-        {
-            Size = 11,
-            BeginPadding = 2,
-            EndPadding = 1
-        };
-        AdjustPadding(component, timeString);
-
-        var beginPadding = new string(' ', component.BeginPadding);
-        var endPadding = new string(' ', component.EndPadding);
-
-        return $"{beginPadding}{timeString}{endPadding}";
-    }
-
     private string GetSource()
     {
         // Source column format is file:line
@@ -122,26 +105,81 @@ public abstract class Trace2Message : ITrace2Message
         return source;
     }
 
-    private static void AdjustPadding(PerformanceFormatSpan span, string data)
+    internal static string BuildTimeSpan(double time)
     {
-        var paddingTotal = span.BeginPadding + span.EndPadding;
-        // Size difference between the expected size and the actual size of the data
-        var sizeDifference = span.Size - paddingTotal - data.Length;
-
-        if (sizeDifference < 0)
+        var timeString = time.ToString("F6");
+        var component = new PerformanceFormatSpan()
         {
-            // Remove all padding for values that take up the entire span
-            if (Math.Abs(sizeDifference) == paddingTotal)
+            Size = 11,
+            BeginPadding = 2,
+            EndPadding = 1
+        };
+
+        return BuildSpan(component, timeString);
+    }
+
+    internal static string BuildCategorySpan(string category)
+    {
+        var component = new PerformanceFormatSpan()
+        {
+            Size = 13,
+            BeginPadding = 1,
+            EndPadding = 1
+        };
+
+        return BuildSpan(component, category);
+    }
+
+    internal static string BuildRepoSpan(int repo)
+    {
+        var component = new PerformanceFormatSpan()
+        {
+            Size = 5,
+            BeginPadding = 1,
+            EndPadding = 2
+        };
+
+        return BuildSpan(component, $"r{repo}");
+    }
+
+    private static string BuildSpan(PerformanceFormatSpan component, string data)
+    {
+        var paddingTotal = component.BeginPadding + component.EndPadding;
+        var dataLimit = component.Size - paddingTotal;
+        var sizeDifference = dataLimit - data.Length;
+
+        if (sizeDifference <= 0)
+        {
+            if (double.TryParse(data, out _))
             {
-                span.BeginPadding = 0;
-                span.EndPadding = 0;
+                // Remove all padding for values that take up the entire span
+                if (Math.Abs(sizeDifference) == paddingTotal)
+                {
+                    component.BeginPadding = 0;
+                    component.EndPadding = 0;
+                }
+                else
+                {
+                    // Decrease BeginPadding for large time values that don't occupy entire span
+                    component.BeginPadding += sizeDifference;
+                }
             }
             else
             {
-                // Decrease BeginPadding for large time values that don't occupy entire span
-                span.BeginPadding += sizeDifference;
+                // Truncate value
+                data = data.Substring(0, dataLimit);
             }
         }
+
+        if (data.Length < dataLimit)
+        {
+            component.EndPadding += Math.Abs(sizeDifference);
+        }
+
+        var beginPadding = new string(' ', component.BeginPadding);
+        var endPadding = new string(' ', component.EndPadding);
+
+        return $"{beginPadding}{data}{endPadding}";
     }
 }
 
