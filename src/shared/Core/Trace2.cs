@@ -19,6 +19,8 @@ public enum Trace2Event
     ChildStart = 3,
     ChildExit = 4,
     Error = 5,
+    RegionEnter = 6,
+    RegionLeave = 7,
 }
 
 /// <summary>
@@ -52,6 +54,40 @@ public class PerformanceFormatSpan
     public int BeginPadding { get; set; }
 
     public int EndPadding { get; set; }
+}
+
+/// <summary>
+/// Class that manages regions.
+/// </summary>
+public class Region : DisposableObject
+{
+    private readonly ITrace2 _trace2;
+    private readonly string _category;
+    private readonly string _label;
+    private readonly string _filePath;
+    private readonly int _lineNumber;
+    private readonly string _message;
+    private readonly DateTimeOffset _startTime;
+
+    public Region(ITrace2 trace2, string category, string label, string filePath, int lineNumber, string message = "")
+    {
+        _trace2 = trace2;
+        _category = category;
+        _label = label;
+        _filePath = filePath;
+        _lineNumber = lineNumber;
+        _message = message;
+
+        _startTime = DateTimeOffset.UtcNow;
+
+        _trace2.WriteRegionEnter(_category, _label, _message, _filePath, _lineNumber);
+    }
+
+    protected override void ReleaseManagedResources()
+    {
+        double relativeTime = (DateTimeOffset.UtcNow - _startTime).TotalSeconds;
+        _trace2.WriteRegionLeave(relativeTime, _category, _label, _message, _filePath, _lineNumber);
+    }
 }
 
 /// <summary>
@@ -135,6 +171,59 @@ public interface ITrace2 : IDisposable
     void WriteError(
         string errorMessage,
         string parameterizedMessage = null,
+        [System.Runtime.CompilerServices.CallerFilePath]
+        string filePath = "",
+        [System.Runtime.CompilerServices.CallerLineNumber]
+        int lineNumber = 0);
+
+    /// <summary>
+    /// Creates a region and manages entry/leaving.
+    /// </summary>
+    /// <param name="category">Category of region.</param>
+    /// <param name="label">Description of region.</param>
+    /// <param name="message">Message associated with entering region.</param>
+    /// <param name="filePath">Path of the file this method is called from.</param>
+    /// <param name="lineNumber">Line number of file this method is called from.</param>
+    Region CreateRegion(
+        string category,
+        string label,
+        string message = "",
+        [System.Runtime.CompilerServices.CallerFilePath]
+        string filePath = "",
+        [System.Runtime.CompilerServices.CallerLineNumber]
+        int lineNumber = 0);
+
+    /// <summary>
+    /// Writes a region enter message to the trace writer.
+    /// </summary>
+    /// <param name="category">Category of region.</param>
+    /// <param name="label">Description of region.</param>
+    /// <param name="message">Message associated with entering region.</param>
+    /// <param name="filePath">Path of the file this method is called from.</param>
+    /// <param name="lineNumber">Line number of file this method is called from.</param>
+    void WriteRegionEnter(
+        string category,
+        string label,
+        string message = "",
+        [System.Runtime.CompilerServices.CallerFilePath]
+        string filePath = "",
+        [System.Runtime.CompilerServices.CallerLineNumber]
+        int lineNumber = 0);
+
+    /// <summary>
+    /// Writes a region leave message to the trace writer.
+    /// </summary>
+    /// <param name="relativeTime">Time of region execution.</param>
+    /// <param name="category">Category of region.</param>
+    /// <param name="label">Description of region.</param>
+    /// <param name="message">Message associated with entering region.</param>
+    /// <param name="filePath">Path of the file this method is called from.</param>
+    /// <param name="lineNumber">Line number of file this method is called from.</param>
+    void WriteRegionLeave(
+        double relativeTime,
+        string category,
+        string label,
+        string message = "",
         [System.Runtime.CompilerServices.CallerFilePath]
         string filePath = "",
         [System.Runtime.CompilerServices.CallerLineNumber]
@@ -303,6 +392,64 @@ public class Trace2 : DisposableObject, ITrace2
             Line = lineNumber,
             Message = errorMessage,
             ParameterizedMessage = parameterizedMessage ?? errorMessage,
+            Depth = ProcessManager.Depth
+        });
+    }
+
+    public Region CreateRegion(
+        string category,
+        string label,
+        string message,
+        string filePath,
+        int lineNumber)
+    {
+        return new Region(this, category, label, filePath, lineNumber, message);
+    }
+
+    public void WriteRegionEnter(
+        string category,
+        string label,
+        string message = "",
+        string filePath = "",
+        int lineNumber = 0)
+    {
+        WriteMessage(new RegionEnterMessage()
+        {
+            Event = Trace2Event.RegionEnter,
+            Sid = _sid,
+            Time = DateTimeOffset.UtcNow,
+            Category = category,
+            Label = label,
+            Message = message == "" ? label : message,
+            Thread = BuildThreadName(),
+            File = Path.GetFileName(filePath),
+            Line = lineNumber,
+            ElapsedTime = (DateTimeOffset.UtcNow - _applicationStartTime).TotalSeconds,
+            Depth = ProcessManager.Depth
+        });
+    }
+
+    public void WriteRegionLeave(
+        double relativeTime,
+        string category,
+        string label,
+        string message = "",
+        string filePath = "",
+        int lineNumber = 0)
+    {
+        WriteMessage(new RegionLeaveMessage()
+        {
+            Event = Trace2Event.RegionLeave,
+            Sid = _sid,
+            Time = DateTimeOffset.UtcNow,
+            Category = category,
+            Label = label,
+            Message = message == "" ? label : message,
+            Thread = BuildThreadName(),
+            File = Path.GetFileName(filePath),
+            Line = lineNumber,
+            ElapsedTime = (DateTimeOffset.UtcNow - _applicationStartTime).TotalSeconds,
+            RelativeTime = relativeTime,
             Depth = ProcessManager.Depth
         });
     }

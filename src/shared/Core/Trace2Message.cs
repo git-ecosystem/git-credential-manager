@@ -162,7 +162,8 @@ public abstract class Trace2Message
 
         if (data.Length < dataLimit)
         {
-            component.EndPadding += Math.Abs(sizeDifference);
+            // Increase end padding for short values
+            component.EndPadding += sizeDifference;
         }
 
         var beginPadding = new string(' ', component.BeginPadding);
@@ -429,6 +430,98 @@ public class ErrorMessage : Trace2Message
     protected override string BuildPerformanceSpan()
     {
         return EmptyPerformanceSpan;
+    }
+
+    protected override string GetEventMessage(Trace2FormatTarget formatTarget)
+    {
+        return Message;
+    }
+}
+
+public abstract class RegionMessage : Trace2Message
+{
+    [JsonProperty("repo")]
+
+    // Defaults to 1, as does Git.
+    // See https://git-scm.com/docs/api-trace2#Documentation/technical/api-trace2.txt-codeltrepo-idgtcode for details.
+    public int Repo { get; set; } = 1;
+
+    // TODO: Remove default value if support for nested regions is implemented.
+    [JsonProperty("nesting")]
+    public int Nesting { get; set; } = 1;
+
+    [JsonProperty("category")]
+    public string Category { get; set; }
+
+    [JsonProperty("label")]
+    public string Label { get; set; }
+
+    [JsonProperty("msg")]
+    public string Message { get; set; }
+
+    public double ElapsedTime { get; set; }
+}
+
+public class RegionEnterMessage : RegionMessage
+{
+    public override string ToJson()
+    {
+        return JsonConvert.SerializeObject(this,
+            new StringEnumConverter(typeof(SnakeCaseNamingStrategy)),
+            new IsoDateTimeConverter()
+            {
+                DateTimeFormat = TimeFormat
+            });
+    }
+
+    public override string ToNormalString()
+    {
+        return BuildNormalString();
+    }
+
+    public override string ToPerformanceString()
+    {
+        return BuildPerformanceString();
+    }
+
+    protected override string BuildPerformanceSpan()
+    {
+        return $"|{BuildRepoSpan(Repo)}|{BuildTimeSpan(ElapsedTime)}|           |{BuildCategorySpan(Category)}";
+    }
+
+    protected override string GetEventMessage(Trace2FormatTarget formatTarget)
+    {
+        return Message;
+    }
+}
+
+public class RegionLeaveMessage : RegionMessage
+{
+    public double RelativeTime { get; set; }
+
+    public override string ToJson()
+    {
+        return JsonConvert.SerializeObject(this,
+            new StringEnumConverter(typeof(SnakeCaseNamingStrategy)),
+            new IsoDateTimeConverter()
+            {
+                DateTimeFormat = TimeFormat
+            });
+    }
+
+    public override string ToNormalString()
+    {
+        return BuildNormalString();
+    }
+
+    public override string ToPerformanceString()
+    {
+        return BuildPerformanceString();
+    }
+
+    protected override string BuildPerformanceSpan()
+    {
+        return $"|{BuildRepoSpan(Repo)}|{BuildTimeSpan(ElapsedTime)}|{BuildTimeSpan(RelativeTime)}|{BuildCategorySpan(Category)}";
     }
 
     protected override string GetEventMessage(Trace2FormatTarget formatTarget)
