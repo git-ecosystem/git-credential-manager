@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Pipes;
 using System.Text;
+using System.Threading;
 
 namespace GitCredentialManager;
 
@@ -113,7 +114,6 @@ public interface ITrace2 : IDisposable
     /// <param name="relativeTime">Runtime of child process.</param>
     /// <param name="pid">Id of exiting process.</param>
     /// <param name="code">Process exit code.</param>
-    /// <param name="sid">The child process's session id.</param>
     /// <param name="filePath">Path of the file this method is called from.</param>
     /// <param name="lineNumber">Line number of file this method is called from.</param>
     void WriteChildExit(
@@ -233,6 +233,7 @@ public class Trace2 : DisposableObject, ITrace2
             Event = Trace2Event.ChildStart,
             Sid = _sid,
             Time = startTime,
+            Thread = BuildThreadName(),
             File = Path.GetFileName(filePath),
             Line = lineNumber,
             Id = ++_childProcCounter,
@@ -265,6 +266,7 @@ public class Trace2 : DisposableObject, ITrace2
             Event = Trace2Event.ChildExit,
             Sid = _sid,
             Time = DateTimeOffset.UtcNow,
+            Thread = BuildThreadName(),
             File = Path.GetFileName(filePath),
             Line = lineNumber,
             Id = _childProcCounter,
@@ -296,6 +298,7 @@ public class Trace2 : DisposableObject, ITrace2
             Event = Trace2Event.Error,
             Sid = _sid,
             Time = DateTimeOffset.UtcNow,
+            Thread = BuildThreadName(),
             File = Path.GetFileName(filePath),
             Line = lineNumber,
             Message = errorMessage,
@@ -389,6 +392,7 @@ public class Trace2 : DisposableObject, ITrace2
             Event = Trace2Event.Version,
             Sid = _sid,
             Time = DateTimeOffset.UtcNow,
+            Thread = BuildThreadName(),
             File = Path.GetFileName(filePath),
             Line = lineNumber,
             Evt = eventFormatVersion,
@@ -418,6 +422,7 @@ public class Trace2 : DisposableObject, ITrace2
             Event = Trace2Event.Start,
             Sid = _sid,
             Time = DateTimeOffset.UtcNow,
+            Thread = BuildThreadName(),
             File = Path.GetFileName(filePath),
             Line = lineNumber,
             Argv = argv,
@@ -434,6 +439,7 @@ public class Trace2 : DisposableObject, ITrace2
             Event = Trace2Event.Exit,
             Sid = _sid,
             Time = DateTimeOffset.UtcNow,
+            Thread = BuildThreadName(),
             File = Path.GetFileName(filePath),
             Line = lineNumber,
             Code = code,
@@ -479,5 +485,29 @@ public class Trace2 : DisposableObject, ITrace2
                 }
             }
         }
+    }
+
+    private static string BuildThreadName()
+    {
+        // If this is the entry thread, call it "main", per Trace2 convention
+        if (Thread.CurrentThread.ManagedThreadId == 0)
+        {
+            return "main";
+        }
+
+        // If this is a thread pool thread, name it as such
+        if (Thread.CurrentThread.IsThreadPoolThread)
+        {
+            return $"thread_pool_{Environment.CurrentManagedThreadId}";
+        }
+
+        // Otherwise, if the thread is named, use it!
+        if (!string.IsNullOrEmpty(Thread.CurrentThread.Name))
+        {
+            return Thread.CurrentThread.Name;
+        }
+
+        // We don't know what this thread is!
+        return string.Empty;
     }
 }
