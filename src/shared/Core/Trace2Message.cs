@@ -277,58 +277,6 @@ public class ChildStartMessage : Trace2Message
     [JsonProperty("argv")]
     public IList<string> Argv { get; set; }
 
-    public override string ToJson()
-    {
-        return JsonConvert.SerializeObject(this,
-            new StringEnumConverter(typeof(SnakeCaseNamingStrategy)),
-            new IsoDateTimeConverter()
-            {
-                DateTimeFormat = TimeFormat
-            });
-    }
-
-    public override string ToNormalString()
-    {
-        return BuildNormalString();
-    }
-
-    public override string ToPerformanceString()
-    {
-        return BuildPerformanceString();
-    }
-
-    protected override string BuildPerformanceSpan()
-    {
-        return EmptyPerformanceSpan;
-    }
-
-    protected override string GetEventMessage(Trace2FormatTarget formatTarget)
-    {
-        var sb = new StringBuilder();
-
-        if (formatTarget == Trace2FormatTarget.Performance)
-            sb.Append($"[ch{Id}]");
-        else
-            sb.Append($"[{Id}]");
-
-        sb.Append($" {string.Join(" ", Argv)}");
-
-        return sb.ToString();
-    }
-}
-
-public class ChildExitMessage : Trace2Message
-{
-    [JsonProperty("child_id")]
-    public long Id { get; set; }
-
-    [JsonProperty("pid")]
-    public int Pid { get; set; }
-
-    [JsonProperty("code")]
-    public int Code { get; set; }
-
-    [JsonProperty("t_rel")]
     public double ElapsedTime { get; set; }
 
     public override string ToJson()
@@ -365,7 +313,63 @@ public class ChildExitMessage : Trace2Message
         else
             sb.Append($"[{Id}]");
 
-        sb.Append($" pid:{Pid} code:{Code} elapsed:{ElapsedTime}");
+        sb.Append($" {string.Join(" ", Argv)}");
+
+        return sb.ToString();
+    }
+}
+
+public class ChildExitMessage : Trace2Message
+{
+    [JsonProperty("child_id")]
+    public long Id { get; set; }
+
+    [JsonProperty("pid")]
+    public int Pid { get; set; }
+
+    [JsonProperty("code")]
+    public int Code { get; set; }
+
+    [JsonProperty("t_rel")]
+    public double RelativeTime { get; set; }
+
+    public double ElapsedTime { get; set; }
+
+    public override string ToJson()
+    {
+        return JsonConvert.SerializeObject(this,
+            new StringEnumConverter(typeof(SnakeCaseNamingStrategy)),
+            new IsoDateTimeConverter()
+            {
+                DateTimeFormat = TimeFormat
+            });
+    }
+
+    public override string ToNormalString()
+    {
+        return BuildNormalString();
+    }
+
+    public override string ToPerformanceString()
+    {
+        return BuildPerformanceString();
+    }
+
+    protected override string BuildPerformanceSpan()
+    {
+        return $"|     |{BuildTimeSpan(ElapsedTime)}|{BuildTimeSpan(RelativeTime)}|             ";
+    }
+
+    protected override string GetEventMessage(Trace2FormatTarget formatTarget)
+    {
+        var sb = new StringBuilder();
+
+        if (formatTarget == Trace2FormatTarget.Performance)
+            sb.Append($"[ch{Id}]");
+        else
+            sb.Append($"[{Id}]");
+
+        sb.Append($" pid:{Pid} code:{Code} elapsed:{RelativeTime}");
         return sb.ToString();
     }
 }

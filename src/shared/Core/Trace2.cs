@@ -103,14 +103,14 @@ public interface ITrace2 : IDisposable
     /// <summary>
     /// Writes information related to exit of child process to trace writer.
     /// </summary>
-    /// <param name="elapsedTime">Runtime of child process.</param>
+    /// <param name="relativeTime">Runtime of child process.</param>
     /// <param name="pid">Id of exiting process.</param>
     /// <param name="code">Process exit code.</param>
     /// <param name="sid">The child process's session id.</param>
     /// <param name="filePath">Path of the file this method is called from.</param>
     /// <param name="lineNumber">Line number of file this method is called from.</param>
     void WriteChildExit(
-        double elapsedTime,
+        double relativeTime,
         int pid,
         int code,
         [System.Runtime.CompilerServices.CallerFilePath]
@@ -232,12 +232,13 @@ public class Trace2 : DisposableObject, ITrace2
             Classification = processClass,
             UseShell = useShell,
             Argv = procArgs,
-            Depth = ProcessManager.Depth
+            ElapsedTime = (DateTimeOffset.UtcNow - _applicationStartTime).TotalSeconds,
+            Depth = ProcessManager.Depth,
         });
     }
 
     public void WriteChildExit(
-        double elapsedTime,
+        double relativeTime,
         int pid,
         int code,
         string filePath = "",
@@ -262,7 +263,8 @@ public class Trace2 : DisposableObject, ITrace2
             Id = _childProcCounter,
             Pid = pid,
             Code = code,
-            ElapsedTime = elapsedTime,
+            ElapsedTime = (DateTimeOffset.UtcNow - _applicationStartTime).TotalSeconds,
+            RelativeTime = relativeTime,
             Depth = ProcessManager.Depth
         });
     }
