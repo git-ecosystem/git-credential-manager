@@ -94,16 +94,6 @@ public abstract class Trace2Message : ITrace2Message
 
     protected abstract string GetEventMessage(Trace2FormatTarget formatTarget);
 
-    protected void AddDots(StringBuilder sb)
-    {
-        var dotCount = Depth;
-        while (dotCount > 0)
-        {
-            sb.Append("..");
-            dotCount--;
-        }
-    }
-
     internal static string BuildTimeSpan(double time)
     {
         var timeString = time.ToString("F6");
@@ -315,7 +305,6 @@ public class ChildStartMessage : Trace2Message
     protected override string GetEventMessage(Trace2FormatTarget formatTarget)
     {
         var sb = new StringBuilder();
-        AddDots(sb);
 
         if (formatTarget == Trace2FormatTarget.Performance)
             sb.Append($"[ch{Id}]");
@@ -370,7 +359,6 @@ public class ChildExitMessage : Trace2Message
     protected override string GetEventMessage(Trace2FormatTarget formatTarget)
     {
         var sb = new StringBuilder();
-        AddDots(sb);
 
         if (formatTarget == Trace2FormatTarget.Performance)
             sb.Append($"[ch{Id}]");
