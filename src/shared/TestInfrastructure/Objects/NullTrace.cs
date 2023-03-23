@@ -72,7 +72,7 @@ namespace GitCredentialManager.Tests.Objects
             int lineNumber = 0) { }
 
         public void WriteChildExit(
-            double elapsedTime,
+            double relativeTime,
             int pid,
             int code,
             string filePath = "",
