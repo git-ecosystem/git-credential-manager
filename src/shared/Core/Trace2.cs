@@ -31,12 +31,19 @@ public enum Trace2ProcessClass
     Other = 3
 }
 
+/// <summary>
+/// Stores various TRACE2 format targets user has enabled.
+/// Check <see cref="Trace2FormatTarget"/> for supported formats.
+/// </summary>
 public class Trace2Settings
 {
     public IDictionary<Trace2FormatTarget, string> FormatTargetsAndValues { get; set; } =
         new Dictionary<Trace2FormatTarget, string>();
 }
 
+/// <summary>
+/// Specifies a "text span" (i.e. space between two pipes) for the performance format target.
+/// </summary>
 public class PerformanceFormatSpan
 {
     public int Size { get; set; }
