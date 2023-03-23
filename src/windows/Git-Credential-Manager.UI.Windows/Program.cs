@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 using GitCredentialManager.UI.Commands;
 using GitCredentialManager.UI.Controls;
@@ -19,7 +20,7 @@ namespace GitCredentialManager.UI
                 // Initialize TRACE2 system
                 context.Trace2.Initialize(DateTimeOffset.UtcNow);
 
-                context.Trace2.Start(context.ApplicationPath, args);
+                context.Trace2.Start(context.ApplicationPath, args, Thread.CurrentThread.Name);
 
                 // Write the start and version events
                 if (args.Length == 0)
@@ -37,7 +38,7 @@ namespace GitCredentialManager.UI
                     .GetAwaiter()
                     .GetResult();
 
-                context.Trace2.Stop(exitCode);
+                context.Trace2.Stop(exitCode, Thread.CurrentThread.Name);
                 Environment.Exit(exitCode);
             }
         }

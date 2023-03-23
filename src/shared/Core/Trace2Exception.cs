@@ -10,7 +10,7 @@ public class Trace2Exception : Exception
 {
     public Trace2Exception(ITrace2 trace2, string message) : base(message)
     {
-        trace2.WriteError(message);
+        trace2.WriteError(message, ThreadHelpers.BuildThreadName());
     }
 
     public Trace2Exception(ITrace2 trace2, string message, string messageFormat) : base(message)
@@ -23,7 +23,7 @@ public class Trace2InvalidOperationException : InvalidOperationException
 {
     public Trace2InvalidOperationException(ITrace2 trace2, string message) : base(message)
     {
-        trace2.WriteError(message);
+        trace2.WriteError(message, ThreadHelpers.BuildThreadName());
     }
 }
 
@@ -31,7 +31,7 @@ public class Trace2OAuth2Exception : OAuth2Exception
 {
     public Trace2OAuth2Exception(ITrace2 trace2, string message) : base(message)
     {
-        trace2.WriteError(message);
+        trace2.WriteError(message, ThreadHelpers.BuildThreadName());
     }
 
     public Trace2OAuth2Exception(ITrace2 trace2, string message, string messageFormat) : base(message)
@@ -44,12 +44,13 @@ public class Trace2InteropException : InteropException
 {
     public Trace2InteropException(ITrace2 trace2, string message, int errorCode) : base(message, errorCode)
     {
-        trace2.WriteError($"message: {message} error code: {errorCode}");
+        trace2.WriteError($"message: {message} error code: {errorCode}",
+            ThreadHelpers.BuildThreadName());
     }
 
     public Trace2InteropException(ITrace2 trace2, string message, Win32Exception ex) : base(message, ex)
     {
-        trace2.WriteError(message);
+        trace2.WriteError(message, ThreadHelpers.BuildThreadName());
     }
 }
 

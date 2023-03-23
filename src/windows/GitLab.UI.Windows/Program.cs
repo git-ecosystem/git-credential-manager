@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 using GitLab.UI.Commands;
 using GitLab.UI.Controls;
@@ -22,7 +23,7 @@ namespace GitLab.UI
                 context.Trace2.Initialize(DateTimeOffset.UtcNow);
 
                 // Write the start and version events
-                context.Trace2.Start(context.ApplicationPath, args);
+                context.Trace2.Start(context.ApplicationPath, args, Thread.CurrentThread.Name);
 
                 if (args.Length == 0)
                 {
@@ -37,7 +38,7 @@ namespace GitLab.UI
                     .GetAwaiter()
                     .GetResult();
 
-                context.Trace2.Stop(exitCode);
+                context.Trace2.Stop(exitCode, Thread.CurrentThread.Name);
                 Environment.Exit(exitCode);
             }
         }

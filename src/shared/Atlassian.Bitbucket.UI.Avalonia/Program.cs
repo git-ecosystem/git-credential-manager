@@ -55,7 +55,7 @@ namespace Atlassian.Bitbucket.UI
                 context.Trace2.Initialize(DateTimeOffset.UtcNow);
 
                 // Write the start and version events
-                context.Trace2.Start(context.ApplicationPath, args);
+                context.Trace2.Start(context.ApplicationPath, args, "main");
 
                 app.RegisterCommand(new CredentialsCommandImpl(context));
 
@@ -64,7 +64,7 @@ namespace Atlassian.Bitbucket.UI
                     .GetAwaiter()
                     .GetResult();
 
-                context.Trace2.Stop(exitCode);
+                context.Trace2.Stop(exitCode, Thread.CurrentThread.Name);
                 Environment.Exit(exitCode);
             }
         }

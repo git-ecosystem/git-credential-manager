@@ -337,7 +337,7 @@ namespace GitCredentialManager.Authentication
                 Context.Streams.Error.WriteLine("warning: cannot persist Microsoft authentication token cache securely!");
                 Context.Trace.WriteLine(message);
                 Context.Trace.WriteException(ex);
-                Context.Trace2.WriteError(message);
+                Context.Trace2.WriteError(message, ThreadHelpers.BuildThreadName());
 
                 if (PlatformUtils.IsMacOS())
                 {

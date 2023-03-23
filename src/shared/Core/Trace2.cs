@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Pipes;
 using System.Text;
+using System.Threading;
 
 namespace GitCredentialManager;
 
@@ -69,10 +70,12 @@ public interface ITrace2 : IDisposable
     /// </summary>
     /// <param name="appPath">The path to the application.</param>
     /// <param name="args">Args passed to the application (if applicable).</param>
+    /// <param name="threadName">Name of the currently-executing thread.</param>
     /// <param name="filePath">Path of the file this method is called from.</param>
     /// <param name="lineNumber">Line number of file this method is called from.</param>
     void Start(string appPath,
         string[] args,
+        string threadName,
         [System.Runtime.CompilerServices.CallerFilePath] string filePath = "",
         [System.Runtime.CompilerServices.CallerLineNumber] int lineNumber = 0);
 
@@ -80,9 +83,11 @@ public interface ITrace2 : IDisposable
     /// Write Exit event and dispose of writers.
     /// </summary>
     /// <param name="exitCode">The exit code of the GCM application.</param>
+    /// <param name="threadName">Name of the currently-executing thread.</param>
     /// <param name="filePath">Path of the file this method is called from.</param>
     /// <param name="lineNumber">Line number of file this method is called from.</param>
     void Stop(int exitCode,
+        string threadName,
         [System.Runtime.CompilerServices.CallerFilePath] string filePath = "",
         [System.Runtime.CompilerServices.CallerLineNumber] int lineNumber = 0);
 
@@ -95,6 +100,7 @@ public interface ITrace2 : IDisposable
     /// <param name="appName">Name of application running in child process.</param>
     /// <param name="argv">Arguments specific to the child process.</param>
     /// <param name="sid">The child process's session id.</param>
+    /// <param name="threadName">Name of the currently-executing thread.</param>
     /// <param name="filePath">Path of the file this method is called from.</param>
     /// <param name="lineNumber">Line number of file this method is called from.</param>
     void WriteChildStart(DateTimeOffset startTime,
@@ -102,6 +108,7 @@ public interface ITrace2 : IDisposable
         bool useShell,
         string appName,
         string argv,
+        string threadName,
         [System.Runtime.CompilerServices.CallerFilePath]
         string filePath = "",
         [System.Runtime.CompilerServices.CallerLineNumber]
@@ -114,12 +121,14 @@ public interface ITrace2 : IDisposable
     /// <param name="pid">Id of exiting process.</param>
     /// <param name="code">Process exit code.</param>
     /// <param name="sid">The child process's session id.</param>
+    /// <param name="threadName">Name of the currently-executing thread.</param>
     /// <param name="filePath">Path of the file this method is called from.</param>
     /// <param name="lineNumber">Line number of file this method is called from.</param>
     void WriteChildExit(
         double relativeTime,
         int pid,
         int code,
+        string threadName,
         [System.Runtime.CompilerServices.CallerFilePath]
         string filePath = "",
         [System.Runtime.CompilerServices.CallerLineNumber]
@@ -130,9 +139,11 @@ public interface ITrace2 : IDisposable
     /// </summary>
     /// <param name="errorMessage">The error message to write.</param>
     /// <param name="parameterizedMessage">The error format string.</param>
+    /// <param name="threadName">Name of the currently-executing thread.</param>
     /// <param name="filePath">Path of the file this method is called from.</param>
     /// <param name="lineNumber">Line number of file this method is called from.</param>
     void WriteError(
+        string threadName,
         string errorMessage,
         string parameterizedMessage = null,
         [System.Runtime.CompilerServices.CallerFilePath]
@@ -181,6 +192,7 @@ public class Trace2 : DisposableObject, ITrace2
 
     public void Start(string appPath,
         string[] args,
+        string threadName,
         string filePath,
         int lineNumber)
     {
@@ -190,13 +202,13 @@ public class Trace2 : DisposableObject, ITrace2
             // manually set the version.
             version = "0.0.0";
         }
-        WriteVersion(version, filePath, lineNumber);
-        WriteStart(appPath, args, filePath, lineNumber);
+        WriteVersion(version, threadName, filePath, lineNumber);
+        WriteStart(appPath, args, threadName, filePath, lineNumber);
     }
 
-    public void Stop(int exitCode, string filePath, int lineNumber)
+    public void Stop(int exitCode, string threadName, string filePath, int lineNumber)
     {
-        WriteExit(exitCode, filePath, lineNumber);
+        WriteExit(exitCode, threadName, filePath, lineNumber);
     }
 
     public void WriteChildStart(DateTimeOffset startTime,
@@ -204,6 +216,7 @@ public class Trace2 : DisposableObject, ITrace2
         bool useShell,
         string appName,
         string argv,
+        string threadName,
         string filePath = "",
         int lineNumber = 0)
     {
@@ -233,6 +246,7 @@ public class Trace2 : DisposableObject, ITrace2
             Event = Trace2Event.ChildStart,
             Sid = _sid,
             Time = startTime,
+            Thread = threadName,
             File = Path.GetFileName(filePath),
             Line = lineNumber,
             Id = ++_childProcCounter,
@@ -248,6 +262,7 @@ public class Trace2 : DisposableObject, ITrace2
         double relativeTime,
         int pid,
         int code,
+        string threadName,
         string filePath = "",
         int lineNumber = 0)
     {
@@ -265,6 +280,7 @@ public class Trace2 : DisposableObject, ITrace2
             Event = Trace2Event.ChildExit,
             Sid = _sid,
             Time = DateTimeOffset.UtcNow,
+            Thread = threadName,
             File = Path.GetFileName(filePath),
             Line = lineNumber,
             Id = _childProcCounter,
@@ -277,6 +293,7 @@ public class Trace2 : DisposableObject, ITrace2
     }
 
     public void WriteError(
+        string threadName,
         string errorMessage,
         string parameterizedMessage = null,
         [System.Runtime.CompilerServices.CallerFilePath] string filePath = "",
@@ -296,6 +313,7 @@ public class Trace2 : DisposableObject, ITrace2
             Event = Trace2Event.Error,
             Sid = _sid,
             Time = DateTimeOffset.UtcNow,
+            Thread = threadName,
             File = Path.GetFileName(filePath),
             Line = lineNumber,
             Message = errorMessage,
@@ -378,6 +396,7 @@ public class Trace2 : DisposableObject, ITrace2
 
     private void WriteVersion(
         string gcmVersion,
+        string threadName,
         string filePath,
         int lineNumber,
         string eventFormatVersion = "3")
@@ -389,6 +408,7 @@ public class Trace2 : DisposableObject, ITrace2
             Event = Trace2Event.Version,
             Sid = _sid,
             Time = DateTimeOffset.UtcNow,
+            Thread = threadName,
             File = Path.GetFileName(filePath),
             Line = lineNumber,
             Evt = eventFormatVersion,
@@ -399,6 +419,7 @@ public class Trace2 : DisposableObject, ITrace2
     private void WriteStart(
         string appPath,
         string[] args,
+        string threadName,
         string filePath,
         int lineNumber)
     {
@@ -418,6 +439,7 @@ public class Trace2 : DisposableObject, ITrace2
             Event = Trace2Event.Start,
             Sid = _sid,
             Time = DateTimeOffset.UtcNow,
+            Thread = threadName,
             File = Path.GetFileName(filePath),
             Line = lineNumber,
             Argv = argv,
@@ -425,7 +447,7 @@ public class Trace2 : DisposableObject, ITrace2
         });
     }
 
-    private void WriteExit(int code, string filePath = "", int lineNumber = 0)
+    private void WriteExit(int code, string threadName, string filePath = "", int lineNumber = 0)
     {
         EnsureArgument.NotNull(code, nameof(code));
 
@@ -434,6 +456,7 @@ public class Trace2 : DisposableObject, ITrace2
             Event = Trace2Event.Exit,
             Sid = _sid,
             Time = DateTimeOffset.Now,
+            Thread = threadName,
             File = Path.GetFileName(filePath),
             Line = lineNumber,
             Code = code,
@@ -479,5 +502,18 @@ public class Trace2 : DisposableObject, ITrace2
                 }
             }
         }
+    }
+}
+
+public static class ThreadHelpers
+{
+    public static string BuildThreadName()
+    {
+        if (Thread.CurrentThread.IsThreadPoolThread)
+        {
+            return $"thread_pool_{Environment.CurrentManagedThreadId}";
+        }
+
+        return string.IsNullOrEmpty(Thread.CurrentThread.Name) ? Thread.CurrentThread.Name : "";
     }
 }

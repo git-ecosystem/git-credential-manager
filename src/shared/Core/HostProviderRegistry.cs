@@ -243,7 +243,7 @@ namespace GitCredentialManager
                     var message = "Failed to set host provider!";
                     _context.Trace.WriteLine(message);
                     _context.Trace.WriteException(ex);
-                    _context.Trace2.WriteError(message);
+                    _context.Trace2.WriteError(message, ThreadHelpers.BuildThreadName());
 
                     _context.Streams.Error.WriteLine("warning: failed to remember result of host provider detection!");
                     _context.Streams.Error.WriteLine($"warning: try setting this manually: `git config --global {keyName} {match.Id}`");

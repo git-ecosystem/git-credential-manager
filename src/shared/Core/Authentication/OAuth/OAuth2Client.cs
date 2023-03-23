@@ -386,7 +386,7 @@ namespace GitCredentialManager.Authentication.OAuth
         {
             if (TryCreateExceptionFromResponse(json, out OAuth2Exception exception))
             {
-                _trace2.WriteError(exception.Message);
+                _trace2.WriteError(exception.Message, ThreadHelpers.BuildThreadName());
                 return exception;
             }
 

@@ -286,7 +286,7 @@ namespace GitCredentialManager
                             "Failed to convert proxy bypass hosts to regular expressions; ignoring bypass list";
                         _trace.WriteLine(message);
                         _trace.WriteException(ex);
-                        _trace2.WriteError(message);
+                        _trace2.WriteError(message, ThreadHelpers.BuildThreadName());
                         dict["bypass"] = "<< failed to convert >>";
                     }
                 }

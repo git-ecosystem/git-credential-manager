@@ -56,10 +56,12 @@ namespace GitCredentialManager.Tests.Objects
 
         public void Start(string appPath,
             string[] args,
+            string threadName,
             string filePath = "",
             int lineNumber = 0) { }
 
         public void Stop(int exitCode,
+            string threadName,
             string fileName,
             int lineNumber) { }
 
@@ -68,6 +70,7 @@ namespace GitCredentialManager.Tests.Objects
             bool useShell,
             string appName,
             string argv,
+            string threadName,
             string filePath = "",
             int lineNumber = 0) { }
 
@@ -75,16 +78,16 @@ namespace GitCredentialManager.Tests.Objects
             double relativeTime,
             int pid,
             int code,
+            string threadName,
             string filePath = "",
             int lineNumber = 0) { }
 
-        public void WriteError(string errorMessage,
+        public void WriteError(
+            string threadName,
+            string errorMessage,
             string parameterizedMessage = null,
             string filePath = "",
-            int lineNumber = 0)
-        { }
-
-        public string SetSid() { return ""; }
+            int lineNumber = 0) { }
 
         #endregion
 

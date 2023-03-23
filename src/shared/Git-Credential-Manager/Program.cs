@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using Atlassian.Bitbucket;
 using GitHub;
 using GitLab;
@@ -20,10 +21,12 @@ namespace GitCredentialManager
             using (var app = new Application(context))
             {
                 // Initialize TRACE2 system
+                // TRACE2 convention is for main thread of execution to be named "main"
+                Thread.CurrentThread.Name = "main";
                 context.Trace2.Initialize(startTime);
 
                 // Write the start and version events
-                context.Trace2.Start(context.ApplicationPath, args);
+                context.Trace2.Start(context.ApplicationPath, args, Thread.CurrentThread.Name);
 
                 // Workaround for https://github.com/AzureAD/microsoft-authentication-library-for-dotnet/issues/2560
                 if (MicrosoftAuthentication.CanUseBroker(context))
@@ -86,7 +89,7 @@ namespace GitCredentialManager
                     .GetAwaiter()
                     .GetResult();
 
-                context.Trace2.Stop(exitCode);
+                context.Trace2.Stop(exitCode, Thread.CurrentThread.Name);
                 Environment.Exit(exitCode);
             }
         }

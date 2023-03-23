@@ -180,7 +180,7 @@ namespace Atlassian.Bitbucket
                     var message = "Failed to refresh existing OAuth credential using refresh token";
                     _context.Trace.WriteLine(message);
                     _context.Trace.WriteException(ex);
-                    _context.Trace2.WriteError(message);
+                    _context.Trace2.WriteError(message, ThreadHelpers.BuildThreadName());
 
                     // We failed to refresh the AT using the RT; log the refresh failure and fall through to restart
                     // the OAuth authentication flow
@@ -416,7 +416,7 @@ namespace Atlassian.Bitbucket
                     var message = "Failed to validate existing credentials using OAuth";
                     _context.Trace.WriteLine(message);
                     _context.Trace.WriteException(ex);
-                    _context.Trace2.WriteError(message);
+                    _context.Trace2.WriteError(message, ThreadHelpers.BuildThreadName());
                 }
             }
 
@@ -433,7 +433,7 @@ namespace Atlassian.Bitbucket
                     var message = "Failed to validate existing credentials using Basic Auth";
                     _context.Trace.WriteLine(message);
                     _context.Trace.WriteException(ex);
-                    _context.Trace2.WriteError(message);
+                    _context.Trace2.WriteError(message, ThreadHelpers.BuildThreadName());
                     return false;
                 }
             }

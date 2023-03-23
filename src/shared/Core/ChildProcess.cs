@@ -50,7 +50,8 @@ public class ChildProcess : DisposableObject
             processClass,
             _startInfo.UseShellExecute,
             _startInfo.FileName,
-            _startInfo.Arguments);
+            _startInfo.Arguments,
+            ThreadHelpers.BuildThreadName());
         Process.Start();
     }
 
@@ -73,7 +74,8 @@ public class ChildProcess : DisposableObject
             _trace2.WriteChildExit(
                 elapsedTime,
                 _id,
-                Process.ExitCode);
+                Process.ExitCode,
+                ThreadHelpers.BuildThreadName());
         }
     }
 }

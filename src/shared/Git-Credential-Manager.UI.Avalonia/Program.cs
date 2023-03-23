@@ -53,7 +53,7 @@ namespace GitCredentialManager.UI
                 context.Trace2.Initialize(DateTimeOffset.UtcNow);
 
                 // Write the start and version events
-                context.Trace2.Start(context.ApplicationPath, args);
+                context.Trace2.Start(context.ApplicationPath, args, Thread.CurrentThread.Name);
 
                 app.RegisterCommand(new CredentialsCommandImpl(context));
                 app.RegisterCommand(new OAuthCommandImpl(context));
@@ -64,7 +64,7 @@ namespace GitCredentialManager.UI
                     .GetAwaiter()
                     .GetResult();
 
-                context.Trace2.Stop(exitCode);
+                context.Trace2.Stop(exitCode, Thread.CurrentThread.Name);
                 Environment.Exit(exitCode);
             }
         }
