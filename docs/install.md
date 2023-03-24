@@ -176,6 +176,10 @@ There are two flavors of standalone installation on Windows:
 To install, double-click the desired installation package and follow the
 instructions presented.
 
+### Winget
+Winget is a package manager for Windows.  
+`winget install --id Microsoft.GitCredentialManagerCore`
+
 ### Uninstall (Windows 10)
 
 To uninstall, open the Settings app and navigate to the Apps section. Select
