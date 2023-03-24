@@ -98,6 +98,12 @@ Git to be the one launching us.
 
 ### Collect trace output
 
+GCM has two tracing systems - one that is distinctly GCM's and one that
+implements certain features of [Git's Trace2 API][trace2]. Below are
+instructions for how to use each.
+
+#### `GCM_TRACE`
+
 If you want to debug a release build or installation of GCM, you can set the
 `GCM_TRACE` environment variable to `1` to print trace information to standard
 error, or to an absolute file path to write trace information to a file.
@@ -109,6 +115,80 @@ $ GCM_TRACE=1 git-credential-manager version
 > 18:47:56.526712 ...er/Application.cs:69 trace: [RunInternalAsync] Git Credential Manager version 2.0.124-beta+e1ebbe1517 (macOS, .NET 5.0) 'version'
 > Git Credential Manager version 2.0.124-beta+e1ebbe1517 (macOS, .NET 5.0)
 ```
+
+#### Git's Trace2 API
+
+This API can also be used to print debug, performance, and telemetry information
+to stderr or a file in various formats.
+
+##### Supported format targets
+
+1. The Normal Format Target: Similar to `GCM_TRACE`, this target writes
+human-readable output and is best suited for debugging. It can be enabled via
+environment variable or config, for example:
+
+    ```shell
+    export GIT_TRACE2=1
+    ```
+
+    or
+
+    ```shell
+    git config --global trace2.normalTarget ~/log.normal
+    ```
+
+0. The Performance Format Target: This format is column-based and geared toward
+analyzing performance during development and testing. It can be enabled via
+environment variable or config, for example:
+
+    ```shell
+    export GIT_TRACE2_PERF=1
+    ```
+
+    or
+
+    ```shell
+    git config --global trace2.perfTarget ~/log.perf
+    ```
+
+0. The Event Format Target: This format is json-based and is geared toward
+collection of large quantities of data for advanced analysis. It can be enabled
+via environment variable or config, for example:
+
+    ```shell
+    export GIT_TRACE2_EVENT=1
+    ```
+
+    or
+
+    ```shell
+    git config --global trace2.eventTarget ~/log.event
+    ```
+
+You can read more about each of these format targets in the [corresponding
+section][trace2-targets] of Git's Trace2 API documentation.
+
+##### Supported events
+
+The below describes, at a high level, the Trace2 API events that are currently
+supported in GCM and the information they provide:
+
+1. `version`: contains the version of the current executable (e.g. GCM or a
+helper exe)
+0. `start`: contains the complete argv received by current executable's `Main()`
+method
+0. `exit`: contains current executable's exit code
+0. `child_start`: describes a child process that is about to be spawned
+0. `child_exit`: describes a child process at exit
+0. `region_enter`: describes a region (e.g. a timer for a section of code that
+is interesting) on entry
+0. `region_leave`: describes a region on leaving
+
+You can read more about each of these format targets in the [corresponding
+section][trace2-events] of Git's Trace2 API documentation.
+
+Want to see more events? Consider contributing! We'd :love: to see your
+awesome work in support of building out this API.
 
 ### Code coverage metrics
 
@@ -169,4 +249,7 @@ Some URLs are ignored by lychee, per the [lycheeignore][lycheeignore].
 [lycheeignore]: ../.lycheeignore
 [markdownlint]: https://github.com/DavidAnson/markdownlint-cli2
 [markdownlint-config]: ../.markdownlint.jsonc
+[trace2]: https://git-scm.com/docs/api-trace2
+[trace2-events]: https://git-scm.com/docs/api-trace2#_event_specific_keyvalue_pairs
+[trace2-targets]: https://git-scm.com/docs/api-trace2#_trace2_targets
 [vscode-markdownlint]: https://github.com/DavidAnson/vscode-markdownlint
