@@ -22,6 +22,9 @@ namespace GitCredentialManager
 
         protected SessionManager(IEnvironment env, IFileSystem fs)
         {
+            EnsureArgument.NotNull(env, nameof(env));
+            EnsureArgument.NotNull(fs, nameof(fs));
+
             Environment = env;
             FileSystem = fs;
         }

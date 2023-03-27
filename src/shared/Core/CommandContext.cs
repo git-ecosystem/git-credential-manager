@@ -118,8 +118,8 @@ namespace GitCredentialManager
             else if (PlatformUtils.IsMacOS())
             {
                 FileSystem        = new MacOSFileSystem();
-                SessionManager    = new MacOSSessionManager(Environment, FileSystem);
                 Environment       = new MacOSEnvironment(FileSystem);
+                SessionManager    = new MacOSSessionManager(Environment, FileSystem);
                 ProcessManager    = new ProcessManager(Trace2);
                 Terminal          = new MacOSTerminal(Trace);
                 string gitPath    = GetGitPath(Environment, FileSystem, Trace);
@@ -134,8 +134,8 @@ namespace GitCredentialManager
             else if (PlatformUtils.IsLinux())
             {
                 FileSystem        = new LinuxFileSystem();
-                SessionManager    = new LinuxSessionManager(Environment, FileSystem);
                 Environment       = new PosixEnvironment(FileSystem);
+                SessionManager    = new LinuxSessionManager(Environment, FileSystem);
                 ProcessManager    = new ProcessManager(Trace2);
                 Terminal          = new LinuxTerminal(Trace);
                 string gitPath    = GetGitPath(Environment, FileSystem, Trace);
