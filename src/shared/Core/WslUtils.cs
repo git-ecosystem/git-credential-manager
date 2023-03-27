@@ -62,7 +62,7 @@ namespace GitCredentialManager
             }
 
             // The WSL_INTEROP variable is set in WSL2 distributions
-            if (env.Variables.TryGetValue(WslInteropEnvar, out _))
+            if (Environment.GetEnvironmentVariable(WslInteropEnvar))
             {
                 return 2;
             }
