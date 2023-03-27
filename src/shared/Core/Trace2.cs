@@ -426,7 +426,7 @@ public class Trace2 : DisposableObject, ITrace2
         {
             Event = Trace2Event.Exit,
             Sid = _sid,
-            Time = DateTimeOffset.Now,
+            Time = DateTimeOffset.UtcNow,
             File = Path.GetFileName(filePath),
             Line = lineNumber,
             Code = code,
