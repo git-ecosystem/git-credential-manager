@@ -83,6 +83,9 @@ namespace GitCredentialManager
                     throw new Trace2Exception(_trace2, "Failed to start gpg.");
                 }
 
+                // probably it should be implemented in the process manager
+                gpg.Start();
+
                 gpg.StandardInput.Write(contents);
                 gpg.StandardInput.Close();
 
