@@ -397,8 +397,8 @@ namespace GitCredentialManager
                         // Look for a scoped entry that includes the scheme "protocol://example.com" first as
                         // this is more specific. If `isPath` is true, then re-get the value from the
                         // `GitConfiguration` with `isPath` specified.
-                        if (configEntries.TryGetValue(queryName, out value) &&
-                            (!isPath || config.TryGet(queryName, isPath, out value)))
+                        if ((isPath && config.TryGet(queryName, isPath, out value)) ||
+                            configEntries.TryGetValue(queryName, out value))
                         {
                             yield return value;
                         }
@@ -408,8 +408,8 @@ namespace GitCredentialManager
                         // `isPath` specified.
                         string scopeWithoutScheme = scope.TrimUntilIndexOf(Uri.SchemeDelimiter);
                         string queryWithSchemeName = $"{section}.{scopeWithoutScheme}.{property}";
-                        if (configEntries.TryGetValue(queryWithSchemeName, out value) &&
-                            (!isPath || config.TryGet(queryWithSchemeName, isPath, out value)))
+                        if ((isPath && config.TryGet(queryWithSchemeName, isPath, out value)) ||
+                            configEntries.TryGetValue(queryWithSchemeName, out value))
                         {
                             yield return value;
                         }
