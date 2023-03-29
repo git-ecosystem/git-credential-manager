@@ -1,12 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 using System.IO.Pipes;
 using System.Text;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-using Newtonsoft.Json.Serialization;
+using System.Threading;
 
 namespace GitCredentialManager;
 
@@ -22,6 +19,8 @@ public enum Trace2Event
     ChildStart = 3,
     ChildExit = 4,
     Error = 5,
+    RegionEnter = 6,
+    RegionLeave = 7,
 }
 
 /// <summary>
@@ -35,12 +34,19 @@ public enum Trace2ProcessClass
     Other = 3
 }
 
+/// <summary>
+/// Stores various TRACE2 format targets user has enabled.
+/// Check <see cref="Trace2FormatTarget"/> for supported formats.
+/// </summary>
 public class Trace2Settings
 {
     public IDictionary<Trace2FormatTarget, string> FormatTargetsAndValues { get; set; } =
         new Dictionary<Trace2FormatTarget, string>();
 }
 
+/// <summary>
+/// Specifies a "text span" (i.e. space between two pipes) for the performance format target.
+/// </summary>
 public class PerformanceFormatSpan
 {
     public int Size { get; set; }
@@ -48,6 +54,40 @@ public class PerformanceFormatSpan
     public int BeginPadding { get; set; }
 
     public int EndPadding { get; set; }
+}
+
+/// <summary>
+/// Class that manages regions.
+/// </summary>
+public class Region : DisposableObject
+{
+    private readonly ITrace2 _trace2;
+    private readonly string _category;
+    private readonly string _label;
+    private readonly string _filePath;
+    private readonly int _lineNumber;
+    private readonly string _message;
+    private readonly DateTimeOffset _startTime;
+
+    public Region(ITrace2 trace2, string category, string label, string filePath, int lineNumber, string message = "")
+    {
+        _trace2 = trace2;
+        _category = category;
+        _label = label;
+        _filePath = filePath;
+        _lineNumber = lineNumber;
+        _message = message;
+
+        _startTime = DateTimeOffset.UtcNow;
+
+        _trace2.WriteRegionEnter(_category, _label, _message, _filePath, _lineNumber);
+    }
+
+    protected override void ReleaseManagedResources()
+    {
+        double relativeTime = (DateTimeOffset.UtcNow - _startTime).TotalSeconds;
+        _trace2.WriteRegionLeave(relativeTime, _category, _label, _message, _filePath, _lineNumber);
+    }
 }
 
 /// <summary>
@@ -107,14 +147,13 @@ public interface ITrace2 : IDisposable
     /// <summary>
     /// Writes information related to exit of child process to trace writer.
     /// </summary>
-    /// <param name="elapsedTime">Runtime of child process.</param>
+    /// <param name="relativeTime">Runtime of child process.</param>
     /// <param name="pid">Id of exiting process.</param>
     /// <param name="code">Process exit code.</param>
-    /// <param name="sid">The child process's session id.</param>
     /// <param name="filePath">Path of the file this method is called from.</param>
     /// <param name="lineNumber">Line number of file this method is called from.</param>
     void WriteChildExit(
-        double elapsedTime,
+        double relativeTime,
         int pid,
         int code,
         [System.Runtime.CompilerServices.CallerFilePath]
@@ -132,6 +171,59 @@ public interface ITrace2 : IDisposable
     void WriteError(
         string errorMessage,
         string parameterizedMessage = null,
+        [System.Runtime.CompilerServices.CallerFilePath]
+        string filePath = "",
+        [System.Runtime.CompilerServices.CallerLineNumber]
+        int lineNumber = 0);
+
+    /// <summary>
+    /// Creates a region and manages entry/leaving.
+    /// </summary>
+    /// <param name="category">Category of region.</param>
+    /// <param name="label">Description of region.</param>
+    /// <param name="message">Message associated with entering region.</param>
+    /// <param name="filePath">Path of the file this method is called from.</param>
+    /// <param name="lineNumber">Line number of file this method is called from.</param>
+    Region CreateRegion(
+        string category,
+        string label,
+        string message = "",
+        [System.Runtime.CompilerServices.CallerFilePath]
+        string filePath = "",
+        [System.Runtime.CompilerServices.CallerLineNumber]
+        int lineNumber = 0);
+
+    /// <summary>
+    /// Writes a region enter message to the trace writer.
+    /// </summary>
+    /// <param name="category">Category of region.</param>
+    /// <param name="label">Description of region.</param>
+    /// <param name="message">Message associated with entering region.</param>
+    /// <param name="filePath">Path of the file this method is called from.</param>
+    /// <param name="lineNumber">Line number of file this method is called from.</param>
+    void WriteRegionEnter(
+        string category,
+        string label,
+        string message = "",
+        [System.Runtime.CompilerServices.CallerFilePath]
+        string filePath = "",
+        [System.Runtime.CompilerServices.CallerLineNumber]
+        int lineNumber = 0);
+
+    /// <summary>
+    /// Writes a region leave message to the trace writer.
+    /// </summary>
+    /// <param name="relativeTime">Time of region execution.</param>
+    /// <param name="category">Category of region.</param>
+    /// <param name="label">Description of region.</param>
+    /// <param name="message">Message associated with entering region.</param>
+    /// <param name="filePath">Path of the file this method is called from.</param>
+    /// <param name="lineNumber">Line number of file this method is called from.</param>
+    void WriteRegionLeave(
+        double relativeTime,
+        string category,
+        string label,
+        string message = "",
         [System.Runtime.CompilerServices.CallerFilePath]
         string filePath = "",
         [System.Runtime.CompilerServices.CallerLineNumber]
@@ -230,18 +322,20 @@ public class Trace2 : DisposableObject, ITrace2
             Event = Trace2Event.ChildStart,
             Sid = _sid,
             Time = startTime,
+            Thread = BuildThreadName(),
             File = Path.GetFileName(filePath),
             Line = lineNumber,
             Id = ++_childProcCounter,
             Classification = processClass,
             UseShell = useShell,
             Argv = procArgs,
-            Depth = ProcessManager.Depth
+            ElapsedTime = (DateTimeOffset.UtcNow - _applicationStartTime).TotalSeconds,
+            Depth = ProcessManager.Depth,
         });
     }
 
     public void WriteChildExit(
-        double elapsedTime,
+        double relativeTime,
         int pid,
         int code,
         string filePath = "",
@@ -261,12 +355,14 @@ public class Trace2 : DisposableObject, ITrace2
             Event = Trace2Event.ChildExit,
             Sid = _sid,
             Time = DateTimeOffset.UtcNow,
+            Thread = BuildThreadName(),
             File = Path.GetFileName(filePath),
             Line = lineNumber,
             Id = _childProcCounter,
             Pid = pid,
             Code = code,
-            ElapsedTime = elapsedTime,
+            ElapsedTime = (DateTimeOffset.UtcNow - _applicationStartTime).TotalSeconds,
+            RelativeTime = relativeTime,
             Depth = ProcessManager.Depth
         });
     }
@@ -291,10 +387,69 @@ public class Trace2 : DisposableObject, ITrace2
             Event = Trace2Event.Error,
             Sid = _sid,
             Time = DateTimeOffset.UtcNow,
+            Thread = BuildThreadName(),
             File = Path.GetFileName(filePath),
             Line = lineNumber,
             Message = errorMessage,
             ParameterizedMessage = parameterizedMessage ?? errorMessage,
+            Depth = ProcessManager.Depth
+        });
+    }
+
+    public Region CreateRegion(
+        string category,
+        string label,
+        string message,
+        string filePath,
+        int lineNumber)
+    {
+        return new Region(this, category, label, filePath, lineNumber, message);
+    }
+
+    public void WriteRegionEnter(
+        string category,
+        string label,
+        string message = "",
+        string filePath = "",
+        int lineNumber = 0)
+    {
+        WriteMessage(new RegionEnterMessage()
+        {
+            Event = Trace2Event.RegionEnter,
+            Sid = _sid,
+            Time = DateTimeOffset.UtcNow,
+            Category = category,
+            Label = label,
+            Message = message == "" ? label : message,
+            Thread = BuildThreadName(),
+            File = Path.GetFileName(filePath),
+            Line = lineNumber,
+            ElapsedTime = (DateTimeOffset.UtcNow - _applicationStartTime).TotalSeconds,
+            Depth = ProcessManager.Depth
+        });
+    }
+
+    public void WriteRegionLeave(
+        double relativeTime,
+        string category,
+        string label,
+        string message = "",
+        string filePath = "",
+        int lineNumber = 0)
+    {
+        WriteMessage(new RegionLeaveMessage()
+        {
+            Event = Trace2Event.RegionLeave,
+            Sid = _sid,
+            Time = DateTimeOffset.UtcNow,
+            Category = category,
+            Label = label,
+            Message = message == "" ? label : message,
+            Thread = BuildThreadName(),
+            File = Path.GetFileName(filePath),
+            Line = lineNumber,
+            ElapsedTime = (DateTimeOffset.UtcNow - _applicationStartTime).TotalSeconds,
+            RelativeTime = relativeTime,
             Depth = ProcessManager.Depth
         });
     }
@@ -384,6 +539,7 @@ public class Trace2 : DisposableObject, ITrace2
             Event = Trace2Event.Version,
             Sid = _sid,
             Time = DateTimeOffset.UtcNow,
+            Thread = BuildThreadName(),
             File = Path.GetFileName(filePath),
             Line = lineNumber,
             Evt = eventFormatVersion,
@@ -413,6 +569,7 @@ public class Trace2 : DisposableObject, ITrace2
             Event = Trace2Event.Start,
             Sid = _sid,
             Time = DateTimeOffset.UtcNow,
+            Thread = BuildThreadName(),
             File = Path.GetFileName(filePath),
             Line = lineNumber,
             Argv = argv,
@@ -428,7 +585,8 @@ public class Trace2 : DisposableObject, ITrace2
         {
             Event = Trace2Event.Exit,
             Sid = _sid,
-            Time = DateTimeOffset.Now,
+            Time = DateTimeOffset.UtcNow,
+            Thread = BuildThreadName(),
             File = Path.GetFileName(filePath),
             Line = lineNumber,
             Code = code,
@@ -475,407 +633,28 @@ public class Trace2 : DisposableObject, ITrace2
             }
         }
     }
-}
 
-public abstract class Trace2Message
-{
-    private const int SourceColumnMaxWidth = 23;
-    private const string NormalPerfTimeFormat = "HH:mm:ss.ffffff";
-
-    protected const string EmptyPerformanceSpan =  "|     |           |           |             ";
-    protected const string TimeFormat = "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'ffffff'Z'";
-
-    [JsonProperty("event")]
-    public Trace2Event Event { get; set; }
-
-    [JsonProperty("sid")]
-    public string Sid { get; set; }
-
-    // TODO: Remove this default value when TRACE2 regions are introduced.
-    [JsonProperty("thread")]
-    public string Thread { get; set; } = "main";
-
-    [JsonProperty("time")]
-    public DateTimeOffset Time { get; set; }
-
-    [JsonProperty("file")]
-
-    public string File { get; set; }
-
-    [JsonProperty("line")]
-    public int Line { get; set; }
-
-    [JsonProperty("depth")]
-    public int Depth { get; set; }
-
-    public abstract string ToJson();
-
-    public abstract string ToNormalString();
-
-    public abstract string ToPerformanceString();
-
-    protected abstract string BuildPerformanceSpan();
-
-    protected string BuildNormalString()
+    private static string BuildThreadName()
     {
-        string message = GetEventMessage(Trace2FormatTarget.Normal);
-
-        // The normal format uses local time rather than UTC time.
-        string time = Time.ToLocalTime().ToString(NormalPerfTimeFormat);
-        string source = GetSource();
-
-        // Git's TRACE2 normal format is:
-        // [<time> SP <filename>:<line> SP+] <event-name> [[SP] <event-message>] LF
-        return $"{time} {source,-33} {Event.ToString().ToSnakeCase()} {message}";
-    }
-
-    protected string BuildPerformanceString()
-    {
-        string message = GetEventMessage(Trace2FormatTarget.Performance);
-
-        // The performance format uses local time rather than UTC time.
-        var time = Time.ToLocalTime().ToString(NormalPerfTimeFormat);
-        var source = GetSource();
-
-        // Git's TRACE2 performance format is:
-        // [<time> SP <filename>:<line> SP+
-        //     BAR SP] d<depth> SP
-        //     BAR SP <thread-name> SP+
-        //     BAR SP <event-name> SP+
-        //     BAR SP [r<repo-id>] SP+
-        //     BAR SP [<t_abs>] SP+
-        //     BAR SP [<t_rel>] SP+
-        //     BAR SP [<category>] SP+
-        //     BAR SP DOTS* <perf-event-message>
-        //     LF
-        return $"{time} {source,-29}| d{Depth} | {Thread,-24} | {Event.ToString().ToSnakeCase(),-12} {BuildPerformanceSpan()} | {message}";
-    }
-
-    protected abstract string GetEventMessage(Trace2FormatTarget formatTarget);
-
-    protected void AddDots(StringBuilder sb)
-    {
-        var dotCount = Depth;
-        while (dotCount > 0)
+        // If this is the entry thread, call it "main", per Trace2 convention
+        if (Thread.CurrentThread.ManagedThreadId == 0)
         {
-            sb.Append("..");
-            dotCount--;
-        }
-    }
-
-    internal static string BuildTimeSpan(double time)
-    {
-        var timeString = time.ToString("F6");
-        var component = new PerformanceFormatSpan()
-        {
-            Size = 11,
-            BeginPadding = 2,
-            EndPadding = 1
-        };
-        AdjustPadding(component, timeString);
-
-        var beginPadding = new string(' ', component.BeginPadding);
-        var endPadding = new string(' ', component.EndPadding);
-
-        return $"{beginPadding}{timeString}{endPadding}";
-    }
-
-    private string GetSource()
-    {
-        // Source column format is file:line
-        string source = $"{File}:{Line}";
-        if (source.Length > SourceColumnMaxWidth)
-        {
-            return TraceUtils.FormatSource(source, SourceColumnMaxWidth);
+            return "main";
         }
 
-        return source;
-    }
-
-    private static void AdjustPadding(PerformanceFormatSpan span, string data)
-    {
-        var paddingTotal = span.BeginPadding + span.EndPadding;
-        // Size difference between the expected size and the actual size of the data
-        var sizeDifference = span.Size - paddingTotal - data.Length;
-
-        if (sizeDifference < 0)
+        // If this is a thread pool thread, name it as such
+        if (Thread.CurrentThread.IsThreadPoolThread)
         {
-            // Remove all padding for values that take up the entire span
-            if (Math.Abs(sizeDifference) == paddingTotal)
-            {
-                span.BeginPadding = 0;
-                span.EndPadding = 0;
-            }
-            else
-            {
-                // Decrease BeginPadding for large time values that don't occupy entire span
-                span.BeginPadding += sizeDifference;
-            }
+            return $"thread_pool_{Environment.CurrentManagedThreadId}";
         }
-    }
-}
 
-public class VersionMessage : Trace2Message
-{
-    [JsonProperty("evt")]
-    public string Evt { get; set; }
+        // Otherwise, if the thread is named, use it!
+        if (!string.IsNullOrEmpty(Thread.CurrentThread.Name))
+        {
+            return Thread.CurrentThread.Name;
+        }
 
-    [JsonProperty("exe")]
-    public string Exe { get; set; }
-
-    public override string ToJson()
-    {
-        return JsonConvert.SerializeObject(this,
-                new StringEnumConverter(typeof(SnakeCaseNamingStrategy)),
-            new IsoDateTimeConverter()
-            {
-                DateTimeFormat = TimeFormat
-            });
-    }
-
-    public override string ToNormalString()
-    {
-        return BuildNormalString();
-    }
-
-    public override string ToPerformanceString()
-    {
-        return BuildPerformanceString();
-    }
-
-    protected override string BuildPerformanceSpan()
-    {
-        return EmptyPerformanceSpan;
-    }
-
-    protected override string GetEventMessage(Trace2FormatTarget formatTarget)
-    {
-        return Exe.ToLower();
-    }
-}
-
-public class StartMessage : Trace2Message
-{
-    [JsonProperty("t_abs")]
-    public double ElapsedTime { get; set; }
-
-    [JsonProperty("argv")]
-    public List<string> Argv { get; set; }
-
-    public override string ToJson()
-    {
-        return JsonConvert.SerializeObject(this,
-            new StringEnumConverter(typeof(SnakeCaseNamingStrategy)),
-            new IsoDateTimeConverter()
-            {
-                DateTimeFormat = TimeFormat
-            });
-    }
-
-    public override string ToNormalString()
-    {
-        return BuildNormalString();
-    }
-
-    public override string ToPerformanceString()
-    {
-        return BuildPerformanceString();
-    }
-
-    protected override string BuildPerformanceSpan()
-    {
-        return $"|     |{BuildTimeSpan(ElapsedTime)}|           |             ";
-    }
-
-    protected override string GetEventMessage(Trace2FormatTarget formatTarget)
-    {
-        return string.Join(" ", Argv);
-    }
-}
-
-public class ExitMessage : Trace2Message
-{
-    [JsonProperty("t_abs")]
-    public double ElapsedTime { get; set; }
-
-    [JsonProperty("code")]
-    public int Code { get; set; }
-
-    public override string ToJson()
-    {
-        return JsonConvert.SerializeObject(this,
-            new StringEnumConverter(typeof(SnakeCaseNamingStrategy)),
-            new IsoDateTimeConverter()
-            {
-                DateTimeFormat = TimeFormat
-            });
-    }
-
-    public override string ToNormalString()
-    {
-        return BuildNormalString();
-    }
-
-    public override string ToPerformanceString()
-    {
-        return BuildPerformanceString();
-    }
-
-    protected override string BuildPerformanceSpan()
-    {
-        return $"|     |{BuildTimeSpan(ElapsedTime)}|           |             ";
-    }
-
-    protected override string GetEventMessage(Trace2FormatTarget formatTarget)
-    {
-        return $"elapsed:{ElapsedTime} code:{Code}";
-    }
-}
-
-public class ChildStartMessage : Trace2Message
-{
-    [JsonProperty("child_id")]
-    public long Id { get; set; }
-
-    [JsonProperty("child_class")]
-    public Trace2ProcessClass Classification { get; set; }
-
-    [JsonProperty("use_shell")]
-    public bool UseShell { get; set; }
-
-    [JsonProperty("argv")]
-    public IList<string> Argv { get; set; }
-
-    public override string ToJson()
-    {
-        return JsonConvert.SerializeObject(this,
-            new StringEnumConverter(typeof(SnakeCaseNamingStrategy)),
-            new IsoDateTimeConverter()
-            {
-                DateTimeFormat = TimeFormat
-            });
-    }
-
-    public override string ToNormalString()
-    {
-        return BuildNormalString();
-    }
-
-    public override string ToPerformanceString()
-    {
-        return BuildPerformanceString();
-    }
-
-    protected override string BuildPerformanceSpan()
-    {
-        return EmptyPerformanceSpan;
-    }
-
-    protected override string GetEventMessage(Trace2FormatTarget formatTarget)
-    {
-        var sb = new StringBuilder();
-        AddDots(sb);
-
-        if (formatTarget == Trace2FormatTarget.Performance)
-            sb.Append($"[ch{Id}]");
-        else
-            sb.Append($"[{Id}]");
-
-        sb.Append($" {string.Join(" ", Argv)}");
-
-        return sb.ToString();
-    }
-}
-
-public class ChildExitMessage : Trace2Message
-{
-    [JsonProperty("child_id")]
-    public long Id { get; set; }
-
-    [JsonProperty("pid")]
-    public int Pid { get; set; }
-
-    [JsonProperty("code")]
-    public int Code { get; set; }
-
-    [JsonProperty("t_rel")]
-    public double ElapsedTime { get; set; }
-
-    public override string ToJson()
-    {
-        return JsonConvert.SerializeObject(this,
-            new StringEnumConverter(typeof(SnakeCaseNamingStrategy)),
-            new IsoDateTimeConverter()
-            {
-                DateTimeFormat = TimeFormat
-            });
-    }
-
-    public override string ToNormalString()
-    {
-        return BuildNormalString();
-    }
-
-    public override string ToPerformanceString()
-    {
-        return BuildPerformanceString();
-    }
-
-    protected override string BuildPerformanceSpan()
-    {
-        return $"|     |{BuildTimeSpan(ElapsedTime)}|           |             ";
-    }
-
-    protected override string GetEventMessage(Trace2FormatTarget formatTarget)
-    {
-        var sb = new StringBuilder();
-        AddDots(sb);
-
-        if (formatTarget == Trace2FormatTarget.Performance)
-            sb.Append($"[ch{Id}]");
-        else
-            sb.Append($"[{Id}]");
-
-        sb.Append($" pid:{Pid} code:{Code} elapsed:{ElapsedTime}");
-        return sb.ToString();
-    }
-}
-
-public class ErrorMessage : Trace2Message
-{
-    [JsonProperty("msg")]
-    public string Message { get; set; }
-
-    [JsonProperty("format")]
-    public string ParameterizedMessage { get; set; }
-
-    public override string ToJson()
-    {
-        return JsonConvert.SerializeObject(this,
-            new StringEnumConverter(typeof(SnakeCaseNamingStrategy)),
-            new IsoDateTimeConverter()
-            {
-                DateTimeFormat = TimeFormat
-            });
-    }
-
-    public override string ToNormalString()
-    {
-        return BuildNormalString();
-    }
-
-    public override string ToPerformanceString()
-    {
-        return BuildPerformanceString();
-    }
-
-    protected override string BuildPerformanceSpan()
-    {
-        return EmptyPerformanceSpan;
-    }
-
-    protected override string GetEventMessage(Trace2FormatTarget formatTarget)
-    {
-        return Message;
+        // We don't know what this thread is!
+        return string.Empty;
     }
 }

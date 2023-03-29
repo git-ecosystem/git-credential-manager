@@ -72,19 +72,42 @@ namespace GitCredentialManager.Tests.Objects
             int lineNumber = 0) { }
 
         public void WriteChildExit(
-            double elapsedTime,
+            double relativeTime,
             int pid,
             int code,
             string filePath = "",
             int lineNumber = 0) { }
 
-        public void WriteError(string errorMessage,
+        public void WriteError(
+            string errorMessage,
             string parameterizedMessage = null,
             string filePath = "",
-            int lineNumber = 0)
-        { }
+            int lineNumber = 0) { }
 
-        public string SetSid() { return ""; }
+        public Region CreateRegion(
+            string category,
+            string label,
+            string message = "",
+            string filePath = "",
+            int lineNumber = 0)
+        {
+            return new Region(this, category, label, filePath, lineNumber, message);
+        }
+
+        public void WriteRegionEnter(
+            string category,
+            string label,
+            string message = "",
+            string filePath = "",
+            int lineNumber = 0) { }
+
+        public void WriteRegionLeave(
+            double relativeTime,
+            string category,
+            string label,
+            string message = "",
+            string filePath = "",
+            int lineNumber = 0) { }
 
         #endregion
 
