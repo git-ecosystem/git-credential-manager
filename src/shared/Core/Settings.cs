@@ -429,7 +429,9 @@ namespace GitCredentialManager
                  *        property = value
                  *
                  */
-                if (config.TryGet($"{section}.{property}", isPath, out value))
+                string name = $"{section}.{property}";
+                if ((isPath && config.TryGet(name, isPath, out value)) ||
+                    configEntries.TryGetValue(name, out value))
                 {
                     yield return value;
                 }
