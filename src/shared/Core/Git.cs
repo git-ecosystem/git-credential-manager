@@ -210,7 +210,7 @@ namespace GitCredentialManager
             };
 
             var process = _processManager.CreateProcess(procStartInfo);
-            if (process is null)
+            if (!process.Start(Trace2ProcessClass.Git))
             {
                 var format = "Failed to start Git helper '{0}'";
                 var message = string.Format(format, args);

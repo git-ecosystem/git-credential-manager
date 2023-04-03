@@ -36,7 +36,7 @@ public class ChildProcess : DisposableObject
         Process.Exited += ProcessOnExited;
     }
 
-    public void Start(Trace2ProcessClass processClass)
+    public bool Start(Trace2ProcessClass processClass)
     {
         ThrowIfDisposed();
         // Record the time just before the process starts, since:
@@ -51,7 +51,7 @@ public class ChildProcess : DisposableObject
             _startInfo.UseShellExecute,
             _startInfo.FileName,
             _startInfo.Arguments);
-        Process.Start();
+        return Process.Start();
     }
 
     public void WaitForExit() => Process.WaitForExit();
