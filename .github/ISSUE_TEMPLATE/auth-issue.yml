@@ -15,7 +15,7 @@ body:
       description: |
         What version of Git Credential Manager are you using?
 
-        Run `git credential-manager-core --version` from a terminal to see the current version.
+        Run `git credential-manager --version` from a terminal to see the current version.
 
         If you are on an older version of GCM please try updating before creating an issue as the problem you are experiencing may have already been fixed.
       placeholder: |
@@ -120,6 +120,6 @@ body:
         WSLENV=$WSLENV:GCM_TRACE:GIT_TRACE GCM_TRACE=1 GIT_TRACE=1 git fetch
         ```
 
-        If you are using GCM version 2.0.567 onwards you can also run `git credential-manager-core diagnose` to collect useful diagnostic information that can be attached here.
+        If you are using GCM version 2.0.567 onwards you can also run `git credential-manager diagnose` to collect useful diagnostic information that can be attached here.
 
         :warning: **Please review and redact any private information before attaching logs and files!**
