@@ -44,7 +44,7 @@ namespace GitCredentialManager
 
             using (var gpg = _processManager.CreateProcess(psi))
             {
-                if (gpg is null)
+                if (!gpg.Start(Trace2ProcessClass.Other))
                 {
                     throw new Trace2Exception(_trace2, "Failed to start gpg.");
                 }
@@ -78,7 +78,7 @@ namespace GitCredentialManager
 
             using (var gpg = _processManager.CreateProcess(psi))
             {
-                if (gpg is null)
+                if (!gpg.Start(Trace2ProcessClass.Other))
                 {
                     throw new Trace2Exception(_trace2, "Failed to start gpg.");
                 }
