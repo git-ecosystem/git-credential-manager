@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
+using GitCredentialManager.Interop.Windows.Native;
 using Microsoft.Identity.Client;
 using Microsoft.Identity.Client.Extensions.Msal;
 
@@ -223,12 +224,25 @@ namespace GitCredentialManager.Authentication
                 appBuilder.WithLogging(OnMsalLogMessage, LogLevel.Verbose, enablePiiLogging, false);
             }
 
-            // If we have a parent window ID we should tell MSAL about it so it can parent any authentication dialogs
-            // correctly. We only support this on Windows right now as MSAL only supports embedded/dialogs on Windows.
-            if (PlatformUtils.IsWindows() && !string.IsNullOrWhiteSpace(Context.Settings.ParentWindowId) &&
-                int.TryParse(Context.Settings.ParentWindowId, out int hWndInt) && hWndInt > 0)
+            // On Windows we should set the parent window handle for the authentication dialogs
+            // so that they are displayed as a child of the correct window.
+            if (PlatformUtils.IsWindows())
             {
-                appBuilder.WithParentActivityOrWindow(() => new IntPtr(hWndInt));
+                // If we have a parent window ID then use that, otherwise use the hosting terminal window.
+                IntPtr parentHandle;
+                if (!string.IsNullOrWhiteSpace(Context.Settings.ParentWindowId) &&
+                    int.TryParse(Context.Settings.ParentWindowId, out int hWndInt) && hWndInt > 0)
+                {
+                    parentHandle = new IntPtr(hWndInt);
+                }
+                else
+                {
+                    IntPtr consoleHandle = Kernel32.GetConsoleWindow();
+                    parentHandle = User32.GetAncestor(consoleHandle, GetAncestorFlags.GetRootOwner);
+                }
+
+                Context.Trace.WriteLine($"Using parent window ID '{parentHandle}' for MSAL authentication dialogs.");
+                appBuilder.WithParentActivityOrWindow(() => parentHandle);
             }
 
             // Configure the broker if enabled
