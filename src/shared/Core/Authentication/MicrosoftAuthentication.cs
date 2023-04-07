@@ -7,7 +7,7 @@ using Microsoft.Identity.Client;
 using Microsoft.Identity.Client.Extensions.Msal;
 
 #if NETFRAMEWORK
-using Microsoft.Identity.Client.Desktop;
+using Microsoft.Identity.Client.Broker;
 #endif
 
 namespace GitCredentialManager.Authentication
@@ -41,55 +41,6 @@ namespace GitCredentialManager.Authentication
             "live", "liveconnect", "liveid",
         };
 
-        #region Broker Initialization
-
-        public static bool IsBrokerInitialized { get; private set; }
-
-        public static void InitializeBroker()
-        {
-            if (IsBrokerInitialized)
-            {
-                return;
-            }
-
-            IsBrokerInitialized = true;
-
-            // Broker is only supported on Windows 10 and later
-            if (!PlatformUtils.IsWindowsBrokerSupported())
-            {
-                return;
-            }
-
-            // Nothing to do when not an elevated user
-            if (!PlatformUtils.IsElevatedUser())
-            {
-                return;
-            }
-
-            // Lower COM security so that MSAL can make the calls to WAM
-            int result = Interop.Windows.Native.Ole32.CoInitializeSecurity(
-                IntPtr.Zero,
-                -1,
-                IntPtr.Zero,
-                IntPtr.Zero,
-                Interop.Windows.Native.Ole32.RpcAuthnLevel.None,
-                Interop.Windows.Native.Ole32.RpcImpLevel.Impersonate,
-                IntPtr.Zero,
-                Interop.Windows.Native.Ole32.EoAuthnCap.None,
-                IntPtr.Zero
-            );
-
-            if (result != 0)
-            {
-                throw new Exception(
-                    $"Failed to set COM process security to allow Windows broker from an elevated process (0x{result:x})." +
-                    Environment.NewLine +
-                    $"See {Constants.HelpUrls.GcmWamComSecurity} for more information.");
-            }
-        }
-
-        #endregion
-
         public MicrosoftAuthentication(ICommandContext context)
             : base(context) { }
 
@@ -99,17 +50,10 @@ namespace GitCredentialManager.Authentication
             string authority, string clientId, Uri redirectUri, string[] scopes, string userName)
         {
             // Check if we can and should use OS broker authentication
-            bool useBroker = false;
-            if (CanUseBroker(Context))
-            {
-                // Can only use the broker if it has been initialized
-                useBroker = IsBrokerInitialized;
-
-                if (IsBrokerInitialized)
-                    Context.Trace.WriteLine("OS broker is available and enabled.");
-                else
-                    Context.Trace.WriteLine("OS broker has not been initialized and cannot not be used.");
-            }
+            bool useBroker = CanUseBroker();
+            Context.Trace.WriteLine(useBroker
+                ? "OS broker is available and enabled."
+                : "OS broker has not been initialized and cannot not be used.");
 
             // Create the public client application for authentication
             IPublicClientApplication app = await CreatePublicClientApplicationAsync(authority, clientId, redirectUri, useBroker);
@@ -287,12 +231,19 @@ namespace GitCredentialManager.Authentication
                 appBuilder.WithParentActivityOrWindow(() => new IntPtr(hWndInt));
             }
 
-            // On Windows 10+ & .NET Framework try and use the WAM broker
-            if (enableBroker && PlatformUtils.IsWindowsBrokerSupported())
+            // Configure the broker if enabled
+            // Currently only supported on Windows so only included in the .NET Framework builds
+            // to save on the distribution size of the .NET builds (no need for MSALRuntime bits).
+            if (enableBroker)
             {
 #if NETFRAMEWORK
-                appBuilder.WithExperimentalFeatures();
-                appBuilder.WithWindowsBroker();
+                appBuilder.WithBroker(
+                    new BrokerOptions(BrokerOptions.OperatingSystems.Windows)
+                    {
+                        Title = "Git Credential Manager",
+                        MsaPassthrough = true,
+                    }
+                );
 #endif
             }
 
@@ -458,11 +409,11 @@ namespace GitCredentialManager.Authentication
 
         #region Auth flow capability detection
 
-        public static bool CanUseBroker(ICommandContext context)
+        public bool CanUseBroker()
         {
 #if NETFRAMEWORK
             // We only support the broker on Windows 10+ and in an interactive session
-            if (!context.SessionManager.IsDesktopSession || !PlatformUtils.IsWindowsBrokerSupported())
+            if (!Context.SessionManager.IsDesktopSession || !PlatformUtils.IsWindowsBrokerSupported())
             {
                 return false;
             }
@@ -470,7 +421,7 @@ namespace GitCredentialManager.Authentication
             // Default to not using the OS broker
             const bool defaultValue = false;
 
-            if (context.Settings.TryGetSetting(Constants.EnvironmentVariables.MsAuthUseBroker,
+            if (Context.Settings.TryGetSetting(Constants.EnvironmentVariables.MsAuthUseBroker,
                     Constants.GitConfiguration.Credential.SectionName,
                     Constants.GitConfiguration.Credential.MsAuthUseBroker,
                     out string valueStr))

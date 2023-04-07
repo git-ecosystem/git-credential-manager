@@ -125,12 +125,12 @@ Source: "{#PayloadDir}\Microsoft.AzureRepos.dll";                       DestDir:
 Source: "{#PayloadDir}\gcmcore.dll";                                    DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PayloadDir}\gcmcoreui.dll";                                  DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PayloadDir}\gcmcoreuiwpf.dll";                               DestDir: "{app}"; Flags: ignoreversion
-Source: "{#PayloadDir}\Microsoft.Identity.Client.Desktop.dll";          DestDir: "{app}"; Flags: ignoreversion
+Source: "{#PayloadDir}\Microsoft.Identity.Client.Broker.dll";           DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PayloadDir}\Microsoft.Identity.Client.dll";                  DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PayloadDir}\Microsoft.Identity.Client.Extensions.Msal.dll";  DestDir: "{app}"; Flags: ignoreversion
-Source: "{#PayloadDir}\Microsoft.Web.WebView2.Core.dll";                DestDir: "{app}"; Flags: ignoreversion
-Source: "{#PayloadDir}\Microsoft.Web.WebView2.WinForms.dll";            DestDir: "{app}"; Flags: ignoreversion
-Source: "{#PayloadDir}\Microsoft.Web.WebView2.Wpf.dll";                 DestDir: "{app}"; Flags: ignoreversion
+Source: "{#PayloadDir}\Microsoft.Identity.Client.NativeInterop.dll";    DestDir: "{app}"; Flags: ignoreversion
+Source: "{#PayloadDir}\Microsoft.IdentityModel.Abstractions.dll";       DestDir: "{app}"; Flags: ignoreversion
+Source: "{#PayloadDir}\msalruntime_x86.dll";                            DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PayloadDir}\Newtonsoft.Json.dll";                            DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PayloadDir}\NOTICE";                                         DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PayloadDir}\System.Buffers.dll";                             DestDir: "{app}"; Flags: ignoreversion
@@ -138,7 +138,6 @@ Source: "{#PayloadDir}\System.CommandLine.dll";                         DestDir:
 Source: "{#PayloadDir}\System.Memory.dll";                              DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PayloadDir}\System.Numerics.Vectors.dll";                    DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PayloadDir}\System.Runtime.CompilerServices.Unsafe.dll";     DestDir: "{app}"; Flags: ignoreversion
-Source: "{#PayloadDir}\WebView2Loader.dll";                             DestDir: "{app}"; Flags: ignoreversion
 
 [Code]
 // Don't allow installing conflicting architectures

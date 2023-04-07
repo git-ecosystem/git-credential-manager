@@ -13,7 +13,7 @@
   <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Web" />
-    <PackageReference Include="Microsoft.Identity.Client.Desktop" Version="4.52.0" />
+    <PackageReference Include="Microsoft.Identity.Client.Broker" Version="4.52.0" />
   </ItemGroup>
 
   <ItemGroup>
