@@ -803,6 +803,33 @@ export GCM_MSAUTH_USEBROKER="false"
 
 ---
 
+### GCM_MSAUTH_USEDEFAULTACCOUNT _(experimental)_
+
+Use the current operating system account by default when the broker is enabled.
+
+Defaults to `false`. This default is subject to change in the future.
+
+Value|Description
+-|-
+`true`|Use the current operating system account by default.
+`false` _(default)_|Do not assume any account to use by default.
+
+#### Windows
+
+```batch
+SET GCM_MSAUTH_USEDEFAULTACCOUNT="true"
+```
+
+#### macOS/Linux
+
+```bash
+export GCM_MSAUTH_USEDEFAULTACCOUNT="false"
+```
+
+**Also see: [credential.msauthUseDefaultAccount][credential-msauth-usedefaultaccount]**
+
+---
+
 ### GCM_AZREPOS_CREDENTIALTYPE
 
 Specify the type of credential the Azure Repos host provider should return.
@@ -849,6 +876,7 @@ export GCM_AZREPOS_CREDENTIALTYPE="oauth"
 [credential-namespace]: configuration.md#credentialnamespace
 [credential-msauth-flow]: configuration.md#credentialmsauthflow
 [credential-msauth-usebroker]: configuration.md#credentialmsauthusebroker-experimental
+[credential-msauth-usedefaultaccount]: configuration.md#credentialmsauthusedefaultaccount-experimental
 [credential-plain-text-store]: configuration.md#credentialplaintextstorepath
 [credential-provider]: configuration.md#credentialprovider
 [credential-stores]: credstores.md

@@ -34,6 +34,15 @@ fewer multi-factor authentication prompts, and the ability to use additional
 authentication technologies like smart cards and Windows Hello. These
 convenience and security features make a good case for enabling WAM.
 
+## Using the current OS account by default
+
+Enabling WAM does not currently automatically use the current Windows account
+for authentication. In order to opt-in to this behavior you can set the
+[`GCM_MSAUTH_USEDEFAULTACCOUNT`][GCM_MSAUTH_USEDEFAULTACCOUNT] environment
+variable or set the
+[`credential.msauthUseDefaultAccount`][credential.msauthUseDefaultAccount] Git
+configuration value to `true`.
+
 ## Surprising behaviors
 
 The WAM and Windows identity systems are complex, addressing a very broad range
@@ -175,7 +184,9 @@ In order to fix the problem, there are a few options:
 [azure-conditional-access]: https://docs.microsoft.com/azure/active-directory/conditional-access/overview
 [azure-devops]: https://dev.azure.com
 [GCM_MSAUTH_USEBROKER]: environment.md#GCM_MSAUTH_USEBROKER
+[GCM_MSAUTH_USEDEFAULTACCOUNTR]: environment.md#GCM_MSAUTH_USEDEFAULTACCOUNTR
 [credential.msauthUseBroker]: configuration.md#credentialmsauthusebroker
+[credential.msauthUseDefaultAccount]: configuration.md#credentialmsauthusedefaultaccount
 [aad-questions]: img/aad-questions.png
 [aad-questions-21h1]: img/aad-questions-21H1.png
 [aad-bitlocker]: img/aad-bitlocker.png

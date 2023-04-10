@@ -83,6 +83,7 @@ namespace GitCredentialManager
             public const string GcmParentWindow       = "GCM_MODAL_PARENTHWND";
             public const string MsAuthFlow            = "GCM_MSAUTH_FLOW";
             public const string MsAuthUseBroker       = "GCM_MSAUTH_USEBROKER";
+            public const string MsAuthUseDefaultAccount = "GCM_MSAUTH_USEDEFAULTACCOUNT";
             public const string GcmCredNamespace      = "GCM_NAMESPACE";
             public const string GcmCredentialStore    = "GCM_CREDENTIAL_STORE";
             public const string GcmCredCacheOptions   = "GCM_CREDENTIAL_CACHE_OPTIONS";
@@ -141,6 +142,7 @@ namespace GitCredentialManager
                 public const string GuiPromptsEnabled = "guiPrompt";
                 public const string UiHelper = "uiHelper";
                 public const string DevUseLegacyUiHelpers = "devUseLegacyUiHelpers";
+                public const string MsAuthUseDefaultAccount = "msauthUseDefaultAccount";
 
                 public const string OAuthAuthenticationModes = "oauthAuthModes";
                 public const string OAuthClientId            = "oauthClientId";
@@ -198,6 +200,7 @@ namespace GitCredentialManager
             public const string GcmWamComSecurity      = "https://aka.ms/gcm/wamadmin";
             public const string GcmAutoDetect          = "https://aka.ms/gcm/autodetect";
             public const string GcmExecRename          = "https://aka.ms/gcm/rename";
+            public const string GcmDefaultAccount      = "https://aka.ms/gcm/defaultaccount";
         }
 
         private static Version _gcmVersion;

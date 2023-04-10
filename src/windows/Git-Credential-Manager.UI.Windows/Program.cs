@@ -30,6 +30,7 @@ namespace GitCredentialManager.UI.Windows
                 app.RegisterCommand(new CredentialsCommandImpl(context));
                 app.RegisterCommand(new OAuthCommandImpl(context));
                 app.RegisterCommand(new DeviceCodeCommandImpl(context));
+                app.RegisterCommand(new DefaultAccountCommandImpl(context));
 
                 int exitCode = app.RunAsync(args)
                     .ConfigureAwait(false)

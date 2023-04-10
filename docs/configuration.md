@@ -564,6 +564,27 @@ git config --global credential.msauthUseBroker true
 
 ---
 
+### credential.msauthUseDefaultAccount _(experimental)_
+
+Use the current operating system account by default when the broker is enabled.
+
+Defaults to `false`. This default is subject to change in the future.
+
+Value|Description
+-|-
+`true`|Use the current operating system account by default.
+`false` _(default)_|Do not assume any account to use by default.
+
+#### Example
+
+```shell
+git config --global credential.msauthUseDefaultAccount true
+```
+
+**Also see: [GCM_MSAUTH_USEDEFAULTACCOUNT][gcm-msauth-usedefaultaccount]**
+
+---
+
 ### credential.useHttpPath
 
 Tells Git to pass the entire repository URL, rather than just the hostname, when
@@ -690,6 +711,7 @@ git config --global credential.azreposCredentialType oauth
 [gcm-interactive]: environment.md#GCM_INTERACTIVE
 [gcm-msauth-flow]: environment.md#GCM_MSAUTH_FLOW
 [gcm-msauth-usebroker]: environment.md#GCM_MSAUTH_USEBROKER-experimental
+[gcm-msauth-usedefaultaccount]: environment.md#GCM_MSAUTH_USEDEFAULTACCOUNT-experimental
 [gcm-namespace]: environment.md#GCM_NAMESPACE
 [gcm-plaintext-store-path]: environment.md#GCM_PLAINTEXT_STORE_PATH
 [gcm-provider]: environment.md#GCM_PROVIDER
