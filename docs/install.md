@@ -126,7 +126,7 @@ Download and run the script:
 
 ```shell
 curl -L https://aka.ms/gcm/linux-install-source.sh | sh
-git-credential-manager-core configure
+git-credential-manager configure
 ```
 
 **Note:** You will be prompted to enter your credentials so that the script
