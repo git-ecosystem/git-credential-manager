@@ -22,6 +22,35 @@ namespace GitCredentialManager
             return new PlatformInformation(osType, osVersion, cpuArch, clrVersion);
         }
 
+        public static bool IsDevBox()
+        {
+            if (!IsWindows())
+            {
+                return false;
+            }
+
+#if NETFRAMEWORK
+            // Check for machine (HKLM) registry keys for Cloud PC indicators
+            // Note that the keys are only found in the 64-bit registry view
+            using (Microsoft.Win32.RegistryKey hklm64 = Microsoft.Win32.RegistryKey.OpenBaseKey(Microsoft.Win32.RegistryHive.LocalMachine, Microsoft.Win32.RegistryView.Registry64))
+            using (Microsoft.Win32.RegistryKey w365Key = hklm64.OpenSubKey(Constants.WindowsRegistry.HKWindows365Path))
+            {
+                if (w365Key is null)
+                {
+                    // No Windows365 key exists
+                    return false;
+                }
+
+                object w365Value = w365Key.GetValue(Constants.WindowsRegistry.IsW365EnvironmentKeyName);
+                string partnerValue = w365Key.GetValue(Constants.WindowsRegistry.W365PartnerIdKeyName)?.ToString();
+
+                return w365Value is not null && Guid.TryParse(partnerValue, out Guid partnerId) && partnerId == Constants.DevBoxPartnerId;
+            }
+#else
+            return false;
+#endif
+        }
+
         public static bool IsWindowsBrokerSupported()
         {
             if (!IsWindows())

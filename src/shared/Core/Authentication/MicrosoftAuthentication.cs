@@ -557,8 +557,8 @@ namespace GitCredentialManager.Authentication
                 return false;
             }
 
-            // Default to not using the OS broker
-            const bool defaultValue = false;
+            // Default to using the OS broker only on DevBox for the time being
+            bool defaultValue = PlatformUtils.IsDevBox();
 
             if (Context.Settings.TryGetSetting(Constants.EnvironmentVariables.MsAuthUseBroker,
                     Constants.GitConfiguration.Credential.SectionName,

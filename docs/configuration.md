@@ -543,7 +543,10 @@ git config --global credential.msauthFlow devicecode
 
 Use the operating system account manager where available.
 
-Defaults to `false`. This default is subject to change in the future.
+Defaults to `false`. In certain cloud hosted environments when using a work or
+school account, such as [Microsoft DevBox][devbox], the default is `true`.
+
+These defaults are subject to change in the future.
 
 _**Note:** before you enable this option on Windows, please review the
 [Windows Broker][wam] details for what this means to your local Windows user
@@ -568,7 +571,10 @@ git config --global credential.msauthUseBroker true
 
 Use the current operating system account by default when the broker is enabled.
 
-Defaults to `false`. This default is subject to change in the future.
+Defaults to `false`. In certain cloud hosted environments when using a work or
+school account, such as [Microsoft DevBox][devbox], the default is `true`.
+
+These defaults are subject to change in the future.
 
 Value|Description
 -|-
@@ -692,6 +698,7 @@ git config --global credential.azreposCredentialType oauth
 [credential-plaintextstorepath]: #credentialplaintextstorepath
 [credential-cache]: https://git-scm.com/docs/git-credential-cache
 [cred-stores]: credstores.md
+[devbox]: https://azure.microsoft.com/en-us/products/dev-box
 [enterprise-config]: enterprise-config.md
 [envars]: environment.md
 [freedesktop-ss]: https://specifications.freedesktop.org/secret-service/

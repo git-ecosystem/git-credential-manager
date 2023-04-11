@@ -16,6 +16,8 @@ namespace GitCredentialManager
 
         public const string GcmDataDirectoryName = ".gcm";
 
+        public static readonly Guid DevBoxPartnerId = new("e3171dd9-9a5f-e5be-b36c-cc7c4f3f3bcf");
+
         public static class CredentialStoreNames
         {
             public const string WindowsCredentialManager = "wincredman";
@@ -187,6 +189,10 @@ namespace GitCredentialManager
         {
             public const string HKAppBasePath = @"SOFTWARE\GitCredentialManager";
             public const string HKConfigurationPath = HKAppBasePath + @"\Configuration";
+
+            public const string HKWindows365Path = @"SOFTWARE\Microsoft\Windows365";
+            public const string IsW365EnvironmentKeyName = "IsW365Environment";
+            public const string W365PartnerIdKeyName = "PartnerId";
         }
 
         public static class HelpUrls
