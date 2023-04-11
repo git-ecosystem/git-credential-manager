@@ -6,8 +6,12 @@ using System.Threading.Tasks;
 using GitCredentialManager.Interop.Windows.Native;
 using Microsoft.Identity.Client;
 using Microsoft.Identity.Client.Extensions.Msal;
+using System.Threading;
+using System.Runtime.InteropServices;
 
 #if NETFRAMEWORK
+using System.Drawing;
+using System.Windows.Forms;
 using Microsoft.Identity.Client.Broker;
 #endif
 
@@ -42,6 +46,10 @@ namespace GitCredentialManager.Authentication
             "live", "liveconnect", "liveid",
         };
 
+#if NETFRAMEWORK
+        private DummyWindow _dummyWindow;
+#endif
+
         public MicrosoftAuthentication(ICommandContext context)
             : base(context) { }
 
@@ -54,106 +62,116 @@ namespace GitCredentialManager.Authentication
             bool useBroker = CanUseBroker();
             Context.Trace.WriteLine(useBroker
                 ? "OS broker is available and enabled."
-                : "OS broker has not been initialized and cannot not be used.");
+                : "OS broker is not available or enabled.");
 
-            // Create the public client application for authentication
-            IPublicClientApplication app = await CreatePublicClientApplicationAsync(authority, clientId, redirectUri, useBroker);
-
-            AuthenticationResult result = null;
-
-            // Try silent authentication first if we know about an existing user
-            if (!string.IsNullOrWhiteSpace(userName))
+            try
             {
-                result = await GetAccessTokenSilentlyAsync(app, scopes, userName);
-            }
+                // Create the public client application for authentication
+                IPublicClientApplication app = await CreatePublicClientApplicationAsync(authority, clientId, redirectUri, useBroker);
 
-            //
-            // If we failed to acquire an AT silently (either because we don't have an existing user, or the user's RT has expired)
-            // we need to prompt the user for credentials.
-            //
-            // If the user has expressed a preference in how the want to perform the interactive authentication flows then we respect that.
-            // Otherwise, depending on the current platform and session type we try to show the most appropriate authentication interface:
-            //
-            // On Windows 10 & .NET Framework, MSAL supports the Web Account Manager (WAM) broker - we try to use that if possible
-            // in the first instance.
-            //
-            // On .NET Framework MSAL supports the WinForms based 'embedded' webview UI. For Windows + .NET Framework this is the
-            // best and natural experience.
-            //
-            // On other runtimes (e.g., .NET Core) MSAL only supports the system webview flow (launch the user's browser),
-            // and the device-code flows.
-            //
-            //     Note: .NET Core 3 allows using WinForms when run on Windows but MSAL does not yet support this.
-            //
-            // The system webview flow requires that the redirect URI is a loopback address, and that we are in an interactive session.
-            //
-            // The device code flow has no limitations other than a way to communicate to the user the code required to authenticate.
-            //
-            if (result is null)
-            {
-                // If the user has disabled interaction all we can do is fail at this point
-                ThrowIfUserInteractionDisabled();
+                AuthenticationResult result = null;
 
-                // If we're using the OS broker then delegate everything to that
-                if (useBroker)
+                // Try silent authentication first if we know about an existing user
+                if (!string.IsNullOrWhiteSpace(userName))
                 {
-                    Context.Trace.WriteLine("Performing interactive auth with broker...");
-                    result = await app.AcquireTokenInteractive(scopes)
-                        .WithPrompt(Prompt.SelectAccount)
-                        // We must configure the system webview as a fallback
-                        .WithSystemWebViewOptions(GetSystemWebViewOptions())
-                        .ExecuteAsync();
+                    result = await GetAccessTokenSilentlyAsync(app, scopes, userName);
                 }
-                else
+
+                //
+                // If we failed to acquire an AT silently (either because we don't have an existing user, or the user's RT has expired)
+                // we need to prompt the user for credentials.
+                //
+                // If the user has expressed a preference in how the want to perform the interactive authentication flows then we respect that.
+                // Otherwise, depending on the current platform and session type we try to show the most appropriate authentication interface:
+                //
+                // On Windows 10 & .NET Framework, MSAL supports the Web Account Manager (WAM) broker - we try to use that if possible
+                // in the first instance.
+                //
+                // On .NET Framework MSAL supports the WinForms based 'embedded' webview UI. For Windows + .NET Framework this is the
+                // best and natural experience.
+                //
+                // On other runtimes (e.g., .NET Core) MSAL only supports the system webview flow (launch the user's browser),
+                // and the device-code flows.
+                //
+                //     Note: .NET Core 3 allows using WinForms when run on Windows but MSAL does not yet support this.
+                //
+                // The system webview flow requires that the redirect URI is a loopback address, and that we are in an interactive session.
+                //
+                // The device code flow has no limitations other than a way to communicate to the user the code required to authenticate.
+                //
+                if (result is null)
                 {
-                    // Check for a user flow preference if they've specified one
-                    MicrosoftAuthenticationFlowType flowType = GetFlowType();
-                    switch (flowType)
+                    // If the user has disabled interaction all we can do is fail at this point
+                    ThrowIfUserInteractionDisabled();
+
+                    // If we're using the OS broker then delegate everything to that
+                    if (useBroker)
                     {
-                        case MicrosoftAuthenticationFlowType.Auto:
-                            if (CanUseEmbeddedWebView())
-                                goto case MicrosoftAuthenticationFlowType.EmbeddedWebView;
+                        Context.Trace.WriteLine("Performing interactive auth with broker...");
+                        result = await app.AcquireTokenInteractive(scopes)
+                            .WithPrompt(Prompt.SelectAccount)
+                            // We must configure the system webview as a fallback
+                            .WithSystemWebViewOptions(GetSystemWebViewOptions())
+                            .ExecuteAsync();
+                    }
+                    else
+                    {
+                        // Check for a user flow preference if they've specified one
+                        MicrosoftAuthenticationFlowType flowType = GetFlowType();
+                        switch (flowType)
+                        {
+                            case MicrosoftAuthenticationFlowType.Auto:
+                                if (CanUseEmbeddedWebView())
+                                    goto case MicrosoftAuthenticationFlowType.EmbeddedWebView;
 
-                            if (CanUseSystemWebView(app, redirectUri))
-                                goto case MicrosoftAuthenticationFlowType.SystemWebView;
+                                if (CanUseSystemWebView(app, redirectUri))
+                                    goto case MicrosoftAuthenticationFlowType.SystemWebView;
 
-                            // Fall back to device code flow
-                            goto case MicrosoftAuthenticationFlowType.DeviceCode;
+                                // Fall back to device code flow
+                                goto case MicrosoftAuthenticationFlowType.DeviceCode;
 
-                        case MicrosoftAuthenticationFlowType.EmbeddedWebView:
-                            Context.Trace.WriteLine("Performing interactive auth with embedded web view...");
-                            EnsureCanUseEmbeddedWebView();
-                            result = await app.AcquireTokenInteractive(scopes)
-                                .WithPrompt(Prompt.SelectAccount)
-                                .WithUseEmbeddedWebView(true)
-                                .WithEmbeddedWebViewOptions(GetEmbeddedWebViewOptions())
-                                .ExecuteAsync();
-                            break;
+                            case MicrosoftAuthenticationFlowType.EmbeddedWebView:
+                                Context.Trace.WriteLine("Performing interactive auth with embedded web view...");
+                                EnsureCanUseEmbeddedWebView();
+                                result = await app.AcquireTokenInteractive(scopes)
+                                    .WithPrompt(Prompt.SelectAccount)
+                                    .WithUseEmbeddedWebView(true)
+                                    .WithEmbeddedWebViewOptions(GetEmbeddedWebViewOptions())
+                                    .ExecuteAsync();
+                                break;
 
-                        case MicrosoftAuthenticationFlowType.SystemWebView:
-                            Context.Trace.WriteLine("Performing interactive auth with system web view...");
-                            EnsureCanUseSystemWebView(app, redirectUri);
-                            result = await app.AcquireTokenInteractive(scopes)
-                                .WithPrompt(Prompt.SelectAccount)
-                                .WithSystemWebViewOptions(GetSystemWebViewOptions())
-                                .ExecuteAsync();
-                            break;
+                            case MicrosoftAuthenticationFlowType.SystemWebView:
+                                Context.Trace.WriteLine("Performing interactive auth with system web view...");
+                                EnsureCanUseSystemWebView(app, redirectUri);
+                                result = await app.AcquireTokenInteractive(scopes)
+                                    .WithPrompt(Prompt.SelectAccount)
+                                    .WithSystemWebViewOptions(GetSystemWebViewOptions())
+                                    .ExecuteAsync();
+                                break;
 
-                        case MicrosoftAuthenticationFlowType.DeviceCode:
-                            Context.Trace.WriteLine("Performing interactive auth with device code...");
-                            // We don't have a way to display a device code without a terminal at the moment
-                            // TODO: introduce a small GUI window to show a code if no TTY exists
-                            ThrowIfTerminalPromptsDisabled();
-                            result = await app.AcquireTokenWithDeviceCode(scopes, ShowDeviceCodeInTty).ExecuteAsync();
-                            break;
+                            case MicrosoftAuthenticationFlowType.DeviceCode:
+                                Context.Trace.WriteLine("Performing interactive auth with device code...");
+                                // We don't have a way to display a device code without a terminal at the moment
+                                // TODO: introduce a small GUI window to show a code if no TTY exists
+                                ThrowIfTerminalPromptsDisabled();
+                                result = await app.AcquireTokenWithDeviceCode(scopes, ShowDeviceCodeInTty).ExecuteAsync();
+                                break;
 
-                        default:
-                            goto case MicrosoftAuthenticationFlowType.Auto;
+                            default:
+                                goto case MicrosoftAuthenticationFlowType.Auto;
+                        }
                     }
                 }
-            }
 
-            return new MsalResult(result);
+                return new MsalResult(result);
+            }
+            finally
+            {
+#if NETFRAMEWORK
+                // If we created a dummy window during authentication we should dispose of it now that we're done
+                _dummyWindow?.Dispose();
+#endif
+            }
         }
 
         internal MicrosoftAuthenticationFlowType GetFlowType()
@@ -229,20 +247,33 @@ namespace GitCredentialManager.Authentication
             if (PlatformUtils.IsWindows())
             {
                 // If we have a parent window ID then use that, otherwise use the hosting terminal window.
-                IntPtr parentHandle;
                 if (!string.IsNullOrWhiteSpace(Context.Settings.ParentWindowId) &&
                     int.TryParse(Context.Settings.ParentWindowId, out int hWndInt) && hWndInt > 0)
                 {
-                    parentHandle = new IntPtr(hWndInt);
+                    Context.Trace.WriteLine($"Using provided parent window ID '{hWndInt}' for MSAL authentication dialogs.");
+                    appBuilder.WithParentActivityOrWindow(() => new IntPtr(hWndInt));
                 }
                 else
                 {
                     IntPtr consoleHandle = Kernel32.GetConsoleWindow();
-                    parentHandle = User32.GetAncestor(consoleHandle, GetAncestorFlags.GetRootOwner);
-                }
+                    IntPtr parentHandle = User32.GetAncestor(consoleHandle, GetAncestorFlags.GetRootOwner);
 
-                Context.Trace.WriteLine($"Using parent window ID '{parentHandle}' for MSAL authentication dialogs.");
-                appBuilder.WithParentActivityOrWindow(() => parentHandle);
+                    // If we don't have a console window then create a dummy top-level window (for .NET Framework)
+                    // that we can use as a parent. When not on .NET Framework just use the Desktop window.
+                    if (parentHandle != IntPtr.Zero)
+                    {
+                        Context.Trace.WriteLine($"Using console parent window ID '{parentHandle}' for MSAL authentication dialogs.");
+                        appBuilder.WithParentActivityOrWindow(() => parentHandle);
+                    }
+                    else if (enableBroker) // Only actually need to set a parent window when using the Windows broker
+                    {
+#if NETFRAMEWORK
+                        Context.Trace.WriteLine($"Using dummy parent window for MSAL authentication dialogs.");
+                        _dummyWindow = new DummyWindow();
+                        appBuilder.WithParentActivityOrWindow(_dummyWindow.ShowAndGetHandle);
+#endif
+                    }
+                }
             }
 
             // Configure the broker if enabled
@@ -515,5 +546,73 @@ namespace GitCredentialManager.Authentication
             public string AccessToken => _msalResult.AccessToken;
             public string AccountUpn => _msalResult.Account.Username;
         }
+
+#if NETFRAMEWORK
+        private class DummyWindow : IDisposable
+        {
+            private readonly Thread _staThread;
+            private readonly ManualResetEventSlim _readyEvent;
+            private Form _window;
+            private IntPtr _handle;
+
+            public DummyWindow()
+            {
+                _staThread = new Thread(ThreadProc);
+                _staThread.SetApartmentState(ApartmentState.STA);
+                _readyEvent = new ManualResetEventSlim();
+            }
+
+            public IntPtr ShowAndGetHandle()
+            {
+                _staThread.Start();
+                _readyEvent.Wait();
+                return _handle;
+            }
+
+            public void Dispose()
+            {
+                _window?.Invoke(() => _window.Close());
+
+                if (_staThread.IsAlive)
+                {
+                    _staThread.Join();
+                }
+            }
+
+            private void ThreadProc()
+            {
+                System.Windows.Forms.Application.EnableVisualStyles();
+                _window = new Form
+                {
+                    TopMost = true,
+                    ControlBox = false,
+                    MaximizeBox = false,
+                    MinimizeBox = false,
+                    ClientSize = new Size(182, 46),
+                    FormBorderStyle = FormBorderStyle.None,
+                    StartPosition = FormStartPosition.CenterScreen,
+                };
+
+                var progress = new ProgressBar
+                {
+                    Style = ProgressBarStyle.Marquee,
+                    Location = new Point(12, 12),
+                    Size = new Size(158, 23),
+                    MarqueeAnimationSpeed = 30,
+                };
+
+                _window.Controls.Add(progress);
+                _window.Shown += (s, e) =>
+                {
+                    _handle = _window.Handle;
+                    _readyEvent.Set();
+                };
+
+                _window.ShowDialog();
+                _window.Dispose();
+                _window = null;
+            }
+        }
+#endif
     }
 }
