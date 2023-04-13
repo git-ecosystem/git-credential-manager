@@ -3,7 +3,7 @@
              x:Class="GitCredentialManager.UI.AvaloniaApp"
              Name="Git Credential Manager">
     <Application.Styles>
-        <FluentTheme Mode="Light"/>
+        <FluentTheme/>
         <StyleInclude Source="avares://gcmcore/UI/Assets/Controls.axaml"/>
     </Application.Styles>
     <Application.Resources>

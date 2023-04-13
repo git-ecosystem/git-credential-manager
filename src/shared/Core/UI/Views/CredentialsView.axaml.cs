@@ -5,7 +5,7 @@ using GitCredentialManager.UI.ViewModels;
 
 namespace GitCredentialManager.UI.Views
 {
-    public class CredentialsView : UserControl, IFocusable
+    public partial class CredentialsView : UserControl, IFocusable
     {
         private TextBox _userNameTextBox;
         private TextBox _passwordTextBox;

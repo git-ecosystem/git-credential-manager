@@ -3,7 +3,7 @@ using Avalonia.Markup.Xaml;
 
 namespace GitHub.UI.Views
 {
-    public class DeviceCodeView : UserControl
+    public partial class DeviceCodeView : UserControl
     {
         public DeviceCodeView()
         {

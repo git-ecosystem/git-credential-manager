@@ -5,7 +5,7 @@ using GitCredentialManager.UI.Controls;
 
 namespace GitLab.UI.Views
 {
-    public class CredentialsView : UserControl, IFocusable
+    public partial class CredentialsView : UserControl, IFocusable
     {
         private TabControl _tabControl;
         private Button _browserButton;

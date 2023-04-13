@@ -6,7 +6,7 @@ using Avalonia.Markup.Xaml;
 
 namespace GitCredentialManager.UI.Controls
 {
-    public class AboutWindow : Window
+    public partial class AboutWindow : Window
     {
         public AboutWindow()
         {

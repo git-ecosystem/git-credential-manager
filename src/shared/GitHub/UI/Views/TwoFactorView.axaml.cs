@@ -5,7 +5,7 @@ using GitCredentialManager.UI.Controls;
 
 namespace GitHub.UI.Views
 {
-    public class TwoFactorView : UserControl, IFocusable
+    public partial class TwoFactorView : UserControl, IFocusable
     {
         private SixDigitInput _codeInput;
 

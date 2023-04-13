@@ -3,7 +3,7 @@ using Avalonia.Markup.Xaml;
 
 namespace GitCredentialManager.UI.Views
 {
-    public class OAuthView : UserControl
+    public partial class OAuthView : UserControl
     {
         public OAuthView()
         {

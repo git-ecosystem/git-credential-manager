@@ -3,7 +3,7 @@ using Avalonia.Markup.Xaml;
 
 namespace GitHub.UI.Controls
 {
-    public class HorizontalShadowDivider : UserControl
+    public partial class HorizontalShadowDivider : UserControl
     {
         public HorizontalShadowDivider()
         {

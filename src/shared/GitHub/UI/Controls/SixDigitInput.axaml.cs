@@ -12,7 +12,7 @@ using GitCredentialManager.UI.Controls;
 
 namespace GitHub.UI.Controls
 {
-    public class SixDigitInput : UserControl, IFocusable
+    public partial class SixDigitInput : UserControl, IFocusable
     {
         public static readonly DirectProperty<SixDigitInput, string> TextProperty =
             AvaloniaProperty.RegisterDirect<SixDigitInput, string>(

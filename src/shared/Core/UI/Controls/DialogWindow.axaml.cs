@@ -9,7 +9,7 @@ using GitCredentialManager.UI.ViewModels;
 
 namespace GitCredentialManager.UI.Controls
 {
-    public class DialogWindow : Window
+    public partial class DialogWindow : Window
     {
         private readonly Control _view;
         private ContentControl _contentHolder;
@@ -46,7 +46,7 @@ namespace GitCredentialManager.UI.Controls
                 // Send a focus request to the child view on idle
                 if (_view is IFocusable focusable)
                 {
-                    Avalonia.Threading.Dispatcher.UIThread.Post(() => focusable.SetFocus(), DispatcherPriority.ApplicationIdle);
+                    Avalonia.Threading.Dispatcher.UIThread.Post(() => focusable.SetFocus(), DispatcherPriority.Normal);
                 }
             }
         }
