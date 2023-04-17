@@ -96,6 +96,12 @@ See the [documentation index][docs-index] for links to additional resources.
 
 - [Windows broker (experimental)][gcm-windows-broker]
 
+## Future features
+
+Curious about what's coming next in the GCM project? Take a look at the [project
+roadmap][roadmap]! You can find more details about the construction of the
+roadmap and how to interpret it [here][roadmap-announcement].
+
 ## Contributing
 
 This project welcomes contributions and suggestions.
@@ -135,4 +141,6 @@ When using GitHub logos, please be sure to follow the
 [github-logos]: https://github.com/logos
 [install]: https://github.com/git-ecosystem/git-credential-manager/blob/release/docs/install.md
 [ms-package-repos]: https://packages.microsoft.com/repos/
+[roadmap]: https://github.com/git-ecosystem/git-credential-manager/milestones?direction=desc&sort=due_date&state=open
+[roadmap-announcement]: https://github.com/git-ecosystem/git-credential-manager/discussions/1203
 [workflow-status]: https://github.com/git-ecosystem/git-credential-manager/actions/workflows/continuous-integration.yml
