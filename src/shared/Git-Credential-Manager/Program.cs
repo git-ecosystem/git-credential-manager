@@ -25,22 +25,6 @@ namespace GitCredentialManager
                 // Write the start and version events
                 context.Trace2.Start(context.ApplicationPath, args);
 
-                // Workaround for https://github.com/AzureAD/microsoft-authentication-library-for-dotnet/issues/2560
-                if (MicrosoftAuthentication.CanUseBroker(context))
-                {
-                    try
-                    {
-                        MicrosoftAuthentication.InitializeBroker();
-                    }
-                    catch (Exception ex)
-                    {
-                        context.Streams.Error.WriteLine(
-                            "warning: broker initialization failed{0}{1}",
-                            Environment.NewLine, ex.Message
-                        );
-                    }
-                }
-
                 //
                 // Git Credential Manager's executable used to be named "git-credential-manager-core" before
                 // dropping the "-core" suffix. In order to prevent "helper not found" errors for users who

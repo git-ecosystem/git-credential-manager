@@ -251,6 +251,16 @@ namespace GitCredentialManager.Interop.Windows.Native
         /// </returns>
         [DllImport(LibraryName, CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode, SetLastError = true)]
         public static extern IntPtr LocalFree(IntPtr ptr);
+
+        /// <summary>
+        /// Retrieves the window handle used by the console associated with the calling process.
+        /// </summary>
+        /// <returns>
+        /// The return value is a handle to the window used by the console associated with the calling process or
+        /// NULL if there is no such associated console.
+        /// </returns>
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern IntPtr GetConsoleWindow();
     }
 
     [Flags]
