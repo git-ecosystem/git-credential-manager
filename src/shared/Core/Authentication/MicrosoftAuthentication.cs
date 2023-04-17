@@ -78,26 +78,25 @@ namespace GitCredentialManager.Authentication
                 }
 
                 //
-                // If we failed to acquire an AT silently (either because we don't have an existing user, or the user's RT has expired)
-                // we need to prompt the user for credentials.
+                // If we failed to acquire an AT silently (either because we don't have an existing user, or the user's
+                // RT has expired) we need to prompt the user for credentials.
                 //
-                // If the user has expressed a preference in how the want to perform the interactive authentication flows then we respect that.
-                // Otherwise, depending on the current platform and session type we try to show the most appropriate authentication interface:
+                // If the user has expressed a preference in how they want to perform the interactive authentication
+                // flows then we respect that. Otherwise, depending on the current platform and session type we try to
+                // show the most appropriate authentication interface:
                 //
-                // On Windows 10 & .NET Framework, MSAL supports the Web Account Manager (WAM) broker - we try to use that if possible
-                // in the first instance.
+                // On Windows 10+ & .NET Framework, MSAL supports the Web Account Manager (WAM) broker - we try to use
+                // that if possible in the first instance.
                 //
-                // On .NET Framework MSAL supports the WinForms based 'embedded' webview UI. For Windows + .NET Framework this is the
-                // best and natural experience.
+                // On .NET Framework MSAL supports the WinForms based 'embedded' webview UI. This experience is less
+                // jarring that the system webview flow so try that option next.
                 //
-                // On other runtimes (e.g., .NET Core) MSAL only supports the system webview flow (launch the user's browser),
-                // and the device-code flows.
+                // On other runtimes (e.g., .NET 6+) MSAL only supports the system webview flow (launch the user's
+                // browser), and the device-code flows. The system webview flow requires that the redirect URI is a
+                // loopback address, and that we are in an interactive session.
                 //
-                //     Note: .NET Core 3 allows using WinForms when run on Windows but MSAL does not yet support this.
-                //
-                // The system webview flow requires that the redirect URI is a loopback address, and that we are in an interactive session.
-                //
-                // The device code flow has no limitations other than a way to communicate to the user the code required to authenticate.
+                // The device code flow has no limitations other than a way to communicate to the user the code required
+                // to authenticate.
                 //
                 if (result is null)
                 {
