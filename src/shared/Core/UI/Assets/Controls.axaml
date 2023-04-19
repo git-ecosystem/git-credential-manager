@@ -1,6 +1,9 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <StyleInclude Source="avares://gcmcore/UI/Assets/ButtonHyperlink.axaml"/>
+    <Style Selector="TextBox">
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+    </Style>
     <Style Selector="TextBox.monospace">
         <Setter Property="FontFamily" Value="SF Mono, Courier New, Courier, monospace" />
     </Style>
