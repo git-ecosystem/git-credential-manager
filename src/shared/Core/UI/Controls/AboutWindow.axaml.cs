@@ -8,6 +8,9 @@ namespace GitCredentialManager.UI.Controls
 {
     public partial class AboutWindow : Window
     {
+        public string VersionString => $"Version {Constants.GcmVersion}";
+        public string ProjectUrl => Constants.HelpUrls.GcmProjectUrl;
+
         public AboutWindow()
         {
             InitializeComponent();
@@ -23,7 +26,7 @@ namespace GitCredentialManager.UI.Controls
 
         private void ProjectButton_Click(object sender, RoutedEventArgs e)
         {
-            var psi = new ProcessStartInfo("https://aka.ms/gcm")
+            var psi = new ProcessStartInfo(ProjectUrl)
             {
                 UseShellExecute = true
             };
