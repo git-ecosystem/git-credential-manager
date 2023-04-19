@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
 using GitCredentialManager.Interop.Windows.Native;
 using GitCredentialManager.UI.Controls;
@@ -48,7 +49,14 @@ namespace GitCredentialManager.UI
                     AppBuilder.Configure<AvaloniaApp>()
                         .UsePlatformDetect()
                         .LogToTrace()
-                        .SetupWithoutStarting();
+                        // Workaround https://github.com/AvaloniaUI/Avalonia/issues/10296
+                        // by always setting a application lifetime.
+                        .SetupWithLifetime(
+                            new ClassicDesktopStyleApplicationLifetime
+                            {
+                                ShutdownMode = ShutdownMode.OnExplicitShutdown
+                            }
+                        );
 
                     appInitialized.Set();
 
