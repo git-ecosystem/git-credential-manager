@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using Atlassian.Bitbucket;
+using Avalonia;
 using GitHub;
 using GitLab;
 using Microsoft.AzureRepos;
@@ -101,5 +102,11 @@ namespace GitCredentialManager
                 Dispatcher.MainThread.Shutdown();
             }
         }
+
+        // Required for Avalonia designer
+        static AppBuilder BuildAvaloniaApp() =>
+            AppBuilder.Configure<AvaloniaApp>()
+                .UsePlatformDetect()
+                .LogToTrace();
     }
 }
