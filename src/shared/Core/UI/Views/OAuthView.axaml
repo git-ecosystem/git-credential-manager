@@ -16,7 +16,7 @@
                         IsVisible="{Binding ShowProductHeader}">
                 <Image Margin="0,0,10,0"
                        VerticalAlignment="Center"
-                       Source="{StaticResource GcmLogo}"
+                       Source="{DynamicResource GcmLogo}"
                        Width="32" Height="32" />
                 <TextBlock Text="Git Credential Manager"
                            VerticalAlignment="Center"
