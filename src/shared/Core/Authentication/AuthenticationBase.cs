@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using GitCredentialManager.UI.ViewModels;
 
 namespace GitCredentialManager.Authentication
 {
@@ -108,6 +109,24 @@ namespace GitCredentialManager.Authentication
                 Context.Trace.WriteLine($"{Constants.EnvironmentVariables.GitTerminalPrompts} is 0; terminal prompts have been disabled.");
                 throw new Trace2InvalidOperationException(Context.Trace2, "Cannot prompt because terminal prompts have been disabled.");
             }
+        }
+        
+        protected void ThrowIfWindowCancelled(WindowViewModel viewModel)
+        {
+            if (!viewModel.WindowResult)
+            {
+                throw new Exception("User cancelled dialog.");
+            }
+        }
+        
+        protected IntPtr GetParentWindowHandle()
+        {
+            if (int.TryParse(Context.Settings.ParentWindowId, out int id))
+            {
+                return new IntPtr(id);
+            }
+
+            return IntPtr.Zero;
         }
 
         protected bool TryFindHelperCommand(string envar, string configName, string defaultValue, out string command, out string args)
