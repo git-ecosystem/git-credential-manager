@@ -3,11 +3,11 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:controls="clr-namespace:GitHub.UI.Controls"
-             xmlns:vm="clr-namespace:GitHub.UI.ViewModels;assembly=GitHub.UI.Shared"
+             xmlns:vm="clr-namespace:GitHub.UI.ViewModels"
              mc:Ignorable="d" d:DesignWidth="420"
-             x:Class="GitHub.UI.Views.TwoFactorView">
+             x:Class="GitHub.UI.Views.DeviceCodeView">
     <Design.DataContext>
-        <vm:TwoFactorViewModel/>
+        <vm:DeviceCodeViewModel/>
     </Design.DataContext>
     <DockPanel>
         <StackPanel DockPanel.Dock="Top" Margin="0,0,0,15">
@@ -16,7 +16,7 @@
                        HorizontalAlignment="Center"
                        FontSize="20"
                        FontWeight="Bold"/>
-            <TextBlock Text="Two-factor authentication"
+            <TextBlock Text="Device authentication"
                        HorizontalAlignment="Center"
                        FontSize="24"
                        FontWeight="Light"
@@ -25,22 +25,19 @@
         </StackPanel>
 
         <StackPanel Orientation="Vertical" VerticalAlignment="Center">
-            <TextBlock Text="{Binding Description}" Margin="0,0,0,20"
+            <TextBlock Text="Visit the URL below, sign in, and enter the following device code to continue."
+                       Margin="0,0,0,20"
                        TextWrapping="Wrap" TextAlignment="Center"/>
-            <controls:SixDigitInput x:Name="codeInput"
-                                    Text="{Binding Code}"
-                                    Margin="0,0,0,20"
-                                    HorizontalAlignment="Center"/>
-            <Button Content="Verify"
-                    IsDefault="True"
-                    Command="{Binding VerifyCommand}"
+            <TextBox Text="{Binding UserCode}"
+                     Margin="0,0,0,20"
+                     HorizontalAlignment="Center"
+                     FontSize="24"
+                     TextAlignment="Center"
+                     Classes="label monospace"/>
+            <Button Content="{Binding VerificationUrl}"
+                    Command="{Binding VerificationUrlCommand}"
                     HorizontalAlignment="Center"
-                    Classes="accent"/>
-            <Button Content="Learn more"
-                    Command="{Binding LearnMoreCommand}"
-                    HorizontalAlignment="Center"
-                    Classes="hyperlink"
-                    Margin="0,20,0,0"/>
+                    Classes="hyperlink" />
         </StackPanel>
     </DockPanel>
 </UserControl>

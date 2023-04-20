@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\shared\GitHub.UI\GitHub.UI.csproj" />
+    <ProjectReference Include="..\..\shared\GitHub\GitHub.csproj" />
     <ProjectReference Include="..\Core.UI.Windows\Core.UI.Windows.csproj" />
   </ItemGroup>
   
