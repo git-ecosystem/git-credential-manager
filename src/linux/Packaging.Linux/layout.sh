@@ -35,7 +35,6 @@ ROOT="$( cd "$THISDIR"/../../.. ; pwd -P )"
 SRC="$ROOT/src"
 OUT="$ROOT/out"
 GCM_SRC="$SRC/shared/Git-Credential-Manager"
-BITBUCKET_UI_SRC="$SRC/shared/Atlassian.Bitbucket.UI.Avalonia"
 GITHUB_UI_SRC="$SRC/shared/GitHub.UI.Avalonia"
 GITLAB_UI_SRC="$SRC/shared/GitLab.UI.Avalonia"
 PROJ_OUT="$OUT/linux/Packaging.Linux"
@@ -73,15 +72,6 @@ fi
 # Publish core application executables
 echo "Publishing core application..."
 $DOTNET_ROOT/dotnet publish "$GCM_SRC" \
-	--configuration="$CONFIGURATION" \
-	--framework="$FRAMEWORK" \
-	--runtime="$RUNTIME" \
-	--self-contained \
-	-p:PublishSingleFile=true \
-	--output="$(make_absolute "$PAYLOAD")" || exit 1
-
-echo "Publishing Bitbucket UI helper..."
-$DOTNET_ROOT/dotnet publish "$BITBUCKET_UI_SRC" \
 	--configuration="$CONFIGURATION" \
 	--framework="$FRAMEWORK" \
 	--runtime="$RUNTIME" \

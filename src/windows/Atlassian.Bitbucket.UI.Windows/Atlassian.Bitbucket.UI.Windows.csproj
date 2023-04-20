@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\shared\Atlassian.Bitbucket.UI\Atlassian.Bitbucket.UI.csproj" />
+    <ProjectReference Include="..\..\shared\Atlassian.Bitbucket\Atlassian.Bitbucket.csproj" />
     <ProjectReference Include="..\Core.UI.Windows\Core.UI.Windows.csproj" />
   </ItemGroup>
 
