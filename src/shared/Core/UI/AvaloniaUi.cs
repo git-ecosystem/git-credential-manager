@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Threading;
 using GitCredentialManager.Interop.Windows.Native;
 using GitCredentialManager.UI.Controls;
 using GitCredentialManager.UI.ViewModels;
@@ -38,30 +39,33 @@ namespace GitCredentialManager.UI
             {
                 _isAppStarted = true;
 
-                var appRunning = new ManualResetEventSlim();
+                var appInitialized = new ManualResetEventSlim();
 
                 // Fire and forget the Avalonia app main loop over to our dispatcher (running on the main/entry thread).
                 // This action only returns on our dispatcher shutdown.
                 Dispatcher.MainThread.Post(appCancelToken =>
                 {
-                    AppBuilder appBuilder = AppBuilder.Configure<AvaloniaApp>()
+                    AppBuilder.Configure<AvaloniaApp>()
                         .UsePlatformDetect()
                         .LogToTrace()
                         .SetupWithoutStarting();
 
-                    appRunning.Set();
+                    appInitialized.Set();
 
                     // Run the application loop (only exit when the dispatcher is shutting down)
-                    appBuilder.Instance.Run(appCancelToken);
+                    AvnDispatcher.UIThread.MainLoop(appCancelToken);
                 });
 
                 // Wait for the action posted above to be dequeued from the dispatcher's job queue
                 // and for the Avalonia framework (and their dispatcher) to be initialized.
-                appRunning.Wait();
+                appInitialized.Wait();
             }
 
             // Post the window action to the Avalonia dispatcher (which should be running)
-            return AvnDispatcher.UIThread.InvokeAsync(() => ShowWindowInternal(windowFunc, dataContext, parentHandle, ct));
+            return AvnDispatcher.UIThread.InvokeAsync(
+                () => ShowWindowInternal(windowFunc, dataContext, parentHandle, ct),
+                DispatcherPriority.Send
+            );
         }
 
         private static Task ShowWindowInternal(Func<Window> windowFunc, object dataContext, IntPtr parentHandle, CancellationToken ct)
