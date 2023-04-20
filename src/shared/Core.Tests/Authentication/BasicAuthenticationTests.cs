@@ -73,19 +73,29 @@ namespace GitCredentialManager.Tests.Authentication
         }
 
         [Fact]
-        public async Task BasicAuthentication_GetCredentials_DesktopSession_CallsHelper()
+        public async Task BasicAuthentication_GetCredentials_DesktopSession_UIHelper_CallsHelper()
         {
             const string testResource = "https://example.com";
             const string testUserName = "john.doe";
             const string testPassword = "letmein123"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
 
+            const string unixHelperPath = "/usr/local/bin/git-credential-manager-ui";
+            const string windowsHelperPath = @"C:\Program Files\Git Credential Manager\git-credential-manager-ui.exe";
+            string helperPath = PlatformUtils.IsWindows() ? windowsHelperPath : unixHelperPath;
+
             var context = new TestCommandContext
             {
-                SessionManager = {IsDesktopSession = true}
+                SessionManager = { IsDesktopSession = true },
+                Environment =
+                {
+                    Variables =
+                    {
+                        [Constants.EnvironmentVariables.GcmUiHelper] = helperPath
+                    }
+                }
             };
 
-            context.FileSystem.Files["/usr/local/bin/git-credential-manager-ui"] = new byte[0];
-            context.FileSystem.Files[@"C:\Program Files\Git Credential Manager Core\git-credential-manager-ui.exe"] = new byte[0];
+            context.FileSystem.Files[helperPath] = Array.Empty<byte>();
 
             var auth = new Mock<BasicAuthentication>(MockBehavior.Strict, context);
             auth.Setup(x => x.InvokeHelperAsync(
@@ -109,19 +119,29 @@ namespace GitCredentialManager.Tests.Authentication
         }
 
         [Fact]
-        public async Task BasicAuthentication_GetCredentials_DesktopSession_UserName_CallsHelper()
+        public async Task BasicAuthentication_GetCredentials_DesktopSession_UIHelper_UserName_CallsHelper()
         {
             const string testResource = "https://example.com";
             const string testUserName = "john.doe";
             const string testPassword = "letmein123"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
 
+            const string unixHelperPath = "/usr/local/bin/git-credential-manager-ui";
+            const string windowsHelperPath = @"C:\Program Files\Git Credential Manager\git-credential-manager-ui.exe";
+            string helperPath = PlatformUtils.IsWindows() ? windowsHelperPath : unixHelperPath;
+
             var context = new TestCommandContext
             {
-                SessionManager = {IsDesktopSession = true}
+                SessionManager = { IsDesktopSession = true },
+                Environment =
+                {
+                    Variables =
+                    {
+                        [Constants.EnvironmentVariables.GcmUiHelper] = helperPath
+                    }
+                }
             };
 
-            context.FileSystem.Files["/usr/local/bin/git-credential-manager-ui"] = new byte[0];
-            context.FileSystem.Files[@"C:\Program Files\Git Credential Manager Core\git-credential-manager-ui.exe"] = new byte[0];
+            context.FileSystem.Files[helperPath] = Array.Empty<byte>();
 
             var auth = new Mock<BasicAuthentication>(MockBehavior.Strict, context);
             auth.Setup(x => x.InvokeHelperAsync(

@@ -1,7 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using GitCredentialManager.UI;
+using GitCredentialManager.UI.ViewModels;
+using GitCredentialManager.UI.Views;
 
 namespace GitCredentialManager.Authentication
 {
@@ -34,15 +38,36 @@ namespace GitCredentialManager.Authentication
 
             ThrowIfUserInteractionDisabled();
 
-            if (Context.Settings.IsGuiPromptsEnabled && Context.SessionManager.IsDesktopSession &&
-                TryFindHelperCommand(out string command, out string args))
+            if (Context.Settings.IsGuiPromptsEnabled && Context.SessionManager.IsDesktopSession)
             {
-                return await GetCredentialsViaHelperAsync(command, args, resource, userName);
+                if (TryFindHelperCommand(out string command, out string args))
+                {
+                    return await GetCredentialsViaHelperAsync(command, args, resource, userName);
+                }
+
+                return await GetCredentialsViaUiAsync(resource, userName);
             }
 
             ThrowIfTerminalPromptsDisabled();
 
             return GetCredentialsViaTty(resource, userName);
+        }
+
+        private async Task<ICredential> GetCredentialsViaUiAsync(string resource, string userName)
+        {
+            var viewModel = new CredentialsViewModel
+            {
+                Description = !string.IsNullOrWhiteSpace(resource)
+                    ? $"Enter your credentials for '{resource}'"
+                    : "Enter your credentials",
+                UserName = userName,
+            };
+
+            await AvaloniaUi.ShowViewAsync<CredentialsView>(viewModel, GetParentWindowHandle(), CancellationToken.None);
+
+            ThrowIfWindowCancelled(viewModel);
+
+            return new GitCredential(viewModel.UserName, viewModel.Password);
         }
 
         private ICredential GetCredentialsViaTty(string resource, string userName)
