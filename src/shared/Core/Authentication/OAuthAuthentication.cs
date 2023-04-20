@@ -60,74 +60,83 @@ namespace GitCredentialManager.Authentication
             if (Context.Settings.IsGuiPromptsEnabled && Context.SessionManager.IsDesktopSession &&
                 TryFindHelperCommand(out string command, out string args))
             {
-                var promptArgs = new StringBuilder(args);
-                promptArgs.Append("oauth");
-
-                if (!string.IsNullOrWhiteSpace(resource))
-                {
-                    promptArgs.AppendFormat(" --resource {0}", QuoteCmdArg(resource));
-                }
-
-                if ((modes & OAuthAuthenticationModes.Browser) != 0)
-                {
-                    promptArgs.Append(" --browser");
-                }
-
-                if ((modes & OAuthAuthenticationModes.DeviceCode) != 0)
-                {
-                    promptArgs.Append(" --device-code");
-                }
-
-                IDictionary<string, string> resultDict = await InvokeHelperAsync(command, promptArgs.ToString());
-
-                if (!resultDict.TryGetValue("mode", out string responseMode))
-                {
-                    throw new Trace2Exception(Context.Trace2, "Missing 'mode' in response");
-                }
-
-                switch (responseMode.ToLowerInvariant())
-                {
-                    case "browser":
-                        return OAuthAuthenticationModes.Browser;
-
-                    case "devicecode":
-                        return OAuthAuthenticationModes.DeviceCode;
-
-                    default:
-                        throw new Trace2Exception(Context.Trace2,
-                            $"Unknown mode value in response '{responseMode}'");
-                }
+                return await GetAuthenticationModeViaHelperAsync(resource, modes, args, command);
             }
-            else
+
+            return GetAuthenticationModeViaTty(resource, modes);
+        }
+
+        private OAuthAuthenticationModes GetAuthenticationModeViaTty(string resource, OAuthAuthenticationModes modes)
+        {
+            ThrowIfTerminalPromptsDisabled();
+
+            switch (modes)
             {
-                ThrowIfTerminalPromptsDisabled();
+                case OAuthAuthenticationModes.Browser:
+                    return OAuthAuthenticationModes.Browser;
 
-                switch (modes)
-                {
-                    case OAuthAuthenticationModes.Browser:
-                        return OAuthAuthenticationModes.Browser;
+                case OAuthAuthenticationModes.DeviceCode:
+                    return OAuthAuthenticationModes.DeviceCode;
 
-                    case OAuthAuthenticationModes.DeviceCode:
-                        return OAuthAuthenticationModes.DeviceCode;
+                default:
+                    var menuTitle = $"Select an authentication method for '{resource}'";
+                    var menu = new TerminalMenu(Context.Terminal, menuTitle);
 
-                    default:
-                        var menuTitle = $"Select an authentication method for '{resource}'";
-                        var menu = new TerminalMenu(Context.Terminal, menuTitle);
+                    TerminalMenuItem browserItem = null;
+                    TerminalMenuItem deviceItem = null;
 
-                        TerminalMenuItem browserItem = null;
-                        TerminalMenuItem deviceItem = null;
+                    if ((modes & OAuthAuthenticationModes.Browser) != 0) browserItem = menu.Add("Web browser");
+                    if ((modes & OAuthAuthenticationModes.DeviceCode) != 0) deviceItem = menu.Add("Device code");
 
-                        if ((modes & OAuthAuthenticationModes.Browser)    != 0) browserItem = menu.Add("Web browser");
-                        if ((modes & OAuthAuthenticationModes.DeviceCode) != 0) deviceItem  = menu.Add("Device code");
+                    // Default to the 'first' choice in the menu
+                    TerminalMenuItem choice = menu.Show(0);
 
-                        // Default to the 'first' choice in the menu
-                        TerminalMenuItem choice = menu.Show(0);
+                    if (choice == browserItem) goto case OAuthAuthenticationModes.Browser;
+                    if (choice == deviceItem) goto case OAuthAuthenticationModes.DeviceCode;
 
-                        if (choice == browserItem) goto case OAuthAuthenticationModes.Browser;
-                        if (choice == deviceItem)  goto case OAuthAuthenticationModes.DeviceCode;
+                    throw new Exception();
+            }
+        }
 
-                        throw new Exception();
-                }
+        private async Task<OAuthAuthenticationModes> GetAuthenticationModeViaHelperAsync(
+            string resource, OAuthAuthenticationModes modes, string args, string command)
+        {
+            var promptArgs = new StringBuilder(args);
+            promptArgs.Append("oauth");
+
+            if (!string.IsNullOrWhiteSpace(resource))
+            {
+                promptArgs.AppendFormat(" --resource {0}", QuoteCmdArg(resource));
+            }
+
+            if ((modes & OAuthAuthenticationModes.Browser) != 0)
+            {
+                promptArgs.Append(" --browser");
+            }
+
+            if ((modes & OAuthAuthenticationModes.DeviceCode) != 0)
+            {
+                promptArgs.Append(" --device-code");
+            }
+
+            IDictionary<string, string> resultDict = await InvokeHelperAsync(command, promptArgs.ToString());
+
+            if (!resultDict.TryGetValue("mode", out string responseMode))
+            {
+                throw new Trace2Exception(Context.Trace2, "Missing 'mode' in response");
+            }
+
+            switch (responseMode.ToLowerInvariant())
+            {
+                case "browser":
+                    return OAuthAuthenticationModes.Browser;
+
+                case "devicecode":
+                    return OAuthAuthenticationModes.DeviceCode;
+
+                default:
+                    throw new Trace2Exception(Context.Trace2,
+                        $"Unknown mode value in response '{responseMode}'");
             }
         }
 
@@ -158,16 +167,11 @@ namespace GitCredentialManager.Authentication
             if (Context.Settings.IsGuiPromptsEnabled && Context.SessionManager.IsDesktopSession &&
                 TryFindHelperCommand(out string command, out string args))
             {
-                var promptArgs = new StringBuilder(args);
-                promptArgs.Append("device");
-                promptArgs.AppendFormat(" --code {0} ", QuoteCmdArg(dcr.UserCode));
-                promptArgs.AppendFormat(" --url {0}", QuoteCmdArg(dcr.VerificationUri.ToString()));
-
                 var promptCts = new CancellationTokenSource();
                 var tokenCts = new CancellationTokenSource();
 
                 // Show the dialog with the device code but don't await its closure
-                Task promptTask = InvokeHelperAsync(command, promptArgs.ToString(), null, promptCts.Token);
+                Task promptTask = ShowDeviceCodeViaHelperAsync(dcr, command, args, promptCts.Token);
 
                 // Start the request for an OAuth token but don't wait
                 Task<OAuth2TokenResult> tokenTask = client.GetTokenByDeviceCodeAsync(dcr, tokenCts.Token);
@@ -195,17 +199,32 @@ namespace GitCredentialManager.Authentication
 
                 return tokenResult;
             }
-            else
-            {
-                ThrowIfTerminalPromptsDisabled();
 
-                string deviceMessage = $"To complete authentication please visit {dcr.VerificationUri} and enter the following code:" +
-                                       Environment.NewLine +
-                                       dcr.UserCode;
-                Context.Terminal.WriteLine(deviceMessage);
+            return await GetTokenByDeviceCodeViaTtyAsync(client, dcr);
+        }
 
-                return await client.GetTokenByDeviceCodeAsync(dcr, CancellationToken.None);
-            }
+        private Task ShowDeviceCodeViaHelperAsync(
+            OAuth2DeviceCodeResult dcr, string command, string args, CancellationToken ct)
+        {
+            var promptArgs = new StringBuilder(args);
+            promptArgs.Append("device");
+            promptArgs.AppendFormat(" --code {0} ", QuoteCmdArg(dcr.UserCode));
+            promptArgs.AppendFormat(" --url {0}", QuoteCmdArg(dcr.VerificationUri.ToString()));
+
+            return InvokeHelperAsync(command, promptArgs.ToString(), null, ct);
+        }
+
+        private async Task<OAuth2TokenResult> GetTokenByDeviceCodeViaTtyAsync(OAuth2Client client, OAuth2DeviceCodeResult dcr)
+        {
+            ThrowIfTerminalPromptsDisabled();
+
+            string deviceMessage =
+                $"To complete authentication please visit {dcr.VerificationUri} and enter the following code:" +
+                Environment.NewLine +
+                dcr.UserCode;
+            Context.Terminal.WriteLine(deviceMessage);
+
+            return await client.GetTokenByDeviceCodeAsync(dcr, CancellationToken.None);
         }
 
         private bool TryFindHelperCommand(out string command, out string args)
