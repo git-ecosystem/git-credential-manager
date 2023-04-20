@@ -41,7 +41,7 @@ namespace GitCredentialManager.UI.Controls
             if (_view is IFocusable focusable)
             {
                 // Send a focus request to the child view on idle
-                Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.ApplicationIdle, (Action)(() => focusable.SetFocus()));
+                System.Windows.Threading.Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.ApplicationIdle, (Action)(() => focusable.SetFocus()));
             }
         }
 
