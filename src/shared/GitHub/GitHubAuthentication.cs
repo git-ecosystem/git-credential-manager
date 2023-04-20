@@ -7,6 +7,9 @@ using System.Threading;
 using GitCredentialManager;
 using GitCredentialManager.Authentication;
 using GitCredentialManager.Authentication.OAuth;
+using GitCredentialManager.UI;
+using GitHub.UI.ViewModels;
+using GitHub.UI.Views;
 
 namespace GitHub
 {
@@ -86,13 +89,67 @@ namespace GitHub
 
             ThrowIfUserInteractionDisabled();
 
-            if (Context.Settings.IsGuiPromptsEnabled && Context.SessionManager.IsDesktopSession &&
-                TryFindHelperCommand(out string command, out string args))
+            if (Context.Settings.IsGuiPromptsEnabled && Context.SessionManager.IsDesktopSession)
             {
-                return await GetAuthenticationViaHelperAsync(targetUri, userName, modes, command, args);
+                if (TryFindHelperCommand(out string command, out string args))
+                {
+                    return await GetAuthenticationViaHelperAsync(targetUri, userName, modes, command, args);
+                }
+
+                return await GetAuthenticationViaUiAsync(targetUri, userName, modes);
             }
 
             return GetAuthenticationViaTty(targetUri, userName, modes);
+        }
+
+        private async Task<AuthenticationPromptResult> GetAuthenticationViaUiAsync(
+            Uri targetUri, string userName, AuthenticationModes modes)
+        {
+            var viewModel = new CredentialsViewModel(Context.Environment, Context.ProcessManager)
+            {
+                ShowBrowserLogin = (modes & AuthenticationModes.Browser) != 0,
+                ShowDeviceLogin  = (modes & AuthenticationModes.Device) != 0,
+                ShowTokenLogin   = (modes & AuthenticationModes.Pat) != 0,
+                ShowBasicLogin   = (modes & AuthenticationModes.Basic) != 0,
+            };
+
+            if (!GitHubHostProvider.IsGitHubDotCom(targetUri))
+            {
+                viewModel.EnterpriseUrl = targetUri.ToString();
+            }
+
+            if (!string.IsNullOrWhiteSpace(userName))
+            {
+                viewModel.UserName = userName;
+            }
+
+            await AvaloniaUi.ShowViewAsync<CredentialsView>(viewModel, GetParentWindowHandle(), CancellationToken.None);
+
+            ThrowIfWindowCancelled(viewModel);
+
+            switch (viewModel.SelectedMode)
+            {
+                case AuthenticationModes.Basic:
+                    return new AuthenticationPromptResult(
+                        AuthenticationModes.Basic,
+                        new GitCredential(viewModel.UserName, viewModel.Password)
+                    );
+
+                case AuthenticationModes.Browser:
+                    return new AuthenticationPromptResult(AuthenticationModes.Browser);
+
+                case AuthenticationModes.Device:
+                    return new AuthenticationPromptResult(AuthenticationModes.Device);
+
+                case AuthenticationModes.Pat:
+                    return new AuthenticationPromptResult(
+                        AuthenticationModes.Pat,
+                        new GitCredential(userName, viewModel.Password)
+                    );
+
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
 
         private AuthenticationPromptResult GetAuthenticationViaTty(Uri targetUri, string userName, AuthenticationModes modes)
@@ -229,13 +286,31 @@ namespace GitHub
         {
             ThrowIfUserInteractionDisabled();
 
-            if (Context.Settings.IsGuiPromptsEnabled && Context.SessionManager.IsDesktopSession &&
-                TryFindHelperCommand(out string command, out string args))
+            if (Context.Settings.IsGuiPromptsEnabled && Context.SessionManager.IsDesktopSession)
             {
-                return await GetTwoFactorCodeViaHelperAsync(isSms, args, command);
+                if (TryFindHelperCommand(out string command, out string args))
+                {
+                    return await GetTwoFactorCodeViaHelperAsync(isSms, args, command);
+                }
+
+                return await GetTwoFactorCodeViaUiAsync(targetUri, isSms);
             }
 
             return GetTwoFactorCodeViaTty(isSms);
+        }
+
+        private async Task<string> GetTwoFactorCodeViaUiAsync(Uri targetUri, bool isSms)
+        {
+            var viewModel = new TwoFactorViewModel(Context.Environment, Context.ProcessManager)
+            {
+                IsSms = isSms
+            };
+
+            await AvaloniaUi.ShowViewAsync<TwoFactorView>(viewModel, GetParentWindowHandle(), CancellationToken.None);
+            
+            ThrowIfWindowCancelled(viewModel);
+
+            return viewModel.Code;
         }
 
         private string GetTwoFactorCodeViaTty(bool isSms)
@@ -314,14 +389,15 @@ namespace GitHub
             OAuth2DeviceCodeResult dcr = await oauthClient.GetDeviceCodeAsync(scopes, CancellationToken.None);
 
             // If we have a desktop session show the device code in a dialog
-            if (Context.Settings.IsGuiPromptsEnabled && Context.SessionManager.IsDesktopSession &&
-                TryFindHelperCommand(out string command, out string args))
+            if (Context.Settings.IsGuiPromptsEnabled && Context.SessionManager.IsDesktopSession)
             {
                 var promptCts = new CancellationTokenSource();
                 var tokenCts = new CancellationTokenSource();
 
                 // Show the dialog with the device code but don't await its closure
-                Task promptTask = ShowDeviceCodeViaHelperAsync(dcr, command, args, promptCts.Token);
+                Task promptTask = TryFindHelperCommand(out string command, out string args)
+                    ? ShowDeviceCodeViaHelperAsync(dcr, command, args, promptCts.Token)
+                    : ShowDeviceCodeViaUiAsync(dcr, promptCts.Token);
 
                 // Start the request for an OAuth token but don't wait
                 Task<OAuth2TokenResult> tokenTask = oauthClient.GetTokenByDeviceCodeAsync(dcr, tokenCts.Token);
@@ -352,6 +428,17 @@ namespace GitHub
             }
 
             return await GetOAuthTokenViaDeviceCodeViaTtyAsync(oauthClient, dcr);
+        }
+
+        private Task ShowDeviceCodeViaUiAsync(OAuth2DeviceCodeResult dcr, CancellationToken ct)
+        {
+            var viewModel = new DeviceCodeViewModel(Context.Environment)
+            {
+                UserCode = dcr.UserCode,
+                VerificationUrl = dcr.VerificationUri.ToString(),
+            };
+
+            return AvaloniaUi.ShowViewAsync<DeviceCodeView>(viewModel, GetParentWindowHandle(), ct);
         }
 
         private async Task<OAuth2TokenResult> GetOAuthTokenViaDeviceCodeViaTtyAsync(GitHubOAuth2Client oauthClient, OAuth2DeviceCodeResult dcr)
