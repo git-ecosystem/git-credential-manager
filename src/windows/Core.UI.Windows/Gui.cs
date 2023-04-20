@@ -26,7 +26,7 @@ namespace GitCredentialManager.UI
         }
 
         /// <summary>
-        /// Present the user with a <see cref="DialogWindow"/>.
+        /// Present the user with a <see cref="WpfDialogWindow"/>.
         /// </summary>
         /// <returns>
         /// Returns `<see langword="true"/>` if the user completed the dialog and the view model is valid;
@@ -38,7 +38,7 @@ namespace GitCredentialManager.UI
         /// <param name="parentHwnd">Parent window handle.</param>
         public static Task ShowDialogWindow(WindowViewModel viewModel, Func<UserControl> contentCreator, IntPtr parentHwnd)
         {
-            return ShowWindow(() => new DialogWindow(contentCreator()) { DataContext = viewModel }, parentHwnd);
+            return ShowWindow(() => new WpfDialogWindow(contentCreator()) { DataContext = viewModel }, parentHwnd);
         }
 
         private static Task StartSTATask(Action action)

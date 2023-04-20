@@ -7,11 +7,11 @@ using GitCredentialManager.UI.ViewModels;
 
 namespace GitCredentialManager.UI.Controls
 {
-    public partial class DialogWindow : Window
+    public partial class WpfDialogWindow : Window
     {
         private readonly UserControl _view;
 
-        public DialogWindow(UserControl view)
+        public WpfDialogWindow(UserControl view)
         {
             InitializeComponent();
 

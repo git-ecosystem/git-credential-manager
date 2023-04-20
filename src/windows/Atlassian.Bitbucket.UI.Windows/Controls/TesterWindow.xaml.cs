@@ -31,7 +31,7 @@ namespace Atlassian.Bitbucket.UI.Controls
             }
 
             var view = new CredentialsView();
-            var window = new DialogWindow(view) { DataContext = vm };
+            var window = new WpfDialogWindow(view) { DataContext = vm };
             window.ShowDialog();
         }
     }

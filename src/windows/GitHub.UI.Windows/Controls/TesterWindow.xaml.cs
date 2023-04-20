@@ -31,7 +31,7 @@ namespace GitHub.UI.Controls
                 UserName = username.Text
             };
             var view = new CredentialsView();
-            var window = new DialogWindow(view) { DataContext = vm };
+            var window = new WpfDialogWindow(view) { DataContext = vm };
             window.ShowDialog();
         }
 
@@ -42,7 +42,7 @@ namespace GitHub.UI.Controls
                 IsSms = twoFaSms.IsChecked ?? false,
             };
             var view = new TwoFactorView();
-            var window = new DialogWindow(view) { DataContext = vm };
+            var window = new WpfDialogWindow(view) { DataContext = vm };
             window.ShowDialog();
         }
 
@@ -54,7 +54,7 @@ namespace GitHub.UI.Controls
                 VerificationUrl = verificationUrl.Text,
             };
             var view = new DeviceCodeView();
-            var window = new DialogWindow(view) { DataContext = vm };
+            var window = new WpfDialogWindow(view) { DataContext = vm };
             window.ShowDialog();
         }
     }

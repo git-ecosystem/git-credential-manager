@@ -47,7 +47,7 @@ namespace GitCredentialManager.UI.Controls
                 ShowProductHeader = showLogo.IsChecked ?? false
             };
             var view = new CredentialsView();
-            var window = new DialogWindow(view) {DataContext = vm};
+            var window = new WpfDialogWindow(view) {DataContext = vm};
             window.ShowDialog();
         }
 
@@ -62,7 +62,7 @@ namespace GitCredentialManager.UI.Controls
                 ShowProductHeader = oauthShowLogo.IsChecked ?? false
             };
             var view = new OAuthView();
-            var window = new DialogWindow(view) { DataContext = vm };
+            var window = new WpfDialogWindow(view) { DataContext = vm };
             window.ShowDialog();
         }
 
@@ -76,7 +76,7 @@ namespace GitCredentialManager.UI.Controls
                 ShowProductHeader = deviceShowLogo.IsChecked ?? false
             };
             var view = new DeviceCodeView();
-            var window = new DialogWindow(view) { DataContext = vm };
+            var window = new WpfDialogWindow(view) { DataContext = vm };
             window.ShowDialog();
         }
     }

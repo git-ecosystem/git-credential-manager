@@ -26,7 +26,7 @@ namespace GitLab.UI.Controls
                 UserName = username.Text
             };
             var view = new CredentialsView();
-            var window = new DialogWindow(view) { DataContext = vm };
+            var window = new WpfDialogWindow(view) { DataContext = vm };
             window.ShowDialog();
         }
     }
