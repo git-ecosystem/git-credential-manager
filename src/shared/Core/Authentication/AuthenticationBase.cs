@@ -147,8 +147,22 @@ namespace GitCredentialManager.Authentication
             }
             else
             {
-                Context.Trace.WriteLine($"Using default UI helper: '{defaultValue}'.");
-                helperName = defaultValue;
+                // Whilst we evaluate using the Avalonia/in-proc GUIs on Windows we include
+                // a 'fallback' flag that lets us continue to use the WPF out-of-proc helpers.
+                if (PlatformUtils.IsWindows() &&
+                    Context.Settings.TryGetSetting(
+                        Constants.EnvironmentVariables.GcmDevUseLegacyUiHelpers,
+                        Constants.GitConfiguration.Credential.SectionName,
+                        Constants.GitConfiguration.Credential.DevUseLegacyUiHelpers,
+                        out string str) && str.IsTruthy())
+                {
+                    Context.Trace.WriteLine($"Using default legacy UI helper: '{defaultValue}'.");
+                    helperName = defaultValue;
+                }
+                else
+                {
+                    return false;
+                }
             }
 
             //
