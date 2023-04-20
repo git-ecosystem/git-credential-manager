@@ -15,13 +15,6 @@
         ShowInTaskbar="True" ShowActivated="True"
         PointerPressed="Window_PointerPressed"
         KeyUp="Window_KeyUp">
-<!--
-    BUG: We cannot use the ExtendClientArea* properties on Windows because the platform implementation
-         incorrectly sets the size of the window and we end up with a very wide window:
-            https://github.com/AvaloniaUI/Avalonia/issues/5632
-
-         This is less of an issue because we're still using the WPF-based UI on Windows.
--->
     <Design.DataContext>
         <vm:WindowViewModel/>
     </Design.DataContext>
@@ -66,8 +59,8 @@
                 <TextBlock Text="DEBUG:" Margin="5,0" Foreground="#888888" VerticalAlignment="Center"/>
                 <CheckBox IsChecked="{Binding ExtendClientArea}"
                           Content="Extend Client Area" Margin="5,0"/>
-                <CheckBox IsChecked="{Binding ShowClientChromeOverride}"
-                          Content="Show Client Chrome" Margin="5,0"/>
+                <CheckBox IsChecked="{Binding ShowCustomChromeOverride}"
+                          Content="Show Custom Chrome" Margin="5,0"/>
             </StackPanel>
 
             <ContentControl x:Name="contentHolder" Margin="30,25,30,30"/>

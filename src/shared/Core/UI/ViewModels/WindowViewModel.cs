@@ -5,7 +5,7 @@ namespace GitCredentialManager.UI.ViewModels
     public class WindowViewModel : ViewModel
     {
         private bool _extendClientArea;
-        private bool _showClientChromeOverride;
+        private bool _showCustomChromeOverride;
         private bool _showDebugControls;
         private string _title;
 
@@ -16,8 +16,8 @@ namespace GitCredentialManager.UI.ViewModels
         {
             Title = Constants.DefaultWindowTitle;
             
-            // Default to hiding the system chrome on macOS only for now
-            ExtendClientArea = PlatformUtils.IsMacOS();
+            // Extend the client area on Windows and macOS only
+            ExtendClientArea = PlatformUtils.IsMacOS() || PlatformUtils.IsWindows();
         }
 
         public bool WindowResult { get; private set; }
@@ -30,15 +30,17 @@ namespace GitCredentialManager.UI.ViewModels
 
         public bool ShowCustomChrome
         {
-            get => ShowClientChromeOverride || (ExtendClientArea && !PlatformUtils.IsMacOS());
+            // On macOS we typically do NOT want to show the custom chrome if we've extended the client area
+            // because the native 'traffic light' controls will still be visible and we don't want to show our own.
+            get => ShowCustomChromeOverride || (ExtendClientArea && !PlatformUtils.IsMacOS());
         }
 
-        public bool ShowClientChromeOverride
+        public bool ShowCustomChromeOverride
         {
-            get => _showClientChromeOverride;
+            get => _showCustomChromeOverride;
             set
             {
-                SetAndRaisePropertyChanged(ref _showClientChromeOverride, value);
+                SetAndRaisePropertyChanged(ref _showCustomChromeOverride, value);
                 RaisePropertyChanged(nameof(ShowCustomChrome));
             }
         }
