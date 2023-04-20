@@ -70,131 +70,141 @@ namespace GitLab
             if (Context.Settings.IsGuiPromptsEnabled && Context.SessionManager.IsDesktopSession &&
                 TryFindHelperCommand(out string helperCommand, out string args))
             {
-                var promptArgs = new StringBuilder(args);
-                promptArgs.Append("prompt");
-                if (!string.IsNullOrWhiteSpace(userName))
-                {
-                    promptArgs.AppendFormat(" --username {0}", QuoteCmdArg(userName));
-                }
-
-                promptArgs.AppendFormat(" --url {0}", QuoteCmdArg(targetUri.ToString()));
-
-                if ((modes & AuthenticationModes.Basic) != 0)   promptArgs.Append(" --basic");
-                if ((modes & AuthenticationModes.Browser) != 0) promptArgs.Append(" --browser");
-                if ((modes & AuthenticationModes.Pat) != 0)     promptArgs.Append(" --pat");
-
-                IDictionary<string, string> resultDict = await InvokeHelperAsync(helperCommand, promptArgs.ToString());
-
-                if (!resultDict.TryGetValue("mode", out string responseMode))
-                {
-                    throw new Trace2Exception(Context.Trace2, "Missing 'mode' in response");
-                }
-
-                switch (responseMode.ToLowerInvariant())
-                {
-                    case "pat":
-                        if (!resultDict.TryGetValue("pat", out string pat))
-                        {
-                            throw new Trace2Exception(Context.Trace2, "Missing 'pat' in response");
-                        }
-
-                        if (!resultDict.TryGetValue("username", out string patUserName))
-                        {
-                            // Username is optional for PATs
-                        }
-
-                        return new AuthenticationPromptResult(
-                            AuthenticationModes.Pat, new GitCredential(patUserName, pat));
-
-                    case "browser":
-                        return new AuthenticationPromptResult(AuthenticationModes.Browser);
-
-                    case "basic":
-                        if (!resultDict.TryGetValue("username", out userName))
-                        {
-                            throw new Trace2Exception(Context.Trace2, "Missing 'username' in response");
-                        }
-
-                        if (!resultDict.TryGetValue("password", out string password))
-                        {
-                            throw new Trace2Exception(Context.Trace2, "Missing 'password' in response");
-                        }
-
-                        return new AuthenticationPromptResult(
-                            AuthenticationModes.Basic, new GitCredential(userName, password));
-
-                    default:
-                        throw new Trace2Exception(Context.Trace2,
-                            $"Unknown mode value in response '{responseMode}'");
-                }
+                return await GetAuthenticationViaHelperAsync(targetUri, userName, modes, helperCommand, args);
             }
-            else
+
+            return GetAuthenticationViaTty(targetUri, userName, modes);
+        }
+
+        private AuthenticationPromptResult GetAuthenticationViaTty(Uri targetUri, string userName, AuthenticationModes modes)
+        {
+            switch (modes)
             {
-                switch (modes)
-                {
-                    case AuthenticationModes.Basic:
-                        ThrowIfUserInteractionDisabled();
-                        ThrowIfTerminalPromptsDisabled();
-                        Context.Terminal.WriteLine("Enter GitLab credentials for '{0}'...", targetUri);
+                case AuthenticationModes.Basic:
+                    ThrowIfUserInteractionDisabled();
+                    ThrowIfTerminalPromptsDisabled();
+                    Context.Terminal.WriteLine("Enter GitLab credentials for '{0}'...", targetUri);
 
-                        if (string.IsNullOrWhiteSpace(userName))
-                        {
-                            userName = Context.Terminal.Prompt("Username");
-                        }
-                        else
-                        {
-                            Context.Terminal.WriteLine("Username: {0}", userName);
-                        }
+                    if (string.IsNullOrWhiteSpace(userName))
+                    {
+                        userName = Context.Terminal.Prompt("Username");
+                    }
+                    else
+                    {
+                        Context.Terminal.WriteLine("Username: {0}", userName);
+                    }
 
-                        string password = Context.Terminal.PromptSecret("Password");
-                        return new AuthenticationPromptResult(AuthenticationModes.Basic, new GitCredential(userName, password));
+                    string password = Context.Terminal.PromptSecret("Password");
+                    return new AuthenticationPromptResult(AuthenticationModes.Basic, new GitCredential(userName, password));
 
-                    case AuthenticationModes.Pat:
-                        ThrowIfUserInteractionDisabled();
-                        ThrowIfTerminalPromptsDisabled();
-                        Context.Terminal.WriteLine("Enter GitLab credentials for '{0}'...", targetUri);
+                case AuthenticationModes.Pat:
+                    ThrowIfUserInteractionDisabled();
+                    ThrowIfTerminalPromptsDisabled();
+                    Context.Terminal.WriteLine("Enter GitLab credentials for '{0}'...", targetUri);
 
-                        if (string.IsNullOrWhiteSpace(userName))
-                        {
-                            userName = Context.Terminal.Prompt("Username");
-                        }
-                        else
-                        {
-                            Context.Terminal.WriteLine("Username: {0}", userName);
-                        }
+                    if (string.IsNullOrWhiteSpace(userName))
+                    {
+                        userName = Context.Terminal.Prompt("Username");
+                    }
+                    else
+                    {
+                        Context.Terminal.WriteLine("Username: {0}", userName);
+                    }
 
-                        string token = Context.Terminal.PromptSecret("Personal access token");
-                        return new AuthenticationPromptResult(AuthenticationModes.Pat, new GitCredential(userName, token));
+                    string token = Context.Terminal.PromptSecret("Personal access token");
+                    return new AuthenticationPromptResult(AuthenticationModes.Pat, new GitCredential(userName, token));
 
-                    case AuthenticationModes.Browser:
-                        return new AuthenticationPromptResult(AuthenticationModes.Browser);
+                case AuthenticationModes.Browser:
+                    return new AuthenticationPromptResult(AuthenticationModes.Browser);
 
-                    case AuthenticationModes.None:
-                        throw new ArgumentOutOfRangeException(nameof(modes), @$"At least one {nameof(AuthenticationModes)} must be supplied");
+                case AuthenticationModes.None:
+                    throw new ArgumentOutOfRangeException(nameof(modes),
+                        @$"At least one {nameof(AuthenticationModes)} must be supplied");
 
-                    default:
-                        ThrowIfUserInteractionDisabled();
-                        ThrowIfTerminalPromptsDisabled();
-                        var menuTitle = $"Select an authentication method for '{targetUri}'";
-                        var menu = new TerminalMenu(Context.Terminal, menuTitle);
+                default:
+                    ThrowIfUserInteractionDisabled();
+                    ThrowIfTerminalPromptsDisabled();
+                    var menuTitle = $"Select an authentication method for '{targetUri}'";
+                    var menu = new TerminalMenu(Context.Terminal, menuTitle);
 
-                        TerminalMenuItem browserItem = null;
-                        TerminalMenuItem basicItem = null;
-                        TerminalMenuItem patItem = null;
+                    TerminalMenuItem browserItem = null;
+                    TerminalMenuItem basicItem = null;
+                    TerminalMenuItem patItem = null;
 
-                        if ((modes & AuthenticationModes.Browser) != 0) browserItem = menu.Add("Web browser");
-                        if ((modes & AuthenticationModes.Pat) != 0) patItem = menu.Add("Personal access token");
-                        if ((modes & AuthenticationModes.Basic) != 0) basicItem = menu.Add("Username/password");
+                    if ((modes & AuthenticationModes.Browser) != 0) browserItem = menu.Add("Web browser");
+                    if ((modes & AuthenticationModes.Pat) != 0) patItem = menu.Add("Personal access token");
+                    if ((modes & AuthenticationModes.Basic) != 0) basicItem = menu.Add("Username/password");
 
-                        // Default to the 'first' choice in the menu
-                        TerminalMenuItem choice = menu.Show(0);
+                    // Default to the 'first' choice in the menu
+                    TerminalMenuItem choice = menu.Show(0);
 
-                        if (choice == browserItem) goto case AuthenticationModes.Browser;
-                        if (choice == basicItem) goto case AuthenticationModes.Basic;
-                        if (choice == patItem) goto case AuthenticationModes.Pat;
+                    if (choice == browserItem) goto case AuthenticationModes.Browser;
+                    if (choice == basicItem) goto case AuthenticationModes.Basic;
+                    if (choice == patItem) goto case AuthenticationModes.Pat;
 
-                        throw new Exception();
-                }
+                    throw new Exception();
+            }
+        }
+
+        private async Task<AuthenticationPromptResult> GetAuthenticationViaHelperAsync(
+            Uri targetUri, string userName, AuthenticationModes modes, string helperCommand, string args)
+        {
+            var promptArgs = new StringBuilder(args);
+            promptArgs.Append("prompt");
+            if (!string.IsNullOrWhiteSpace(userName))
+            {
+                promptArgs.AppendFormat(" --username {0}", QuoteCmdArg(userName));
+            }
+
+            promptArgs.AppendFormat(" --url {0}", QuoteCmdArg(targetUri.ToString()));
+
+            if ((modes & AuthenticationModes.Basic) != 0) promptArgs.Append(" --basic");
+            if ((modes & AuthenticationModes.Browser) != 0) promptArgs.Append(" --browser");
+            if ((modes & AuthenticationModes.Pat) != 0) promptArgs.Append(" --pat");
+
+            IDictionary<string, string> resultDict = await InvokeHelperAsync(helperCommand, promptArgs.ToString());
+
+            if (!resultDict.TryGetValue("mode", out string responseMode))
+            {
+                throw new Trace2Exception(Context.Trace2, "Missing 'mode' in response");
+            }
+
+            switch (responseMode.ToLowerInvariant())
+            {
+                case "pat":
+                    if (!resultDict.TryGetValue("pat", out string pat))
+                    {
+                        throw new Trace2Exception(Context.Trace2, "Missing 'pat' in response");
+                    }
+
+                    if (!resultDict.TryGetValue("username", out string patUserName))
+                    {
+                        // Username is optional for PATs
+                    }
+
+                    return new AuthenticationPromptResult(
+                        AuthenticationModes.Pat, new GitCredential(patUserName, pat));
+
+                case "browser":
+                    return new AuthenticationPromptResult(AuthenticationModes.Browser);
+
+                case "basic":
+                    if (!resultDict.TryGetValue("username", out userName))
+                    {
+                        throw new Trace2Exception(Context.Trace2, "Missing 'username' in response");
+                    }
+
+                    if (!resultDict.TryGetValue("password", out string password))
+                    {
+                        throw new Trace2Exception(Context.Trace2, "Missing 'password' in response");
+                    }
+
+                    return new AuthenticationPromptResult(
+                        AuthenticationModes.Basic, new GitCredential(userName, password));
+
+                default:
+                    throw new Trace2Exception(Context.Trace2,
+                        $"Unknown mode value in response '{responseMode}'");
             }
         }
 
