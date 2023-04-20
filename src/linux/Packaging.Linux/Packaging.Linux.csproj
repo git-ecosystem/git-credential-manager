@@ -17,7 +17,6 @@
 
   <ItemGroup>
     <ProjectReference Include="../../shared/Git-Credential-Manager/Git-Credential-Manager.csproj" ReferenceOutputAssembly="false" />
-    <ProjectReference Include="../../shared/GitLab.UI.Avalonia/GitLab.UI.Avalonia.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <!-- Implicit SDK targets import (so we can override the default targets below) -->

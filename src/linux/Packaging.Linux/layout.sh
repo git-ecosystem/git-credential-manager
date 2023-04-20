@@ -35,7 +35,6 @@ ROOT="$( cd "$THISDIR"/../../.. ; pwd -P )"
 SRC="$ROOT/src"
 OUT="$ROOT/out"
 GCM_SRC="$SRC/shared/Git-Credential-Manager"
-GITLAB_UI_SRC="$SRC/shared/GitLab.UI.Avalonia"
 PROJ_OUT="$OUT/linux/Packaging.Linux"
 
 # Build parameters
@@ -75,15 +74,6 @@ $DOTNET_ROOT/dotnet publish "$GCM_SRC" \
 	--framework="$FRAMEWORK" \
 	--runtime="$RUNTIME" \
 	--self-contained \
-	-p:PublishSingleFile=true \
-	--output="$(make_absolute "$PAYLOAD")" || exit 1
-
-echo "Publishing GitLab UI helper..."
-$DOTNET_ROOT/dotnet publish "$GITLAB_UI_SRC" \
-	--configuration="$CONFIGURATION" \
-	--framework="$FRAMEWORK" \
-	--runtime="$RUNTIME" \
-	--self-contained=true \
 	-p:PublishSingleFile=true \
 	--output="$(make_absolute "$PAYLOAD")" || exit 1
 

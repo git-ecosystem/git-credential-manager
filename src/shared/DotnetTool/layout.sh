@@ -33,7 +33,6 @@ ROOT="$( cd "$THISDIR"/../../.. ; pwd -P )"
 SRC="$ROOT/src"
 OUT="$ROOT/out"
 GCM_SRC="$SRC/shared/Git-Credential-Manager"
-GITLAB_UI_SRC="$SRC/shared/GitLab.UI.Avalonia"
 DOTNET_TOOL="shared/DotnetTool"
 PROJ_OUT="$OUT/$DOTNET_TOOL"
 
@@ -64,13 +63,6 @@ fi
 # Publish core application executables
 echo "Publishing core application..."
 $DOTNET_ROOT/dotnet publish "$GCM_SRC" \
-    --configuration="$CONFIGURATION" \
-    --framework="$FRAMEWORK" \
-    --output="$(make_absolute "$PAYLOAD")" \
-    -p:UseAppHost=false || exit 1
-
-echo "Publishing GitLab UI helper..."
-$DOTNET_ROOT/dotnet publish "$GITLAB_UI_SRC" \
     --configuration="$CONFIGURATION" \
     --framework="$FRAMEWORK" \
     --output="$(make_absolute "$PAYLOAD")" \

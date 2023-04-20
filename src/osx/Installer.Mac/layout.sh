@@ -22,7 +22,6 @@ OUT="$ROOT/out"
 INSTALLER_SRC="$SRC/osx/Installer.Mac"
 GCM_SRC="$SRC/shared/Git-Credential-Manager"
 GCM_UI_SRC="$SRC/shared/Git-Credential-Manager.UI.Avalonia"
-GITLAB_UI_SRC="$SRC/shared/GitLab.UI.Avalonia"
 
 # Build parameters
 FRAMEWORK=net6.0
@@ -95,14 +94,6 @@ cp "$INSTALLER_SRC/uninstall.sh" "$PAYLOAD" || exit 1
 # Publish core application executables
 echo "Publishing core application..."
 dotnet publish "$GCM_SRC" \
-	--configuration="$CONFIGURATION" \
-	--framework="$FRAMEWORK" \
-	--runtime="$RUNTIME" \
-	--self-contained \
-	--output="$(make_absolute "$PAYLOAD")" || exit 1
-
-echo "Publishing GitLab UI helper..."
-dotnet publish "$GITLAB_UI_SRC" \
 	--configuration="$CONFIGURATION" \
 	--framework="$FRAMEWORK" \
 	--runtime="$RUNTIME" \

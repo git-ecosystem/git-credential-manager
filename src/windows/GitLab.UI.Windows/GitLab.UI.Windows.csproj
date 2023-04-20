@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\shared\GitLab.UI\GitLab.UI.csproj" />
+    <ProjectReference Include="..\..\shared\GitLab\GitLab.csproj" />
     <ProjectReference Include="..\Core.UI.Windows\Core.UI.Windows.csproj" />
   </ItemGroup>
   
