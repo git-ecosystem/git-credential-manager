@@ -5,6 +5,7 @@ namespace GitCredentialManager
 {
     public static class Constants
     {
+        public const string DefaultWindowTitle = "Git Credential Manager";
         public const string PersonalAccessTokenUserName = "PersonalAccessToken";
         public const string DefaultCredentialNamespace = "git";
         public const int DefaultAutoDetectProviderTimeoutMs = 2000; // 2 seconds

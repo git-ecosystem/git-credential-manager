@@ -50,9 +50,10 @@ namespace GitCredentialManager.UI.Commands
         {
             var viewModel = new OAuthViewModel();
 
-            viewModel.Title = !string.IsNullOrWhiteSpace(options.Title)
-                ? options.Title
-                : "Git Credential Manager";
+            if (!string.IsNullOrWhiteSpace(options.Title))
+            {
+                viewModel.Title = options.Title;
+            }
 
             viewModel.Description = !string.IsNullOrWhiteSpace(options.Resource)
                 ? $"Sign in to '{options.Resource}'"

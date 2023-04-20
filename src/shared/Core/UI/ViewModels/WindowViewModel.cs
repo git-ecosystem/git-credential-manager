@@ -14,6 +14,8 @@ namespace GitCredentialManager.UI.ViewModels
 
         public WindowViewModel()
         {
+            Title = Constants.DefaultWindowTitle;
+            
             // Default to hiding the system chrome on macOS only for now
             ExtendClientArea = PlatformUtils.IsMacOS();
         }
