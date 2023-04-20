@@ -4,9 +4,12 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Atlassian.Bitbucket.UI.ViewModels;
+using Atlassian.Bitbucket.UI.Views;
 using GitCredentialManager;
 using GitCredentialManager.Authentication;
 using GitCredentialManager.Authentication.OAuth;
+using GitCredentialManager.UI;
 
 namespace Atlassian.Bitbucket
 {
@@ -89,13 +92,49 @@ namespace Atlassian.Bitbucket
             }
 
             // Shell out to the UI helper and show the Bitbucket u/p prompt
-            if (Context.Settings.IsGuiPromptsEnabled && Context.SessionManager.IsDesktopSession &&
-                TryFindHelperCommand(out string helperCommand, out string args))
+            if (Context.Settings.IsGuiPromptsEnabled && Context.SessionManager.IsDesktopSession)
             {
-                return await GetCredentialsViaHelperAsync(targetUri, userName, modes, helperCommand, args);
+                if (TryFindHelperCommand(out string helperCommand, out string args))
+                {
+                    return await GetCredentialsViaHelperAsync(targetUri, userName, modes, helperCommand, args);
+                }
+
+                return await GetCredentialsViaUiAsync(targetUri, userName, modes);
             }
 
             return GetCredentialsViaTty(targetUri, userName, modes);
+        }
+
+        private async Task<CredentialsPromptResult> GetCredentialsViaUiAsync(
+            Uri targetUri, string userName, AuthenticationModes modes)
+        {
+            var viewModel = new CredentialsViewModel(Context.Environment)
+            {
+                Url = targetUri,
+                UserName = userName,
+                ShowOAuth = (modes & AuthenticationModes.OAuth) != 0,
+                ShowBasic = (modes & AuthenticationModes.Basic) != 0
+            };
+
+            await AvaloniaUi.ShowViewAsync<CredentialsView>(viewModel, GetParentWindowHandle(), CancellationToken.None);
+
+            ThrowIfWindowCancelled(viewModel);
+
+            switch (viewModel.SelectedMode)
+            {
+                case AuthenticationModes.OAuth:
+                    return new CredentialsPromptResult(AuthenticationModes.OAuth);
+
+                case AuthenticationModes.Basic:
+                    return new CredentialsPromptResult(
+                        AuthenticationModes.Basic,
+                        new GitCredential(viewModel.UserName, viewModel.Password)
+                        );
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(AuthenticationModes),
+                        "Unknown authentication mode", viewModel.SelectedMode.ToString());
+            }
         }
 
         private CredentialsPromptResult GetCredentialsViaTty(Uri targetUri, string userName, AuthenticationModes modes)
