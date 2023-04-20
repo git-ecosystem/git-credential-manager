@@ -103,14 +103,6 @@ dotnet publish "$GCM_SRC" \
 	--self-contained \
 	--output="$(make_absolute "$PAYLOAD")" || exit 1
 
-echo "Publishing core UI helper..."
-dotnet publish "$GCM_UI_SRC" \
-	--configuration="$CONFIGURATION" \
-	--framework="$FRAMEWORK" \
-	--runtime="$RUNTIME" \
-	--self-contained \
-	--output="$(make_absolute "$PAYLOAD")" || exit 1
-
 echo "Publishing Bitbucket UI helper..."
 dotnet publish "$BITBUCKET_UI_SRC" \
 	--configuration="$CONFIGURATION" \
