@@ -4,13 +4,13 @@
              Name="Git Credential Manager">
     <Application.Styles>
         <FluentTheme Mode="Light"/>
-        <StyleInclude Source="avares://gcmcoreuiavn/Assets/Controls.axaml"/>
+        <StyleInclude Source="avares://gcmcore/UI/Assets/Controls.axaml"/>
     </Application.Styles>
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceInclude Source="avares://gcmcoreuiavn/Assets/LightBase.axaml"/>
-                <ResourceInclude Source="avares://gcmcoreuiavn/Assets/Images.axaml"/>
+                <ResourceInclude Source="avares://gcmcore/UI/Assets/LightBase.axaml"/>
+                <ResourceInclude Source="avares://gcmcore/UI/Assets/Images.axaml"/>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>

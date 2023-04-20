@@ -9,7 +9,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Atlassian.Bitbucket\Atlassian.Bitbucket.csproj" />
-    <ProjectReference Include="..\Core.UI\Core.UI.csproj" />
   </ItemGroup>
 
 </Project>

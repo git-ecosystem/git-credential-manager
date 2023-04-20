@@ -10,7 +10,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\GitLab.UI\GitLab.UI.csproj" />
-    <ProjectReference Include="..\Core.UI.Avalonia\Core.UI.Avalonia.csproj" />
   </ItemGroup>
 
   <ItemGroup>

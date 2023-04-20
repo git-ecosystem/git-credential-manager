@@ -8,7 +8,7 @@
         CanResize="False" Width="300" SizeToContent="Height"
         Background="#F6F6F6">
     <Window.Styles>
-        <StyleInclude Source="avares://gcmcoreuiavn/Assets/Controls.axaml"/>
+        <StyleInclude Source="avares://gcmcore/UI/Assets/Controls.axaml"/>
     </Window.Styles>
     <StackPanel Margin="20">
         <Image HorizontalAlignment="Center"
