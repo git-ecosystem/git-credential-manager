@@ -35,6 +35,12 @@ namespace GitCredentialManager.UI.ViewModels
             get => ShowCustomChromeOverride || (ExtendClientArea && !PlatformUtils.IsMacOS());
         }
 
+        public bool ShowCustomWindowBorder
+        {
+            // Draw the window border explicitly on Windows
+            get => ShowCustomChrome && PlatformUtils.IsWindows();
+        }
+
         public bool ShowCustomChromeOverride
         {
             get => _showCustomChromeOverride;
@@ -42,6 +48,7 @@ namespace GitCredentialManager.UI.ViewModels
             {
                 SetAndRaisePropertyChanged(ref _showCustomChromeOverride, value);
                 RaisePropertyChanged(nameof(ShowCustomChrome));
+                RaisePropertyChanged(nameof(ShowCustomWindowBorder));
             }
         }
 
@@ -52,6 +59,7 @@ namespace GitCredentialManager.UI.ViewModels
             {
                 SetAndRaisePropertyChanged(ref _extendClientArea, value);
                 RaisePropertyChanged(nameof(ShowCustomChrome));
+                RaisePropertyChanged(nameof(ShowCustomWindowBorder));
             }
         }
 

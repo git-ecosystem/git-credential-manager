@@ -18,7 +18,8 @@
     <Design.DataContext>
         <vm:WindowViewModel/>
     </Design.DataContext>
-    <Border>
+    <Border BorderBrush="{DynamicResource DialogWindowBorderBrush}"
+            BorderThickness="{Binding ShowCustomWindowBorder, Converter={x:Static converters:BoolConvertersEx.ToThickness}}">
         <DockPanel>
             <DockPanel DockPanel.Dock="Top" HorizontalAlignment="Stretch" Margin="0"
                        IsVisible="{Binding ShowCustomChrome}">
