@@ -54,59 +54,11 @@ i.e. using a key such as `git:https://mminns@bitbucket.org/` rather than
 GCM can support multiple accounts, and usernames,  for a single user against
 Bitbucket, e.g. a personal account and a work account.
 
-## Authentication User Experience
-
-When the GCM is triggered by Git, the GCM will check the `host` parameter passed
-to it. If it contains `bitbucket.org` it will trigger the Bitbucket related
-processes.
-
-### Basic Authentication
-
-If the GCM needs to prompt the user for credentials they will always be shown an
-initial dialog where they can enter a username and password. If the `username`
-parameter was passed into the GCM it is used to pre-populate the username field,
-although it can be overridden. When username and password credentials are
-submitted the GCM will use them to attempt to retrieve a token, for Basic
-Authentication this token is in effect the password the user just entered. The
-GCM retrieves this `token` by checking the password can be used to successfully
-retrieve the User profile via the Bitbucket REST API.
-
-If the username and password credentials sent as Basic Authentication
-credentials works, then the password is identified as the token. The
-credentials, the username and the password/token, are then stored and the values
-returned to Git.
-
-If the request for the User profile via the REST API fails with a 401 return
-code it indicates the username/password combination is invalid, nothing is
-stored and nothing is returned to Git.
-
-However if the request fails with a 403 (Forbidden) return code, this indicates
-that the username and password are valid but 2FA is enabled on the Bitbucket
-Account. When this occurs the user it prompted to complete the OAuth
-authentication process.
-
-### OAuth
-
-OAuth authentication prompts the User with a new dialog where they can trigger
-OAuth authentication. This involves opening a browser request to `_https://bitbucket.org/site/oauth2/authorize?response_type=code&client_id={consumerkey}&state=authenticated&scope={scopes}&redirect_uri=http://localhost:34106/_`.
-This will trigger a flow on Bitbucket where the user must login, potentially
-including a 2FA prompt, and authorize the GCM to access Bitbucket with the
-specified scopes. The GCM will spawn a temporary, local webserver, listening on
-port 34106, to handle the OAuth redirect/callback. Assuming the user
-successfully logins into Bitbucket and authorizes the GCM this callback will
-include the Access and Refresh Tokens.
-
-The Access and Refresh Tokens will be stored against the username and the
-username/Access Token credentials returned to Git.
-
 ## On-Premise Bitbucket
 
 On-premise Bitbucket, more correctly known as Bitbucket Server or Bitbucket DC,
 has a number of differences compared to the cloud instance of Bitbucket,
 [bitbucket.org][bitbucket].
-
-As far as GCMC is concerned the main difference it doesn't support OAuth so only
-Basic Authentication is available.
 
 It is possible to test with Bitbucket Server by running it locally using the
 following command from the Atlassian SDK:
