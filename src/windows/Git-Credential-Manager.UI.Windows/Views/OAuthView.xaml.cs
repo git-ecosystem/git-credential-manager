@@ -1,8 +1,6 @@
-using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
 
-namespace GitCredentialManager.UI.Views
+namespace GitCredentialManager.UI.Windows.Views
 {
     public partial class OAuthView : UserControl
     {

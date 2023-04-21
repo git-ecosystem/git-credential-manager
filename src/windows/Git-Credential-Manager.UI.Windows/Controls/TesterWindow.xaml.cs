@@ -1,13 +1,12 @@
 using System.Windows;
-using GitCredentialManager.UI.ViewModels;
-using GitCredentialManager.UI.Views;
 using GitCredentialManager.Interop.Linux;
 using GitCredentialManager.Interop.MacOS;
 using GitCredentialManager.Interop.Posix;
 using GitCredentialManager.Interop.Windows;
-using GitCredentialManager.UI.Controls;
+using GitCredentialManager.UI.ViewModels;
+using GitCredentialManager.UI.Windows.Views;
 
-namespace GitCredentialManager.UI.Controls
+namespace GitCredentialManager.UI.Windows.Controls
 {
     public partial class TesterWindow : Window
     {

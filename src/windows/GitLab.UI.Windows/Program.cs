@@ -1,12 +1,12 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Threading.Tasks;
-using GitLab.UI.Commands;
-using GitLab.UI.Controls;
 using GitCredentialManager;
 using GitCredentialManager.UI;
+using GitCredentialManager.UI.Windows;
+using GitLab.UI.Windows.Commands;
+using GitLab.UI.Windows.Controls;
 
-namespace GitLab.UI
+namespace GitLab.UI.Windows
 {
     public static class Program
     {

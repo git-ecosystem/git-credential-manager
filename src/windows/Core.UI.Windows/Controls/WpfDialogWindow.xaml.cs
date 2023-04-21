@@ -3,9 +3,10 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
+using GitCredentialManager.UI.Controls;
 using GitCredentialManager.UI.ViewModels;
 
-namespace GitCredentialManager.UI.Controls
+namespace GitCredentialManager.UI.Windows.Controls
 {
     public partial class WpfDialogWindow : Window
     {

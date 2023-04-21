@@ -3,7 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Threading;
 using GitCredentialManager.UI.Controls;
 
-namespace GitHub.UI.Views
+namespace GitHub.UI.Windows.Views
 {
     public partial class TwoFactorView : UserControl, IFocusable
     {

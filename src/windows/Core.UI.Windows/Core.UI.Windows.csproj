@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
     <UseWPF>true</UseWPF>
-    <RootNamespace>GitCredentialManager.UI</RootNamespace>
+    <RootNamespace>GitCredentialManager.UI.Windows</RootNamespace>
     <AssemblyName>gcmcoreuiwpf</AssemblyName>
   </PropertyGroup>
 

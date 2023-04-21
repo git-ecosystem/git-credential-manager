@@ -1,12 +1,12 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Threading.Tasks;
-using Atlassian.Bitbucket.UI.Commands;
-using Atlassian.Bitbucket.UI.Controls;
+using Atlassian.Bitbucket.UI.Windows.Commands;
+using Atlassian.Bitbucket.UI.Windows.Controls;
 using GitCredentialManager;
 using GitCredentialManager.UI;
+using GitCredentialManager.UI.Windows;
 
-namespace Atlassian.Bitbucket.UI
+namespace Atlassian.Bitbucket.UI.Windows
 {
     public static class Program
     {

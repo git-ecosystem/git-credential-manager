@@ -1,10 +1,10 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using GitHub.UI.ViewModels;
 using GitCredentialManager.UI.Controls;
+using GitHub.UI.ViewModels;
 
-namespace GitHub.UI.Views
+namespace GitHub.UI.Windows.Views
 {
     public partial class CredentialsView : UserControl, IFocusable
     {

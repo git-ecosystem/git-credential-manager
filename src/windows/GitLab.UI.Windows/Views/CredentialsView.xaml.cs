@@ -2,10 +2,10 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using GitLab.UI.ViewModels;
 using GitCredentialManager.UI.Controls;
+using GitLab.UI.ViewModels;
 
-namespace GitLab.UI.Views
+namespace GitLab.UI.Windows.Views
 {
     public partial class CredentialsView : UserControl, IFocusable
     {

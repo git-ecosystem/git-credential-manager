@@ -4,10 +4,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using GitCredentialManager.UI.Controls;
 using GitCredentialManager.UI.ViewModels;
+using GitCredentialManager.UI.Windows.Controls;
 
-namespace GitCredentialManager.UI
+namespace GitCredentialManager.UI.Windows
 {
     public static class Gui
     {

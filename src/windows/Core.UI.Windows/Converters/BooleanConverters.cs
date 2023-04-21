@@ -4,7 +4,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Data;
 
-namespace GitCredentialManager.UI.Converters
+namespace GitCredentialManager.UI.Windows.Converters
 {
     [ValueConversion(typeof(bool), typeof(bool))]
     public class BooleanNotConverter : IValueConverter

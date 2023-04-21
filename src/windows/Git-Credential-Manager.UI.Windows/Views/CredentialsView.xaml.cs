@@ -3,7 +3,7 @@ using System.Windows.Input;
 using GitCredentialManager.UI.Controls;
 using GitCredentialManager.UI.ViewModels;
 
-namespace GitCredentialManager.UI.Views
+namespace GitCredentialManager.UI.Windows.Views
 {
     public partial class CredentialsView : UserControl, IFocusable
     {

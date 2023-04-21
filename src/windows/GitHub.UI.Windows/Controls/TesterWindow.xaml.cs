@@ -1,11 +1,12 @@
 using System.Windows;
 using GitCredentialManager;
-using GitHub.UI.ViewModels;
-using GitHub.UI.Views;
 using GitCredentialManager.Interop.Windows;
 using GitCredentialManager.UI.Controls;
+using GitCredentialManager.UI.Windows.Controls;
+using GitHub.UI.ViewModels;
+using GitHub.UI.Windows.Views;
 
-namespace GitHub.UI.Controls
+namespace GitHub.UI.Windows.Controls
 {
     public partial class TesterWindow : Window
     {
