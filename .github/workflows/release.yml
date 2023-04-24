@@ -14,9 +14,7 @@ jobs:
       matrix:
         runtime: [ osx-x64, osx-arm64 ]
     steps:
-    - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
-      with:
-        fetch-depth: 0 # Indicate full history so Nerdbank.GitVersioning works.
+    - uses: actions/checkout@v3
 
     - name: Set up dotnet
       uses: actions/setup-dotnet@v3.0.3
@@ -77,8 +75,7 @@ jobs:
         runtime: [ osx-x64, osx-arm64 ]
     needs: osx-build
     steps:
-    - name: Check out repository
-      uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+    - uses: actions/checkout@v3
 
     - name: Download payload
       uses: actions/download-artifact@v3
@@ -137,10 +134,7 @@ jobs:
         runtime: [ osx-x64, osx-arm64 ]
     needs: osx-payload-sign
     steps:
-    - name: Check out repository
-      uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
-      with:
-        fetch-depth: 0 # Indicate full history so Nerdbank.GitVersioning works.
+    - uses: actions/checkout@v3
 
     - name: Set version environment variable
       run: echo "VERSION=$(cat VERSION | sed -E 's/.[0-9]+$//')" >> $GITHUB_ENV
@@ -183,8 +177,7 @@ jobs:
         runtime: [ osx-x64, osx-arm64 ]
     needs: osx-pack
     steps:
-    - name: Check out repository
-      uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+    - uses: actions/checkout@v3
 
     - name: Download unsigned package
       uses: actions/download-artifact@v3
@@ -250,9 +243,7 @@ jobs:
     name: Build and Sign Windows
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
-      with:
-        fetch-depth: 0 # Indicate full history so Nerdbank.GitVersioning works.
+    - uses: actions/checkout@v3
 
     - name: Set up dotnet
       uses: actions/setup-dotnet@v3.0.3
@@ -353,9 +344,7 @@ jobs:
     name: Build Linux
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
-      with:
-        fetch-depth: 0 # Indicate full history so Nerdbank.GitVersioning works.
+    - uses: actions/checkout@v3
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v3.0.3
@@ -387,7 +376,7 @@ jobs:
     # ESRP service requires signing to run on Windows
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+    - uses: actions/checkout@v3
 
     - name: Download artifacts
       uses: actions/download-artifact@v3
@@ -442,8 +431,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-      with:
-        fetch-depth: 0 # Indicate full history so Nerdbank.GitVersioning works.
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v3.0.3
@@ -467,8 +454,7 @@ jobs:
     runs-on: windows-latest
     needs: dotnet-tool-build
     steps:
-    - name: Check out repository
-      uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+    - uses: actions/checkout@v3
 
     - name: Download payload
       uses: actions/download-artifact@v3
@@ -531,8 +517,6 @@ jobs:
       run: echo "VERSION=$(cat VERSION | sed -E 's/.[0-9]+$//')" >> $GITHUB_ENV
 
     - uses: actions/checkout@v3
-      with:
-        fetch-depth: 0 # Indicate full history so Nerdbank.GitVersioning works.
 
     - name: Download signed payload
       uses: actions/download-artifact@v3
@@ -563,8 +547,7 @@ jobs:
     runs-on: windows-latest
     needs: dotnet-tool-pack
     steps:
-    - name: Check out repository
-      uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+    - uses: actions/checkout@v3
 
     - name: Download unsigned package
       uses: actions/download-artifact@v3
@@ -648,9 +631,7 @@ jobs:
     runs-on: ${{ matrix.component.os }}
     needs: [ osx-sign, win-sign, linux-sign, dotnet-tool-sign ]
     steps:
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
-        with:
-          fetch-depth: 0 # Indicate full history so Nerdbank.GitVersioning works.
+      - uses: actions/checkout@v3
 
       - name: Download artifacts
         uses: actions/download-artifact@v3
@@ -711,10 +692,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [ validate ]
     steps:
-      - name: Check out repository
-        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
-        with:
-          fetch-depth: 0 # Indicate full history so Nerdbank.GitVersioning works.
+      - uses: actions/checkout@v3
 
       - name: Set version environment variable
         run: |

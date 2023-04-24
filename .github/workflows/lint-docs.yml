@@ -18,7 +18,7 @@ jobs:
     name: Lint markdown files
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+      - uses: actions/checkout@v3
 
       - uses: DavidAnson/markdownlint-cli2-action@cdfad95cc96588c74b62ad2d3f2e1772090099ac
         with:
@@ -30,7 +30,7 @@ jobs:
     name: Check for broken links
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+      - uses: actions/checkout@v3
 
       - name: Run link checker
         # For any troubleshooting, see:
