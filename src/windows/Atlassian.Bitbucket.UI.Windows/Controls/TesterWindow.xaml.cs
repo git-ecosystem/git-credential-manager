@@ -1,11 +1,11 @@
 using System;
 using System.Windows;
 using Atlassian.Bitbucket.UI.ViewModels;
-using Atlassian.Bitbucket.UI.Views;
+using Atlassian.Bitbucket.UI.Windows.Views;
 using GitCredentialManager.Interop.Windows;
-using GitCredentialManager.UI.Controls;
+using GitCredentialManager.UI.Windows.Controls;
 
-namespace Atlassian.Bitbucket.UI.Controls
+namespace Atlassian.Bitbucket.UI.Windows.Controls
 {
     public partial class TesterWindow : Window
     {
@@ -31,7 +31,7 @@ namespace Atlassian.Bitbucket.UI.Controls
             }
 
             var view = new CredentialsView();
-            var window = new DialogWindow(view) { DataContext = vm };
+            var window = new WpfDialogWindow(view) { DataContext = vm };
             window.ShowDialog();
         }
     }

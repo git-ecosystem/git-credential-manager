@@ -1,0 +1,44 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:sharedVms="clr-namespace:GitCredentialManager.UI.ViewModels;assembly=gcmcore"
+             mc:Ignorable="d" d:DesignWidth="420"
+             x:Class="GitCredentialManager.UI.Views.DeviceCodeView">
+    <Design.DataContext>
+        <sharedVms:DeviceCodeViewModel/>
+    </Design.DataContext>
+    <DockPanel>
+        <StackPanel DockPanel.Dock="Top" Margin="0,0,0,15">
+            <StackPanel Margin="0"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Center"
+                        IsVisible="{Binding ShowProductHeader}">
+                <Image Margin="0,0,10,0"
+                       VerticalAlignment="Center"
+                       Source="{DynamicResource GcmLogo}"
+                       Width="32" Height="32" />
+                <TextBlock Text="Git Credential Manager"
+                           VerticalAlignment="Center"
+                           FontSize="18"
+                           FontWeight="Light"/>
+            </StackPanel>
+        </StackPanel>
+
+        <StackPanel Orientation="Vertical" VerticalAlignment="Center">
+            <TextBlock Text="Visit the URL below, sign in, and enter the following device code to continue."
+                       Margin="0,0,0,20"
+                       TextWrapping="Wrap" TextAlignment="Center"/>
+            <TextBox Text="{Binding UserCode}"
+                     Margin="0,0,0,20"
+                     HorizontalAlignment="Center"
+                     FontSize="24"
+                     TextAlignment="Center"
+                     Classes="label monospace"/>
+            <Button Content="{Binding VerificationUrl}"
+                    Command="{Binding VerificationUrlCommand}"
+                    HorizontalAlignment="Center"
+                    Classes="hyperlink" />
+        </StackPanel>
+    </DockPanel>
+</UserControl>

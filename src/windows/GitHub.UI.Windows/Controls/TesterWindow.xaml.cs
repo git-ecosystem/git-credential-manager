@@ -1,11 +1,12 @@
 using System.Windows;
 using GitCredentialManager;
-using GitHub.UI.ViewModels;
-using GitHub.UI.Views;
 using GitCredentialManager.Interop.Windows;
 using GitCredentialManager.UI.Controls;
+using GitCredentialManager.UI.Windows.Controls;
+using GitHub.UI.ViewModels;
+using GitHub.UI.Windows.Views;
 
-namespace GitHub.UI.Controls
+namespace GitHub.UI.Windows.Controls
 {
     public partial class TesterWindow : Window
     {
@@ -31,7 +32,7 @@ namespace GitHub.UI.Controls
                 UserName = username.Text
             };
             var view = new CredentialsView();
-            var window = new DialogWindow(view) { DataContext = vm };
+            var window = new WpfDialogWindow(view) { DataContext = vm };
             window.ShowDialog();
         }
 
@@ -42,7 +43,7 @@ namespace GitHub.UI.Controls
                 IsSms = twoFaSms.IsChecked ?? false,
             };
             var view = new TwoFactorView();
-            var window = new DialogWindow(view) { DataContext = vm };
+            var window = new WpfDialogWindow(view) { DataContext = vm };
             window.ShowDialog();
         }
 
@@ -54,7 +55,7 @@ namespace GitHub.UI.Controls
                 VerificationUrl = verificationUrl.Text,
             };
             var view = new DeviceCodeView();
-            var window = new DialogWindow(view) { DataContext = vm };
+            var window = new WpfDialogWindow(view) { DataContext = vm };
             window.ShowDialog();
         }
     }

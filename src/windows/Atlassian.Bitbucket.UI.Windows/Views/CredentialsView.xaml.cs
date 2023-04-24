@@ -4,7 +4,7 @@ using System.Windows.Input;
 using Atlassian.Bitbucket.UI.ViewModels;
 using GitCredentialManager.UI.Controls;
 
-namespace Atlassian.Bitbucket.UI.Views
+namespace Atlassian.Bitbucket.UI.Windows.Views
 {
     public partial class CredentialsView : UserControl, IFocusable
     {

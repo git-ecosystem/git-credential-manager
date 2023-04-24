@@ -7,7 +7,7 @@ using System.Windows.Input;
 using GitCredentialManager;
 using GitCredentialManager.UI.Controls;
 
-namespace GitHub.UI.Controls
+namespace GitHub.UI.Windows.Controls
 {
     public partial class SixDigitInput : UserControl, IFocusable
     {

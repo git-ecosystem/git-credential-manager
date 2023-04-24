@@ -1,7 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using GitCredentialManager.UI;
+using GitCredentialManager.UI.ViewModels;
+using GitCredentialManager.UI.Views;
 
 namespace GitCredentialManager.Authentication
 {
@@ -34,18 +38,39 @@ namespace GitCredentialManager.Authentication
 
             ThrowIfUserInteractionDisabled();
 
-            if (Context.Settings.IsGuiPromptsEnabled && Context.SessionManager.IsDesktopSession &&
-                TryFindHelperCommand(out string command, out string args))
+            if (Context.Settings.IsGuiPromptsEnabled && Context.SessionManager.IsDesktopSession)
             {
-                return await GetCredentialsByUiAsync(command, args, resource, userName);
+                if (TryFindHelperCommand(out string command, out string args))
+                {
+                    return await GetCredentialsViaHelperAsync(command, args, resource, userName);
+                }
+
+                return await GetCredentialsViaUiAsync(resource, userName);
             }
 
             ThrowIfTerminalPromptsDisabled();
 
-            return GetCredentialsByTty(resource, userName);
+            return GetCredentialsViaTty(resource, userName);
         }
 
-        private ICredential GetCredentialsByTty(string resource, string userName)
+        private async Task<ICredential> GetCredentialsViaUiAsync(string resource, string userName)
+        {
+            var viewModel = new CredentialsViewModel
+            {
+                Description = !string.IsNullOrWhiteSpace(resource)
+                    ? $"Enter your credentials for '{resource}'"
+                    : "Enter your credentials",
+                UserName = userName,
+            };
+
+            await AvaloniaUi.ShowViewAsync<CredentialsView>(viewModel, GetParentWindowHandle(), CancellationToken.None);
+
+            ThrowIfWindowCancelled(viewModel);
+
+            return new GitCredential(viewModel.UserName, viewModel.Password);
+        }
+
+        private ICredential GetCredentialsViaTty(string resource, string userName)
         {
             Context.Terminal.WriteLine("Enter basic credentials for '{0}':", resource);
 
@@ -66,7 +91,7 @@ namespace GitCredentialManager.Authentication
             return new GitCredential(userName, password);
         }
 
-        private async Task<ICredential> GetCredentialsByUiAsync(string command, string args, string resource, string userName)
+        private async Task<ICredential> GetCredentialsViaHelperAsync(string command, string args, string resource, string userName)
         {
             var promptArgs = new StringBuilder(args);
             promptArgs.Append("basic");

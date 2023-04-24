@@ -1,13 +1,12 @@
 using System.Windows;
-using GitCredentialManager.UI.ViewModels;
-using GitCredentialManager.UI.Views;
 using GitCredentialManager.Interop.Linux;
 using GitCredentialManager.Interop.MacOS;
 using GitCredentialManager.Interop.Posix;
 using GitCredentialManager.Interop.Windows;
-using GitCredentialManager.UI.Controls;
+using GitCredentialManager.UI.ViewModels;
+using GitCredentialManager.UI.Windows.Views;
 
-namespace GitCredentialManager.UI.Controls
+namespace GitCredentialManager.UI.Windows.Controls
 {
     public partial class TesterWindow : Window
     {
@@ -47,7 +46,7 @@ namespace GitCredentialManager.UI.Controls
                 ShowProductHeader = showLogo.IsChecked ?? false
             };
             var view = new CredentialsView();
-            var window = new DialogWindow(view) {DataContext = vm};
+            var window = new WpfDialogWindow(view) {DataContext = vm};
             window.ShowDialog();
         }
 
@@ -62,7 +61,7 @@ namespace GitCredentialManager.UI.Controls
                 ShowProductHeader = oauthShowLogo.IsChecked ?? false
             };
             var view = new OAuthView();
-            var window = new DialogWindow(view) { DataContext = vm };
+            var window = new WpfDialogWindow(view) { DataContext = vm };
             window.ShowDialog();
         }
 
@@ -76,7 +75,7 @@ namespace GitCredentialManager.UI.Controls
                 ShowProductHeader = deviceShowLogo.IsChecked ?? false
             };
             var view = new DeviceCodeView();
-            var window = new DialogWindow(view) { DataContext = vm };
+            var window = new WpfDialogWindow(view) { DataContext = vm };
             window.ShowDialog();
         }
     }

@@ -1,6 +1,6 @@
 ﻿using System.Windows.Controls;
 
-namespace GitHub.UI.Controls
+namespace GitHub.UI.Windows.Controls
 {
     public partial class HorizontalShadowDivider : UserControl
     {

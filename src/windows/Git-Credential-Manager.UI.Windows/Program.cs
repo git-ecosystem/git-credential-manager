@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Threading.Tasks;
-using GitCredentialManager.UI.Commands;
-using GitCredentialManager.UI.Controls;
+using GitCredentialManager.UI.Windows.Commands;
+using GitCredentialManager.UI.Windows.Controls;
 
-namespace GitCredentialManager.UI
+namespace GitCredentialManager.UI.Windows
 {
     public static class Program
     {

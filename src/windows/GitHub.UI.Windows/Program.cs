@@ -1,12 +1,12 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Threading.Tasks;
-using GitHub.UI.Commands;
-using GitHub.UI.Controls;
 using GitCredentialManager;
 using GitCredentialManager.UI;
+using GitCredentialManager.UI.Windows;
+using GitHub.UI.Windows.Commands;
+using GitHub.UI.Windows.Controls;
 
-namespace GitHub.UI
+namespace GitHub.UI.Windows
 {
     public static class Program
     {

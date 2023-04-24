@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using Avalonia.Animation;
 using GitCredentialManager;
 using GitCredentialManager.Tests.Objects;
 using Moq;
@@ -78,10 +79,14 @@ namespace GitHub.Tests
         [Fact]
         public async Task GitHubAuthentication_GetAuthenticationAsync_Helper_Basic()
         {
+            const string unixHelperPath = "/usr/local/bin/GitHub.UI";
+            const string windowsHelperPath = @"C:\Program Files\Git Credential Manager\GitHub.UI.exe";
+            string helperPath = PlatformUtils.IsWindows() ? windowsHelperPath : unixHelperPath;
+
             var context = new TestCommandContext();
-            context.FileSystem.Files["/usr/local/bin/GitHub.UI"] = new byte[0];
-            context.FileSystem.Files[@"C:\Program Files\Git Credential Manager Core\GitHub.UI.exe"] = new byte[0];
+            context.FileSystem.Files[helperPath] = Array.Empty<byte>();
             context.SessionManager.IsDesktopSession = true;
+            context.Environment.Variables[GitHubConstants.EnvironmentVariables.AuthenticationHelper] = helperPath;
             var auth = new Mock<GitHubAuthentication>(MockBehavior.Strict, context);
             auth.Setup(x => x.InvokeHelperAsync(It.IsAny<string>(), "prompt --all", It.IsAny<IDictionary<string, string>>(), It.IsAny<System.Threading.CancellationToken>()))
             .Returns(Task.FromResult<IDictionary<string, string>>(

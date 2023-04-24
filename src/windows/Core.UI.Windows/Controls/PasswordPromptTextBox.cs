@@ -3,7 +3,7 @@ using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace GitCredentialManager.UI.Controls
+namespace GitCredentialManager.UI.Windows.Controls
 {
     public class PasswordPromptTextBox : PromptTextBox
     {

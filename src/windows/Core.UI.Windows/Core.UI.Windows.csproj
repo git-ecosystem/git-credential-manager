@@ -3,12 +3,11 @@
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
     <UseWPF>true</UseWPF>
-    <RootNamespace>GitCredentialManager.UI</RootNamespace>
+    <RootNamespace>GitCredentialManager.UI.Windows</RootNamespace>
     <AssemblyName>gcmcoreuiwpf</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\shared\Core.UI\Core.UI.csproj" />
     <ProjectReference Include="..\..\shared\Core\Core.csproj" />
   </ItemGroup>
 

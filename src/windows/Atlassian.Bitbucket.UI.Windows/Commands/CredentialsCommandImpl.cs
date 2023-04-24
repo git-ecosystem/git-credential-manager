@@ -1,11 +1,12 @@
 using System.Threading;
 using System.Threading.Tasks;
+using Atlassian.Bitbucket.UI.Commands;
 using Atlassian.Bitbucket.UI.ViewModels;
-using Atlassian.Bitbucket.UI.Views;
+using Atlassian.Bitbucket.UI.Windows.Views;
 using GitCredentialManager;
-using GitCredentialManager.UI;
+using GitCredentialManager.UI.Windows;
 
-namespace Atlassian.Bitbucket.UI.Commands
+namespace Atlassian.Bitbucket.UI.Windows.Commands
 {
     public class CredentialsCommandImpl : CredentialsCommand
     {

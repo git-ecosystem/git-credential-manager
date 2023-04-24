@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using GitCredentialManager.UI.ViewModels;
 
 namespace GitCredentialManager.Authentication
 {
@@ -109,6 +110,24 @@ namespace GitCredentialManager.Authentication
                 throw new Trace2InvalidOperationException(Context.Trace2, "Cannot prompt because terminal prompts have been disabled.");
             }
         }
+        
+        protected void ThrowIfWindowCancelled(WindowViewModel viewModel)
+        {
+            if (!viewModel.WindowResult)
+            {
+                throw new Exception("User cancelled dialog.");
+            }
+        }
+        
+        protected IntPtr GetParentWindowHandle()
+        {
+            if (int.TryParse(Context.Settings.ParentWindowId, out int id))
+            {
+                return new IntPtr(id);
+            }
+
+            return IntPtr.Zero;
+        }
 
         protected bool TryFindHelperCommand(string envar, string configName, string defaultValue, out string command, out string args)
         {
@@ -147,8 +166,22 @@ namespace GitCredentialManager.Authentication
             }
             else
             {
-                Context.Trace.WriteLine($"Using default UI helper: '{defaultValue}'.");
-                helperName = defaultValue;
+                // Whilst we evaluate using the Avalonia/in-proc GUIs on Windows we include
+                // a 'fallback' flag that lets us continue to use the WPF out-of-proc helpers.
+                if (PlatformUtils.IsWindows() &&
+                    Context.Settings.TryGetSetting(
+                        Constants.EnvironmentVariables.GcmDevUseLegacyUiHelpers,
+                        Constants.GitConfiguration.Credential.SectionName,
+                        Constants.GitConfiguration.Credential.DevUseLegacyUiHelpers,
+                        out string str) && str.IsTruthy())
+                {
+                    Context.Trace.WriteLine($"Using default legacy UI helper: '{defaultValue}'.");
+                    helperName = defaultValue;
+                }
+                else
+                {
+                    return false;
+                }
             }
 
             //

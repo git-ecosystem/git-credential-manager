@@ -1,0 +1,49 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:GitCredentialManager.UI.ViewModels;assembly=gcmcore"
+             mc:Ignorable="d" d:DesignWidth="420"
+             x:Class="GitCredentialManager.UI.Views.OAuthView">
+    <Design.DataContext>
+        <vm:OAuthViewModel/>
+    </Design.DataContext>
+    <DockPanel>
+        <StackPanel DockPanel.Dock="Top" Margin="10,0,10,10">
+            <StackPanel Margin="0"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Center"
+                        IsVisible="{Binding ShowProductHeader}">
+                <Image Margin="0,0,10,0"
+                       VerticalAlignment="Center"
+                       Source="{DynamicResource GcmLogo}"
+                       Width="32" Height="32" />
+                <TextBlock Text="Git Credential Manager"
+                           VerticalAlignment="Center"
+                           FontSize="18"
+                           FontWeight="Light"/>
+            </StackPanel>
+
+            <TextBlock Text="{Binding Description}"
+                       FontSize="14"
+                       HorizontalAlignment="Center"
+                       TextWrapping="Wrap"
+                       Margin="0,15,0,15"/>
+        </StackPanel>
+
+        <StackPanel Margin="20,0">
+            <Button Content="Sign in with your browser"
+                    IsDefault="True"
+                    Command="{Binding SignInBrowserCommand}"
+                    HorizontalAlignment="Center"
+                    Classes="accent"
+                    Margin="0,0,0,10"
+                    IsVisible="{Binding ShowBrowserLogin}"/>
+            <Button Content="Sign in with a code"
+                    IsDefault="True"
+                    Command="{Binding SignInDeviceCodeCommand}"
+                    HorizontalAlignment="Center"
+                    IsVisible="{Binding ShowDeviceCodeLogin}"/>
+        </StackPanel>
+    </DockPanel>
+</UserControl>
