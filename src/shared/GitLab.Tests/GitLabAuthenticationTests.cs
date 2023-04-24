@@ -20,11 +20,10 @@ namespace GitLab.Tests
 
         [Theory]
         [InlineData(AuthenticationModes.Browser)]
-        public async Task GitLabAuthentication_GetAuthenticationAsync_SingleChoice_TerminalAndInteractionNotRequired(GitLab.AuthenticationModes modes)
+        public async Task GitLabAuthentication_GetAuthenticationAsync_SingleChoice_InteractionStillRequired(GitLab.AuthenticationModes modes)
         {
             var context = new TestCommandContext();
-            context.Settings.IsTerminalPromptsEnabled = false;
-            context.Settings.IsInteractionAllowed = false;
+            context.Settings.IsInteractionAllowed = true;
             context.SessionManager.IsDesktopSession = true; // necessary for browser
             context.Settings.IsGuiPromptsEnabled = false;
             var auth = new GitLabAuthentication(context);

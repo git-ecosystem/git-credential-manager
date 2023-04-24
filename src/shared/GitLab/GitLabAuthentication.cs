@@ -70,6 +70,8 @@ namespace GitLab
                 throw new ArgumentException(@$"Must specify at least one {nameof(AuthenticationModes)}", nameof(modes));
             }
 
+            ThrowIfUserInteractionDisabled();
+
             if (Context.Settings.IsGuiPromptsEnabled && Context.SessionManager.IsDesktopSession)
             {
                 if (TryFindHelperCommand(out string helperCommand, out string args))
@@ -132,11 +134,11 @@ namespace GitLab
 
         private AuthenticationPromptResult GetAuthenticationViaTty(Uri targetUri, string userName, AuthenticationModes modes)
         {
+            ThrowIfTerminalPromptsDisabled();
+
             switch (modes)
             {
                 case AuthenticationModes.Basic:
-                    ThrowIfUserInteractionDisabled();
-                    ThrowIfTerminalPromptsDisabled();
                     Context.Terminal.WriteLine("Enter GitLab credentials for '{0}'...", targetUri);
 
                     if (string.IsNullOrWhiteSpace(userName))
@@ -152,8 +154,6 @@ namespace GitLab
                     return new AuthenticationPromptResult(AuthenticationModes.Basic, new GitCredential(userName, password));
 
                 case AuthenticationModes.Pat:
-                    ThrowIfUserInteractionDisabled();
-                    ThrowIfTerminalPromptsDisabled();
                     Context.Terminal.WriteLine("Enter GitLab credentials for '{0}'...", targetUri);
 
                     if (string.IsNullOrWhiteSpace(userName))
@@ -176,8 +176,6 @@ namespace GitLab
                         @$"At least one {nameof(AuthenticationModes)} must be supplied");
 
                 default:
-                    ThrowIfUserInteractionDisabled();
-                    ThrowIfTerminalPromptsDisabled();
                     var menuTitle = $"Select an authentication method for '{targetUri}'";
                     var menu = new TerminalMenu(Context.Terminal, menuTitle);
 
