@@ -205,8 +205,10 @@ the preferred install method for Linux because you can use it to install on any
 distribution][dotnet-supported-distributions]. You
 can also use this method on macOS or Windows if you so choose.
 
-**Note:** Make sure you have installed the .NET SDK before attempting to run the
-following `dotnet tool` commands.
+**Note:** Make sure you have installed [version 6.0 of the .NET
+SDK][dotnet-install] before attempting to run the following `dotnet tool`
+commands. After installing, you will also need to follow the output instructions
+to add the tools directory to your `PATH`.
 
 #### Install
 
@@ -228,6 +230,7 @@ git-credential-manager unconfigure
 dotnet tool uninstall -g git-credential-manager
 ```
 
+[dotnet-install]: https://learn.microsoft.com/en-us/dotnet/core/install/linux#packages
 [dotnet-supported-distributions]: https://learn.microsoft.com/en-us/dotnet/core/install/linux
 [dotnet-tool]: https://learn.microsoft.com/en-us/dotnet/core/tools/global-tools
 [gcm-credstores]: credstores.md
