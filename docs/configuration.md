@@ -661,6 +661,75 @@ git config --global credential.azreposCredentialType oauth
 
 **Also see: [GCM_AZREPOS_CREDENTIALTYPE][gcm-azrepos-credentialtype]**
 
+---
+
+### trace2.normalTarget
+
+Turns on Trace2 Normal Format tracing - see [Git's Trace2 Normal Format
+documentation][trace2-normal-docs] for more details.
+
+#### Example
+
+```shell
+git config --global trace2.normalTarget true
+```
+
+If the value of `trace2.normalTarget` is a full path to a file in an existing
+directory, logs are appended to the file.
+
+If the value of `trace2.normalTarget` is `true` or `1`, logs are written to
+standard error.
+
+Defaults to disabled.
+
+**Also see: [GIT_TRACE2][trace2-normal-env]**
+
+---
+
+### trace2.eventTarget
+
+Turns on Trace2 Event Format tracing - see [Git's Trace2 Event Format
+documentation][trace2-event-docs] for more details.
+
+#### Example
+
+```shell
+git config --global trace2.eventTarget true
+```
+
+If the value of `trace2.eventTarget` is a full path to a file in an existing
+directory, logs are appended to the file.
+
+If the value of `trace2.eventTarget` is `true` or `1`, logs are written to
+standard error.
+
+Defaults to disabled.
+
+**Also see: [GIT_TRACE2_EVENT][trace2-event-env]**
+
+---
+
+### trace2.perfTarget
+
+Turns on Trace2 Performance Format tracing - see [Git's Trace2 Performance
+Format documentation][trace2-performance-docs] for more details.
+
+#### Example
+
+```shell
+git config --global trace2.perfTarget true
+```
+
+If the value of `trace2.perfTarget` is a full path to a file in an existing
+directory, logs are appended to the file.
+
+If the value of `trace2.perfTarget` is `true` or `1`, logs are written to
+standard error.
+
+Defaults to disabled.
+
+**Also see: [GIT_TRACE2_PERF][trace2-performance-env]**
+
 [auto-detection]: autodetect.md
 [azure-tokens]: azrepos-users-and-tokens.md
 [use-http-path]: https://git-scm.com/docs/gitcredentials/#Documentation/gitcredentials.txt-useHttpPath
@@ -701,4 +770,10 @@ git config --global credential.azreposCredentialType oauth
 [provider-migrate]: migration.md#gcm_authority
 [cache-options]: https://git-scm.com/docs/git-credential-cache#_options
 [pass]: https://www.passwordstore.org/
+[trace2-normal-docs]: https://git-scm.com/docs/api-trace2#_the_normal_format_target
+[trace2-normal-env]: environment.md#GIT_TRACE2
+[trace2-event-docs]: https://git-scm.com/docs/api-trace2#_the_event_format_target
+[trace2-event-env]: environment.md#GIT_TRACE2_EVENT
+[trace2-performance-docs]: https://git-scm.com/docs/api-trace2#_the_performance_format_target
+[trace2-performance-env]: environment.md#GIT_TRACE2_PERF
 [wam]: windows-broker.md

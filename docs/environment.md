@@ -830,6 +830,93 @@ export GCM_AZREPOS_CREDENTIALTYPE="oauth"
 
 **Also see: [credential.azreposCredentialType][credential-azrepos-credential-type]**
 
+---
+
+### GIT_TRACE2
+
+Turns on Trace2 Normal Format tracing - see [Git's Trace2 Normal Format
+documentation][trace2-normal-docs] for more details.
+
+#### Windows
+
+```batch
+SET GIT_TRACE2=%UserProfile%\log.normal
+```
+
+#### macOS/Linux
+
+```bash
+export GIT_TRACE2=~/log.normal
+```
+
+If the value of `GIT_TRACE2` is a full path to a file in an existing directory,
+logs are appended to the file.
+
+If the value of `GIT_TRACE2` is `true` or `1`, logs are written to standard
+error.
+
+Defaults to disabled.
+
+**Also see: [trace2.normalFormat][trace2-normal-config]**
+
+---
+
+### GIT_TRACE2_EVENT
+
+Turns on Trace2 Event Format tracing - see [Git's Trace2 Event Format
+documentation][trace2-event-docs] for more details.
+
+#### Windows
+
+```batch
+SET GIT_TRACE2_EVENT=%UserProfile%\log.event
+```
+
+#### macOS/Linux
+
+```bash
+export GIT_TRACE2_EVENT=~/log.event
+```
+
+If the value of `GIT_TRACE2_EVENT` is a full path to a file in an existing
+directory, logs are appended to the file.
+
+If the value of `GIT_TRACE2_EVENT` is `true` or `1`, logs are written to
+standard error.
+
+Defaults to disabled.
+
+**Also see: [trace2.eventFormat][trace2-event-config]**
+
+---
+
+### GIT_TRACE2_PERF
+
+Turns on Trace2 Performance Format tracing - see [Git's Trace2 Performance
+Format documentation][trace2-performance-docs] for more details.
+
+#### Windows
+
+```batch
+SET GIT_TRACE2_PERF=%UserProfile%\log.perf
+```
+
+#### macOS/Linux
+
+```bash
+export GIT_TRACE2_PERF=~/log.perf
+```
+
+If the value of `GIT_TRACE2_PERF` is a full path to a file in an existing
+directory, logs are appended to the file.
+
+If the value of `GIT_TRACE2_PERF` is `true` or `1`, logs are written to
+standard error.
+
+Defaults to disabled.
+
+**Also see: [trace2.perfFormat][trace2-performance-config]**
+
 [autodetect]: autodetect.md
 [azure-access-tokens]: azrepos-users-and-tokens.md
 [configuration]: configuration.md
@@ -867,4 +954,10 @@ export GCM_AZREPOS_CREDENTIALTYPE="oauth"
 [libsecret]: https://wiki.gnome.org/Projects/Libsecret
 [migration-guide]: migration.md#gcm_authority
 [passwordstore]: https://www.passwordstore.org/
+[trace2-normal-docs]: https://git-scm.com/docs/api-trace2#_the_normal_format_target
+[trace2-normal-config]: configuration.md#trace2normalTarget
+[trace2-event-docs]: https://git-scm.com/docs/api-trace2#_the_event_format_target
+[trace2-event-config]: configuration.md#trace2eventTarget
+[trace2-performance-docs]: https://git-scm.com/docs/api-trace2#_the_performance_format_target
+[trace2-performance-config]: configuration.md#trace2perfTarget
 [windows-broker]: windows-broker.md
