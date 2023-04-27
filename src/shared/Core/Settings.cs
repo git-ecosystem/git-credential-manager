@@ -475,7 +475,11 @@ namespace GitCredentialManager
 
         public Uri RemoteUri { get; set; }
 
-        public bool IsDebuggingEnabled => _environment.Variables.GetBooleanyOrDefault(KnownEnvars.GcmDebug, false);
+        public bool IsDebuggingEnabled =>
+            TryGetSetting(KnownEnvars.GcmDebug,
+                KnownGitCfg.Credential.SectionName,
+                KnownGitCfg.Credential.Debug,
+                out string str) && str.IsTruthy();
 
         public bool IsTerminalPromptsEnabled => _environment.Variables.GetBooleanyOrDefault(KnownEnvars.GitTerminalPrompts, true);
 
@@ -536,7 +540,11 @@ namespace GitCredentialManager
             }
         }
 
-        public bool GetTracingEnabled(out string value) => _environment.Variables.TryGetValue(KnownEnvars.GcmTrace, out value) && !value.IsFalsey();
+        public bool GetTracingEnabled(out string value) =>
+            TryGetSetting(KnownEnvars.GcmTrace,
+                KnownGitCfg.Credential.SectionName,
+                KnownGitCfg.Credential.Trace,
+                out value) && !value.IsFalsey();
 
         public Trace2Settings GetTrace2Settings()
         {
@@ -563,9 +571,17 @@ namespace GitCredentialManager
             return settings;
         }
 
-        public bool IsSecretTracingEnabled => _environment.Variables.GetBooleanyOrDefault(KnownEnvars.GcmTraceSecrets, false);
+        public bool IsSecretTracingEnabled =>
+            TryGetSetting(KnownEnvars.GcmTraceSecrets,
+                KnownGitCfg.Credential.SectionName,
+                KnownGitCfg.Credential.TraceSecrets,
+                out string str) && str.IsTruthy();
 
-        public bool IsMsalTracingEnabled => _environment.Variables.GetBooleanyOrDefault(Constants.EnvironmentVariables.GcmTraceMsAuth, false);
+        public bool IsMsalTracingEnabled =>
+            TryGetSetting(KnownEnvars.GcmTraceMsAuth,
+                KnownGitCfg.Credential.SectionName,
+                KnownGitCfg.Credential.TraceMsAuth,
+                out string str) && str.IsTruthy();
 
         public string ProviderOverride =>
             TryGetSetting(KnownEnvars.GcmProvider, GitCredCfg.SectionName, GitCredCfg.Provider, out string providerId) ? providerId : null;

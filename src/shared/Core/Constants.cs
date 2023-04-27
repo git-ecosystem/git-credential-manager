@@ -122,6 +122,10 @@ namespace GitCredentialManager
             {
                 public const string SectionName = "credential";
                 public const string Helper      = "helper";
+                public const string Trace       = "trace";
+                public const string TraceSecrets = "traceSecrets";
+                public const string TraceMsAuth = "traceMsAuth";
+                public const string Debug       = "debug";
                 public const string Provider    = "provider";
                 public const string Authority   = "authority";
                 public const string AllowWia    = "allowWindowsAuth";
