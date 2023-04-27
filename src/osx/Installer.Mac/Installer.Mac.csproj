@@ -18,9 +18,9 @@
   <!-- Implicit SDK targets import (so we can override the default targets below) -->
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 
-  <Target Name="CoreCompile" DependsOnTargets="GetBuildVersion" Condition="'$(OSPlatform)'=='osx'">
-    <Message Text="$(MSBuildProjectDirectory)\build.sh --configuration='$(Configuration)' --version='$(BuildVersionSimple)' --runtime='$(RuntimeIdentifier)'" Importance="High" />
-    <Exec Command="$(MSBuildProjectDirectory)\build.sh --configuration='$(Configuration)' --version='$(BuildVersionSimple)' --runtime='$(RuntimeIdentifier)'" />
+  <Target Name="CoreCompile" Condition="'$(OSPlatform)'=='osx'">
+    <Message Text="$(MSBuildProjectDirectory)\build.sh --configuration='$(Configuration)' --version='$(Version)' --runtime='$(RuntimeIdentifier)'" Importance="High" />
+    <Exec Command="$(MSBuildProjectDirectory)\build.sh --configuration='$(Configuration)' --version='$(Version)' --runtime='$(RuntimeIdentifier)'" />
   </Target>
 
   <Target Name="CoreClean">

@@ -5,6 +5,15 @@
   <!-- Load custom build tasks -->
   <Import Project="$(RepoPath)build\GCM.tasks" />
 
+  <!-- Use version specified in VERSION file -->
+  <Target Name="GetVersion" BeforeTargets="BeforeBuild">
+    <GetVersion VersionFile="$(RepoPath)VERSION">
+      <Output TaskParameter="Version" PropertyName="Version" />
+      <Output TaskParameter="AssemblyVersion" PropertyName="AssemblyVersion" />
+      <Output TaskParameter="FileVersion" PropertyName="FileVersion" />
+    </GetVersion>
+  </Target>
+
   <!-- Windows application manifest generation -->
   <PropertyGroup Condition="'$(GenerateWindowsAppManifest)' != 'false'">
     <ApplicationManifest>$(IntermediateOutputPath)app.manifest</ApplicationManifest>

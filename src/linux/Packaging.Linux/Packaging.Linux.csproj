@@ -22,9 +22,9 @@
   <!-- Implicit SDK targets import (so we can override the default targets below) -->
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 
-  <Target Name="CoreCompile" DependsOnTargets="GetBuildVersion" Condition="'$(OSPlatform)'=='linux'">
-    <Message Text="$(MSBuildProjectDirectory)\build.sh --install-from-source=$(InstallFromSource) --configuration='$(Configuration)' --version='$(BuildVersionSimple)'" Importance="High" />
-    <Exec Command="$(MSBuildProjectDirectory)\build.sh --install-from-source=$(InstallFromSource) --configuration='$(Configuration)' --version='$(BuildVersionSimple)'" />
+  <Target Name="CoreCompile" Condition="'$(OSPlatform)'=='linux'">
+    <Message Text="$(MSBuildProjectDirectory)\build.sh --install-from-source=$(InstallFromSource) --configuration='$(Configuration)' --version='$(Version)'" Importance="High" />
+    <Exec Command="$(MSBuildProjectDirectory)\build.sh --install-from-source=$(InstallFromSource) --configuration='$(Configuration)' --version='$(Version)'" />
   </Target>
 
   <Target Name="CoreClean">
