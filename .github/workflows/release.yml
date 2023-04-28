@@ -150,11 +150,6 @@ jobs:
       with:
         dotnet-version: 6.0.201
 
-    # Install Nerdbank.GitVersioning
-    - uses: dotnet/nbgv@master
-      with:
-        setCommonVars: true
-
     - name: Download signed payload
       uses: actions/download-artifact@v3
       with:
@@ -263,11 +258,6 @@ jobs:
       uses: actions/setup-dotnet@v3.0.3
       with:
         dotnet-version: 6.0.201
-
-    # Install Nerdbank.GitVersioning
-    - uses: dotnet/nbgv@master
-      with:
-        setCommonVars: true
 
     - name: Install dependencies
       run: dotnet restore
@@ -460,10 +450,6 @@ jobs:
       with:
         dotnet-version: 6.0.201
 
-    - uses: dotnet/nbgv@master
-      with:
-        setCommonVars: true
-
     - name: Build .NET tool
       run: |
         src/shared/DotnetTool/layout.sh --configuration=Release
@@ -558,10 +544,6 @@ jobs:
       uses: actions/setup-dotnet@v3.0.3
       with:
         dotnet-version: 6.0.201
-
-    - uses: dotnet/nbgv@master
-      with:
-        setCommonVars: true
 
     - name: Package tool
       run: |
@@ -743,11 +725,6 @@ jobs:
         uses: actions/setup-dotnet@v3.0.3
         with:
           dotnet-version: 6.0.201
-
-      # Install Nerdbank.GitVersioning
-      - uses: dotnet/nbgv@master
-        with:
-          setCommonVars: true
 
       - name: Download artifacts
         uses: actions/download-artifact@v3
