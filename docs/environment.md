@@ -776,7 +776,10 @@ export GCM_MSAUTH_FLOW="devicecode"
 
 Use the operating system account manager where available.
 
-Defaults to `false`. This default is subject to change in the future.
+Defaults to `false`. In certain cloud hosted environments when using a work or
+school account, such as [Microsoft DevBox][devbox], the default is `true`.
+
+These defaults are subject to change in the future.
 
 _**Note:** before you enable this option on Windows, please
 [review the details][windows-broker] about what this means to your local Windows
@@ -800,6 +803,36 @@ export GCM_MSAUTH_USEBROKER="false"
 ```
 
 **Also see: [credential.msauthUseBroker][credential-msauth-usebroker]**
+
+---
+
+### GCM_MSAUTH_USEDEFAULTACCOUNT _(experimental)_
+
+Use the current operating system account by default when the broker is enabled.
+
+Defaults to `false`. In certain cloud hosted environments when using a work or
+school account, such as [Microsoft DevBox][devbox], the default is `true`.
+
+These defaults are subject to change in the future.
+
+Value|Description
+-|-
+`true`|Use the current operating system account by default.
+`false` _(default)_|Do not assume any account to use by default.
+
+#### Windows
+
+```batch
+SET GCM_MSAUTH_USEDEFAULTACCOUNT="true"
+```
+
+#### macOS/Linux
+
+```bash
+export GCM_MSAUTH_USEDEFAULTACCOUNT="false"
+```
+
+**Also see: [credential.msauthUseDefaultAccount][credential-msauth-usedefaultaccount]**
 
 ---
 
@@ -937,6 +970,7 @@ Defaults to disabled.
 [credential-namespace]: configuration.md#credentialnamespace
 [credential-msauth-flow]: configuration.md#credentialmsauthflow
 [credential-msauth-usebroker]: configuration.md#credentialmsauthusebroker-experimental
+[credential-msauth-usedefaultaccount]: configuration.md#credentialmsauthusedefaultaccount-experimental
 [credential-plain-text-store]: configuration.md#credentialplaintextstorepath
 [credential-provider]: configuration.md#credentialprovider
 [credential-stores]: credstores.md
@@ -944,6 +978,7 @@ Defaults to disabled.
 [credential-trace-secrets]: configuration.md#credentialtracesecrets
 [credential-trace-msauth]: configuration.md#credentialtracemsauth
 [default-values]: enterprise-config.md
+[devbox]: https://azure.microsoft.com/en-us/products/dev-box
 [freedesktop-ss]: https://specifications.freedesktop.org/secret-service/
 [gcm]: usage.md
 [gcm-interactive]: #gcm_interactive

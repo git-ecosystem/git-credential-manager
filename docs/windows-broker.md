@@ -34,6 +34,23 @@ fewer multi-factor authentication prompts, and the ability to use additional
 authentication technologies like smart cards and Windows Hello. These
 convenience and security features make a good case for enabling WAM.
 
+## Using the current OS account by default
+
+Enabling WAM does not currently automatically use the current Windows account
+for authentication. In order to opt-in to this behavior you can set the
+[`GCM_MSAUTH_USEDEFAULTACCOUNT`][GCM_MSAUTH_USEDEFAULTACCOUNT] environment
+variable or set the
+[`credential.msauthUseDefaultAccount`][credential.msauthUseDefaultAccount] Git
+configuration value to `true`.
+
+In certain cloud hosted environments when using a work or school account, such
+as [Microsoft Dev Box][devbox], this setting is **_automatically enabled_**.
+
+To disable this behavior, set the environment variable
+[`GCM_MSAUTH_USEDEFAULTACCOUNT`][GCM_MSAUTH_USEDEFAULTACCOUNT] or the
+[`credential.msauthUseDefaultAccount`][credential.msauthUseDefaultAccount] Git
+configuration value explicitly to `false`.
+
 ## Surprising behaviors
 
 The WAM and Windows identity systems are complex, addressing a very broad range
@@ -174,8 +191,10 @@ In order to fix the problem, there are a few options:
 [azure-refresh-token-terms]: https://docs.microsoft.com/azure/active-directory/devices/concept-primary-refresh-token#key-terminology-and-components
 [azure-conditional-access]: https://docs.microsoft.com/azure/active-directory/conditional-access/overview
 [azure-devops]: https://dev.azure.com
-[GCM_MSAUTH_USEBROKER]: environment.md#GCM_MSAUTH_USEBROKER
-[credential.msauthUseBroker]: configuration.md#credentialmsauthusebroker
+[GCM_MSAUTH_USEBROKER]: environment.md#GCM_MSAUTH_USEBROKER-experimental
+[GCM_MSAUTH_USEDEFAULTACCOUNT]: environment.md#GCM_MSAUTH_USEDEFAULTACCOUNT-experimental
+[credential.msauthUseBroker]: configuration.md#credentialmsauthusebroker-experimental
+[credential.msauthUseDefaultAccount]: configuration.md#credentialmsauthusedefaultaccount-experimental
 [aad-questions]: img/aad-questions.png
 [aad-questions-21h1]: img/aad-questions-21H1.png
 [aad-bitlocker]: img/aad-bitlocker.png
@@ -186,3 +205,4 @@ In order to fix the problem, there are a few options:
 [apps-must-ask]: img/apps-must-ask.png
 [ms-com]: https://docs.microsoft.com/en-us/windows/win32/com/the-component-object-model
 [msal-dotnet]: https://aka.ms/msal-net
+[devbox]: https://azure.microsoft.com/en-us/products/dev-box

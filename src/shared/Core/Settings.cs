@@ -173,6 +173,12 @@ namespace GitCredentialManager
         int AutoDetectProviderTimeout { get; }
 
         /// <summary>
+        /// Automatically use the default/current operating system account if no other account information is given
+        /// for Microsoft Authentication.
+        /// </summary>
+        bool UseMsAuthDefaultAccount { get; }
+
+        /// <summary>
         /// Get TRACE2 settings.
         /// </summary>
         /// <returns>TRACE2 settings object.</returns>
@@ -783,6 +789,15 @@ namespace GitCredentialManager
                 out string credStore)
                 ? credStore
                 : null;
+
+        public bool UseMsAuthDefaultAccount =>
+            TryGetSetting(
+                KnownEnvars.MsAuthUseDefaultAccount,
+                KnownGitCfg.Credential.SectionName,
+                KnownGitCfg.Credential.MsAuthUseDefaultAccount,
+                out string str)
+            ? str.IsTruthy()
+            : PlatformUtils.IsDevBox(); // default to true in DevBox environment
 
         #region IDisposable
 

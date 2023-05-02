@@ -1,0 +1,73 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:GitCredentialManager.UI.ViewModels;assembly=gcmcore"
+             xmlns:converters="clr-namespace:GitCredentialManager.UI.Converters;assembly=gcmcore"
+             mc:Ignorable="d" d:DesignWidth="420"
+             x:Class="GitCredentialManager.UI.Views.DefaultAccountView">
+    <Design.DataContext>
+        <vm:DefaultAccountViewModel/>
+    </Design.DataContext>
+    <DockPanel>
+        <StackPanel DockPanel.Dock="Top" Margin="10,0,10,10">
+            <StackPanel Margin="0"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Center"
+                        IsVisible="{Binding ShowProductHeader}">
+                <Image Margin="0,0,10,0"
+                       VerticalAlignment="Center"
+                       Source="{DynamicResource GcmLogo}"
+                       Width="32" Height="32" />
+                <TextBlock Text="Git Credential Manager"
+                           VerticalAlignment="Center"
+                           FontSize="18"
+                           FontWeight="Light"/>
+            </StackPanel>
+
+            <TextBlock FontSize="14"
+                       HorizontalAlignment="Center"
+                       TextWrapping="Wrap"
+                       Margin="0,15,0,15">
+                Do you want to continue with the current account?
+            </TextBlock>
+        </StackPanel>
+
+        <StackPanel DockPanel.Dock="Bottom"
+                    Margin="0,20,0,0"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Center">
+            <Image Source="{StaticResource HelpIcon}"
+                   Width="16" Height="16"
+                   Margin="0,0,5,0"/>
+            <Button Content="Learn more about operating system accounts"
+                    Command="{Binding LearnMoreCommand}"
+                    HorizontalAlignment="Center"
+                    Classes="hyperlink"/>
+        </StackPanel>
+
+        <StackPanel Margin="20,0">
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Center"
+                        Margin="0,0,0,20">
+                <Image Source="{StaticResource PersonIcon}"
+                       Width="32" Height="32"
+                       VerticalAlignment="Center"
+                       Margin="0,0,10,0"/>
+                <TextBlock Text="{Binding UserName}"
+                           VerticalAlignment="Center"/>
+            </StackPanel>
+            <Button Content="Continue"
+                    IsDefault="True"
+                    Command="{Binding ContinueCommand}"
+                    HorizontalAlignment="Center"
+                    Margin="0,0,0,10"
+                    Padding="16,8"
+                    Classes="accent"/>
+            <Button Content="Use another account"
+                    Command="{Binding OtherAccountCommand}"
+                    Padding="8,5"
+                    HorizontalAlignment="Center"/>
+        </StackPanel>
+    </DockPanel>
+</UserControl>

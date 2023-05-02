@@ -623,7 +623,10 @@ git config --global credential.msauthFlow devicecode
 
 Use the operating system account manager where available.
 
-Defaults to `false`. This default is subject to change in the future.
+Defaults to `false`. In certain cloud hosted environments when using a work or
+school account, such as [Microsoft DevBox][devbox], the default is `true`.
+
+These defaults are subject to change in the future.
 
 _**Note:** before you enable this option on Windows, please review the
 [Windows Broker][wam] details for what this means to your local Windows user
@@ -641,6 +644,30 @@ git config --global credential.msauthUseBroker true
 ```
 
 **Also see: [GCM_MSAUTH_USEBROKER][gcm-msauth-usebroker]**
+
+---
+
+### credential.msauthUseDefaultAccount _(experimental)_
+
+Use the current operating system account by default when the broker is enabled.
+
+Defaults to `false`. In certain cloud hosted environments when using a work or
+school account, such as [Microsoft DevBox][devbox], the default is `true`.
+
+These defaults are subject to change in the future.
+
+Value|Description
+-|-
+`true`|Use the current operating system account by default.
+`false` _(default)_|Do not assume any account to use by default.
+
+#### Example
+
+```shell
+git config --global credential.msauthUseDefaultAccount true
+```
+
+**Also see: [GCM_MSAUTH_USEDEFAULTACCOUNT][gcm-msauth-usedefaultaccount]**
 
 ---
 
@@ -820,6 +847,7 @@ Defaults to disabled.
 [credential-plaintextstorepath]: #credentialplaintextstorepath
 [credential-cache]: https://git-scm.com/docs/git-credential-cache
 [cred-stores]: credstores.md
+[devbox]: https://azure.microsoft.com/en-us/products/dev-box
 [enterprise-config]: enterprise-config.md
 [envars]: environment.md
 [freedesktop-ss]: https://specifications.freedesktop.org/secret-service/
@@ -840,6 +868,7 @@ Defaults to disabled.
 [gcm-interactive]: environment.md#GCM_INTERACTIVE
 [gcm-msauth-flow]: environment.md#GCM_MSAUTH_FLOW
 [gcm-msauth-usebroker]: environment.md#GCM_MSAUTH_USEBROKER-experimental
+[gcm-msauth-usedefaultaccount]: environment.md#GCM_MSAUTH_USEDEFAULTACCOUNT-experimental
 [gcm-namespace]: environment.md#GCM_NAMESPACE
 [gcm-plaintext-store-path]: environment.md#GCM_PLAINTEXT_STORE_PATH
 [gcm-provider]: environment.md#GCM_PROVIDER

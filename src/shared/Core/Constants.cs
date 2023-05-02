@@ -16,6 +16,8 @@ namespace GitCredentialManager
 
         public const string GcmDataDirectoryName = ".gcm";
 
+        public static readonly Guid DevBoxPartnerId = new("e3171dd9-9a5f-e5be-b36c-cc7c4f3f3bcf");
+
         public static class CredentialStoreNames
         {
             public const string WindowsCredentialManager = "wincredman";
@@ -83,6 +85,7 @@ namespace GitCredentialManager
             public const string GcmParentWindow       = "GCM_MODAL_PARENTHWND";
             public const string MsAuthFlow            = "GCM_MSAUTH_FLOW";
             public const string MsAuthUseBroker       = "GCM_MSAUTH_USEBROKER";
+            public const string MsAuthUseDefaultAccount = "GCM_MSAUTH_USEDEFAULTACCOUNT";
             public const string GcmCredNamespace      = "GCM_NAMESPACE";
             public const string GcmCredentialStore    = "GCM_CREDENTIAL_STORE";
             public const string GcmCredCacheOptions   = "GCM_CREDENTIAL_CACHE_OPTIONS";
@@ -145,6 +148,7 @@ namespace GitCredentialManager
                 public const string GuiPromptsEnabled = "guiPrompt";
                 public const string UiHelper = "uiHelper";
                 public const string DevUseLegacyUiHelpers = "devUseLegacyUiHelpers";
+                public const string MsAuthUseDefaultAccount = "msauthUseDefaultAccount";
 
                 public const string OAuthAuthenticationModes = "oauthAuthModes";
                 public const string OAuthClientId            = "oauthClientId";
@@ -189,6 +193,10 @@ namespace GitCredentialManager
         {
             public const string HKAppBasePath = @"SOFTWARE\GitCredentialManager";
             public const string HKConfigurationPath = HKAppBasePath + @"\Configuration";
+
+            public const string HKWindows365Path = @"SOFTWARE\Microsoft\Windows365";
+            public const string IsW365EnvironmentKeyName = "IsW365Environment";
+            public const string W365PartnerIdKeyName = "PartnerId";
         }
 
         public static class HelpUrls
@@ -202,6 +210,7 @@ namespace GitCredentialManager
             public const string GcmWamComSecurity      = "https://aka.ms/gcm/wamadmin";
             public const string GcmAutoDetect          = "https://aka.ms/gcm/autodetect";
             public const string GcmExecRename          = "https://aka.ms/gcm/rename";
+            public const string GcmDefaultAccount      = "https://aka.ms/gcm/defaultaccount";
         }
 
         private static Version _gcmVersion;

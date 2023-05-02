@@ -6,8 +6,11 @@ using System.Threading.Tasks;
 using GitCredentialManager.Interop.Windows.Native;
 using Microsoft.Identity.Client;
 using Microsoft.Identity.Client.Extensions.Msal;
+using System.Text;
 using System.Threading;
-using System.Runtime.InteropServices;
+using GitCredentialManager.UI;
+using GitCredentialManager.UI.ViewModels;
+using GitCredentialManager.UI.Views;
 
 #if NETFRAMEWORK
 using System.Drawing;
@@ -72,7 +75,8 @@ namespace GitCredentialManager.Authentication
                 AuthenticationResult result = null;
 
                 // Try silent authentication first if we know about an existing user
-                if (!string.IsNullOrWhiteSpace(userName))
+                bool hasExistingUser = !string.IsNullOrWhiteSpace(userName);
+                if (hasExistingUser)
                 {
                     result = await GetAccessTokenSilentlyAsync(app, scopes, userName);
                 }
@@ -106,12 +110,29 @@ namespace GitCredentialManager.Authentication
                     // If we're using the OS broker then delegate everything to that
                     if (useBroker)
                     {
-                        Context.Trace.WriteLine("Performing interactive auth with broker...");
-                        result = await app.AcquireTokenInteractive(scopes)
-                            .WithPrompt(Prompt.SelectAccount)
-                            // We must configure the system webview as a fallback
-                            .WithSystemWebViewOptions(GetSystemWebViewOptions())
-                            .ExecuteAsync();
+                        // If the user has enabled the default account feature then we can try to acquire an access
+                        // token 'silently' without knowing the user's UPN. Whilst this could be done truly silently,
+                        // we still prompt the user to confirm this action because if the OS account is the incorrect
+                        // account then the user may become stuck in a loop of authentication failures.
+                        if (!hasExistingUser && Context.Settings.UseMsAuthDefaultAccount)
+                        {
+                            result = await GetAccessTokenSilentlyAsync(app, scopes, null);
+
+                            if (result is null || !await UseDefaultAccountAsync(result.Account.Username))
+                            {
+                                result = null;
+                            }
+                        }
+
+                        if (result is null)
+                        {
+                            Context.Trace.WriteLine("Performing interactive auth with broker...");
+                            result = await app.AcquireTokenInteractive(scopes)
+                                .WithPrompt(Prompt.SelectAccount)
+                                // We must configure the system webview as a fallback
+                                .WithSystemWebViewOptions(GetSystemWebViewOptions())
+                                .ExecuteAsync();
+                        }
                     }
                     else
                     {
@@ -173,6 +194,61 @@ namespace GitCredentialManager.Authentication
             }
         }
 
+        private async Task<bool> UseDefaultAccountAsync(string userName)
+        {
+            ThrowIfUserInteractionDisabled();
+
+            if (Context.SessionManager.IsDesktopSession && Context.Settings.IsGuiPromptsEnabled)
+            {
+                if (TryFindHelperCommand(out string command, out string args))
+                {
+                    var sb = new StringBuilder(args);
+                    sb.Append("default-account");
+                    sb.AppendFormat(" --username {0}", QuoteCmdArg(userName));
+
+                    IDictionary<string, string> result = await InvokeHelperAsync(command, sb.ToString());
+
+                    if (result.TryGetValue("use_default_account", out string str) && !string.IsNullOrWhiteSpace(str))
+                    {
+                        return str.ToBooleanyOrDefault(false);
+                    }
+                    else
+                    {
+                        throw new Trace2Exception(Context.Trace2, "Missing use_default_account in response");
+                    }
+                }
+
+                var viewModel = new DefaultAccountViewModel(Context.Environment)
+                {
+                    UserName = userName
+                };
+
+                await AvaloniaUi.ShowViewAsync<DefaultAccountView>(
+                    viewModel, GetParentWindowHandle(), CancellationToken.None);
+
+                ThrowIfWindowCancelled(viewModel);
+
+                return viewModel.UseDefaultAccount;
+            }
+            else
+            {
+                string question = $"Continue with current account ({userName})?";
+
+                var menu = new TerminalMenu(Context.Terminal, question);
+                TerminalMenuItem yesItem = menu.Add("Yes");
+                TerminalMenuItem noItem = menu.Add("No, use another account");
+                TerminalMenuItem choice = menu.Show();
+
+                if (choice == yesItem)
+                    return true;
+
+                if (choice == noItem)
+                    return false;
+
+                throw new Exception();
+            }
+        }
+
         internal MicrosoftAuthenticationFlowType GetFlowType()
         {
             if (Context.Settings.TryGetSetting(
@@ -209,11 +285,20 @@ namespace GitCredentialManager.Authentication
         {
             try
             {
-                Context.Trace.WriteLine($"Attempting to acquire token silently for user '{userName}'...");
+                if (userName is null)
+                {
+                    Context.Trace.WriteLine("Attempting to acquire token silently for current operating system account...");
 
-                // We can either call `app.GetAccountsAsync` and filter through the IAccount objects for the instance with the correct user name,
-                // or we can just pass the user name string we have as the `loginHint` and let MSAL do exactly that for us instead!
-                return await app.AcquireTokenSilent(scopes, loginHint: userName).ExecuteAsync();
+                    return await app.AcquireTokenSilent(scopes, PublicClientApplication.OperatingSystemAccount).ExecuteAsync();
+                }
+                else
+                {
+                    Context.Trace.WriteLine($"Attempting to acquire token silently for user '{userName}'...");
+
+                    // We can either call `app.GetAccountsAsync` and filter through the IAccount objects for the instance with the correct user name,
+                    // or we can just pass the user name string we have as the `loginHint` and let MSAL do exactly that for us instead!
+                    return await app.AcquireTokenSilent(scopes, loginHint: userName).ExecuteAsync();
+                }
             }
             catch (MsalUiRequiredException)
             {
@@ -429,6 +514,16 @@ namespace GitCredentialManager.Authentication
             Context.Trace.WriteLine($"[{level.ToString()}] {message}", memberName: "MSAL");
         }
 
+        private bool TryFindHelperCommand(out string command, out string args)
+        {
+            return TryFindHelperCommand(
+                Constants.EnvironmentVariables.GcmUiHelper,
+                Constants.GitConfiguration.Credential.UiHelper,
+                Constants.DefaultUiHelper,
+                out command,
+                out args);
+        }
+
         private class MsalHttpClientFactoryAdaptor : IMsalHttpClientFactory
         {
             private readonly IHttpClientFactory _factory;
@@ -462,8 +557,8 @@ namespace GitCredentialManager.Authentication
                 return false;
             }
 
-            // Default to not using the OS broker
-            const bool defaultValue = false;
+            // Default to using the OS broker only on DevBox for the time being
+            bool defaultValue = PlatformUtils.IsDevBox();
 
             if (Context.Settings.TryGetSetting(Constants.EnvironmentVariables.MsAuthUseBroker,
                     Constants.GitConfiguration.Credential.SectionName,
