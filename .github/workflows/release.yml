@@ -96,6 +96,7 @@ jobs:
     - name: Set up ESRP client
       shell: pwsh
       env:
+        AZURE_STORAGE_KEY: ${{ secrets.AZURE_STORAGE_KEY }}
         AZURE_VAULT: ${{ secrets.AZURE_VAULT }}
         AUTH_CERT: ${{ secrets.AZURE_VAULT_AUTH_CERT_NAME }}
         REQUEST_SIGNING_CERT: ${{ secrets.AZURE_VAULT_REQUEST_SIGNING_CERT_NAME }}
@@ -199,6 +200,7 @@ jobs:
     - name: Set up ESRP client
       shell: pwsh
       env:
+        AZURE_STORAGE_KEY: ${{ secrets.AZURE_STORAGE_KEY }}
         AZURE_VAULT: ${{ secrets.AZURE_VAULT }}
         AUTH_CERT: ${{ secrets.AZURE_VAULT_AUTH_CERT_NAME }}
         REQUEST_SIGNING_CERT: ${{ secrets.AZURE_VAULT_REQUEST_SIGNING_CERT_NAME }}
@@ -276,6 +278,7 @@ jobs:
     - name: Set up ESRP client
       shell: pwsh
       env:
+        AZURE_STORAGE_KEY: ${{ secrets.AZURE_STORAGE_KEY }}
         AZURE_VAULT: ${{ secrets.AZURE_VAULT }}
         AUTH_CERT: ${{ secrets.AZURE_VAULT_AUTH_CERT_NAME }}
         REQUEST_SIGNING_CERT: ${{ secrets.AZURE_VAULT_REQUEST_SIGNING_CERT_NAME }}
@@ -394,6 +397,7 @@ jobs:
     - name: Set up ESRP client
       shell: pwsh
       env:
+        AZURE_STORAGE_KEY: ${{ secrets.AZURE_STORAGE_KEY }}
         AZURE_VAULT: ${{ secrets.AZURE_VAULT }}
         AUTH_CERT: ${{ secrets.AZURE_VAULT_AUTH_CERT_NAME }}
         REQUEST_SIGNING_CERT: ${{ secrets.AZURE_VAULT_REQUEST_SIGNING_CERT_NAME }}
