@@ -125,9 +125,8 @@ to install it.
 Download and run the script:
 
 ```shell
-curl -LO https://aka.ms/gcm/linux-install-source.sh &&
-sh ./linux-install-source.sh &&
-git-credential-manager-core configure
+curl -L https://aka.ms/gcm/linux-install-source.sh | sh
+git-credential-manager configure
 ```
 
 **Note:** You will be prompted to enter your credentials so that the script
@@ -206,9 +205,10 @@ the preferred install method for Linux because you can use it to install on any
 distribution][dotnet-supported-distributions]. You
 can also use this method on macOS if you so choose.
 
-**Note:** Make sure you have installed the [latest version of the .NET 6.0
-SDK](https://dotnet.microsoft.com/en-us/download/dotnet/6.0) before attempting
-to run the following `dotnet tool` commands.
+**Note:** Make sure you have installed [version 6.0 of the .NET
+SDK][dotnet-install] before attempting to run the following `dotnet tool`
+commands. After installing, you will also need to follow the output instructions
+to add the tools directory to your `PATH`.
 
 #### Install
 
@@ -230,6 +230,7 @@ git-credential-manager unconfigure
 dotnet tool uninstall -g git-credential-manager
 ```
 
+[dotnet-install]: https://learn.microsoft.com/en-us/dotnet/core/install/linux#packages
 [dotnet-supported-distributions]: https://learn.microsoft.com/en-us/dotnet/core/install/linux
 [dotnet-tool]: https://learn.microsoft.com/en-us/dotnet/core/tools/global-tools
 [gcm-credstores]: credstores.md
