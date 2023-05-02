@@ -27,10 +27,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- All projects should use Nerdbank.GitVersioning for consistent version numbers -->
-    <PackageReference Include="Nerdbank.GitVersioning">
-      <Version>3.4.244</Version>
-      <PrivateAssets>all</PrivateAssets>
+    <!-- Workaround https://github.com/AzureAD/microsoft-authentication-library-for-dotnet/issues/4108  -->
+    <PackageReference Include="Newtonsoft.Json">
+      <Version>13.0.1</Version>
     </PackageReference>
   </ItemGroup>
+
 </Project>
