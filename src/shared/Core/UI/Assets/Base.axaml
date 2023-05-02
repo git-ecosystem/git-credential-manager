@@ -1,0 +1,20 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ResourceDictionary.ThemeDictionaries>
+
+        <ResourceDictionary x:Key="Default">
+            <Color x:Key="WindowBackgroundColor">#F6F6F6</Color>
+            <SolidColorBrush x:Key="WindowBackgroundBrush" Color="{StaticResource WindowBackgroundColor}"/>
+            <SolidColorBrush x:Key="DialogWindowCloseButtonBrush" Color="Black"/>
+            <SolidColorBrush x:Key="DialogWindowBorderBrush" Color="#CCCEDB"/>
+        </ResourceDictionary>
+
+        <ResourceDictionary x:Key="Dark">
+            <Color x:Key="WindowBackgroundColor">#282828</Color>
+            <SolidColorBrush x:Key="WindowBackgroundBrush" Color="{StaticResource WindowBackgroundColor}"/>
+            <SolidColorBrush x:Key="DialogWindowCloseButtonBrush" Color="White"/>
+            <SolidColorBrush x:Key="DialogWindowBorderBrush" Color="#474747"/>
+        </ResourceDictionary>
+
+    </ResourceDictionary.ThemeDictionaries>
+</ResourceDictionary>

@@ -51,15 +51,63 @@ namespace GitCredentialManager.Tests.Objects
     public class NullTrace2 : ITrace2
     {
         #region ITrace2
-        public void AddWriter(ITrace2Writer writer) { }
 
-        public void Start(TextWriter error,
-            IFileSystem fileSystem,
-            string appPath,
+        public void Initialize(DateTimeOffset startTime) { }
+
+        public void Start(string appPath,
+            string[] args,
             string filePath = "",
             int lineNumber = 0) { }
 
-        public void Stop(int exitCode, string fileName, int lineNumber) { }
+        public void Stop(int exitCode,
+            string fileName,
+            int lineNumber) { }
+
+        public void WriteChildStart(DateTimeOffset startTime,
+            Trace2ProcessClass processClass,
+            bool useShell,
+            string appName,
+            string argv,
+            string filePath = "",
+            int lineNumber = 0) { }
+
+        public void WriteChildExit(
+            double relativeTime,
+            int pid,
+            int code,
+            string filePath = "",
+            int lineNumber = 0) { }
+
+        public void WriteError(
+            string errorMessage,
+            string parameterizedMessage = null,
+            string filePath = "",
+            int lineNumber = 0) { }
+
+        public Region CreateRegion(
+            string category,
+            string label,
+            string message = "",
+            string filePath = "",
+            int lineNumber = 0)
+        {
+            return new Region(this, category, label, filePath, lineNumber, message);
+        }
+
+        public void WriteRegionEnter(
+            string category,
+            string label,
+            string message = "",
+            string filePath = "",
+            int lineNumber = 0) { }
+
+        public void WriteRegionLeave(
+            double relativeTime,
+            string category,
+            string label,
+            string message = "",
+            string filePath = "",
+            int lineNumber = 0) { }
 
         #endregion
 

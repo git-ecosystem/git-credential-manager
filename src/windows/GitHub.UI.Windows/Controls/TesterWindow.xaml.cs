@@ -1,23 +1,28 @@
 using System.Windows;
-using GitHub.UI.ViewModels;
-using GitHub.UI.Views;
+using GitCredentialManager;
 using GitCredentialManager.Interop.Windows;
 using GitCredentialManager.UI.Controls;
+using GitCredentialManager.UI.Windows.Controls;
+using GitHub.UI.ViewModels;
+using GitHub.UI.Windows.Views;
 
-namespace GitHub.UI.Controls
+namespace GitHub.UI.Windows.Controls
 {
     public partial class TesterWindow : Window
     {
         private readonly WindowsEnvironment _environment = new WindowsEnvironment(new WindowsFileSystem());
+        private readonly IProcessManager _processManager;
 
         public TesterWindow()
         {
+            ICommandContext commandContext = new CommandContext();
+            _processManager = new ProcessManager(new Trace2(commandContext));
             InitializeComponent();
         }
 
         private void ShowCredentials(object sender, RoutedEventArgs e)
         {
-            var vm = new CredentialsViewModel(_environment)
+            var vm = new CredentialsViewModel(_environment, _processManager)
             {
                 ShowBrowserLogin = useBrowser.IsChecked ?? false,
                 ShowDeviceLogin = useDevice.IsChecked ?? false,
@@ -27,18 +32,18 @@ namespace GitHub.UI.Controls
                 UserName = username.Text
             };
             var view = new CredentialsView();
-            var window = new DialogWindow(view) { DataContext = vm };
+            var window = new WpfDialogWindow(view) { DataContext = vm };
             window.ShowDialog();
         }
 
         private void ShowTwoFactorCode(object sender, RoutedEventArgs e)
         {
-            var vm = new TwoFactorViewModel(_environment)
+            var vm = new TwoFactorViewModel(_environment, _processManager)
             {
                 IsSms = twoFaSms.IsChecked ?? false,
             };
             var view = new TwoFactorView();
-            var window = new DialogWindow(view) { DataContext = vm };
+            var window = new WpfDialogWindow(view) { DataContext = vm };
             window.ShowDialog();
         }
 
@@ -50,7 +55,7 @@ namespace GitHub.UI.Controls
                 VerificationUrl = verificationUrl.Text,
             };
             var view = new DeviceCodeView();
-            var window = new DialogWindow(view) { DataContext = vm };
+            var window = new WpfDialogWindow(view) { DataContext = vm };
             window.ShowDialog();
         }
     }

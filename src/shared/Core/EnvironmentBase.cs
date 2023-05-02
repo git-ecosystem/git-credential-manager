@@ -46,18 +46,6 @@ namespace GitCredentialManager
         bool TryLocateExecutable(string program, out string path);
 
         /// <summary>
-        /// Create a process ready to start, with redirected streams.
-        /// </summary>
-        /// <param name="path">Absolute file path of executable or command to start.</param>
-        /// <param name="args">Command line arguments to pass to executable.</param>
-        /// <param name="useShellExecute">
-        /// True to resolve <paramref name="path"/> using the OS shell, false to use as an absolute file path.
-        /// </param>
-        /// <param name="workingDirectory">Working directory for the new process.</param>
-        /// <returns><see cref="Process"/> object ready to start.</returns>
-        Process CreateProcess(string path, string args, bool useShellExecute, string workingDirectory);
-
-        /// <summary>
         /// Set an environment variable at the specified target level.
         /// </summary>
         /// <param name="variable">Name of the environment variable to set.</param>
@@ -65,20 +53,45 @@ namespace GitCredentialManager
         /// <param name="target">Target level of environment variable to set (Machine, Process, or User).</param>
         void SetEnvironmentVariable(string variable, string value,
             EnvironmentVariableTarget target = EnvironmentVariableTarget.Process);
+
+        /// <summary>
+        /// Refresh the current process environment variables. See <see cref="Variables"/>.
+        /// </summary>
+        /// <remarks>This is automatically called after <see cref="SetEnvironmentVariable"/>.</remarks>
+        void Refresh();
     }
 
     public abstract class EnvironmentBase : IEnvironment
     {
+        private IReadOnlyDictionary<string, string> _variables;
+
         protected EnvironmentBase(IFileSystem fileSystem)
         {
             EnsureArgument.NotNull(fileSystem, nameof(fileSystem));
-
             FileSystem = fileSystem;
         }
 
-        public IReadOnlyDictionary<string, string> Variables { get; protected set; }
+        internal EnvironmentBase(IFileSystem fileSystem, IReadOnlyDictionary<string, string> variables)
+            : this(fileSystem)
+        {
+            EnsureArgument.NotNull(variables, nameof(variables));
+            _variables = variables;
+        }
 
-        protected ITrace Trace { get; }
+        public IReadOnlyDictionary<string, string> Variables
+        {
+            get
+            {
+                // Variables are lazily loaded
+                if (_variables is null)
+                {
+                    Refresh();
+                }
+
+                Debug.Assert(_variables != null);
+                return _variables;
+            }
+        }
 
         protected IFileSystem FileSystem { get; }
 
@@ -98,20 +111,6 @@ namespace GitCredentialManager
         public abstract void RemoveDirectoryFromPath(string directoryPath, EnvironmentVariableTarget target);
 
         protected abstract string[] SplitPathVariable(string value);
-
-        public virtual Process CreateProcess(string path, string args, bool useShellExecute, string workingDirectory)
-        {
-            var psi = new ProcessStartInfo(path, args)
-            {
-                RedirectStandardInput = true,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = useShellExecute,
-                WorkingDirectory = workingDirectory ?? string.Empty
-            };
-
-            return new Process { StartInfo = psi };
-        }
 
         public virtual bool TryLocateExecutable(string program, out string path)
         {
@@ -154,9 +153,22 @@ namespace GitCredentialManager
         public void SetEnvironmentVariable(string variable, string value,
             EnvironmentVariableTarget target = EnvironmentVariableTarget.Process)
         {
-            if (Variables.Keys.Contains(variable)) return;
+            // Don't bother setting the variable if it already has the same value
+            if (Variables.TryGetValue(variable, out var currentValue) &&
+                StringComparer.Ordinal.Equals(currentValue, value))
+            {
+                return;
+            }
+
             Environment.SetEnvironmentVariable(variable, value, target);
-            Variables = GetCurrentVariables();
+
+            // Immediately refresh the variables so that the new value is available to callers using IEnvironment
+            Refresh();
+        }
+
+        public void Refresh()
+        {
+            _variables = GetCurrentVariables();
         }
 
         protected abstract IReadOnlyDictionary<string, string> GetCurrentVariables();
@@ -181,30 +193,16 @@ namespace GitCredentialManager
         }
 
         /// <summary>
-        /// Create a process ready to start, with redirected streams.
+        /// Retrieves the value of an environment variable from the current process.
         /// </summary>
         /// <param name="environment">The <see cref="IEnvironment"/>.</param>
-        /// <param name="path">Absolute file path of executable or command to start.</param>
-        /// <param name="args">Command line arguments to pass to executable.</param>
-        /// <param name="useShellExecute">
-        /// True to resolve <paramref name="path"/> using the OS shell, false to use as an absolute file path.
-        /// </param>
-        /// <returns><see cref="Process"/> object ready to start.</returns>
-        public static Process CreateProcess(this IEnvironment environment, string path, string args, bool useShellExecute)
+        /// <param name="variable">The name of the environment variable.</param>
+        /// <returns>
+        /// The value of the environment variable specified by variable, or null if the environment variable is not found.
+        /// </returns>
+        public static string GetEnvironmentVariable(this IEnvironment environment, string variable)
         {
-            return environment.CreateProcess(path, args, useShellExecute, string.Empty);
-        }
-
-        /// <summary>
-        /// Create a process ready to start, with redirected streams.
-        /// </summary>
-        /// <param name="environment">The <see cref="IEnvironment"/>.</param>
-        /// <param name="path">Absolute file path of executable to start.</param>
-        /// <param name="args">Command line arguments to pass to executable.</param>
-        /// <returns><see cref="Process"/> object ready to start.</returns>
-        public static Process CreateProcess(this IEnvironment environment, string path, string args)
-        {
-            return environment.CreateProcess(path, args, false, string.Empty);
+            return environment.Variables.TryGetValue(variable, out string value) ? value : null;
         }
     }
 }

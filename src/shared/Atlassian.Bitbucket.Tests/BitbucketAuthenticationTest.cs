@@ -51,6 +51,7 @@ namespace Atlassian.Bitbucket.Tests
         {
             var context = new TestCommandContext();
             context.SessionManager.IsDesktopSession = true; // Allow OAuth mode
+            context.Settings.IsGuiPromptsEnabled = false; // Force text prompts
             context.Terminal.Prompts["option (enter for default)"] = "1";
             Uri targetUri = null;
 
@@ -71,6 +72,7 @@ namespace Atlassian.Bitbucket.Tests
 
             var context = new TestCommandContext();
             context.SessionManager.IsDesktopSession = true; // Allow OAuth mode
+            context.Settings.IsGuiPromptsEnabled = false; // Force text prompts
             context.Terminal.Prompts["option (enter for default)"] = "2";
             context.Terminal.Prompts["Username"] = username;
             context.Terminal.SecretPrompts["Password"] = password;

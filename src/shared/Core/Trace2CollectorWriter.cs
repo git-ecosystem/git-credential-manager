@@ -12,7 +12,7 @@ namespace GitCredentialManager
     /// Accepts string messages from multiple threads and dispatches them over a named pipe from a
     /// background thread.
     /// </summary>
-    public class Trace2CollectorWriter : DisposableObject, ITrace2Writer
+    public class Trace2CollectorWriter : Trace2Writer
     {
         private const int DefaultMaxQueueSize = 256;
 
@@ -22,10 +22,9 @@ namespace GitCredentialManager
         private Thread _writerThread;
         private NamedPipeClientStream _pipeClient;
 
-        public bool Failed { get; private set; }
-
-        public Trace2CollectorWriter(Func<NamedPipeClientStream> createPipeFunc,
-            int maxQueueSize = DefaultMaxQueueSize)
+        public Trace2CollectorWriter(Trace2FormatTarget formatTarget,
+            Func<NamedPipeClientStream> createPipeFunc,
+            int maxQueueSize = DefaultMaxQueueSize) : base(formatTarget)
         {
             EnsureArgument.NotNull(createPipeFunc, nameof(createPipeFunc));
             EnsureArgument.Positive(maxQueueSize, nameof(maxQueueSize));
@@ -35,17 +34,17 @@ namespace GitCredentialManager
 
             Start();
         }
-        
-        public void Write(Trace2Message message)
+
+        public override void Write(Trace2Message message)
         {
            _queue.TryAdd(message.ToJson());
         }
-        
+
         protected override void ReleaseManagedResources()
         {
             Stop();
 
-            _pipeClient.Dispose();
+            _pipeClient?.Dispose();
             _queue.Dispose();
             base.ReleaseManagedResources();
 

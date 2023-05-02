@@ -17,6 +17,7 @@ namespace GitCredentialManager.Tests.Objects
             Terminal = new TestTerminal();
             SessionManager = new TestSessionManager();
             Trace = new NullTrace();
+            Trace2 = new NullTrace2();
             FileSystem = new TestFileSystem();
             CredentialStore = new TestCredentialStore();
             HttpClientFactory = new TestHttpClientFactory();
@@ -39,6 +40,8 @@ namespace GitCredentialManager.Tests.Objects
         public TestHttpClientFactory HttpClientFactory { get; set; }
         public TestGit Git { get; set; }
         public TestEnvironment Environment { get; set; }
+
+        public IProcessManager ProcessManager { get; set; }
 
         #region ICommandContext
 

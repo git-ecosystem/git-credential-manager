@@ -7,13 +7,10 @@ namespace GitCredentialManager.Interop.Posix
     public class PosixEnvironment : EnvironmentBase
     {
         public PosixEnvironment(IFileSystem fileSystem)
-            : this(fileSystem, null) { }
+            : base(fileSystem) { }
 
         internal PosixEnvironment(IFileSystem fileSystem, IReadOnlyDictionary<string, string> variables)
-            : base(fileSystem)
-        {
-            Variables = variables ?? GetCurrentVariables();
-        }
+            : base(fileSystem, variables) { }
 
         #region EnvironmentBase
 

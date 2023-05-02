@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Linq;
 
 namespace GitCredentialManager.Tests.Objects
@@ -32,7 +31,6 @@ namespace GitCredentialManager.Tests.Objects
 
             Variables = new Dictionary<string, string>(_envarComparer);
             Symlinks = new Dictionary<string, string>(_pathComparer);
-            CreatedProcesses = new List<ProcessStartInfo>();
         }
 
         public IDictionary<string, string> Variables { get; set; }
@@ -53,8 +51,6 @@ namespace GitCredentialManager.Tests.Objects
 
             set => Variables["PATH"] = string.Join(_envPathSeparator, value);
         }
-
-        public IList<ProcessStartInfo> CreatedProcesses { get; set; }
 
         #region IEnvironment
 
@@ -101,28 +97,17 @@ namespace GitCredentialManager.Tests.Objects
             return false;
         }
 
-        public Process CreateProcess(string path, string args, bool useShellExecute, string workingDirectory)
-        {
-            var psi = new ProcessStartInfo(path, args)
-            {
-                RedirectStandardInput = true,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = useShellExecute,
-                WorkingDirectory = workingDirectory ?? string.Empty
-            };
-
-            CreatedProcesses.Add(psi);
-
-            return new Process { StartInfo = psi };
-        }
-        
         public void SetEnvironmentVariable(string variable, string value,
             EnvironmentVariableTarget target = EnvironmentVariableTarget.Process)
         {
             if (Variables.Keys.Contains(variable)) return;
             Environment.SetEnvironmentVariable(variable, value, target);
             Variables.Add(variable, value);
+        }
+
+        public void Refresh()
+        {
+            // Nothing to do!
         }
 
         #endregion

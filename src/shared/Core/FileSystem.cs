@@ -84,6 +84,29 @@ namespace GitCredentialManager
         /// </returns>
         IEnumerable<string> EnumerateFiles(string path, string searchPattern);
 
+        /// <summary>
+        /// Returns an enumerable collection of directory full names in a specified path.
+        /// </summary>
+        /// <param name="path">The relative or absolute path to the directory to search. This string is not case-sensitive.</param>
+        /// <returns>
+        /// An enumerable collection of the full names (including paths) for the directories
+        /// in the directory specified by path.
+        /// </returns>
+        IEnumerable<string> EnumerateDirectories(string path);
+
+        /// <summary>
+        /// Opens a text file, reads all the text in the file, and then closes the file
+        /// </summary>
+        /// <param name="path">The file to open for reading.</param>
+        /// <returns>A string containing all the text in the file.</returns>
+        string ReadAllText(string path);
+
+        /// <summary>
+        /// Opens a text file, reads all lines of the file, and then closes the file.
+        /// </summary>
+        /// <param name="path">The file to open for reading.</param>
+        /// <returns>A string array containing all lines of the file.</returns>
+        string[] ReadAllLines(string path);
     }
 
     /// <summary>
@@ -111,5 +134,11 @@ namespace GitCredentialManager
         public void DeleteFile(string path) => File.Delete(path);
 
         public IEnumerable<string> EnumerateFiles(string path, string searchPattern) => Directory.EnumerateFiles(path, searchPattern);
+
+        public IEnumerable<string> EnumerateDirectories(string path) => Directory.EnumerateDirectories(path);
+
+        public string ReadAllText(string path) => File.ReadAllText(path);
+
+        public string[] ReadAllLines(string path) => File.ReadAllLines(path);
     }
 }

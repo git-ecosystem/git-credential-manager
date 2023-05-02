@@ -76,7 +76,7 @@ namespace GitCredentialManager
                 Context.Trace.WriteLine($"\tUseAuthHeader   = {oauthConfig.UseAuthHeader}");
                 Context.Trace.WriteLine($"\tDefaultUserName = {oauthConfig.DefaultUserName}");
 
-                return await GetOAuthAccessToken(uri, input.UserName, oauthConfig);
+                return await GetOAuthAccessToken(uri, input.UserName, oauthConfig, Context.Trace2);
             }
             // Try detecting WIA for this remote, if permitted
             else if (IsWindowsAuthAllowed)
@@ -100,7 +100,7 @@ namespace GitCredentialManager
                 }
                 else
                 {
-                    string osType = PlatformUtils.GetPlatformInformation().OperatingSystemType;
+                    string osType = PlatformUtils.GetPlatformInformation(Context.Trace2).OperatingSystemType;
                     Context.Trace.WriteLine($"Skipping check for Windows Integrated Authentication on {osType}.");
                 }
             }
@@ -114,7 +114,7 @@ namespace GitCredentialManager
             return await _basicAuth.GetCredentialsAsync(uri.AbsoluteUri, input.UserName);
         }
 
-        private async Task<ICredential> GetOAuthAccessToken(Uri remoteUri, string userName, GenericOAuthConfig config)
+        private async Task<ICredential> GetOAuthAccessToken(Uri remoteUri, string userName, GenericOAuthConfig config, ITrace2 trace2)
         {
             // TODO: Determined user info from a webcall? ID token? Need OIDC support
             string oauthUser = userName ?? config.DefaultUserName;
@@ -123,9 +123,9 @@ namespace GitCredentialManager
                 HttpClient,
                 config.Endpoints,
                 config.ClientId,
+                trace2,
                 config.RedirectUri,
                 config.ClientSecret,
-                Context.Trace,
                 config.UseAuthHeader);
 
             //
@@ -143,16 +143,26 @@ namespace GitCredentialManager
             ICredential refreshToken = Context.CredentialStore.Get(refreshService, userName);
             if (refreshToken != null)
             {
-                 var refreshResult = await client.GetTokenByRefreshTokenAsync(refreshToken.Password, CancellationToken.None);
+                try
+                {
+                    var refreshResult = await client.GetTokenByRefreshTokenAsync(refreshToken.Password, CancellationToken.None);
 
-                 // Store new refresh token if we have been given one
-                 if (!string.IsNullOrWhiteSpace(refreshResult.RefreshToken))
-                 {
-                     Context.CredentialStore.AddOrUpdate(refreshService, refreshToken.Account, refreshToken.Password);
-                 }
+                    // Store new refresh token if we have been given one
+                    if (!string.IsNullOrWhiteSpace(refreshResult.RefreshToken))
+                    {
+                        Context.CredentialStore.AddOrUpdate(refreshService, refreshToken.Account, refreshToken.Password);
+                    }
 
-                 // Return the new access token
-                 return new GitCredential(oauthUser,refreshResult.AccessToken);
+                    // Return the new access token
+                    return new GitCredential(oauthUser,refreshResult.AccessToken);
+                }
+                catch (OAuth2Exception ex)
+                {
+                    // Failed to use refresh token. It may have expired or been revoked.
+                    // Fall through to an interactive OAuth flow.
+                    Context.Trace.WriteLine("Failed to use refresh token.");
+                    Context.Trace.WriteException(ex);
+                }
             }
 
             // Determine which interactive OAuth mode to use. Start by checking for mode preference in config
@@ -194,7 +204,7 @@ namespace GitCredentialManager
                     break;
 
                 default:
-                    throw new Exception("No authentication mode selected!");
+                    throw new Trace2Exception(Context.Trace2, "No authentication mode selected!");
             }
 
             // Store the refresh token if we have one

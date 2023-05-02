@@ -39,9 +39,9 @@ logs are appended to the file.
 
 If the value of `GCM_TRACE` is `true` or `1`, logs are written to standard error.
 
-Defaults to tracing disabled.
+Defaults to disabled.
 
-_No configuration equivalent._
+**Also see: [credential.trace][credential-trace]**
 
 ---
 
@@ -71,14 +71,14 @@ secret information.
 
 Defaults to disabled.
 
-_No configuration equivalent._
+**Also see: [credential.traceSecrets][credential-trace-secrets]**
 
 ---
 
 ### GCM_TRACE_MSAUTH
 
-Enables inclusion of Microsoft Authentication libraries (ADAL, MSAL) logs in GCM
-trace output. Requires that `GCM_TRACE` is also enabled.
+Enables inclusion of Microsoft Authentication library (MSAL) logs in GCM trace
+output. Requires that `GCM_TRACE` is also enabled.
 
 #### Example
 
@@ -97,11 +97,11 @@ export GCM_TRACE_MSAUTH=1
 ```
 
 If the value of `GCM_TRACE_MSAUTH` is `true` or `1`, trace logs will include
-verbose ADAL/MSAL logs.
+verbose MSAL logs.
 
 Defaults to disabled.
 
-_No configuration equivalent._
+**Also see: [credential.traceMsAuth][credential-trace-msauth]**
 
 ---
 
@@ -125,7 +125,7 @@ export GCM_DEBUG=1
 
 Defaults to disabled.
 
-_No configuration equivalent._
+**Also see: [credential.debug][credential-debug]**
 
 ---
 
@@ -776,7 +776,10 @@ export GCM_MSAUTH_FLOW="devicecode"
 
 Use the operating system account manager where available.
 
-Defaults to `false`. This default is subject to change in the future.
+Defaults to `false`. In certain cloud hosted environments when using a work or
+school account, such as [Microsoft DevBox][devbox], the default is `true`.
+
+These defaults are subject to change in the future.
 
 _**Note:** before you enable this option on Windows, please
 [review the details][windows-broker] about what this means to your local Windows
@@ -800,6 +803,36 @@ export GCM_MSAUTH_USEBROKER="false"
 ```
 
 **Also see: [credential.msauthUseBroker][credential-msauth-usebroker]**
+
+---
+
+### GCM_MSAUTH_USEDEFAULTACCOUNT _(experimental)_
+
+Use the current operating system account by default when the broker is enabled.
+
+Defaults to `false`. In certain cloud hosted environments when using a work or
+school account, such as [Microsoft DevBox][devbox], the default is `true`.
+
+These defaults are subject to change in the future.
+
+Value|Description
+-|-
+`true`|Use the current operating system account by default.
+`false` _(default)_|Do not assume any account to use by default.
+
+#### Windows
+
+```batch
+SET GCM_MSAUTH_USEDEFAULTACCOUNT="true"
+```
+
+#### macOS/Linux
+
+```bash
+export GCM_MSAUTH_USEDEFAULTACCOUNT="false"
+```
+
+**Also see: [credential.msauthUseDefaultAccount][credential-msauth-usedefaultaccount]**
 
 ---
 
@@ -830,6 +863,93 @@ export GCM_AZREPOS_CREDENTIALTYPE="oauth"
 
 **Also see: [credential.azreposCredentialType][credential-azrepos-credential-type]**
 
+---
+
+### GIT_TRACE2
+
+Turns on Trace2 Normal Format tracing - see [Git's Trace2 Normal Format
+documentation][trace2-normal-docs] for more details.
+
+#### Windows
+
+```batch
+SET GIT_TRACE2=%UserProfile%\log.normal
+```
+
+#### macOS/Linux
+
+```bash
+export GIT_TRACE2=~/log.normal
+```
+
+If the value of `GIT_TRACE2` is a full path to a file in an existing directory,
+logs are appended to the file.
+
+If the value of `GIT_TRACE2` is `true` or `1`, logs are written to standard
+error.
+
+Defaults to disabled.
+
+**Also see: [trace2.normalFormat][trace2-normal-config]**
+
+---
+
+### GIT_TRACE2_EVENT
+
+Turns on Trace2 Event Format tracing - see [Git's Trace2 Event Format
+documentation][trace2-event-docs] for more details.
+
+#### Windows
+
+```batch
+SET GIT_TRACE2_EVENT=%UserProfile%\log.event
+```
+
+#### macOS/Linux
+
+```bash
+export GIT_TRACE2_EVENT=~/log.event
+```
+
+If the value of `GIT_TRACE2_EVENT` is a full path to a file in an existing
+directory, logs are appended to the file.
+
+If the value of `GIT_TRACE2_EVENT` is `true` or `1`, logs are written to
+standard error.
+
+Defaults to disabled.
+
+**Also see: [trace2.eventFormat][trace2-event-config]**
+
+---
+
+### GIT_TRACE2_PERF
+
+Turns on Trace2 Performance Format tracing - see [Git's Trace2 Performance
+Format documentation][trace2-performance-docs] for more details.
+
+#### Windows
+
+```batch
+SET GIT_TRACE2_PERF=%UserProfile%\log.perf
+```
+
+#### macOS/Linux
+
+```bash
+export GIT_TRACE2_PERF=~/log.perf
+```
+
+If the value of `GIT_TRACE2_PERF` is a full path to a file in an existing
+directory, logs are appended to the file.
+
+If the value of `GIT_TRACE2_PERF` is `true` or `1`, logs are written to
+standard error.
+
+Defaults to disabled.
+
+**Also see: [trace2.perfFormat][trace2-performance-config]**
+
 [autodetect]: autodetect.md
 [azure-access-tokens]: azrepos-users-and-tokens.md
 [configuration]: configuration.md
@@ -840,6 +960,7 @@ export GCM_AZREPOS_CREDENTIALTYPE="oauth"
 [credential-bitbucketauthmodes]: configuration.md#credentialbitbucketAuthModes
 [credential-cacheoptions]: configuration.md#credentialcacheoptions
 [credential-credentialstore]: configuration.md#credentialcredentialstore
+[credential-debug]: configuration.md#credentialdebug
 [credential-dpapi-store-path]: configuration.md#credentialdpapistorepath
 [credential-githubauthmodes]: configuration.md#credentialgitHubAuthModes
 [credential-gitlabauthmodes]: configuration.md#credentialgitLabAuthModes
@@ -849,10 +970,15 @@ export GCM_AZREPOS_CREDENTIALTYPE="oauth"
 [credential-namespace]: configuration.md#credentialnamespace
 [credential-msauth-flow]: configuration.md#credentialmsauthflow
 [credential-msauth-usebroker]: configuration.md#credentialmsauthusebroker-experimental
+[credential-msauth-usedefaultaccount]: configuration.md#credentialmsauthusedefaultaccount-experimental
 [credential-plain-text-store]: configuration.md#credentialplaintextstorepath
 [credential-provider]: configuration.md#credentialprovider
 [credential-stores]: credstores.md
+[credential-trace]: configuration.md#credentialtrace
+[credential-trace-secrets]: configuration.md#credentialtracesecrets
+[credential-trace-msauth]: configuration.md#credentialtracemsauth
 [default-values]: enterprise-config.md
+[devbox]: https://azure.microsoft.com/en-us/products/dev-box
 [freedesktop-ss]: https://specifications.freedesktop.org/secret-service/
 [gcm]: usage.md
 [gcm-interactive]: #gcm_interactive
@@ -867,4 +993,10 @@ export GCM_AZREPOS_CREDENTIALTYPE="oauth"
 [libsecret]: https://wiki.gnome.org/Projects/Libsecret
 [migration-guide]: migration.md#gcm_authority
 [passwordstore]: https://www.passwordstore.org/
+[trace2-normal-docs]: https://git-scm.com/docs/api-trace2#_the_normal_format_target
+[trace2-normal-config]: configuration.md#trace2normalTarget
+[trace2-event-docs]: https://git-scm.com/docs/api-trace2#_the_event_format_target
+[trace2-event-config]: configuration.md#trace2eventTarget
+[trace2-performance-docs]: https://git-scm.com/docs/api-trace2#_the_performance_format_target
+[trace2-performance-config]: configuration.md#trace2perfTarget
 [windows-broker]: windows-broker.md

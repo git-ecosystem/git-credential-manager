@@ -37,10 +37,11 @@ namespace GitCredentialManager
     {
         private readonly IFileSystem _fileSystem;
         private readonly ITrace _trace;
+        private readonly ITrace2 _trace2;
         private readonly ISettings _settings;
         private readonly IStandardStreams _streams;
 
-        public HttpClientFactory(IFileSystem fileSystem, ITrace trace, ISettings settings, IStandardStreams streams)
+        public HttpClientFactory(IFileSystem fileSystem, ITrace trace, ITrace2 trace2, ISettings settings, IStandardStreams streams)
         {
             EnsureArgument.NotNull(fileSystem, nameof(fileSystem));
             EnsureArgument.NotNull(trace, nameof(trace));
@@ -49,6 +50,7 @@ namespace GitCredentialManager
 
             _fileSystem = fileSystem;
             _trace = trace;
+            _trace2 = trace2;
             _settings = settings;
             _streams = streams;
         }
@@ -73,6 +75,20 @@ namespace GitCredentialManager
             {
                 handler = new HttpClientHandler();
             }
+
+            // Trace Git's chosen SSL/TLS backend
+            _trace.WriteLine($"Git's SSL/TLS backend is: {_settings.TlsBackend}");
+
+            // Mirror Git for Windows and only send client TLS certificates automatically if we're using
+            // the schannel backend _and_ the user has opted in to sending them.
+            if (_settings.TlsBackend == TlsBackend.Schannel &&
+                _settings.AutomaticallyUseClientCertificates)
+            {
+                _trace.WriteLine("Configured to automatically send TLS client certificates.");
+                handler.ClientCertificateOptions = ClientCertificateOption.Automatic;
+            }
+
+            // Configure server certificate verification and warn if we're bypassing validation
 
             // IsCertificateVerificationEnabled takes precedence over custom TLS cert verification
             if (!_settings.IsCertificateVerificationEnabled)
@@ -99,7 +115,9 @@ namespace GitCredentialManager
                 // Throw exception if cert bundle file not found
                 if (!_fileSystem.FileExists(certBundlePath))
                 {
-                    throw new FileNotFoundException($"Custom certificate bundle not found at path: {certBundlePath}", certBundlePath);
+                    var format = "Custom certificate bundle not found at path: {0}";
+                    var message = string.Format(format, certBundlePath);
+                    throw new Trace2FileNotFoundException(_trace2, message, format, certBundlePath);
                 }
 
                 Func<X509Certificate2, X509Chain, SslPolicyErrors, bool> validationCallback = (cert, chain, errors) =>
@@ -182,7 +200,7 @@ namespace GitCredentialManager
             var client = new HttpClient(handler);
 
             // Add default headers
-            client.DefaultRequestHeaders.UserAgent.ParseAdd(Constants.GetHttpUserAgent());
+            client.DefaultRequestHeaders.UserAgent.ParseAdd(Constants.GetHttpUserAgent(_trace2));
             client.DefaultRequestHeaders.CacheControl = new CacheControlHeaderValue
             {
                 NoCache = true
@@ -264,8 +282,11 @@ namespace GitCredentialManager
                     }
                     catch (Exception ex)
                     {
-                        _trace.WriteLine("Failed to convert proxy bypass hosts to regular expressions; ignoring bypass list");
+                        var message =
+                            "Failed to convert proxy bypass hosts to regular expressions; ignoring bypass list";
+                        _trace.WriteLine(message);
                         _trace.WriteException(ex);
+                        _trace2.WriteError(message);
                         dict["bypass"] = "<< failed to convert >>";
                     }
                 }

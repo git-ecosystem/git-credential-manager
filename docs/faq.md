@@ -235,7 +235,7 @@ initiate this flow for you next time access is requested).
 [bitbucket-ssh]: https://confluence.atlassian.com/bitbucket/ssh-keys-935365775.html
 [config-gui-prompt]: configuration.md#credentialguiprompt
 [config-interactive]: configuration.md#credentialinteractive
-[create-issue]: https://github.com/GitCredentialManager/git-credential-manager/issues/create
+[create-issue]: https://github.com/git-ecosystem/git-credential-manager/issues/create
 [credstores]: credstores.md
 [download-and-install]: ../README.md#download-and-install
 [enable-windows-ssh]: https://support.microsoft.com/topic/update-to-enable-tls-1-1-and-tls-1-2-as-default-secure-protocols-in-winhttp-in-windows-c4bd73d2-31d7-761e-0178-11268bb10392

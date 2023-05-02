@@ -18,7 +18,7 @@ namespace GitCredentialManager
         /// </summary>
         /// <param name="args">Arguments to pass to the Git process.</param>
         /// <returns>Process object ready to be started.</returns>
-        Process CreateProcess(string args);
+        ChildProcess CreateProcess(string args);
 
         /// <summary>
         /// Return the path to the current repository, or null if this instance is not
@@ -65,18 +65,21 @@ namespace GitCredentialManager
     public class GitProcess : IGit
     {
         private readonly ITrace _trace;
-        private readonly IEnvironment _environment;
+        private readonly ITrace2 _trace2;
+        private readonly IProcessManager _processManager;
         private readonly string _gitPath;
         private readonly string _workingDirectory;
 
-        public GitProcess(ITrace trace, IEnvironment environment, string gitPath, string workingDirectory = null)
+        public GitProcess(ITrace trace, ITrace2 trace2, IProcessManager processManager, string gitPath, string workingDirectory = null)
         {
             EnsureArgument.NotNull(trace, nameof(trace));
-            EnsureArgument.NotNull(environment, nameof(environment));
+            EnsureArgument.NotNull(trace2, nameof(trace2));
+            EnsureArgument.NotNull(processManager, nameof(processManager));
             EnsureArgument.NotNullOrWhiteSpace(gitPath, nameof(gitPath));
 
             _trace = trace;
-            _environment = environment;
+            _trace2 = trace2;
+            _processManager = processManager;
             _gitPath = gitPath;
             _workingDirectory = workingDirectory;
         }
@@ -90,7 +93,7 @@ namespace GitCredentialManager
                 {
                     using (var git = CreateProcess("version"))
                     {
-                        git.Start();
+                        git.Start(Trace2ProcessClass.Git);
 
                         string data = git.StandardOutput.ReadToEnd();
                         git.WaitForExit();
@@ -120,9 +123,7 @@ namespace GitCredentialManager
         {
             using (var git = CreateProcess("rev-parse --absolute-git-dir"))
             {
-                git.Start();
-                // To avoid deadlocks, always read the output stream first and then wait
-                // TODO: don't read in all the data at once; stream it
+                git.Start(Trace2ProcessClass.Git);
                 string data = git.StandardOutput.ReadToEnd();
                 git.WaitForExit();
 
@@ -133,8 +134,9 @@ namespace GitCredentialManager
                     case 128: // Not inside a Git repository
                         return null;
                     default:
-                        _trace.WriteLine($"Failed to get current Git repository (exit={git.ExitCode})");
-                        throw CreateGitException(git, "Failed to get current Git repository");
+                        var message = "Failed to get current Git repository";
+                        _trace.WriteLine($"{message} (exit={git.ExitCode})");
+                        throw CreateGitException(git, message, _trace2);
                 }
             }
         }
@@ -143,7 +145,7 @@ namespace GitCredentialManager
         {
             using (var git = CreateProcess("remote -v show"))
             {
-                git.Start();
+                git.Start(Trace2ProcessClass.Git);
                 // To avoid deadlocks, always read the output stream first and then wait
                 // TODO: don't read in all the data at once; stream it
                 string data = git.StandardOutput.ReadToEnd();
@@ -157,8 +159,9 @@ namespace GitCredentialManager
                     case 128 when stderr.Contains("not a git repository"): // Not inside a Git repository
                         yield break;
                     default:
-                        _trace.WriteLine($"Failed to enumerate Git remotes (exit={git.ExitCode})");
-                        throw CreateGitException(git, "Failed to enumerate Git remotes");
+                        var message = "Failed to enumerate Git remotes";
+                        _trace.WriteLine($"{message} (exit={git.ExitCode})");
+                        throw CreateGitException(git, message, _trace2);
                 }
 
                 string[] lines = data.Split('\n');
@@ -184,13 +187,13 @@ namespace GitCredentialManager
             }
         }
 
-        public Process CreateProcess(string args)
+        public ChildProcess CreateProcess(string args)
         {
-            return _environment.CreateProcess(_gitPath, args, false, _workingDirectory);
+            return _processManager.CreateProcess(_gitPath, args, false, _workingDirectory);
         }
 
         // This code was originally copied from
-        // src/shared/GitCredentialManager/Authentication/AuthenticationBase.cs
+        // src/shared/Core/Authentication/AuthenticationBase.cs
         // That code is for GUI helpers in this codebase, while the below is for
         // communicating over Git's stdin/stdout helper protocol. The GUI helper
         // protocol will one day use a different IPC mechanism, whereas this code
@@ -206,10 +209,12 @@ namespace GitCredentialManager
                 UseShellExecute = false
             };
 
-            var process = Process.Start(procStartInfo);
-            if (process is null)
+            var process = _processManager.CreateProcess(procStartInfo);
+            if (!process.Start(Trace2ProcessClass.Git))
             {
-                throw new Exception($"Failed to start Git helper '{args}'");
+                var format = "Failed to start Git helper '{0}'";
+                var message = string.Format(format, args);
+                throw new Trace2Exception(_trace2, message, format);
             }
 
             if (!(standardInput is null))
@@ -238,9 +243,13 @@ namespace GitCredentialManager
             return resultDict;
         }
 
-        public static GitException CreateGitException(Process git, string message)
+        public static GitException CreateGitException(ChildProcess git, string message, ITrace2 trace2 = null)
         {
-            string gitMessage = git.StandardError.ReadToEnd();
+            var gitMessage = git.StandardError.ReadToEnd();
+
+            if (trace2 != null)
+                throw new Trace2GitException(trace2, message, git.ExitCode, gitMessage);
+
             throw new GitException(message, gitMessage, git.ExitCode);
         }
     }

@@ -1,8 +1,6 @@
-using System;
 using System.Windows.Controls;
-using System.Windows.Threading;
 
-namespace GitCredentialManager.UI.Views
+namespace GitCredentialManager.UI.Windows.Views
 {
     public partial class DeviceCodeView : UserControl
     {

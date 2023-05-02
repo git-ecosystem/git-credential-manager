@@ -96,6 +96,12 @@ See the [documentation index][docs-index] for links to additional resources.
 
 - [Windows broker (experimental)][gcm-windows-broker]
 
+## Future features
+
+Curious about what's coming next in the GCM project? Take a look at the [project
+roadmap][roadmap]! You can find more details about the construction of the
+roadmap and how to interpret it [here][roadmap-announcement].
+
 ## Contributing
 
 This project welcomes contributions and suggestions.
@@ -113,26 +119,28 @@ When using GitHub logos, please be sure to follow the
 [azure-devops-ssh]: https://docs.microsoft.com/en-us/azure/devops/repos/git/use-ssh-keys-to-authenticate?view=azure-devops
 [bitbucket]: https://bitbucket.org
 [bitbucket-ssh]: https://confluence.atlassian.com/bitbucket/ssh-keys-935365775.html
-[build-status-badge]: https://github.com/GitCredentialManager/git-credential-manager/actions/workflows/continuous-integration.yml/badge.svg
-[docs-index]: https://github.com/GitCredentialManager/git-credential-manager/blob/release/docs/README.md
+[build-status-badge]: https://github.com/git-ecosystem/git-credential-manager/actions/workflows/continuous-integration.yml/badge.svg
+[docs-index]: https://github.com/git-ecosystem/git-credential-manager/blob/release/docs/README.md
 [dotnet]: https://dotnet.microsoft.com
 [dotnet-distributions]: https://learn.microsoft.com/en-us/dotnet/core/install/linux
 [git-credential-helper]: https://git-scm.com/docs/gitcredentials
-[gcm]: https://github.com/GitCredentialManager/git-credential-manager
+[gcm]: https://github.com/git-ecosystem/git-credential-manager
 [gcm-coc]: CODE_OF_CONDUCT.md
 [gcm-commit-12294990]: https://github.com/git/git/commit/12294990c90e043862be9eb7eb22c3784b526340
 [gcm-contributing]: CONTRIBUTING.md
-[gcm-credstores]: https://github.com/GitCredentialManager/git-credential-manager/blob/release/docs/credstores.md
+[gcm-credstores]: https://github.com/git-ecosystem/git-credential-manager/blob/release/docs/credstores.md
 [gcm-for-mac-and-linux]: https://github.com/microsoft/Git-Credential-Manager-for-Mac-and-Linux
 [gcm-for-windows]: https://github.com/microsoft/Git-Credential-Manager-for-Windows
-[gcm-http-proxy]: https://github.com/GitCredentialManager/git-credential-manager/blob/release/docs/netconfig.md#http-proxy
+[gcm-http-proxy]: https://github.com/git-ecosystem/git-credential-manager/blob/release/docs/netconfig.md#http-proxy
 [gcm-license]: LICENSE
-[gcm-usage]: https://github.com/GitCredentialManager/git-credential-manager/blob/release/docs/usage.md
-[gcm-windows-broker]: https://github.com/GitCredentialManager/git-credential-manager/blob/release/docs/windows-broker.md
+[gcm-usage]: https://github.com/git-ecosystem/git-credential-manager/blob/release/docs/usage.md
+[gcm-windows-broker]: https://github.com/git-ecosystem/git-credential-manager/blob/release/docs/windows-broker.md
 [git-tools-credential-storage]: https://git-scm.com/book/en/v2/Git-Tools-Credential-Storage
 [github]: https://github.com
 [github-ssh]: https://help.github.com/en/articles/connecting-to-github-with-ssh
 [github-logos]: https://github.com/logos
-[install]: https://github.com/GitCredentialManager/git-credential-manager/blob/release/docs/install.md
+[install]: https://github.com/git-ecosystem/git-credential-manager/blob/release/docs/install.md
 [ms-package-repos]: https://packages.microsoft.com/repos/
-[workflow-status]: https://github.com/GitCredentialManager/git-credential-manager/actions/workflows/continuous-integration.yml
+[roadmap]: https://github.com/git-ecosystem/git-credential-manager/milestones?direction=desc&sort=due_date&state=open
+[roadmap-announcement]: https://github.com/git-ecosystem/git-credential-manager/discussions/1203
+[workflow-status]: https://github.com/git-ecosystem/git-credential-manager/actions/workflows/continuous-integration.yml

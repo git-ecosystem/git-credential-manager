@@ -20,9 +20,15 @@ namespace GitCredentialManager.Authentication.OAuth
         /// </summary>
         /// <param name="scopes">Scopes to request.</param>
         /// <param name="browser">User agent to use to start the authorization code grant flow.</param>
+        /// <param name="extraQueryParams">Extra parameters to add to the URL query component.</param>
         /// <param name="ct">Token to cancel the operation.</param>
         /// <returns>Authorization code.</returns>
-        Task<OAuth2AuthorizationCodeResult> GetAuthorizationCodeAsync(IEnumerable<string> scopes, IOAuth2WebBrowser browser, CancellationToken ct);
+        Task<OAuth2AuthorizationCodeResult> GetAuthorizationCodeAsync(
+            IEnumerable<string> scopes,
+            IOAuth2WebBrowser browser,
+            IDictionary<string, string> extraQueryParams,
+            CancellationToken ct
+        );
 
         /// <summary>
         /// Retrieve a device code grant.
@@ -64,20 +70,26 @@ namespace GitCredentialManager.Authentication.OAuth
         private readonly OAuth2ServerEndpoints _endpoints;
         private readonly Uri _redirectUri;
         private readonly string _clientId;
+        private readonly ITrace2 _trace2;
         private readonly string _clientSecret;
-        private readonly ITrace _trace;
         private readonly bool _addAuthHeader;
 
         private IOAuth2CodeGenerator _codeGenerator;
 
-        public OAuth2Client(HttpClient httpClient, OAuth2ServerEndpoints endpoints, string clientId, Uri redirectUri = null, string clientSecret = null, ITrace trace = null, bool addAuthHeader = true)
+        public OAuth2Client(HttpClient httpClient,
+            OAuth2ServerEndpoints endpoints,
+            string clientId,
+            ITrace2 trace2,
+            Uri redirectUri = null,
+            string clientSecret = null,
+            bool addAuthHeader = true)
         {
             _httpClient = httpClient;
             _endpoints = endpoints;
             _clientId = clientId;
+            _trace2 = trace2;
             _redirectUri = redirectUri;
             _clientSecret = clientSecret;
-            _trace = trace;
             _addAuthHeader = addAuthHeader;
         }
 
@@ -87,21 +99,10 @@ namespace GitCredentialManager.Authentication.OAuth
             set => _codeGenerator = value;
         }
 
-        protected string ClientId => _clientId;
-
-        protected string ClientSecret => _clientSecret;
-
-        protected ITrace Trace => _trace;
-
-        protected OAuth2ServerEndpoints Endpoints => _endpoints;
-
-        protected HttpClient HttpClient => _httpClient;
-
-        protected Uri RedirectUri => _redirectUri;
-
         #region IOAuth2Client
 
-        public async Task<OAuth2AuthorizationCodeResult> GetAuthorizationCodeAsync(IEnumerable<string> scopes, IOAuth2WebBrowser browser, CancellationToken ct)
+        public async Task<OAuth2AuthorizationCodeResult> GetAuthorizationCodeAsync(IEnumerable<string> scopes,
+            IOAuth2WebBrowser browser, IDictionary<string, string> extraQueryParams, CancellationToken ct)
         {
             string state = CodeGenerator.CreateNonce();
             string codeVerifier = CodeGenerator.CreatePkceCodeVerifier();
@@ -117,6 +118,21 @@ namespace GitCredentialManager.Authentication.OAuth
                     OAuth2Constants.AuthorizationEndpoint.PkceChallengeMethodS256,
                 [OAuth2Constants.AuthorizationEndpoint.PkceChallengeParameter] = codeChallenge
             };
+
+            if (extraQueryParams?.Count > 0)
+            {
+                foreach (var kvp in extraQueryParams)
+                {
+                    if (queryParams.ContainsKey(kvp.Key))
+                    {
+                        throw new ArgumentException(
+                            $"Extra query parameter '{kvp.Key}' would override required standard OAuth parameters.",
+                            nameof(extraQueryParams));
+                    }
+
+                    queryParams[kvp.Key] = kvp.Value;
+                }
+            }
 
             Uri redirectUri = null;
             if (_redirectUri != null)
@@ -147,17 +163,19 @@ namespace GitCredentialManager.Authentication.OAuth
             IDictionary<string, string> redirectQueryParams = finalUri.GetQueryParameters();
             if (!redirectQueryParams.TryGetValue(OAuth2Constants.AuthorizationGrantResponse.StateParameter, out string replyState))
             {
-                throw new OAuth2Exception($"Missing '{OAuth2Constants.AuthorizationGrantResponse.StateParameter}' in response.");
+                throw new Trace2OAuth2Exception(_trace2, $"Missing '{OAuth2Constants.AuthorizationGrantResponse.StateParameter}' in response.");
             }
             if (!StringComparer.Ordinal.Equals(state, replyState))
             {
-                throw new OAuth2Exception($"Invalid '{OAuth2Constants.AuthorizationGrantResponse.StateParameter}' in response. Does not match initial request.");
+                throw new Trace2OAuth2Exception(_trace2,
+                    $"Missing '{OAuth2Constants.AuthorizationGrantResponse.StateParameter}' in response.");
             }
 
             // We expect to have the auth code in the response otherwise terminate the flow (we failed authentication for some reason)
             if (!redirectQueryParams.TryGetValue(OAuth2Constants.AuthorizationGrantResponse.AuthorizationCodeParameter, out string authCode))
             {
-                throw new OAuth2Exception($"Missing '{OAuth2Constants.AuthorizationGrantResponse.AuthorizationCodeParameter}' in response.");
+                throw new Trace2OAuth2Exception(_trace2,
+                    $"Missing '{OAuth2Constants.AuthorizationGrantResponse.AuthorizationCodeParameter}' in response.");
             }
 
             return new OAuth2AuthorizationCodeResult(authCode, redirectUri, codeVerifier);
@@ -165,9 +183,13 @@ namespace GitCredentialManager.Authentication.OAuth
 
         public async Task<OAuth2DeviceCodeResult> GetDeviceCodeAsync(IEnumerable<string> scopes, CancellationToken ct)
         {
+            var label = "get device code";
+            using IDisposable region = _trace2.CreateRegion(OAuth2Constants.Trace2Category, label);
+
             if (_endpoints.DeviceAuthorizationEndpoint is null)
             {
-                throw new InvalidOperationException("No device authorization endpoint has been configured for this client.");
+                throw new Trace2InvalidOperationException(_trace2,
+                    "No device authorization endpoint has been configured for this client.");
             }
 
             string scopesStr = string.Join(" ", scopes);
@@ -199,6 +221,9 @@ namespace GitCredentialManager.Authentication.OAuth
 
         public async Task<OAuth2TokenResult> GetTokenByAuthorizationCodeAsync(OAuth2AuthorizationCodeResult authorizationCodeResult, CancellationToken ct)
         {
+            var label = "get token by auth code";
+            using IDisposable region = _trace2.CreateRegion(OAuth2Constants.Trace2Category, label);
+
             var formData = new Dictionary<string, string>
             {
                 [OAuth2Constants.TokenEndpoint.GrantTypeParameter] = OAuth2Constants.TokenEndpoint.AuthorizationCodeGrantType,
@@ -235,6 +260,9 @@ namespace GitCredentialManager.Authentication.OAuth
 
         public async Task<OAuth2TokenResult> GetTokenByRefreshTokenAsync(string refreshToken, CancellationToken ct)
         {
+            var label = "get token by refresh token";
+            using IDisposable region = _trace2.CreateRegion(OAuth2Constants.Trace2Category, label);
+
             var formData = new Dictionary<string, string>
             {
                 [OAuth2Constants.TokenEndpoint.GrantTypeParameter] = OAuth2Constants.TokenEndpoint.RefreshTokenGrantType,
@@ -367,10 +395,13 @@ namespace GitCredentialManager.Authentication.OAuth
         {
             if (TryCreateExceptionFromResponse(json, out OAuth2Exception exception))
             {
+                _trace2.WriteError(exception.Message);
                 return exception;
             }
 
-            return new OAuth2Exception($"Unknown OAuth error: {json}");
+            var format = "Unknown OAuth error: {0}";
+            var message = string.Format(format, json);
+            return new Trace2OAuth2Exception(_trace2, message, format);
         }
 
         protected static bool TryDeserializeJson<T>(string json, out T obj)
@@ -388,5 +419,14 @@ namespace GitCredentialManager.Authentication.OAuth
         }
 
         #endregion
+    }
+
+    public static class OAuth2ClientExtensions
+    {
+        public static Task<OAuth2AuthorizationCodeResult> GetAuthorizationCodeAsync(
+            this IOAuth2Client client, IEnumerable<string> scopes, IOAuth2WebBrowser browser, CancellationToken ct)
+        {
+            return client.GetAuthorizationCodeAsync(scopes, browser, null, ct);
+        }
     }
 }

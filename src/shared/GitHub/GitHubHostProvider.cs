@@ -123,7 +123,8 @@ namespace GitHub
             // We should not allow unencrypted communication and should inform the user
             if (StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "http"))
             {
-                throw new Exception("Unencrypted HTTP is not supported for GitHub. Ensure the repository remote URL is using HTTPS.");
+                throw new Trace2Exception(Context.Trace2,
+                    "Unencrypted HTTP is not supported for GitHub. Ensure the repository remote URL is using HTTPS.");
             }
 
             Uri remoteUri = input.GetRemoteUri();
@@ -145,15 +146,15 @@ namespace GitHub
                     // the PAT permissions manually on the web and then retry the Git operation.
                     // We must store the PAT now so they can resume/repeat the operation with the same,
                     // now SSO authorized, PAT.
-                    // See: https://github.com/GitCredentialManager/git-credential-manager/issues/133
+                    // See: https://github.com/git-ecosystem/git-credential-manager/issues/133
                     Context.CredentialStore.AddOrUpdate(service, patCredential.Account, patCredential.Password);
                     return patCredential;
 
                 case AuthenticationModes.Browser:
-                    return await GenerateOAuthCredentialAsync(remoteUri, useBrowser: true);
+                    return await GenerateOAuthCredentialAsync(remoteUri, loginHint: input.UserName, useBrowser: true);
 
                 case AuthenticationModes.Device:
-                    return await GenerateOAuthCredentialAsync(remoteUri, useBrowser: false);
+                    return await GenerateOAuthCredentialAsync(remoteUri, loginHint: input.UserName, useBrowser: false);
 
                 case AuthenticationModes.Pat:
                     // The token returned by the user should be good to use directly as the password for Git
@@ -176,10 +177,10 @@ namespace GitHub
             }
         }
 
-        private async Task<GitCredential> GenerateOAuthCredentialAsync(Uri targetUri, bool useBrowser)
+        private async Task<GitCredential> GenerateOAuthCredentialAsync(Uri targetUri, string loginHint, bool useBrowser)
         {
             OAuth2TokenResult result = useBrowser
-                ? await _gitHubAuth.GetOAuthTokenViaBrowserAsync(targetUri, GitHubOAuthScopes)
+                ? await _gitHubAuth.GetOAuthTokenViaBrowserAsync(targetUri, GitHubOAuthScopes, loginHint)
                 : await _gitHubAuth.GetOAuthTokenViaDeviceCodeAsync(targetUri, GitHubOAuthScopes);
 
             // Resolve the GitHub user handle
@@ -226,7 +227,9 @@ namespace GitHub
                 return new GitCredential(userInfo.Login, token);
             }
 
-            throw new Exception($"Interactive logon for '{targetUri}' failed.");
+            var format = "Interactive logon for '{0}' failed.";
+            var message = string.Format(format, targetUri);
+            throw new Trace2Exception(Context.Trace2, message, format);
         }
 
         internal async Task<AuthenticationModes> GetSupportedAuthenticationModesAsync(Uri targetUri)
@@ -263,20 +266,20 @@ namespace GitHub
             {
                 GitHubMetaInfo metaInfo = await _gitHubApi.GetMetaInfoAsync(targetUri);
 
+                // All Enterprise/AE instances support PATs
                 var modes = AuthenticationModes.Pat;
+
+                // If the server says it supports basic auth, we can use that too!
                 if (metaInfo.VerifiablePasswordAuthentication)
                 {
                     modes |= AuthenticationModes.Basic;
                 }
 
-                if (StringComparer.OrdinalIgnoreCase.Equals(metaInfo.InstalledVersion, GitHubConstants.GitHubAeVersionString))
+                // If the version is unknown, we *assume* it supports OAuth.
+                // If the server version at least the minimum required, we *know* we can use OAuth.
+                if (!Version.TryParse(metaInfo.InstalledVersion, out var version) ||
+                    version >= GitHubConstants.MinimumOnPremOAuthVersion)
                 {
-                    // Assume all GHAE instances have the GCM OAuth application deployed
-                    modes |= AuthenticationModes.OAuth;
-                }
-                else if (Version.TryParse(metaInfo.InstalledVersion, out var version) && version >= GitHubConstants.MinimumOnPremOAuthVersion)
-                {
-                    // Only GHES versions beyond the minimum version have the GCM OAuth application deployed
                     modes |= AuthenticationModes.OAuth;
                 }
 
@@ -285,10 +288,14 @@ namespace GitHub
             }
             catch (Exception ex)
             {
-                Context.Trace.WriteLine($"Failed to query '{targetUri}' for supported authentication schemes.");
-                Context.Trace.WriteException(ex);
+                var format = "Failed to query '{0}' for supported authentication schemes.";
+                var message = string.Format(format, targetUri);
 
-                Context.Terminal.WriteLine($"warning: failed to query '{targetUri}' for supported authentication schemes.");
+                Context.Trace.WriteLine(message);
+                Context.Trace.WriteException(ex);
+                Context.Trace2.WriteError(message, format);
+
+                Context.Terminal.WriteLine($"warning: {message}");
 
                 // Fall-back to offering all modes so the user is never blocked from authenticating by at least one mode
                 return AuthenticationModes.All;
@@ -304,7 +311,7 @@ namespace GitHub
 
         public IEnumerable<IDiagnostic> GetDiagnostics()
         {
-            yield return new GitHubApiDiagnostic(_gitHubApi);
+            yield return new GitHubApiDiagnostic(_gitHubApi, Context);
         }
 
         #region Private Methods

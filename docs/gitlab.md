@@ -58,7 +58,7 @@ git config --global credential.https://code.videolan.org.gitLabDevClientId f35c3
 git config --global credential.https://code.videolan.org.gitLabDevClientSecret 631558ec973c5ef65b78db9f41103f8247dc68d979c86f051c0fe4389e1995e8
 ```
 
-See also [issue #677](https://github.com/GitCredentialManager/git-credential-manager/issues/677).
+See also [issue #677](https://github.com/git-ecosystem/git-credential-manager/issues/677).
 
 ## Preferences
 

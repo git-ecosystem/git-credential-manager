@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows;
 
-namespace GitCredentialManager.UI.Converters
+namespace GitCredentialManager.UI.Windows.Converters
 {
     public class ConverterHelper
     {

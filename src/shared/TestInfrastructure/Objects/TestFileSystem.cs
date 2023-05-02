@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace GitCredentialManager.Tests.Objects
@@ -90,6 +91,41 @@ namespace GitCredentialManager.Tests.Objects
                     yield return filePath;
                 }
             }
+        }
+
+        IEnumerable<string> IFileSystem.EnumerateDirectories(string path)
+        {
+            StringComparison comparer = IsCaseSensitive
+                ? StringComparison.Ordinal
+                : StringComparison.OrdinalIgnoreCase;
+
+            foreach (var dirPath in Directories)
+            {
+                if (dirPath.StartsWith(path, comparer))
+                {
+                    yield return dirPath;
+                }
+            }
+        }
+
+        string IFileSystem.ReadAllText(string path)
+        {
+            if (Files.TryGetValue(path, out byte[] data))
+            {
+                return Encoding.UTF8.GetString(data);
+            }
+
+            throw new IOException("File not found");
+        }
+
+        string[] IFileSystem.ReadAllLines(string path)
+        {
+            if (Files.TryGetValue(path, out byte[] data))
+            {
+                return Encoding.UTF8.GetString(data).Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+            }
+
+            throw new IOException("File not found");
         }
 
         #endregion

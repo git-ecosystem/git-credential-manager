@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Atlassian.Bitbucket.DataCenter;
 using GitCredentialManager;
 using GitCredentialManager.Authentication.OAuth;
+using GitCredentialManager.Tests.Objects;
 using Moq;
 using Xunit;
 
@@ -16,7 +17,6 @@ namespace Atlassian.Bitbucket.Tests.DataCenter
     {
         private Mock<HttpClient> httpClient = new Mock<HttpClient>(MockBehavior.Strict);
         private Mock<ISettings> settings = new Mock<ISettings>(MockBehavior.Loose);
-        private Mock<Trace> trace = new Mock<Trace>(MockBehavior.Loose);
         private Mock<IOAuth2WebBrowser> browser = new Mock<IOAuth2WebBrowser>(MockBehavior.Strict);
         private Mock<IOAuth2CodeGenerator> codeGenerator = new Mock<IOAuth2CodeGenerator>(MockBehavior.Strict);
         private CancellationToken ct = new CancellationToken();
@@ -77,7 +77,8 @@ namespace Atlassian.Bitbucket.Tests.DataCenter
 
         private Bitbucket.DataCenter.BitbucketOAuth2Client GetBitbucketOAuth2Client()
         {
-            var client = new Bitbucket.DataCenter.BitbucketOAuth2Client(httpClient.Object, settings.Object, trace.Object);
+            var trace2 = new NullTrace2();
+            var client = new Bitbucket.DataCenter.BitbucketOAuth2Client(httpClient.Object, settings.Object, trace2);
             client.CodeGenerator = codeGenerator.Object;
             return client;
         }

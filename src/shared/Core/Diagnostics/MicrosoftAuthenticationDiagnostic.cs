@@ -9,39 +9,14 @@ namespace GitCredentialManager.Diagnostics
 {
     public class MicrosoftAuthenticationDiagnostic : Diagnostic
     {
-        private readonly ICommandContext _context;
-
         public MicrosoftAuthenticationDiagnostic(ICommandContext context)
-            : base("Microsoft authentication (AAD/MSA)")
-        {
-            EnsureArgument.NotNull(context, nameof(context));
-
-            _context = context;
-        }
+            : base("Microsoft authentication (AAD/MSA)", context)
+        { }
 
         protected override async Task<bool> RunInternalAsync(StringBuilder log, IList<string> additionalFiles)
         {
-            if (MicrosoftAuthentication.CanUseBroker(_context))
-            {
-                log.Append("Checking broker initialization state...");
-                if (MicrosoftAuthentication.IsBrokerInitialized)
-                {
-                    log.AppendLine(" Initialized");
-                }
-                else
-                {
-                    log.AppendLine("  Not initialized");
-                    log.Append("Initializing broker...");
-                    MicrosoftAuthentication.InitializeBroker();
-                    log.AppendLine("OK");
-                }
-            }
-            else
-            {
-                log.AppendLine("Broker not supported.");
-            }
-
-            var msAuth = new MicrosoftAuthentication(_context);
+            var msAuth = new MicrosoftAuthentication(CommandContext);
+            log.AppendLine(msAuth.CanUseBroker() ? "Broker is enabled." : "Broker is not enabled.");
             log.AppendLine($"Flow type is: {msAuth.GetFlowType()}");
 
             log.Append("Gathering MSAL token cache data...");

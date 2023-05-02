@@ -31,6 +31,8 @@ namespace GitCredentialManager.Tests.Objects
 
         public bool IsCertificateVerificationEnabled { get; set; } = true;
 
+        public bool AutomaticallyUseClientCertificates { get; set; }
+
         public ProxyConfiguration ProxyConfiguration { get; set; }
 
         public string ParentWindowId { get; set; }
@@ -46,6 +48,9 @@ namespace GitCredentialManager.Tests.Objects
         public bool UseCustomCertificateBundleWithSchannel { get; set; }
 
         public int AutoDetectProviderTimeout { get; set; } = Constants.DefaultAutoDetectProviderTimeoutMs;
+
+        public bool UseMsAuthDefaultAccount { get; set; }
+
         public Trace2Settings GetTrace2Settings()
         {
             return new Trace2Settings()
@@ -171,6 +176,8 @@ namespace GitCredentialManager.Tests.Objects
         bool ISettings.UseCustomCertificateBundleWithSchannel => UseCustomCertificateBundleWithSchannel;
 
         int ISettings.AutoDetectProviderTimeout => AutoDetectProviderTimeout;
+
+        bool ISettings.UseMsAuthDefaultAccount => UseMsAuthDefaultAccount;
 
         #endregion
 

@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using GitCredentialManager.UI.ViewModels;
 
 namespace GitCredentialManager.Authentication
 {
@@ -43,10 +44,13 @@ namespace GitCredentialManager.Authentication
             // authentication helper's messages.
             Context.Trace.Flush();
 
-            var process = Process.Start(procStartInfo);
+            var process = ChildProcess.Start(Context.Trace2, procStartInfo, Trace2ProcessClass.UIHelper);
             if (process is null)
             {
-                throw new Exception($"Failed to start helper process: {path} {args}");
+                var format = "Failed to start helper process: {0} {1}";
+                var message = string.Format(format, path, args);
+
+                throw new Trace2Exception(Context.Trace2, message, format);
             }
 
             // Kill the process upon a cancellation request
@@ -69,7 +73,7 @@ namespace GitCredentialManager.Authentication
                     errorMessage = "Unknown";
                 }
 
-                throw new Exception($"helper error ({exitCode}): {errorMessage}");
+                throw new Trace2Exception(Context.Trace2, $"helper error ({exitCode}): {errorMessage}");
             }
 
             return resultDict;
@@ -85,8 +89,7 @@ namespace GitCredentialManager.Authentication
                     Constants.GitConfiguration.Credential.Interactive);
 
                 Context.Trace.WriteLine($"{envName} / {cfgName} is false/never; user interactivity has been disabled.");
-
-                throw new InvalidOperationException("Cannot prompt because user interactivity has been disabled.");
+                throw new Trace2InvalidOperationException(Context.Trace2, "Cannot prompt because user interactivity has been disabled.");
             }
         }
 
@@ -95,8 +98,7 @@ namespace GitCredentialManager.Authentication
             if (!Context.Settings.IsGuiPromptsEnabled)
             {
                 Context.Trace.WriteLine($"{Constants.EnvironmentVariables.GitTerminalPrompts} is 0; GUI prompts have been disabled.");
-
-                throw new InvalidOperationException("Cannot show prompt because GUI prompts have been disabled.");
+                throw new Trace2InvalidOperationException(Context.Trace2, "Cannot show prompt because GUI prompts have been disabled.");
             }
         }
 
@@ -105,9 +107,26 @@ namespace GitCredentialManager.Authentication
             if (!Context.Settings.IsTerminalPromptsEnabled)
             {
                 Context.Trace.WriteLine($"{Constants.EnvironmentVariables.GitTerminalPrompts} is 0; terminal prompts have been disabled.");
-
-                throw new InvalidOperationException("Cannot prompt because terminal prompts have been disabled.");
+                throw new Trace2InvalidOperationException(Context.Trace2, "Cannot prompt because terminal prompts have been disabled.");
             }
+        }
+        
+        protected void ThrowIfWindowCancelled(WindowViewModel viewModel)
+        {
+            if (!viewModel.WindowResult)
+            {
+                throw new Exception("User cancelled dialog.");
+            }
+        }
+        
+        protected IntPtr GetParentWindowHandle()
+        {
+            if (int.TryParse(Context.Settings.ParentWindowId, out int id))
+            {
+                return new IntPtr(id);
+            }
+
+            return IntPtr.Zero;
         }
 
         protected bool TryFindHelperCommand(string envar, string configName, string defaultValue, out string command, out string args)
@@ -147,8 +166,22 @@ namespace GitCredentialManager.Authentication
             }
             else
             {
-                Context.Trace.WriteLine($"Using default UI helper: '{defaultValue}'.");
-                helperName = defaultValue;
+                // Whilst we evaluate using the Avalonia/in-proc GUIs on Windows we include
+                // a 'fallback' flag that lets us continue to use the WPF out-of-proc helpers.
+                if (PlatformUtils.IsWindows() &&
+                    Context.Settings.TryGetSetting(
+                        Constants.EnvironmentVariables.GcmDevUseLegacyUiHelpers,
+                        Constants.GitConfiguration.Credential.SectionName,
+                        Constants.GitConfiguration.Credential.DevUseLegacyUiHelpers,
+                        out string str) && str.IsTruthy())
+                {
+                    Context.Trace.WriteLine($"Using default legacy UI helper: '{defaultValue}'.");
+                    helperName = defaultValue;
+                }
+                else
+                {
+                    return false;
+                }
             }
 
             //

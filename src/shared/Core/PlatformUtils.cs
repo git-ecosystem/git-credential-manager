@@ -12,14 +12,43 @@ namespace GitCredentialManager
         /// Get information about the current platform (OS and CLR details).
         /// </summary>
         /// <returns>Platform information.</returns>
-        public static PlatformInformation GetPlatformInformation()
+        public static PlatformInformation GetPlatformInformation(ITrace2 trace2)
         {
             string osType = GetOSType();
-            string osVersion = GetOSVersion();
+            string osVersion = GetOSVersion(trace2);
             string cpuArch = GetCpuArchitecture();
             string clrVersion = GetClrVersion();
 
             return new PlatformInformation(osType, osVersion, cpuArch, clrVersion);
+        }
+
+        public static bool IsDevBox()
+        {
+            if (!IsWindows())
+            {
+                return false;
+            }
+
+#if NETFRAMEWORK
+            // Check for machine (HKLM) registry keys for Cloud PC indicators
+            // Note that the keys are only found in the 64-bit registry view
+            using (Microsoft.Win32.RegistryKey hklm64 = Microsoft.Win32.RegistryKey.OpenBaseKey(Microsoft.Win32.RegistryHive.LocalMachine, Microsoft.Win32.RegistryView.Registry64))
+            using (Microsoft.Win32.RegistryKey w365Key = hklm64.OpenSubKey(Constants.WindowsRegistry.HKWindows365Path))
+            {
+                if (w365Key is null)
+                {
+                    // No Windows365 key exists
+                    return false;
+                }
+
+                object w365Value = w365Key.GetValue(Constants.WindowsRegistry.IsW365EnvironmentKeyName);
+                string partnerValue = w365Key.GetValue(Constants.WindowsRegistry.W365PartnerIdKeyName)?.ToString();
+
+                return w365Value is not null && Guid.TryParse(partnerValue, out Guid partnerId) && partnerId == Constants.DevBoxPartnerId;
+            }
+#else
+            return false;
+#endif
         }
 
         public static bool IsWindowsBrokerSupported()
@@ -320,7 +349,7 @@ namespace GitCredentialManager
             return "Unknown";
         }
 
-        private static string GetOSVersion()
+        private static string GetOSVersion(ITrace2 trace2)
         {
             if (IsWindows() && RtlGetVersionEx(out RTL_OSVERSIONINFOEX osvi) == 0)
             {
@@ -336,10 +365,11 @@ namespace GitCredentialManager
                     RedirectStandardOutput = true
                 };
 
-                using (var swvers = new Process { StartInfo = psi })
+                using (var swvers = new ChildProcess(trace2, psi))
                 {
-                    swvers.Start();
+                    swvers.Start(Trace2ProcessClass.Other);
                     swvers.WaitForExit();
+
                     if (swvers.ExitCode == 0)
                     {
                         return swvers.StandardOutput.ReadToEnd().Trim();
@@ -356,10 +386,11 @@ namespace GitCredentialManager
                     RedirectStandardOutput = true
                 };
 
-                using (var uname = new Process { StartInfo = psi })
+                using (var uname = new ChildProcess(trace2, psi))
                 {
-                    uname.Start();
-                    uname.WaitForExit();
+                    uname.Start(Trace2ProcessClass.Other);
+                    uname.Process.WaitForExit();
+
                     if (uname.ExitCode == 0)
                     {
                         return uname.StandardOutput.ReadToEnd().Trim();

@@ -10,7 +10,12 @@ namespace Atlassian.Bitbucket
 {
     public abstract class BitbucketOAuth2Client : OAuth2Client
     {
-        public BitbucketOAuth2Client(HttpClient httpClient, OAuth2ServerEndpoints endpoints, string clientId, Uri redirectUri, string clientSecret, ITrace trace) : base(httpClient, endpoints, clientId, redirectUri, clientSecret, trace, false)
+        public BitbucketOAuth2Client(HttpClient httpClient,
+            OAuth2ServerEndpoints endpoints,
+            string clientId,
+            Uri redirectUri,
+            string clientSecret,
+            ITrace2 trace2) : base(httpClient, endpoints, clientId, trace2, redirectUri, clientSecret, false)
         {
         }
 
@@ -27,9 +32,9 @@ namespace Atlassian.Bitbucket
             return uri.AbsoluteUri.TrimEnd('/');
         }
 
-        public Task<OAuth2AuthorizationCodeResult> GetAuthorizationCodeAsync(IOAuth2WebBrowser browser, CancellationToken ct) 
+        public Task<OAuth2AuthorizationCodeResult> GetAuthorizationCodeAsync(IOAuth2WebBrowser browser, CancellationToken ct)
         {
-            return GetAuthorizationCodeAsync(Scopes, browser, ct);
+            return this.GetAuthorizationCodeAsync(Scopes, browser, ct);
         }
 
         protected override bool TryCreateTokenEndpointResult(string json, out OAuth2TokenResult result)

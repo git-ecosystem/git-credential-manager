@@ -4,14 +4,13 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net472</TargetFramework>
     <UseWPF>true</UseWPF>
-    <RootNamespace>GitHub.UI</RootNamespace>
+    <RootNamespace>GitHub.UI.Windows</RootNamespace>
     <AssemblyName>GitHub.UI</AssemblyName>
-    <StartupObject>GitHub.UI.Program</StartupObject>
+    <StartupObject>GitHub.UI.Windows.Program</StartupObject>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\shared\GitHub.UI\GitHub.UI.csproj" />
-    <ProjectReference Include="..\..\shared\Core.UI\Core.UI.csproj" />
+    <ProjectReference Include="..\..\shared\GitHub\GitHub.csproj" />
     <ProjectReference Include="..\Core.UI.Windows\Core.UI.Windows.csproj" />
   </ItemGroup>
   

@@ -274,7 +274,7 @@ namespace Microsoft.AzureRepos.Tests
             context.HttpClientFactory.MessageHandler = httpHandler;
             var api = new AzureDevOpsRestApi(context);
 
-            await Assert.ThrowsAsync<Exception>(() => api.CreatePersonalAccessTokenAsync(orgUri, accessToken, scopes));
+            await Assert.ThrowsAsync<Trace2Exception>(() => api.CreatePersonalAccessTokenAsync(orgUri, accessToken, scopes));
         }
 
         [Fact]
@@ -305,7 +305,7 @@ namespace Microsoft.AzureRepos.Tests
             context.HttpClientFactory.MessageHandler = httpHandler;
             var api = new AzureDevOpsRestApi(context);
 
-            await Assert.ThrowsAsync<Exception>(() => api.CreatePersonalAccessTokenAsync(orgUri, accessToken, scopes));
+            await Assert.ThrowsAsync<Trace2Exception>(() => api.CreatePersonalAccessTokenAsync(orgUri, accessToken, scopes));
         }
 
         [Fact]
@@ -339,7 +339,7 @@ namespace Microsoft.AzureRepos.Tests
             context.HttpClientFactory.MessageHandler = httpHandler;
             var api = new AzureDevOpsRestApi(context);
 
-            Exception exception = await Assert.ThrowsAsync<Exception>(
+            Exception exception = await Assert.ThrowsAsync<Trace2Exception>(
                 () => api.CreatePersonalAccessTokenAsync(orgUri, accessToken, scopes));
 
             Assert.Contains(serverErrorMessage, exception.Message, StringComparison.Ordinal);

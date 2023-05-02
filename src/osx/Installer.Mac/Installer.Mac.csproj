@@ -13,18 +13,14 @@
 
   <ItemGroup>
     <ProjectReference Include="../../shared/Git-Credential-Manager/Git-Credential-Manager.csproj" ReferenceOutputAssembly="false" />
-    <ProjectReference Include="../../shared/Atlassian.Bitbucket.UI.Avalonia/Atlassian.Bitbucket.UI.Avalonia.csproj" ReferenceOutputAssembly="false" />
-    <ProjectReference Include="../../shared/GitHub.UI.Avalonia/GitHub.UI.Avalonia.csproj" ReferenceOutputAssembly="false" />
-    <ProjectReference Include="../../shared/GitLab.UI.Avalonia/GitLab.UI.Avalonia.csproj" ReferenceOutputAssembly="false" />
-    <ProjectReference Include="../../shared/Core.UI.Avalonia/Core.UI.Avalonia.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <!-- Implicit SDK targets import (so we can override the default targets below) -->
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 
-  <Target Name="CoreCompile" DependsOnTargets="GetBuildVersion" Condition="'$(OSPlatform)'=='osx'">
-    <Message Text="$(MSBuildProjectDirectory)\build.sh --configuration='$(Configuration)' --version='$(BuildVersionSimple)' --runtime='$(RuntimeIdentifier)'" Importance="High" />
-    <Exec Command="$(MSBuildProjectDirectory)\build.sh --configuration='$(Configuration)' --version='$(BuildVersionSimple)' --runtime='$(RuntimeIdentifier)'" />
+  <Target Name="CoreCompile" Condition="'$(OSPlatform)'=='osx'">
+    <Message Text="$(MSBuildProjectDirectory)\build.sh --configuration='$(Configuration)' --version='$(Version)' --runtime='$(RuntimeIdentifier)'" Importance="High" />
+    <Exec Command="$(MSBuildProjectDirectory)\build.sh --configuration='$(Configuration)' --version='$(Version)' --runtime='$(RuntimeIdentifier)'" />
   </Target>
 
   <Target Name="CoreClean">

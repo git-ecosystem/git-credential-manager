@@ -7,9 +7,9 @@ namespace GitLab
 {
     public class GitLabOAuth2Client : OAuth2Client
     {
-        public GitLabOAuth2Client(HttpClient httpClient, ISettings settings, Uri baseUri)
+        public GitLabOAuth2Client(HttpClient httpClient, ISettings settings, Uri baseUri, ITrace2 trace2)
             : base(httpClient, CreateEndpoints(baseUri),
-                GetClientId(settings), GetRedirectUri(settings), GetClientSecret(settings))
+                GetClientId(settings), trace2, GetRedirectUri(settings), GetClientSecret(settings))
         { }
 
         private static OAuth2ServerEndpoints CreateEndpoints(Uri baseUri)

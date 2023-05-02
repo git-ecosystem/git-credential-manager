@@ -1,10 +1,10 @@
-<UserControl x:Class="GitHub.UI.Views.TwoFactorView"
+<UserControl x:Class="GitHub.UI.Windows.Views.TwoFactorView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:viewModels="clr-namespace:GitHub.UI.ViewModels;assembly=GitHub.UI.Shared"
-             xmlns:controls="clr-namespace:GitHub.UI.Controls"
+             xmlns:viewModels="clr-namespace:GitHub.UI.ViewModels;assembly=GitHub"
+             xmlns:controls="clr-namespace:GitHub.UI.Windows.Controls"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance viewModels:TwoFactorViewModel}"
              d:DesignHeight="300" d:DesignWidth="300">

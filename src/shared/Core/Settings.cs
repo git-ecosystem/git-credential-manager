@@ -12,6 +12,7 @@ namespace GitCredentialManager
 {
     /// <summary>
     /// Component that represents settings for Git Credential Manager as found from the environment and Git configuration.
+    /// Setting values from Git configuration may be cached for performance reasons.
     /// </summary>
     public interface ISettings : IDisposable
     {
@@ -25,7 +26,6 @@ namespace GitCredentialManager
         /// <param name="value">Value of the requested setting.</param>
         /// <returns>True if a setting value was found, false otherwise.</returns>
         bool TryGetSetting(string envarName, string section, string property, out string value);
-
 
         /// <summary>
         /// Try and get the value of a specified setting as specified in the environment and Git configuration,
@@ -120,6 +120,11 @@ namespace GitCredentialManager
         bool IsCertificateVerificationEnabled { get; }
 
         /// <summary>
+        /// Automatically send client TLS certificates.
+        /// </summary>
+        bool AutomaticallyUseClientCertificates { get; }
+
+        /// <summary>
         /// Get the proxy setting if configured, or null otherwise.
         /// </summary>
         /// <returns>Proxy setting, or null if not configured.</returns>
@@ -166,6 +171,12 @@ namespace GitCredentialManager
         /// of host provider auto-detection. Use a zero or negative value to disable probing.
         /// </summary>
         int AutoDetectProviderTimeout { get; }
+
+        /// <summary>
+        /// Automatically use the default/current operating system account if no other account information is given
+        /// for Microsoft Authentication.
+        /// </summary>
+        bool UseMsAuthDefaultAccount { get; }
 
         /// <summary>
         /// Get TRACE2 settings.
@@ -286,6 +297,8 @@ namespace GitCredentialManager
         private readonly IEnvironment _environment;
         private readonly IGit _git;
 
+        private Dictionary<string,string> _configEntries;
+
         public Settings(IEnvironment environment, IGit git)
         {
             EnsureArgument.NotNull(environment, nameof(environment));
@@ -328,6 +341,30 @@ namespace GitCredentialManager
             if (section != null && property != null)
             {
                 IGitConfiguration config = _git.GetConfiguration();
+
+                //
+                // Enumerate all configuration entries for all sections and property names and make a
+                // local copy of them here to avoid needing to call `TryGetValue` on the IGitConfiguration
+                // object multiple times in a loop below.
+                //
+                // This is a performance optimisation to avoid calling `TryGet` on the IGitConfiguration
+                // object multiple times in a loop below, or each time this entire method is called.
+                // The assumption is that the configuration entries will not change during a single invocation
+                // of Git Credential Manager, which is reasonable given process lifetime is typically less
+                // than a few seconds. For some entries (type=path), we still need to ask Git in order to
+                // expand the path correctly.
+                //
+                if (_configEntries is null)
+                {
+                    _configEntries = new Dictionary<string, string>(GitConfigurationKeyComparer.Instance);
+                    config.Enumerate(entry =>
+                    {
+                        _configEntries[entry.Key] = entry.Value;
+
+                        // Continue the enumeration
+                        return true;
+                    });
+                }
 
                 if (RemoteUri != null)
                 {
@@ -374,26 +411,14 @@ namespace GitCredentialManager
                      *
                      */
 
-                    // Enumerate all configuration entries with the correct section and property name
-                    // and make a local copy of them here to avoid needing to call `TryGetValue` on the
-                    // IGitConfiguration object multiple times in a loop below.
-                    var configEntries = new Dictionary<string, string>(GitConfigurationKeyComparer.Instance);
-                    config.Enumerate(section, property, entry =>
-                    {
-                        configEntries[entry.Key] = entry.Value;
-
-                        // Continue the enumeration
-                        return true;
-                    });
-
                     foreach (string scope in RemoteUri.GetGitConfigurationScopes())
                     {
                         string queryName = $"{section}.{scope}.{property}";
                         // Look for a scoped entry that includes the scheme "protocol://example.com" first as
                         // this is more specific. If `isPath` is true, then re-get the value from the
                         // `GitConfiguration` with `isPath` specified.
-                        if (configEntries.TryGetValue(queryName, out value) &&
-                            (!isPath || config.TryGet(queryName, isPath, out value)))
+                        if ((isPath && config.TryGet(queryName, true, out value)) ||
+                            _configEntries.TryGetValue(queryName, out value))
                         {
                             yield return value;
                         }
@@ -403,8 +428,14 @@ namespace GitCredentialManager
                         // `isPath` specified.
                         string scopeWithoutScheme = scope.TrimUntilIndexOf(Uri.SchemeDelimiter);
                         string queryWithSchemeName = $"{section}.{scopeWithoutScheme}.{property}";
-                        if (configEntries.TryGetValue(queryWithSchemeName, out value) &&
-                            (!isPath || config.TryGet(queryWithSchemeName, isPath, out value)))
+                        if ((isPath && config.TryGet(queryWithSchemeName, true, out value)) ||
+                            _configEntries.TryGetValue(queryWithSchemeName, out value))
+                        {
+                            yield return value;
+                        }
+
+                        // Check for an externally specified default value
+                        if (TryGetExternalDefault(section, scope, property, out value))
                         {
                             yield return value;
                         }
@@ -418,15 +449,17 @@ namespace GitCredentialManager
                  *        property = value
                  *
                  */
-                if (config.TryGet($"{section}.{property}", isPath, out value))
+                string name = $"{section}.{property}";
+                if ((isPath && config.TryGet(name, true, out value)) ||
+                    _configEntries.TryGetValue(name, out value))
                 {
                     yield return value;
                 }
 
-                // Check for an externally specified default value
-                if (TryGetExternalDefault(section, property, out string defaultValue))
+                // Check for an externally specified default value without a scope
+                if (TryGetExternalDefault(section, null, property, out value))
                 {
-                    yield return defaultValue;
+                    yield return value;
                 }
             }
         }
@@ -436,10 +469,11 @@ namespace GitCredentialManager
         /// This may come from external policies or the Operating System.
         /// </summary>
         /// <param name="section">Configuration section name.</param>
+        /// <param name="scope">Optional configuration scope.</param>
         /// <param name="property">Configuration property name.</param>
         /// <param name="value">Value of the configuration setting, or null.</param>
         /// <returns>True if a default setting has been set, false otherwise.</returns>
-        protected virtual bool TryGetExternalDefault(string section, string property, out string value)
+        protected virtual bool TryGetExternalDefault(string section, string scope, string property, out string value)
         {
             value = null;
             return false;
@@ -447,7 +481,11 @@ namespace GitCredentialManager
 
         public Uri RemoteUri { get; set; }
 
-        public bool IsDebuggingEnabled => _environment.Variables.GetBooleanyOrDefault(KnownEnvars.GcmDebug, false);
+        public bool IsDebuggingEnabled =>
+            TryGetSetting(KnownEnvars.GcmDebug,
+                KnownGitCfg.Credential.SectionName,
+                KnownGitCfg.Credential.Debug,
+                out string str) && str.IsTruthy();
 
         public bool IsTerminalPromptsEnabled => _environment.Variables.GetBooleanyOrDefault(KnownEnvars.GitTerminalPrompts, true);
 
@@ -508,7 +546,11 @@ namespace GitCredentialManager
             }
         }
 
-        public bool GetTracingEnabled(out string value) => _environment.Variables.TryGetValue(KnownEnvars.GcmTrace, out value) && !value.IsFalsey();
+        public bool GetTracingEnabled(out string value) =>
+            TryGetSetting(KnownEnvars.GcmTrace,
+                KnownGitCfg.Credential.SectionName,
+                KnownGitCfg.Credential.Trace,
+                out value) && !value.IsFalsey();
 
         public Trace2Settings GetTrace2Settings()
         {
@@ -526,12 +568,26 @@ namespace GitCredentialManager
                 settings.FormatTargetsAndValues.Add(Trace2FormatTarget.Normal, value);
             }
 
+            if (TryGetSetting(Constants.EnvironmentVariables.GitTrace2Performance, KnownGitCfg.Trace2.SectionName,
+                    Constants.GitConfiguration.Trace2.PerformanceTarget, out value))
+            {
+                settings.FormatTargetsAndValues.Add(Trace2FormatTarget.Performance, value);
+            }
+
             return settings;
         }
 
-        public bool IsSecretTracingEnabled => _environment.Variables.GetBooleanyOrDefault(KnownEnvars.GcmTraceSecrets, false);
+        public bool IsSecretTracingEnabled =>
+            TryGetSetting(KnownEnvars.GcmTraceSecrets,
+                KnownGitCfg.Credential.SectionName,
+                KnownGitCfg.Credential.TraceSecrets,
+                out string str) && str.IsTruthy();
 
-        public bool IsMsalTracingEnabled => _environment.Variables.GetBooleanyOrDefault(Constants.EnvironmentVariables.GcmTraceMsAuth, false);
+        public bool IsMsalTracingEnabled =>
+            TryGetSetting(KnownEnvars.GcmTraceMsAuth,
+                KnownGitCfg.Credential.SectionName,
+                KnownGitCfg.Credential.TraceMsAuth,
+                out string str) && str.IsTruthy();
 
         public string ProviderOverride =>
             TryGetSetting(KnownEnvars.GcmProvider, GitCredCfg.SectionName, GitCredCfg.Provider, out string providerId) ? providerId : null;
@@ -562,6 +618,9 @@ namespace GitCredentialManager
                 return true;
             }
         }
+
+        public bool AutomaticallyUseClientCertificates =>
+            TryGetSetting(null, KnownGitCfg.Credential.SectionName, KnownGitCfg.Http.SslAutoClientCert, out string value) && value.ToBooleanyOrDefault(false);
 
         public string CustomCertificateBundlePath =>
             TryGetPathSetting(KnownEnvars.GitSslCaInfo, KnownGitCfg.Http.SectionName, KnownGitCfg.Http.SslCaInfo, out string value) ? value : null;
@@ -730,6 +789,15 @@ namespace GitCredentialManager
                 out string credStore)
                 ? credStore
                 : null;
+
+        public bool UseMsAuthDefaultAccount =>
+            TryGetSetting(
+                KnownEnvars.MsAuthUseDefaultAccount,
+                KnownGitCfg.Credential.SectionName,
+                KnownGitCfg.Credential.MsAuthUseDefaultAccount,
+                out string str)
+            ? str.IsTruthy()
+            : PlatformUtils.IsDevBox(); // default to true in DevBox environment
 
         #region IDisposable
 

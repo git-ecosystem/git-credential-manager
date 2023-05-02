@@ -23,12 +23,12 @@ namespace GitCredentialManager.Commands
             // An empty string username/password are valid inputs, so only check for `null` (not provided)
             if (input.UserName is null)
             {
-                throw new InvalidOperationException("Missing 'username' input argument");
+                throw new Trace2InvalidOperationException(Context.Trace2, "Missing 'username' input argument");
             }
 
             if (input.Password is null)
             {
-                throw new InvalidOperationException("Missing 'password' input argument");
+                throw new Trace2InvalidOperationException(Context.Trace2, "Missing 'password' input argument");
             }
         }
     }

@@ -1,10 +1,10 @@
 using System.Windows;
-using GitLab.UI.ViewModels;
-using GitLab.UI.Views;
 using GitCredentialManager.Interop.Windows;
-using GitCredentialManager.UI.Controls;
+using GitCredentialManager.UI.Windows.Controls;
+using GitLab.UI.ViewModels;
+using GitLab.UI.Windows.Views;
 
-namespace GitLab.UI.Controls
+namespace GitLab.UI.Windows.Controls
 {
     public partial class TesterWindow : Window
     {
@@ -26,7 +26,7 @@ namespace GitLab.UI.Controls
                 UserName = username.Text
             };
             var view = new CredentialsView();
-            var window = new DialogWindow(view) { DataContext = vm };
+            var window = new WpfDialogWindow(view) { DataContext = vm };
             window.ShowDialog();
         }
     }

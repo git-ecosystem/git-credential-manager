@@ -1,11 +1,12 @@
 using System.Threading;
 using System.Threading.Tasks;
-using GitLab.UI.ViewModels;
-using GitLab.UI.Views;
 using GitCredentialManager;
-using GitCredentialManager.UI;
+using GitCredentialManager.UI.Windows;
+using GitLab.UI.Commands;
+using GitLab.UI.ViewModels;
+using GitLab.UI.Windows.Views;
 
-namespace GitLab.UI.Commands
+namespace GitLab.UI.Windows.Commands
 {
     public class CredentialsCommandImpl : CredentialsCommand
     {

@@ -13,4 +13,10 @@
             <Code Type="Class" Source="$(MSBuildThisFileDirectory)GenerateWindowsAppManifest.cs" />
         </Task>
     </UsingTask>
+
+    <UsingTask TaskName="GetVersion" TaskFactory="$(_TaskFactory)" AssemblyFile="$(_TaskAssembly)">
+        <Task>
+            <Code Type="Class" Source="$(MSBuildThisFileDirectory)GetVersion.cs" />
+        </Task>
+    </UsingTask>
 </Project>

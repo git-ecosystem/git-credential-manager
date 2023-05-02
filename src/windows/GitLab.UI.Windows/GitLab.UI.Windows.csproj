@@ -4,14 +4,13 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net472</TargetFramework>
     <UseWPF>true</UseWPF>
-    <RootNamespace>GitLab.UI</RootNamespace>
+    <RootNamespace>GitLab.UI.Windows</RootNamespace>
     <AssemblyName>GitLab.UI</AssemblyName>
-    <StartupObject>GitLab.UI.Program</StartupObject>
+    <StartupObject>GitLab.UI.Windows.Program</StartupObject>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\shared\GitLab.UI\GitLab.UI.csproj" />
-    <ProjectReference Include="..\..\shared\Core.UI\Core.UI.csproj" />
+    <ProjectReference Include="..\..\shared\GitLab\GitLab.csproj" />
     <ProjectReference Include="..\Core.UI.Windows\Core.UI.Windows.csproj" />
   </ItemGroup>
   

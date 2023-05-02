@@ -78,6 +78,11 @@ namespace GitCredentialManager
         /// The current process environment.
         /// </summary>
         IEnvironment Environment { get; }
+
+        /// <summary>
+        /// Process manager.
+        /// </summary>
+        IProcessManager ProcessManager { get; }
     }
 
     /// <summary>
@@ -85,25 +90,27 @@ namespace GitCredentialManager
     /// </summary>
     public class CommandContext : DisposableObject, ICommandContext
     {
-        public CommandContext(string[] argv)
+        public CommandContext()
         {
-            var applicationStartTime = DateTimeOffset.UtcNow;
             ApplicationPath = GetEntryApplicationPath();
             InstallationDirectory = GetInstallationDirectory();
 
             Streams = new StandardStreams();
             Trace   = new Trace();
+            Trace2  = new Trace2(this);
 
             if (PlatformUtils.IsWindows())
             {
                 FileSystem        = new WindowsFileSystem();
-                SessionManager    = new WindowsSessionManager();
                 Environment       = new WindowsEnvironment(FileSystem);
-                Terminal          = new WindowsTerminal(Trace);
+                SessionManager    = new WindowsSessionManager(Environment, FileSystem);
+                ProcessManager    = new WindowsProcessManager(Trace2);
+                Terminal          = new WindowsTerminal(Trace, Trace2);
                 string gitPath    = GetGitPath(Environment, FileSystem, Trace);
                 Git               = new GitProcess(
                                             Trace,
-                                            Environment,
+                                            Trace2,
+                                            ProcessManager,
                                             gitPath,
                                             FileSystem.GetCurrentDirectory()
                                         );
@@ -112,13 +119,15 @@ namespace GitCredentialManager
             else if (PlatformUtils.IsMacOS())
             {
                 FileSystem        = new MacOSFileSystem();
-                SessionManager    = new MacOSSessionManager();
                 Environment       = new MacOSEnvironment(FileSystem);
-                Terminal          = new MacOSTerminal(Trace);
+                SessionManager    = new MacOSSessionManager(Environment, FileSystem);
+                ProcessManager    = new ProcessManager(Trace2);
+                Terminal          = new MacOSTerminal(Trace, Trace2);
                 string gitPath    = GetGitPath(Environment, FileSystem, Trace);
                 Git               = new GitProcess(
                                             Trace,
-                                            Environment,
+                                            Trace2,
+                                            ProcessManager,
                                             gitPath,
                                             FileSystem.GetCurrentDirectory()
                                         );
@@ -127,14 +136,15 @@ namespace GitCredentialManager
             else if (PlatformUtils.IsLinux())
             {
                 FileSystem        = new LinuxFileSystem();
-                // TODO: support more than just 'Posix' or X11
-                SessionManager    = new PosixSessionManager();
                 Environment       = new PosixEnvironment(FileSystem);
-                Terminal          = new LinuxTerminal(Trace);
+                SessionManager    = new LinuxSessionManager(Environment, FileSystem);
+                ProcessManager    = new ProcessManager(Trace2);
+                Terminal          = new LinuxTerminal(Trace, Trace2);
                 string gitPath    = GetGitPath(Environment, FileSystem, Trace);
                 Git               = new GitProcess(
                                             Trace,
-                                            Environment,
+                                            Trace2,
+                                            ProcessManager,
                                             gitPath,
                                             FileSystem.GetCurrentDirectory()
                                         );
@@ -145,8 +155,7 @@ namespace GitCredentialManager
                 throw new PlatformNotSupportedException();
             }
 
-            Trace2 = new Trace2(Environment, Settings.GetTrace2Settings(), argv, applicationStartTime);
-            HttpClientFactory = new HttpClientFactory(FileSystem, Trace, Settings, Streams);
+            HttpClientFactory = new HttpClientFactory(FileSystem, Trace, Trace2, Settings, Streams);
             CredentialStore   = new CredentialStore(this);
         }
 
@@ -209,6 +218,8 @@ namespace GitCredentialManager
         public IGit Git { get; }
 
         public IEnvironment Environment { get; }
+
+        public IProcessManager ProcessManager { get; }
 
         #endregion
 

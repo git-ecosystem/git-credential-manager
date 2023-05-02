@@ -1,9 +1,10 @@
 using System.Threading;
 using System.Threading.Tasks;
+using GitCredentialManager.UI.Commands;
 using GitCredentialManager.UI.ViewModels;
-using GitCredentialManager.UI.Views;
+using GitCredentialManager.UI.Windows.Views;
 
-namespace GitCredentialManager.UI.Commands
+namespace GitCredentialManager.UI.Windows.Commands
 {
     public class CredentialsCommandImpl : CredentialsCommand
     {

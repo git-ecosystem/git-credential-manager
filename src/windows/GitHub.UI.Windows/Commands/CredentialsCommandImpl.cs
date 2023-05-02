@@ -1,11 +1,13 @@
 using System.Threading;
 using System.Threading.Tasks;
-using GitHub.UI.ViewModels;
-using GitHub.UI.Views;
 using GitCredentialManager;
 using GitCredentialManager.UI;
+using GitCredentialManager.UI.Windows;
+using GitHub.UI.Commands;
+using GitHub.UI.ViewModels;
+using GitHub.UI.Windows.Views;
 
-namespace GitHub.UI.Commands
+namespace GitHub.UI.Windows.Commands
 {
     public class CredentialsCommandImpl : CredentialsCommand
     {

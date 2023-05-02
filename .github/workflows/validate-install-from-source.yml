@@ -34,10 +34,10 @@ jobs:
             zypper -n install tar gzip
           elif [[ ${{matrix.vector.image}} == *"centos"* ]]; then
             dnf install which -y
-          fi       
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
-        with:
-          fetch-depth: 0 # Indicate full history so Nerdbank.GitVersioning works.
+          fi
+
+      - uses: actions/checkout@v3
+
       - run: |
           sh "${GITHUB_WORKSPACE}/src/linux/Packaging.Linux/install-from-source.sh" -y
           git-credential-manager --help || exit 1
