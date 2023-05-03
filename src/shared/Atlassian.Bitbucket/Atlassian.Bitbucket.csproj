@@ -17,4 +17,8 @@
     <Reference Include="System.Net.Http" />
   </ItemGroup>
 
+  <ItemGroup>
+    <AvaloniaResource Include="UI\Assets\atlassian-logo.png" />
+  </ItemGroup>
+
 </Project>
