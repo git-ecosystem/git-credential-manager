@@ -351,30 +351,24 @@ namespace GitCredentialManager
 
         private static string GetOSVersion(ITrace2 trace2)
         {
+            //
+            // Since .NET 5 we can use Environment.OSVersion because it was updated to
+            // return the correct version on Windows & macOS, rather than the manifested
+            // version for Windows or the kernel version for macOS.
+            // https://learn.microsoft.com/en-us/dotnet/core/compatibility/core-libraries/5.0/environment-osversion-returns-correct-version
+            //
+            // However, we still need to use the old method for Windows on .NET Framework
+            // and call into the Win32 API to get the correct version (regardless of app
+            // compatibility settings).
+#if NETFRAMEWORK
             if (IsWindows() && RtlGetVersionEx(out RTL_OSVERSIONINFOEX osvi) == 0)
             {
                 return $"{osvi.dwMajorVersion}.{osvi.dwMinorVersion} (build {osvi.dwBuildNumber})";
             }
-
-            if (IsMacOS())
+#endif
+            if (IsWindows() || IsMacOS())
             {
-                var psi = new ProcessStartInfo
-                {
-                    FileName = "/usr/bin/sw_vers",
-                    Arguments = "-productVersion",
-                    RedirectStandardOutput = true
-                };
-
-                using (var swvers = new ChildProcess(trace2, psi))
-                {
-                    swvers.Start(Trace2ProcessClass.Other);
-                    swvers.WaitForExit();
-
-                    if (swvers.ExitCode == 0)
-                    {
-                        return swvers.StandardOutput.ReadToEnd().Trim();
-                    }
-                }
+                return Environment.OSVersion.VersionString;
             }
 
             if (IsLinux())
