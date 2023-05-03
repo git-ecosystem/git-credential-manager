@@ -110,11 +110,19 @@ namespace Atlassian.Bitbucket
         {
             var viewModel = new CredentialsViewModel(Context.Environment)
             {
-                Url = targetUri,
-                UserName = userName,
                 ShowOAuth = (modes & AuthenticationModes.OAuth) != 0,
                 ShowBasic = (modes & AuthenticationModes.Basic) != 0
             };
+
+            if (!BitbucketHelper.IsBitbucketOrg(targetUri))
+            {
+                viewModel.Url = targetUri;
+            }
+
+            if (!string.IsNullOrWhiteSpace(userName))
+            {
+                viewModel.UserName = userName;
+            }
 
             await AvaloniaUi.ShowViewAsync<CredentialsView>(viewModel, GetParentWindowHandle(), CancellationToken.None);
 
