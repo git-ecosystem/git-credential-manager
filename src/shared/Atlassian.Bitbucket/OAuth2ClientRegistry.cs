@@ -29,7 +29,7 @@ namespace Atlassian.Bitbucket
 
         protected override void ReleaseManagedResources()
         {
-            _httpClient.Dispose();
+            _httpClient?.Dispose();
             _cloudClient = null;
             _dataCenterClient = null;
             base.ReleaseManagedResources();
