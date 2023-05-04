@@ -39,7 +39,29 @@ PROJ_OUT="$OUT/linux/Packaging.Linux"
 
 # Build parameters
 FRAMEWORK=net6.0
-RUNTIME=linux-x64
+
+# Determine a runtime if one was not provided
+# NB: Unsure of the arm64 vs aarch64, but uname reports aarch64 whereas 
+# dotnet seems to want arm64 ...
+if [ -z "$RUNTIME" ]; then
+    TEST_RUNTIME=`uname -m`
+    case $TEST_RUNTIME in
+        "x86_64")
+            RUNTIME="linux-x64"
+            ;;
+        "arm64")
+            RUNTIME="linux-arm64"
+            ;;
+        "aarch64")
+            RUNTIME="linux-arm64"
+            ;;
+        *)
+            die "Unknown runtime '$TEST_RUNTIME'"
+            ;;
+    esac
+fi
+
+echo "Building for runtime '$RUNTIME'"
 
 # Perform pre-execution checks
 CONFIGURATION="${CONFIGURATION:=Debug}"
