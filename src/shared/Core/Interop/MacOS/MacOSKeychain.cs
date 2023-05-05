@@ -11,6 +11,7 @@ namespace GitCredentialManager.Interop.MacOS
     public class MacOSKeychain : ICredentialStore
     {
         private readonly string _namespace;
+        private readonly string _accessGroup;
 
         #region Constructors
 
@@ -18,11 +19,16 @@ namespace GitCredentialManager.Interop.MacOS
         /// Open the default keychain (current user's login keychain).
         /// </summary>
         /// <param name="namespace">Optional namespace to scope credential operations.</param>
+        /// <param name="accessGroup">
+        /// Optional Keychain access group used when creating and searching for items.
+        /// If not specified, the application's default access group is used.
+        /// </param>
         /// <returns>Default keychain.</returns>
-        public MacOSKeychain(string @namespace = null)
+        public MacOSKeychain(string @namespace = null, string accessGroup = null)
         {
             PlatformUtils.EnsureMacOS();
             _namespace = @namespace;
+            _accessGroup = accessGroup;
         }
 
         #endregion
@@ -35,6 +41,7 @@ namespace GitCredentialManager.Interop.MacOS
             IntPtr resultPtr = IntPtr.Zero;
             IntPtr servicePtr = IntPtr.Zero;
             IntPtr accountPtr = IntPtr.Zero;
+            IntPtr groupPtr = IntPtr.Zero;
 
             try
             {
@@ -59,6 +66,12 @@ namespace GitCredentialManager.Interop.MacOS
                 {
                     accountPtr = CreateCFStringUtf8(account);
                     CFDictionaryAddValue(query, kSecAttrAccount, accountPtr);
+                }
+
+                if (!string.IsNullOrWhiteSpace(_accessGroup))
+                {
+                    groupPtr = CreateCFStringUtf8(_accessGroup);
+                    CFDictionaryAddValue(query, kSecAttrAccessGroup, groupPtr);
                 }
 
                 int searchResult = SecItemCopyMatching(query, out resultPtr);
@@ -88,6 +101,7 @@ namespace GitCredentialManager.Interop.MacOS
                 if (query != IntPtr.Zero) CFRelease(query);
                 if (servicePtr != IntPtr.Zero) CFRelease(servicePtr);
                 if (accountPtr != IntPtr.Zero) CFRelease(accountPtr);
+                if (groupPtr != IntPtr.Zero) CFRelease(groupPtr);
                 if (resultPtr != IntPtr.Zero) CFRelease(resultPtr);
             }
         }
@@ -99,6 +113,7 @@ namespace GitCredentialManager.Interop.MacOS
             IntPtr query = IntPtr.Zero;
             IntPtr servicePtr = IntPtr.Zero;
             IntPtr accountPtr = IntPtr.Zero;
+            IntPtr groupPtr = IntPtr.Zero;
             IntPtr resultPtr = IntPtr.Zero;
 
             try
@@ -126,6 +141,12 @@ namespace GitCredentialManager.Interop.MacOS
                     CFDictionaryAddValue(query, kSecAttrAccount, accountPtr);
                 }
 
+                if (!string.IsNullOrWhiteSpace(_accessGroup))
+                {
+                    groupPtr = CreateCFStringUtf8(_accessGroup);
+                    CFDictionaryAddValue(query, kSecAttrAccessGroup, groupPtr);
+                }
+
                 int searchResult = SecItemCopyMatching(query, out resultPtr);
 
                 switch (searchResult)
@@ -150,6 +171,7 @@ namespace GitCredentialManager.Interop.MacOS
                 if (query != IntPtr.Zero) CFRelease(query);
                 if (servicePtr != IntPtr.Zero) CFRelease(servicePtr);
                 if (accountPtr != IntPtr.Zero) CFRelease(accountPtr);
+                if (groupPtr != IntPtr.Zero) CFRelease(groupPtr);
                 if (resultPtr != IntPtr.Zero) CFRelease(resultPtr);
             }
         }
@@ -160,6 +182,7 @@ namespace GitCredentialManager.Interop.MacOS
             IntPtr servicePtr = IntPtr.Zero;
             IntPtr accountPtr = IntPtr.Zero;
             IntPtr dataPtr = IntPtr.Zero;
+            IntPtr groupPtr = IntPtr.Zero;
             IntPtr resultPtr = IntPtr.Zero;
 
             byte[] data = Encoding.UTF8.GetBytes(secret);
@@ -186,6 +209,12 @@ namespace GitCredentialManager.Interop.MacOS
                     CFDictionaryAddValue(dict, kSecAttrAccount, accountPtr);
                 }
 
+                if (!string.IsNullOrWhiteSpace(_accessGroup))
+                {
+                    groupPtr = CreateCFStringUtf8(_accessGroup);
+                    CFDictionaryAddValue(dict, kSecAttrAccessGroup, groupPtr);
+                }
+
                 ThrowIfError(
                     SecItemAdd(dict, out resultPtr),
                     "Failed to add new entry to keychain."
@@ -197,6 +226,7 @@ namespace GitCredentialManager.Interop.MacOS
                 if (servicePtr != IntPtr.Zero) CFRelease(servicePtr);
                 if (accountPtr != IntPtr.Zero) CFRelease(accountPtr);
                 if (dataPtr != IntPtr.Zero) CFRelease(dataPtr);
+                if (groupPtr != IntPtr.Zero) CFRelease(groupPtr);
                 if (resultPtr != IntPtr.Zero) CFRelease(resultPtr);
             }
         }
@@ -207,6 +237,7 @@ namespace GitCredentialManager.Interop.MacOS
             IntPtr servicePtr = IntPtr.Zero;
             IntPtr accountPtr = IntPtr.Zero;
             IntPtr dataPtr = IntPtr.Zero;
+            IntPtr groupPtr = IntPtr.Zero;
             IntPtr resultPtr = IntPtr.Zero;
 
             byte[] data = Encoding.UTF8.GetBytes(secret);
@@ -231,6 +262,12 @@ namespace GitCredentialManager.Interop.MacOS
                     CFDictionaryAddValue(dict, kSecAttrAccount, accountPtr);
                 }
 
+                if (!string.IsNullOrWhiteSpace(_accessGroup))
+                {
+                    groupPtr = CreateCFStringUtf8(_accessGroup);
+                    CFDictionaryAddValue(query, kSecAttrAccessGroup, groupPtr);
+                }
+
                 ThrowIfError(
                     SecItemUpdate(query, dict),
                     "Failed to update existing keychain entry."
@@ -242,6 +279,7 @@ namespace GitCredentialManager.Interop.MacOS
                 if (servicePtr != IntPtr.Zero) CFRelease(servicePtr);
                 if (accountPtr != IntPtr.Zero) CFRelease(accountPtr);
                 if (dataPtr != IntPtr.Zero) CFRelease(dataPtr);
+                if (groupPtr != IntPtr.Zero) CFRelease(groupPtr);
                 if (resultPtr != IntPtr.Zero) CFRelease(resultPtr);
             }
         }
@@ -251,6 +289,7 @@ namespace GitCredentialManager.Interop.MacOS
             IntPtr query = IntPtr.Zero;
             IntPtr servicePtr = IntPtr.Zero;
             IntPtr accountPtr = IntPtr.Zero;
+            IntPtr groupPtr = IntPtr.Zero;
 
             try
             {
@@ -275,6 +314,12 @@ namespace GitCredentialManager.Interop.MacOS
                     CFDictionaryAddValue(query, kSecAttrAccount, accountPtr);
                 }
 
+                if (!string.IsNullOrWhiteSpace(_accessGroup))
+                {
+                    groupPtr = CreateCFStringUtf8(_accessGroup);
+                    CFDictionaryAddValue(query, kSecAttrAccessGroup, groupPtr);
+                }
+
                 // Delete credentials matched by the query
                 int deleteResult = SecItemDelete(query);
                 switch (deleteResult)
@@ -296,6 +341,7 @@ namespace GitCredentialManager.Interop.MacOS
                 if (query != IntPtr.Zero) CFRelease(query);
                 if (servicePtr != IntPtr.Zero) CFRelease(servicePtr);
                 if (accountPtr != IntPtr.Zero) CFRelease(accountPtr);
+                if (groupPtr != IntPtr.Zero) CFRelease(groupPtr);
             }
         }
 
