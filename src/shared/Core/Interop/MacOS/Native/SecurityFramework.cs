@@ -111,11 +111,13 @@ namespace GitCredentialManager.Interop.MacOS.Native
         public static extern int SecItemCopyMatching(IntPtr query, out IntPtr result);
 
         [DllImport(SecurityFrameworkLib, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int SecKeychainItemCopyFromPersistentReference(IntPtr persistentItemRef, out IntPtr itemRef);
+        public static extern int SecItemAdd(IntPtr query, out IntPtr result);
 
         [DllImport(SecurityFrameworkLib, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int SecKeychainItemCopyContent(IntPtr itemRef, IntPtr itemClass, IntPtr attrList,
-            out uint length, out IntPtr outData);
+        public static extern int SecItemUpdate(IntPtr query, IntPtr attributesToUpdate);
+
+        [DllImport(SecurityFrameworkLib, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int SecItemDelete(IntPtr query);
 
         public const int CallerSecuritySession = -1;
 
