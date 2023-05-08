@@ -391,8 +391,8 @@ namespace Microsoft.AzureRepos
         /// <returns>True if Personal Access Tokens should be used, false otherwise.</returns>
         private bool UsePersonalAccessTokens()
         {
-            // Default to using PATs
-            const bool defaultValue = true;
+            // Default to using PATs except on DevBox where we prefer OAuth tokens
+            bool defaultValue = !PlatformUtils.IsDevBox();
 
             if (_context.Settings.TryGetSetting(
                 AzureDevOpsConstants.EnvironmentVariables.CredentialType,

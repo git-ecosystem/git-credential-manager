@@ -751,11 +751,13 @@ Credential: "git:https://bob@github.com/example/myrepo" (user = bob)
 
 Specify the type of credential the Azure Repos host provider should return.
 
-Defaults to the value `pat`.
+Defaults to the value `pat`. In certain cloud hosted environments when using a
+work or school account, such as [Microsoft DevBox][devbox], the default value is
+`oauth`.
 
 Value|Description
 -|-
-`pat` _(default)_|Azure DevOps personal access tokens
+`pat`|Azure DevOps personal access tokens
 `oauth`|Microsoft identity OAuth tokens (AAD or MSA tokens)
 
 Here is more information about [Azure Access tokens][azure-tokens].
