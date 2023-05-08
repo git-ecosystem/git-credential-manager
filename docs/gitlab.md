@@ -27,9 +27,9 @@ This may be necessary to recognise the domain as a GitLab instance.
 ### Clearing config
 
 ```console
-    git config --global --unset-all credential.https://gitlab.example.com.gitLabDevClientId
-    git config --global --unset-all credential.https://gitlab.example.com.gitLabDevClientSecret
-    git config --global --unset-all credential.https://gitlab.example.com.provider
+git config --global --unset-all credential.https://gitlab.example.com.gitLabDevClientId
+git config --global --unset-all credential.https://gitlab.example.com.gitLabDevClientSecret
+git config --global --unset-all credential.https://gitlab.example.com.provider
 ```
 
 ### Config for popular instances
