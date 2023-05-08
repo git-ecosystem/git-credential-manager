@@ -60,7 +60,7 @@ namespace GitCredentialManager.Authentication
                 Description = !string.IsNullOrWhiteSpace(resource)
                     ? $"Enter your credentials for '{resource}'"
                     : "Enter your credentials",
-                UserName = userName,
+                UserName = string.IsNullOrWhiteSpace(userName) ? null : userName,
             };
 
             await AvaloniaUi.ShowViewAsync<CredentialsView>(viewModel, GetParentWindowHandle(), CancellationToken.None);

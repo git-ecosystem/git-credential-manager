@@ -144,7 +144,7 @@ namespace GitHub
                 case AuthenticationModes.Pat:
                     return new AuthenticationPromptResult(
                         AuthenticationModes.Pat,
-                        new GitCredential(userName, viewModel.Password)
+                        new GitCredential(userName, viewModel.Token)
                     );
 
                 default:

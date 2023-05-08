@@ -3,21 +3,18 @@ using GitCredentialManager;
 
 namespace Atlassian.Bitbucket
 {
-    public class OAuth2ClientRegistry : IRegistry<BitbucketOAuth2Client>
+    public class OAuth2ClientRegistry : DisposableObject, IRegistry<BitbucketOAuth2Client>
     {
-        private readonly HttpClient http;
-        private ISettings settings;
-        private readonly ITrace trace;
-        private readonly ITrace2 trace2;
-        private Cloud.BitbucketOAuth2Client cloudClient;
-        private DataCenter.BitbucketOAuth2Client dataCenterClient;
+        private readonly ICommandContext _context;
+
+        private HttpClient _httpClient;
+        private Cloud.BitbucketOAuth2Client _cloudClient;
+        private DataCenter.BitbucketOAuth2Client _dataCenterClient;
 
         public OAuth2ClientRegistry(ICommandContext context)
         {
-            this.http = context.HttpClientFactory.CreateClient();
-            this.settings = context.Settings;
-            this.trace = context.Trace;
-            this.trace2 = context.Trace2;
+            EnsureArgument.NotNull(context, nameof(context));
+            _context = context;
         }
 
         public BitbucketOAuth2Client Get(InputArguments input)
@@ -30,15 +27,20 @@ namespace Atlassian.Bitbucket
             return CloudClient;
         }
 
-        public void Dispose()
+        protected override void ReleaseManagedResources()
         {
-            http.Dispose();
-            settings.Dispose();
-            cloudClient = null;
-            dataCenterClient = null;
+            _httpClient?.Dispose();
+            _cloudClient = null;
+            _dataCenterClient = null;
+            base.ReleaseManagedResources();
         }
 
-        private Cloud.BitbucketOAuth2Client CloudClient => cloudClient ??= new Cloud.BitbucketOAuth2Client(http, settings, trace2);
-        private DataCenter.BitbucketOAuth2Client DataCenterClient => dataCenterClient ??= new DataCenter.BitbucketOAuth2Client(http, settings, trace2);
+        private HttpClient HttpClient => _httpClient ??= _context.HttpClientFactory.CreateClient();
+
+        private Cloud.BitbucketOAuth2Client CloudClient =>
+            _cloudClient ??= new Cloud.BitbucketOAuth2Client(HttpClient, _context.Settings, _context.Trace2);
+
+        private DataCenter.BitbucketOAuth2Client DataCenterClient =>
+            _dataCenterClient ??= new DataCenter.BitbucketOAuth2Client(HttpClient, _context.Settings, _context.Trace2);
     }
 }
