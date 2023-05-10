@@ -840,11 +840,13 @@ export GCM_MSAUTH_USEDEFAULTACCOUNT="false"
 
 Specify the type of credential the Azure Repos host provider should return.
 
-Defaults to the value `pat`.
+Defaults to the value `pat`. In certain cloud hosted environments when using a
+work or school account, such as [Microsoft DevBox][devbox], the default value is
+`oauth`.
 
 Value|Description
 -|-
-`pat` _(default)_|Azure DevOps personal access tokens
+`pat`|Azure DevOps personal access tokens
 `oauth`|Microsoft identity OAuth tokens (AAD or MSA tokens)
 
 More information about Azure Access tokens can be found [here][azure-access-tokens].
