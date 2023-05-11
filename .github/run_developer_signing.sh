@@ -3,6 +3,7 @@
 SIGN_DIR=$1
 DEVELOPER_ID=$2
 ENTITLEMENTS_FILE=$3
+APP_ID="com.microsoft.gitcredentialmanager"
 
 if [ -z "$SIGN_DIR" ]; then
     echo "error: missing directory argument"
@@ -18,6 +19,7 @@ fi
 echo "======== INPUTS ========"
 echo "Directory: $SIGN_DIR"
 echo "Developer ID: $DEVELOPER_ID"
+echo "App ID: $APP_ID"
 echo "Entitlements: $ENTITLEMENTS_FILE"
 echo "======== END INPUTS ========"
 
@@ -29,7 +31,7 @@ do
     if [[ $f == *.dylib ]] || [ ! -z "$macho" ]; 
     then 
         echo "Runtime Signing $f" 
-        codesign -s "$DEVELOPER_ID" $f --timestamp --force --options=runtime --entitlements $ENTITLEMENTS_FILE
+        codesign -s "$DEVELOPER_ID" $f -i "$APP_ID" --timestamp --force --options=runtime --entitlements $ENTITLEMENTS_FILE
     elif [ -d "$f" ];
     then
         echo "Signing files in subdirectory $f"
