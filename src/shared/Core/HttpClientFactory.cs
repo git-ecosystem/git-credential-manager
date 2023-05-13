@@ -197,6 +197,40 @@ namespace GitCredentialManager
 #endif
             }
 
+            _trace.WriteLine($"Custom cookie file has been enabled with {_settings.CustomCookieFilePath}");
+            // If IsUsingCookieEnabled is enabled, set Cookie header from cookie file, which is written by libcurl
+            if (!string.IsNullOrWhiteSpace(_settings.CustomCookieFilePath))
+            {
+                // get the filename from gitconfig
+                string cookieFilePath = _settings.CustomCookieFilePath;
+                _trace.WriteLine($"Custom cookie file has been enabled with {cookieFilePath}");
+                
+                // Throw exception if cookie file not found
+                if (!_fileSystem.FileExists(cookieFilePath) || string.IsNullOrEmpty(_fileSystem.ReadAllText(cookieFilePath)))
+                {
+                    var format = "Custom cookie file not found at path: {0}";
+                    var message = string.Format(format, cookieFilePath);
+                    throw new Trace2FileNotFoundException(_trace2, message, format, cookieFilePath);
+                }
+
+                // get cookie from cookie file
+                var cookieParser = new CurlCookieParser(_trace);
+                var cookies = cookieParser.Parse(_fileSystem.ReadAllText(cookieFilePath));
+
+                // Set the cookie
+                var cookieContainer = new CookieContainer();
+                foreach (var cookie in cookies)
+                {
+                    var schema = cookie.Secure ? "https" : "http";
+                    var uri = new UriBuilder(schema, cookie.Domain).Uri;
+                    cookieContainer.Add(uri, new Cookie(cookie.Name, cookie.Value));
+                }
+                handler.CookieContainer = cookieContainer;
+                
+                _trace.WriteLine("Configured to automatically send cookie header.");
+
+            }
+
             var client = new HttpClient(handler);
 
             // Add default headers
@@ -300,6 +334,69 @@ namespace GitCredentialManager
 
             proxy = null;
             return false;
+        }
+
+        public class CurlCookieParser
+        {
+            private readonly ITrace _trace;
+
+            public CurlCookieParser(ITrace trace)
+            {
+                _trace = trace;
+            }
+
+            public IList<Cookie> Parse(string content)
+            {
+                var cookies = new List<Cookie>();
+
+                // Parse the cookie file content
+                var lines = content.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                for (int i = 3; i < lines.Length; i++)
+                {
+                    var parts = lines[i].Split(new[] { '\t' }, StringSplitOptions.RemoveEmptyEntries);
+                    if (parts.Length >= 7)
+                    {
+                        var domain = parts[0];
+                        domain = domain.StartsWith("#HttpOnly_") ? parts[0].Substring("#HttpOnly_".Length) : parts[0];
+                        domain = domain.TrimStart('.');
+                        var includeSubdomains = parts[1] == "TRUE";
+                        var path = parts[2];
+                        var secureOnly = parts[3] == "TRUE";
+                        var expires = parts[4];
+                        var name = parts[5];
+                        var value = parts[6];
+
+                        cookies.Add(new Cookie(name, value, path, domain)
+                        {
+                            Expires = ParseExpires(expires),
+                            Secure = secureOnly,
+                            HttpOnly = true
+                        });
+                    }
+                    else
+                    {
+                        _trace.WriteLine($"Invalid cookie line: {lines[i]}");
+                    }
+                }
+
+                return cookies;
+            }
+
+            private static DateTime ParseExpires(string expires)
+            {
+                if (expires.Equals("0", StringComparison.OrdinalIgnoreCase))
+                {
+                    return DateTime.MinValue;
+                }
+                else if (DateTime.TryParse(expires, out var result))
+                {
+                    return result;
+                }
+                else
+                {
+                    return DateTime.MaxValue;
+                }
+            }
         }
     }
 }

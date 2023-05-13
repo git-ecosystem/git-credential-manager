@@ -171,6 +171,7 @@ namespace GitCredentialManager
                 public const string SslVerify = "sslVerify";
                 public const string SslCaInfo = "sslCAInfo";
                 public const string SslAutoClientCert = "sslAutoClientCert";
+                public const string CookieFile = "cookieFile";
             }
 
             public static class Remote
