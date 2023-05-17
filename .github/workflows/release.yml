@@ -10,6 +10,7 @@ jobs:
   osx-build:
     name: Build macOS
     runs-on: macos-latest
+    environment: release
     strategy:
       matrix:
         runtime: [ osx-x64, osx-arm64 ]
@@ -70,6 +71,7 @@ jobs:
     name: Sign macOS payload
     # ESRP service requires signing to run on Windows
     runs-on: windows-latest
+    environment: release
     strategy:
       matrix:
         runtime: [ osx-x64, osx-arm64 ]
@@ -172,6 +174,7 @@ jobs:
     name: Sign and notarize macOS package
     # ESRP service requires signing to run on Windows
     runs-on: windows-latest
+    environment: release
     strategy:
       matrix:
         runtime: [ osx-x64, osx-arm64 ]
@@ -242,6 +245,7 @@ jobs:
   win-sign:
     name: Build and Sign Windows
     runs-on: windows-latest
+    environment: release
     steps:
     - uses: actions/checkout@v3
 
@@ -375,6 +379,7 @@ jobs:
     needs: linux-build
     # ESRP service requires signing to run on Windows
     runs-on: windows-latest
+    environment: release
     steps:
     - uses: actions/checkout@v3
 
@@ -452,6 +457,7 @@ jobs:
     name: Sign .NET tool payload
     # ESRP service requires signing to run on Windows
     runs-on: windows-latest
+    environment: release
     needs: dotnet-tool-build
     steps:
     - uses: actions/checkout@v3
@@ -545,6 +551,7 @@ jobs:
     name: Sign .NET tool package
     # ESRP service requires signing to run on Windows
     runs-on: windows-latest
+    environment: release
     needs: dotnet-tool-pack
     steps:
     - uses: actions/checkout@v3
@@ -690,6 +697,7 @@ jobs:
   create-github-release:
     name: Publish GitHub draft release
     runs-on: ubuntu-latest
+    environment: release
     needs: [ validate ]
     steps:
       - uses: actions/checkout@v3
