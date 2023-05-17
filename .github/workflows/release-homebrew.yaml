@@ -6,6 +6,7 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
+    environment: release
     steps:
     - name: Update Homebrew tap
       uses: mjcheetham/update-homebrew@v1.3
