@@ -791,8 +791,3 @@ jobs:
               // Upload .NET tool package
               uploadDirectoryToRelease('dotnet-tool-sign'),
             ]);
-
-      - name: Publish .NET tool to nuget.org
-        run: |
-          dotnet nuget push dotnet-tool-sign/*.nupkg \
-            --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
