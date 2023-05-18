@@ -9,7 +9,7 @@ using GitCredentialManager.Diagnostics;
 
 namespace GitHub
 {
-    public class GitHubHostProvider : DisposableObject, IHostProvider, IDiagnosticProvider
+    public partial class GitHubHostProvider : DisposableObject, IHostProvider, IDiagnosticProvider
     {
         private static readonly string[] GitHubOAuthScopes =
         {

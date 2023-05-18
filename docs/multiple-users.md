@@ -79,3 +79,11 @@ git remote set-url origin https://employee9999@example.com/big-company/secret-re
 which you should also be aware of if you're using it.
 
 [azure-access-tokens]: azrepos-users-and-tokens.md
+
+## GitHub
+
+You can use the `github [list | login | logout]` commands to manage your GitHub
+accounts. These commands are documented in the [command-line usage][cli-usage]
+or by running `git-credential-manager github --help`.
+
+[cli-usage]: usage.md
