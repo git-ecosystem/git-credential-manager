@@ -372,7 +372,7 @@ namespace GitCredentialManager
 #endif
             if (IsWindows() || IsMacOS())
             {
-                return Environment.OSVersion.VersionString;
+                return Environment.OSVersion.Version.ToString();
             }
 
             if (IsLinux())
