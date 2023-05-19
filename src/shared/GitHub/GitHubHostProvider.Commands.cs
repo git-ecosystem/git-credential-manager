@@ -24,11 +24,17 @@ public partial class GitHubHostProvider : ICommandProvider
         listCmd.SetHandler(ListAccounts, urlOpt);
 
         //
-        // login [--url <url>]
+        // login [--url <url>] [--username <username>] [--device | --browser/--web | --pat/--token <token>]
         //
         var loginCmd = new Command("login", "Add a GitHub account.");
+        var userNameOpt = new Option<string>("--username", "User name to authenticate with");
+        var deviceOpt = new Option<bool>("--device", "Use device flow to authenticate");
+        var browserOpt = new Option<bool>(new[]{"--web", "--browser"}, "Use a web browser to authenticate");
+        var tokenOpt = new Option<string>(new[] {"--pat", "--token"}, "Use personal access token to authenticate");
         loginCmd.AddOption(urlOpt);
-        loginCmd.SetHandler(AddAccountAsync, urlOpt);
+        loginCmd.AddOption(userNameOpt);
+        loginCmd.AddOptionSet(OptionArity.ZeroOrOne, deviceOpt, browserOpt, tokenOpt);
+        loginCmd.SetHandler(AddAccountAsync, urlOpt, userNameOpt, deviceOpt, browserOpt, tokenOpt);
 
         //
         // logout <account> [--url <url>]
@@ -63,15 +69,37 @@ public partial class GitHubHostProvider : ICommandProvider
         }
     }
 
-    private async Task<int> AddAccountAsync(Uri url)
+    private async Task<int> AddAccountAsync(Uri url, string userName, bool device, bool browser, string token)
     {
         // Default to GitHub.com
         url ??= new Uri($"https://{GitHubConstants.GitHubBaseUrlHost}");
 
-        string userName = url.GetUserName();
+        // Prefer the username specified on the command-line
+        userName ??= url.GetUserName();
+
         string service = GetServiceName(url);
 
-        ICredential credential = await GenerateCredentialAsync(url, userName);
+        ICredential credential;
+        if (token is not null)
+        {
+            // Resolve the GitHub user handle if the user didn't supply one
+            if (string.IsNullOrEmpty(userName))
+            {
+                GitHubUserInfo userInfo = await _gitHubApi.GetUserInfoAsync(url, token);
+                userName = userInfo.Login;
+            }
+
+            credential = new GitCredential(userName, token);
+        }
+        else if (device || browser)
+        {
+            credential = await GenerateOAuthCredentialAsync(url, loginHint: userName, useBrowser: browser);
+        }
+        else
+        {
+            credential = await GenerateCredentialAsync(url, userName);
+        }
+
         _context.CredentialStore.AddOrUpdate(service, credential.Account, credential.Password);
 
         return 0;
