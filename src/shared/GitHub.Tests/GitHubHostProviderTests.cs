@@ -87,7 +87,7 @@ namespace GitHub.Tests
             });
 
             var provider = new GitHubHostProvider(new TestCommandContext());
-            Assert.Equal(expectedService, provider.GetServiceName(input));
+            Assert.Equal(expectedService, GitHubHostProvider.GetServiceName(input));
         }
 
 
@@ -154,11 +154,7 @@ namespace GitHub.Tests
         [Fact]
         public async Task GitHubHostProvider_GenerateCredentialAsync_UnencryptedHttp_ThrowsException()
         {
-            var input = new InputArguments(new Dictionary<string, string>
-            {
-                ["protocol"] = "http",
-                ["host"] = "github.com",
-            });
+            var remoteUri = new Uri("http://github.com");
 
             var context = new TestCommandContext();
             var ghApi = Mock.Of<IGitHubRestApi>();
@@ -166,18 +162,13 @@ namespace GitHub.Tests
 
             var provider = new GitHubHostProvider(context, ghApi, ghAuth);
 
-            await Assert.ThrowsAsync<Trace2Exception>(() => provider.GenerateCredentialAsync(input));
+            await Assert.ThrowsAsync<Trace2Exception>(() => provider.GenerateCredentialAsync(remoteUri, null));
         }
 
         [Fact]
         public async Task GitHubHostProvider_GenerateCredentialAsync_Browser_ReturnsCredential()
         {
-            var input = new InputArguments(new Dictionary<string, string>
-            {
-                ["protocol"] = "https",
-                ["host"] = "github.com",
-            });
-
+            var remoteUri = new Uri("https://github.com");
             var expectedTargetUri = new Uri("https://github.com/");
             IEnumerable<string> expectedOAuthScopes = new[]
             {
@@ -205,7 +196,7 @@ namespace GitHub.Tests
 
             var provider = new GitHubHostProvider(context, ghApiMock.Object, ghAuthMock.Object);
 
-            ICredential credential = await provider.GenerateCredentialAsync(input);
+            ICredential credential = await provider.GenerateCredentialAsync(remoteUri, null);
 
             Assert.NotNull(credential);
             Assert.Equal(expectedUserName, credential.Account);
@@ -220,13 +211,6 @@ namespace GitHub.Tests
         [Fact]
         public async Task GitHubHostProvider_GenerateCredentialAsync_Browser_LoginHint_IncludesHintAndReturnsCredential()
         {
-            var input = new InputArguments(new Dictionary<string, string>
-            {
-                ["protocol"] = "https",
-                ["host"] = "github.com",
-                ["username"] = "john.doe"
-            });
-
             var expectedTargetUri = new Uri("https://github.com/");
             IEnumerable<string> expectedOAuthScopes = new[]
             {
@@ -254,7 +238,7 @@ namespace GitHub.Tests
 
             var provider = new GitHubHostProvider(context, ghApiMock.Object, ghAuthMock.Object);
 
-            ICredential credential = await provider.GenerateCredentialAsync(input);
+            ICredential credential = await provider.GenerateCredentialAsync(expectedTargetUri, expectedUserName);
 
             Assert.NotNull(credential);
             Assert.Equal(expectedUserName, credential.Account);
@@ -269,12 +253,7 @@ namespace GitHub.Tests
         [Fact]
         public async Task GitHubHostProvider_GenerateCredentialAsync_Basic_1FAOnly_ReturnsCredential()
         {
-            var input = new InputArguments(new Dictionary<string, string>
-            {
-                ["protocol"] = "https",
-                ["host"] = "github.com",
-            });
-
+            var remoteUri = new Uri("https://github.com");
             var expectedTargetUri = new Uri("https://github.com/");
             var expectedUserName = "john.doe";
             var expectedPassword = "letmein123"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
@@ -302,7 +281,7 @@ namespace GitHub.Tests
 
             var provider = new GitHubHostProvider(context, ghApiMock.Object, ghAuthMock.Object);
 
-            ICredential credential = await provider.GenerateCredentialAsync(input);
+            ICredential credential = await provider.GenerateCredentialAsync(remoteUri, null);
 
             Assert.NotNull(credential);
             Assert.Equal(expectedUserName, credential.Account);
@@ -317,12 +296,7 @@ namespace GitHub.Tests
         [Fact]
         public async Task GitHubHostProvider_GenerateCredentialAsync_Basic_2FARequired_ReturnsCredential()
         {
-            var input = new InputArguments(new Dictionary<string, string>
-            {
-                ["protocol"] = "https",
-                ["host"] = "github.com",
-            });
-
+            var remoteUri = new Uri("https://github.com");
             var expectedTargetUri = new Uri("https://github.com/");
             var expectedUserName = "john.doe";
             var expectedPassword = "letmein123";  // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
@@ -356,7 +330,7 @@ namespace GitHub.Tests
 
             var provider = new GitHubHostProvider(context, ghApiMock.Object, ghAuthMock.Object);
 
-            ICredential credential = await provider.GenerateCredentialAsync(input);
+            ICredential credential = await provider.GenerateCredentialAsync(remoteUri, null);
 
             Assert.NotNull(credential);
             Assert.Equal(expectedUserName, credential.Account);

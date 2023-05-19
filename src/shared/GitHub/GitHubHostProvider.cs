@@ -107,11 +107,16 @@ namespace GitHub
             return response.Headers.Contains("X-GitHub-Request-Id");
         }
 
-        internal /* for testing purposes */ string GetServiceName(InputArguments input)
+        internal static /* for testing purposes */ string GetServiceName(InputArguments input)
         {
             // Get the remote URI without user information
             var baseUri = input.GetRemoteUri(includeUser: false);
 
+            return GetServiceName(baseUri);
+        }
+
+        private static string GetServiceName(Uri baseUri)
+        {
             // Normalise the URI
             string url = NormalizeUri(baseUri).AbsoluteUri;
 
@@ -132,7 +137,7 @@ namespace GitHub
 
                 // No existing credential was found, create a new one
                 _context.Trace.WriteLine("Creating new credential...");
-                credential = await GenerateCredentialAsync(input);
+                credential = await GenerateCredentialAsync(input.GetRemoteUri(), input.UserName);
                 _context.Trace.WriteLine("Credential created.");
             }
             else
@@ -183,24 +188,22 @@ namespace GitHub
             return Task.CompletedTask;
         }
 
-        internal /* for testing purposes */ async Task<ICredential> GenerateCredentialAsync(InputArguments input)
+        internal /* for testing purposes */  async Task<ICredential> GenerateCredentialAsync(Uri remoteUri, string userName)
         {
             ThrowIfDisposed();
 
             // We should not allow unencrypted communication and should inform the user
-            if (StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "http"))
+            if (StringComparer.OrdinalIgnoreCase.Equals(remoteUri.Scheme, "http"))
             {
                 throw new Trace2Exception(_context.Trace2,
                     "Unencrypted HTTP is not supported for GitHub. Ensure the repository remote URL is using HTTPS.");
             }
 
-            Uri remoteUri = input.GetRemoteUri();
-
-            string service = GetServiceName(input);
+            string service = GetServiceName(remoteUri);
 
             AuthenticationModes authModes = await GetSupportedAuthenticationModesAsync(remoteUri);
 
-            AuthenticationPromptResult promptResult = await _gitHubAuth.GetAuthenticationAsync(remoteUri, input.UserName, authModes);
+            AuthenticationPromptResult promptResult = await _gitHubAuth.GetAuthenticationAsync(remoteUri, userName, authModes);
 
             switch (promptResult.AuthenticationMode)
             {
@@ -218,10 +221,10 @@ namespace GitHub
                     return patCredential;
 
                 case AuthenticationModes.Browser:
-                    return await GenerateOAuthCredentialAsync(remoteUri, loginHint: input.UserName, useBrowser: true);
+                    return await GenerateOAuthCredentialAsync(remoteUri, loginHint: userName, useBrowser: true);
 
                 case AuthenticationModes.Device:
-                    return await GenerateOAuthCredentialAsync(remoteUri, loginHint: input.UserName, useBrowser: false);
+                    return await GenerateOAuthCredentialAsync(remoteUri, loginHint: userName, useBrowser: false);
 
                 case AuthenticationModes.Pat:
                     // The token returned by the user should be good to use directly as the password for Git
@@ -230,7 +233,7 @@ namespace GitHub
                     // Resolve the GitHub user handle if we don't have a specific username already from the
                     // initial request. The reason for this is GitHub requires a (any?) value for the username
                     // when Git makes calls to GitHub.
-                    string userName = promptResult.Credential.Account;
+                    userName = promptResult.Credential.Account;
                     if (userName is null)
                     {
                         GitHubUserInfo userInfo = await _gitHubApi.GetUserInfoAsync(remoteUri, token);
