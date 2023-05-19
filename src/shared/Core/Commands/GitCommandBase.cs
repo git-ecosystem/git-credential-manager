@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.CommandLine;
-using System.CommandLine.Invocation;
 using System.Threading.Tasks;
 
 namespace GitCredentialManager.Commands
@@ -23,7 +22,7 @@ namespace GitCredentialManager.Commands
             Context = context;
             _hostProviderRegistry = hostProviderRegistry;
 
-            Handler = CommandHandler.Create(ExecuteAsync);
+            this.SetHandler(ExecuteAsync);
         }
 
         protected ICommandContext Context { get; }

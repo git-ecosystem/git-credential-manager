@@ -1,6 +1,4 @@
-using System;
 using System.CommandLine;
-using System.CommandLine.Invocation;
 using System.Threading;
 using System.Threading.Tasks;
 using GitHub.UI.ViewModels;
@@ -14,15 +12,13 @@ namespace GitHub.UI.Commands
         protected DeviceCodeCommand(ICommandContext context)
             : base(context, "device", "Show device code prompt.")
         {
-            AddOption(
-                new Option<string>("--code", "User code.")
-            );
+            var code = new Option<string>("--code", "User code.");
+            AddOption(code);
 
-            AddOption(
-                new Option<string>("--url", "Verification URL.")
-            );
+            var url = new Option<string>("--url", "Verification URL.");
+            AddOption(url);
 
-            Handler = CommandHandler.Create<string, string>(ExecuteAsync);
+            this.SetHandler(ExecuteAsync, code, url);
         }
 
         private async Task<int> ExecuteAsync(string code, string url)

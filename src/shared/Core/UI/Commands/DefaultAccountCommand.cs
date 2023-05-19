@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.CommandLine;
-using System.CommandLine.Invocation;
 using System.Threading;
 using System.Threading.Tasks;
 using GitCredentialManager.UI.ViewModels;
@@ -12,40 +11,30 @@ public abstract class DefaultAccountCommand : HelperCommand
     protected DefaultAccountCommand(ICommandContext context)
         : base(context, "default-account", "Show prompt to confirm use of the default OS account.")
     {
-        AddOption(
-            new Option<string>("--title", "Window title (optional).")
-        );
+        var title = new Option<string>("--title", "Window title (optional).");
+        AddOption(title);
 
-        AddOption(
-            new Option<string>("--username", "User name to display.")
-            {
-                IsRequired = true
-            }
-        );
+        var userName = new Option<string>("--username", "User name to display.")
+        {
+            IsRequired = true
+        };
+        AddOption(userName);
 
-        AddOption(
-            new Option("--no-logo", "Hide the Git Credential Manager logo and logotype.")
-        );
+        var noLogo = new Option<bool>("--no-logo", "Hide the Git Credential Manager logo and logotype.");
+        AddOption(noLogo);
 
-        Handler = CommandHandler.Create(ExecuteAsync);
+        this.SetHandler(ExecuteAsync, title, userName, noLogo);
     }
 
-    private class CommandOptions
-    {
-        public string Title { get; set; }
-        public string UserName { get; set; }
-        public bool NoLogo { get; set; }
-    }
-
-    private async Task<int> ExecuteAsync(CommandOptions options)
+    private async Task<int> ExecuteAsync(string title, string userName, bool noLogo)
     {
         var viewModel = new DefaultAccountViewModel(Context.Environment)
         {
-            Title = !string.IsNullOrWhiteSpace(options.Title)
-                ? options.Title
+            Title = !string.IsNullOrWhiteSpace(title)
+                ? title
                 : "Git Credential Manager",
-            UserName = options.UserName,
-            ShowProductHeader = !options.NoLogo
+            UserName = userName,
+            ShowProductHeader = !noLogo
         };
 
         await ShowAsync(viewModel, CancellationToken.None);

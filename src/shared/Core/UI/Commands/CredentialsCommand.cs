@@ -1,7 +1,5 @@
-using System;
 using System.Collections.Generic;
 using System.CommandLine;
-using System.CommandLine.Invocation;
 using System.Threading;
 using System.Threading.Tasks;
 using GitCredentialManager.UI.ViewModels;
@@ -13,52 +11,40 @@ namespace GitCredentialManager.UI.Commands
         protected CredentialsCommand(ICommandContext context)
             : base(context, "basic", "Show basic authentication prompt.")
         {
-            AddOption(
-                new Option<string>("--title", "Window title (optional).")
-            );
+            var title = new Option<string>("--title", "Window title (optional).");
+            AddOption(title);
 
-            AddOption(
-                new Option<string>("--resource", "Resource name or URL (optional).")
-            );
+            var resource = new Option<string>("--resource", "Resource name or URL (optional).");
+            AddOption(resource);
 
-            AddOption(
-                new Option<string>("--username", "User name (optional).")
-            );
+            var userName = new Option<string>("--username", "User name (optional).");
+            AddOption(userName);
 
-            AddOption(
-                new Option("--no-logo", "Hide the Git Credential Manager logo and logotype.")
-            );
+            var noLogo = new Option<bool>("--no-logo", "Hide the Git Credential Manager logo and logotype.");
+            AddOption(noLogo);
 
-            Handler = CommandHandler.Create<CommandOptions>(ExecuteAsync);
+            this.SetHandler(ExecuteAsync, title, resource, userName, noLogo);
         }
 
-        private class CommandOptions
-        {
-            public string Title { get; set; }
-            public string Resource { get; set; }
-            public string UserName { get; set; }
-            public bool NoLogo { get; set; }
-        }
-
-        private async Task<int> ExecuteAsync(CommandOptions options)
+        private async Task<int> ExecuteAsync(string title, string resource, string userName, bool noLogo)
         {
             var viewModel = new CredentialsViewModel();
 
-            if (!string.IsNullOrWhiteSpace(options.Title))
+            if (!string.IsNullOrWhiteSpace(title))
             {
-                viewModel.Title = options.Title;
+                viewModel.Title = title;
             }
 
-            viewModel.Description = !string.IsNullOrWhiteSpace(options.Resource)
-                ? $"Enter your credentials for '{options.Resource}'"
+            viewModel.Description = !string.IsNullOrWhiteSpace(resource)
+                ? $"Enter your credentials for '{resource}'"
                 : "Enter your credentials";
 
-            if (!string.IsNullOrWhiteSpace(options.UserName))
+            if (!string.IsNullOrWhiteSpace(userName))
             {
-                viewModel.UserName = options.UserName;
+                viewModel.UserName = userName;
             }
 
-            viewModel.ShowProductHeader = !options.NoLogo;
+            viewModel.ShowProductHeader = !noLogo;
 
             await ShowAsync(viewModel, CancellationToken.None);
 
