@@ -71,7 +71,7 @@ namespace GitCredentialManager
         /// <remarks>
         /// If GUI prompts are disabled but an equivalent terminal prompt is available, the latter will be used instead.
         /// </remarks>
-        bool IsGuiPromptsEnabled { get; }
+        bool IsGuiPromptsEnabled { get; set; }
 
         /// <summary>
         /// True if it is permitted to interact with the user, false otherwise.
@@ -506,6 +506,7 @@ namespace GitCredentialManager
 
                 return defaultValue;
             }
+            set => _environment.SetEnvironmentVariable(KnownEnvars.GcmGuiPromptsEnabled, value ? bool.TrueString : bool.FalseString);
         }
 
         public bool IsInteractionAllowed

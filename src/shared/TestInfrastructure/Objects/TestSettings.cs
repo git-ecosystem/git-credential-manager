@@ -136,7 +136,11 @@ namespace GitCredentialManager.Tests.Objects
 
         bool ISettings.IsTerminalPromptsEnabled => IsTerminalPromptsEnabled;
 
-        bool ISettings.IsGuiPromptsEnabled => IsGuiPromptsEnabled;
+        bool ISettings.IsGuiPromptsEnabled
+        {
+            get => IsGuiPromptsEnabled;
+            set => IsGuiPromptsEnabled = value;
+        }
 
         bool ISettings.IsInteractionAllowed => IsInteractionAllowed;
 

@@ -4,7 +4,6 @@ using System.CommandLine;
 using System.CommandLine.Builder;
 using System.CommandLine.Invocation;
 using System.CommandLine.Parsing;
-using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -70,6 +69,18 @@ namespace GitCredentialManager
             var rootCommand = new RootCommand();
             var diagnoseCommand = new DiagnoseCommand(Context);
 
+            // Add common options
+            var noGuiOption = new Option<bool>("--no-ui", "Do not use graphical user interface prompts");
+            rootCommand.AddGlobalOption(noGuiOption);
+
+            void NoGuiOptionHandler(InvocationContext context)
+            {
+                if (context.ParseResult.HasOption(noGuiOption))
+                {
+                    Context.Settings.IsGuiPromptsEnabled = false;
+                }
+            }
+
             // Add standard commands
             rootCommand.AddCommand(new GetCommand(Context, _providerRegistry));
             rootCommand.AddCommand(new StoreCommand(Context, _providerRegistry));
@@ -103,6 +114,7 @@ namespace GitCredentialManager
             var parser = new CommandLineBuilder(rootCommand)
                 .UseDefaults()
                 .UseExceptionHandler(OnException)
+                .AddMiddleware(NoGuiOptionHandler)
                 .Build();
 
             return await parser.InvokeAsync(args);
