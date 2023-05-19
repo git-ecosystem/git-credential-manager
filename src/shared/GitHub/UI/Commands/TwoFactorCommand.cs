@@ -1,7 +1,5 @@
-using System;
 using System.Collections.Generic;
 using System.CommandLine;
-using System.CommandLine.Invocation;
 using System.Threading;
 using System.Threading.Tasks;
 using GitHub.UI.ViewModels;
@@ -15,11 +13,10 @@ namespace GitHub.UI.Commands
         protected TwoFactorCommand(ICommandContext context)
             : base(context, "2fa", "Show two-factor prompt.")
         {
-            AddOption(
-                new Option("--sms", "Two-factor code was sent via SMS.")
-            );
+            var sms = new Option<bool>("--sms", "Two-factor code was sent via SMS.");
+            AddOption(sms);
 
-            Handler = CommandHandler.Create<bool>(ExecuteAsync);
+            this.SetHandler(ExecuteAsync, sms);
         }
 
         private async Task<int> ExecuteAsync(bool sms)

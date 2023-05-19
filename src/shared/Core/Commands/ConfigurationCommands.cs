@@ -1,5 +1,4 @@
 using System.CommandLine;
-using System.CommandLine.Invocation;
 using System.Threading.Tasks;
 
 namespace GitCredentialManager.Commands
@@ -15,9 +14,10 @@ namespace GitCredentialManager.Commands
             Context = context;
             ConfigurationService = configurationService;
 
-            AddOption(new Option<bool>("--system", "Modify the system-wide Git configuration instead of the current user"));
+            var system = new Option<bool>("--system", "Modify the system-wide Git configuration instead of the current user");
+            AddOption(system);
 
-            Handler = CommandHandler.Create<bool>(ExecuteAsync);
+            this.SetHandler(ExecuteAsync, system);
         }
 
         protected ICommandContext Context { get; }

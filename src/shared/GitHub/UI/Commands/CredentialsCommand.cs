@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.CommandLine;
-using System.CommandLine.Invocation;
 using System.Threading;
 using System.Threading.Tasks;
 using GitHub.UI.ViewModels;
@@ -15,66 +14,49 @@ namespace GitHub.UI.Commands
         protected CredentialsCommand(ICommandContext context)
             : base(context, "prompt", "Show authentication prompt.")
         {
-            AddOption(
-                new Option<string>("--enterprise-url", "GitHub Enterprise URL.")
-            );
+            var url = new Option<string>("--enterprise-url", "GitHub Enterprise URL.");
+            AddOption(url);
 
-            AddOption(
-                new Option<string>("--username", "Username or email.")
-            );
+            var userName = new Option<string>("--username", "Username or email.");
+            AddOption(userName);
 
-            AddOption(
-                new Option("--basic", "Enable username/password (basic) authentication.")
-            );
+            var basic = new Option<bool>("--basic", "Enable username/password (basic) authentication.");
+            AddOption(basic);
 
-            AddOption(
-                new Option("--browser", "Enable browser-based OAuth authentication.")
-            );
+            var browser = new Option<bool>("--browser", "Enable browser-based OAuth authentication.");
+            AddOption(browser);
 
-            AddOption(
-                new Option("--device", "Enable device code OAuth authentication.")
-            );
+            var device = new Option<bool>("--device", "Enable device code OAuth authentication.");
+            AddOption(device);
 
-            AddOption(
-                new Option("--pat", "Enable personal access token authentication.")
-            );
+            var pat = new Option<bool>("--pat", "Enable personal access token authentication.");
+            AddOption(pat);
 
-            AddOption(
-                new Option("--all", "Enable all available authentication options.")
-            );
+            var all = new Option<bool>("--all", "Enable all available authentication options.");
+            AddOption(all);
 
-            Handler = CommandHandler.Create<CommandOptions>(ExecuteAsync);
+            this.SetHandler(ExecuteAsync, url, userName, basic, browser, device, pat, all);
         }
 
-        private class CommandOptions
-        {
-            public string UserName { get; set; }
-            public string EnterpriseUrl { get; set; }
-            public bool Basic { get; set; }
-            public bool Browser { get; set; }
-            public bool Device { get; set; }
-            public bool Pat { get; set; }
-            public bool All { get; set; }
-        }
-
-        private async Task<int> ExecuteAsync(CommandOptions options)
+        private async Task<int> ExecuteAsync(string userName, string enterpriseUrl,
+            bool basic, bool browser, bool device, bool pat, bool all)
         {
             var viewModel = new CredentialsViewModel(Context.Environment, Context.ProcessManager)
             {
-                ShowBrowserLogin = options.All || options.Browser,
-                ShowDeviceLogin  = options.All || options.Device,
-                ShowTokenLogin   = options.All || options.Pat,
-                ShowBasicLogin   = options.All || options.Basic,
+                ShowBrowserLogin = all || browser,
+                ShowDeviceLogin  = all || device,
+                ShowTokenLogin   = all || pat,
+                ShowBasicLogin   = all || basic,
             };
 
-            if (!GitHubHostProvider.IsGitHubDotCom(options.EnterpriseUrl))
+            if (!GitHubHostProvider.IsGitHubDotCom(enterpriseUrl))
             {
-                viewModel.EnterpriseUrl = options.EnterpriseUrl;
+                viewModel.EnterpriseUrl = enterpriseUrl;
             }
 
-            if (!string.IsNullOrWhiteSpace(options.UserName))
+            if (!string.IsNullOrWhiteSpace(userName))
             {
-                viewModel.UserName = options.UserName;
+                viewModel.UserName = userName;
             }
 
             await ShowAsync(viewModel, CancellationToken.None);

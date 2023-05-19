@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.CommandLine;
-using System.CommandLine.Invocation;
 using System.Threading;
 using System.Threading.Tasks;
 using GitCredentialManager.Authentication;
@@ -14,54 +13,40 @@ namespace GitCredentialManager.UI.Commands
         protected OAuthCommand(ICommandContext context)
             : base(context, "oauth", "Show OAuth authentication prompt.")
         {
-            AddOption(
-                new Option<string>("--title", "Window title (optional).")
-            );
+            var title = new Option<string>("--title", "Window title (optional).");
+            AddOption(title);
 
-            AddOption(
-                new Option<string>("--resource", "Resource name or URL (optional).")
-            );
+            var resource = new Option<string>("--resource", "Resource name or URL (optional).");
+            AddOption(resource);
 
-            AddOption(
-                new Option("--browser", "Show browser authentication option.")
-            );
+            var browser = new Option<bool>("--browser", "Show browser authentication option.");
+            AddOption(browser);
 
-            AddOption(
-                new Option("--device-code", "Show device code authentication option.")
-            );
+            var deviceCode = new Option<bool>("--device-code", "Show device code authentication option.");
+            AddOption(deviceCode);
 
-            AddOption(
-                new Option("--no-logo", "Hide the Git Credential Manager logo and logotype.")
-            );
+            var noLogo = new Option<bool>("--no-logo", "Hide the Git Credential Manager logo and logotype.");
+            AddOption(noLogo);
 
-            Handler = CommandHandler.Create<CommandOptions>(ExecuteAsync);
+            this.SetHandler(ExecuteAsync, title, resource, browser, deviceCode, noLogo);
         }
 
-        private class CommandOptions
-        {
-            public string Title { get; set; }
-            public string Resource { get; set; }
-            public bool Browser { get; set; }
-            public bool DeviceCode { get; set; }
-            public bool NoLogo { get; set; }
-        }
-
-        private async Task<int> ExecuteAsync(CommandOptions options)
+        private async Task<int> ExecuteAsync(string title, string resource, bool browser, bool deviceCode, bool noLogo)
         {
             var viewModel = new OAuthViewModel();
 
-            if (!string.IsNullOrWhiteSpace(options.Title))
+            if (!string.IsNullOrWhiteSpace(title))
             {
-                viewModel.Title = options.Title;
+                viewModel.Title = title;
             }
 
-            viewModel.Description = !string.IsNullOrWhiteSpace(options.Resource)
-                ? $"Sign in to '{options.Resource}'"
+            viewModel.Description = !string.IsNullOrWhiteSpace(resource)
+                ? $"Sign in to '{resource}'"
                 : "Select a sign-in option";
 
-            viewModel.ShowBrowserLogin = options.Browser;
-            viewModel.ShowDeviceCodeLogin = options.DeviceCode;
-            viewModel.ShowProductHeader = !options.NoLogo;
+            viewModel.ShowBrowserLogin = browser;
+            viewModel.ShowDeviceCodeLogin = deviceCode;
+            viewModel.ShowProductHeader = !noLogo;
 
             await ShowAsync(viewModel, CancellationToken.None);
 
