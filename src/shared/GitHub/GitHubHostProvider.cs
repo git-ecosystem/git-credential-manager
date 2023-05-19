@@ -126,18 +126,53 @@ namespace GitHub
 
         public async Task<ICredential> GetCredentialAsync(InputArguments input)
         {
-            // Try and locate an existing credential in the OS credential store
             string service = GetServiceName(input);
-            _context.Trace.WriteLine($"Looking for existing credential in store with service={service} account={input.UserName}...");
+            Uri remoteUri = input.GetRemoteUri();
 
-            ICredential credential = _context.CredentialStore.Get(service, input.UserName);
+            // If we have a specific username then we can try and find an existing credential for that account.
+            // If not, we should check what accounts are available in the store and prompt the user if there
+            // are multiple options.
+            string userName = null;
+            bool addAccount = false;
+            if (string.IsNullOrWhiteSpace(input.UserName))
+            {
+                IList<string> accounts = _context.CredentialStore.GetAccounts(service);
+                _context.Trace.WriteLine($"Found {accounts.Count} accounts in the store for service={service}.");
+
+                switch (accounts.Count)
+                {
+                    case 1:
+                        userName = accounts[0];
+                        break;
+
+                    case > 1:
+                        userName = await _gitHubAuth.SelectAccountAsync(remoteUri, accounts);
+                        addAccount = userName is null;
+                        break;
+                }
+            }
+
+            // Always try and locate an existing credential in the OS credential store
+            // unless we're being told to explicitly add a new account. If the account lookup
+            // failed above we should still try to lookup an existing credential.
+            ICredential credential = null;
+            if (addAccount)
+            {
+                _context.Trace.WriteLine("Adding a new account!");
+            }
+            else
+            {
+                _context.Trace.WriteLine($"Looking for existing credential in store with service={service} account={userName}...");
+                credential = _context.CredentialStore.Get(service, userName);
+            }
+
             if (credential == null)
             {
                 _context.Trace.WriteLine("No existing credentials found.");
 
                 // No existing credential was found, create a new one
                 _context.Trace.WriteLine("Creating new credential...");
-                credential = await GenerateCredentialAsync(input.GetRemoteUri(), input.UserName);
+                credential = await GenerateCredentialAsync(remoteUri, input.UserName);
                 _context.Trace.WriteLine("Credential created.");
             }
             else
