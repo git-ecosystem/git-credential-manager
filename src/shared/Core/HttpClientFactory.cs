@@ -197,32 +197,25 @@ namespace GitCredentialManager
 #endif
             }
 
-            _trace.WriteLine($"Custom cookie file has been enabled with {_settings.CustomCookieFilePath}");
             // If IsUsingCookieEnabled is enabled, set Cookie header from cookie file, which is written by libcurl
-            if (!string.IsNullOrWhiteSpace(_settings.CustomCookieFilePath))
+            if (!string.IsNullOrWhiteSpace(_settings.CustomCookieFilePath) && _fileSystem.FileExists(_settings.CustomCookieFilePath))
             {
                 // get the filename from gitconfig
                 string cookieFilePath = _settings.CustomCookieFilePath;
                 _trace.WriteLine($"Custom cookie file has been enabled with {cookieFilePath}");
-                
-                // Throw exception if cookie file not found
-                if (!_fileSystem.FileExists(cookieFilePath) || string.IsNullOrEmpty(_fileSystem.ReadAllText(cookieFilePath)))
-                {
-                    var format = "Custom cookie file not found at path: {0}";
-                    var message = string.Format(format, cookieFilePath);
-                    throw new Trace2FileNotFoundException(_trace2, message, format, cookieFilePath);
-                }
 
                 // get cookie from cookie file
+                string cookieFileContents = _fileSystem.ReadAllText(cookieFilePath);
+
                 var cookieParser = new CurlCookieParser(_trace);
-                var cookies = cookieParser.Parse(_fileSystem.ReadAllText(cookieFilePath));
+                var cookies = cookieParser.Parse(cookieFileContents);
 
                 // Set the cookie
                 var cookieContainer = new CookieContainer();
                 foreach (var cookie in cookies)
                 {
                     var schema = cookie.Secure ? "https" : "http";
-                    var uri = new UriBuilder(schema, cookie.Domain).Uri;
+                    var uri = new UriBuilder(schema, cookie.Domain.TrimStart('.')).Uri;
                     cookieContainer.Add(uri, new Cookie(cookie.Name, cookie.Value));
                 }
                 handler.CookieContainer = cookieContainer;
@@ -347,35 +340,48 @@ namespace GitCredentialManager
 
             public IList<Cookie> Parse(string content)
             {
+                if (string.IsNullOrWhiteSpace(content))
+                {
+                    return Array.Empty<Cookie>();
+                }
+
+                const string HttpOnlyPrefix = "#HttpOnly_";
+
                 var cookies = new List<Cookie>();
 
                 // Parse the cookie file content
                 var lines = content.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-                for (int i = 3; i < lines.Length; i++)
+                foreach (var line in lines)
                 {
-                    var parts = lines[i].Split(new[] { '\t' }, StringSplitOptions.RemoveEmptyEntries);
-                    if (parts.Length >= 7)
+                    var parts = line.Split(new[] { '\t' }, StringSplitOptions.None);
+                    if (parts.Length >= 7 && (!parts[0].StartsWith("#") || parts[0].StartsWith(HttpOnlyPrefix)))
                     {
-                        var domain = parts[0];
-                        domain = domain.StartsWith("#HttpOnly_") ? parts[0].Substring("#HttpOnly_".Length) : parts[0];
-                        domain = domain.TrimStart('.');
+                        var domain = parts[0].StartsWith(HttpOnlyPrefix) ? parts[0].Substring(HttpOnlyPrefix.Length) : parts[0];
                         var includeSubdomains = parts[1] == "TRUE";
-                        var path = parts[2];
-                        var secureOnly = parts[3] == "TRUE";
-                        var expires = parts[4];
+                        if (!includeSubdomains)
+                        {
+                            domain = domain.TrimStart('.');
+                        }
+                        var path = parts[2] == "" ? "/" : parts[2];
+                        var secureOnly = parts[3].Equals("TRUE", StringComparison.OrdinalIgnoreCase);
+                        var expires = ParseExpires(parts[4]);
                         var name = parts[5];
                         var value = parts[6];
 
-                        cookies.Add(new Cookie(name, value, path, domain)
+                        cookies.Add(new Cookie()
                         {
-                            Expires = ParseExpires(expires),
+                            Domain = domain,
+                            Path = path,
+                            Expires = expires,
+                            HttpOnly = true,
                             Secure = secureOnly,
-                            HttpOnly = true
+                            Name = name,
+                            Value = value,
                         });
                     }
                     else
                     {
-                        _trace.WriteLine($"Invalid cookie line: {lines[i]}");
+                        _trace.WriteLine($"Invalid cookie line: {line}");
                     }
                 }
 
@@ -384,18 +390,18 @@ namespace GitCredentialManager
 
             private static DateTime ParseExpires(string expires)
             {
-                if (expires.Equals("0", StringComparison.OrdinalIgnoreCase))
+    #if NETFRAMEWORK
+                DateTime epoch = new DateTime(1970, 01, 01, 0, 0, 0, DateTimeKind.Utc);
+    #else
+                DateTime epoch = DateTime.UnixEpoch;
+    #endif
+
+                if (long.TryParse(expires, out long i))
                 {
-                    return DateTime.MinValue;
+                    return epoch.AddSeconds(i);
                 }
-                else if (DateTime.TryParse(expires, out var result))
-                {
-                    return result;
-                }
-                else
-                {
-                    return DateTime.MaxValue;
-                }
+
+                return epoch;
             }
         }
     }
