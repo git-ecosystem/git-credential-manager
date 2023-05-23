@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.CommandLine;
+using System.Linq;
 using System.Threading.Tasks;
 using GitCredentialManager;
 using GitCredentialManager.Commands;
@@ -31,10 +32,12 @@ public partial class GitHubHostProvider : ICommandProvider
         var deviceOpt = new Option<bool>("--device", "Use device flow to authenticate");
         var browserOpt = new Option<bool>(new[]{"--web", "--browser"}, "Use a web browser to authenticate");
         var tokenOpt = new Option<string>(new[] {"--pat", "--token"}, "Use personal access token to authenticate");
+        var forceOpt = new Option<bool>("--force", "Force re-authentication even if a credential already exists for the account");
         loginCmd.AddOption(urlOpt);
         loginCmd.AddOption(userNameOpt);
         loginCmd.AddOptionSet(OptionArity.ZeroOrOne, deviceOpt, browserOpt, tokenOpt);
-        loginCmd.SetHandler(AddAccountAsync, urlOpt, userNameOpt, deviceOpt, browserOpt, tokenOpt);
+        loginCmd.AddOption(forceOpt);
+        loginCmd.SetHandler(AddAccountAsync, urlOpt, userNameOpt, deviceOpt, browserOpt, tokenOpt, forceOpt);
 
         //
         // logout <account> [--url <url>]
@@ -69,7 +72,7 @@ public partial class GitHubHostProvider : ICommandProvider
         }
     }
 
-    private async Task<int> AddAccountAsync(Uri url, string userName, bool device, bool browser, string token)
+    private async Task<int> AddAccountAsync(Uri url, string userName, bool device, bool browser, string token, bool force)
     {
         // Default to GitHub.com
         url ??= new Uri($"https://{GitHubConstants.GitHubBaseUrlHost}");
@@ -78,6 +81,21 @@ public partial class GitHubHostProvider : ICommandProvider
         userName ??= url.GetUserName();
 
         string service = GetServiceName(url);
+
+        // If we've already got a credential for this account then we can skip the login flow
+        // (so long as the user isn't explicitly forcing a re-authentication).
+        if (!string.IsNullOrWhiteSpace(userName) && !force)
+        {
+            IList<string> existingAccounts = _context.CredentialStore.GetAccounts(service);
+            if (existingAccounts.Any(x => StringComparer.OrdinalIgnoreCase.Equals(x, userName)))
+            {
+                string prettyUrl = url.AbsoluteUri.TrimEnd('/');
+                _context.Streams.Out.WriteLine(
+                    $"Account '{userName}' already has credentials for {prettyUrl}; use --force to re-authenticate"
+                );
+                return 0;
+            }
+        }
 
         ICredential credential;
         if (token is not null)
