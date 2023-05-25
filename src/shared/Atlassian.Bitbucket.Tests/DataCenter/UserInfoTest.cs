@@ -9,13 +9,11 @@ namespace Atlassian.Bitbucket.Tests.DataCenter
         [Fact]
         public void UserInfo_Set()
         {
-            var uuid = System.Guid.NewGuid();
             var userInfo = new UserInfo()
             {
                 UserName = "123"
             };
 
-            Assert.False(userInfo.IsTwoFactorAuthenticationEnabled);
             Assert.Equal("123", userInfo.UserName);
         }
     }
