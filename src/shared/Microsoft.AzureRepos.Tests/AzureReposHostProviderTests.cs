@@ -643,6 +643,42 @@ namespace Microsoft.AzureRepos.Tests
             Assert.False(context.Git.Configuration.Global.TryGetValue(AzDevUseHttpPathKey, out _));
         }
 
+        [Theory]
+        [InlineData(false, null, "")]
+        [InlineData(false, null, "   ")]
+        [InlineData(false, null, null)]
+        [InlineData(false, null, "Basic realm=\"test\"")]
+        [InlineData(false, null, "Basic realm=\"https://tfsprodwcus0.app.visualstudio.com/\"")]
+        [InlineData(false, null, "TFS-Federated")]
+        [InlineData(true, "https://login.microsoftonline.com/79c4d065-d599-442e-b0ea-c4ab36ad63c3",
+            "Bearer authorization_uri=https://login.microsoftonline.com/79c4d065-d599-442e-b0ea-c4ab36ad63c3")]
+        [InlineData(true, "https://login.microsoftonline.com/79c4d065-d599-442e-b0ea-c4ab36ad63c3",
+            "bEArEr auThORizAtIoN_uRi=https://login.microsoftonline.com/79c4d065-d599-442e-b0ea-c4ab36ad63c3")]
+        [InlineData(true, "https://login.microsoftonline.com/79c4d065-d599-442e-b0ea-c4ab36ad63c3",
+            "\"Bearer authorization_uri=https://login.microsoftonline.com/79c4d065-d599-442e-b0ea-c4ab36ad63c3\"")]
+        [InlineData(true, "https://login.microsoftonline.com/79c4d065-d599-442e-b0ea-c4ab36ad63c3",
+            "'Bearer authorization_uri=https://login.microsoftonline.com/79c4d065-d599-442e-b0ea-c4ab36ad63c3'")]
+        [InlineData(true, "https://login.microsoftonline.com/tenant1",
+            "Bearer authorization_uri=https://login.microsoftonline.com/tenant1",
+            "Bearer authorization_uri=https://login.microsoftonline.com/tenant2",
+            "Bearer authorization_uri=https://login.microsoftonline.com/tenant3")]
+        [InlineData(true, "https://login.microsoftonline.com/79c4d065-d599-442e-b0ea-c4ab36ad63c3",
+            "Bearer authorization_uri=https://login.microsoftonline.com/79c4d065-d599-442e-b0ea-c4ab36ad63c3",
+            "Basic realm=\"https://tfsprodwcus0.app.visualstudio.com/\"",
+            "TFS-Federated")]
+        [InlineData(true, "https://login.microsoftonline.com/79c4d065-d599-442e-b0ea-c4ab36ad63c3",
+            "TFS-Federated",
+            "Basic realm=\"https://tfsprodwcus0.app.visualstudio.com/\"",
+            "Bearer authorization_uri=https://login.microsoftonline.com/79c4d065-d599-442e-b0ea-c4ab36ad63c3")]
+        public void AzureReposHostProvider_TryGetAuthorityFromHeaders(
+            bool expectedResult, string expectedAuthority, params string[] headers)
+        {
+            bool actualResult = AzureReposHostProvider.TryGetAuthorityFromHeaders(headers, out string actualAuthority);
+
+            Assert.Equal(expectedResult, actualResult);
+            Assert.Equal(expectedAuthority, actualAuthority);
+        }
+
         private static IMicrosoftAuthenticationResult CreateAuthResult(string upn, string token)
         {
             return new MockMsAuthResult
