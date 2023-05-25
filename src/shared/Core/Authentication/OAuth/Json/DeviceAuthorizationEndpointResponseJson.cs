@@ -1,23 +1,26 @@
 using System;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace GitCredentialManager.Authentication.OAuth.Json
 {
     public class DeviceAuthorizationEndpointResponseJson
     {
-        [JsonProperty("device_code", Required = Required.Always)]
+        [JsonRequired]
+        [JsonPropertyName("device_code")]
         public string DeviceCode { get; set; }
 
-        [JsonProperty("user_code", Required = Required.Always)]
+        [JsonRequired]
+        [JsonPropertyName("user_code")]
         public string UserCode { get; set; }
 
-        [JsonProperty("verification_uri", Required = Required.Always)]
+        [JsonRequired]
+        [JsonPropertyName("verification_uri")]
         public Uri VerificationUri { get; set; }
 
-        [JsonProperty("expires_in")]
+        [JsonPropertyName("expires_in")]
         public long ExpiresIn { get; set; }
 
-        [JsonProperty("interval")]
+        [JsonPropertyName("interval")]
         public long PollingInterval { get; set; }
 
         public OAuth2DeviceCodeResult ToResult()
