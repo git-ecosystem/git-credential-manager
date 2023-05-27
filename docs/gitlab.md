@@ -84,14 +84,14 @@ they affect you:
 
 1. No support for OAuth device authorization (necessary for machines without web
 browser): [GitLab issue 332682][gitlab-issue-332682]
-1. Only domains with prefix `gitlab.` are recognised as GitLab remotes:
-[GitLab issue 349464][gitlab-issue-349464]
+1. Preconfigure Git Credential Manager as instance-wide OAuth application:
+[GitLab issue 374172](gitlab-issue-374172)
 1. Username/password authentication is suggested even if disabled on server:
 [GitLab issue 349463][gitlab-issue-349463]
 
 [config-gitlab-auth-modes]: configuration.md#credential.gitLabAuthModes
 [gitlab]: https://gitlab.com
 [gitlab-issue-332682]: https://gitlab.com/gitlab-org/gitlab/-/issues/332682
-[gitlab-issue-349464]: https://gitlab.com/gitlab-org/gitlab/-/issues/349464
+[gitlab-issue-374172]: https://gitlab.com/gitlab-org/gitlab/-/issues/374172
 [gitlab-issue-349463]: https://gitlab.com/gitlab-org/gitlab/-/issues/349463
 [gitlab-oauth]: https://docs.gitlab.com/ee/integration/oauth_provider.html
