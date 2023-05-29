@@ -198,7 +198,7 @@ namespace GitCredentialManager
 #endif
             }
 
-            // If IsUsingCookieEnabled is enabled, set Cookie header from cookie file, which is written by libcurl
+            // If CustomCookieFilePath is set, set Cookie header from cookie file, which is written by libcurl
             if (!string.IsNullOrWhiteSpace(_settings.CustomCookieFilePath) && _fileSystem.FileExists(_settings.CustomCookieFilePath))
             {
                 // get the filename from gitconfig
