@@ -48,7 +48,8 @@
                      Margin="20,0,20,10"
                      MaxHeight="200"
                      Background="Transparent"
-                     AutoScrollToSelectedItem="True">
+                     AutoScrollToSelectedItem="True"
+                     DoubleTapped="ListBox_OnDoubleTapped">
                 <ListBox.ItemTemplate>
                     <DataTemplate DataType="vm:AccountViewModel">
                         <DockPanel LastChildFill="True">
