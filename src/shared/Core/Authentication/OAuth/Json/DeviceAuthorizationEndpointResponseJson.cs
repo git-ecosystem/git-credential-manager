@@ -15,18 +15,16 @@ namespace GitCredentialManager.Authentication.OAuth.Json
         public Uri VerificationUri { get; set; }
 
         [JsonProperty("expires_in")]
-        [JsonConverter(typeof(TimeSpanSecondsConverter))]
-        public TimeSpan? ExpiresIn { get; set; }
+        public long ExpiresIn { get; set; }
 
         [JsonProperty("interval")]
-        [JsonConverter(typeof(TimeSpanSecondsConverter))]
-        public TimeSpan? PollingInterval { get; set; }
+        public long PollingInterval { get; set; }
 
         public OAuth2DeviceCodeResult ToResult()
         {
-            return new OAuth2DeviceCodeResult(DeviceCode, UserCode, VerificationUri, PollingInterval)
+            return new OAuth2DeviceCodeResult(DeviceCode, UserCode, VerificationUri, TimeSpan.FromSeconds(PollingInterval))
             {
-                ExpiresIn = ExpiresIn
+                ExpiresIn = TimeSpan.FromSeconds(ExpiresIn)
             };
         }
     }

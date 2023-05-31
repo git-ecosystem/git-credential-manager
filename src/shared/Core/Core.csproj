@@ -14,7 +14,7 @@
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Web" />
     <PackageReference Include="Microsoft.Identity.Client.Broker" Version="4.54.0" />
-    <PackageReference Include="Avalonia.Win32" Version="11.0.0-preview6"/>
+    <PackageReference Include="Avalonia.Win32" Version="11.0.0-preview6" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' != 'net472'">
