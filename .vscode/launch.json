@@ -10,7 +10,7 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/out/shared/Git-Credential-Manager/bin/Debug/net6.0/git-credential-manager.dll",
+            "program": "${workspaceFolder}/out/shared/Git-Credential-Manager/bin/Debug/net7.0/git-credential-manager.dll",
             "args": ["get"],
             "cwd": "${workspaceFolder}/out/shared/Git-Credential-Manager",
             "console": "integratedTerminal",
@@ -22,7 +22,7 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/out/shared/Git-Credential-Manager/bin/Debug/net6.0/git-credential-manager.dll",
+            "program": "${workspaceFolder}/out/shared/Git-Credential-Manager/bin/Debug/net7.0/git-credential-manager.dll",
             "args": ["store"],
             "cwd": "${workspaceFolder}/out/shared/Git-Credential-Manager",
             "console": "integratedTerminal",

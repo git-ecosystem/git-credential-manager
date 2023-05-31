@@ -12,7 +12,7 @@
         </packageTypes>
   </metadata>
   <files>
-    <file src="$publishdir$payload/" target="tools/net6.0/any" />
+    <file src="$publishdir$payload/" target="tools/net7.0/any" />
     <file src="$publishdir$images/icon.png" target="images" />
   </files>
 </package>
