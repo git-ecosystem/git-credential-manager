@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using static GitCredentialManager.Interop.Linux.Native.Gobject;
@@ -35,7 +37,17 @@ namespace GitCredentialManager.Interop.Linux
 
         #region ICredentialStore
 
-        public unsafe ICredential Get(string service, string account)
+        public IList<string> GetAccounts(string service)
+        {
+            return Enumerate(service, null).Select(x => x.Account).ToList();
+        }
+
+        public ICredential Get(string service, string account)
+        {
+            return Enumerate(service, account).FirstOrDefault();
+        }
+
+        private unsafe IEnumerable<ICredential> Enumerate(string service, string account)
         {
             GHashTable* queryAttrs = null;
             GList* results = null;
@@ -49,7 +61,7 @@ namespace GitCredentialManager.Interop.Linux
 
                 SecretSchema schema = GetSchema();
 
-                // Execute search query and return the first result
+                // Execute search query and return all results
                 results = secret_service_search_sync(
                     secService,
                     ref schema,
@@ -65,9 +77,12 @@ namespace GitCredentialManager.Interop.Linux
                     throw new InteropException("Failed to search for credentials", code, new Exception(message));
                 }
 
-                if (results != null && results->data != IntPtr.Zero)
+                var credentials = new List<ICredential>();
+
+                GList* itemPtr = results;
+                while (itemPtr != null && itemPtr->data != IntPtr.Zero)
                 {
-                    SecretItem* item = (SecretItem*) results->data;
+                    SecretItem* item = (SecretItem*) itemPtr->data;
 
                     // Although we've unlocked the collection during the search call,
                     // an item can also be individually locked within a collection.
@@ -95,10 +110,12 @@ namespace GitCredentialManager.Interop.Linux
                         }
                     }
 
-                    return CreateCredentialFromItem(item);
+                    credentials.Add(CreateCredentialFromItem(item));
+
+                    itemPtr = (GList*)itemPtr->next;
                 }
 
-                return null;
+                return credentials;
             }
             finally
             {

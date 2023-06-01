@@ -21,13 +21,13 @@ namespace GitCredentialManager.Authentication
         }
 
         protected Task<IDictionary<string, string>> InvokeHelperAsync(string path, string args,
-            IDictionary<string, string> standardInput = null)
+            StreamReader standardInput = null)
         {
-            return InvokeHelperAsync(path, args, null, CancellationToken.None);
+            return InvokeHelperAsync(path, args, standardInput, CancellationToken.None);
         }
 
         protected internal virtual async Task<IDictionary<string, string>> InvokeHelperAsync(string path, string args,
-            IDictionary<string, string> standardInput, CancellationToken ct)
+            StreamReader standardInput, CancellationToken ct)
         {
             var procStartInfo = new ProcessStartInfo(path)
             {
@@ -56,9 +56,15 @@ namespace GitCredentialManager.Authentication
             // Kill the process upon a cancellation request
             ct.Register(() => process.Kill());
 
-            if (!(standardInput is null))
+            // Write the standard input to the process if we have any to write
+            if (standardInput is not null)
             {
-                await process.StandardInput.WriteDictionaryAsync(standardInput);
+#if NETFRAMEWORK
+                await standardInput.BaseStream.CopyToAsync(process.StandardInput.BaseStream);
+#else
+                await standardInput.BaseStream.CopyToAsync(process.StandardInput.BaseStream, ct);
+#endif
+                process.StandardInput.Close();
             }
 
             IDictionary<string, string> resultDict = await process.StandardOutput.ReadDictionaryAsync(StringComparer.OrdinalIgnoreCase);

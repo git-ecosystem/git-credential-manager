@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 
 namespace GitCredentialManager
 {
@@ -6,6 +7,13 @@ namespace GitCredentialManager
     /// </summary>
     public interface ICredentialStore
     {
+        /// <summary>
+        /// Get all accounts from the store for the given service.
+        /// </summary>
+        /// <param name="service">Name of the service to match against. Use null to match all values.</param>
+        /// <returns>All accounts that match the query.</returns>
+        IList<string> GetAccounts(string service);
+
         /// <summary>
         /// Get the first credential from the store that matches the given query.
         /// </summary>

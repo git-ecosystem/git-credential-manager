@@ -33,6 +33,7 @@ namespace GitHub.UI.Windows
                 app.RegisterCommand(new CredentialsCommandImpl(context));
                 app.RegisterCommand(new TwoFactorCommandImpl(context));
                 app.RegisterCommand(new DeviceCodeCommandImpl(context));
+                app.RegisterCommand(new SelectAccountCommandImpl(context));
 
                 int exitCode = app.RunAsync(args)
                     .ConfigureAwait(false)

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using GitCredentialManager.Interop.Linux;
@@ -23,6 +24,12 @@ namespace GitCredentialManager
         }
 
         #region ICredentialStore
+
+        public IList<string> GetAccounts(string service)
+        {
+            EnsureBackingStore();
+            return _backingStore.GetAccounts(service);
+        }
 
         public ICredential Get(string service, string account)
         {

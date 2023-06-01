@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using GitCredentialManager.Authentication;
 using GitCredentialManager.Tests.Objects;
@@ -101,7 +102,7 @@ namespace GitCredentialManager.Tests.Authentication
             auth.Setup(x => x.InvokeHelperAsync(
                     It.IsAny<string>(),
                     $"basic --resource {testResource}",
-                    It.IsAny<IDictionary<string, string>>(),
+                    It.IsAny<StreamReader>(),
                     It.IsAny<System.Threading.CancellationToken>()))
                 .ReturnsAsync(
                     new Dictionary<string, string>
@@ -147,7 +148,7 @@ namespace GitCredentialManager.Tests.Authentication
             auth.Setup(x => x.InvokeHelperAsync(
                     It.IsAny<string>(),
                     $"basic --resource {testResource} --username {testUserName}",
-                    It.IsAny<IDictionary<string, string>>(),
+                    It.IsAny<StreamReader>(),
                     It.IsAny<System.Threading.CancellationToken>()))
                 .ReturnsAsync(
                     new Dictionary<string, string>

@@ -16,6 +16,7 @@ namespace GitCredentialManager.Interop.MacOS.Native
         public static readonly IntPtr kSecReturnRef;
         public static readonly IntPtr kSecReturnPersistentRef;
         public static readonly IntPtr kSecClassGenericPassword;
+        public static readonly IntPtr kSecMatchLimitAll;
         public static readonly IntPtr kSecMatchLimitOne;
         public static readonly IntPtr kSecMatchItemList;
         public static readonly IntPtr kSecAttrLabel;
@@ -35,6 +36,7 @@ namespace GitCredentialManager.Interop.MacOS.Native
             kSecReturnRef            = GetGlobal(Handle, "kSecReturnRef");
             kSecReturnPersistentRef  = GetGlobal(Handle, "kSecReturnPersistentRef");
             kSecClassGenericPassword = GetGlobal(Handle, "kSecClassGenericPassword");
+            kSecMatchLimitAll        = GetGlobal(Handle, "kSecMatchLimitAll");
             kSecMatchLimitOne        = GetGlobal(Handle, "kSecMatchLimitOne");
             kSecMatchItemList        = GetGlobal(Handle, "kSecMatchItemList");
             kSecAttrLabel            = GetGlobal(Handle, "kSecAttrLabel");
