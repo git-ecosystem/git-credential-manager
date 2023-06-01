@@ -132,9 +132,9 @@ namespace GitHub
             // If we have a specific username then we can try and find an existing credential for that account.
             // If not, we should check what accounts are available in the store and prompt the user if there
             // are multiple options.
-            string userName = null;
+            string userName = input.UserName;
             bool addAccount = false;
-            if (string.IsNullOrWhiteSpace(input.UserName))
+            if (string.IsNullOrWhiteSpace(userName))
             {
                 IList<string> accounts = _context.CredentialStore.GetAccounts(service);
                 _context.Trace.WriteLine($"Found {accounts.Count} accounts in the store for service={service}.");
@@ -172,7 +172,7 @@ namespace GitHub
 
                 // No existing credential was found, create a new one
                 _context.Trace.WriteLine("Creating new credential...");
-                credential = await GenerateCredentialAsync(remoteUri, input.UserName);
+                credential = await GenerateCredentialAsync(remoteUri, userName);
                 _context.Trace.WriteLine("Credential created.");
             }
             else
