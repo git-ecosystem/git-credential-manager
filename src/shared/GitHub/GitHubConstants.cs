@@ -14,7 +14,7 @@ namespace GitHub
 
         // [SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification="OAuth2 public client application 'secrets' are required and permitted to be public")]
         public const string OAuthClientSecret = "18867509d956965542b521a529a79bb883344c90";
-        public static readonly Uri OAuthRedirectUri = new Uri("http://localhost/");
+        public static readonly Uri OAuthRedirectUri = new Uri("http://localhost/"); // Note that the trailing slash is important!
         public static readonly Uri OAuthAuthorizationEndpointRelativeUri = new Uri("/login/oauth/authorize", UriKind.Relative);
         public static readonly Uri OAuthTokenEndpointRelativeUri = new Uri("/login/oauth/access_token", UriKind.Relative);
         public static readonly Uri OAuthDeviceEndpointRelativeUri = new Uri("/login/device/code", UriKind.Relative);
