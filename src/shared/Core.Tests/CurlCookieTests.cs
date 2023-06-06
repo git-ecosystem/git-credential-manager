@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Net;
 using GitCredentialManager;
 using GitCredentialManager.Tests.Objects;
-using CurlCookie;
 using Xunit;
 
 namespace Core.Tests;
