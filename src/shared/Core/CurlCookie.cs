@@ -38,7 +38,7 @@ namespace GitCredentialManager
                     {
                         domain = domain.TrimStart('.');
                     }
-                    var path = parts[2] == "" ? "/" : parts[2];
+                    var path = string.IsNullOrWhiteSpace(parts[2]) ? "/" : parts[2];
                     var secureOnly = parts[3].Equals("TRUE", StringComparison.OrdinalIgnoreCase);
                     var expires = ParseExpires(parts[4]);
                     var name = parts[5];
