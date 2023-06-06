@@ -83,7 +83,7 @@ verify_existing_dotnet_installation() {
     sdks=$(dotnet --list-sdks | cut -c 1-3)
 
     # If we have a supported version installed, return.
-    supported_dotnet_versions="6.0"
+    supported_dotnet_versions="7.0"
     for v in $supported_dotnet_versions; do
         if [ $(echo $sdks | grep "$v") ]; then
             echo $sdks
@@ -150,7 +150,7 @@ case "$distribution" in
                 $sudo_cmd apt update
                 $sudo_cmd apt install apt-transport-https -y
                 $sudo_cmd apt update
-                $sudo_cmd apt install dotnet-sdk-6.0 dpkg-dev -y
+                $sudo_cmd apt install dotnet-sdk-7.0 dpkg-dev -y
             fi
         fi
     ;;
