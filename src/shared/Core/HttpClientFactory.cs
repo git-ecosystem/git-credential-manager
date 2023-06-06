@@ -197,6 +197,34 @@ namespace GitCredentialManager
 #endif
             }
 
+            // If CustomCookieFilePath is set, set Cookie header from cookie file, which is written by libcurl
+            if (!string.IsNullOrWhiteSpace(_settings.CustomCookieFilePath) && _fileSystem.FileExists(_settings.CustomCookieFilePath))
+            {
+                // get the filename from gitconfig
+                string cookieFilePath = _settings.CustomCookieFilePath;
+                _trace.WriteLine($"Custom cookie file has been enabled with {cookieFilePath}");
+
+                // get cookie from cookie file
+                string cookieFileContents = _fileSystem.ReadAllText(cookieFilePath);
+
+                var cookieParser = new CurlCookieParser(_trace);
+                var cookies = cookieParser.Parse(cookieFileContents);
+
+                // Set the cookie
+                var cookieContainer = new CookieContainer();
+                foreach (var cookie in cookies)
+                {
+                    var schema = cookie.Secure ? "https" : "http";
+                    var uri = new UriBuilder(schema, cookie.Domain.TrimStart('.')).Uri;
+                    cookieContainer.Add(uri, new Cookie(cookie.Name, cookie.Value));
+                }
+                handler.CookieContainer = cookieContainer;
+                handler.UseCookies = true;
+                
+                _trace.WriteLine("Configured to automatically send cookie header.");
+
+            }
+
             var client = new HttpClient(handler);
 
             // Add default headers

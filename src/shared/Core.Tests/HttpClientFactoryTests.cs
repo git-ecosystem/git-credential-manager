@@ -311,6 +311,36 @@ namespace GitCredentialManager.Tests
             fileSystemMock.Verify(fs => fs.FileExists(It.IsAny<string>()), expectBundleChecked ? Times.Once : Times.Never);
         }
 
+        [Theory]
+        [InlineData(null, false, null)]
+        [InlineData("~/.git-cookie", true, "# Netscape HTTP Cookie File\n" +
+                          "# https://curl.haxx.se/rfc/cookie_spec.html\n" +
+                          "# This is a generated file! Do not edit.\n" +
+                          "\n" +
+                          ".example.com\tTRUE\t/\tTRUE\t0\tcookie1\tvalue1\n" +
+                          ".example.com\tTRUE\t/\tTRUE\t0\tcookie2\tvalue2\n" +
+                          "#HttpOnly_.example.com\tTRUE\t/\tTRUE\t0\tcookie3\tvalue3\n")]
+        public void HttpClientFactory_GetClient_SetCookieOnlyIfEnabled(string cookieFilePath, bool expectCookieChecked, string cookieFileContent)
+        {
+            var fileSystemMock = new Mock<IFileSystem>();
+            fileSystemMock.Setup(fs => fs.FileExists(It.IsAny<string>())).Returns(true);
+            if (!string.IsNullOrWhiteSpace(cookieFileContent))
+            {
+                fileSystemMock.Setup(fs => fs.ReadAllText(cookieFilePath)).Returns(cookieFileContent);
+            }
+
+            var settings = new TestSettings()
+            {
+                CustomCookieFilePath = cookieFilePath
+            };
+
+            var factory = new HttpClientFactory(fileSystemMock.Object, Mock.Of<ITrace>(), Mock.Of<ITrace2>(), settings, new TestStandardStreams());
+
+            HttpClient client = factory.CreateClient();
+
+            fileSystemMock.Verify(fs => fs.FileExists(It.IsAny<string>()), expectCookieChecked ? Times.AtLeastOnce : Times.Never);
+        }
+
         private static void AssertDefaultCredentials(ICredentials credentials)
         {
             var netCred = (NetworkCredential) credentials;
