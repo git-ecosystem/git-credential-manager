@@ -220,6 +220,7 @@ namespace GitCredentialManager
                     cookieContainer.Add(uri, new Cookie(cookie.Name, cookie.Value));
                 }
                 handler.CookieContainer = cookieContainer;
+                handler.UseCookies = true;
                 
                 _trace.WriteLine("Configured to automatically send cookie header.");
 
