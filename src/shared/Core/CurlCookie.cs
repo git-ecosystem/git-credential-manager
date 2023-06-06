@@ -33,7 +33,7 @@ namespace GitCredentialManager
                 if (parts.Length >= 7 && (!parts[0].StartsWith("#") || parts[0].StartsWith(HttpOnlyPrefix)))
                 {
                     var domain = parts[0].StartsWith(HttpOnlyPrefix) ? parts[0].Substring(HttpOnlyPrefix.Length) : parts[0];
-                    var includeSubdomains = parts[1] == "TRUE";
+                    var includeSubdomains = StringComparer.OrdinalIgnoreCase.Equals(parts[1], "TRUE");
                     if (!includeSubdomains)
                     {
                         domain = domain.TrimStart('.');
