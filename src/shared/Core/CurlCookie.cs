@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using GitCredentialManager;
 
-namespace CurlCookie
+namespace GitCredentialManager
 {
     public class CurlCookieParser
     {
