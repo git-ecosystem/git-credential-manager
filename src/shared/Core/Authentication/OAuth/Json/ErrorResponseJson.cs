@@ -1,18 +1,20 @@
 using System;
 using System.Text;
-using Newtonsoft.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace GitCredentialManager.Authentication.OAuth.Json
 {
     public class ErrorResponseJson
     {
-        [JsonProperty("error", Required = Required.Always)]
+        [JsonRequired]
+        [JsonPropertyName("error")]
         public string Error { get; set; }
 
-        [JsonProperty("error_description")]
+        [JsonPropertyName("error_description")]
         public string Description { get; set; }
 
-        [JsonProperty("error_uri")]
+        [JsonPropertyName("error_uri")]
         public Uri Uri { get; set; }
 
         public OAuth2Exception ToException(Exception innerException = null)

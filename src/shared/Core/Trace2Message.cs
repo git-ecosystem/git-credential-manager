@@ -1,9 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-using Newtonsoft.Json.Serialization;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace GitCredentialManager;
 
@@ -13,28 +12,38 @@ public abstract class Trace2Message
     private const string NormalPerfTimeFormat = "HH:mm:ss.ffffff";
 
     protected const string EmptyPerformanceSpan =  "|     |           |           |             ";
-    protected const string TimeFormat = "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'ffffff'Z'";
+    protected static readonly JsonSerializerOptions JsonSerializerOptions = new()
+    {
+        PropertyNameCaseInsensitive = true,
+        Converters = { new JsonStringEnumConverter(new SnakeCaseNamingPolicy()) }
+    };
 
-    [JsonProperty("event")]
+    [JsonPropertyName("event")]
+    [JsonPropertyOrder(1)]
     public Trace2Event Event { get; set; }
 
-    [JsonProperty("sid")]
+    [JsonPropertyName("sid")]
+    [JsonPropertyOrder(2)]
     public string Sid { get; set; }
 
-    [JsonProperty("thread")]
+    [JsonPropertyName("thread")]
+    [JsonPropertyOrder(3)]
     public string Thread { get; set; }
 
-    [JsonProperty("time")]
+    [JsonPropertyName("time")]
+    [JsonPropertyOrder(4)]
     public DateTimeOffset Time { get; set; }
 
-    [JsonProperty("file")]
-
+    [JsonPropertyName("file")]
+    [JsonPropertyOrder(5)]
     public string File { get; set; }
 
-    [JsonProperty("line")]
+    [JsonPropertyName("line")]
+    [JsonPropertyOrder(6)]
     public int Line { get; set; }
 
-    [JsonProperty("depth")]
+    [JsonPropertyName("depth")]
+    [JsonPropertyOrder(7)]
     public int Depth { get; set; }
 
     public abstract string ToJson();
@@ -175,20 +184,17 @@ public abstract class Trace2Message
 
 public class VersionMessage : Trace2Message
 {
-    [JsonProperty("evt")]
+    [JsonPropertyName("evt")]
+    [JsonPropertyOrder(8)]
     public string Evt { get; set; }
 
-    [JsonProperty("exe")]
+    [JsonPropertyName("exe")]
+    [JsonPropertyOrder(9)]
     public string Exe { get; set; }
 
     public override string ToJson()
     {
-        return JsonConvert.SerializeObject(this,
-                new StringEnumConverter(typeof(SnakeCaseNamingStrategy)),
-            new IsoDateTimeConverter()
-            {
-                DateTimeFormat = TimeFormat
-            });
+        return JsonSerializer.Serialize(this, JsonSerializerOptions);
     }
 
     public override string ToNormalString()
@@ -214,20 +220,17 @@ public class VersionMessage : Trace2Message
 
 public class StartMessage : Trace2Message
 {
-    [JsonProperty("t_abs")]
+    [JsonPropertyName("t_abs")]
+    [JsonPropertyOrder(8)]
     public double ElapsedTime { get; set; }
 
-    [JsonProperty("argv")]
+    [JsonPropertyName("argv")]
+    [JsonPropertyOrder(9)]
     public List<string> Argv { get; set; }
 
     public override string ToJson()
     {
-        return JsonConvert.SerializeObject(this,
-            new StringEnumConverter(typeof(SnakeCaseNamingStrategy)),
-            new IsoDateTimeConverter()
-            {
-                DateTimeFormat = TimeFormat
-            });
+        return JsonSerializer.Serialize(this, JsonSerializerOptions);
     }
 
     public override string ToNormalString()
@@ -253,20 +256,17 @@ public class StartMessage : Trace2Message
 
 public class ExitMessage : Trace2Message
 {
-    [JsonProperty("t_abs")]
+    [JsonPropertyName("t_abs")]
+    [JsonPropertyOrder(8)]
     public double ElapsedTime { get; set; }
 
-    [JsonProperty("code")]
+    [JsonPropertyName("code")]
+    [JsonPropertyOrder(9)]
     public int Code { get; set; }
 
     public override string ToJson()
     {
-        return JsonConvert.SerializeObject(this,
-            new StringEnumConverter(typeof(SnakeCaseNamingStrategy)),
-            new IsoDateTimeConverter()
-            {
-                DateTimeFormat = TimeFormat
-            });
+        return JsonSerializer.Serialize(this, JsonSerializerOptions);
     }
 
     public override string ToNormalString()
@@ -292,28 +292,29 @@ public class ExitMessage : Trace2Message
 
 public class ChildStartMessage : Trace2Message
 {
-    [JsonProperty("child_id")]
-    public long Id { get; set; }
+    [JsonPropertyName("t_abs")]
+    [JsonPropertyOrder(8)]
+    public double ElapsedTime { get; set; }
 
-    [JsonProperty("child_class")]
-    public Trace2ProcessClass Classification { get; set; }
-
-    [JsonProperty("use_shell")]
-    public bool UseShell { get; set; }
-
-    [JsonProperty("argv")]
+    [JsonPropertyName("argv")]
+    [JsonPropertyOrder(9)]
     public IList<string> Argv { get; set; }
 
-    public double ElapsedTime { get; set; }
+    [JsonPropertyName("child_id")]
+    [JsonPropertyOrder(10)]
+    public long Id { get; set; }
+
+    [JsonPropertyName("child_class")]
+    [JsonPropertyOrder(11)]
+    public Trace2ProcessClass Classification { get; set; }
+
+    [JsonPropertyName("use_shell")]
+    [JsonPropertyOrder(12)]
+    public bool UseShell { get; set; }
 
     public override string ToJson()
     {
-        return JsonConvert.SerializeObject(this,
-            new StringEnumConverter(typeof(SnakeCaseNamingStrategy)),
-            new IsoDateTimeConverter()
-            {
-                DateTimeFormat = TimeFormat
-            });
+        return JsonSerializer.Serialize(this, JsonSerializerOptions);
     }
 
     public override string ToNormalString()
@@ -348,28 +349,29 @@ public class ChildStartMessage : Trace2Message
 
 public class ChildExitMessage : Trace2Message
 {
-    [JsonProperty("child_id")]
-    public long Id { get; set; }
+    [JsonPropertyName("t_abs")]
+    [JsonPropertyOrder(8)]
+    public double ElapsedTime { get; set; }
 
-    [JsonProperty("pid")]
-    public int Pid { get; set; }
-
-    [JsonProperty("code")]
-    public int Code { get; set; }
-
-    [JsonProperty("t_rel")]
+    [JsonPropertyName("t_rel")]
+    [JsonPropertyOrder(9)]
     public double RelativeTime { get; set; }
 
-    public double ElapsedTime { get; set; }
+    [JsonPropertyName("child_id")]
+    [JsonPropertyOrder(10)]
+    public long Id { get; set; }
+
+    [JsonPropertyName("pid")]
+    [JsonPropertyOrder(11)]
+    public int Pid { get; set; }
+
+    [JsonPropertyName("code")]
+    [JsonPropertyOrder(12)]
+    public int Code { get; set; }
 
     public override string ToJson()
     {
-        return JsonConvert.SerializeObject(this,
-            new StringEnumConverter(typeof(SnakeCaseNamingStrategy)),
-            new IsoDateTimeConverter()
-            {
-                DateTimeFormat = TimeFormat
-            });
+        return JsonSerializer.Serialize(this, JsonSerializerOptions);
     }
 
     public override string ToNormalString()
@@ -403,18 +405,17 @@ public class ChildExitMessage : Trace2Message
 
 public class ErrorMessage : Trace2Message
 {
-    [JsonProperty("msg")] public string Message { get; set; }
+    [JsonPropertyName("msg")]
+    [JsonPropertyOrder(8)]
+    public string Message { get; set; }
 
-    [JsonProperty("format")] public string ParameterizedMessage { get; set; }
+    [JsonPropertyName("format")]
+    [JsonPropertyOrder(9)]
+    public string ParameterizedMessage { get; set; }
 
     public override string ToJson()
     {
-        return JsonConvert.SerializeObject(this,
-            new StringEnumConverter(typeof(SnakeCaseNamingStrategy)),
-            new IsoDateTimeConverter()
-            {
-                DateTimeFormat = TimeFormat
-            });
+        return JsonSerializer.Serialize(this, JsonSerializerOptions);
     }
 
     public override string ToNormalString()
@@ -440,38 +441,39 @@ public class ErrorMessage : Trace2Message
 
 public abstract class RegionMessage : Trace2Message
 {
-    [JsonProperty("repo")]
+    [JsonPropertyName("t_abs")]
+    [JsonPropertyOrder(8)]
+    public double ElapsedTime { get; set; }
 
+    [JsonPropertyName("repo")]
+    [JsonPropertyOrder(9)]
     // Defaults to 1, as does Git.
     // See https://git-scm.com/docs/api-trace2#Documentation/technical/api-trace2.txt-codeltrepo-idgtcode for details.
     public int Repo { get; set; } = 1;
 
     // TODO: Remove default value if support for nested regions is implemented.
-    [JsonProperty("nesting")]
+    [JsonPropertyName("nesting")]
+    [JsonPropertyOrder(10)]
     public int Nesting { get; set; } = 1;
 
-    [JsonProperty("category")]
+    [JsonPropertyName("category")]
+    [JsonPropertyOrder(11)]
     public string Category { get; set; }
 
-    [JsonProperty("label")]
+    [JsonPropertyName("label")]
+    [JsonPropertyOrder(12)]
     public string Label { get; set; }
 
-    [JsonProperty("msg")]
+    [JsonPropertyName("msg")]
+    [JsonPropertyOrder(13)]
     public string Message { get; set; }
-
-    public double ElapsedTime { get; set; }
 }
 
 public class RegionEnterMessage : RegionMessage
 {
     public override string ToJson()
     {
-        return JsonConvert.SerializeObject(this,
-            new StringEnumConverter(typeof(SnakeCaseNamingStrategy)),
-            new IsoDateTimeConverter()
-            {
-                DateTimeFormat = TimeFormat
-            });
+        return JsonSerializer.Serialize(this, JsonSerializerOptions);
     }
 
     public override string ToNormalString()
@@ -497,16 +499,12 @@ public class RegionEnterMessage : RegionMessage
 
 public class RegionLeaveMessage : RegionMessage
 {
+    [JsonPropertyOrder(14)]
     public double RelativeTime { get; set; }
 
     public override string ToJson()
     {
-        return JsonConvert.SerializeObject(this,
-            new StringEnumConverter(typeof(SnakeCaseNamingStrategy)),
-            new IsoDateTimeConverter()
-            {
-                DateTimeFormat = TimeFormat
-            });
+        return JsonSerializer.Serialize(this, JsonSerializerOptions);
     }
 
     public override string ToNormalString()
@@ -528,4 +526,10 @@ public class RegionLeaveMessage : RegionMessage
     {
         return Message;
     }
+}
+
+public class SnakeCaseNamingPolicy : JsonNamingPolicy
+{
+    public override string ConvertName(string name) =>
+        name.ToSnakeCase();
 }

@@ -56,7 +56,7 @@
             "type": "shell",
             "group": "test",
             "args": [
-                "~/.nuget/packages/reportgenerator/*/*/net6.0/ReportGenerator.dll",
+                "~/.nuget/packages/reportgenerator/*/*/net7.0/ReportGenerator.dll",
                 "-reports:${workspaceFolder}/**/TestResults/**/coverage.cobertura.xml",
                 "-targetdir:${workspaceFolder}/out/code-coverage"
             ],
@@ -71,7 +71,7 @@
             "type": "shell",
             "group": "test",
             "args": [
-                "${env:USERROFILE}/.nuget/packages/reportgenerator/*/*/net6.0/ReportGenerator.dll",
+                "${env:USERROFILE}/.nuget/packages/reportgenerator/*/*/net7.0/ReportGenerator.dll",
                 "-reports:${workspaceFolder}/**/TestResults/**/coverage.cobertura.xml",
                 "-targetdir:${workspaceFolder}/out/code-coverage"
             ],
