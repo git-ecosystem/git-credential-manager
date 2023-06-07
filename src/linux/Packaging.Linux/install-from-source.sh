@@ -68,7 +68,7 @@ ensure_dotnet_installed() {
     if [ -z "$(verify_existing_dotnet_installation)" ]; then
         curl -LO https://dot.net/v1/dotnet-install.sh
         chmod +x ./dotnet-install.sh
-        bash -c "./dotnet-install.sh"
+        bash -c "./dotnet-install.sh --channel 7.0"
 
         # Since we have to run the dotnet install script with bash, dotnet isn't
         # added to the process PATH, so we manually add it here.
@@ -134,7 +134,7 @@ case "$distribution" in
         # Install dotnet packages and dependencies if needed.
         if [ -z "$(verify_existing_dotnet_installation)" ]; then
             # First try to use native feeds (Ubuntu 22.04 and later).
-            if ! apt_install dotnet6; then
+            if ! apt_install dotnet7; then
                 # If the native feeds fail, we fall back to
                 # packages.microsoft.com. We begin by adding the dotnet package
                 # repository/signing key.
