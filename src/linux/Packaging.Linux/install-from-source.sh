@@ -197,7 +197,7 @@ case "$distribution" in
 
         ensure_dotnet_installed
     ;;
-	 mariner)
+    mariner)
         $sudo_cmd tdnf update -y
 
         # Install dotnet/GCM dependencies.
