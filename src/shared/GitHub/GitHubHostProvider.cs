@@ -13,6 +13,7 @@ namespace GitHub
     {
         private static readonly string[] GitHubOAuthScopes =
         {
+            GitHubConstants.OAuthScopes.User,
             GitHubConstants.OAuthScopes.Repo,
             GitHubConstants.OAuthScopes.Gist,
             GitHubConstants.OAuthScopes.Workflow,

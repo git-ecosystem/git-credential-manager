@@ -47,6 +47,7 @@ namespace GitHub
 
         public static class OAuthScopes
         {
+            public const string User = "user";
             public const string Gist = "gist";
             public const string Repo = "repo";
             public const string Workflow = "workflow";
