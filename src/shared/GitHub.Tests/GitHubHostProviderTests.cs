@@ -172,6 +172,7 @@ namespace GitHub.Tests
             var expectedTargetUri = new Uri("https://github.com/");
             IEnumerable<string> expectedOAuthScopes = new[]
             {
+                GitHubConstants.OAuthScopes.User,
                 GitHubConstants.OAuthScopes.Repo,
                 GitHubConstants.OAuthScopes.Gist,
                 GitHubConstants.OAuthScopes.Workflow,
@@ -214,6 +215,7 @@ namespace GitHub.Tests
             var expectedTargetUri = new Uri("https://github.com/");
             IEnumerable<string> expectedOAuthScopes = new[]
             {
+                GitHubConstants.OAuthScopes.User,
                 GitHubConstants.OAuthScopes.Repo,
                 GitHubConstants.OAuthScopes.Gist,
                 GitHubConstants.OAuthScopes.Workflow,
