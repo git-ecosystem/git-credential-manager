@@ -44,6 +44,55 @@ namespace GitCredentialManager.Tests.Authentication
             Assert.Equal(expectedAuthCode, result.Code);
         }
 
+        [Theory]
+        [InlineData("http://localhost")]
+        [InlineData("http://localhost/")]
+        [InlineData("http://localhost/oauth-callback")]
+        [InlineData("http://localhost/oauth-callback/")]
+        [InlineData("http://127.0.0.1")]
+        [InlineData("http://127.0.0.1/")]
+        [InlineData("http://127.0.0.1/oauth-callback")]
+        [InlineData("http://127.0.0.1/oauth-callback/")]
+        public async Task OAuth2Client_GetAuthorizationCodeAsync_RedirectUrlOriginalStringPreserved(string expectedRedirectUrl)
+        {
+            var baseUri = new Uri("https://example.com");
+            OAuth2ServerEndpoints endpoints = CreateEndpoints(baseUri);
+
+            var httpHandler = new TestHttpMessageHandler {ThrowOnUnexpectedRequest = true};
+
+            OAuth2Application app = new OAuth2Application(TestClientId)
+            {
+                Secret = TestClientSecret,
+                RedirectUris = new[] {new Uri(expectedRedirectUrl)}
+            };
+
+            var server = new TestOAuth2Server(endpoints);
+            server.RegisterApplication(app);
+            server.Bind(httpHandler);
+            server.TokenGenerator.AuthCodes.Add("unused");
+            server.AuthorizationEndpointInvoked += (_, request) =>
+            {
+                IDictionary<string, string> actualParams = request.RequestUri.GetQueryParameters();
+                Assert.True(actualParams.TryGetValue(OAuth2Constants.RedirectUriParameter, out string actualRedirectUri));
+                Assert.Equal(expectedRedirectUrl, actualRedirectUri);
+            };
+
+            IOAuth2WebBrowser browser = new TestOAuth2WebBrowser(httpHandler);
+
+            var redirectUri = new Uri(expectedRedirectUrl);
+
+            var trace2 = new NullTrace2();
+            OAuth2Client client =  new OAuth2Client(
+                new HttpClient(httpHandler),
+                endpoints,
+                TestClientId,
+                trace2,
+                redirectUri,
+                TestClientSecret);
+
+            await client.GetAuthorizationCodeAsync(new[] { "unused" }, browser, null, CancellationToken.None);
+        }
+
         [Fact]
         public async Task OAuth2Client_GetAuthorizationCodeAsync_ExtraQueryParams()
         {
