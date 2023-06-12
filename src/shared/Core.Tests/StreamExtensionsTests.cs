@@ -33,9 +33,9 @@ namespace GitCredentialManager.Tests
 
             Assert.NotNull(output);
             Assert.Equal(3, output.Count);
-            Assert.Contains(KeyValuePair.Create("a", "1"), output);
-            Assert.Contains(KeyValuePair.Create("b", "2"), output);
-            Assert.Contains(KeyValuePair.Create("c", "3"), output);
+            AssertDictionary("1", "a", output);
+            AssertDictionary("2", "b", output);
+            AssertDictionary("3", "c", output);
         }
 
         [Fact]
@@ -47,9 +47,9 @@ namespace GitCredentialManager.Tests
 
             Assert.NotNull(output);
             Assert.Equal(3, output.Count);
-            Assert.Contains(KeyValuePair.Create("a", "1"), output);
-            Assert.Contains(KeyValuePair.Create("b", "2"), output);
-            Assert.Contains(KeyValuePair.Create("c", "3"), output);
+            AssertDictionary("1", "a", output);
+            AssertDictionary("2", "b", output);
+            AssertDictionary("3", "c", output);
         }
 
         [Fact]
@@ -61,8 +61,8 @@ namespace GitCredentialManager.Tests
 
             Assert.NotNull(output);
             Assert.Equal(2, output.Count);
-            Assert.Contains(KeyValuePair.Create("a", "1"), output);
-            Assert.Contains(KeyValuePair.Create("A", "2"), output);
+            AssertDictionary("1", "a", output);
+            AssertDictionary("2", "A", output);
         }
 
         [Fact]
@@ -74,7 +74,7 @@ namespace GitCredentialManager.Tests
 
             Assert.NotNull(output);
             Assert.Equal(1, output.Count);
-            Assert.Contains(KeyValuePair.Create("a", "2"), output);
+            AssertDictionary("2", "a", output);
         }
 
         [Fact]
@@ -86,9 +86,9 @@ namespace GitCredentialManager.Tests
 
             Assert.NotNull(output);
             Assert.Equal(3, output.Count);
-            Assert.Contains(KeyValuePair.Create("key a", "value 1"), output);
-            Assert.Contains(KeyValuePair.Create("  key b  ", " 2 "), output);
-            Assert.Contains(KeyValuePair.Create("key\tc\t", "\t3\t"), output);
+            AssertDictionary("value 1", "key a", output);
+            AssertDictionary(" 2 ", "  key b  ", output);
+            AssertDictionary("\t3\t", "key\tc\t", output);
         }
 
         [Fact]
@@ -100,9 +100,9 @@ namespace GitCredentialManager.Tests
 
             Assert.NotNull(output);
             Assert.Equal(3, output.Count);
-            Assert.Contains(KeyValuePair.Create("a", "value=1"), output);
-            Assert.Contains(KeyValuePair.Create("b", "value=2"), output);
-            Assert.Contains(KeyValuePair.Create("c", "value=3"), output);
+            AssertDictionary("value=1", "a", output);
+            AssertDictionary("value=2", "b", output);
+            AssertDictionary("value=3", "c", output);
         }
 
         [Fact]
