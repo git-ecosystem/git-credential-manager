@@ -33,7 +33,7 @@ namespace GitCredentialManager.Commands
 
             // Parse standard input arguments
             // git-credential treats the keys as case-sensitive; so should we.
-            IDictionary<string, string> inputDict = await Context.Streams.In.ReadDictionaryAsync(StringComparer.Ordinal);
+            IDictionary<string, IList<string>> inputDict = await Context.Streams.In.ReadMultiDictionaryAsync(StringComparer.Ordinal);
             var input = new InputArguments(inputDict);
 
             // Validate minimum arguments are present
