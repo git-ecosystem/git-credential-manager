@@ -114,6 +114,14 @@ apt_install() {
     $sudo_cmd apt install $pkg_name -y 2>/dev/null
 }
 
+print_unsupported_distro() {
+    prefix=$1
+    distro=$2
+
+    echo "$prefix: $distro is not officially supported by the GCM project."
+    echo "See https://gh.io/gcm/linux for details."
+}
+
 sudo_cmd=
 
 # If the user isn't root, we need to use `sudo` for certain commands
@@ -179,6 +187,8 @@ case "$distribution" in
         ensure_dotnet_installed
     ;;
     arch)
+        print_unsupported_distro "WARNING" "$distribution"
+
         # --noconfirm required when running from container
         $sudo_cmd pacman -Syu --noconfirm
 
@@ -188,7 +198,7 @@ case "$distribution" in
         ensure_dotnet_installed
     ;;
     *)
-        echo "ERROR: Unsupported Linux distribution: $distribution"
+        print_unsupported_distro "ERROR" "$distribution"
         exit
     ;;
 esac
