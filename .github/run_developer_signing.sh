@@ -5,10 +5,10 @@ DEVELOPER_ID=$2
 ENTITLEMENTS_FILE=$3
 
 if [ -z "$SIGN_DIR" ]; then
-    echo "error: missing directory argument"
+    echo "error: missing directory argument  from dhana"
     exit 1
 elif [ -z "$DEVELOPER_ID" ]; then
-    echo "error: missing developer id argument"
+    echo "error: missing developer id argument  from dhana"
     exit 1
 elif [ -z "$ENTITLEMENTS_FILE" ]; then
     echo "error: missing entitlements file argument"
