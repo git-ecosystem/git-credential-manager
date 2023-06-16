@@ -198,7 +198,7 @@ case "$distribution" in
         ensure_dotnet_installed
     ;;
     mariner)
-	    print_unsupported_distro "WARNING" "$distribution"
+        print_unsupported_distro "WARNING" "$distribution"
         $sudo_cmd tdnf update -y
 
         # Install dotnet/GCM dependencies.
