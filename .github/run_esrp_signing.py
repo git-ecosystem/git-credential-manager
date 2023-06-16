@@ -5,7 +5,7 @@ import glob
 import pprint
 import subprocess
 import sys
-import re
+import cvs
 
 parser = argparse.ArgumentParser(description='Sign binaries for Windows, macOS, and Linux')
 parser.add_argument('path', help='Path to file for signing')
