@@ -14,7 +14,7 @@ jobs:
       matrix:
         vector:
         - image: ubuntu
-        - image: debian
+        - image: debian:bullseye
         - image: fedora
         # Centos no longer officially maintains images on Docker Hub. However,
         # tgagor is a contributor who pushes updated images weekly, which should
