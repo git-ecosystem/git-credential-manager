@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using GitHub.Diagnostics;
@@ -137,15 +138,21 @@ namespace GitHub
             if (string.IsNullOrWhiteSpace(userName))
             {
                 IList<string> accounts = _context.CredentialStore.GetAccounts(service);
-                _context.Trace.WriteLine($"Found {accounts.Count} accounts in the store for service={service}.");
+                _context.Trace.WriteLine($"Found {accounts.Count} accounts in the store for service={service}{(accounts.Count > 0 ? ":" : ".")}");
+                foreach (string account in accounts)
+                {
+                    _context.Trace.WriteLine($"  {account}");
+                }
 
                 switch (accounts.Count)
                 {
                     case 1:
+                        _context.Trace.WriteLine("Only one account available - using that one!");
                         userName = accounts[0];
                         break;
 
                     case > 1:
+                        _context.Trace.WriteLine("Multiple accounts available - prompting user to select one...");
                         userName = await _gitHubAuth.SelectAccountAsync(remoteUri, accounts);
                         addAccount = userName is null;
                         break;
