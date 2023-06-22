@@ -64,7 +64,6 @@ namespace GitHub.Tests
             Assert.Equal(expected, provider.IsSupported(input));
         }
 
-
         [Theory]
         [InlineData("https", "github.com", "https://github.com")]
         [InlineData("https", "GitHub.Com", "https://github.com")]
@@ -149,6 +148,176 @@ namespace GitHub.Tests
             AuthenticationModes actualModes = await provider.GetSupportedAuthenticationModesAsync(targetUri);
 
             Assert.Equal(expectedModes, actualModes);
+        }
+
+        [Fact]
+        public async Task GitHubHostProvider_GetCredentialAsync_NoCredentials_NoUserNoHeaders_PromptsUser()
+        {
+            var input = new InputArguments(
+                new Dictionary<string, string>
+                {
+                    ["protocol"] = "https",
+                    ["host"] = "github.com",
+                }
+            );
+
+            var newCredential = new GitCredential("alice", "password");
+
+            var context = new TestCommandContext();
+            var ghApiMock = new Mock<IGitHubRestApi>(MockBehavior.Strict);
+            var ghAuthMock = new Mock<IGitHubAuthentication>(MockBehavior.Strict);
+            ghAuthMock.Setup(x => x.GetAuthenticationAsync(
+                    It.IsAny<Uri>(), It.IsAny<string>(), It.IsAny<AuthenticationModes>()))
+                .ReturnsAsync(new AuthenticationPromptResult(AuthenticationModes.Pat, newCredential));
+
+            var provider = new GitHubHostProvider(context, ghApiMock.Object, ghAuthMock.Object);
+
+            ICredential result = await provider.GetCredentialAsync(input);
+
+            Assert.Equal(result.Account, newCredential.Account);
+            Assert.Equal(result.Password, newCredential.Password);
+            ghAuthMock.Verify(x => x.GetAuthenticationAsync(
+                new Uri("https://github.com"), null, It.IsAny<AuthenticationModes>()),
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task GitHubHostProvider_GetCredentialAsync_InputUser_ReturnsCredentialForUser()
+        {
+            var input = new InputArguments(
+                new Dictionary<string, string>
+                {
+                    ["protocol"] = "https",
+                    ["host"]     = "github.com",
+                    ["username"] = "alice"
+                }
+            );
+
+            var context = new TestCommandContext();
+            context.CredentialStore.Add("https://github.com", "alice", "letmein123");
+            context.CredentialStore.Add("https://github.com", "bob", "secret123");
+
+            var ghApiMock = new Mock<IGitHubRestApi>(MockBehavior.Strict);
+            var ghAuthMock = new Mock<IGitHubAuthentication>(MockBehavior.Strict);
+
+            var provider = new GitHubHostProvider(context, ghApiMock.Object, ghAuthMock.Object);
+
+            ICredential result = await provider.GetCredentialAsync(input);
+
+            Assert.NotNull(result);
+            Assert.Equal("alice", result.Account);
+            Assert.Equal("letmein123", result.Password);
+        }
+
+        [Fact]
+        public async Task GitHubHostProvider_GetCredentialAsync_OneDomainAccount_ReturnsCredentialForRealmAccount()
+        {
+            var input = new InputArguments(
+                new Dictionary<string, string>
+                {
+                    ["protocol"] = "https",
+                    ["host"]     = "github.com",
+                    ["wwwauth"]  = "Basic realm=\"GitHub\" domain_hint=\"contoso\"",
+                }
+            );
+
+            var context = new TestCommandContext();
+            context.CredentialStore.Add("https://github.com", "alice", "letmein123");
+            context.CredentialStore.Add("https://github.com", "bob_contoso", "secret123");
+            context.CredentialStore.Add("https://github.com", "test_fabrikam", "hidden_value");
+
+            var ghApiMock = new Mock<IGitHubRestApi>(MockBehavior.Strict);
+            var ghAuthMock = new Mock<IGitHubAuthentication>(MockBehavior.Strict);
+
+            var provider = new GitHubHostProvider(context, ghApiMock.Object, ghAuthMock.Object);
+
+            ICredential result = await provider.GetCredentialAsync(input);
+
+            Assert.NotNull(result);
+            Assert.Equal("bob_contoso", result.Account);
+            Assert.Equal("secret123", result.Password);
+        }
+
+        [Fact]
+        public async Task GitHubHostProvider_GetCredentialAsync_MultipleDomainAccounts_PromptForAccountAndReturnCredentialForAccount()
+        {
+            var input = new InputArguments(
+                new Dictionary<string, string>
+                {
+                    ["protocol"] = "https",
+                    ["host"]     = "github.com",
+                    ["wwwauth"]  = "Basic realm=\"GitHub\" domain_hint=\"contoso\"",
+                }
+            );
+
+            var context = new TestCommandContext();
+            context.CredentialStore.Add("https://github.com", "alice", "letmein123");
+            context.CredentialStore.Add("https://github.com", "bob_contoso", "secret123");
+            context.CredentialStore.Add("https://github.com", "john_contoso", "who_knows");
+
+            var ghApiMock = new Mock<IGitHubRestApi>(MockBehavior.Strict);
+            var ghAuthMock = new Mock<IGitHubAuthentication>(MockBehavior.Strict);
+
+            ghAuthMock.Setup(x => x.SelectAccountAsync(It.IsAny<Uri>(), It.IsAny<IEnumerable<string>>()))
+                .ReturnsAsync("john_contoso");
+
+            var provider = new GitHubHostProvider(context, ghApiMock.Object, ghAuthMock.Object);
+
+            ICredential result = await provider.GetCredentialAsync(input);
+
+            Assert.NotNull(result);
+            Assert.Equal("john_contoso", result.Account);
+            Assert.Equal("who_knows", result.Password);
+
+            ghAuthMock.Verify(x => x.SelectAccountAsync(
+                    new Uri("https://github.com"), new[] { "bob_contoso", "john_contoso" }),
+                Times.Once
+            );
+        }
+
+        [Fact]
+        public async Task GitHubHostProvider_GetCredentialAsync_MultipleDomainAccounts_PromptForAccountNewAccount()
+        {
+            var input = new InputArguments(
+                new Dictionary<string, string>
+                {
+                    ["protocol"] = "https",
+                    ["host"]     = "github.com",
+                    ["wwwauth"]  = "Basic realm=\"GitHub\" domain_hint=\"contoso\"",
+                }
+            );
+
+            var newCredential = new GitCredential("alice", "password");
+
+            var context = new TestCommandContext();
+            context.CredentialStore.Add("https://github.com", "alice", "letmein123");
+            context.CredentialStore.Add("https://github.com", "bob_contoso", "secret123");
+            context.CredentialStore.Add("https://github.com", "john_contoso", "who_knows");
+
+            var ghApiMock = new Mock<IGitHubRestApi>(MockBehavior.Strict);
+            var ghAuthMock = new Mock<IGitHubAuthentication>(MockBehavior.Strict);
+
+            ghAuthMock.Setup(x => x.SelectAccountAsync(It.IsAny<Uri>(), It.IsAny<IEnumerable<string>>()))
+                .ReturnsAsync((string)null);
+
+            ghAuthMock.Setup(x => x.GetAuthenticationAsync(
+                    It.IsAny<Uri>(), It.IsAny<string>(), It.IsAny<AuthenticationModes>()))
+                .ReturnsAsync(new AuthenticationPromptResult(AuthenticationModes.Pat, newCredential));
+
+            var provider = new GitHubHostProvider(context, ghApiMock.Object, ghAuthMock.Object);
+
+            ICredential result = await provider.GetCredentialAsync(input);
+
+            Assert.Equal(newCredential.Account, result.Account);
+            Assert.Equal(newCredential.Password, result.Password);
+
+            ghAuthMock.Verify(x => x.GetAuthenticationAsync(
+                    new Uri("https://github.com"), null, It.IsAny<AuthenticationModes>()),
+                Times.Once);
+            ghAuthMock.Verify(x => x.SelectAccountAsync(
+                    new Uri("https://github.com"), new[] { "bob_contoso", "john_contoso" }),
+                Times.Once
+            );
         }
 
         [Fact]
