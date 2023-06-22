@@ -163,7 +163,7 @@ case "$distribution" in
         fi
     ;;
     fedora | centos | rhel)
-        $sudo_cmd dnf update -y
+        $sudo_cmd dnf upgrade -y
 
         # Install dotnet/GCM dependencies.
         install_packages dnf install "curl git krb5-libs libicu openssl-libs zlib findutils which bash"
