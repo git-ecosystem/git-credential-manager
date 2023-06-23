@@ -434,6 +434,27 @@ Defaults to undefined.
 
 ---
 
+### credential.gitHubAccountFiltering
+
+Enable or disable automatic account filtering for GitHub based on server hints
+when there are multiple available accounts. This setting is only applicable to
+GitHub.com with [Enterprise Managed Users][github-emu].
+
+Value|Description
+-|-
+`true` _(default)_|Filter available accounts based on server hints.
+`false`|Show all available accounts.
+
+#### Example
+
+```shell
+git config --global credential.gitHubAccountFiltering "false"
+```
+
+**Also see: [GCM_GITHUB_ACCOUNTFILTERING][gcm-github-accountfiltering]**
+
+---
+
 ### credential.gitHubAuthModes
 
 Override the available authentication modes presented during GitHub
@@ -863,6 +884,7 @@ Defaults to disabled.
 [gcm-credential-store]: environment.md#GCM_CREDENTIAL_STORE
 [gcm-debug]: environment.md#GCM_DEBUG
 [gcm-dpapi-store-path]: environment.md#GCM_DPAPI_STORE_PATH
+[gcm-github-accountfiltering]: environment.md#GCM_GITHUB_ACCOUNTFILTERING
 [gcm-github-authmodes]: environment.md#GCM_GITHUB_AUTHMODES
 [gcm-gitlab-authmodes]:environment.md#GCM_GITLAB_AUTHMODES
 [gcm-gui-prompt]: environment.md#GCM_GUI_PROMPT
@@ -877,6 +899,7 @@ Defaults to disabled.
 [gcm-trace]: environment.md#GCM_TRACE
 [gcm-trace-secrets]: environment.md#GCM_TRACE_SECRETS
 [gcm-trace-msauth]: environment.md#GCM_TRACE_MSAUTH
+[github-emu]: https://docs.github.com/en/enterprise-cloud@latest/admin/identity-and-access-management/using-enterprise-managed-users-for-iam/about-enterprise-managed-users
 [usage]: usage.md
 [git-config-http-proxy]: https://git-scm.com/docs/git-config#Documentation/git-config.txt-httpproxy
 [http-proxy]: netconfig.md#http-proxy

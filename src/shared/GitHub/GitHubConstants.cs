@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace GitHub
 {
@@ -18,6 +19,11 @@ namespace GitHub
         public static readonly Uri OAuthAuthorizationEndpointRelativeUri = new Uri("/login/oauth/authorize", UriKind.Relative);
         public static readonly Uri OAuthTokenEndpointRelativeUri = new Uri("/login/oauth/access_token", UriKind.Relative);
         public static readonly Uri OAuthDeviceEndpointRelativeUri = new Uri("/login/device/code", UriKind.Relative);
+
+        /// <summary>
+        /// GitHub user names that contain underscores but are not EMU logins.
+        /// </summary>
+        public static readonly IReadOnlyList<string> InvalidUnderscoreLogins = new[] { "pj_nitin", "up_the_irons" };
 
         /// <summary>
         /// The GitHub required HTTP accepts header value
@@ -59,6 +65,7 @@ namespace GitHub
             public const string DevOAuthClientId = "GCM_DEV_GITHUB_CLIENTID";
             public const string DevOAuthClientSecret = "GCM_DEV_GITHUB_CLIENTSECRET";
             public const string DevOAuthRedirectUri = "GCM_DEV_GITHUB_REDIRECTURI";
+            public const string AccountFiltering = "GCM_GITHUB_ACCOUNTFILTERING";
         }
 
         public static class GitConfiguration
@@ -70,6 +77,7 @@ namespace GitHub
                 public const string DevOAuthClientId = "gitHubDevClientId";
                 public const string DevOAuthClientSecret = "gitHubDevClientSecret";
                 public const string DevOAuthRedirectUri = "gitHubDevRedirectUri";
+                public const string AccountFiltering = "githubAccountFiltering";
             }
         }
     }

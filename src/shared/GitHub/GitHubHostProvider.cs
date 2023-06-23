@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using GitHub.Diagnostics;
@@ -134,33 +135,42 @@ namespace GitHub
             // are multiple options.
             string userName = input.UserName;
             bool addAccount = false;
+            bool filtered = false;
             if (string.IsNullOrWhiteSpace(userName))
             {
                 IList<string> accounts = _context.CredentialStore.GetAccounts(service);
-                _context.Trace.WriteLine($"Found {accounts.Count} accounts in the store for service={service}.");
+                _context.Trace.WriteLine($"Found {accounts.Count} accounts in the store for service={service}{(accounts.Count > 0 ? ":" : ".")}");
+                foreach (string account in accounts)
+                {
+                    _context.Trace.WriteLine($"  {account}");
+                }
+
+                filtered = FilterAccounts(remoteUri, input.WwwAuth, ref accounts);
 
                 switch (accounts.Count)
                 {
                     case 1:
+                        _context.Trace.WriteLine("Only one account available - using that one!");
                         userName = accounts[0];
                         break;
 
                     case > 1:
+                        _context.Trace.WriteLine("Multiple accounts available - prompting user to select one...");
                         userName = await _gitHubAuth.SelectAccountAsync(remoteUri, accounts);
                         addAccount = userName is null;
                         break;
                 }
             }
 
-            // Always try and locate an existing credential in the OS credential store
-            // unless we're being told to explicitly add a new account. If the account lookup
-            // failed above we should still try to lookup an existing credential.
+            // Always try and locate an existing credential in the OS credential store unless we're being
+            // told to explicitly add a new account OR have specifically filtered out irrelevant accounts.
+            // If the account lookup failed for another reason we should still try to lookup an existing credential.
             ICredential credential = null;
             if (addAccount)
             {
                 _context.Trace.WriteLine("Adding a new account!");
             }
-            else
+            else if (!string.IsNullOrWhiteSpace(userName) || !filtered)
             {
                 _context.Trace.WriteLine($"Looking for existing credential in store with service={service} account={userName}...");
                 credential = _context.CredentialStore.Get(service, userName);
@@ -181,6 +191,53 @@ namespace GitHub
             }
 
             return credential;
+        }
+
+        private bool FilterAccounts(Uri remoteUri, IEnumerable<string> wwwAuth, ref IList<string> accounts)
+        {
+            if (!IsGitHubDotCom(remoteUri))
+            {
+                _context.Trace.WriteLine("No account filtering outside of GitHub.com.");
+            }
+
+            // Allow the user to disable account filtering until this feature stabilises.
+            // Default to enabled.
+            bool enableFiltering = !_context.Settings.TryGetSetting(
+                GitHubConstants.EnvironmentVariables.AccountFiltering,
+                Constants.GitConfiguration.Credential.SectionName,
+                GitHubConstants.GitConfiguration.Credential.AccountFiltering,
+                out string enableFilteringStr
+            ) || enableFilteringStr.ToBooleanyOrDefault(true);
+
+            if (!enableFiltering)
+            {
+                _context.Trace.WriteLine("Account filtering is disabled.");
+                return false;
+            }
+
+            _context.Trace.WriteLine("Account filtering is enabled.");
+
+            // If we have a WWW-Authenticate header then we can try and use any domain hint information
+            // to filter the list of accounts to only those that are valid for that domain.
+            // We only expect one challenge header to be returned, but if we're given more we just select the first.
+            GitHubAuthChallenge authChallenge = GitHubAuthChallenge.FromHeaders(wwwAuth).FirstOrDefault();
+            if (authChallenge is not null)
+            {
+                _context.Trace.WriteLine("Filtering based on WWW-Authenticate header information...");
+                accounts = accounts.Where(authChallenge.IsDomainMember).ToList();
+
+                _context.Trace.WriteLine(string.IsNullOrWhiteSpace(authChallenge.Domain)
+                    ? $"Matched {accounts.Count} accounts with public domain:"
+                    : $"Matched {accounts.Count} accounts with domain={authChallenge.Domain}:");
+                foreach (string account in accounts)
+                {
+                    _context.Trace.WriteLine($"  {account}");
+                }
+
+                return true;
+            }
+
+            return false;
         }
 
         public virtual Task StoreCredentialAsync(InputArguments input)

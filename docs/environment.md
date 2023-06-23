@@ -525,6 +525,33 @@ Defaults to undefined.
 
 ---
 
+### GCM_GITHUB_ACCOUNTFILTERING
+
+Enable or disable automatic account filtering for GitHub based on server hints
+when there are multiple available accounts. This setting is only applicable to
+GitHub.com with [Enterprise Managed Users][github-emu].
+
+Value|Description
+-|-
+`true` _(default)_|Filter available accounts based on server hints.
+`false`|Show all available accounts.
+
+#### Windows
+
+```batch
+SET GCM_GITHUB_ACCOUNTFILTERING=false
+```
+
+#### macOS/Linux
+
+```bash
+export GCM_GITHUB_ACCOUNTFILTERING=false
+```
+
+**Also see: [credential.gitHubAccountFiltering][credential-githubaccountfiltering]**
+
+---
+
 ### GCM_GITHUB_AUTHMODES
 
 Override the available authentication modes presented during GitHub
@@ -964,6 +991,7 @@ Defaults to disabled.
 [credential-credentialstore]: configuration.md#credentialcredentialstore
 [credential-debug]: configuration.md#credentialdebug
 [credential-dpapi-store-path]: configuration.md#credentialdpapistorepath
+[credential-githubaccountfiltering]: configuration.md#credentialgitHubAccountFiltering
 [credential-githubauthmodes]: configuration.md#credentialgitHubAuthModes
 [credential-gitlabauthmodes]: configuration.md#credentialgitLabAuthModes
 [credential-guiprompt]: configuration.md#credentialguiprompt
@@ -991,6 +1019,7 @@ Defaults to disabled.
 [git-cache-options]: https://git-scm.com/docs/git-credential-cache#_options
 [git-credential-cache]: https://git-scm.com/docs/git-credential-cache
 [git-httpproxy]: https://git-scm.com/docs/git-config#Documentation/git-config.txt-httpproxy
+[github-emu]: https://docs.github.com/en/enterprise-cloud@latest/admin/identity-and-access-management/using-enterprise-managed-users-for-iam/about-enterprise-managed-users
 [network-http-proxy]: netconfig.md#http-proxy
 [libsecret]: https://wiki.gnome.org/Projects/Libsecret
 [migration-guide]: migration.md#gcm_authority
