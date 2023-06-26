@@ -46,3 +46,8 @@ For more information about managing user account bindings see
 
 [azure-access-tokens-ua]: azrepos-users-and-tokens.md#useraccounts
 [git-credentials-custom-helpers]: https://git-scm.com/docs/gitcredentials#_custom_helpers
+
+### github
+
+Interact with the GitHub host provider to manage your accounts on GitHub.com and
+GitHub Enterprise Server instances.

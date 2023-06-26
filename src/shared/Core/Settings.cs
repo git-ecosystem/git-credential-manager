@@ -71,7 +71,7 @@ namespace GitCredentialManager
         /// <remarks>
         /// If GUI prompts are disabled but an equivalent terminal prompt is available, the latter will be used instead.
         /// </remarks>
-        bool IsGuiPromptsEnabled { get; }
+        bool IsGuiPromptsEnabled { get; set; }
 
         /// <summary>
         /// True if it is permitted to interact with the user, false otherwise.
@@ -153,6 +153,12 @@ namespace GitCredentialManager
         /// </summary>
         /// <remarks>The default value is null if unset.</remarks>
         string CustomCertificateBundlePath { get; }
+
+        /// <summary>
+        // Optional path to a file containing one or more cookies.
+        /// </summary>
+        /// <remarks>The default value is null if unset.</remarks>
+        string CustomCookieFilePath { get; }
 
         /// <summary>
         /// The SSL/TLS backend.
@@ -506,6 +512,7 @@ namespace GitCredentialManager
 
                 return defaultValue;
             }
+            set => _environment.SetEnvironmentVariable(KnownEnvars.GcmGuiPromptsEnabled, value ? bool.TrueString : bool.FalseString);
         }
 
         public bool IsInteractionAllowed
@@ -624,6 +631,9 @@ namespace GitCredentialManager
 
         public string CustomCertificateBundlePath =>
             TryGetPathSetting(KnownEnvars.GitSslCaInfo, KnownGitCfg.Http.SectionName, KnownGitCfg.Http.SslCaInfo, out string value) ? value : null;
+
+        public string CustomCookieFilePath =>
+            TryGetPathSetting(null, KnownGitCfg.Http.SectionName, KnownGitCfg.Http.CookieFile, out string value) ? value : null;
 
         public TlsBackend TlsBackend =>
             TryGetSetting(null, KnownGitCfg.Http.SectionName, KnownGitCfg.Http.SslBackend, out string config)

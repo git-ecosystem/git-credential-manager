@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -215,13 +216,26 @@ namespace GitCredentialManager
             {
                 bool isSecretEntry = !(secretKeys is null) &&
                                      secretKeys.Contains(entry.Key, keyComparer ?? EqualityComparer<TKey>.Default);
-                if (isSecretEntry && !this.IsSecretTracingEnabled)
+
+                void WriteSecretLine(string keySuffix, object value)
                 {
-                    WriteLine($"\t{entry.Key}={SecretMask}", filePath, lineNumber, memberName);
+                    var message = isSecretEntry && !IsSecretTracingEnabled
+                        ? $"\t{entry.Key}{keySuffix}={SecretMask}"
+                        : $"\t{entry.Key}{keySuffix}={value}";
+                    WriteLine(message, filePath, lineNumber, memberName);
+                }
+
+                if (entry.Value is IEnumerable<string> values)
+                {
+                    List<string> valueList = values.ToList();
+                    foreach (string value in valueList)
+                    {
+                        WriteSecretLine(valueList.Count > 1 ? "[]" : string.Empty, value);
+                    }
                 }
                 else
                 {
-                    WriteLine($"\t{entry.Key}={entry.Value}", filePath, lineNumber, memberName);
+                    WriteSecretLine(string.Empty, entry.Value);
                 }
             }
         }

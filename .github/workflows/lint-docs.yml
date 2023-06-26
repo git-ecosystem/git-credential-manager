@@ -20,7 +20,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: DavidAnson/markdownlint-cli2-action@bb4bb94c73936643d73d345b48fead3e96f90a5e
+      - uses: DavidAnson/markdownlint-cli2-action@8f3516061301755c97ff833a8e933f09282cc5b5
         with:
           globs: |
             "**/*.md"
@@ -35,7 +35,7 @@ jobs:
       - name: Run link checker
         # For any troubleshooting, see:
         # https://github.com/lycheeverse/lychee/blob/master/docs/TROUBLESHOOTING.md
-        uses: lycheeverse/lychee-action@97189f2c0a3c8b0cb0e704fd4e878af6e5e2b2c5
+        uses: lycheeverse/lychee-action@ec3ed119d4f44ad2673a7232460dc7dff59d2421
 
         with:
           # user-agent: if a user agent is not specified, some websites (e.g.

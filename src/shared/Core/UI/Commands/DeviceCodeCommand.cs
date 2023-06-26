@@ -1,6 +1,4 @@
-using System;
 using System.CommandLine;
-using System.CommandLine.Invocation;
 using System.Threading;
 using System.Threading.Tasks;
 using GitCredentialManager.UI.ViewModels;
@@ -12,19 +10,16 @@ namespace GitCredentialManager.UI.Commands
         protected DeviceCodeCommand(ICommandContext context)
             : base(context, "device", "Show device code prompt.")
         {
-            AddOption(
-                new Option<string>("--code", "User code.")
-            );
+            var code = new Option<string>("--code", "User code.");
+            AddOption(code);
 
-            AddOption(
-                new Option<string>("--url", "Verification URL.")
-            );
+            var url =new Option<string>("--url", "Verification URL.");
+            AddOption(url);
 
-            AddOption(
-                new Option("--no-logo", "Hide the Git Credential Manager logo and logotype.")
-            );
+            var noLogo = new Option<bool>("--no-logo", "Hide the Git Credential Manager logo and logotype.");
+            AddOption(noLogo);
 
-            Handler = CommandHandler.Create<string, string, bool>(ExecuteAsync);
+            this.SetHandler(ExecuteAsync, code, url, noLogo);
         }
 
         private async Task<int> ExecuteAsync(string code, string url, bool noLogo)

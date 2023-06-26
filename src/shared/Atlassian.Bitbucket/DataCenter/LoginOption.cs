@@ -1,13 +1,13 @@
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace Atlassian.Bitbucket.DataCenter
 {
     public class LoginOption
     {
-        [JsonProperty("type")]
+        [JsonPropertyName("type")]
         public string Type { get ; set; }
 
-        [JsonProperty("id")]
+        [JsonPropertyName("id")]
         public int Id { get; set; }
     }
 }

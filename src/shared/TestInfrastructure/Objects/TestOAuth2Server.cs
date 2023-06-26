@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using GitCredentialManager.Authentication.OAuth;
 using GitCredentialManager.Authentication.OAuth.Json;
-using Newtonsoft.Json;
+using System.Text.Json;
 using Xunit;
 
 namespace GitCredentialManager.Tests.Objects
@@ -71,9 +71,9 @@ namespace GitCredentialManager.Tests.Objects
                 throw new Exception($"Unknown OAuth application '{clientId}'");
             }
 
-            // Redirect is optional, but if it is specified it must match a registered URI
-            reqQuery.TryGetValue(OAuth2Constants.RedirectUriParameter, out string redirectUriStr);
-            Uri redirectUri = app.ValidateRedirect(redirectUriStr);
+            // Redirect is optional, but if it is specified it must match a registered URL
+            reqQuery.TryGetValue(OAuth2Constants.RedirectUriParameter, out string redirectUrlStr);
+            Uri redirectUri = app.ValidateRedirect(redirectUrlStr);
 
             // Scope is optional
             reqQuery.TryGetValue(OAuth2Constants.ScopeParameter, out string scopeStr);
@@ -104,7 +104,7 @@ namespace GitCredentialManager.Tests.Objects
 
             // Create the auth code grant
             OAuth2Application.AuthCodeGrant grant = app.CreateAuthorizationCodeGrant(
-                TokenGenerator, scopes, redirectUriStr, codeChallenge, codeChallengeMethod);
+                TokenGenerator, scopes, redirectUrlStr, codeChallenge, codeChallengeMethod);
 
             var respQuery = new Dictionary<string, string>
             {
@@ -159,7 +159,7 @@ namespace GitCredentialManager.Tests.Objects
                 VerificationUri = _deviceCodeVerificationUri,
             };
 
-            string responseJson = JsonConvert.SerializeObject(deviceResp);
+            string responseJson = JsonSerializer.Serialize(deviceResp);
 
             return new HttpResponseMessage(HttpStatusCode.OK)
             {
@@ -234,7 +234,7 @@ namespace GitCredentialManager.Tests.Objects
                         Error = OAuth2Constants.DeviceAuthorization.Errors.AuthorizationPending
                     };
 
-                    var errorJson = JsonConvert.SerializeObject(errorResp);
+                    var errorJson = JsonSerializer.Serialize(errorResp);
 
                     return new HttpResponseMessage(HttpStatusCode.BadRequest)
                     {
@@ -248,7 +248,7 @@ namespace GitCredentialManager.Tests.Objects
                 throw new Exception($"Unknown grant type '{grantType}'");
             }
 
-            string responseJson = JsonConvert.SerializeObject(tokenResp);
+            string responseJson = JsonSerializer.Serialize(tokenResp);
 
             return new HttpResponseMessage(HttpStatusCode.OK)
             {
@@ -527,23 +527,25 @@ namespace GitCredentialManager.Tests.Objects
             };
         }
 
-        private bool IsValidRedirect(Uri uri)
+        private bool IsValidRedirect(string url)
         {
             foreach (Uri redirectUri in RedirectUris)
             {
-                if (redirectUri == uri)
+                // We only accept exact matches, including trailing slashes and case sensitivity
+                if (StringComparer.Ordinal.Equals(redirectUri.OriginalString, url))
                 {
                     return true;
                 }
 
-                // For localhost we ignore the port number
-                if (redirectUri.IsLoopback && uri.IsLoopback)
+                // For loopback URLs _only_ we ignore the port number
+                if (Uri.TryCreate(url, UriKind.Absolute, out Uri uri) && uri.IsLoopback && redirectUri.IsLoopback)
                 {
-                    var cmp = StringComparer.OrdinalIgnoreCase;
+                    // *Case-sensitive* comparison of scheme, host and path
+                    var cmp = StringComparer.Ordinal;
 
-                    // Uri::Authority does not include port, whereas Uri::Host does
+                    // Uri::Authority includes port, whereas Uri::Host does not
                     return cmp.Equals(redirectUri.Scheme, uri.Scheme) &&
-                           cmp.Equals(redirectUri.Authority, uri.Authority) &&
+                           cmp.Equals(redirectUri.Host, uri.Host) &&
                            cmp.Equals(redirectUri.GetComponents(UriComponents.Path, UriFormat.UriEscaped),
                                uri.GetComponents(UriComponents.Path, UriFormat.UriEscaped));
                 }
@@ -552,26 +554,26 @@ namespace GitCredentialManager.Tests.Objects
             return false;
         }
 
-        internal Uri ValidateRedirect(string redirectStr)
+        internal Uri ValidateRedirect(string redirectUrl)
         {
             // Use default redirect URI if one has not been specified for this grant
-            if (redirectStr == null)
+            if (redirectUrl == null)
             {
                 return RedirectUris.First();
             }
 
-            if (!Uri.TryCreate(redirectStr, UriKind.Absolute, out Uri redirectUri))
+            if (!Uri.TryCreate(redirectUrl, UriKind.Absolute, out _))
             {
-                throw new Exception($"Redirect '{redirectStr}' is not a valid URI");
+                throw new Exception($"Redirect '{redirectUrl}' is not a valid URL");
             }
 
-            if (!IsValidRedirect(redirectUri))
+            if (!IsValidRedirect(redirectUrl))
             {
-                // If a redirect URI has been specified, it must match one of those that has been previously registered
-                throw new Exception($"Redirect URI '{redirectUri}' does not match any registered values.");
+                // If a redirect URL has been specified, it must match one of those that has been previously registered
+                throw new Exception($"Redirect URL '{redirectUrl}' does not match any registered values.");
             }
 
-            return redirectUri;
+            return new Uri(redirectUrl);
         }
     }
 }

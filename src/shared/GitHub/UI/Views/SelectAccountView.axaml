@@ -1,0 +1,80 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:controls="clr-namespace:GitHub.UI.Controls"
+             xmlns:vm="clr-namespace:GitHub.UI.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="420"
+             x:Class="GitHub.UI.Views.SelectAccountView">
+    <Design.DataContext>
+        <vm:SelectAccountViewModel/>
+    </Design.DataContext>
+    <DockPanel>
+        <StackPanel DockPanel.Dock="Top" Margin="0,0,0,15">
+            <!-- TODO: replace with GitHub logo -->
+            <TextBlock Text="GitHub"
+                       HorizontalAlignment="Center"
+                       FontSize="20"
+                       FontWeight="Bold"/>
+            <TextBlock Text="Select an account"
+                       HorizontalAlignment="Center"
+                       FontSize="24"
+                       FontWeight="Light"
+                       Margin="0,0,0,10" />
+            <controls:HorizontalShadowDivider/>
+            <StackPanel IsVisible="{Binding EnterpriseUrl, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                        Margin="0,10,0,0">
+                <TextBlock Text="GitHub Enterprise" HorizontalAlignment="Center"/>
+                <TextBlock Text="{Binding EnterpriseUrl}"
+                           HorizontalAlignment="Center"/>
+            </StackPanel>
+        </StackPanel>
+
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal"
+                    HorizontalAlignment="Center"
+                    Margin="0,5,0,10"
+                    IsVisible="{Binding ShowHelpLink}">
+            <Image Source="{DynamicResource HelpIcon}"
+                   Width="16" Height="16"
+                   Margin="0,0,5,0"/>
+            <Button Content="Why am I being asked to select an account?"
+                    Command="{Binding LearnMoreCommand}"
+                    Classes="hyperlink"/>
+        </StackPanel>
+
+        <StackPanel Orientation="Vertical" VerticalAlignment="Center">
+            <ListBox Items="{Binding Accounts}"
+                     SelectedItem="{Binding SelectedAccount}"
+                     Margin="20,0,20,10"
+                     MaxHeight="200"
+                     Background="Transparent"
+                     AutoScrollToSelectedItem="True"
+                     DoubleTapped="ListBox_OnDoubleTapped">
+                <ListBox.ItemTemplate>
+                    <DataTemplate DataType="vm:AccountViewModel">
+                        <DockPanel LastChildFill="True">
+                            <Image DockPanel.Dock="Left"
+                                   VerticalAlignment="Center"
+                                   Source="{DynamicResource PersonIcon}"
+                                   Width="24" Height="24"/>
+                            <TextBlock Text="{Binding UserName}"
+                                       Margin="10,0"
+                                       VerticalAlignment="Center"/>
+                        </DockPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+            <Button Content="Continue"
+                    Command="{Binding ContinueCommand}"
+                    HorizontalAlignment="Center"
+                    IsDefault="true"
+                    Classes="accent"
+                    Margin="0,0,0,15"
+                    Padding="20,10"/>
+            <Button Content="Add a new account"
+                    Command="{Binding NewAccountCommand}"
+                    HorizontalAlignment="Center"
+                    Classes="hyperlink"/>
+        </StackPanel>
+    </DockPanel>
+</UserControl>

@@ -4,6 +4,15 @@ If you work with multiple different identities on a single Git hosting service,
 you may be wondering if Git Credential Manager (GCM) supports this workflow. The
 answer is yes, with a bit of complexity due to how it interoperates with Git.
 
+---
+
+**Prompted to select an account?**
+
+Read the [**TL;DR** section][tldr] below for a quick summary of how to make GCM
+remember which account to use for which repository.
+
+---
+
 ## Foundations: Git and Git hosts
 
 Git itself doesn't have a single, strong concept of "user". There's the
@@ -79,3 +88,35 @@ git remote set-url origin https://employee9999@example.com/big-company/secret-re
 which you should also be aware of if you're using it.
 
 [azure-access-tokens]: azrepos-users-and-tokens.md
+
+## GitHub
+
+You can use the `github [list | login | logout]` commands to manage your GitHub
+accounts. These commands are documented in the [command-line usage][cli-usage]
+or by running `git-credential-manager github --help`.
+
+## TL;DR: Tell GCM to remember which account to use
+
+The easiest way to have GCM remember which account to use for which repository
+is to include the account name in the remote URL. If you're using HTTPS remotes,
+you can include the account name in the URL by inserting it before the `@` sign
+in the domain name.
+
+For example, if you want to always use the `alice` account for the `mona/test`
+GitHub repository, you can clone it using the `alice` account by running:
+
+```shell
+git clone https://alice@github.com/mona/test
+```
+
+To update an existing clone, you can run `git remote set-url` to update the URL:
+
+```shell
+git remote set-url origin https://alice@github.com/mona/test
+```
+
+If your account name includes an `@` then remember to escape this character
+using `%40`: `https://alice%40contoso.com@example.com/test`.
+
+[tldr]: #tldr-tell-gcm-to-remember-which-account-to-use
+[cli-usage]: usage.md

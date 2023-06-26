@@ -171,6 +171,7 @@ namespace GitCredentialManager
                 public const string SslVerify = "sslVerify";
                 public const string SslCaInfo = "sslCAInfo";
                 public const string SslAutoClientCert = "sslAutoClientCert";
+                public const string CookieFile = "cookieFile";
             }
 
             public static class Remote
@@ -211,6 +212,7 @@ namespace GitCredentialManager
             public const string GcmAutoDetect          = "https://aka.ms/gcm/autodetect";
             public const string GcmExecRename          = "https://aka.ms/gcm/rename";
             public const string GcmDefaultAccount      = "https://aka.ms/gcm/defaultaccount";
+            public const string GcmMultipleUsers       = "https://aka.ms/gcm/multipleusers";
         }
 
         private static Version _gcmVersion;

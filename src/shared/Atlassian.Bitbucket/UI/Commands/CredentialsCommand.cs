@@ -15,23 +15,19 @@ namespace Atlassian.Bitbucket.UI.Commands
         protected CredentialsCommand(ICommandContext context)
             : base(context, "prompt", "Show authentication prompt.")
         {
-            AddOption(
-                new Option<string>("--url", "Bitbucket Server or Data Center URL")
-            );
+            var url = new Option<Uri>("--url", "Bitbucket Server or Data Center URL");
+            AddOption(url);
 
-            AddOption(
-                new Option<string>("--username", "Username or email.")
-            );
+            var userName = new Option<string>("--username", "Username or email.");
+            AddOption(userName);
 
-            AddOption(
-                new Option("--show-oauth", "Show OAuth option.")
-            );
+            var oauth = new Option<bool>("--show-oauth", "Show OAuth option.");
+            AddOption(oauth);
 
-            AddOption(
-                new Option("--show-basic", "Show username/password option.")
-            );
+            var basic = new Option<bool>("--show-basic", "Show username/password option.");
+            AddOption(basic);
 
-            Handler = CommandHandler.Create<Uri, string, bool, bool>(ExecuteAsync);
+            this.SetHandler(ExecuteAsync, url, userName, oauth, basic);
         }
 
         private async Task<int> ExecuteAsync(Uri url, string userName, bool showOAuth, bool showBasic)

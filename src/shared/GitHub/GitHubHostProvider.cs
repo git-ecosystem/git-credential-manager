@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using GitHub.Diagnostics;
@@ -9,7 +10,7 @@ using GitCredentialManager.Diagnostics;
 
 namespace GitHub
 {
-    public class GitHubHostProvider : HostProvider, IDiagnosticProvider
+    public partial class GitHubHostProvider : DisposableObject, IHostProvider, IDiagnosticProvider
     {
         private static readonly string[] GitHubOAuthScopes =
         {
@@ -26,27 +27,29 @@ namespace GitHub
 
         private readonly IGitHubRestApi _gitHubApi;
         private readonly IGitHubAuthentication _gitHubAuth;
+        private readonly ICommandContext _context;
 
         public GitHubHostProvider(ICommandContext context)
             : this(context, new GitHubRestApi(context), new GitHubAuthentication(context)) { }
 
         public GitHubHostProvider(ICommandContext context, IGitHubRestApi gitHubApi, IGitHubAuthentication gitHubAuth)
-            : base(context)
         {
+            EnsureArgument.NotNull(context, nameof(context));
             EnsureArgument.NotNull(gitHubApi, nameof(gitHubApi));
             EnsureArgument.NotNull(gitHubAuth, nameof(gitHubAuth));
 
+            _context = context;
             _gitHubApi = gitHubApi;
             _gitHubAuth = gitHubAuth;
         }
 
-        public override string Id => "github";
+        public string Id => "github";
 
-        public override string Name => "GitHub";
+        public string Name => "GitHub";
 
-        public override IEnumerable<string> SupportedAuthorityIds => GitHubAuthentication.AuthorityIds;
+        public IEnumerable<string> SupportedAuthorityIds => GitHubAuthentication.AuthorityIds;
 
-        public override bool IsSupported(InputArguments input)
+        public bool IsSupported(InputArguments input)
         {
             if (input is null)
             {
@@ -94,7 +97,7 @@ namespace GitHub
             return false;
         }
 
-        public override bool IsSupported(HttpResponseMessage response)
+        public bool IsSupported(HttpResponseMessage response)
         {
             if (response is null)
             {
@@ -105,10 +108,16 @@ namespace GitHub
             return response.Headers.Contains("X-GitHub-Request-Id");
         }
 
-        public override string GetServiceName(InputArguments input)
+        internal static /* for testing purposes */ string GetServiceName(InputArguments input)
         {
-            var baseUri = new Uri(base.GetServiceName(input));
+            // Get the remote URI without user information
+            var baseUri = input.GetRemoteUri(includeUser: false);
 
+            return GetServiceName(baseUri);
+        }
+
+        private static string GetServiceName(Uri baseUri)
+        {
             // Normalise the URI
             string url = NormalizeUri(baseUri).AbsoluteUri;
 
@@ -116,24 +125,177 @@ namespace GitHub
             return url.TrimEnd('/');
         }
 
-        public override async Task<ICredential> GenerateCredentialAsync(InputArguments input)
+        public async Task<ICredential> GetCredentialAsync(InputArguments input)
+        {
+            string service = GetServiceName(input);
+            Uri remoteUri = input.GetRemoteUri();
+
+            // If we have a specific username then we can try and find an existing credential for that account.
+            // If not, we should check what accounts are available in the store and prompt the user if there
+            // are multiple options.
+            string userName = input.UserName;
+            bool addAccount = false;
+            bool filtered = false;
+            if (string.IsNullOrWhiteSpace(userName))
+            {
+                IList<string> accounts = _context.CredentialStore.GetAccounts(service);
+                _context.Trace.WriteLine($"Found {accounts.Count} accounts in the store for service={service}{(accounts.Count > 0 ? ":" : ".")}");
+                foreach (string account in accounts)
+                {
+                    _context.Trace.WriteLine($"  {account}");
+                }
+
+                filtered = FilterAccounts(remoteUri, input.WwwAuth, ref accounts);
+
+                switch (accounts.Count)
+                {
+                    case 1:
+                        _context.Trace.WriteLine("Only one account available - using that one!");
+                        userName = accounts[0];
+                        break;
+
+                    case > 1:
+                        _context.Trace.WriteLine("Multiple accounts available - prompting user to select one...");
+                        userName = await _gitHubAuth.SelectAccountAsync(remoteUri, accounts);
+                        addAccount = userName is null;
+                        break;
+                }
+            }
+
+            // Always try and locate an existing credential in the OS credential store unless we're being
+            // told to explicitly add a new account OR have specifically filtered out irrelevant accounts.
+            // If the account lookup failed for another reason we should still try to lookup an existing credential.
+            ICredential credential = null;
+            if (addAccount)
+            {
+                _context.Trace.WriteLine("Adding a new account!");
+            }
+            else if (!string.IsNullOrWhiteSpace(userName) || !filtered)
+            {
+                _context.Trace.WriteLine($"Looking for existing credential in store with service={service} account={userName}...");
+                credential = _context.CredentialStore.Get(service, userName);
+            }
+
+            if (credential == null)
+            {
+                _context.Trace.WriteLine("No existing credentials found.");
+
+                // No existing credential was found, create a new one
+                _context.Trace.WriteLine("Creating new credential...");
+                credential = await GenerateCredentialAsync(remoteUri, userName);
+                _context.Trace.WriteLine("Credential created.");
+            }
+            else
+            {
+                _context.Trace.WriteLine("Existing credential found.");
+            }
+
+            return credential;
+        }
+
+        private bool FilterAccounts(Uri remoteUri, IEnumerable<string> wwwAuth, ref IList<string> accounts)
+        {
+            if (!IsGitHubDotCom(remoteUri))
+            {
+                _context.Trace.WriteLine("No account filtering outside of GitHub.com.");
+            }
+
+            // Allow the user to disable account filtering until this feature stabilises.
+            // Default to enabled.
+            bool enableFiltering = !_context.Settings.TryGetSetting(
+                GitHubConstants.EnvironmentVariables.AccountFiltering,
+                Constants.GitConfiguration.Credential.SectionName,
+                GitHubConstants.GitConfiguration.Credential.AccountFiltering,
+                out string enableFilteringStr
+            ) || enableFilteringStr.ToBooleanyOrDefault(true);
+
+            if (!enableFiltering)
+            {
+                _context.Trace.WriteLine("Account filtering is disabled.");
+                return false;
+            }
+
+            _context.Trace.WriteLine("Account filtering is enabled.");
+
+            // If we have a WWW-Authenticate header then we can try and use any domain hint information
+            // to filter the list of accounts to only those that are valid for that domain.
+            // We only expect one challenge header to be returned, but if we're given more we just select the first.
+            GitHubAuthChallenge authChallenge = GitHubAuthChallenge.FromHeaders(wwwAuth).FirstOrDefault();
+            if (authChallenge is not null)
+            {
+                _context.Trace.WriteLine("Filtering based on WWW-Authenticate header information...");
+                accounts = accounts.Where(authChallenge.IsDomainMember).ToList();
+
+                _context.Trace.WriteLine(string.IsNullOrWhiteSpace(authChallenge.Domain)
+                    ? $"Matched {accounts.Count} accounts with public domain:"
+                    : $"Matched {accounts.Count} accounts with domain={authChallenge.Domain}:");
+                foreach (string account in accounts)
+                {
+                    _context.Trace.WriteLine($"  {account}");
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+
+        public virtual Task StoreCredentialAsync(InputArguments input)
+        {
+            string service = GetServiceName(input);
+
+            // WIA-authentication is signaled to Git as an empty username/password pair
+            // and we will get called to 'store' these WIA credentials.
+            // We avoid storing empty credentials.
+            if (string.IsNullOrWhiteSpace(input.UserName) && string.IsNullOrWhiteSpace(input.Password))
+            {
+                _context.Trace.WriteLine("Not storing empty credential.");
+            }
+            else
+            {
+                // Add or update the credential in the store.
+                _context.Trace.WriteLine($"Storing credential with service={service} account={input.UserName}...");
+                _context.CredentialStore.AddOrUpdate(service, input.UserName, input.Password);
+                _context.Trace.WriteLine("Credential was successfully stored.");
+            }
+
+            return Task.CompletedTask;
+        }
+
+        public virtual Task EraseCredentialAsync(InputArguments input)
+        {
+            string service = GetServiceName(input);
+
+            // Try to locate an existing credential
+            _context.Trace.WriteLine($"Erasing stored credential in store with service={service} account={input.UserName}...");
+            if (_context.CredentialStore.Remove(service, input.UserName))
+            {
+                _context.Trace.WriteLine("Credential was successfully erased.");
+            }
+            else
+            {
+                _context.Trace.WriteLine("No credential was erased.");
+            }
+
+            return Task.CompletedTask;
+        }
+
+        internal /* for testing purposes */  async Task<ICredential> GenerateCredentialAsync(Uri remoteUri, string userName)
         {
             ThrowIfDisposed();
 
             // We should not allow unencrypted communication and should inform the user
-            if (StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "http"))
+            if (StringComparer.OrdinalIgnoreCase.Equals(remoteUri.Scheme, "http"))
             {
-                throw new Trace2Exception(Context.Trace2,
+                throw new Trace2Exception(_context.Trace2,
                     "Unencrypted HTTP is not supported for GitHub. Ensure the repository remote URL is using HTTPS.");
             }
 
-            Uri remoteUri = input.GetRemoteUri();
-
-            string service = GetServiceName(input);
+            string service = GetServiceName(remoteUri);
 
             AuthenticationModes authModes = await GetSupportedAuthenticationModesAsync(remoteUri);
 
-            AuthenticationPromptResult promptResult = await _gitHubAuth.GetAuthenticationAsync(remoteUri, input.UserName, authModes);
+            AuthenticationPromptResult promptResult = await _gitHubAuth.GetAuthenticationAsync(remoteUri, userName, authModes);
 
             switch (promptResult.AuthenticationMode)
             {
@@ -147,14 +309,14 @@ namespace GitHub
                     // We must store the PAT now so they can resume/repeat the operation with the same,
                     // now SSO authorized, PAT.
                     // See: https://github.com/git-ecosystem/git-credential-manager/issues/133
-                    Context.CredentialStore.AddOrUpdate(service, patCredential.Account, patCredential.Password);
+                    _context.CredentialStore.AddOrUpdate(service, patCredential.Account, patCredential.Password);
                     return patCredential;
 
                 case AuthenticationModes.Browser:
-                    return await GenerateOAuthCredentialAsync(remoteUri, loginHint: input.UserName, useBrowser: true);
+                    return await GenerateOAuthCredentialAsync(remoteUri, loginHint: userName, useBrowser: true);
 
                 case AuthenticationModes.Device:
-                    return await GenerateOAuthCredentialAsync(remoteUri, loginHint: input.UserName, useBrowser: false);
+                    return await GenerateOAuthCredentialAsync(remoteUri, loginHint: userName, useBrowser: false);
 
                 case AuthenticationModes.Pat:
                     // The token returned by the user should be good to use directly as the password for Git
@@ -163,7 +325,7 @@ namespace GitHub
                     // Resolve the GitHub user handle if we don't have a specific username already from the
                     // initial request. The reason for this is GitHub requires a (any?) value for the username
                     // when Git makes calls to GitHub.
-                    string userName = promptResult.Credential.Account;
+                    userName = promptResult.Credential.Account;
                     if (userName is null)
                     {
                         GitHubUserInfo userInfo = await _gitHubApi.GetUserInfoAsync(remoteUri, token);
@@ -198,7 +360,7 @@ namespace GitHub
 
             if (result.Type == GitHubAuthenticationResultType.Success)
             {
-                Context.Trace.WriteLine($"Token acquisition for '{targetUri}' succeeded");
+                _context.Trace.WriteLine($"Token acquisition for '{targetUri}' succeeded");
 
                 token = result.Token;
             }
@@ -213,7 +375,7 @@ namespace GitHub
 
                 if (result.Type == GitHubAuthenticationResultType.Success)
                 {
-                    Context.Trace.WriteLine($"Token acquisition for '{targetUri}' succeeded.");
+                    _context.Trace.WriteLine($"Token acquisition for '{targetUri}' succeeded.");
 
                     token = result.Token;
                 }
@@ -229,25 +391,25 @@ namespace GitHub
 
             var format = "Interactive logon for '{0}' failed.";
             var message = string.Format(format, targetUri);
-            throw new Trace2Exception(Context.Trace2, message, format);
+            throw new Trace2Exception(_context.Trace2, message, format);
         }
 
         internal async Task<AuthenticationModes> GetSupportedAuthenticationModesAsync(Uri targetUri)
         {
             // Check for an explicit override for supported authentication modes
-            if (Context.Settings.TryGetSetting(
+            if (_context.Settings.TryGetSetting(
                 GitHubConstants.EnvironmentVariables.AuthenticationModes,
                 Constants.GitConfiguration.Credential.SectionName, GitHubConstants.GitConfiguration.Credential.AuthenticationModes,
                 out string authModesStr))
             {
                 if (Enum.TryParse(authModesStr, true, out AuthenticationModes authModes) && authModes != AuthenticationModes.None)
                 {
-                    Context.Trace.WriteLine($"Supported authentication modes override present: {authModes}");
+                    _context.Trace.WriteLine($"Supported authentication modes override present: {authModes}");
                     return authModes;
                 }
                 else
                 {
-                    Context.Trace.WriteLine($"Invalid value for supported authentication modes override setting: '{authModesStr}'");
+                    _context.Trace.WriteLine($"Invalid value for supported authentication modes override setting: '{authModesStr}'");
                 }
             }
 
@@ -255,12 +417,12 @@ namespace GitHub
             // https://developer.github.com/changes/2020-02-14-deprecating-oauth-auth-endpoint
             if (IsGitHubDotCom(targetUri))
             {
-                Context.Trace.WriteLine($"{targetUri} is github.com - authentication schemes: '{GitHubConstants.DotComAuthenticationModes}'");
+                _context.Trace.WriteLine($"{targetUri} is github.com - authentication schemes: '{GitHubConstants.DotComAuthenticationModes}'");
                 return GitHubConstants.DotComAuthenticationModes;
             }
 
             // For GitHub Enterprise we must do some detection of supported modes
-            Context.Trace.WriteLine($"{targetUri} is GitHub Enterprise - checking for supported authentication schemes...");
+            _context.Trace.WriteLine($"{targetUri} is GitHub Enterprise - checking for supported authentication schemes...");
 
             try
             {
@@ -283,7 +445,7 @@ namespace GitHub
                     modes |= AuthenticationModes.OAuth;
                 }
 
-                Context.Trace.WriteLine($"GitHub Enterprise instance has version '{metaInfo.InstalledVersion}' and supports authentication schemes: {modes}");
+                _context.Trace.WriteLine($"GitHub Enterprise instance has version '{metaInfo.InstalledVersion}' and supports authentication schemes: {modes}");
                 return modes;
             }
             catch (Exception ex)
@@ -291,11 +453,11 @@ namespace GitHub
                 var format = "Failed to query '{0}' for supported authentication schemes.";
                 var message = string.Format(format, targetUri);
 
-                Context.Trace.WriteLine(message);
-                Context.Trace.WriteException(ex);
-                Context.Trace2.WriteError(message, format);
+                _context.Trace.WriteLine(message);
+                _context.Trace.WriteException(ex);
+                _context.Trace2.WriteError(message, format);
 
-                Context.Terminal.WriteLine($"warning: {message}");
+                _context.Terminal.WriteLine($"warning: {message}");
 
                 // Fall-back to offering all modes so the user is never blocked from authenticating by at least one mode
                 return AuthenticationModes.All;
@@ -311,7 +473,7 @@ namespace GitHub
 
         public IEnumerable<IDiagnostic> GetDiagnostics()
         {
-            yield return new GitHubApiDiagnostic(_gitHubApi, Context);
+            yield return new GitHubApiDiagnostic(_gitHubApi, _context);
         }
 
         #region Private Methods

@@ -43,6 +43,8 @@ namespace GitCredentialManager.Tests.Objects
 
         public string CustomCertificateBundlePath { get; set; }
 
+        public string CustomCookieFilePath { get; set; }
+
         public TlsBackend TlsBackend { get; set; }
 
         public bool UseCustomCertificateBundleWithSchannel { get; set; }
@@ -136,7 +138,11 @@ namespace GitCredentialManager.Tests.Objects
 
         bool ISettings.IsTerminalPromptsEnabled => IsTerminalPromptsEnabled;
 
-        bool ISettings.IsGuiPromptsEnabled => IsGuiPromptsEnabled;
+        bool ISettings.IsGuiPromptsEnabled
+        {
+            get => IsGuiPromptsEnabled;
+            set => IsGuiPromptsEnabled = value;
+        }
 
         bool ISettings.IsInteractionAllowed => IsInteractionAllowed;
 
@@ -170,6 +176,8 @@ namespace GitCredentialManager.Tests.Objects
         string ISettings.CredentialBackingStore => CredentialBackingStore;
 
         string ISettings.CustomCertificateBundlePath => CustomCertificateBundlePath;
+
+        string ISettings.CustomCookieFilePath => CustomCookieFilePath;
 
         TlsBackend ISettings.TlsBackend => TlsBackend;
 

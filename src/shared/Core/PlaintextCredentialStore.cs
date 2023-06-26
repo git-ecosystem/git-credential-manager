@@ -23,6 +23,11 @@ namespace GitCredentialManager
         protected string Namespace { get; }
         protected virtual string CredentialFileExtension => ".credential";
 
+        public IList<string> GetAccounts(string service)
+        {
+            return Enumerate(service, null).Select(x => x.Account).ToList();
+        }
+
         public ICredential Get(string service, string account)
         {
             return Enumerate(service, account).FirstOrDefault();

@@ -5,7 +5,7 @@ using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using GitCredentialManager.Authentication.OAuth.Json;
-using Newtonsoft.Json;
+using System.Text.Json;
 
 namespace GitCredentialManager.Authentication.OAuth
 {
@@ -138,7 +138,10 @@ namespace GitCredentialManager.Authentication.OAuth
             if (_redirectUri != null)
             {
                 redirectUri = browser.UpdateRedirectUri(_redirectUri);
-                queryParams[OAuth2Constants.RedirectUriParameter] = redirectUri.ToString();
+
+                // We must use the .OriginalString property here over .ToString() because OAuth requires the redirect
+                // URLs to be compared exactly, respecting missing/present trailing slashes, byte-for-byte.
+                queryParams[OAuth2Constants.RedirectUriParameter] = redirectUri.OriginalString;
             }
 
             string scopesStr = string.Join(" ", scopes);
@@ -235,7 +238,7 @@ namespace GitCredentialManager.Authentication.OAuth
 
             if (authorizationCodeResult.RedirectUri != null)
             {
-                formData[OAuth2Constants.RedirectUriParameter] = authorizationCodeResult.RedirectUri.ToString();
+                formData[OAuth2Constants.RedirectUriParameter] = authorizationCodeResult.RedirectUri.OriginalString;
             }
 
             if (authorizationCodeResult.CodeVerifier != null)
@@ -318,7 +321,10 @@ namespace GitCredentialManager.Authentication.OAuth
                             return result;
                         }
 
-                        var error = JsonConvert.DeserializeObject<ErrorResponseJson>(json);
+                        var error = JsonSerializer.Deserialize<ErrorResponseJson>(json, new JsonSerializerOptions
+                        {
+                            PropertyNameCaseInsensitive = true
+                        });
 
                         switch (error.Error)
                         {
@@ -408,7 +414,7 @@ namespace GitCredentialManager.Authentication.OAuth
         {
             try
             {
-                obj = JsonConvert.DeserializeObject<T>(json);
+                obj = JsonSerializer.Deserialize<T>(json);
                 return true;
             }
             catch

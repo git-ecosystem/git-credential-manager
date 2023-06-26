@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace GitCredentialManager
@@ -21,6 +22,25 @@ namespace GitCredentialManager
         }
 
         #region ICredentialStore
+
+        public IList<string> GetAccounts(string service)
+        {
+            // Listing accounts is not supported by the credential-cache store so we just attempt to retrieve
+            // the username from first credential for the given service and return an empty list if it fails.
+            var input = MakeGitCredentialsEntry(service, null);
+
+            var result = _git.InvokeHelperAsync(
+                $"credential-cache get {_options}",
+                input
+            ).GetAwaiter().GetResult();
+
+            if (result.TryGetValue("username", out string value))
+            {
+                return new List<string> { value };
+            }
+
+            return Array.Empty<string>();
+        }
 
         public ICredential Get(string service, string account)
         {

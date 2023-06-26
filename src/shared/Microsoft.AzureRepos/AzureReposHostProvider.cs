@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.CommandLine;
-using System.CommandLine.Invocation;
 using System.Linq;
 using System.Net.Http;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using GitCredentialManager;
 using GitCredentialManager.Authentication;
@@ -75,10 +75,9 @@ namespace Microsoft.AzureRepos
 
         public async Task<ICredential> GetCredentialAsync(InputArguments input)
         {
-            Uri remoteUri = input.GetRemoteUri();
-
             if (UsePersonalAccessTokens())
             {
+                Uri remoteUri = input.GetRemoteUri();
                 string service = GetServiceName(remoteUri);
                 string account = GetAccountNameForCredentialQuery(input);
 
@@ -105,7 +104,7 @@ namespace Microsoft.AzureRepos
             {
                 // Include the username request here so that we may use it as an override
                 // for user account lookups when getting Azure Access Tokens.
-                var azureResult = await GetAzureAccessTokenAsync(remoteUri, input.UserName);
+                var azureResult = await GetAzureAccessTokenAsync(input);
                 return new GitCredential(azureResult.AccountUpn, azureResult.AccessToken);
             }
         }
@@ -223,8 +222,11 @@ namespace Microsoft.AzureRepos
             return new GitCredential(result.AccountUpn, pat);
         }
 
-        private async Task<IMicrosoftAuthenticationResult> GetAzureAccessTokenAsync(Uri remoteUri, string userName)
+        private async Task<IMicrosoftAuthenticationResult> GetAzureAccessTokenAsync(InputArguments input)
         {
+            Uri remoteUri = input.GetRemoteUri();
+            string userName = input.UserName;
+
             // We should not allow unencrypted communication and should inform the user
             if (StringComparer.OrdinalIgnoreCase.Equals(remoteUri.Scheme, "http"))
             {
@@ -235,14 +237,27 @@ namespace Microsoft.AzureRepos
             Uri orgUri = UriHelpers.CreateOrganizationUri(remoteUri, out string orgName);
 
             _context.Trace.WriteLine($"Determining Microsoft Authentication authority for Azure DevOps organization '{orgName}'...");
-            string authAuthority = _authorityCache.GetAuthority(orgName);
-            if (authAuthority is null)
+            if (TryGetAuthorityFromHeaders(input.WwwAuth, out string authAuthority))
             {
-                // If there is no cached value we must query for it and cache it for future use
-                _context.Trace.WriteLine($"No cached authority value - querying {orgUri} for authority...");
-                authAuthority = await _azDevOps.GetAuthorityAsync(orgUri);
-                _authorityCache.UpdateAuthority(orgName, authAuthority);
+                _context.Trace.WriteLine("Authority was found in WWW-Authenticate headers from Git input.");
             }
+            else
+            {
+                // Try to get the authority from the cache
+                authAuthority = _authorityCache.GetAuthority(orgName);
+                if (authAuthority is null)
+                {
+                    // If there is no cached value we must query for it and cache it for future use
+                    _context.Trace.WriteLine($"No cached authority value - querying {orgUri} for authority...");
+                    authAuthority = await _azDevOps.GetAuthorityAsync(orgUri);
+                    _authorityCache.UpdateAuthority(orgName, authAuthority);
+                }
+                else
+                {
+                    _context.Trace.WriteLine("Authority was found in cache.");
+                }
+            }
+
             _context.Trace.WriteLine($"Authority is '{authAuthority}'.");
 
             //
@@ -283,6 +298,30 @@ namespace Microsoft.AzureRepos
                 $"Acquired Azure access token. Account='{result.AccountUpn}' Token='{{0}}'", new object[] {result.AccessToken});
 
             return result;
+        }
+
+        internal /* for testing purposes */ static bool TryGetAuthorityFromHeaders(IEnumerable<string> headers, out string authority)
+        {
+            authority = null;
+
+            if (headers is null)
+            {
+                return false;
+            }
+
+            var regex = new Regex(@"authorization_uri=""?(?<authority>.+)""?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+            foreach (string header in headers)
+            {
+                Match match = regex.Match(header);
+                if (match.Success)
+                {
+                    authority = match.Groups["authority"].Value.Trim(new[] { '"', '\'' });
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private string GetClientId()
@@ -479,60 +518,58 @@ namespace Microsoft.AzureRepos
 
         ProviderCommand ICommandProvider.CreateCommand()
         {
-            var clearCacheCmd = new Command("clear-cache")
-            {
-                Description = "Clear the Azure authority cache",
-                Handler = CommandHandler.Create(ClearCacheCmd),
-            };
+            //
+            // clear-cache
+            //
+            var clearCacheCmd = new Command("clear-cache", "Clear the Azure authority cache");
+            clearCacheCmd.SetHandler(ClearCacheCmd);
 
-            var orgArg = new Argument("organization")
+            //
+            // list <organization> [--show-remotes] [--verbose]
+            //
+            var listCmd = new Command("list", "List all user account bindings");
+            var orgFilterArg = new Argument<string>("organization", "(optional) Filter results by Azure DevOps organization name")
             {
-                Arity = ArgumentArity.ExactlyOne,
-                Description = "Azure DevOps organization name"
+                Arity = ArgumentArity.ZeroOrOne
             };
-            var localOpt = new Option("--local")
-            {
-                Description = "Target the local repository Git configuration"
-            };
-
-            var listCmd = new Command("list", "List all user account bindings")
-            {
-                Handler = CommandHandler.Create<string, bool, bool>(ListCmd)
-            };
-            listCmd.AddArgument(new Argument("organization")
-            {
-                Arity = ArgumentArity.ZeroOrOne,
-                Description = "(optional) Filter results by Azure DevOps organization name"
-            });
-            listCmd.AddOption(new Option("--show-remotes")
+            var remoteOpt = new Option<bool>("--show-remotes")
             {
                 Description = "Also show Azure DevOps remote user bindings for the current repository"
-            });
-            listCmd.AddOption(new Option(new[] {"--verbose", "-v"})
-            {
-                Description = "Verbose output - show remote URLs"
-            });
-
-            var bindCmd = new Command("bind")
-            {
-                Description = "Bind a user account to an Azure DevOps organization",
-                Handler = CommandHandler.Create<string, string, bool>(BindCmd),
             };
-            bindCmd.AddArgument(orgArg);
-            bindCmd.AddArgument(new Argument("username")
-            {
-                Arity = ArgumentArity.ExactlyOne,
-                Description = "Username or email (e.g.: alice@example.com)"
-            });
-            bindCmd.AddOption(localOpt);
+            var verboseOpt = new Option<bool>(new[] { "--verbose", "-v" }, "Verbose output - show remote URLs");
+            listCmd.AddArgument(orgFilterArg);
+            listCmd.AddOption(remoteOpt);
+            listCmd.AddOption(verboseOpt);
+            listCmd.SetHandler(ListCmd, orgFilterArg, remoteOpt, verboseOpt);
 
+            //
+            // bind <organization> <username> [--local]
+            //
+            var bindCmd = new Command("bind", "Bind a user account to an Azure DevOps organization");
+            var orgArg = new Argument<string>("organization", "Azure DevOps organization name")
+            {
+                Arity = ArgumentArity.ExactlyOne
+            };
+            var userNameArg = new Argument<string>("username", "Username or email (e.g.: alice@example.com)")
+            {
+                Arity = ArgumentArity.ExactlyOne
+            };
+            var localOpt = new Option<bool>("--local", "Target the local repository Git configuration");
+            bindCmd.AddArgument(orgArg);
+            bindCmd.AddArgument(userNameArg);
+            bindCmd.AddOption(localOpt);
+            bindCmd.SetHandler(BindCmd, orgArg, userNameArg, localOpt);
+
+            //
+            // unbind <organization> [--local]
+            //
             var unbindCmd = new Command("unbind")
             {
                 Description = "Remove user account binding for an Azure DevOps organization",
-                Handler = CommandHandler.Create<string, bool>(UnbindCmd),
             };
             unbindCmd.AddArgument(orgArg);
             unbindCmd.AddOption(localOpt);
+            unbindCmd.SetHandler(UnbindCmd, orgArg, localOpt);
 
             var rootCmd = new ProviderCommand(this);
             rootCmd.AddCommand(listCmd);
@@ -542,11 +579,10 @@ namespace Microsoft.AzureRepos
             return rootCmd;
         }
 
-        private int ClearCacheCmd()
+        private void ClearCacheCmd()
         {
             _authorityCache.Clear();
             _context.Streams.Out.WriteLine("Authority cache cleared");
-            return 0;
         }
 
         private class RemoteBinding
@@ -556,7 +592,7 @@ namespace Microsoft.AzureRepos
             public Uri Uri { get; set; }
         }
 
-        private int ListCmd(string organization, bool showRemotes, bool verbose)
+        private void ListCmd(string organization, bool showRemotes, bool verbose)
         {
             // Get all organization bindings from the user manager
             IList<AzureReposBinding> bindings = _bindingManager.GetBindings(organization).ToList();
@@ -664,32 +700,30 @@ namespace Microsoft.AzureRepos
                     }
                 }
             }
-
-            return 0;
         }
 
-        private int BindCmd(string organization, string userName, bool local)
+        private Task<int> BindCmd(string organization, string userName, bool local)
         {
             if (local && !_context.Git.IsInsideRepository())
             {
                 _context.Streams.Error.WriteLine("error: not inside a git repository (cannot use --local)");
-                return -1;
+                return Task.FromResult(-1);
             }
 
             _bindingManager.Bind(organization, userName, local);
-            return 0;
+            return Task.FromResult(0);
         }
 
-        private int UnbindCmd(string organization, bool local)
+        private Task<int> UnbindCmd(string organization, bool local)
         {
             if (local && !_context.Git.IsInsideRepository())
             {
                 _context.Streams.Error.WriteLine("error: not inside a git repository (cannot use --local)");
-                return -1;
+                return Task.FromResult(-1);
             }
 
             _bindingManager.Unbind(organization, local);
-            return 0;
+            return Task.FromResult(0);
         }
 
         #endregion

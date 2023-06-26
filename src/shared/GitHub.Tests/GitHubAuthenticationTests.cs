@@ -88,7 +88,7 @@ namespace GitHub.Tests
             context.SessionManager.IsDesktopSession = true;
             context.Environment.Variables[GitHubConstants.EnvironmentVariables.AuthenticationHelper] = helperPath;
             var auth = new Mock<GitHubAuthentication>(MockBehavior.Strict, context);
-            auth.Setup(x => x.InvokeHelperAsync(It.IsAny<string>(), "prompt --all", It.IsAny<IDictionary<string, string>>(), It.IsAny<System.Threading.CancellationToken>()))
+            auth.Setup(x => x.InvokeHelperAsync(It.IsAny<string>(), "prompt --all", It.IsAny<StreamReader>(), It.IsAny<System.Threading.CancellationToken>()))
             .Returns(Task.FromResult<IDictionary<string, string>>(
                 new Dictionary<string, string>
                 {
