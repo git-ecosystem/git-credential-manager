@@ -3,12 +3,8 @@
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <InstallFromSource>false</InstallFromSource>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,9 +18,9 @@
   <!-- Implicit SDK targets import (so we can override the default targets below) -->
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 
-  <Target Name="CoreCompile" Condition="'$(OSPlatform)'=='linux'">
-    <Message Text="$(MSBuildProjectDirectory)\build.sh --install-from-source=$(InstallFromSource) --configuration='$(Configuration)' --version='$(Version)'" Importance="High" />
-    <Exec Command="$(MSBuildProjectDirectory)\build.sh --install-from-source=$(InstallFromSource) --configuration='$(Configuration)' --version='$(Version)'" />
+  <Target Name="CoreCompile" DependsOnTargets="GetBuildVersion" Condition="'$(OSPlatform)'=='linux'">
+    <Message Text="$(MSBuildProjectDirectory)\build.sh --configuration='$(Configuration)' --version='$(BuildVersion)' --runtime='$(RuntimeIdentifier)'" Importance="High" />
+    <Exec Command="$(MSBuildProjectDirectory)\build.sh --configuration='$(Configuration)' --version='$(BuildVersion)' --runtime='$(RuntimeIdentifier)'" />
   </Target>
 
   <Target Name="CoreClean">

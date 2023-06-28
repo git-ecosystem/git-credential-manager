@@ -4,15 +4,21 @@ die () {
     exit 1
 }
 
-echo "Building Packaging.Linux..."
+make_absolute () {
+    case "$1" in
+    /*)
+        echo "$1"
+        ;;
+    *)
+        echo "$PWD/$1"
+        ;;
+    esac
+}
 
-# Directories
-THISDIR="$( cd "$(dirname "$0")" ; pwd -P )"
-ROOT="$( cd "$THISDIR"/../../.. ; pwd -P )"
-SRC="$ROOT/src"
-OUT="$ROOT/out"
-INSTALLER_SRC="$SRC/linux/Packaging.Linux"
-INSTALLER_OUT="$OUT/linux/Packaging.Linux"
+#####################################################################
+# Building
+#####################################################################
+echo "Building Packaging.Linux..."
 
 # Parse script arguments
 for i in "$@"
@@ -26,8 +32,8 @@ case "$i" in
     VERSION="${i#*=}"
     shift # past argument=value
     ;;
-    --install-from-source=*)
-    INSTALL_FROM_SOURCE="${i#*=}"
+    --runtime=*)
+    RUNTIME="${i#*=}"
     shift # past argument=value
     ;;
     *)
@@ -36,50 +42,147 @@ case "$i" in
 esac
 done
 
+# Fall back to host architecture if no explicit runtime is given.
+if test -z "$RUNTIME"; then
+    HOST_ARCH="`dpkg-architecture -q DEB_HOST_ARCH`"
+
+    case $HOST_ARCH in
+        amd64)
+            RUNTIME="linux-x64"
+            ;;
+        arm64)
+            RUNTIME="linux-arm64"
+            ;;
+        *)
+            die "Could not determine host architecture!"
+            ;;
+    esac
+fi
+
+# Directories
+THISDIR="$( cd "$(dirname "$0")" ; pwd -P )"
+ROOT="$( cd "$THISDIR"/../../.. ; pwd -P )"
+SRC="$ROOT/src"
+OUT="$ROOT/out"
+GCM_SRC="$SRC/shared/Git-Credential-Manager"
+PROJ_OUT="$OUT/linux/Packaging.Linux"
+
+# Build parameters
+FRAMEWORK=netcoreapp3.1
+case $RUNTIME in
+    linux-x64)
+        ARCH="amd64"
+        ;;
+    linux-arm64)
+        ARCH="arm64"
+        ;;
+    *)
+        die "Incompatible runtime architecture given for build.sh"
+		;;
+esac
+
+echo "Building for runtime ${RUNTIME} and arch ${ARCH}"
+
 # Perform pre-execution checks
 CONFIGURATION="${CONFIGURATION:=Debug}"
 if [ -z "$VERSION" ]; then
     die "--version was not set"
 fi
 
-OUTDIR="$INSTALLER_OUT/$CONFIGURATION"
-PAYLOAD="$OUTDIR/payload"
-SYMBOLS="$OUTDIR/payload.sym"
+# Outputs
+PAYLOAD="$PROJ_OUT/payload/$CONFIGURATION"
+SYMBOLOUT="$PROJ_OUT/payload.sym/$CONFIGURATION"
 
-# Lay out payload
-"$INSTALLER_SRC/layout.sh" --configuration="$CONFIGURATION" || exit 1
+TAROUT="$PROJ_OUT/tar/$CONFIGURATION"
+TARBALL="$TAROUT/gcmcore-linux_$ARCH.$VERSION.tar.gz"
+SYMTARBALL="$TAROUT/symbols-linux_$ARCH.$VERSION.tar.gz"
 
-if [ $INSTALL_FROM_SOURCE = true ]; then
-    INSTALL_LOCATION="/usr/local"
-    mkdir -p "$INSTALL_LOCATION"
+DEBOUT="$PROJ_OUT/deb/$CONFIGURATION"
+DEBROOT="$DEBOUT/root"
+DEBPKG="$DEBOUT/gcmcore-linux_$ARCH.$VERSION.deb"
 
-    echo "Installing..."
-
-    # Install directories
-    INSTALL_TO="$INSTALL_LOCATION/share/gcm-core/"
-    LINK_TO="$INSTALL_LOCATION/bin/"
-
-    mkdir -p "$INSTALL_TO" "$LINK_TO"
-
-    # Copy all binaries and shared libraries to target installation location
-    cp -R "$PAYLOAD"/* "$INSTALL_TO" || exit 1
-
-    # Create symlink
-    if [ ! -f "$LINK_TO/git-credential-manager" ]; then
-        ln -s -r "$INSTALL_TO/git-credential-manager" \
-            "$LINK_TO/git-credential-manager" || exit 1
-    fi
-
-    # Create legacy symlink with older name
-    if [ ! -f "$LINK_TO/git-credential-manager-core" ]; then
-        ln -s -r "$INSTALL_TO/git-credential-manager" \
-            "$LINK_TO/git-credential-manager-core" || exit 1
-    fi
-
-    echo "Install complete."
-else
-    # Pack
-    "$INSTALLER_SRC/pack.sh" --configuration="$CONFIGURATION" --payload="$PAYLOAD" --symbols="$SYMBOLS" --version="$VERSION" || exit 1
+# Cleanup payload directory
+if [ -d "$PAYLOAD" ]; then
+    echo "Cleaning existing payload directory '$PAYLOAD'..."
+    rm -rf "$PAYLOAD"
 fi
 
-echo "Build of Packaging.Linux complete."
+# Cleanup symbol directory
+if [ -d "$SYMBOLOUT" ]; then
+    echo "Cleaning existing symbols directory '$SYMBOLOUT'..."
+    rm -rf "$SYMBOLOUT"
+fi
+
+# Ensure directories exists
+mkdir -p "$PAYLOAD" "$SYMBOLOUT" "$DEBROOT"
+
+# Publish core application executables
+echo "Publishing core application..."
+dotnet publish "$GCM_SRC" \
+	--configuration="$CONFIGURATION" \
+	--framework="$FRAMEWORK" \
+	--runtime="$RUNTIME" \
+    --self-contained=true \
+    "/p:PublishSingleFile=True" \
+	--output="$(make_absolute "$PAYLOAD")" || exit 1
+
+# Collect symbols
+echo "Collecting managed symbols..."
+mv "$PAYLOAD"/*.pdb "$SYMBOLOUT" || exit 1
+
+echo "Build complete."
+
+#####################################################################
+# PACKING
+#####################################################################
+echo "Packing Packaging.Linux..."
+# Cleanup any old archive files
+if [ -e "$TAROUT" ]; then
+    echo "Deleteing old archive '$TAROUT'..."
+    rm "$TAROUT"
+fi
+
+# Ensure the parent directory for the archive exists
+mkdir -p "$TAROUT" || exit 1
+
+# Set full read, write, execute permissions for owner and just read and execute permissions for group and other
+echo "Setting file permissions..."
+/bin/chmod -R 755 "$PAYLOAD" || exit 1
+
+# Build binaries tarball
+echo "Building binaries tarball..."
+pushd "$PAYLOAD"
+tar -czvf "$TARBALL" * || exit 1
+popd
+
+# Build symbols tarball
+echo "Building symbols tarball..."
+pushd "$SYMBOLOUT"
+tar -czvf "$SYMTARBALL" * || exit 1
+popd
+
+# Build .deb
+INSTALL_TO="$DEBROOT/usr/bin/"
+mkdir -p "$DEBROOT/DEBIAN" "$INSTALL_TO" || exit 1
+
+# make the debian control file
+cat >"$DEBROOT/DEBIAN/control" <<EOF
+Package: gcmcore
+Version: $VERSION
+Section: vcs
+Priority: optional
+Architecture: $ARCH
+Depends:
+Maintainer: GCM-Core <gcmsupport@microsoft.com>
+Description: Cross Platform Git Credential Manager Core command line utility.
+ GCM Core supports authentication with a number of Git hosting providers 
+ including GitHub, BitBucket, and Azure DevOps. 
+ For more information see https://aka.ms/gcmcore
+EOF
+
+# Copy single binary to target installation location
+cp "$PAYLOAD/git-credential-manager-core" "$INSTALL_TO" || exit 1
+
+dpkg-deb --build "$DEBROOT" "$DEBPKG" || exit 1
+
+echo "Pack complete."
