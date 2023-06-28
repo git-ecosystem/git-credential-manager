@@ -1,12 +1,10 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace Microsoft.Git.CredentialManager.Tests.Objects
+namespace GitCredentialManager.Tests.Objects
 {
     public class NullTrace : ITrace
     {
@@ -40,6 +38,76 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
 
         void ITrace.WriteLineSecrets(
             string format, object[] secrets, string filePath, int lineNumber, string memberName) { }
+
+        #endregion
+
+        #region IDisposable
+
+        void IDisposable.Dispose() { }
+
+        #endregion
+    }
+
+    public class NullTrace2 : ITrace2
+    {
+        #region ITrace2
+
+        public void Initialize(DateTimeOffset startTime) { }
+
+        public void Start(string appPath,
+            string[] args,
+            string filePath = "",
+            int lineNumber = 0) { }
+
+        public void Stop(int exitCode,
+            string fileName,
+            int lineNumber) { }
+
+        public void WriteChildStart(DateTimeOffset startTime,
+            Trace2ProcessClass processClass,
+            bool useShell,
+            string appName,
+            string argv,
+            string filePath = "",
+            int lineNumber = 0) { }
+
+        public void WriteChildExit(
+            double relativeTime,
+            int pid,
+            int code,
+            string filePath = "",
+            int lineNumber = 0) { }
+
+        public void WriteError(
+            string errorMessage,
+            string parameterizedMessage = null,
+            string filePath = "",
+            int lineNumber = 0) { }
+
+        public Region CreateRegion(
+            string category,
+            string label,
+            string message = "",
+            string filePath = "",
+            int lineNumber = 0)
+        {
+            return new Region(this, category, label, filePath, lineNumber, message);
+        }
+
+        public void WriteRegionEnter(
+            string category,
+            string label,
+            string message = "",
+            string filePath = "",
+            int lineNumber = 0) { }
+
+        public void WriteRegionLeave(
+            double relativeTime,
+            string category,
+            string label,
+            string message = "",
+            string filePath = "",
+            int lineNumber = 0) { }
 
         #endregion
 

@@ -3,69 +3,65 @@
 ## Overview
 
 ```text
-+---------------------------------------------------------------------------------------------------------------------+
-|                                                                                                                     |
-|                                              Git-Credential-Manager                                                 |
-|                                                                                                                     |
-+----------------+--------------------+--------------+--------------+-----+-----------------------+-----------------+-+
-                 |                    |              |              |     |                       |                 |
-                 | Mac                |              |              |     |               Windows |         Windows |
-                 |                    |              |              |     |                       |                 |
-                 |                    |  +-----------v-----------+  |     |      +----------------v---------------+ |
-                 |                    |  |                       |  |  Windows   |                                | |
-                 |                    |  |        GitHub         <--------+------+        GitHub.UI.Windows       | |
-                 |                    |  |                       |  |     |      |                                | |
-                 |                    |  +-+---------------------+  |     |      +-+------------------------------+ |
-                 |                    |    |                        |     |        |                                |
-                 |                    |    |  +---------------------v-+   |        | +------------------------------v-+
-                 |                    |    |  |                       |   |Windows | |                                |
-                 |                    |    |  |  Atlassian.Bitbucket  <--------------+ Atlassian.Bitbucket.UI.Windows |
-                 |                    |    |  |                       |   |        | |                                |
-                 |                    |    |  +-+---------------------+   |        | +---------------+----------------+
-                 |                    |    |    |                         |        |                 |
-+----------------v----------------+   |    |    |  +----------------------v-+      |                 |
-|                                 |   |   Mac   |  |                        |      |                 |
-| Microsoft.Authentication.Helper <----------------+  Microsoft.AzureRepos  |      |                 |
-|                                 |   |    |    |  |                        |      |                 |
-+---------------------------------+   |    |    |  +-----------+------------+      |                 |
-                                      |    |    |              |                   |                 |
-                                      |    |    |              |                   |                 |
-                                      |    |    |              |                   |                 |
-                                      |    |    |              |                   |                 |
-                                    +-v----v----v--------------v------------+    +-v-----------------v----------------+
-                                    |                                       |    |                                    |
-                                    |    Microsoft.Git.CredentialManager    <----+ Microsoft.Git.CredentialManager.UI |
-                                    |                                       |    |                                    |
-                                    +---------------------------------------+    +------------------------------------+
++------------------------------------------------------------------------------+
+|                                                                              |
+|                           Git-Credential-Manager                             |
+|                                                                              |
++-+-------------+--------------+-----+---------------------+-----------------+-+
+  |             |              |     |                     |                 |
+  |             |              |     |             Windows |         Windows |
+  |             |              |     |                     |                 |
+  | +-----------v-----------+  |     |    +----------------v---------------+ |
+  | |                       |  |     |    |                                | |
+  | |        GitHub         <-------------+        GitHub.UI.Windows       | |
+  | |                       |  |     |    |                                | |
+  | +-+---------------------+  |     |    +-+------------------------------+ |
+  |   |                        |     |      |                                |
+  |   |  +---------------------v-+   |      | +------------------------------v-+
+  |   |  |                       |   |      | |                                |
+  |   |  |  Atlassian.Bitbucket  <------------+ Atlassian.Bitbucket.UI.Windows |
+  |   |  |                       |   |      | |                                |
+  |   |  +-+---------------------+   |      | +---------------+----------------+
+  |   |    |                         |      |                 |
+  |   |    |  +----------------------v-+    |                 |
+  |   |    |  |                        |    |                 |
+  |   |    |  |  Microsoft.AzureRepos  |    |                 |
+  |   |    |  |                        |    |                 |
+  |   |    |  +-----------+------------+    |                 |
+  |   |    |              |                 |                 |
++-v---v----v--------------v------------+  +-v-----------------v----------------+
+|                                      |  |                                    |
+|                 Core                 <--+               Core.UI              |
+|                                      |  |                                    |
++--------------------------------------+  +------------------------------------+
 ```
 
-Git Credential Manager Core (GCM Core) is built to be Git host and platform/OS
-agonstic. Most of the shared logic (command execution, the abstract platform
-subsystems, etc) can be found in the `Microsoft.Git.CredentialManager` class
+Git Credential Manager (GCM) is built to be Git host and platform/OS
+agnostic. Most of the shared logic (command execution, the abstract platform
+subsystems, etc) can be found in the `Core` class
 library (C#). The library targets .NET Standard as well as .NET Framework.
 
 > **Note**
 >
 > The reason for also targeting .NET Framework directly is that the
-> `Microsoft.Identity.Client` ([MSAL.NET](https://github.com/AzureAD/microsoft-authentication-library-for-dotnet))
+> `Microsoft.Identity.Client` ([MSAL.NET][msal])
 > library requires a .NET Framework target to be able to show the embedded web
 > browser auth pop-up on Windows platforms.
 >
 > There are extension points that now exist in MSAL.NET meaning we can plug-in
-> our own browser pop-up handling code on .NET Core meaning both Windows and
+> our own browser pop-up handling code on .NET meaning both Windows and
 > Mac. We haven't yet gotten around to exploring this.
 >
-> See [this](https://github.com/microsoft/Git-Credential-Manager-Core/issues/113)
-> issue for more information.
+> See [GCM issue 113][issue-113] for more information.
 
-The entry-point for GCM Core can be found in the `Git-Credential-Manager`
-project, a console application that targets both .NET Core and .NET Framework.
-This project emits the `git-credential-manager-core(.exe)` executable, and
+The entry-point for GCM can be found in the `Git-Credential-Manager`
+project, a console application that targets both .NET and .NET Framework.
+This project emits the `git-credential-manager(.exe)` executable, and
 contains very little code - registration of all supported host providers and
-running the `Application` object found in `Microsoft.Git.CredentialManager`.
+running the `Application` object found in `Core`.
 
 Providers have their own projects/assemblies that take dependencies on the
-`Microsoft.Git.CredentialManager` core assembly, and are dependents of the main
+`Core` core assembly, and are dependents of the main
 entry point application `Git-Credential-Manager`. Code in these binaries is
 expected to run on all supported platforms and typically (see MSAL.NET note
 above) does not include any graphical user interface; they use terminal prompts
@@ -77,38 +73,28 @@ the shared, core binaries shell out to. Currently the Bitbucket and GitHub
 providers each have a WPF (Windows only) helper executable that shows
 authentication prompts and messages.
 
-The `Microsoft.Git.CredentialHelper.UI` project is a WPF (Windows only) assembly
+The `Core.UI` project is a WPF (Windows only) assembly
 that contains common WPF components and styles that are shared between provider
 helpers on Windows.
 
 ### Cross-platform UI
 
-We hope to be able to migrate the WPF/Windows only helpers to [Avalonia](https://avaloniaui.net/)
-in order to gain cross-platform graphical user interface support. See [this](https://github.com/microsoft/Git-Credential-Manager-Core/issues/136)
-issue for up-to-date progress on this effort.
+We hope to be able to migrate the WPF/Windows only helpers to [Avalonia][avalonia]
+in order to gain cross-platform graphical user interface support. See
+[GCM issue 136][issue-136] for up-to-date progress on this effort.
 
 ### Microsoft authentication
 
 For authentication using Microsoft Accounts or Azure Active Directory, things
 are a little different. The `MicrosoftAuthentication` component is present in
-the core `Microsoft.Git.CredentialManager` assembly, rather than bundled with a
+the `Core` core assembly, rather than bundled with a
 specific host provider. This was done to allow any service that may wish to in
 the future integrate with Microsoft Accounts or Azure Active Directory can make
 use of this reusable authentication component.
 
-Since MSAL.NET includes embedded GUI on Windows (when targeting .NET Framework
-only - see note above) we have no helper executable on Windows. However, on
-macOS the `MicrosoftAuthentication` component shells out to a native macOS
-helper that completely takes over all authentication flows using the older ADAL
-Objective-C library. This was done because MSAL.NET does not offer the same level
-of integration for [MDM](https://en.wikipedia.org/wiki/Mobile_device_management)
-purposes, as well as lacking an embedded UI on non-Windows platforms. As
-MSAL.NET continues to evolve we hope to replace the ADAL/macOS helper
-altogether.
-
 ## Asynchronous programming
 
-GCM Core makes use of the `async`/`await` model of .NET and C# in almost all
+GCM makes use of the `async`/`await` model of .NET and C# in almost all
 parts of the codebase where appropriate as usually requests end up going to the
 network at some point.
 
@@ -155,19 +141,19 @@ network at some point.
                              +---------------+
 ```
 
-Git Credential Manager Core maintains a set of known commands including
+Git Credential Manager maintains a set of known commands including
 `Get|Store|EraseCommand`, as well as commands for install and help/usage.
 
-GCM Core also maintains a set of known, registered host providers that implement
+GCM also maintains a set of known, registered host providers that implement
 the `IHostProvider` interface. Providers register themselves by adding an
 instance of the provider to the `Application` object via the `RegisterProvider`
-method [in `Microsoft.Git.CredentialManager.Program`](../src/shared/Git-Credential-Manager/Program.cs).
+method in [`Core.Program`][core-program].
 The `GenericHostProvider` is registered last so that it can handle all other
 HTTP-based remotes as a catch-all, and provide basic username/password auth and
 detect the presence of Windows Integrated Authentication (Kerberos, NTLM,
 Negotiate) support (1).
 
-For each invocation of GCM Core, the first argument on the command-line is
+For each invocation of GCM, the first argument on the command-line is
 matched against the known commands and if there is a successful match, the input
 from Git (over standard input) is deserialized and the command is executed (2).
 
@@ -175,8 +161,8 @@ The `Get|Store|EraseCommand`s consult the host provider registry for the most
 appropriate host provider. The default registry implementation select the a host
 provider by asking each registered provider in turn if they understand the
 request. The provider selection can be overridden by the user via the
-[`credential.provider`](configuration.md#credentialprovider) or [`GCM_PROVIDER`](environment.md#GCM_PROVIDER)
-configuration and environment variable respectively (3)).
+[`credential.provider`][credential-provider] or [`GCM_PROVIDER`][gcm-provider]
+configuration and environment variable respectively (3).
 
 The `Get|Store|EraseCommand`s call the corresponding
 `Get|Store|EraseCredentialAsync` methods on the `IHostProvider`, passing the
@@ -187,7 +173,7 @@ context to complete the requested operation (5).
 Once a credential has been created, retrieved, stored or erased, the host
 provider returns the credential (for `get` operations only) to the calling
 command (6). The credential is then serialized and returned to Git over standard
-output (7) and GCM Core terminates with a successful exit code.
+output (7) and GCM terminates with a successful exit code.
 
 ## Host provider
 
@@ -215,12 +201,19 @@ providers. It returns the computed remote URL (without a trailing slash) from
 the input arguments from Git - `<protocol>://<host>[/<path>]` - no username is
 included even if present.
 
-Host providers are queried in turn (registration order) via the
-`IHostProvider.IsSupported` method and passed the input received from Git. If
-the provider recognises the request, for example by a matching known host name,
-they can return `true`. If the provider wants to cancel and abort an
-authentication request, for example if this is a HTTP (not HTTPS) request for a
-known host, they should still return `true` and later cancel the request.
+Host providers are queried in turn, by priority (then registration order) via
+the `IHostProvider.IsSupported(InputArguments)` method and passed the input
+received from Git. If the provider recognises the request, for example by a
+matching known host name, they can return `true`. If the provider wants to
+cancel and abort an authentication request, for example if this is a HTTP (not
+HTTPS) request for a known host, they should still return `true` and later
+cancel the request.
+
+Host providers can also be queried via the `IHostProvider.IsSupported(HttpResponseMessage)`
+method and passed the response message from a HEAD call made to the remote URI.
+This is useful for detecting on-premises instances based on header values. GCM
+will only query a provider via this method overload if no other provider at the
+same registration priority has returned `true` to the `InputArguments` overload.
 
 Depending on the request from Git, one of `GetCredentialAsync` (for `get`
 requests), `StoreCredentialAsync` (for `store` requests) or
@@ -253,7 +246,7 @@ systems and platforms.
 Component|Description
 -|-
 CredentialStore|A secure operating system controlled location for storing and retrieving `ICredential` objects.
-Settings|Abstraction over all GCM Core settings.
+Settings|Abstraction over all GCM settings.
 Streams|Abstraction over standard input, output and error streams connected to the parent process (typically Git).
 Terminal|Provides interactions with an attached terminal, if it exists.
 SessionManager|Provides information about the current user session.
@@ -266,7 +259,7 @@ SystemPrompts|Provides services for showing system/OS native credential prompts.
 
 ## Error handling and tracing
 
-GCM Core operates a 'fail fast' approach to unrecoverable errors. This usually
+GCM operates a 'fail fast' approach to unrecoverable errors. This usually
 means throwing an `Exception` which will propagate up to the entry-point and be
 caught, a non-zero exit code returned, and the error message printed with the
 "fatal:" prefix. For errors originating from interop/native code, you should
@@ -282,4 +275,12 @@ operation/authentication.
 
 The `ITrace` component can be found on the `ICommandContext` object or passed in
 directly to some constructors. Verbose and diagnostic information is be written
-to the trace object in most places of GCM Core.
+to the trace object in most places of GCM.
+
+[avalonia]: https://avaloniaui.net/
+[core-program]: ../src/shared/Git-Credential-Manager/Program.cs
+[credential-provider]: configuration.md#credentialprovider
+[issue-113]: https://github.com/git-ecosystem/git-credential-manager/issues/113
+[issue-136]: https://github.com/git-ecosystem/git-credential-manager/issues/136
+[gcm-provider]: environment.md#GCM_PROVIDER
+[msal]: https://github.com/AzureAD/microsoft-authentication-library-for-dotnet

@@ -1,6 +1,4 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
-using Microsoft.Git.CredentialManager;
+using GitCredentialManager;
 
 namespace GitHub
 {

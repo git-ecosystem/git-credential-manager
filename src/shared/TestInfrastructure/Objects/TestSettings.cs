@@ -1,9 +1,7 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
 using System;
 using System.Collections.Generic;
 
-namespace Microsoft.Git.CredentialManager.Tests.Objects
+namespace GitCredentialManager.Tests.Objects
 {
     public class TestSettings : ISettings
     {
@@ -14,6 +12,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
         public bool IsDebuggingEnabled { get; set; }
 
         public bool IsTerminalPromptsEnabled { get; set; } = true;
+
+        public bool IsGuiPromptsEnabled { get; set; } = true;
 
         public bool IsInteractionAllowed { get; set; } = true;
 
@@ -31,15 +31,38 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
 
         public bool IsCertificateVerificationEnabled { get; set; } = true;
 
-        public Uri ProxyConfiguration { get; set; }
+        public bool AutomaticallyUseClientCertificates { get; set; }
 
-        public bool IsDeprecatedProxyConfiguration { get; set; }
+        public ProxyConfiguration ProxyConfiguration { get; set; }
 
         public string ParentWindowId { get; set; }
 
         public string CredentialNamespace { get; set; } = "git-test";
 
         public string CredentialBackingStore { get; set; }
+
+        public string CustomCertificateBundlePath { get; set; }
+
+        public string CustomCookieFilePath { get; set; }
+
+        public TlsBackend TlsBackend { get; set; }
+
+        public bool UseCustomCertificateBundleWithSchannel { get; set; }
+
+        public int AutoDetectProviderTimeout { get; set; } = Constants.DefaultAutoDetectProviderTimeoutMs;
+
+        public bool UseMsAuthDefaultAccount { get; set; }
+
+        public Trace2Settings GetTrace2Settings()
+        {
+            return new Trace2Settings()
+            {
+                FormatTargetsAndValues = new Dictionary<Trace2FormatTarget, string>()
+                {
+                    { Trace2FormatTarget.Event, "foo" }
+                }
+            };
+        }
 
         #region ISettings
 
@@ -52,7 +75,19 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
                 return true;
             }
 
-            if (GitConfiguration?.TryGet(section, property, out value) ?? false)
+            if (RemoteUri != null)
+            {
+                foreach (string scope in RemoteUri.GetGitConfigurationScopes())
+                {
+                    string key = $"{section}.{scope}.{property}";
+                    if (GitConfiguration?.TryGet(key, false, out value) ?? false)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            if (GitConfiguration?.TryGet($"{section}.{property}", false, out value) ?? false)
             {
                 return true;
             }
@@ -60,7 +95,12 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
             return false;
         }
 
-        public IEnumerable<string> GetSettingValues(string envarName, string section, string property)
+        public bool TryGetPathSetting(string envarName, string section, string property, out string value)
+        {
+            return TryGetSetting(envarName, section, property, out value);
+        }
+
+        public IEnumerable<string> GetSettingValues(string envarName, string section, string property, bool isPath)
         {
             string envarValue = null;
             if (Environment?.Variables.TryGetValue(envarName, out envarValue) ?? false)
@@ -68,18 +108,25 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
                 yield return envarValue;
             }
 
-            foreach (string scope in RemoteUri.GetGitConfigurationScopes())
+            IEnumerable<string> configValues;
+            if (RemoteUri != null)
             {
-                string key = $"{section}.{scope}.{property}";
-
-                IList<string> configValues = null;
-                if (GitConfiguration?.Dictionary.TryGetValue(key, out configValues) ?? false)
+                foreach (string scope in RemoteUri.GetGitConfigurationScopes())
                 {
-                    if (configValues.Count > 0)
+                    string key = $"{section}.{scope}.{property}";
+
+                    configValues = GitConfiguration.GetAll(key);
+                    foreach (string value in configValues)
                     {
-                        yield return configValues[0];
+                        yield return value;
                     }
                 }
+            }
+
+            configValues = GitConfiguration.GetAll($"{section}.{property}");
+            foreach (string value in configValues)
+            {
+                yield return value;
             }
         }
 
@@ -90,6 +137,12 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
         bool ISettings.IsDebuggingEnabled => IsDebuggingEnabled;
 
         bool ISettings.IsTerminalPromptsEnabled => IsTerminalPromptsEnabled;
+
+        bool ISettings.IsGuiPromptsEnabled
+        {
+            get => IsGuiPromptsEnabled;
+            set => IsGuiPromptsEnabled = value;
+        }
 
         bool ISettings.IsInteractionAllowed => IsInteractionAllowed;
 
@@ -111,9 +164,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
 
         bool ISettings.IsCertificateVerificationEnabled => IsCertificateVerificationEnabled;
 
-        Uri ISettings.GetProxyConfiguration(out bool isDeprecatedConfiguration)
+        ProxyConfiguration ISettings.GetProxyConfiguration()
         {
-            isDeprecatedConfiguration = IsDeprecatedProxyConfiguration;
             return ProxyConfiguration;
         }
 
@@ -122,6 +174,18 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
         string ISettings.CredentialNamespace => CredentialNamespace;
 
         string ISettings.CredentialBackingStore => CredentialBackingStore;
+
+        string ISettings.CustomCertificateBundlePath => CustomCertificateBundlePath;
+
+        string ISettings.CustomCookieFilePath => CustomCookieFilePath;
+
+        TlsBackend ISettings.TlsBackend => TlsBackend;
+
+        bool ISettings.UseCustomCertificateBundleWithSchannel => UseCustomCertificateBundleWithSchannel;
+
+        int ISettings.AutoDetectProviderTimeout => AutoDetectProviderTimeout;
+
+        bool ISettings.UseMsAuthDefaultAccount => UseMsAuthDefaultAccount;
 
         #endregion
 

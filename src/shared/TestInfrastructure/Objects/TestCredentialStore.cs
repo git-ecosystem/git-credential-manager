@@ -1,9 +1,7 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.Git.CredentialManager.Tests.Objects
+namespace GitCredentialManager.Tests.Objects
 {
     public class TestCredentialStore : ICredentialStore
     {
@@ -15,6 +13,11 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
         }
 
         #region ICredentialStore
+
+        public IList<string> GetAccounts(string service)
+        {
+            return Query(service, null).Select(x => x.Account).ToList();
+        }
 
         ICredential ICredentialStore.Get(string service, string account)
         {

@@ -1,0 +1,22 @@
+name: release-dotnet-tool
+on:
+  release:
+    types: [released]
+
+jobs:
+  release:
+    runs-on: windows-latest
+    environment: release
+    steps:
+    - name: Download NuGet package from release and publish
+      run: |
+        # Get asset information
+        $github = Get-Content '${{ github.event_path }}' | ConvertFrom-Json
+        $asset = $github.release.assets | Where-Object -Property name -match '.nupkg$'
+
+        # Download asset
+        Invoke-WebRequest -Uri $asset.browser_download_url -OutFile $asset.name
+
+        # Publish asset
+        dotnet nuget push $asset.name --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+      shell: powershell

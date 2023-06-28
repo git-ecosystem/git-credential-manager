@@ -1,0 +1,125 @@
+name: Authentication issue
+description: An authentication problem occurred when running a Git command.
+labels: ["auth-issue"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this issue!
+
+        Please answer as many of the below questions as you can - this helps us better understand what the problem is, and consequently how to resolve your problem.
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: |
+        What version of Git Credential Manager are you using?
+
+        Run `git credential-manager --version` from a terminal to see the current version.
+
+        If you are on an older version of GCM please try updating before creating an issue as the problem you are experiencing may have already been fixed.
+      placeholder: |
+        ex: 2.0.8-beta+e1f8492d04
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      description: What operating system are you using?
+      options:
+        - Windows
+        - macOS
+        - Linux
+        - Other - please describe below
+    validations:
+      required: true
+  - type: input
+    id: os-version
+    attributes:
+      label: OS version or distribution
+      description: Please describe the version, CPU architecture (x64, ARM, etc), or Linux distribution you are using.
+      placeholder: |
+        ex: Windows 11 Pro, Monterey 12.5, Ubuntu 22.04
+    validations:
+      required: true
+  - type: dropdown
+    id: provider
+    attributes:
+      label: Git hosting provider(s)
+      description: What Git host provider are you trying to connect to?
+      multiple: true
+      options:
+        - Azure DevOps
+        - Azure DevOps Server (TFS/on-prem)
+        - Bitbucket Cloud
+        - Bitbucket Server/DC
+        - GitHub
+        - GitHub Enterprise Server
+        - GitLab
+        - Other - please describe below
+    validations:
+      required: true
+  - type: input
+    id: provider-other
+    attributes:
+      label: Other hosting provider
+      description: If you selected "Other" above, please describe the Git host you are using.
+  - type: dropdown
+    id: azdo-urlformat
+    attributes:
+      label: |
+        (Azure DevOps only) What format is your remote URL?
+      description: |
+        Tip: to see your remote URL run `git remote -v` from a terminal.
+      options:
+        - https://dev.azure.com/{org}
+        - https://{org}@dev.azure.com/{org}
+        - https://{org}.visualstudio.com
+  - type: dropdown
+    id: web-access
+    attributes:
+      label: Can you access the remote repository directly in the browser?
+      description: |
+        If you are unable to access the repository via a web browser then it is likely GCM will also be unable to access the repository with your user account.
+      options:
+        - Yes, I can access the repository
+        - No, I get a permission error
+        - No, for a different reason - please describe behavior below
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: A clear and concise description of what your expectation are.
+      placeholder: |
+        ex: I am authenticated and my Git operation completes successfully.
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: |
+        A clear and concise description of what actually happens.
+        Feel free to include screenshots of dialogs or errors here, but remember to **redact any sensitive information**!
+      placeholder: |
+        ex: An exception "FooException" is thrown, UI freezes, etc.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: |
+        To capture trace logs, set the environment variables `GCM_TRACE=1` and `GIT_TRACE=1` and re-run your Git command.
+        If you are running inside of Windows Subsystem for Linux (WSL), you must also set an additional environment variable to enable tracing: `WSLENV=$WSLENV:GCM_TRACE`. For example:
+
+        ```shell
+        WSLENV=$WSLENV:GCM_TRACE:GIT_TRACE GCM_TRACE=1 GIT_TRACE=1 git fetch
+        ```
+
+        If you are using GCM version 2.0.567 onwards you can also run `git credential-manager diagnose` to collect useful diagnostic information that can be attached here.
+
+        :warning: **Please review and redact any private information before attaching logs and files!**

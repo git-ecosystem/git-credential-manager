@@ -1,93 +1,47 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.Git.CredentialManager;
-using Microsoft.Git.CredentialManager.UI;
+﻿using System;
+using System.Threading.Tasks;
+using GitCredentialManager;
+using GitCredentialManager.UI;
+using GitCredentialManager.UI.Windows;
+using GitHub.UI.Windows.Commands;
+using GitHub.UI.Windows.Controls;
 
-namespace GitHub.UI
+namespace GitHub.UI.Windows
 {
     public static class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
-            IGui gui = new Gui();
-
-            try
+            // Set the session id (sid) for the helper process, to be
+            // used when TRACE2 tracing is enabled.
+            ProcessManager.CreateSid();
+            using (var context = new CommandContext())
+            using (var app = new HelperApplication(context))
             {
-                // Show test UI when given no arguments
+                // Initialize TRACE2 system
+                context.Trace2.Initialize(DateTimeOffset.UtcNow);
+
+                // Write the start and version events
+                context.Trace2.Start(context.ApplicationPath, args);
+
                 if (args.Length == 0)
                 {
-                    gui.ShowWindow(() => new Tester());
+                    await Gui.ShowWindow(() => new TesterWindow(), IntPtr.Zero);
+                    return;
                 }
-                else
-                {
-                    var prompts = new AuthenticationPrompts(gui);
-                    var resultDict = new Dictionary<string, string>();
 
-                    if (StringComparer.OrdinalIgnoreCase.Equals(args[0], "prompt"))
-                    {
-                        string enterpriseUrl = CommandLineUtils.GetParameter(args, "--enterprise-url");
-                        bool basic = CommandLineUtils.TryGetSwitch(args, "--basic");
-                        bool oauth = CommandLineUtils.TryGetSwitch(args, "--oauth");
-                        string username = CommandLineUtils.GetParameter(args, "--username");
+                app.RegisterCommand(new CredentialsCommandImpl(context));
+                app.RegisterCommand(new TwoFactorCommandImpl(context));
+                app.RegisterCommand(new DeviceCodeCommandImpl(context));
+                app.RegisterCommand(new SelectAccountCommandImpl(context));
 
-                        if (!basic && !oauth)
-                        {
-                            throw new Exception("at least one authentication mode must be specified");
-                        }
+                int exitCode = app.RunAsync(args)
+                    .ConfigureAwait(false)
+                    .GetAwaiter()
+                    .GetResult();
 
-                        var result = prompts.ShowCredentialPrompt(
-                            enterpriseUrl, basic, oauth,
-                            ref username,
-                            out string password);
-
-                        switch (result)
-                        {
-                            case CredentialPromptResult.BasicAuthentication:
-                                resultDict["mode"] = "basic";
-                                resultDict["username"] = username;
-                                resultDict["password"] = password;
-                                break;
-
-                            case CredentialPromptResult.OAuthAuthentication:
-                                resultDict["mode"] = "oauth";
-                                break;
-
-                            case CredentialPromptResult.Cancel:
-                                throw new OperationCanceledException("authentication prompt was canceled");
-
-                            default:
-                                throw new ArgumentOutOfRangeException();
-                        }
-                    }
-                    else if (StringComparer.OrdinalIgnoreCase.Equals(args[0], "2fa"))
-                    {
-                        bool isSms = CommandLineUtils.TryGetSwitch(args, "--sms");
-
-                        if (!prompts.ShowAuthenticationCodePrompt(isSms, out string authCode))
-                        {
-                            throw new Exception("failed to get authentication code");
-                        }
-
-                        resultDict["code"] = authCode;
-                    }
-                    else
-                    {
-                        throw new Exception($"unknown argument '{args[0]}'");
-                    }
-
-                    Console.Out.WriteDictionary(resultDict);
-                }
-            }
-            catch (Exception e)
-            {
-                Console.Out.WriteDictionary(new Dictionary<string, string>
-                {
-                    ["error"] = e.Message
-                });
-                Environment.Exit(-1);
+                context.Trace2.Stop(exitCode);
+                Environment.Exit(exitCode);
             }
         }
     }

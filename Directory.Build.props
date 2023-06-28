@@ -18,13 +18,18 @@
     <RepoSrcPath>$(RepoPath)src\</RepoSrcPath>
     <RepoOutPath>$(RepoPath)out\</RepoOutPath>
     <RepoAssetsPath>$(RepoPath)assets\</RepoAssetsPath>
+
+    <!-- Identify projects that output an executable binary (not libraries) -->
+    <_IsExeProject Condition="'$(OutputType)' == 'Exe' OR '$(OutputType)' == 'WinExe'">true</_IsExeProject>
+
+    <!-- Automatically generate a Windows app manifest on Windows for exe projects -->
+    <GenerateWindowsAppManifest Condition="'$(GenerateWindowsAppManifest)' == '' AND '$(OSPlatform)' == 'windows' AND '$(_IsExeProject)' == 'true'">true</GenerateWindowsAppManifest>
   </PropertyGroup>
 
-  <ItemGroup>
-    <!-- All projects should use Nerdbank.GitVersioning for consistent version numbers -->
-    <PackageReference Include="Nerdbank.GitVersioning">
-      <Version>3.3.37</Version>
-      <PrivateAssets>all</PrivateAssets>
+  <ItemGroup Condition = "'$(TargetFramework)' == 'net472'">
+    <PackageReference Include="System.Text.Json">
+      <Version>7.0.2</Version>
     </PackageReference>
   </ItemGroup>
+
 </Project>

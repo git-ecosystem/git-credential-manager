@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- This is the root Directory.Build.targets file -->
+
+  <!-- Load custom build tasks -->
+  <Import Project="$(RepoPath)build\GCM.tasks" />
+
+  <!-- Use version specified in VERSION file -->
+  <Target Name="GetVersion" BeforeTargets="BeforeBuild">
+    <GetVersion VersionFile="$(RepoPath)VERSION">
+      <Output TaskParameter="Version" PropertyName="Version" />
+      <Output TaskParameter="AssemblyVersion" PropertyName="AssemblyVersion" />
+      <Output TaskParameter="FileVersion" PropertyName="FileVersion" />
+    </GetVersion>
+  </Target>
+
+  <!-- Windows application manifest generation -->
+  <PropertyGroup Condition="'$(GenerateWindowsAppManifest)' != 'false'">
+    <ApplicationManifest>$(IntermediateOutputPath)app.manifest</ApplicationManifest>
+  </PropertyGroup>
+
+  <!-- Generate the manifest file before we set the win32 manifest properties -->
+  <Target Name="GenerateWindowsAppManifest"
+          BeforeTargets="SetWin32ManifestProperties"
+          Condition="'$(GenerateWindowsAppManifest)' != 'false'"
+          Inputs="$(FileVersion);$(AssemblyName)"
+          Outputs="$(IntermediateOutputPath)app.manifest">
+    <GenerateWindowsAppManifest Version="$(FileVersion)"
+                                ApplicationName="$(AssemblyName)"
+                                OutputFile="$(IntermediateOutputPath)app.manifest"/>
+    <ItemGroup>
+      <FileWrites Include="$(IntermediateOutputPath)app.manifest" />
+    </ItemGroup>
+  </Target>
+
+</Project>

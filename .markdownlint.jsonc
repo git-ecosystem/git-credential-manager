@@ -1,0 +1,11 @@
+// For information on writing markdownlint configuration see:
+//  https://github.com/DavidAnson/markdownlint/blob/main/README.md#optionsconfig
+{
+    "MD013": {
+        "line_length": 80,
+        "code_blocks": false,
+        "headings": false,
+        "tables": false
+    },
+    "MD024": false   // The format for some files require repeated headings, e.g. "Example"
+}

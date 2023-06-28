@@ -1,0 +1,99 @@
+<UserControl x:Class="GitHub.UI.Windows.Views.SelectAccountView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:viewModels="clr-namespace:GitHub.UI.ViewModels;assembly=GitHub"
+             xmlns:converters="clr-namespace:GitCredentialManager.UI.Windows.Converters;assembly=gcmcoreuiwpf"
+             xmlns:controls="clr-namespace:GitHub.UI.Windows.Controls"
+             xmlns:sharedControls="clr-namespace:GitCredentialManager.UI.Windows.Controls;assembly=gcmcoreuiwpf"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance viewModels:SelectAccountViewModel}"
+             d:DesignWidth="300">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../Assets/Styles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+            <converters:NonEmptyStringToVisibleConverter x:Key="NonEmptyStringToVisibleConverter"/>
+            <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+            <converters:BooleanOrToVisibilityConverter x:Key="BooleanOrToVisibilityConverter"/>
+            <converters:BooleanOrConverter x:Key="BooleanOrConverter"/>
+            <converters:BooleanNotConverter x:Key="BooleanNotConverter"/>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <DockPanel>
+        <StackPanel DockPanel.Dock="Top" Margin="0,0,0,10">
+            <!-- TODO: replace with GitHub logo -->
+            <TextBlock Text="GitHub"
+                       HorizontalAlignment="Center"
+                       FontSize="20"
+                       FontWeight="Bold"/>
+            <TextBlock Text="Select an account"
+                       HorizontalAlignment="Center"
+                       FontSize="24"
+                       FontWeight="Light"
+                       Margin="0,0,0,10" />
+            <controls:HorizontalShadowDivider/>
+            <StackPanel Visibility="{Binding EnterpriseUrl, Converter={StaticResource NonEmptyStringToVisibleConverter}}"
+                        Margin="0">
+                <TextBlock Text="GitHub Enterprise" HorizontalAlignment="Center"
+                           FontSize="14"/>
+                <TextBlock Text="{Binding EnterpriseUrl}"
+                           HorizontalAlignment="Center"
+                           FontSize="14"/>
+            </StackPanel>
+        </StackPanel>
+
+        <WrapPanel DockPanel.Dock="Top" HorizontalAlignment="Center" VerticalAlignment="Center"
+                   Margin="0,0,0,15"
+                   Visibility="{Binding ShowHelpLink, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <Image Source="{StaticResource HelpIcon}"
+                   Width="16" Height="16"
+                   Margin="0,0,5,0"/>
+            <TextBlock Margin="0,0,0,0"
+                       FontSize="14">
+                <Hyperlink Command="{Binding LearnMoreCommand}">
+                    Why am I being asked to select an account?
+                </Hyperlink>
+            </TextBlock>
+        </WrapPanel>
+
+        <StackPanel Orientation="Vertical" VerticalAlignment="Center">
+            <ListBox ItemsSource="{Binding Accounts}"
+                     SelectedItem="{Binding SelectedAccount}"
+                     Margin="20,0,20,10"
+                     MaxHeight="200"
+                     Background="Transparent"
+                     BorderThickness="0">
+                <ListBox.ItemTemplate>
+                    <DataTemplate DataType="{x:Type viewModels:AccountViewModel}">
+                        <Border Padding="5,10">
+                            <DockPanel LastChildFill="True">
+                                <Image DockPanel.Dock="Left"
+                                    VerticalAlignment="Center"
+                                    Source="{StaticResource PersonIcon}"
+                                    Width="24" Height="24"/>
+                                <TextBlock Text="{Binding UserName}"
+                                        Margin="10,0"
+                                        VerticalAlignment="Center"/>
+                            </DockPanel>
+                        </Border>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+            <Button Content="Continue"
+                    IsDefault="True"
+                    Command="{Binding ContinueCommand}"
+                    HorizontalAlignment="Center"
+                    Style="{StaticResource AccentButton}"
+                    Margin="0,0,0,15"/>
+            <TextBlock FontSize="14" HorizontalAlignment="Center">
+                <Hyperlink Command="{Binding NewAccountCommand}">
+                    Add a new account
+                </Hyperlink>
+            </TextBlock>
+        </StackPanel>
+    </DockPanel>
+</UserControl>

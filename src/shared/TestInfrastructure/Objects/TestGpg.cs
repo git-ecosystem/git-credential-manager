@@ -1,11 +1,9 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Microsoft.Git.CredentialManager.Interop.Posix;
+using GitCredentialManager.Interop.Posix;
 
-namespace Microsoft.Git.CredentialManager.Tests.Objects
+namespace GitCredentialManager.Tests.Objects
 {
     public class TestGpg : IGpg
     {

@@ -1,15 +1,12 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
 using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Git.CredentialManager.Authentication;
 using Xunit;
 
-namespace Microsoft.Git.CredentialManager.Tests.Objects
+namespace GitCredentialManager.Tests.Objects
 {
     public class TestHttpMessageHandler : HttpMessageHandler
     {
@@ -25,6 +22,8 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
 
         public bool ThrowOnUnexpectedRequest { get; set; }
         public bool SimulateNoNetwork { get; set; }
+
+        public IDictionary<(HttpMethod method, Uri uri), int> RequestCounts => _requestCounts;
 
         public void Setup(HttpMethod method, Uri uri, AsyncRequestHandler handler)
         {
@@ -60,6 +59,11 @@ namespace Microsoft.Git.CredentialManager.Tests.Objects
             }
 
             Assert.Equal(expectedNumberOfCalls, numCalls);
+        }
+
+        public void AssertNoRequests()
+        {
+            Assert.Equal(0, _requestCounts.Count);
         }
 
         #region HttpMessageHandler

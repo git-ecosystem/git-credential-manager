@@ -17,28 +17,29 @@
 
 #if InstallTarget == "user"
   #define GcmAppId "{{aa76d31d-432c-42ee-844c-bc0bc801cef3}}"
-  #define GcmLongName "Git Credential Manager Core (User)"
-  #define GcmSetupExe "gcmcoreuser"
-  #define GcmConfigureCmdArgs "--user"
+  #define GcmLongName "Git Credential Manager (User)"
+  #define GcmSetupExe "gcmuser"
+  #define GcmConfigureCmdArgs ""
 #elif InstallTarget == "system"
   #define GcmAppId "{{fdfae50a-1bc1-4ead-9228-1e1c275e8d12}}"
-  #define GcmLongName "Git Credential Manager Core"
-  #define GcmSetupExe "gcmcore"
+  #define GcmLongName "Git Credential Manager"
+  #define GcmSetupExe "gcm"
   #define GcmConfigureCmdArgs "--system"
 #else
   #error Installer target property 'InstallTarget' must be 'user' or 'system'
 #endif
 
 ; Define core properties
-#define GcmShortName "Git Credential Manager Core"
-#define GcmPublisher "Microsoft Corporation"
-#define GcmPublisherUrl "https://www.microsoft.com"
-#define GcmCopyright "Copyright (c) Microsoft 2020"
-#define GcmUrl "https://aka.ms/gcmcore"
-#define GcmReadme "https://github.com/microsoft/Git-Credential-Manager-Core/blob/master/README.md"
+#define GcmShortName "Git Credential Manager"
+#define GcmPublisher "GitHub"
+#define GcmVersionInfoDescription "Secure, cross-platform Git credential manager."
+#define GcmPublisherUrl "https://www.github.com"
+#define GcmCopyright "Copyright (c) GitHub, Inc. and contributors"
+#define GcmUrl "https://aka.ms/gcm"
+#define GcmReadme "https://github.com/git-ecosystem/git-credential-manager/blob/main/README.md"
 #define GcmRepoRoot "..\..\.."
 #define GcmAssets GcmRepoRoot + "\assets"
-#define GcmExe "git-credential-manager-core.exe"
+#define GcmExe "git-credential-manager.exe"
 #define GcmArch "x86"
 
 #ifnexist PayloadDir + "\" + GcmExe
@@ -51,7 +52,8 @@
 #define VerBuild
 #define VerRevision
 #expr ParseVersion(PayloadDir + "\" + GcmExe, VerMajor, VerMinor, VerBuild, VerRevision)
-#define GcmVersion str(VerMajor) + "." + str(VerMinor) + "." + str(VerBuild) + "." + str(VerRevision)
+#define GcmVersionSimple str(VerMajor) + "." + str(VerMinor) + "." + str(VerBuild)
+#define GcmVersion str(GcmVersionSimple) + "." + str(VerRevision)
 
 [Setup]
 AppId={#GcmAppId}
@@ -67,7 +69,7 @@ AppCopyright={#GcmCopyright}
 AppReadmeFile={#GcmReadme}
 VersionInfoVersion={#GcmVersion}
 LicenseFile={#GcmRepoRoot}\LICENSE
-OutputBaseFilename={#GcmSetupExe}-win-{#GcmArch}-{#GcmVersion}
+OutputBaseFilename={#GcmSetupExe}-win-{#GcmArch}-{#GcmVersionSimple}
 DefaultDirName={autopf}\{#GcmShortName}
 Compression=lzma2
 SolidCompression=yes
@@ -101,23 +103,7 @@ Filename: "{app}\{#GcmExe}"; Parameters: "configure {#GcmConfigureCmdArgs}"; Fla
 Filename: "{app}\{#GcmExe}"; Parameters: "unconfigure {#GcmConfigureCmdArgs}"; Flags: runhidden
 
 [Files]
-Source: "{#PayloadDir}\Atlassian.Bitbucket.dll";                       DestDir: "{app}"; Flags: ignoreversion
-Source: "{#PayloadDir}\Atlassian.Bitbucket.UI.exe";                    DestDir: "{app}"; Flags: ignoreversion
-Source: "{#PayloadDir}\Atlassian.Bitbucket.UI.exe.config";             DestDir: "{app}"; Flags: ignoreversion
-Source: "{#PayloadDir}\git-credential-manager-core.exe";               DestDir: "{app}"; Flags: ignoreversion
-Source: "{#PayloadDir}\git-credential-manager-core.exe.config";        DestDir: "{app}"; Flags: ignoreversion
-Source: "{#PayloadDir}\GitHub.dll";                                    DestDir: "{app}"; Flags: ignoreversion
-Source: "{#PayloadDir}\GitHub.UI.exe";                                 DestDir: "{app}"; Flags: ignoreversion
-Source: "{#PayloadDir}\GitHub.UI.exe.config";                          DestDir: "{app}"; Flags: ignoreversion
-Source: "{#PayloadDir}\Microsoft.AzureRepos.dll";                      DestDir: "{app}"; Flags: ignoreversion
-Source: "{#PayloadDir}\Microsoft.Git.CredentialManager.dll";           DestDir: "{app}"; Flags: ignoreversion
-Source: "{#PayloadDir}\Microsoft.Git.CredentialManager.UI.dll";        DestDir: "{app}"; Flags: ignoreversion
-Source: "{#PayloadDir}\Microsoft.Identity.Client.dll";                 DestDir: "{app}"; Flags: ignoreversion
-Source: "{#PayloadDir}\Microsoft.Identity.Client.Extensions.Msal.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#PayloadDir}\Microsoft.IdentityModel.JsonWebTokens.dll";     DestDir: "{app}"; Flags: ignoreversion
-Source: "{#PayloadDir}\Microsoft.IdentityModel.Logging.dll";           DestDir: "{app}"; Flags: ignoreversion
-Source: "{#PayloadDir}\Microsoft.IdentityModel.Tokens.dll";            DestDir: "{app}"; Flags: ignoreversion
-Source: "{#PayloadDir}\Newtonsoft.Json.dll";                           DestDir: "{app}"; Flags: ignoreversion
+Source: "{#PayloadDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
 
 [Code]
 // Don't allow installing conflicting architectures
@@ -127,7 +113,7 @@ begin
 
   #if InstallTarget == "user"
     if not WizardSilent() and IsAdmin() then begin
-      if MsgBox('This User Installer is not meant to be run as an Administrator. If you would like to install Git Credential Manager Core for all users in this system, download the System Installer instead from https://aka.ms/gcmcore-latest. Are you sure you want to continue?', mbError, MB_OKCANCEL) = IDCANCEL then begin
+      if MsgBox('This User Installer is not meant to be run as an Administrator. If you would like to install Git Credential Manager for all users in this system, download the System Installer instead from https://aka.ms/gcm/latest. Are you sure you want to continue?', mbError, MB_OKCANCEL) = IDCANCEL then begin
         Result := False;
       end;
     end;

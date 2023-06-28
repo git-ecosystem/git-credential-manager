@@ -1,0 +1,22 @@
+<Project>
+    <PropertyGroup Condition="'$(MSBuildRuntimeType)' == 'Mono'">
+        <_TaskAssembly>$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll</_TaskAssembly>
+        <_TaskFactory>CodeTaskFactory</_TaskFactory>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(MSBuildRuntimeType)' != 'Mono'">
+        <_TaskAssembly>$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll</_TaskAssembly>
+        <_TaskFactory>RoslynCodeTaskFactory</_TaskFactory>
+    </PropertyGroup>
+
+    <UsingTask TaskName="GenerateWindowsAppManifest" TaskFactory="$(_TaskFactory)" AssemblyFile="$(_TaskAssembly)">
+        <Task>
+            <Code Type="Class" Source="$(MSBuildThisFileDirectory)GenerateWindowsAppManifest.cs" />
+        </Task>
+    </UsingTask>
+
+    <UsingTask TaskName="GetVersion" TaskFactory="$(_TaskFactory)" AssemblyFile="$(_TaskAssembly)">
+        <Task>
+            <Code Type="Class" Source="$(MSBuildThisFileDirectory)GetVersion.cs" />
+        </Task>
+    </UsingTask>
+</Project>

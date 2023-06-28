@@ -1,0 +1,22 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="GitCredentialManager.UI.AvaloniaApp"
+             Name="Git Credential Manager">
+    <Application.Styles>
+        <FluentTheme/>
+        <StyleInclude Source="avares://gcmcore/UI/Assets/Controls.axaml"/>
+    </Application.Styles>
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="avares://gcmcore/UI/Assets/Base.axaml"/>
+                <ResourceInclude Source="avares://gcmcore/UI/Assets/Images.axaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+    <NativeMenu.Menu>
+        <NativeMenu>
+            <NativeMenuItem Header="About Git Credential Manager" Click="About" />
+        </NativeMenu>
+    </NativeMenu.Menu>
+</Application>

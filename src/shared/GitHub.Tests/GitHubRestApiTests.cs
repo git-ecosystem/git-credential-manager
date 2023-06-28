@@ -1,5 +1,3 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
 using System;
 using System.Linq;
 using System.Net;
@@ -7,7 +5,8 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.Git.CredentialManager.Tests.Objects;
+using GitCredentialManager.Tests;
+using GitCredentialManager.Tests.Objects;
 using Xunit;
 
 namespace GitHub.Tests
@@ -75,7 +74,7 @@ namespace GitHub.Tests
             var httpHandler = new TestHttpMessageHandler {ThrowOnUnexpectedRequest = true};
             httpHandler.Setup(HttpMethod.Post, expectedRequestUri, request =>
             {
-                AssertBasicAuth(request, testUserName, testPassword);
+                RestTestUtilities.AssertBasicAuth(request, testUserName, testPassword);
                 AssertAuthCode(request, testAuthCode);
                 return httpResponse;
             });
@@ -114,7 +113,7 @@ namespace GitHub.Tests
             var httpHandler = new TestHttpMessageHandler {ThrowOnUnexpectedRequest = true};
             httpHandler.Setup(HttpMethod.Post, expectedRequestUri, request =>
             {
-                AssertBasicAuth(request, testUserName, testPassword);
+                RestTestUtilities.AssertBasicAuth(request, testUserName, testPassword);
                 AssertAuthCode(request, testAuthCode);
                 return httpResponse;
             });
@@ -152,7 +151,7 @@ namespace GitHub.Tests
             var httpHandler = new TestHttpMessageHandler {ThrowOnUnexpectedRequest = true};
             httpHandler.Setup(HttpMethod.Post, expectedRequestUri, request =>
             {
-                AssertBasicAuth(request, testUserName, testPassword);
+                RestTestUtilities.AssertBasicAuth(request, testUserName, testPassword);
                 AssertAuthCode(request, testAuthCode);
                 return httpResponse;
             });
@@ -186,7 +185,7 @@ namespace GitHub.Tests
             var httpHandler = new TestHttpMessageHandler {ThrowOnUnexpectedRequest = true};
             httpHandler.Setup(HttpMethod.Post, expectedRequestUri, request =>
             {
-                AssertBasicAuth(request, testUserName, testPassword);
+                RestTestUtilities.AssertBasicAuth(request, testUserName, testPassword);
                 AssertAuthCode(request, null);
                 return httpResponse;
             });
@@ -218,7 +217,7 @@ namespace GitHub.Tests
             var httpHandler = new TestHttpMessageHandler {ThrowOnUnexpectedRequest = true};
             httpHandler.Setup(HttpMethod.Post, expectedRequestUri, request =>
             {
-                AssertBasicAuth(request, testUserName, testPassword);
+                RestTestUtilities.AssertBasicAuth(request, testUserName, testPassword);
                 AssertAuthCode(request, null);
                 return httpResponse;
             });
@@ -252,7 +251,7 @@ namespace GitHub.Tests
             var httpHandler = new TestHttpMessageHandler {ThrowOnUnexpectedRequest = true};
             httpHandler.Setup(HttpMethod.Post, expectedRequestUri, request =>
             {
-                AssertBasicAuth(request, testUserName, testOAuthToken);
+                RestTestUtilities.AssertBasicAuth(request, testUserName, testOAuthToken);
                 AssertAuthCode(request, null);
                 return httpResponse;
             });
@@ -289,7 +288,7 @@ namespace GitHub.Tests
             var httpHandler = new TestHttpMessageHandler {ThrowOnUnexpectedRequest = true};
             httpHandler.Setup(HttpMethod.Post, expectedRequestUri, request =>
             {
-                AssertBasicAuth(request, testUserName, testPassword);
+                RestTestUtilities.AssertBasicAuth(request, testUserName, testPassword);
                 AssertAuthCode(request, testAuthCode);
                 return httpResponse;
             });
@@ -324,7 +323,7 @@ namespace GitHub.Tests
             var httpHandler = new TestHttpMessageHandler {ThrowOnUnexpectedRequest = true};
             httpHandler.Setup(HttpMethod.Post, expectedRequestUri, request =>
             {
-                AssertBasicAuth(request, testUserName, testPassword);
+                RestTestUtilities.AssertBasicAuth(request, testUserName, testPassword);
                 AssertAuthCode(request, testAuthCode);
                 return httpResponse;
             });
@@ -351,7 +350,7 @@ namespace GitHub.Tests
 
             var expectedRequestUri = new Uri("https://api.github.com/authorizations");
 
-            // https://tools.ietf.org/html/rfc2324#section-2.3.2
+            // https://www.rfc-editor.org/rfc/rfc2324#section-2.3.2
             const HttpStatusCode httpIAmATeaPot = (HttpStatusCode) 418;
             var httpResponse = new HttpResponseMessage(httpIAmATeaPot)
             {
@@ -361,7 +360,7 @@ namespace GitHub.Tests
             var httpHandler = new TestHttpMessageHandler {ThrowOnUnexpectedRequest = true};
             httpHandler.Setup(HttpMethod.Post, expectedRequestUri, request =>
             {
-                AssertBasicAuth(request, testUserName, testPassword);
+                RestTestUtilities.AssertBasicAuth(request, testUserName, testPassword);
                 AssertAuthCode(request, testAuthCode);
                 return httpResponse;
             });
@@ -376,16 +375,6 @@ namespace GitHub.Tests
         }
 
         #region Helpers
-
-        private static void AssertBasicAuth(HttpRequestMessage request, string userName, string password)
-        {
-            string expectedBasicValue = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{userName}:{password}"));
-
-            AuthenticationHeaderValue authHeader = request.Headers.Authorization;
-            Assert.NotNull(authHeader);
-            Assert.Equal("Basic", authHeader.Scheme);
-            Assert.Equal(expectedBasicValue, authHeader.Parameter);
-        }
 
         private void AssertAuthCode(HttpRequestMessage request, string authCode)
         {

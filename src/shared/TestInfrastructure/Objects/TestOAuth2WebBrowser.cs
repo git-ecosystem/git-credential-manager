@@ -1,12 +1,10 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
 using System;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Git.CredentialManager.Authentication.OAuth;
+using GitCredentialManager.Authentication.OAuth;
 
-namespace Microsoft.Git.CredentialManager.Tests.Objects
+namespace GitCredentialManager.Tests.Objects
 {
     public class TestOAuth2WebBrowser : IOAuth2WebBrowser
     {

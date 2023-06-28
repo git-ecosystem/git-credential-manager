@@ -1,17 +1,15 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
 using System;
 using System.Net.Http;
-using Microsoft.Git.CredentialManager;
-using Microsoft.Git.CredentialManager.Authentication.OAuth;
+using GitCredentialManager;
+using GitCredentialManager.Authentication.OAuth;
 
 namespace GitHub
 {
     public class GitHubOAuth2Client : OAuth2Client
     {
-        public GitHubOAuth2Client(HttpClient httpClient, ISettings settings, Uri baseUri)
+        public GitHubOAuth2Client(HttpClient httpClient, ISettings settings, Uri baseUri, ITrace2 trace2)
             : base(httpClient, CreateEndpoints(baseUri),
-                GetClientId(settings), GetRedirectUri(settings), GetClientSecret(settings)) { }
+                GetClientId(settings), trace2, GetRedirectUri(settings), GetClientSecret(settings)) { }
 
         private static OAuth2ServerEndpoints CreateEndpoints(Uri baseUri)
         {

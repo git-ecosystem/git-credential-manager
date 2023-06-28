@@ -1,67 +1,44 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
-using System;
-using System.Collections.Generic;
-using Microsoft.Git.CredentialManager;
-using Microsoft.Git.CredentialManager.UI;
+﻿using System;
+using System.Threading.Tasks;
+using Atlassian.Bitbucket.UI.Windows.Commands;
+using Atlassian.Bitbucket.UI.Windows.Controls;
+using GitCredentialManager;
+using GitCredentialManager.UI;
+using GitCredentialManager.UI.Windows;
 
-namespace Atlassian.Bitbucket.UI
+namespace Atlassian.Bitbucket.UI.Windows
 {
     public static class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
-            IGui gui = new Gui();
-
-            try
+            // Set the session id (sid) for the helper process, to be
+            // used when TRACE2 tracing is enabled.
+            ProcessManager.CreateSid();
+            using (var context = new CommandContext())
+            using (var app = new HelperApplication(context))
             {
-                // Show test UI when given no arguments
+                // Initialize TRACE2 system
+                context.Trace2.Initialize(DateTimeOffset.UtcNow);
+
+                // Write the start and version events
+                context.Trace2.Start(context.ApplicationPath, args);
+
                 if (args.Length == 0)
                 {
-                    gui.ShowWindow(() => new Tester());
+                    await Gui.ShowWindow(() => new TesterWindow(), IntPtr.Zero);
+                    return;
                 }
-                else
-                {
-                    var prompts = new AuthenticationPrompts(gui);
-                    var resultDict = new Dictionary<string, string>();
 
-                    if (StringComparer.OrdinalIgnoreCase.Equals(args[0], "userpass"))
-                    {
-                        string username = CommandLineUtils.GetParameter(args, "--username");
-                        if (prompts.ShowCredentialsPrompt(ref username, out string password))
-                        {
-                            resultDict["username"] = username;
-                            resultDict["password"] = password;
-                        }
-                        else
-                        {
-                            throw new OperationCanceledException("authentication prompt was canceled");
-                        }
-                    }
-                    else if (StringComparer.OrdinalIgnoreCase.Equals(args[0], "oauth"))
-                    {
-                        if (!prompts.ShowOAuthPrompt())
-                        {
-                            throw new OperationCanceledException("authentication prompt was canceled");
-                        }
+                app.RegisterCommand(new CredentialsCommandImpl(context));
 
-                        resultDict["continue"] = "1";
-                    }
-                    else
-                    {
-                        throw new Exception($"unknown argument '{args[0]}'");
-                    }
+                int exitCode = app.RunAsync(args)
+                    .ConfigureAwait(false)
+                    .GetAwaiter()
+                    .GetResult();
 
-                    Console.Out.WriteDictionary(resultDict);
-                }
-            }
-            catch (Exception e)
-            {
-                Console.Out.WriteDictionary(new Dictionary<string, string>
-                {
-                    ["error"] = e.Message
-                });
-                Environment.Exit(-1);
+                context.Trace2.Stop(exitCode);
+                Environment.Exit(exitCode);
             }
         }
     }

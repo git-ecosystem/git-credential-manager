@@ -6,13 +6,15 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
+    environment: release
     steps:
     - name: Update Homebrew tap
-      uses: mjcheetham/update-homebrew@v1.1
+      uses: mjcheetham/update-homebrew@v1.3
       with:
         token: ${{ secrets.HOMEBREW_TOKEN }}
         tap: microsoft/git
         name: git-credential-manager-core
         type: cask
-        releaseAsset: gcmcore-osx-(.*)\.pkg
-        alwaysUsePullRequest: true
+        releaseAsset: |
+          gcm-osx-x64-(.*)\.pkg
+          gcm-osx-arm64-(.*)\.pkg

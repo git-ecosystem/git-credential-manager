@@ -1,52 +1,19 @@
-# Git Credential Manager Core Host Provider
-
-Property|Value
--|-
-Author(s)|Matthew John Cheetham ([@mjcheetham](https://github.com/mjcheetham))
-Revision|1.1
-Last updated|2020-09-04
-
-## Revision Summary
-
-- 1.0. Initial revision.
-- 1.1. Replaced `GetCredentialKey` with `GetServiceName`.
+# Git Credential Manager Host Provider
 
 ## Abstract
 
-Git Credential Manger Core, the cross-platform and cross-host Git credential
+Git Credential Manger, the cross-platform and cross-host Git credential
 helper, can be extended to support any Git hosting service allowing seamless
 authentication to secured Git repositories by implementing and registering a
 "host provider".
 
-## Table of Contents
-
-- [1. Introduction](#1-introduction)
-  - [1.1. Notational Conventions](#11-notational-conventions)
-  - [1.2. Abbreviations](#12-abbreviations)
-- [2. Implementation](#2-implementation)
-  - [2.1. Registration](#21-registration)
-    - [2.1.2. Ordering](#212-ordering)
-  - [2.2. Handling Requests](#22-handling-requests)
-    - [2.2.1. Rejecting Requests](#221-rejecting-requests)
-  - [2.3. Retrieving Credentials](#23-retrieving-credentials)
-    - [2.3.1 Authentication Prompts](#231-authentication-prompts)
-  - [2.4. Storing Credentials](#24-storing-credentials)
-  - [2.5. Erasing Credentials](#25-erasing-credentials)
-  - [2.6 `HostProvider` base class](#26-hostprovider-base-class)
-    - [2.6.1 `GetServiceName`](#261-getservicename)
-    - [2.6.2 `GenerateCredentialAsync`](#262-generatecredentialasync)
-  - [2.7. External Metadata](#27-external-metadata)
-- [3. Helpers](#3-helpers)
-  - [3.1. Discovery](#31-discovery)
-- [4. Error Handling](#4-error-handling)
-
 ## 1. Introduction
 
-Git Credential Manager Core (GCM Core) is a host and platform agnostic Git
+Git Credential Manager (GCM) is a host and platform agnostic Git
 credential helper application. Support for authenticating to any Git hosting
-service can be added to GCM Core by creating a custom "host provider" and
+service can be added to GCM by creating a custom "host provider" and
 registering it within the product. Host providers can be submitted via a pull
-request on GitHub at <https://github.com/microsoft/Git-Credential-Manager-Core>.
+request on [the Git Credential Manager repository on GitHub][gcm].
 
 This document outlines the required and expected behaviour of a host provider,
 and what is required to implement and register one.
@@ -56,32 +23,32 @@ and what is required to implement and register one.
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
 "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
 specification are to be interpreted as described in
-[[RFC2119](https://tools.ietf.org/html/rfc2119)].
+[[RFC2119][rfc-2119]].
 
 ### 1.2. Abbreviations
 
 Throughout this document you may see multiple abbreviations of product names and
 security or credential objects.
 
-"Git Credential Manager Core" is abbreviated to "GCM Core". "Git Credential
+"Git Credential Manager" is abbreviated to "GCM". "Git Credential
 Manager for Windows" is abbreviated to "GCM for Windows" or "GCM Windows".
 "Git Credential Manager for Mac & Linux" is abbreviated to "GCM for
 Mac/Linux" or "GCM Mac/Linux".
 
-OAuth2 [[RFC6749](https://tools.ietf.org/html/rfc6749)] "access tokens" are
+OAuth2 [[RFC6749][rfc-6749]] "access tokens" are
 abbreviated to "ATs" and "refresh tokens" to "RTs". "Personal Access Tokens" are
 abbreviated to "PATs".
 
 ## 2. Implementation
 
-Writing and adding a host provider to GCM Core requires two main actions:
+Writing and adding a host provider to GCM requires two main actions:
 implementing the `IHostProvider` interface, and registering an instance of the
 provider with the application via the host provider registry.
 
 Host providers MUST implement the `IHostProvider` interface. They can choose to
 directly implement the interface they MAY derive from the `HostProvider`
 abstract class (which itself implements the `IHostProvider` interface) - see
-[§2.6](#26-hostprovider-base-class).
+[2.6][hostprovider-base-class].
 
 Implementors MUST implement all interface properties and abstract methods.
 
@@ -105,39 +72,54 @@ authorities that the provider supports authentication against.
 ### 2.1. Registration
 
 Host providers must provide an instance of their `IHostProvider` type to the
-GCM Core application host provider registry to be considered for handling
+GCM application host provider registry to be considered for handling
 requests.
 
-The main GCM Core `Application` object has one principal registry which you can
+The main GCM `Application` object has one principal registry which you can
 register providers with by calling the `RegisterProvider` method.
 
 #### 2.1.2. Ordering
 
-The default host provider registry in GCM Core will call each host provider in
-the order they were registered in, unless the user has overridden the provider
-selection process.
+The default host provider registry in GCM has multiple priority levels that
+host providers can be registered at: High, Normal, and Low.
+
+For each priority level (starting with High, then Normal, then Low), the
+registry will call each host provider in the order they were registered in,
+unless the user has overridden the provider selection process.
 
 There are no rules or restrictions on the ordering of host providers, except
-that the `GenericHostProvider` MUST be registered last. The generic provider is
-a catch-all provider implementation that will handle any request in a standard
-way.
+that the `GenericHostProvider` MUST be registered last and at the Low priority.
+The generic provider is a catch-all provider implementation that will handle any
+request in a standard way.
 
 ### 2.2. Handling Requests
 
-The `IsSupported` method will be called on all registered host providers in-turn
-on the invocation of a `get`, `store`, or `erase` request. The first host
-provider to return `true` will be called upon to handle the specific request.
-If the user has overridden the host provider selection process, a specific host
-provider may be selected instead, and the `IsSupported` method will NOT be
-called.
+The `IsSupported(InputArguments)` method will be called on all registered host
+providers in-turn on the invocation of a `get`, `store`, or `erase` request. The
+first host provider to return `true` will be called upon to handle the specific
+request. If the user has overridden the host provider selection process, a
+specific host provider may be selected instead, and the
+`IsSupported(InputArguments)` method will NOT be called.
 
 This method MUST return `true` if and only if the provider understands the
 request and can serve or handle the request. If the provider does not know how
 to handle the request it MUST return `false` instead.
 
+If no host provider returns `true` to a call to the `IsSupported(InputArguments)`
+method for a each host provider priority level, then a HTTP HEAD request will be
+made to the remote URL and each host provider will be be called via the
+`IsSupported(HttpResponseMessage)` method. A host provider SHOULD use this call
+to check for recognised on-premises instances (for example, by inspecting
+response headers) and return `true` if it wishes to be called upon to handle the
+credential request, otherwise it MUST return `false`.
+
+Host providers SHOULD NOT make further network calls if possible during any of
+the `IsSupported` method overloads to avoid degrading the performance of the
+overall application.
+
 #### 2.2.1. Rejecting Requests
 
-The `IsSupported` method MUST return `true` if the host provider would like to
+The `IsSupported` methods MUST return `true` if the host provider would like to
 cancel the authentication operation based on the current context or input.
 For example, if provider requires a secure protocol but the requested protocol
 for a supported hostname is `http` and not `https`.
@@ -314,14 +296,14 @@ terminal/TTY or text-based authentication mechanism alongside any graphical
 interface provided by a helper.
 
 In order to achieve this host providers MUST introduce an out-of-process
-"helper" executable that can be invoked from the main GCM Core process. This
+"helper" executable that can be invoked from the main GCM process. This
 allows the "helper" executable full implementation freedom of runtime, language,
 etc.
 
 Communications between the main and helper processes MAY use any IPC mechanism
 available. It is RECOMMENDED implementors use standard input/output streams or
 file descriptors to send and receive data as this is consistent with how Git and
-GCM Core communicate. UNIX sockets or Windows Named Pipes MAY also be used when
+GCM communicate. UNIX sockets or Windows Named Pipes MAY also be used when
 an ongoing back-and-forth communication is required.
 
 ### 3.1. Discovery
@@ -344,3 +326,26 @@ the recovery steps take in the trace log.
 In the case of an authentication error, providers SHOULD attempt to prompt the
 user again with a message indicating the incorrect authentication details have
 been entered.
+
+## 5. Custom Commands
+
+If a host provider wishes to surface custom commands the SHOULD implement the
+`ICommandProvider` interface.
+
+Each provider is given the opportunity to create a single `ProviderCommand`
+instance to which further sub-commands can be parented to. Commanding is
+provided by the `System.CommandLine` API library [[1][references]].
+
+There are no limitations on what format sub-commands, arguments, or options must
+take, but implementors SHOULD attempt to follow existing practices and styles.
+
+## References
+
+1. [`System.CommandLine` API][github-dotnet-cli]
+
+[gcm]: https://github.com/git-ecosystem/git-credential-manager
+[github-dotnet-cli]: https://github.com/dotnet/command-line-api
+[hostprovider-base-class]: #26-hostprovider-base-class
+[references]: #references
+[rfc-2119]: https://www.rfc-editor.org/rfc/rfc2119
+[rfc-6749]: https://www.rfc-editor.org/rfc/rfc6749

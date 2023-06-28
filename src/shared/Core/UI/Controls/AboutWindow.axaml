@@ -1,0 +1,38 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:gcm="clr-namespace:GitCredentialManager"
+        mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="450"
+        x:Class="GitCredentialManager.UI.Controls.AboutWindow"
+        Title="About Git Credential Manager"
+        CanResize="False" Width="300" SizeToContent="Height"
+        x:Name="window"
+        Background="{DynamicResource WindowBackgroundBrush}">
+    <StackPanel Margin="20">
+        <Image HorizontalAlignment="Center"
+               Margin="0,10,0,10"
+               Source="{DynamicResource GcmLogo}" Width="64" Height="64" />
+        <TextBlock HorizontalAlignment="Center"
+                   Margin="0,5"
+                   FontWeight="Bold" FontSize="15"
+                   Text="Git Credential Manager" />
+        <TextBlock HorizontalAlignment="Center"
+                   FontSize="11"
+                   Text="{Binding VersionString, ElementName=window}"
+                   Margin="0,5"/>
+        <TextBlock HorizontalAlignment="Center"
+                   Margin="0,10,0,0"
+                   FontSize="11" TextWrapping="Wrap" TextAlignment="Center"
+                   Text="Secure, cross-platform Git credential storage for popular Git hosting services." />
+        <Button HorizontalAlignment="Center"
+                Margin="0,5,0,0"
+                Content="{Binding ProjectUrl, ElementName=window}"
+                FontSize="11" Classes="hyperlink"
+                Click="ProjectButton_Click"/>
+        <TextBlock HorizontalAlignment="Center"
+                   Margin="0,10,0,0"
+                   FontSize="11"
+                   Text="Copyright © GitHub"/>
+    </StackPanel>
+</Window>

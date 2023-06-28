@@ -1,10 +1,8 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
 using System;
 using System.Runtime.InteropServices;
 using Xunit;
 
-namespace Microsoft.Git.CredentialManager.Tests
+namespace GitCredentialManager.Tests
 {
     public class PlatformFactAttribute : FactAttribute
     {
@@ -25,6 +23,28 @@ namespace Microsoft.Git.CredentialManager.Tests
             {
                 Skip = "Test not supported on this platform.";
             }
+        }
+    }
+
+    public class SkippablePlatformFactAttribute : SkippableFactAttribute
+    {
+        public SkippablePlatformFactAttribute(Platforms platforms)
+        {
+            Xunit.Skip.IfNot(
+                XunitHelpers.IsSupportedPlatform(platforms),
+                "Test not supported on this platform."
+            );
+        }
+    }
+
+    public class SkippablePlatformTheoryAttribute : SkippableTheoryAttribute
+    {
+        public SkippablePlatformTheoryAttribute(Platforms platforms)
+        {
+            Xunit.Skip.IfNot(
+                XunitHelpers.IsSupportedPlatform(platforms),
+                "Test not supported on this platform."
+            );
         }
     }
 

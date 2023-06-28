@@ -1,57 +1,117 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license.
 using System;
-using System.IO;
-using System.Reflection;
+using System.Threading;
 using Atlassian.Bitbucket;
+using Avalonia;
 using GitHub;
+using GitLab;
 using Microsoft.AzureRepos;
+using GitCredentialManager.Authentication;
+using GitCredentialManager.UI;
 
-namespace Microsoft.Git.CredentialManager
+namespace GitCredentialManager
 {
     public static class Program
     {
+        private static int _exitCode;
+
         public static void Main(string[] args)
         {
-            string appPath = GetApplicationPath();
-            using (var context = new CommandContext())
-            using (var app = new Application(context, appPath))
-            {
-                // Register all supported host providers
-                app.RegisterProviders(
-                    new AzureReposHostProvider(context),
-                    new BitbucketHostProvider(context),
-                    new GitHubHostProvider(context),
-                    new GenericHostProvider(context)
-                );
+            // Create the dispatcher on the main thread. This is required
+            // for some platform UI services such as macOS that mandates
+            // all controls are created/accessed on the initial thread
+            // created by the process (the process entry thread).
+            Dispatcher.Initialize();
 
-                // Run!
-                int exitCode = app.RunAsync(args)
-                                  .ConfigureAwait(false)
-                                  .GetAwaiter()
-                                  .GetResult();
+            // Run AppMain in a new thread and keep the main thread free
+            // to process the dispatcher's job queue.
+            var appMain = new Thread(AppMain) {Name = nameof(AppMain)};
+            appMain.Start(args);
 
-                Environment.Exit(exitCode);
-            }
+            // Process the dispatcher job queue (aka: message pump, run-loop, etc...)
+            // We must ensure to run this on the same thread that it was created on
+            // (the main thread) so we cannot use any async/await calls between
+            // Dispatcher.Initialize and Run.
+            Dispatcher.MainThread.Run();
+
+            // Dispatcher was shutdown
+            Environment.Exit(_exitCode);
         }
 
-        private static string GetApplicationPath()
+        private static void AppMain(object o)
         {
-            Assembly entryAssembly = Assembly.GetExecutingAssembly();
-            if (entryAssembly is null)
+            string[] args = (string[])o;
+
+            var startTime = DateTimeOffset.UtcNow;
+            // Set the session id (sid) and start time for the GCM process, to be
+            // used when TRACE2 tracing is enabled.
+            ProcessManager.CreateSid();
+
+            using (var context = new CommandContext())
+            using (var app = new Application(context))
             {
-                throw new InvalidOperationException();
+                // Initialize TRACE2 system
+                context.Trace2.Initialize(startTime);
+
+                // Write the start and version events
+                context.Trace2.Start(context.ApplicationPath, args);
+
+                //
+                // Git Credential Manager's executable used to be named "git-credential-manager-core" before
+                // dropping the "-core" suffix. In order to prevent "helper not found" errors for users who
+                // haven't updated their configuration, we include either a 'shim' or symlink with the old name
+                // that print warning messages about using the old name, and then continue execution of GCM.
+                //
+                // On Windows the shim is an exact copy of the main "git-credential-manager.exe" executable
+                // with the old name. We inspect argv[0] to see which executable we are launched as.
+                //
+                // On UNIX systems we do the same check, except instead of a copy we use a symlink.
+                //
+                string appPath = context.ApplicationPath;
+                if (!string.IsNullOrWhiteSpace(appPath))
+                {
+                    // Trim any (.exe) file extension if we're on Windows
+                    // Note that in some circumstances (like being called by Git when config is set
+                    // to just `helper = manager-core`) we don't always have ".exe" at the end.
+                    if (PlatformUtils.IsWindows() && appPath.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
+                    {
+                        appPath = appPath.Substring(0, appPath.Length - 4);
+                    }
+                    if (appPath.EndsWith("git-credential-manager-core", StringComparison.OrdinalIgnoreCase))
+                    {
+                        context.Streams.Error.WriteLine(
+                            "warning: git-credential-manager-core was renamed to git-credential-manager");
+                        context.Streams.Error.WriteLine(
+                            $"warning: see {Constants.HelpUrls.GcmExecRename} for more information");
+                    }
+                }
+
+                // Register all supported host providers at the normal priority.
+                // The generic provider should never win against a more specific one, so register it with low priority.
+                app.RegisterProvider(new AzureReposHostProvider(context), HostProviderPriority.Normal);
+                app.RegisterProvider(new BitbucketHostProvider(context), HostProviderPriority.Normal);
+                app.RegisterProvider(new GitHubHostProvider(context), HostProviderPriority.Normal);
+                app.RegisterProvider(new GitLabHostProvider(context), HostProviderPriority.Normal);
+                app.RegisterProvider(new GenericHostProvider(context), HostProviderPriority.Low);
+
+                _exitCode = app.RunAsync(args)
+                    .ConfigureAwait(false)
+                    .GetAwaiter()
+                    .GetResult();
+
+                context.Trace2.Stop(_exitCode);
+                Dispatcher.MainThread.Shutdown();
             }
-
-            string candidatePath = entryAssembly.Location;
-
-            // Strip the .dll from assembly name on Mac and Linux
-            if (!PlatformUtils.IsWindows() && Path.HasExtension(candidatePath))
-            {
-                return Path.ChangeExtension(candidatePath, null);
-            }
-
-            return candidatePath;
         }
+
+        // Required for Avalonia designer
+        static AppBuilder BuildAvaloniaApp() =>
+            AppBuilder.Configure<AvaloniaApp>()
+#if NETFRAMEWORK
+                .UseWin32()
+                .UseSkia()
+#else
+                .UsePlatformDetect()
+#endif
+                .LogToTrace();
     }
 }
