@@ -344,3 +344,4 @@ out/
 # Signing generated Files
 auth.json
 input.json
+cef-project/
