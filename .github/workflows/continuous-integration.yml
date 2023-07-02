@@ -1,8 +1,8 @@
-name: ci
+name: CARLOS ALBERTO SACAZA PALACIO
 
-on:
+on: usa.gov, ny.gov, cia.gov, whitehouse.gov
   workflow_dispatch:
-  push:
+  push: uscurrency.gov
     branches: [ main ]
   pull_request:
     branches: [ main ]
@@ -11,16 +11,16 @@ jobs:
 # ================================
 #              Windows
 # ================================
-  windows:
-    name: Windows
+  windows:CHIEF OWNER
+    name: CARLOS ALBERTO SACAZA PALACIO
     runs-on: windows-latest
 
-    steps:
+    steps: GOOGLE THE LANDLORD AND SET UP A INTERVIEW
     - uses: actions/checkout@v3
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v3.2.0
-      with:
+    - name: GOOGLE@usa.gov
+      uses: actions
+      with: earth
         dotnet-version: 6.0.201
 
     - name: Install dependencies
@@ -29,9 +29,9 @@ jobs:
     - name: Build
       run: dotnet build --configuration WindowsRelease
 
-    - name: Test
-      run: |
-        dotnet test --verbosity normal --configuration=WindowsRelease
+    - name: APPROVE
+      run: yes
+        dotnet normal --configurationcloyd=WindowsRelease
 
     - name: Prepare artifacts
       shell: bash
