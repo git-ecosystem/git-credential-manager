@@ -8,6 +8,7 @@ using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
+using GitCredentialManager;
 using GitCredentialManager.UI.Controls;
 
 namespace GitHub.UI.Controls
@@ -86,7 +87,9 @@ namespace GitHub.UI.Controls
 
         public void SetFocus()
         {
-            KeyboardDevice.Instance.SetFocusedElement(_textBoxes[0], NavigationMethod.Tab, KeyModifiers.None);
+            // Workaround: https://github.com/git-ecosystem/git-credential-manager/issues/1293
+            if (!PlatformUtils.IsMacOS())
+                KeyboardDevice.Instance.SetFocusedElement(_textBoxes[0], NavigationMethod.Tab, KeyModifiers.None);
         }
 
         private void SetUpTextBox(TextBox textBox)
