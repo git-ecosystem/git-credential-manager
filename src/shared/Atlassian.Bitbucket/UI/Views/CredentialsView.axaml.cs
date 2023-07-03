@@ -1,6 +1,7 @@
 using Atlassian.Bitbucket.UI.ViewModels;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
+using GitCredentialManager;
 using GitCredentialManager.UI.Controls;
 
 namespace Atlassian.Bitbucket.UI.Views
@@ -44,11 +45,15 @@ namespace Atlassian.Bitbucket.UI.Views
                 _tabControl.SelectedIndex = 1;
                 if (string.IsNullOrWhiteSpace(vm.UserName))
                 {
-                    _userNameTextBox.Focus();
+                    // Workaround: https://github.com/git-ecosystem/git-credential-manager/issues/1293
+                    if (!PlatformUtils.IsMacOS())
+                        _userNameTextBox.Focus();
                 }
                 else
                 {
-                    _passwordTextBox.Focus();
+                    // Workaround: https://github.com/git-ecosystem/git-credential-manager/issues/1293
+                    if (!PlatformUtils.IsMacOS())
+                        _passwordTextBox.Focus();
                 }
             }
         }
