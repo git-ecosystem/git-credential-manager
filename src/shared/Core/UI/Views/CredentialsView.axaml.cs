@@ -32,11 +32,15 @@ namespace GitCredentialManager.UI.Views
 
             if (string.IsNullOrWhiteSpace(vm.UserName))
             {
-                _userNameTextBox.Focus();
+                // Workaround: https://github.com/git-ecosystem/git-credential-manager/issues/1293
+                if (!PlatformUtils.IsMacOS())
+                    _userNameTextBox.Focus();
             }
             else
             {
-                _passwordTextBox.Focus();
+                // Workaround: https://github.com/git-ecosystem/git-credential-manager/issues/1293
+                if (!PlatformUtils.IsMacOS())
+                    _passwordTextBox.Focus();
             }
         }
     }
