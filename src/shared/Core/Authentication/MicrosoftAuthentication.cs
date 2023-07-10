@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using GitCredentialManager.Interop.Windows.Native;
@@ -78,7 +79,7 @@ namespace GitCredentialManager.Authentication
                 bool hasExistingUser = !string.IsNullOrWhiteSpace(userName);
                 if (hasExistingUser)
                 {
-                    result = await GetAccessTokenSilentlyAsync(app, scopes, userName);
+                    result = await GetAccessTokenSilentlyAsync(app, scopes, userName, msaPt);
                 }
 
                 //
@@ -116,7 +117,7 @@ namespace GitCredentialManager.Authentication
                         // account then the user may become stuck in a loop of authentication failures.
                         if (!hasExistingUser && Context.Settings.UseMsAuthDefaultAccount)
                         {
-                            result = await GetAccessTokenSilentlyAsync(app, scopes, null);
+                            result = await GetAccessTokenSilentlyAsync(app, scopes, null, msaPt);
 
                             if (result is null || !await UseDefaultAccountAsync(result.Account.Username))
                             {
@@ -281,7 +282,8 @@ namespace GitCredentialManager.Authentication
         /// <summary>
         /// Obtain an access token without showing UI or prompts.
         /// </summary>
-        private async Task<AuthenticationResult> GetAccessTokenSilentlyAsync(IPublicClientApplication app, string[] scopes, string userName)
+        private async Task<AuthenticationResult> GetAccessTokenSilentlyAsync(
+            IPublicClientApplication app, string[] scopes, string userName, bool msaPt)
         {
             try
             {
@@ -295,9 +297,27 @@ namespace GitCredentialManager.Authentication
                 {
                     Context.Trace.WriteLine($"Attempting to acquire token silently for user '{userName}'...");
 
-                    // We can either call `app.GetAccountsAsync` and filter through the IAccount objects for the instance with the correct user name,
-                    // or we can just pass the user name string we have as the `loginHint` and let MSAL do exactly that for us instead!
-                    return await app.AcquireTokenSilent(scopes, loginHint: userName).ExecuteAsync();
+                    // Enumerate all accounts and find the one matching the user name
+                    IEnumerable<IAccount> accounts = await app.GetAccountsAsync();
+                    IAccount account = accounts.FirstOrDefault(x => StringComparer.OrdinalIgnoreCase.Equals(x.Username, userName));
+                    if (account is null)
+                    {
+                        Context.Trace.WriteLine($"No cached account found for user '{userName}'...");
+                        return null;
+                    }
+
+                    var atsBuilder = app.AcquireTokenSilent(scopes, account);
+
+                    // Is we are operating with an MSA passthrough app we need to ensure that we target the
+                    // special MSA 'transfer' tenant explicitly. This is a workaround for MSAL issue:
+                    // https://github.com/AzureAD/microsoft-authentication-library-for-dotnet/issues/3077
+                    if (msaPt && Guid.TryParse(account.HomeAccountId.TenantId, out Guid homeTenantId) &&
+                        homeTenantId == Constants.MsaHomeTenantId)
+                    {
+                        atsBuilder = atsBuilder.WithTenantId(Constants.MsaTransferTenantId.ToString("D"));
+                    }
+
+                    return await atsBuilder.ExecuteAsync();
                 }
             }
             catch (MsalUiRequiredException)
