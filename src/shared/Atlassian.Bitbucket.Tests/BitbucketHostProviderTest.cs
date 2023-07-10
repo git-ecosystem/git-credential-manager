@@ -141,7 +141,7 @@ namespace Atlassian.Bitbucket.Tests
             }
             MockStoredAccount(context, input, token);
             MockRemoteAccessTokenValid(input, token);
-
+            
             var provider = new BitbucketHostProvider(context, bitbucketAuthentication.Object, MockRestApiRegistry(input, bitbucketApi).Object);
 
             var credential = await provider.GetCredentialAsync(input);
@@ -363,7 +363,7 @@ namespace Atlassian.Bitbucket.Tests
         // Cloud - supports Basic, OAuth
         [InlineData("https", "bitbucket.org", "oauth", AuthenticationModes.OAuth)]
         [InlineData("https", "bitbucket.org", "basic", AuthenticationModes.Basic)]
-        [InlineData("https", "bitbucket.org", "NOT-A-REAL-VALUE", CloudConstants.DotOrgAuthenticationModes)]
+        [InlineData("https", "bitbucket.org", "NOT-A-REAL-VALUE", CloudConstants.DotOrgAuthenticationModes)]    
         [InlineData("https", "bitbucket.org", "none", CloudConstants.DotOrgAuthenticationModes)]
         [InlineData("https", "bitbucket.org", null, CloudConstants.DotOrgAuthenticationModes)]
         public async Task BitbucketHostProvider_GetSupportedAuthenticationModes(string protocol, string host, string bitbucketAuthModes, AuthenticationModes expectedModes)
@@ -497,9 +497,10 @@ namespace Atlassian.Bitbucket.Tests
                 .ReturnsAsync(new CredentialsPromptResult(AuthenticationModes.OAuth));
         }
 
-        private void MockRemoteBasicValid(InputArguments input, string password)
+        private void MockRemoteBasicValid(InputArguments input, string password, bool twoFactor = true)
         {
-            var userInfo = new Mock<IUserInfo>(MockBehavior.Strict);
+            var userInfo = new Mock<IUserInfo>(MockBehavior.Strict); 
+            userInfo.Setup(ui => ui.IsTwoFactorAuthenticationEnabled).Returns(twoFactor);
             userInfo.Setup(ui => ui.UserName).Returns(input.UserName);
 
             // Basic
@@ -514,9 +515,10 @@ namespace Atlassian.Bitbucket.Tests
                 .ReturnsAsync(new RestApiResult<IUserInfo>(System.Net.HttpStatusCode.Unauthorized));
         }
 
-        private void MockRemoteAccessTokenValid(InputArguments input, string token)
+        private void MockRemoteAccessTokenValid(InputArguments input, string token, bool twoFactor = true)
         {
-            var userInfo = new Mock<IUserInfo>(MockBehavior.Strict);
+            var userInfo = new Mock<IUserInfo>(MockBehavior.Strict); 
+            userInfo.Setup(ui => ui.IsTwoFactorAuthenticationEnabled).Returns(twoFactor);
             userInfo.Setup(ui => ui.UserName).Returns(input.UserName);
 
             // OAuth
@@ -563,9 +565,9 @@ namespace Atlassian.Bitbucket.Tests
         private static Mock<IRegistry<IBitbucketRestApi>> MockRestApiRegistry(InputArguments input, Mock<IBitbucketRestApi> bitbucketApi)
         {
             var restApiRegistry = new Mock<IRegistry<IBitbucketRestApi>>(MockBehavior.Strict);
-
+            
             restApiRegistry.Setup(rar => rar.Get(input)).Returns(bitbucketApi.Object);
-
+            
             return restApiRegistry;
         }
 

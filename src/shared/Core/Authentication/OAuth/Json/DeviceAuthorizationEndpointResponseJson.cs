@@ -1,33 +1,32 @@
 using System;
-using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace GitCredentialManager.Authentication.OAuth.Json
 {
     public class DeviceAuthorizationEndpointResponseJson
     {
-        [JsonRequired]
-        [JsonPropertyName("device_code")]
+        [JsonProperty("device_code", Required = Required.Always)]
         public string DeviceCode { get; set; }
 
-        [JsonRequired]
-        [JsonPropertyName("user_code")]
+        [JsonProperty("user_code", Required = Required.Always)]
         public string UserCode { get; set; }
 
-        [JsonRequired]
-        [JsonPropertyName("verification_uri")]
+        [JsonProperty("verification_uri", Required = Required.Always)]
         public Uri VerificationUri { get; set; }
 
-        [JsonPropertyName("expires_in")]
-        public long ExpiresIn { get; set; }
+        [JsonProperty("expires_in")]
+        [JsonConverter(typeof(TimeSpanSecondsConverter))]
+        public TimeSpan? ExpiresIn { get; set; }
 
-        [JsonPropertyName("interval")]
-        public long PollingInterval { get; set; }
+        [JsonProperty("interval")]
+        [JsonConverter(typeof(TimeSpanSecondsConverter))]
+        public TimeSpan? PollingInterval { get; set; }
 
         public OAuth2DeviceCodeResult ToResult()
         {
-            return new OAuth2DeviceCodeResult(DeviceCode, UserCode, VerificationUri, TimeSpan.FromSeconds(PollingInterval))
+            return new OAuth2DeviceCodeResult(DeviceCode, UserCode, VerificationUri, PollingInterval)
             {
-                ExpiresIn = TimeSpan.FromSeconds(ExpiresIn)
+                ExpiresIn = ExpiresIn
             };
         }
     }

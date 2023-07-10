@@ -1,11 +1,11 @@
 using System.Collections.Generic;
-using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace Atlassian.Bitbucket.DataCenter
 {
     public class LoginOptions
     {
-        [JsonPropertyName("results")]
+        [JsonProperty("results")]
         public List<LoginOption> Results { get; set; }
     }
 }

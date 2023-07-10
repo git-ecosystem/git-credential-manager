@@ -1,12 +1,20 @@
 using System;
-using System.Text.Json;
-using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace Atlassian.Bitbucket.Cloud
 {
     public class UserInfo : IUserInfo
     {
-        [JsonPropertyName("username")]
+        [JsonProperty("has_2fa_enabled")]
+        public bool IsTwoFactorAuthenticationEnabled { get; set; }
+
+        [JsonProperty("username")]
         public string UserName { get; set; }
+
+        [JsonProperty("account_id")]
+        public string AccountId { get; set; }
+
+        [JsonProperty("uuid")]
+        public Guid Uuid { get; set; }
     }
 }

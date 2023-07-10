@@ -26,9 +26,10 @@
     <GenerateWindowsAppManifest Condition="'$(GenerateWindowsAppManifest)' == '' AND '$(OSPlatform)' == 'windows' AND '$(_IsExeProject)' == 'true'">true</GenerateWindowsAppManifest>
   </PropertyGroup>
 
-  <ItemGroup Condition = "'$(TargetFramework)' == 'net472'">
-    <PackageReference Include="System.Text.Json">
-      <Version>7.0.2</Version>
+  <ItemGroup>
+    <!-- Workaround https://github.com/AzureAD/microsoft-authentication-library-for-dotnet/issues/4108  -->
+    <PackageReference Include="Newtonsoft.Json">
+      <Version>13.0.1</Version>
     </PackageReference>
   </ItemGroup>
 

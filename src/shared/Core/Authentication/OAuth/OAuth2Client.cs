@@ -5,7 +5,7 @@ using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using GitCredentialManager.Authentication.OAuth.Json;
-using System.Text.Json;
+using Newtonsoft.Json;
 
 namespace GitCredentialManager.Authentication.OAuth
 {
@@ -318,10 +318,7 @@ namespace GitCredentialManager.Authentication.OAuth
                             return result;
                         }
 
-                        var error = JsonSerializer.Deserialize<ErrorResponseJson>(json, new JsonSerializerOptions
-                        {
-                            PropertyNameCaseInsensitive = true
-                        });
+                        var error = JsonConvert.DeserializeObject<ErrorResponseJson>(json);
 
                         switch (error.Error)
                         {
@@ -411,7 +408,7 @@ namespace GitCredentialManager.Authentication.OAuth
         {
             try
             {
-                obj = JsonSerializer.Deserialize<T>(json);
+                obj = JsonConvert.DeserializeObject<T>(json);
                 return true;
             }
             catch

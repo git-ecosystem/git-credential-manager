@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using GitCredentialManager.Authentication.OAuth;
 using GitCredentialManager.Authentication.OAuth.Json;
-using System.Text.Json;
+using Newtonsoft.Json;
 using Xunit;
 
 namespace GitCredentialManager.Tests.Objects
@@ -159,7 +159,7 @@ namespace GitCredentialManager.Tests.Objects
                 VerificationUri = _deviceCodeVerificationUri,
             };
 
-            string responseJson = JsonSerializer.Serialize(deviceResp);
+            string responseJson = JsonConvert.SerializeObject(deviceResp);
 
             return new HttpResponseMessage(HttpStatusCode.OK)
             {
@@ -234,7 +234,7 @@ namespace GitCredentialManager.Tests.Objects
                         Error = OAuth2Constants.DeviceAuthorization.Errors.AuthorizationPending
                     };
 
-                    var errorJson = JsonSerializer.Serialize(errorResp);
+                    var errorJson = JsonConvert.SerializeObject(errorResp);
 
                     return new HttpResponseMessage(HttpStatusCode.BadRequest)
                     {
@@ -248,7 +248,7 @@ namespace GitCredentialManager.Tests.Objects
                 throw new Exception($"Unknown grant type '{grantType}'");
             }
 
-            string responseJson = JsonSerializer.Serialize(tokenResp);
+            string responseJson = JsonConvert.SerializeObject(tokenResp);
 
             return new HttpResponseMessage(HttpStatusCode.OK)
             {

@@ -4,10 +4,10 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text.Json;
 using System.Threading.Tasks;
 using GitCredentialManager;
 using GitCredentialManager.Tests.Objects;
+using Newtonsoft.Json;
 using Xunit;
 
 namespace Microsoft.AzureRepos.Tests
@@ -411,10 +411,9 @@ namespace Microsoft.AzureRepos.Tests
 
         private static HttpResponseMessage CreateLocationServiceResponse(Uri identityServiceUri)
         {
-            var json = JsonSerializer.Serialize(new Dictionary<string, object>
-            {
-                ["location"] = identityServiceUri.AbsoluteUri
-            });
+            var json = JsonConvert.SerializeObject(
+                new Dictionary<string, object>{["location"] = identityServiceUri.AbsoluteUri}
+            );
 
             return new HttpResponseMessage(HttpStatusCode.OK)
             {
@@ -424,7 +423,7 @@ namespace Microsoft.AzureRepos.Tests
 
         private static HttpResponseMessage CreateIdentityServiceResponse(string pat)
         {
-            var json = JsonSerializer.Serialize(
+            var json = JsonConvert.SerializeObject(
                 new Dictionary<string, object> {["token"] = pat}
             );
 
@@ -436,7 +435,7 @@ namespace Microsoft.AzureRepos.Tests
 
         private static HttpResponseMessage CreateIdentityServiceErrorResponse(string errorMessage)
         {
-            var json = JsonSerializer.Serialize(
+            var json = JsonConvert.SerializeObject(
                 new Dictionary<string, object> {["message"] = errorMessage}
             );
 

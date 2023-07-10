@@ -5,8 +5,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using GitCredentialManager;
-using System.Text.Json;
-using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace Atlassian.Bitbucket.DataCenter
 {
@@ -107,12 +106,7 @@ namespace Atlassian.Bitbucket.DataCenter
 
                     if (response.IsSuccessStatusCode)
                     {
-                        var loginOptions = JsonSerializer.Deserialize<LoginOptions>(json,
-                            new JsonSerializerOptions
-                            {
-                                PropertyNameCaseInsensitive = true,
-                                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-                            });
+                        var loginOptions = JsonConvert.DeserializeObject<LoginOptions>(json, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
 
                         if (loginOptions.Results.Any(r => "LOGIN_FORM".Equals(r.Type)))
                         {

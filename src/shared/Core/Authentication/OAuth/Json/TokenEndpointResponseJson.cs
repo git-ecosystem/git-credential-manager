@@ -1,33 +1,31 @@
 using System;
-using System.Text.Json;
-using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace GitCredentialManager.Authentication.OAuth.Json
 {
     public class TokenEndpointResponseJson
     {
-        [JsonRequired]
-        [JsonPropertyName("access_token")]
+        [JsonProperty("access_token", Required = Required.Always)]
         public string AccessToken { get; set; }
 
-        [JsonRequired]
-        [JsonPropertyName("token_type")]
+        [JsonProperty("token_type", Required = Required.Always)]
         public string TokenType { get; set; }
 
-        [JsonPropertyName("expires_in")]
-        public long? ExpiresIn { get; set; }
+        [JsonProperty("expires_in")]
+        [JsonConverter(typeof(TimeSpanSecondsConverter))]
+        public TimeSpan? ExpiresIn { get; set; }
 
-        [JsonPropertyName("refresh_token")]
+        [JsonProperty("refresh_token")]
         public string RefreshToken { get; set; }
 
-        [JsonPropertyName("scope")]
+        [JsonProperty("scope")]
         public virtual string Scope { get; set; }
 
         public OAuth2TokenResult ToResult()
         {
             return new OAuth2TokenResult(AccessToken, TokenType)
             {
-                ExpiresIn = ExpiresIn.HasValue ? TimeSpan.FromSeconds(ExpiresIn.Value) : null,
+                ExpiresIn = ExpiresIn,
                 RefreshToken = RefreshToken,
                 Scopes = Scope?.Split(' ')
             };
