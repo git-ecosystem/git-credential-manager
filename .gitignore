@@ -395,3 +395,6 @@ src/shared/Microsoft.AzureRepos/Microsoft.AzureRepos.csproj
 src/shared/TestInfrastructure/Objects/TestOAuth2Server.cs
 src/shared/TestInfrastructure/TestInfrastructure.csproj
 src/linux/Packaging.Linux/install-from-source.sh
+.editorconfig
+src/shared/Core/Authentication/OAuth/Json/ITimeSpanSecondsConverter.cs
+src/shared/Core/Authentication/OAuth/Json/ITimeSpanSecondsConverter2.cs
