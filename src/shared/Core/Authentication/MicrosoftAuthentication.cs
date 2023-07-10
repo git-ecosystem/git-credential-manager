@@ -23,7 +23,7 @@ namespace GitCredentialManager.Authentication
     public interface IMicrosoftAuthentication
     {
         Task<IMicrosoftAuthenticationResult> GetTokenAsync(string authority, string clientId, Uri redirectUri,
-            string[] scopes, string userName);
+            string[] scopes, string userName, bool msaPt = false);
     }
 
     public interface IMicrosoftAuthenticationResult
@@ -59,7 +59,7 @@ namespace GitCredentialManager.Authentication
         #region IMicrosoftAuthentication
 
         public async Task<IMicrosoftAuthenticationResult> GetTokenAsync(
-            string authority, string clientId, Uri redirectUri, string[] scopes, string userName)
+            string authority, string clientId, Uri redirectUri, string[] scopes, string userName, bool msaPt)
         {
             // Check if we can and should use OS broker authentication
             bool useBroker = CanUseBroker();
@@ -70,7 +70,7 @@ namespace GitCredentialManager.Authentication
             try
             {
                 // Create the public client application for authentication
-                IPublicClientApplication app = await CreatePublicClientApplicationAsync(authority, clientId, redirectUri, useBroker);
+                IPublicClientApplication app = await CreatePublicClientApplicationAsync(authority, clientId, redirectUri, useBroker, msaPt);
 
                 AuthenticationResult result = null;
 
@@ -308,7 +308,7 @@ namespace GitCredentialManager.Authentication
         }
 
         private async Task<IPublicClientApplication> CreatePublicClientApplicationAsync(
-            string authority, string clientId, Uri redirectUri, bool enableBroker)
+            string authority, string clientId, Uri redirectUri, bool enableBroker, bool msaPt)
         {
             var httpFactoryAdaptor = new MsalHttpClientFactoryAdaptor(Context.HttpClientFactory);
 
@@ -370,7 +370,7 @@ namespace GitCredentialManager.Authentication
                     new BrokerOptions(BrokerOptions.OperatingSystems.Windows)
                     {
                         Title = "Git Credential Manager",
-                        MsaPassthrough = true,
+                        MsaPassthrough = msaPt,
                     }
                 );
 #endif
