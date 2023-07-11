@@ -210,7 +210,6 @@ namespace GitCredentialManager
             public const string GcmCredentialStores    = "https://aka.ms/gcm/credstores";
             public const string GcmWamComSecurity      = "https://aka.ms/gcm/wamadmin";
             public const string GcmAutoDetect          = "https://aka.ms/gcm/autodetect";
-            public const string GcmExecRename          = "https://aka.ms/gcm/rename";
             public const string GcmDefaultAccount      = "https://aka.ms/gcm/defaultaccount";
             public const string GcmMultipleUsers       = "https://aka.ms/gcm/multipleusers";
         }
