@@ -35,7 +35,8 @@ namespace GitCredentialManager.Authentication
                 RedirectStandardInput = true,
                 RedirectStandardOutput = true,
                 RedirectStandardError = false, // Do not redirect stderr as tracing might be enabled
-                UseShellExecute = false
+                UseShellExecute = false,
+                StandardOutputEncoding = EncodingEx.UTF8NoBom,
             };
 
             Context.Trace.WriteLine($"Starting helper process: {path} {args}");

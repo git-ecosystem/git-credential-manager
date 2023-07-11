@@ -29,8 +29,6 @@ namespace GitCredentialManager
     {
         private const string LineFeed  = "\n";
 
-        private static readonly Encoding Utf8NoBomEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
-
         private TextReader _stdIn;
         private TextWriter _stdOut;
         private TextWriter _stdErr;
@@ -41,7 +39,7 @@ namespace GitCredentialManager
             {
                 if (_stdIn == null)
                 {
-                    _stdIn = new StreamReader(Console.OpenStandardInput(), Utf8NoBomEncoding);
+                    _stdIn = new StreamReader(Console.OpenStandardInput(), EncodingEx.UTF8NoBom);
                 }
 
                 return _stdIn;
@@ -54,7 +52,7 @@ namespace GitCredentialManager
             {
                 if (_stdOut == null)
                 {
-                    _stdOut = new StreamWriter(Console.OpenStandardOutput(), Utf8NoBomEncoding)
+                    _stdOut = new StreamWriter(Console.OpenStandardOutput(), EncodingEx.UTF8NoBom)
                     {
                         AutoFlush = true,
                         NewLine = LineFeed,
@@ -71,7 +69,7 @@ namespace GitCredentialManager
             {
                 if (_stdErr == null)
                 {
-                    _stdErr = new StreamWriter(Console.OpenStandardError(), Utf8NoBomEncoding)
+                    _stdErr = new StreamWriter(Console.OpenStandardError(), EncodingEx.UTF8NoBom)
                     {
                         AutoFlush = true,
                         NewLine = LineFeed,
