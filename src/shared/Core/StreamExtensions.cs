@@ -248,14 +248,15 @@ namespace GitCredentialManager
                 // Only allow one value for non-multi/array entries ("key=value")
                 // and reset the array of a multi-entry if the value is empty ("key[]=<empty>")
                 bool emptyValue = string.IsNullOrEmpty(value);
+
                 if (!multi || emptyValue)
                 {
                     list.Clear();
+                }
 
-                    if (emptyValue)
-                    {
-                        return;
-                    }
+                if (multi && emptyValue)
+                {
+                    return;
                 }
 
                 list.Add(value);

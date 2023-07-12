@@ -255,6 +255,19 @@ namespace GitCredentialManager.Tests
         }
 
         [Fact]
+        public void StreamExtensions_ReadMultiDictionary_EmptyString_ReturnsKeyWithEmptyStringValue()
+        {
+            string input = "a=\n\n";
+
+            var output = ReadStringStream(input, StreamExtensions.ReadMultiDictionary);
+
+            Assert.NotNull(output);
+            Assert.Equal(1, output.Count);
+
+            AssertMultiDictionary(new[] { String.Empty,  }, "a", output);
+        }
+
+        [Fact]
         public void StreamExtensions_ReadMultiDictionary_Spaces_ReturnsCorrectKeysAndValues()
         {
             string input = "key a=value 1\n  key b  = 2 \nkey\tc\t=\t3\t\n\n";
