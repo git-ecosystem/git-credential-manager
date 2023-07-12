@@ -9,7 +9,7 @@ namespace GitHub
     {
         public GitHubOAuth2Client(HttpClient httpClient, ISettings settings, Uri baseUri, ITrace2 trace2)
             : base(httpClient, CreateEndpoints(baseUri),
-                GetClientId(settings), trace2, GetRedirectUri(settings), GetClientSecret(settings)) { }
+                GetClientId(settings), trace2, GetRedirectUri(settings, baseUri), GetClientSecret(settings)) { }
 
         private static OAuth2ServerEndpoints CreateEndpoints(Uri baseUri)
         {
@@ -37,7 +37,7 @@ namespace GitHub
             return GitHubConstants.OAuthClientId;
         }
 
-        private static Uri GetRedirectUri(ISettings settings)
+        private static Uri GetRedirectUri(ISettings settings, Uri targetUri)
         {
             // Check for developer override value
             if (settings.TryGetSetting(
@@ -48,7 +48,10 @@ namespace GitHub
                 return redirectUri;
             }
 
-            return GitHubConstants.OAuthRedirectUri;
+            // Only GitHub.com supports the new OAuth redirect URI today
+            return GitHubHostProvider.IsGitHubDotCom(targetUri)
+                ? GitHubConstants.OAuthRedirectUri
+                : GitHubConstants.OAuthLegacyRedirectUri;
         }
 
         private static string GetClientSecret(ISettings settings)

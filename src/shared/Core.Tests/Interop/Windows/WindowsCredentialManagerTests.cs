@@ -270,6 +270,70 @@ namespace GitCredentialManager.Tests.Interop.Windows
             Assert.Equal(expected, actual);
         }
 
+        [PlatformFact(Platforms.Windows)]
+        public void WindowsCredentialManager_IsMatch_NoNamespace_NotMatched()
+        {
+            var win32Cred = new Win32Credential
+            {
+                UserName = "test",
+                TargetName = $"{WindowsCredentialManager.TargetNameLegacyGenericPrefix}https://example.com"
+            };
+
+            var credManager = new WindowsCredentialManager(TestNamespace);
+
+            bool result = credManager.IsMatch("https://example.com", null, win32Cred);
+
+            Assert.False(result);
+        }
+
+        [PlatformFact(Platforms.Windows)]
+        public void WindowsCredentialManager_IsMatch_DifferentNamespace_NotMatched()
+        {
+            var win32Cred = new Win32Credential
+            {
+                UserName = "test",
+                TargetName = $"{WindowsCredentialManager.TargetNameLegacyGenericPrefix}:random-namespace:https://example.com"
+            };
+
+            var credManager = new WindowsCredentialManager(TestNamespace);
+
+            bool result = credManager.IsMatch("https://example.com", null, win32Cred);
+
+            Assert.False(result);
+        }
+
+        [PlatformFact(Platforms.Windows)]
+        public void WindowsCredentialManager_IsMatch_CaseSensitiveNamespace_NotMatched()
+        {
+            var win32Cred = new Win32Credential
+            {
+                UserName = "test",
+                TargetName = $"{WindowsCredentialManager.TargetNameLegacyGenericPrefix}:nAmEsPaCe:https://example.com"
+            };
+
+            var credManager = new WindowsCredentialManager("namespace");
+
+            bool result = credManager.IsMatch("https://example.com", null, win32Cred);
+
+            Assert.False(result);
+        }
+
+        [PlatformFact(Platforms.Windows)]
+        public void WindowsCredentialManager_IsMatch_NoNamespaceInQuery_IsMatched()
+        {
+            var win32Cred = new Win32Credential
+            {
+                UserName = "test",
+                TargetName = $"{WindowsCredentialManager.TargetNameLegacyGenericPrefix}https://example.com"
+            };
+
+            var credManager = new WindowsCredentialManager();
+
+            bool result = credManager.IsMatch("https://example.com", null, win32Cred);
+
+            Assert.True(result);
+        }
+
         [PlatformTheory(Platforms.Windows)]
         [InlineData("https://example.com", null, "https://example.com")]
         [InlineData("https://example.com", "bob", "https://bob@example.com")]
