@@ -23,6 +23,8 @@ namespace GitCredentialManager.Tests.Objects
         public bool ThrowOnUnexpectedRequest { get; set; }
         public bool SimulateNoNetwork { get; set; }
 
+        public bool SimulatePrimaryUriFailure { get; set; }
+
         public IDictionary<(HttpMethod method, Uri uri), int> RequestCounts => _requestCounts;
 
         public void Setup(HttpMethod method, Uri uri, AsyncRequestHandler handler)
@@ -78,6 +80,12 @@ namespace GitCredentialManager.Tests.Objects
             if (SimulateNoNetwork)
             {
                 throw new HttpRequestException("Simulated no network");
+            }
+
+            if (SimulatePrimaryUriFailure && request.RequestUri != null  &&
+                request.RequestUri.ToString().Equals("http://example.com/"))
+            {
+                throw new HttpRequestException("Simulated http failure.");
             }
 
             foreach (var kvp in _handlers)
