@@ -195,6 +195,9 @@ namespace Microsoft.AzureRepos
             string authAuthority = await _azDevOps.GetAuthorityAsync(orgUri);
             _context.Trace.WriteLine($"Authority is '{authAuthority}'.");
 
+            // MSA passthrough is required for Azure DevOps until the service supports 'v2' tokens
+            bool msaPt = true;
+
             // Get an AAD access token for the Azure DevOps SPS
             _context.Trace.WriteLine("Getting Azure AD access token...");
             IMicrosoftAuthenticationResult result = await _msAuth.GetTokenAsync(
@@ -202,7 +205,8 @@ namespace Microsoft.AzureRepos
                 GetClientId(),
                 GetRedirectUri(),
                 AzureDevOpsConstants.AzureDevOpsDefaultScopes,
-                null);
+                null,
+                msaPt);
             _context.Trace.WriteLineSecrets(
                 $"Acquired Azure access token. Account='{result.AccountUpn}' Token='{{0}}'", new object[] {result.AccessToken});
 
@@ -286,6 +290,9 @@ namespace Microsoft.AzureRepos
 
             _context.Trace.WriteLine(string.IsNullOrWhiteSpace(userName) ? "No user found." : $"User is '{userName}'.");
 
+            // MSA passthrough is required for Azure DevOps until the service supports 'v2' tokens
+            bool msaPt = true;
+
             // Get an AAD access token for the Azure DevOps SPS
             _context.Trace.WriteLine("Getting Azure AD access token...");
             IMicrosoftAuthenticationResult result = await _msAuth.GetTokenAsync(
@@ -293,7 +300,8 @@ namespace Microsoft.AzureRepos
                 GetClientId(),
                 GetRedirectUri(),
                 AzureDevOpsConstants.AzureDevOpsDefaultScopes,
-                userName);
+                userName,
+                msaPt);
             _context.Trace.WriteLineSecrets(
                 $"Acquired Azure access token. Account='{result.AccountUpn}' Token='{{0}}'", new object[] {result.AccessToken});
 

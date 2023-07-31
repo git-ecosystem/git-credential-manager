@@ -18,6 +18,9 @@ namespace GitCredentialManager
 
         public static readonly Guid DevBoxPartnerId = new("e3171dd9-9a5f-e5be-b36c-cc7c4f3f3bcf");
 
+        public static readonly Guid MicrosoftAccountTenantId = new("9188040d-6c67-4c5b-b112-36a304b66dad");
+        public static readonly Guid MsaTransferTenantId = new("f8cdef31-a31e-4b4a-93e4-5f571e91255a");
+
         public static class CredentialStoreNames
         {
             public const string WindowsCredentialManager = "wincredman";

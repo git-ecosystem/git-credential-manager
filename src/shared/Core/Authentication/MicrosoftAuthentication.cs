@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using GitCredentialManager.Interop.Windows.Native;
@@ -23,7 +24,7 @@ namespace GitCredentialManager.Authentication
     public interface IMicrosoftAuthentication
     {
         Task<IMicrosoftAuthenticationResult> GetTokenAsync(string authority, string clientId, Uri redirectUri,
-            string[] scopes, string userName);
+            string[] scopes, string userName, bool msaPassthrough);
     }
 
     public interface IMicrosoftAuthenticationResult
@@ -59,7 +60,7 @@ namespace GitCredentialManager.Authentication
         #region IMicrosoftAuthentication
 
         public async Task<IMicrosoftAuthenticationResult> GetTokenAsync(
-            string authority, string clientId, Uri redirectUri, string[] scopes, string userName)
+            string authority, string clientId, Uri redirectUri, string[] scopes, string userName, bool msaPassthrough)
         {
             // Check if we can and should use OS broker authentication
             bool useBroker = CanUseBroker();
@@ -67,10 +68,16 @@ namespace GitCredentialManager.Authentication
                 ? "OS broker is available and enabled."
                 : "OS broker is not available or enabled.");
 
+            if (msaPassthrough)
+            {
+                Context.Trace.WriteLine("MSA passthrough is enabled.");
+            }
+            
             try
             {
                 // Create the public client application for authentication
-                IPublicClientApplication app = await CreatePublicClientApplicationAsync(authority, clientId, redirectUri, useBroker);
+                IPublicClientApplication app = await CreatePublicClientApplicationAsync(
+                    authority, clientId, redirectUri, useBroker, msaPassthrough);
 
                 AuthenticationResult result = null;
 
@@ -78,7 +85,7 @@ namespace GitCredentialManager.Authentication
                 bool hasExistingUser = !string.IsNullOrWhiteSpace(userName);
                 if (hasExistingUser)
                 {
-                    result = await GetAccessTokenSilentlyAsync(app, scopes, userName);
+                    result = await GetAccessTokenSilentlyAsync(app, scopes, userName, msaPassthrough);
                 }
 
                 //
@@ -116,7 +123,7 @@ namespace GitCredentialManager.Authentication
                         // account then the user may become stuck in a loop of authentication failures.
                         if (!hasExistingUser && Context.Settings.UseMsAuthDefaultAccount)
                         {
-                            result = await GetAccessTokenSilentlyAsync(app, scopes, null);
+                            result = await GetAccessTokenSilentlyAsync(app, scopes, null, msaPassthrough);
 
                             if (result is null || !await UseDefaultAccountAsync(result.Account.Username))
                             {
@@ -281,23 +288,53 @@ namespace GitCredentialManager.Authentication
         /// <summary>
         /// Obtain an access token without showing UI or prompts.
         /// </summary>
-        private async Task<AuthenticationResult> GetAccessTokenSilentlyAsync(IPublicClientApplication app, string[] scopes, string userName)
+        private async Task<AuthenticationResult> GetAccessTokenSilentlyAsync(
+            IPublicClientApplication app, string[] scopes, string userName, bool msaPassthrough)
         {
             try
             {
                 if (userName is null)
                 {
-                    Context.Trace.WriteLine("Attempting to acquire token silently for current operating system account...");
+                    Context.Trace.WriteLine(
+                        "Attempting to acquire token silently for current operating system account...");
 
-                    return await app.AcquireTokenSilent(scopes, PublicClientApplication.OperatingSystemAccount).ExecuteAsync();
+                    return await app.AcquireTokenSilent(scopes, PublicClientApplication.OperatingSystemAccount)
+                        .ExecuteAsync();
                 }
                 else
                 {
                     Context.Trace.WriteLine($"Attempting to acquire token silently for user '{userName}'...");
 
-                    // We can either call `app.GetAccountsAsync` and filter through the IAccount objects for the instance with the correct user name,
-                    // or we can just pass the user name string we have as the `loginHint` and let MSAL do exactly that for us instead!
-                    return await app.AcquireTokenSilent(scopes, loginHint: userName).ExecuteAsync();
+                    //
+                    // Filter through the IAccount objects for the instance with the correct user name then use the
+                    // account object to acquire the token silently. We could also just pass the user name to the
+                    // overload that takes a login hint, but we need to make some adjustments in the case of MSAs.
+                    //
+                    // See this issue: https://github.com/AzureAD/microsoft-authentication-library-for-dotnet/issues/3077
+                    //
+                    // Until MSAL learns to do this for us, we'll need to do it ourselves.
+                    //
+                    IEnumerable<IAccount> accounts = await app.GetAccountsAsync();
+                    IAccount account = accounts.FirstOrDefault(x => StringComparer.Ordinal.Equals(x.Username, userName));
+                    if (account is null)
+                    {
+                        Context.Trace.WriteLine($"Unable to locate account object for user '{userName}'.");
+                        return null;
+                    }
+
+                    AcquireTokenSilentParameterBuilder atsBuilder = app.AcquireTokenSilent(scopes, account);
+
+                    // If we need to use MSA passthrough _and_ the account is an MSA then we must target
+                    // the special "MSA-PT transfer tenant" instead.
+                    if (msaPassthrough &&
+                        Guid.TryParse(account.HomeAccountId.TenantId, out Guid homeTenantId) &&
+                        homeTenantId == Constants.MicrosoftAccountTenantId)
+                    {
+                        Context.Trace.WriteLine("Using MSA passthrough transfer tenant.");
+                        atsBuilder = atsBuilder.WithTenantId(Constants.MsaTransferTenantId.ToString("D"));
+                    }
+
+                    return await atsBuilder.ExecuteAsync();
                 }
             }
             catch (MsalUiRequiredException)
@@ -305,10 +342,16 @@ namespace GitCredentialManager.Authentication
                 Context.Trace.WriteLine("Failed to acquire token silently; user interaction is required.");
                 return null;
             }
+            catch (Exception ex)
+            {
+                Context.Trace.WriteLine("Failed to acquire token silently.");
+                Context.Trace.WriteException(ex);
+                return null;
+            }
         }
 
         private async Task<IPublicClientApplication> CreatePublicClientApplicationAsync(
-            string authority, string clientId, Uri redirectUri, bool enableBroker)
+            string authority, string clientId, Uri redirectUri, bool enableBroker, bool enableMsaPassthrough)
         {
             var httpFactoryAdaptor = new MsalHttpClientFactoryAdaptor(Context.HttpClientFactory);
 
@@ -370,7 +413,7 @@ namespace GitCredentialManager.Authentication
                     new BrokerOptions(BrokerOptions.OperatingSystems.Windows)
                     {
                         Title = "Git Credential Manager",
-                        MsaPassthrough = true,
+                        MsaPassthrough = enableMsaPassthrough,
                     }
                 );
 #endif
