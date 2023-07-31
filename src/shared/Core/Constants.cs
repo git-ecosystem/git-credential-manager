@@ -18,6 +18,17 @@ namespace GitCredentialManager
 
         public static readonly Guid DevBoxPartnerId = new("e3171dd9-9a5f-e5be-b36c-cc7c4f3f3bcf");
 
+        /// <summary>
+        /// Home tenant ID for Microsoft Accounts (MSA).
+        /// </summary>
+        public static readonly Guid MsaHomeTenantId = new("9188040d-6c67-4c5b-b112-36a304b66dad");
+
+        /// <summary>
+        /// Special tenant ID for transferring between Microsoft Account (MSA) native tokens
+        /// and AAD tokens. Only required for MSA-Passthrough applications.
+        /// </summary>
+        public static readonly Guid MsaTransferTenantId = new("f8cdef31-a31e-4b4a-93e4-5f571e91255a");
+
         public static class CredentialStoreNames
         {
             public const string WindowsCredentialManager = "wincredman";
