@@ -68,6 +68,11 @@ namespace GitCredentialManager.Authentication
                 ? "OS broker is available and enabled."
                 : "OS broker is not available or enabled.");
 
+            if (msaPt)
+            {
+                Context.Trace.WriteLine("MSA passthrough is enabled.");
+            }
+
             try
             {
                 // Create the public client application for authentication
@@ -289,9 +294,11 @@ namespace GitCredentialManager.Authentication
             {
                 if (userName is null)
                 {
-                    Context.Trace.WriteLine("Attempting to acquire token silently for current operating system account...");
+                    Context.Trace.WriteLine(
+                        "Attempting to acquire token silently for current operating system account...");
 
-                    return await app.AcquireTokenSilent(scopes, PublicClientApplication.OperatingSystemAccount).ExecuteAsync();
+                    return await app.AcquireTokenSilent(scopes, PublicClientApplication.OperatingSystemAccount)
+                        .ExecuteAsync();
                 }
                 else
                 {
@@ -299,7 +306,8 @@ namespace GitCredentialManager.Authentication
 
                     // Enumerate all accounts and find the one matching the user name
                     IEnumerable<IAccount> accounts = await app.GetAccountsAsync();
-                    IAccount account = accounts.FirstOrDefault(x => StringComparer.OrdinalIgnoreCase.Equals(x.Username, userName));
+                    IAccount account = accounts.FirstOrDefault(x =>
+                        StringComparer.OrdinalIgnoreCase.Equals(x.Username, userName));
                     if (account is null)
                     {
                         Context.Trace.WriteLine($"No cached account found for user '{userName}'...");
@@ -323,6 +331,12 @@ namespace GitCredentialManager.Authentication
             catch (MsalUiRequiredException)
             {
                 Context.Trace.WriteLine("Failed to acquire token silently; user interaction is required.");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                Context.Trace.WriteLine("Failed to acquire token silently.");
+                Context.Trace.WriteException(ex);
                 return null;
             }
         }
