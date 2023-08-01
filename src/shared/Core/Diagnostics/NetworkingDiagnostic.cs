@@ -12,6 +12,7 @@ namespace GitCredentialManager.Diagnostics
     public class NetworkingDiagnostic : Diagnostic
     {
         private const string TestHttpUri = "http://example.com";
+        private const string TestHttpUriFallback = "http://httpforever.com";
         private const string TestHttpsUri = "https://example.com";
 
         public NetworkingDiagnostic(ICommandContext commandContext)
@@ -28,9 +29,7 @@ namespace GitCredentialManager.Diagnostics
             bool hasNetwork = NetworkInterface.GetIsNetworkAvailable();
             log.AppendLine($"IsNetworkAvailable: {hasNetwork}");
 
-            log.Append($"Sending HEAD request to {TestHttpUri}...");
-            using var httpResponse = await httpClient.HeadAsync(TestHttpUri);
-            log.AppendLine(" OK");
+            SendHttpRequest(log, httpClient);
 
             log.Append($"Sending HEAD request to {TestHttpsUri}...");
             using var httpsResponse = await httpClient.HeadAsync(TestHttpsUri);
@@ -97,6 +96,24 @@ namespace GitCredentialManager.Diagnostics
             log.AppendLine("Loopback connection data OK");
 
             return true;
+        }
+
+        internal /* For testing purposes */ async void SendHttpRequest(StringBuilder log, HttpClient httpClient)
+        {
+            foreach (var uri in new List<string> { TestHttpUri, TestHttpUriFallback })
+            {
+                try
+                {
+                    log.Append($"Sending HEAD request to {uri}...");
+                    using var httpResponse = await httpClient.HeadAsync(uri);
+                    log.AppendLine(" OK");
+                    break;
+                }
+                catch (HttpRequestException)
+                {
+                    log.AppendLine(" warning: HEAD request failed");
+                }
+            }
         }
     }
 }

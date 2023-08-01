@@ -93,7 +93,7 @@ which you should also be aware of if you're using it.
 
 You can use the `github [list | login | logout]` commands to manage your GitHub
 accounts. These commands are documented in the [command-line usage][cli-usage]
-or by running `git-credential-manager github --help`.
+or by running `git credential-manager github --help`.
 
 ## TL;DR: Tell GCM to remember which account to use
 
