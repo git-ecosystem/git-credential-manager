@@ -154,6 +154,14 @@ As far as we can tell, there are no workarounds for either of these behaviors
 
 ## Running as administrator
 
+### GCM 2.1 and later
+
+From version 2.1 onwards, GCM uses a version of the [Microsoft Authentication
+Library (MSAL)][msal-dotnet] that supports use of the Windows
+broker from an elevated process.
+
+### Previous versions
+
 The Windows broker ("WAM") makes heavy use of [COM][ms-com], a remote procedure
 call (RPC) technology built into Windows. In order to integrate with WAM, Git
 Credential Manager and the underlying
@@ -181,8 +189,10 @@ See https://aka.ms/gcm/wamadmin for more information.
 
 In order to fix the problem, there are a few options:
 
-1. Run Git or Git Credential Manager from non-elevated processes.
-2. Disable the broker by setting the
+1. Update to the [latest Git for Windows][git-for-windows-latest]
+   **(recommended)**.
+2. Run Git or Git Credential Manager from non-elevated processes.
+3. Disable the broker by setting the
    [`GCM_MSAUTH_USEBROKER`][GCM_MSAUTH_USEBROKER]
    environment variable or the
    [`credential.msauthUseBroker`][credential.msauthUseBroker]
@@ -206,3 +216,4 @@ In order to fix the problem, there are a few options:
 [ms-com]: https://docs.microsoft.com/en-us/windows/win32/com/the-component-object-model
 [msal-dotnet]: https://aka.ms/msal-net
 [devbox]: https://azure.microsoft.com/en-us/products/dev-box
+[git-for-windows-latest]: https://git-scm.com/download/win
