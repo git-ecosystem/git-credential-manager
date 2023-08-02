@@ -86,7 +86,9 @@ your machine: requiring certain kinds of sign-in, turning on antivirus and
 firewall software, and enabling BitLocker.
 Your identity will also be available to other apps on the computer for signing
 in, some of which may do so automatically.
+
 ![Example of policies pushed to an Intune-enrolled device][aad-bitlocker]
+
 - If you uncheck "allow my organization to manage my device" and click "OK",
 your computer will be registered with Azure AD but will not be MDM-enrolled.
 Your identity will be available to other apps on the computer for signing in.
@@ -95,6 +97,7 @@ organization to manage your device. Despite joining Azure AD, your
 organization's Conditional Access policies may still prevent you from accessing
 Azure DevOps.
 If so, you'll be prompted with instructions on how to enroll in MDM.
+
 - If you instead click "No, sign in to this app only", your machine will not be
 joined to Azure AD or MDM-enrolled, so no policies can be enforced, and your
 identity won't be made available to other apps on the computer.
@@ -132,27 +135,48 @@ improve over time and a "personal account" option to be presented in the future.
 
 If you've connected your MSA to Windows or signed-in to other Microsoft
 applications such as Office, then you may see this account listed in the
-authentication prompts when using GCM. For any connected MSA, you can control
-whether or not the account is available to other Microsoft applications in
-**Settings**, **Accounts**, **Emails & accounts**:
+authentication prompts when using GCM.
+
+---
+
+⚠️ **Important** ⚠️
+
+When adding a new MSA to Windows, you'll be asked to select whether to use this
+account across all of your device (**option 1**), or only permit Microsoft-apps
+to access your identity (**option 2**). If you opt to use the account everywhere,
+then your local Windows user account will be connected to that MSA.
+This means you'll need to use your MSA credentials to sign in to Windows going
+forward.
+
+Selecting "just this app" or "Microsoft apps only" will still allow you to use
+this MSA across apps in Windows, but will not require you to use your MSA
+credentials to sign in to Windows.
+
+![Confirmation to connect your MSA to Windows][msa-confirm]
+
+To disconnect an MSA added using option 1, you can go into **Settings**,
+**Accounts**, **Your info** and click **Stop signing in to all Microsoft apps
+automatically**.
+
+![Remove your Microsoft account from Windows][msa-remove]
+
+For MSAs added for "Microsoft apps only", you can modify whether or not these
+accounts are available to other applications, and also remove the accounts from
+ **Settings**, **Accounts**, **Emails & accounts**:
 
 ![Allow all Microsoft apps to access your identity][all-ms-apps]
 
 ![Microsoft apps must ask to access your identity][apps-must-ask]
 
-Two very important things to note:
-
-- If you haven't connected any Microsoft accounts to Windows before, the first
-account you connect will cause the local Windows user account to be converted to
-a connected account.
-- In addition, you can't change the usage preference for the first Microsoft
-account connected to Windows: all Microsoft apps will be able to sign you in
-with that account.
-
-As far as we can tell, there are no workarounds for either of these behaviors
-(other than to not use the WAM broker).
-
 ## Running as administrator
+
+### GCM 2.1 and later
+
+From version 2.1 onwards, GCM uses a version of the [Microsoft Authentication
+Library (MSAL)][msal-dotnet] that supports use of the Windows
+broker from an elevated process.
+
+### Previous versions
 
 The Windows broker ("WAM") makes heavy use of [COM][ms-com], a remote procedure
 call (RPC) technology built into Windows. In order to integrate with WAM, Git
@@ -181,8 +205,10 @@ See https://aka.ms/gcm/wamadmin for more information.
 
 In order to fix the problem, there are a few options:
 
-1. Run Git or Git Credential Manager from non-elevated processes.
-2. Disable the broker by setting the
+1. Update to the [latest Git for Windows][git-for-windows-latest]
+   **(recommended)**.
+2. Run Git or Git Credential Manager from non-elevated processes.
+3. Disable the broker by setting the
    [`GCM_MSAUTH_USEBROKER`][GCM_MSAUTH_USEBROKER]
    environment variable or the
    [`credential.msauthUseBroker`][credential.msauthUseBroker]
@@ -204,5 +230,8 @@ In order to fix the problem, there are a few options:
 [all-ms-apps]: img/all-microsoft.png
 [apps-must-ask]: img/apps-must-ask.png
 [ms-com]: https://docs.microsoft.com/en-us/windows/win32/com/the-component-object-model
+[msa-confirm]: img/msa-confirm.png
+[msa-remove]: img/msa-remove.png
 [msal-dotnet]: https://aka.ms/msal-net
 [devbox]: https://azure.microsoft.com/en-us/products/dev-box
+[git-for-windows-latest]: https://git-scm.com/download/win
