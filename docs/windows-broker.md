@@ -144,7 +144,7 @@ authentication prompts when using GCM.
 When adding a new MSA to Windows, you'll be asked to select whether to use this
 account across all of your device (**option 1**), or only permit Microsoft-apps
 to access your identity (**option 2**). If you opt to use the account everywhere,
-then your local Windows user account will be connected to that MSA account.
+then your local Windows user account will be connected to that MSA.
 This means you'll need to use your MSA credentials to sign in to Windows going
 forward.
 
