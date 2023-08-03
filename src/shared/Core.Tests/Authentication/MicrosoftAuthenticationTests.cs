@@ -8,7 +8,7 @@ namespace GitCredentialManager.Tests.Authentication
     public class MicrosoftAuthenticationTests
     {
         [Fact]
-        public async System.Threading.Tasks.Task MicrosoftAuthentication_GetAccessTokenAsync_NoInteraction_ThrowsException()
+        public async System.Threading.Tasks.Task MicrosoftAuthentication_GetTokenForUserAsync_NoInteraction_ThrowsException()
         {
             const string authority = "https://login.microsoftonline.com/common";
             const string clientId = "C9E8FDA6-1D46-484C-917C-3DBD518F27C3";
@@ -24,7 +24,7 @@ namespace GitCredentialManager.Tests.Authentication
             var msAuth = new MicrosoftAuthentication(context);
 
             await Assert.ThrowsAsync<Trace2InvalidOperationException>(
-                () => msAuth.GetTokenAsync(authority, clientId, redirectUri, scopes, userName, false));
+                () => msAuth.GetTokenForUserAsync(authority, clientId, redirectUri, scopes, userName, false));
         }
     }
 }

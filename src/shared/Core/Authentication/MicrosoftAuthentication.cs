@@ -23,7 +23,17 @@ namespace GitCredentialManager.Authentication
 {
     public interface IMicrosoftAuthentication
     {
-        Task<IMicrosoftAuthenticationResult> GetTokenAsync(string authority, string clientId, Uri redirectUri,
+        /// <summary>
+        /// Acquire an access token for a user principal.
+        /// </summary>
+        /// <param name="authority">Azure authority.</param>
+        /// <param name="clientId">Client ID.</param>
+        /// <param name="redirectUri">Redirect URI for the client.</param>
+        /// <param name="scopes">Set of scopes to request.</param>
+        /// <param name="userName">Optional user name for an existing account.</param>
+        /// <param name="msaPt">Use MSA-Passthrough behavior when authenticating.</param>
+        /// <returns>Authentication result.</returns>
+        Task<IMicrosoftAuthenticationResult> GetTokenForUserAsync(string authority, string clientId, Uri redirectUri,
             string[] scopes, string userName, bool msaPt = false);
     }
 
@@ -59,7 +69,7 @@ namespace GitCredentialManager.Authentication
 
         #region IMicrosoftAuthentication
 
-        public async Task<IMicrosoftAuthenticationResult> GetTokenAsync(
+        public async Task<IMicrosoftAuthenticationResult> GetTokenForUserAsync(
             string authority, string clientId, Uri redirectUri, string[] scopes, string userName, bool msaPt)
         {
             // Check if we can and should use OS broker authentication
