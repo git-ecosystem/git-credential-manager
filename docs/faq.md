@@ -230,6 +230,51 @@ demonstration purposes).
 5. Re-authorizing the application with the new scope (GCM should automatically
 initiate this flow for you next time access is requested).
 
+### Q: What do the `configure` and `unconfigure` commands do?
+
+#### `configure`
+
+The `configure` command will set up Git to use GCM exclusively as the credential
+helper. The `configure` command is automatically called by the installers for
+Windows and macOS, but you can also run it manually.
+
+It will also set Git to provide the full remote URL (including path) to
+credential helpers for Azure Repos remotes using the `dev.azure.com` URL format.
+This is required in order to be to able to correctly identify the correct
+authority for that Azure DevOps organization.
+
+Specifically, the `configure` command will modify your user Git configuration to
+include the following lines:
+
+```ini
+[credential]
+    helper =
+    helper = <path-to-gcm>
+[credential "https://dev.azure.com"]
+    useHttpPath = true
+```
+
+..where `<path-to-gcm>` is the absolute path to the GCM executable.
+
+The empty `helper =` line makes sure that existing credential helpers that may
+be set in the system Git configuration are not used. For more details see the
+[credential.helper][helper-config-docs].
+
+If you pass the `--system` option, the `configure` command will instead modify
+the system Git configuration. This is useful if you want to set up GCM for all
+users on a machine.
+
+#### `unconfigure`
+
+This command essentially undoes what the `configure` command does. It will check
+your Git configuration for the lines added by the `configure` command and remove
+them. The `unconfigure` command is run by the uninstaller for Windows and the
+uninstall script on macOS.
+
+On Windows, if run with the `--system` option, the `unconfigure` command will
+also ensure that the `credential.helper` setting in the system Git configuration
+is not removed and is left as `manager`, the default set by Git for Windows.
+
 [autodetect]: autodetect.md
 [azure-ssh]: https://docs.microsoft.com/en-us/azure/devops/repos/git/use-ssh-keys-to-authenticate?view=azure-devops
 [bitbucket-ssh]: https://confluence.atlassian.com/bitbucket/ssh-keys-935365775.html
@@ -251,6 +296,7 @@ initiate this flow for you next time access is requested).
 [gitlab-apps]: https://gitlab.com/-/profile/applications
 [gitlab-oauthapp-revoke]: ./img/gitlab-oauthapp-revoke.png
 [gitlab-oauthapp-revoked]: ./img/gitlab-oauthapp-revoked.png
+[helper-config-docs]: https://git-scm.com/docs/gitcredentials#Documentation/gitcredentials.txt-helper
 [multiple-users]: multiple-users.md
 [netconfig-http-proxy]: netconfig.md#http-proxy
 [linux-uninstall-from-src]: ./linux-fromsrc-uninstall.md
