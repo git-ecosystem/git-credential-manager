@@ -26,7 +26,7 @@ namespace GitCredentialManager.Interop.Windows
 
         public IList<string> GetAccounts(string service)
         {
-            return Enumerate(service, null).Select(x => x.UserName).ToList();
+            return Enumerate(service, null).Select(x => x.UserName).Distinct().ToList();
         }
 
         public ICredential Get(string service, string account)

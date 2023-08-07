@@ -16,7 +16,7 @@ namespace GitCredentialManager.Tests.Objects
 
         public IList<string> GetAccounts(string service)
         {
-            return Query(service, null).Select(x => x.Account).ToList();
+            return Query(service, null).Select(x => x.Account).Distinct().ToList();
         }
 
         ICredential ICredentialStore.Get(string service, string account)
