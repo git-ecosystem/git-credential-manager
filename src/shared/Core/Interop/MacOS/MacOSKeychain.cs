@@ -66,7 +66,7 @@ namespace GitCredentialManager.Interop.MacOS
                         if (typeId == CFArrayGetTypeID())
                         {
                             int len = (int)CFArrayGetCount(resultPtr);
-                            var accounts = new List<string>(len);
+                            var accounts = new HashSet<string>(len);
                             for (int i = 0; i < len; i++)
                             {
                                 IntPtr dict = CFArrayGetValueAtIndex(resultPtr, i);
@@ -74,7 +74,7 @@ namespace GitCredentialManager.Interop.MacOS
                                 accounts.Add(account);
                             }
 
-                            return accounts;
+                            return accounts.ToList();
                         }
 
                         throw new InteropException($"Unknown keychain search result type CFTypeID: {typeId}.", -1);
