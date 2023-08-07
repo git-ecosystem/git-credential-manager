@@ -101,7 +101,7 @@ To set a default account for a particular remote you can simply set the
 following Git configuration:
 
 ```shell
-git config credential.<URL>.username <USERNAME>
+git config --global credential.<URL>.username <USERNAME>
 ```
 
 ..where `<URL>` is the remote URL and `<USERNAME>` is the account you wish to
