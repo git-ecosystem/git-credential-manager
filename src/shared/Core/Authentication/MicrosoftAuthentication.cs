@@ -13,6 +13,7 @@ using System.Threading;
 using GitCredentialManager.UI;
 using GitCredentialManager.UI.ViewModels;
 using GitCredentialManager.UI.Views;
+using Microsoft.Identity.Client.AppConfig;
 
 #if NETFRAMEWORK
 using System.Drawing;
@@ -44,6 +45,25 @@ namespace GitCredentialManager.Authentication
         /// <param name="scopes">Scopes to request.</param>
         /// <returns>Authentication result.</returns>
         Task<IMicrosoftAuthenticationResult> GetTokenForServicePrincipalAsync(ServicePrincipalIdentity sp, string[] scopes);
+
+        /// <summary>
+        /// Acquire a token using the managed identity in the current environment.
+        /// </summary>
+        /// <param name="managedIdentity">Managed identity to use.</param>
+        /// <param name="resource">Resource to obtain an access token for.</param>
+        /// <returns>Authentication result including access token.</returns>
+        /// <remarks>
+        /// There are several formats for the <paramref name="managedIdentity"/> parameter:
+        /// <para/>
+        ///  - <c>"system"</c> - Use the system-assigned managed identity.
+        /// <para/>
+        ///  - <c>"{guid}"</c> - Use the user-assigned managed identity with client ID <c>{guid}</c>.
+        /// <para/>
+        ///  - <c>"id://{guid}"</c> - Use the user-assigned managed identity with client ID <c>{guid}</c>.
+        /// <para/>
+        ///  - <c>"resource://{guid}"</c> - Use the user-assigned managed identity with resource ID <c>{guid}</c>.
+        /// </remarks>
+        Task<IMicrosoftAuthenticationResult> GetTokenForManagedIdentityAsync(string managedIdentity, string resource);
     }
 
     public class ServicePrincipalIdentity
@@ -260,6 +280,31 @@ namespace GitCredentialManager.Authentication
             catch (Exception ex)
             {
                 Context.Trace.WriteLine($"Failed to acquire token for service principal '{sp.TenantId}/{sp.TenantId}'.");
+                Context.Trace.WriteException(ex);
+                throw;
+            }
+        }
+
+        public async Task<IMicrosoftAuthenticationResult> GetTokenForManagedIdentityAsync(string managedIdentity, string resource)
+        {
+            var httpFactoryAdaptor = new MsalHttpClientFactoryAdaptor(Context.HttpClientFactory);
+
+            ManagedIdentityId mid = GetManagedIdentity(managedIdentity);
+
+            IManagedIdentityApplication app = ManagedIdentityApplicationBuilder.Create(mid)
+                .WithHttpClientFactory(httpFactoryAdaptor)
+                .Build();
+
+            try
+            {
+                AuthenticationResult result = await app.AcquireTokenForManagedIdentity(resource).ExecuteAsync();
+                return new MsalResult(result);
+            }
+            catch (Exception ex)
+            {
+                Context.Trace.WriteLine(mid == ManagedIdentityId.SystemAssigned
+                    ? "Failed to acquire token for system managed identity."
+                    : $"Failed to acquire token for user managed identity '{managedIdentity:D}'.");
                 Context.Trace.WriteException(ex);
                 throw;
             }
@@ -624,6 +669,50 @@ namespace GitCredentialManager.Authentication
             return builder.Build();
         }
 
+        internal static ManagedIdentityId GetManagedIdentity(string str)
+        {
+            // An empty string or "system" means system-assigned managed identity
+            if (string.IsNullOrWhiteSpace(str) || str.Equals("system", StringComparison.OrdinalIgnoreCase))
+            {
+                return ManagedIdentityId.SystemAssigned;
+            }
+
+            //
+            // A GUID-looking value means a user-assigned managed identity specified by the client ID.
+            // If the "{value}" is the empty GUID then we use the system-assigned MI.
+            //
+            if (Guid.TryParse(str, out Guid guid))
+            {
+                return guid == Guid.Empty
+                    ? ManagedIdentityId.SystemAssigned
+                    : ManagedIdentityId.WithUserAssignedClientId(str);
+            }
+
+            //
+            // A value of the form "id://{value}" means a user-assigned managed identity specified by the client ID.
+            // If the "{value}" is the empty GUID then we use the system-assigned MI.
+            //
+            // If the value is "resource://{value}" then it is a user-assigned managed identity specified
+            // by the resource ID.
+            //
+            if (Uri.TryCreate(str, UriKind.Absolute, out Uri uri))
+            {
+                if (StringComparer.OrdinalIgnoreCase.Equals(uri.Scheme, "id"))
+                {
+                    return Guid.TryParse(uri.Host, out Guid g) && g == Guid.Empty
+                        ? ManagedIdentityId.SystemAssigned
+                        : ManagedIdentityId.WithUserAssignedClientId(uri.Host);
+                }
+
+                if (StringComparer.OrdinalIgnoreCase.Equals(uri.Scheme, "resource"))
+                {
+                    return ManagedIdentityId.WithUserAssignedResourceId(uri.Host);
+                }
+            }
+
+            throw new ArgumentException("Invalid managed identity value.", nameof(str));
+        }
+
         private static EmbeddedWebViewOptions GetEmbeddedWebViewOptions()
         {
             return new EmbeddedWebViewOptions
@@ -774,7 +863,7 @@ namespace GitCredentialManager.Authentication
             }
 
             public string AccessToken => _msalResult.AccessToken;
-            public string AccountUpn => _msalResult.Account.Username;
+            public string AccountUpn => _msalResult.Account?.Username;
         }
 
 #if NETFRAMEWORK
