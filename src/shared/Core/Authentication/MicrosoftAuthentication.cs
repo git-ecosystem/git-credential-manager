@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using GitCredentialManager.Interop.Windows.Native;
 using Microsoft.Identity.Client;
@@ -35,6 +36,43 @@ namespace GitCredentialManager.Authentication
         /// <returns>Authentication result.</returns>
         Task<IMicrosoftAuthenticationResult> GetTokenForUserAsync(string authority, string clientId, Uri redirectUri,
             string[] scopes, string userName, bool msaPt = false);
+
+        /// <summary>
+        /// Acquire an access token for the given service principal with the specified scopes.
+        /// </summary>
+        /// <param name="sp">Service principal identity.</param>
+        /// <param name="scopes">Scopes to request.</param>
+        /// <returns>Authentication result.</returns>
+        Task<IMicrosoftAuthenticationResult> GetTokenForServicePrincipalAsync(ServicePrincipalIdentity sp, string[] scopes);
+    }
+
+    public class ServicePrincipalIdentity
+    {
+        /// <summary>
+        /// Client ID of the service principal.
+        /// </summary>
+        public string Id { get; set; }
+
+        /// <summary>
+        /// Tenant ID of the service principal.
+        /// </summary>
+        public string TenantId { get; set; }
+
+        /// <summary>
+        /// Certificate used to authenticate the service principal.
+        /// </summary>
+        /// <remarks>
+        /// If both <see cref="Certificate"/> and <see cref="ClientSecret"/> are set, the certificate will be used.
+        /// </remarks>
+        public X509Certificate2 Certificate { get; set; }
+
+        /// <summary>
+        /// Secret used to authenticate the service principal.
+        /// </summary>
+        /// <remarks>
+        /// If both <see cref="Certificate"/> and <see cref="ClientSecret"/> are set, the certificate will be used.
+        /// </remarks>
+        public string ClientSecret { get; set; }
     }
 
     public interface IMicrosoftAuthenticationResult
@@ -207,6 +245,23 @@ namespace GitCredentialManager.Authentication
                 // If we created a dummy window during authentication we should dispose of it now that we're done
                 _dummyWindow?.Dispose();
 #endif
+            }
+        }
+
+        public async Task<IMicrosoftAuthenticationResult> GetTokenForServicePrincipalAsync(ServicePrincipalIdentity sp, string[] scopes)
+        {
+            IConfidentialClientApplication app = CreateConfidentialClientApplication(sp);
+
+            try
+            {
+                AuthenticationResult result = await app.AcquireTokenForClient(scopes).ExecuteAsync();
+                return new MsalResult(result);
+            }
+            catch (Exception ex)
+            {
+                Context.Trace.WriteLine($"Failed to acquire token for service principal '{sp.TenantId}/{sp.TenantId}'.");
+                Context.Trace.WriteException(ex);
+                throw;
             }
         }
 
@@ -424,6 +479,35 @@ namespace GitCredentialManager.Authentication
 
             // Register the user token cache
             await RegisterTokenCacheAsync(app.UserTokenCache, CreateUserTokenCacheProps, Context.Trace2);
+
+            return app;
+        }
+
+        private IConfidentialClientApplication CreateConfidentialClientApplication(ServicePrincipalIdentity sp)
+        {
+            var httpFactoryAdaptor = new MsalHttpClientFactoryAdaptor(Context.HttpClientFactory);
+
+            Context.Trace.WriteLine($"Creating confidential client application for {sp.TenantId}/{sp.Id}...");
+            var appBuilder = ConfidentialClientApplicationBuilder.Create(sp.Id)
+                .WithTenantId(sp.TenantId)
+                .WithHttpClientFactory(httpFactoryAdaptor);
+
+            if (sp.Certificate is not null)
+            {
+                Context.Trace.WriteLineSecrets("Using certificate with thumbprint: '{0}'", new object[] { sp.Certificate.Thumbprint });
+                appBuilder = appBuilder.WithCertificate(sp.Certificate);
+            }
+            else if (!string.IsNullOrWhiteSpace(sp.ClientSecret))
+            {
+                Context.Trace.WriteLineSecrets("Using client secret: '{0}'", new object[] { sp.ClientSecret });
+                appBuilder = appBuilder.WithClientSecret(sp.ClientSecret);
+            }
+            else
+            {
+                throw new InvalidOperationException("Service principal identity does not contain a certificate or client secret.");
+            }
+
+            IConfidentialClientApplication app = appBuilder.Build();
 
             return app;
         }
