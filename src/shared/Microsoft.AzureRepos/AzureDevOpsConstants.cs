@@ -8,7 +8,8 @@ namespace Microsoft.AzureRepos
         public const string AadAuthorityBaseUrl = "https://login.microsoftonline.com";
 
         // Azure DevOps's app ID + default scopes
-        public static readonly string[] AzureDevOpsDefaultScopes = {"499b84ac-1321-427f-aa17-267ca6975798/.default"};
+        public const string AzureDevOpsResourceId = "499b84ac-1321-427f-aa17-267ca6975798";
+        public static readonly string[] AzureDevOpsDefaultScopes = {$"{AzureDevOpsResourceId}/.default"};
 
         // Visual Studio's client ID
         // We share this to be able to consume existing access tokens from the VS caches
@@ -40,6 +41,10 @@ namespace Microsoft.AzureRepos
             public const string DevAadRedirectUri = "GCM_DEV_AZREPOS_REDIRECTURI";
             public const string DevAadAuthorityBaseUri = "GCM_DEV_AZREPOS_AUTHORITYBASEURI";
             public const string CredentialType = "GCM_AZREPOS_CREDENTIALTYPE";
+            public const string ServicePrincipalId = "GCM_AZREPOS_SERVICE_PRINCIPAL";
+            public const string ServicePrincipalSecret = "GCM_AZREPOS_SP_SECRET";
+            public const string ServicePrincipalCertificateThumbprint = "GCM_AZREPOS_SP_CERT_THUMBPRINT";
+            public const string ManagedIdentity = "GCM_AZREPOS_MANAGEDIDENTITY";
         }
 
         public static class GitConfiguration
@@ -51,6 +56,10 @@ namespace Microsoft.AzureRepos
                 public const string DevAadAuthorityBaseUri = "azreposDevAuthorityBaseUri";
                 public const string CredentialType = "azreposCredentialType";
                 public const string AzureAuthority = "azureAuthority";
+                public const string ServicePrincipal = "azreposServicePrincipal";
+                public const string ServicePrincipalSecret = "azreposServicePrincipalSecret";
+                public const string ServicePrincipalCertificateThumbprint = "azreposServicePrincipalCertificateThumbprint";
+                public const string ManagedIdentity = "azreposManagedIdentity";
             }
         }
     }
