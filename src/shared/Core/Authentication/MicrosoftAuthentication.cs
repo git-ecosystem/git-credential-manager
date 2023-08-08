@@ -270,7 +270,7 @@ namespace GitCredentialManager.Authentication
 
         public async Task<IMicrosoftAuthenticationResult> GetTokenForServicePrincipalAsync(ServicePrincipalIdentity sp, string[] scopes)
         {
-            IConfidentialClientApplication app = CreateConfidentialClientApplication(sp);
+            IConfidentialClientApplication app = await CreateConfidentialClientApplicationAsync(sp);
 
             try
             {
@@ -528,7 +528,7 @@ namespace GitCredentialManager.Authentication
             return app;
         }
 
-        private IConfidentialClientApplication CreateConfidentialClientApplication(ServicePrincipalIdentity sp)
+        private async Task<IConfidentialClientApplication> CreateConfidentialClientApplicationAsync(ServicePrincipalIdentity sp)
         {
             var httpFactoryAdaptor = new MsalHttpClientFactoryAdaptor(Context.HttpClientFactory);
 
@@ -553,6 +553,8 @@ namespace GitCredentialManager.Authentication
             }
 
             IConfidentialClientApplication app = appBuilder.Build();
+
+            await RegisterTokenCacheAsync(app.AppTokenCache, CreateAppTokenCacheProps, Context.Trace2);
 
             return app;
         }
@@ -711,6 +713,38 @@ namespace GitCredentialManager.Authentication
             }
 
             throw new ArgumentException("Invalid managed identity value.", nameof(str));
+        }
+
+        /// <summary>
+        /// Create the properties for the application token cache. This is used by confidential client applications only
+        /// and is not shared between applications other than GCM.
+        /// </summary>
+        internal StorageCreationProperties CreateAppTokenCacheProps(bool useLinuxFallback)
+        {
+            const string cacheFileName = "app.cache";
+
+            // The confidential client MSAL cache is located at "%UserProfile%\.gcm\msal\app.cache" on Windows
+            // and at "~/.gcm/msal/app.cache" on UNIX.
+            string cacheDirectory = Path.Combine(Context.FileSystem.UserDataDirectoryPath, "msal");
+
+            // The keychain is used on macOS with the following service & account names
+            var builder = new StorageCreationPropertiesBuilder(cacheFileName, cacheDirectory)
+                .WithMacKeyChain("GitCredentialManager.MSAL", "AppCache");
+
+            if (useLinuxFallback)
+            {
+                builder.WithLinuxUnprotectedFile();
+            }
+            else
+            {
+                // The SecretService/keyring is used on Linux with the following collection name and attributes
+                builder.WithLinuxKeyring(cacheFileName,
+                    "default", "AppCache",
+                    new KeyValuePair<string, string>("MsalClientID", "GitCredentialManager.MSAL"),
+                    new KeyValuePair<string, string>("GitCredentialManager.MSAL", "1.0.0.0"));
+            }
+
+            return builder.Build();
         }
 
         private static EmbeddedWebViewOptions GetEmbeddedWebViewOptions()
