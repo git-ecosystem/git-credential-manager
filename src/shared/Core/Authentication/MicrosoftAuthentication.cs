@@ -422,8 +422,8 @@ namespace GitCredentialManager.Authentication
 
             IPublicClientApplication app = appBuilder.Build();
 
-            // Register the application token cache
-            await RegisterTokenCacheAsync(app, Context.Trace2);
+            // Register the user token cache
+            await RegisterTokenCacheAsync(app.UserTokenCache, CreateUserTokenCacheProps, Context.Trace2);
 
             return app;
         }
@@ -432,10 +432,11 @@ namespace GitCredentialManager.Authentication
 
         #region Helpers
 
-        private async Task RegisterTokenCacheAsync(IPublicClientApplication app, ITrace2 trace2)
+        private delegate StorageCreationProperties StoragePropertiesBuilder(bool useLinuxFallback);
+
+        private async Task RegisterTokenCacheAsync(ITokenCache cache, StoragePropertiesBuilder propsBuilder, ITrace2 trace2)
         {
-            Context.Trace.WriteLine(
-                "Configuring Microsoft Authentication token cache to instance shared with Microsoft developer tools...");
+            Context.Trace.WriteLine("Configuring MSAL token cache...");
 
             if (!PlatformUtils.IsWindows() && !PlatformUtils.IsPosix())
             {
@@ -445,11 +446,11 @@ namespace GitCredentialManager.Authentication
             }
 
             // We use the MSAL extension library to provide us consistent cache file access semantics (synchronisation, etc)
-            // as other Microsoft developer tools such as the Azure PowerShell CLI.
+            // as other GCM processes, and other Microsoft developer tools such as the Azure PowerShell CLI.
             MsalCacheHelper helper = null;
             try
             {
-                var storageProps = CreateTokenCacheProps(useLinuxFallback: false);
+                StorageCreationProperties storageProps = propsBuilder(useLinuxFallback: false);
                 helper = await MsalCacheHelper.CreateAsync(storageProps);
 
                 // Test that cache access is working correctly
@@ -477,24 +478,31 @@ namespace GitCredentialManager.Authentication
                     // On Linux the SecretService/keyring might not be available so we must fall-back to a plaintext file.
                     Context.Streams.Error.WriteLine("warning: using plain-text fallback token cache");
                     Context.Trace.WriteLine("Using fall-back plaintext token cache on Linux.");
-                    var storageProps = CreateTokenCacheProps(useLinuxFallback: true);
+                    StorageCreationProperties storageProps = propsBuilder(useLinuxFallback: true);
                     helper = await MsalCacheHelper.CreateAsync(storageProps);
                 }
             }
 
             if (helper is null)
             {
-                Context.Streams.Error.WriteLine("error: failed to set up Microsoft Authentication token cache!");
-                Context.Trace.WriteLine("Failed to integrate with shared token cache!");
+                Context.Streams.Error.WriteLine("error: failed to set up token cache!");
+                Context.Trace.WriteLine("Failed to integrate with token cache!");
             }
             else
             {
-                helper.RegisterCache(app.UserTokenCache);
-                Context.Trace.WriteLine("Microsoft developer tools token cache configured.");
+                helper.RegisterCache(cache);
+                Context.Trace.WriteLine("Token cache configured.");
             }
         }
 
-        internal StorageCreationProperties CreateTokenCacheProps(bool useLinuxFallback)
+        /// <summary>
+        /// Create the properties for the user token cache. This is used by public client applications only.
+        /// This cache is shared between GCM processes, and also other Microsoft developer tools such as the Azure
+        /// PowerShell CLI.
+        /// </summary>
+        /// <param name="useLinuxFallback"></param>
+        /// <returns></returns>
+        internal StorageCreationProperties CreateUserTokenCacheProps(bool useLinuxFallback)
         {
             const string cacheFileName = "msal.cache";
             string cacheDirectory;
