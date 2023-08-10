@@ -14,14 +14,13 @@ you have installed this using Homebrew, this installation will be unlinked
 #### Install
 
 ```shell
-brew tap microsoft/git
-brew install --cask git-credential-manager-core
+brew install --cask git-credential-manager
 ```
 
 After installing you can stay up-to-date with new releases by running:
 
 ```shell
-brew upgrade git-credential-manager-core
+brew upgrade --cask git-credential-manager
 ```
 
 #### Uninstall
@@ -29,7 +28,7 @@ brew upgrade git-credential-manager-core
 To uninstall, run the following:
 
 ```shell
-brew uninstall --cask git-credential-manager-core
+brew uninstall --cask git-credential-manager
 ```
 
 ---
