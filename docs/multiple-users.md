@@ -97,9 +97,23 @@ or by running `git credential-manager github --help`.
 
 ## TL;DR: Tell GCM to remember which account to use
 
-The easiest way to have GCM remember which account to use for which repository
-is to include the account name in the remote URL. If you're using HTTPS remotes,
-you can include the account name in the URL by inserting it before the `@` sign
+To set a default account for a particular remote you can simply set the
+following Git configuration:
+
+```shell
+git config --global credential.<URL>.username <USERNAME>
+```
+
+..where `<URL>` is the remote URL and `<USERNAME>` is the account you wish to
+have as the default. For example, for `github.com` and the user `alice`:
+
+```shell
+git config --global credential.https://github.com.username alice
+```
+
+If you wish to set a user for a specific repository or remote URL, you can
+include the account name in the remote URL. If you're using HTTPS remotes, you
+can include the account name in the URL by inserting it before the `@` sign
 in the domain name.
 
 For example, if you want to always use the `alice` account for the `mona/test`

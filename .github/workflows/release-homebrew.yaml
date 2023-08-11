@@ -9,12 +9,13 @@ jobs:
     environment: release
     steps:
     - name: Update Homebrew tap
-      uses: mjcheetham/update-homebrew@v1.3
+      uses: mjcheetham/update-homebrew@v1.4
       with:
         token: ${{ secrets.HOMEBREW_TOKEN }}
-        tap: microsoft/git
-        name: git-credential-manager-core
+        tap: Homebrew/homebrew-cask
+        name: git-credential-manager
         type: cask
+        alwaysUsePullRequest: true
         releaseAsset: |
           gcm-osx-x64-(.*)\.pkg
           gcm-osx-arm64-(.*)\.pkg
