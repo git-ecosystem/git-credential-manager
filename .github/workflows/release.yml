@@ -749,6 +749,7 @@ jobs:
               ...releaseMetadata,
               draft: true,
               tag_name: tagName,
+              tag_commitish: context.sha,
               name: `GCM ${version}`
             });
             releaseMetadata.release_id = createdRelease.data.id;
