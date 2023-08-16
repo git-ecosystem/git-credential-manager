@@ -170,7 +170,7 @@ namespace Microsoft.AzureRepos.Tests
             azDevOpsMock.Setup(x => x.GetAuthorityAsync(expectedOrgUri)).ReturnsAsync(authorityUrl);
 
             var msAuthMock = new Mock<IMicrosoftAuthentication>(MockBehavior.Strict);
-            msAuthMock.Setup(x => x.GetTokenAsync(authorityUrl, expectedClientId, expectedRedirectUri, expectedScopes, urlAccount, true))
+            msAuthMock.Setup(x => x.GetTokenForUserAsync(authorityUrl, expectedClientId, expectedRedirectUri, expectedScopes, urlAccount, true))
                       .ReturnsAsync(authResult);
 
             var authorityCacheMock = new Mock<IAzureDevOpsAuthorityCache>(MockBehavior.Strict);
@@ -219,7 +219,7 @@ namespace Microsoft.AzureRepos.Tests
             azDevOpsMock.Setup(x => x.GetAuthorityAsync(expectedOrgUri)).ReturnsAsync(authorityUrl);
 
             var msAuthMock = new Mock<IMicrosoftAuthentication>(MockBehavior.Strict);
-            msAuthMock.Setup(x => x.GetTokenAsync(authorityUrl, expectedClientId, expectedRedirectUri, expectedScopes, urlAccount, true))
+            msAuthMock.Setup(x => x.GetTokenForUserAsync(authorityUrl, expectedClientId, expectedRedirectUri, expectedScopes, urlAccount, true))
                       .ReturnsAsync(authResult);
 
             var authorityCacheMock = new Mock<IAzureDevOpsAuthorityCache>(MockBehavior.Strict);
@@ -268,7 +268,7 @@ namespace Microsoft.AzureRepos.Tests
             azDevOpsMock.Setup(x => x.GetAuthorityAsync(expectedOrgUri)).ReturnsAsync(authorityUrl);
 
             var msAuthMock = new Mock<IMicrosoftAuthentication>(MockBehavior.Strict);
-            msAuthMock.Setup(x => x.GetTokenAsync(authorityUrl, expectedClientId, expectedRedirectUri, expectedScopes, null, true))
+            msAuthMock.Setup(x => x.GetTokenForUserAsync(authorityUrl, expectedClientId, expectedRedirectUri, expectedScopes, null, true))
                       .ReturnsAsync(authResult);
 
             var authorityCacheMock = new Mock<IAzureDevOpsAuthorityCache>(MockBehavior.Strict);
@@ -315,7 +315,7 @@ namespace Microsoft.AzureRepos.Tests
             var azDevOpsMock = new Mock<IAzureDevOpsRestApi>(MockBehavior.Strict);
 
             var msAuthMock = new Mock<IMicrosoftAuthentication>(MockBehavior.Strict);
-            msAuthMock.Setup(x => x.GetTokenAsync(authorityUrl, expectedClientId, expectedRedirectUri, expectedScopes, null, true))
+            msAuthMock.Setup(x => x.GetTokenForUserAsync(authorityUrl, expectedClientId, expectedRedirectUri, expectedScopes, null, true))
                       .ReturnsAsync(authResult);
 
             var authorityCacheMock = new Mock<IAzureDevOpsAuthorityCache>(MockBehavior.Strict);
@@ -363,7 +363,7 @@ namespace Microsoft.AzureRepos.Tests
             var azDevOpsMock = new Mock<IAzureDevOpsRestApi>(MockBehavior.Strict);
 
             var msAuthMock = new Mock<IMicrosoftAuthentication>(MockBehavior.Strict);
-            msAuthMock.Setup(x => x.GetTokenAsync(authorityUrl, expectedClientId, expectedRedirectUri, expectedScopes, account, true))
+            msAuthMock.Setup(x => x.GetTokenForUserAsync(authorityUrl, expectedClientId, expectedRedirectUri, expectedScopes, account, true))
                       .ReturnsAsync(authResult);
 
             var authorityCacheMock = new Mock<IAzureDevOpsAuthorityCache>(MockBehavior.Strict);
@@ -413,7 +413,7 @@ namespace Microsoft.AzureRepos.Tests
             azDevOpsMock.Setup(x => x.GetAuthorityAsync(expectedOrgUri)).ReturnsAsync(authorityUrl);
 
             var msAuthMock = new Mock<IMicrosoftAuthentication>(MockBehavior.Strict);
-            msAuthMock.Setup(x => x.GetTokenAsync(authorityUrl, expectedClientId, expectedRedirectUri, expectedScopes, null, true))
+            msAuthMock.Setup(x => x.GetTokenForUserAsync(authorityUrl, expectedClientId, expectedRedirectUri, expectedScopes, null, true))
                       .ReturnsAsync(authResult);
 
             var authorityCacheMock = new Mock<IAzureDevOpsAuthorityCache>(MockBehavior.Strict);
@@ -462,7 +462,7 @@ namespace Microsoft.AzureRepos.Tests
                         .ReturnsAsync(personalAccessToken);
 
             var msAuthMock = new Mock<IMicrosoftAuthentication>(MockBehavior.Strict);
-            msAuthMock.Setup(x => x.GetTokenAsync(authorityUrl, expectedClientId, expectedRedirectUri, expectedScopes, null, true))
+            msAuthMock.Setup(x => x.GetTokenForUserAsync(authorityUrl, expectedClientId, expectedRedirectUri, expectedScopes, null, true))
                       .ReturnsAsync(authResult);
 
             var authorityCacheMock = new Mock<IAzureDevOpsAuthorityCache>(MockBehavior.Strict);
@@ -509,6 +509,102 @@ namespace Microsoft.AzureRepos.Tests
             Assert.NotNull(credential);
             Assert.Equal(account, credential.Account);
             Assert.Equal(personalAccessToken, credential.Password);
+        }
+
+        [Fact]
+        public async Task AzureReposProvider_GetCredentialAsync_ManagedIdentity_ReturnsManagedIdCredential()
+        {
+            var input = new InputArguments(new Dictionary<string, string>
+            {
+                ["protocol"] = "https",
+                ["host"] = "dev.azure.com",
+                ["path"] = "org/proj/_git/repo"
+            });
+
+            const string accessToken = "MANAGED-IDENTITY-TOKEN";
+            const string managedIdentity = "MANAGED-IDENTITY";
+
+            var context = new TestCommandContext
+            {
+                Environment =
+                {
+                    Variables =
+                    {
+                        [AzureDevOpsConstants.EnvironmentVariables.ManagedIdentity] = managedIdentity
+                    }
+                }
+            };
+
+            var azDevOps = Mock.Of<IAzureDevOpsRestApi>();
+            var authorityCache = Mock.Of<IAzureDevOpsAuthorityCache>();
+            var userMgr = Mock.Of<IAzureReposBindingManager>();
+            var msAuthMock = new Mock<IMicrosoftAuthentication>();
+
+            msAuthMock.Setup(x => x.GetTokenForManagedIdentityAsync(It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(new MockMsAuthResult { AccessToken = accessToken });
+
+            var provider = new AzureReposHostProvider(context, azDevOps, msAuthMock.Object, authorityCache, userMgr);
+
+            ICredential credential = await provider.GetCredentialAsync(input);
+
+            Assert.NotNull(credential);
+            Assert.Equal(managedIdentity, credential.Account);
+            Assert.Equal(accessToken, credential.Password);
+
+            msAuthMock.Verify(
+                x => x.GetTokenForManagedIdentityAsync(managedIdentity,
+                    AzureDevOpsConstants.AzureDevOpsResourceId), Times.Once);
+        }
+
+        [Fact]
+        public async Task AzureReposProvider_GetCredentialAsync_ServicePrincipal_ReturnsSPCredential()
+        {
+            var input = new InputArguments(new Dictionary<string, string>
+            {
+                ["protocol"] = "https",
+                ["host"] = "dev.azure.com",
+                ["path"] = "org/proj/_git/repo"
+            });
+
+            const string accessToken = "SP-TOKEN";
+            const string tenantId = "78B1822F-107D-40A3-A29C-AB68D8066074";
+            const string clientId = "49B4DC1A-58A8-4EEE-A81B-616A40D0BA64";
+            const string servicePrincipal = $"{tenantId}/{clientId}";
+            const string servicePrincipalSecret = "CLIENT-SECRET";
+
+            var context = new TestCommandContext
+            {
+                Environment =
+                {
+                    Variables =
+                    {
+                        [AzureDevOpsConstants.EnvironmentVariables.ServicePrincipalId] = servicePrincipal,
+                        [AzureDevOpsConstants.EnvironmentVariables.ServicePrincipalSecret] = servicePrincipalSecret
+                    }
+                }
+            };
+
+            var azDevOps = Mock.Of<IAzureDevOpsRestApi>();
+            var authorityCache = Mock.Of<IAzureDevOpsAuthorityCache>();
+            var userMgr = Mock.Of<IAzureReposBindingManager>();
+            var msAuthMock = new Mock<IMicrosoftAuthentication>();
+
+            msAuthMock.Setup(x =>
+                    x.GetTokenForServicePrincipalAsync(It.IsAny<ServicePrincipalIdentity>(), It.IsAny<string[]>()))
+                .ReturnsAsync(new MockMsAuthResult { AccessToken = accessToken });
+
+            var provider = new AzureReposHostProvider(context, azDevOps, msAuthMock.Object, authorityCache, userMgr);
+
+            ICredential credential = await provider.GetCredentialAsync(input);
+
+            Assert.NotNull(credential);
+            Assert.Equal(clientId, credential.Account);
+            Assert.Equal(accessToken, credential.Password);
+
+            msAuthMock.Verify(x => x.GetTokenForServicePrincipalAsync(
+                It.Is<ServicePrincipalIdentity>(sp => sp.TenantId == tenantId && sp.Id == clientId),
+                It.Is<string[]>(scopes => scopes.Length == 1 && scopes[0] == AzureDevOpsConstants.AzureDevOpsDefaultScopes[0])),
+                Times.Once);
         }
 
         [Fact]

@@ -793,6 +793,95 @@ git config --global credential.azreposCredentialType oauth
 
 ---
 
+### credential.azreposManagedIdentity
+
+Use a [Managed Identity][managed-identity] to authenticate with Azure Repos.
+
+The value `system` will tell GCM to use the system-assigned Managed Identity.
+
+To specify a user-assigned Managed Identity, use the format `id://{clientId}`
+where `{clientId}` is the client ID of the Managed Identity. Alternatively any
+GUID-like value will also be interpreted as a user-assigned Managed Identity
+client ID.
+
+To specify a Managed Identity associated with an Azure resource, you can use the
+format `resource://{resourceId}` where `{resourceId}` is the ID of the resource.
+
+For more information about managed identities, see the Azure DevOps
+[documentation][azrepos-sp-mid].
+
+Value|Description
+-|-
+`system`|System-Assigned Managed Identity
+`[guid]`|User-Assigned Managed Identity with the specified client ID
+`id://[guid]`|User-Assigned Managed Identity with the specified client ID
+`resource://[guid]`|User-Assigned Managed Identity for the associated resource
+
+```shell
+git config --global credential.azreposManagedIdentity "id://11111111-1111-1111-1111-111111111111"
+```
+
+**Also see: [GCM_AZREPOS_MANAGEDIDENTITY][gcm-azrepos-credentialmanagedidentity]**
+
+---
+
+### credential.azreposServicePrincipal
+
+Specify the client and tenant IDs of a [service principal][service-principal]
+to use when performing Microsoft authentication for Azure Repos.
+
+The value of this setting should be in the format: `{tenantId}/{clientId}`.
+
+You must also set at least one authentication mechanism if you set this value:
+
+- [credential.azreposServicePrincipalSecret][credential-azrepos-sp-secret]
+- [credential.azreposServicePrincipalCertificateThumbprint][credential-azrepos-sp-cert-thumbprint]
+
+For more information about service principals, see the Azure DevOps
+[documentation][azrepos-sp-mid].
+
+#### Example
+
+```shell
+git config --global credential.azreposServicePrincipal "11111111-1111-1111-1111-111111111111/22222222-2222-2222-2222-222222222222"
+```
+
+**Also see: [GCM_AZREPOS_SERVICE_PRINCIPAL][gcm-azrepos-service-principal]**
+
+---
+
+### credential.azreposServicePrincipalSecret
+
+Specifies the client secret for the [service principal][service-principal] when
+performing Microsoft authentication for Azure Repos with
+[credential.azreposServicePrincipalSecret][credential-azrepos-sp] set.
+
+#### Example
+
+```shell
+git config --global credential.azreposServicePrincipalSecret "da39a3ee5e6b4b0d3255bfef95601890afd80709"
+```
+
+**Also see: [GCM_AZREPOS_SP_SECRET][gcm-azrepos-sp-secret]**
+
+---
+
+### credential.azreposServicePrincipalCertificateThumbprint
+
+Specifies the thumbprint of a certificate to use when authenticating as a
+[service principal][service-principal] for Azure Repos when
+[GCM_AZREPOS_SERVICE_PRINCIPAL][credential-azrepos-sp] is set.
+
+#### Example
+
+```shell
+git config --global credential.azreposServicePrincipalCertificateThumbprint "9b6555292e4ea21cbc2ebd23e66e2f91ebbe92dc"
+```
+
+**Also see: [GCM_AZREPOS_SP_CERT_THUMBPRINT][gcm-azrepos-sp-cert-thumbprint]**
+
+---
+
 ### trace2.normalTarget
 
 Turns on Trace2 Normal Format tracing - see [Git's Trace2 Normal Format
@@ -878,6 +967,7 @@ Defaults to disabled.
 [gcm-authority]: environment.md#GCM_AUTHORITY-deprecated
 [gcm-autodetect-timeout]: environment.md#GCM_AUTODETECT_TIMEOUT
 [gcm-azrepos-credentialtype]: environment.md#GCM_AZREPOS_CREDENTIALTYPE
+[gcm-azrepos-credentialmanagedidentity]: environment.md#GCM_AZREPOS_MANAGEDIDENTITY
 [gcm-bitbucket-always-refresh-credentials]: environment.md#GCM_BITBUCKET_ALWAYS_REFRESH_CREDENTIALS
 [gcm-bitbucket-authmodes]: environment.md#GCM_BITBUCKET_AUTHMODES
 [gcm-credential-cache-options]: environment.md#GCM_CREDENTIAL_CACHE_OPTIONS
@@ -905,6 +995,7 @@ Defaults to disabled.
 [http-proxy]: netconfig.md#http-proxy
 [autodetect]: autodetect.md
 [libsecret]: https://wiki.gnome.org/Projects/Libsecret
+[managed-identity]: https://docs.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/overview
 [provider-migrate]: migration.md#gcm_authority
 [cache-options]: https://git-scm.com/docs/git-credential-cache#_options
 [pass]: https://www.passwordstore.org/
@@ -915,3 +1006,11 @@ Defaults to disabled.
 [trace2-performance-docs]: https://git-scm.com/docs/api-trace2#_the_performance_format_target
 [trace2-performance-env]: environment.md#GIT_TRACE2_PERF
 [wam]: windows-broker.md
+[service-principal]: https://docs.microsoft.com/en-us/azure/active-directory/develop/app-objects-and-service-principals
+[azrepos-sp-mid]: https://learn.microsoft.com/en-us/azure/devops/integrate/get-started/authentication/service-principal-managed-identity
+[credential-azrepos-sp]: #credentialazreposserviceprincipal
+[credential-azrepos-sp-secret]: #credentialazreposserviceprincipalsecret
+[credential-azrepos-sp-cert-thumbprint]: #credentialazreposserviceprincipalcertificatethumbprint
+[gcm-azrepos-service-principal]: environment.md#GCM_AZREPOS_SERVICE_PRINCIPAL
+[gcm-azrepos-sp-secret]: environment.md#GCM_AZREPOS_SP_SECRET
+[gcm-azrepos-sp-cert-thumbprint]: environment.md#GCM_AZREPOS_SP_CERT_THUMBPRINT

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.CommandLine;
 using System.Linq;
 using System.Net.Http;
+using System.Security.Cryptography.X509Certificates;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using GitCredentialManager;
@@ -75,6 +76,20 @@ namespace Microsoft.AzureRepos
 
         public async Task<ICredential> GetCredentialAsync(InputArguments input)
         {
+            if (UseManagedIdentity(out string mid))
+            {
+                _context.Trace.WriteLine($"Getting Azure Access Token for managed identity {mid}...");
+                var azureResult = await _msAuth.GetTokenForManagedIdentityAsync(mid, AzureDevOpsConstants.AzureDevOpsResourceId);
+                return new GitCredential(mid, azureResult.AccessToken);
+            }
+
+            if (UseServicePrincipal(out ServicePrincipalIdentity sp))
+            {
+                _context.Trace.WriteLine($"Getting Azure Access Token for service principal {sp.TenantId}/{sp.Id}...");
+                var azureResult = await _msAuth.GetTokenForServicePrincipalAsync(sp, AzureDevOpsConstants.AzureDevOpsDefaultScopes);
+                return new GitCredential(sp.Id, azureResult.AccessToken);
+            }
+
             if (UsePersonalAccessTokens())
             {
                 Uri remoteUri = input.GetRemoteUri();
@@ -113,7 +128,15 @@ namespace Microsoft.AzureRepos
         {
             Uri remoteUri = input.GetRemoteUri();
 
-            if (UsePersonalAccessTokens())
+            if (UseManagedIdentity(out _))
+            {
+                _context.Trace.WriteLine("Nothing to store for managed identity authentication.");
+            }
+            else if (UseServicePrincipal(out _))
+            {
+                _context.Trace.WriteLine("Nothing to store for service principal authentication.");
+            }
+            else if (UsePersonalAccessTokens())
             {
                 string service = GetServiceName(remoteUri);
 
@@ -140,13 +163,22 @@ namespace Microsoft.AzureRepos
         {
             Uri remoteUri = input.GetRemoteUri();
 
-            if (UsePersonalAccessTokens())
+            if (UseManagedIdentity(out _))
+            {
+                _context.Trace.WriteLine("Nothing to erase for managed identity authentication.");
+            }
+            else if (UseServicePrincipal(out _))
+            {
+                _context.Trace.WriteLine("Nothing to erase for service principal authentication.");
+            }
+            else if (UsePersonalAccessTokens())
             {
                 string service = GetServiceName(remoteUri);
                 string account = GetAccountNameForCredentialQuery(input);
 
                 // Try to locate an existing credential
-                _context.Trace.WriteLine($"Erasing stored credential in store with service={service} account={account}...");
+                _context.Trace.WriteLine(
+                    $"Erasing stored credential in store with service={service} account={account}...");
                 if (_context.CredentialStore.Remove(service, account))
                 {
                     _context.Trace.WriteLine("Credential was successfully erased.");
@@ -197,7 +229,7 @@ namespace Microsoft.AzureRepos
 
             // Get an AAD access token for the Azure DevOps SPS
             _context.Trace.WriteLine("Getting Azure AD access token...");
-            IMicrosoftAuthenticationResult result = await _msAuth.GetTokenAsync(
+            IMicrosoftAuthenticationResult result = await _msAuth.GetTokenForUserAsync(
                 authAuthority,
                 GetClientId(),
                 GetRedirectUri(),
@@ -289,7 +321,7 @@ namespace Microsoft.AzureRepos
 
             // Get an AAD access token for the Azure DevOps SPS
             _context.Trace.WriteLine("Getting Azure AD access token...");
-            IMicrosoftAuthenticationResult result = await _msAuth.GetTokenAsync(
+            IMicrosoftAuthenticationResult result = await _msAuth.GetTokenForUserAsync(
                 authAuthority,
                 GetClientId(),
                 GetRedirectUri(),
@@ -459,6 +491,89 @@ namespace Microsoft.AzureRepos
             }
 
             return defaultValue;
+        }
+
+        private bool UseServicePrincipal(out ServicePrincipalIdentity sp)
+        {
+            if (!_context.Settings.TryGetSetting(
+                    AzureDevOpsConstants.EnvironmentVariables.ServicePrincipalId,
+                    Constants.GitConfiguration.Credential.SectionName,
+                    AzureDevOpsConstants.GitConfiguration.Credential.ServicePrincipal,
+                    out string spStr) || string.IsNullOrWhiteSpace(spStr))
+            {
+                sp = null;
+                return false;
+            }
+
+            string[] split = spStr.Split(new[] { '/' }, count: 2);
+
+            if (split.Length < 1 || string.IsNullOrWhiteSpace(split[0]))
+            {
+                _context.Streams.Error.WriteLine("error: unable to use configured service principal - missing tenant ID in configuration");
+                sp = null;
+                return false;
+            }
+
+            if (split.Length < 2 || string.IsNullOrWhiteSpace(split[1]))
+            {
+                _context.Streams.Error.WriteLine("error: unable to use configured service principal - missing client ID in configuration");
+                sp = null;
+                return false;
+            }
+
+            string tenantId = split[0];
+            string clientId = split[1];
+
+            sp = new ServicePrincipalIdentity
+            {
+                Id = clientId,
+                TenantId = tenantId,
+            };
+
+            bool hasClientSecret = _context.Settings.TryGetSetting(
+                AzureDevOpsConstants.EnvironmentVariables.ServicePrincipalSecret,
+                Constants.GitConfiguration.Credential.SectionName,
+                AzureDevOpsConstants.GitConfiguration.Credential.ServicePrincipalSecret,
+                out string clientSecret);
+
+            bool hasCertThumbprint = _context.Settings.TryGetSetting(
+                AzureDevOpsConstants.EnvironmentVariables.ServicePrincipalCertificateThumbprint,
+                Constants.GitConfiguration.Credential.SectionName,
+                AzureDevOpsConstants.GitConfiguration.Credential.ServicePrincipalCertificateThumbprint,
+                out string certThumbprint);
+
+            if (hasCertThumbprint && hasClientSecret)
+            {
+                _context.Streams.Error.WriteLine("warning: both service principal client secret and certificate thumbprint are configured - using certificate");
+            }
+
+            if (hasCertThumbprint)
+            {
+                X509Certificate2 cert = X509Utils.GetCertificateByThumbprint(certThumbprint);
+                if (cert is null)
+                {
+                    _context.Streams.Error.WriteLine($"error: unable to find certificate with thumbprint '{certThumbprint}' for service principal");
+                    return false;
+                }
+
+                sp.Certificate = cert;
+            }
+            else if (hasClientSecret)
+            {
+                sp.ClientSecret = clientSecret;
+            }
+
+            return true;
+        }
+
+        private bool UseManagedIdentity(out string mid)
+        {
+            return _context.Settings.TryGetSetting(
+                       AzureDevOpsConstants.EnvironmentVariables.ManagedIdentity,
+                       KnownGitCfg.Credential.SectionName,
+                       AzureDevOpsConstants.GitConfiguration.Credential.ManagedIdentity,
+                       out mid) &&
+                   !string.IsNullOrWhiteSpace(mid);
         }
 
         #endregion
