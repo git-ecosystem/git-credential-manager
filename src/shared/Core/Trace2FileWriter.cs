@@ -31,5 +31,10 @@ public class Trace2FileWriter : Trace2Writer
             // Windows and the file is currently open for writing
             // by another process (likely Git itself.)
         }
+        catch (IOException)
+        {
+            // Do nothing, as this likely means that the file is currently
+            // open by another process (on Windows).
+        }
     }
 }
