@@ -5,7 +5,6 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Input;
-using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using GitCredentialManager;
@@ -22,8 +21,6 @@ namespace GitHub.UI.Controls
                 (o, v) => o.Text = v,
                 defaultBindingMode: BindingMode.TwoWay);
 
-        private PlatformHotkeyConfiguration _keyMap;
-        private IClipboard _clipboard;
         private bool _ignoreTextBoxUpdate;
         private TextBox[] _textBoxes;
         private string _text;
@@ -37,8 +34,6 @@ namespace GitHub.UI.Controls
         {
             AvaloniaXamlLoader.Load(this);
 
-            _keyMap = AvaloniaLocator.Current.GetService<PlatformHotkeyConfiguration>();
-            _clipboard = AvaloniaLocator.Current.GetService<IClipboard>();
             _textBoxes = new[]
             {
                 this.FindControl<TextBox>("one"),
@@ -89,7 +84,7 @@ namespace GitHub.UI.Controls
         {
             // Workaround: https://github.com/git-ecosystem/git-credential-manager/issues/1293
             if (!PlatformUtils.IsMacOS())
-                KeyboardDevice.Instance.SetFocusedElement(_textBoxes[0], NavigationMethod.Tab, KeyModifiers.None);
+                _textBoxes[0].Focus(NavigationMethod.Tab, KeyModifiers.None);
         }
 
         private void SetUpTextBox(TextBox textBox)
@@ -99,7 +94,7 @@ namespace GitHub.UI.Controls
             void OnPreviewKeyDown(object sender, KeyEventArgs e)
             {
                 // Handle paste
-                if (_keyMap.Paste.Any(x => x.Matches(e)))
+                if (TopLevel.GetTopLevel(this)?.PlatformSettings?.HotkeyConfiguration.Paste.Any(x => x.Matches(e)) ?? false)
                 {
                     OnPaste();
                     e.Handled = true;
@@ -166,8 +161,7 @@ namespace GitHub.UI.Controls
 
         private void OnPaste()
         {
-            string text = _clipboard.GetTextAsync().GetAwaiter().GetResult();
-            Text = text;
+            Text = TopLevel.GetTopLevel(this)?.Clipboard?.GetTextAsync().GetAwaiter().GetResult();
         }
 
         private bool MoveNext() => MoveFocus(true);
@@ -177,7 +171,7 @@ namespace GitHub.UI.Controls
         private bool MoveFocus(bool next)
         {
             // Get currently focused text box
-            if (FocusManager.Instance.Current is TextBox textBox)
+            if (TopLevel.GetTopLevel(this)?.FocusManager?.GetFocusedElement() is TextBox textBox)
             {
                 int textBoxIndex = Array.IndexOf(_textBoxes, textBox);
                 if (textBoxIndex > -1)
@@ -186,7 +180,7 @@ namespace GitHub.UI.Controls
                         ? Math.Min(_textBoxes.Length - 1, textBoxIndex + 1)
                         : Math.Max(0, textBoxIndex - 1);
 
-                    KeyboardDevice.Instance.SetFocusedElement(_textBoxes[nextIndex], NavigationMethod.Tab, KeyModifiers.None);
+                    _textBoxes[nextIndex].Focus(NavigationMethod.Tab, KeyModifiers.None);
                     return true;
                 }
             }
