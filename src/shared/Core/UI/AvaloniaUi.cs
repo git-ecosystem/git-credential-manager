@@ -124,11 +124,11 @@ namespace GitCredentialManager.UI
                 return;
             }
 
-            IntPtr ourHandle = window.PlatformImpl.Handle.Handle;
+            IntPtr ourHandle = window.TryGetPlatformHandle()!.Handle;
 
             // Get the desktop scaling factor from our window instance so we
             // can calculate rects correctly for both our window, and the parent window.
-            double scaling = window.PlatformImpl.DesktopScaling;
+            double scaling = window.RenderScaling;
 
             // Get our window rect
             var ourRect = new PixelRect(
