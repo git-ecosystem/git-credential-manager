@@ -1,4 +1,157 @@
-{
+git.vger.kernel.org archive mirror
+ help / color / mirror / Atom feed
+From: Taylor Blau <me@ttaylorr.com>
+To: git@vger.kernel.org
+Cc: Derrick Stolee <derrickstolee@github.com>,
+	Jonathan Tan <jonathantanmy@google.com>,
+	Junio C Hamano <gitster@pobox.com>
+Subject: [RFC PATCH 4/6] commit-graph.c: unconditionally load Bloom filters
+Date: Mon, 7 Aug 2023 12:37:53 -0400	[thread overview]
+Message-ID: <6676afe56db74828ba2532f3460e9b73a3ff20fd.1691426160.git.me@ttaylorr.com> (raw)
+In-Reply-To: <cover.1691426160.git.me@ttaylorr.com>
+
+In 9e4df4da07 (commit-graph: new filter ver. that fixes murmur3,
+2023-08-01), we began ignoring the Bloom data ("BDAT") chunk for
+commit-graphs whose Bloom filters were computed using a hash version
+incompatible with the value of `commitGraph.changedPathVersion`.
+
+Now that the Bloom API has been hardened to discard these incompatible
+filters (with the exception of low-level APIs), we can safely load these
+Bloom filters unconditionally.
+
+We no longer want to return early from `graph_read_bloom_data()`, and
+similarly do not want to set the bloom_settings' `hash_version` field as
+a side-effect. The latter is because we want to wait until we know which
+Bloom settings we're using (either the defaults, from the GIT_TEST
+variables, or from the previous commit-graph layer) before deciding what
+hash_version to use.
+
+If we detect an existing BDAT chunk, we'll infer the rest of the
+settings (e.g., number of hashes, bits per entry, and maximum number of
+changed paths) from the earlier graph layer. The hash_version will be
+inferred from the previous layer as well, unless one has already been
+specified via configuration.
+
+Once all of that is done, we normalize the value of the hash_version to
+either "1" or "2".
+
+Signed-off-by: Taylor Blau <me@ttaylorr.com>
+---
+ commit-graph.c | 19 ++++++++++---------
+ 1 file changed, 10 insertions(+), 9 deletions(-)
+
+diff --git a/commit-graph.c b/commit-graph.c
+index 38edb12669..60e5f9ada7 100644
+--- a/commit-graph.c
++++ b/commit-graph.c
+@@ -317,12 +317,6 @@ static int graph_read_bloom_data(const unsigned char *chunk_start,
+ 	uint32_t hash_version;
+ 	hash_version = get_be32(chunk_start);
+ 
+-	if (*c->commit_graph_changed_paths_version == -1) {
+-		*c->commit_graph_changed_paths_version = hash_version;
+-	} else if (hash_version != *c->commit_graph_changed_paths_version) {
+-		return 0;
+-	}
+-
+ 	g->chunk_bloom_data = chunk_start;
+ 	g->bloom_filter_settings = xmalloc(sizeof(struct bloom_filter_settings));
+ 	g->bloom_filter_settings->hash_version = hash_version;
+@@ -2390,8 +2384,7 @@ int write_commit_graph(struct object_directory *odb,
+ 			r->settings.commit_graph_changed_paths_version);
+ 		return 0;
+ 	}
+-	bloom_settings.hash_version = r->settings.commit_graph_changed_paths_version == 2
+-		? 2 : 1;
++	bloom_settings.hash_version = r->settings.commit_graph_changed_paths_version;
+ 	bloom_settings.bits_per_entry = git_env_ulong("GIT_TEST_BLOOM_SETTINGS_BITS_PER_ENTRY",
+ 						      bloom_settings.bits_per_entry);
+ 	bloom_settings.num_hashes = git_env_ulong("GIT_TEST_BLOOM_SETTINGS_NUM_HASHES",
+@@ -2423,10 +2416,18 @@ int write_commit_graph(struct object_directory *odb,
+ 		/* We have changed-paths already. Keep them in the next graph */
+ 		if (g && g->bloom_filter_settings) {
+ 			ctx->changed_paths = 1;
+-			ctx->bloom_settings = g->bloom_filter_settings;
++
++			/* don't propagate the hash_version unless unspecified */
++			if (bloom_settings.hash_version == -1)
++				bloom_settings.hash_version = g->bloom_filter_settings->hash_version;
++			bloom_settings.bits_per_entry = g->bloom_filter_settings->bits_per_entry;
++			bloom_settings.num_hashes = g->bloom_filter_settings->num_hashes;
++			bloom_settings.max_changed_paths = g->bloom_filter_settings->max_changed_paths;
+ 		}
+ 	}
+ 
++	bloom_settings.hash_version = bloom_settings.hash_version == 2 ? 2 : 1;
++
+ 	if (ctx->split) {
+ 		struct commit_graph *g = ctx->r->objects->commit_graph;
+ 
+-- 
+2.41.0.407.g6d1c33951b
+
+next prev parent reply	other threads:[~2023-08-07 16:38 UTC|newest]
+
+Thread overview: 24+ messages / expand[flat|nested]  mbox.gz  Atom feed  top
+2023-08-07 16:37 [RFC PATCH 0/6] bloom: reuse existing Bloom filters when possible during upgrade Taylor Blau
+2023-08-07 16:37 ` [RFC PATCH 1/6] bloom: annotate filters with hash version Taylor Blau
+2023-08-11 21:46   ` Jonathan Tan
+2023-08-17 19:55     ` Taylor Blau
+2023-08-21 20:21       ` Taylor Blau
+2023-08-07 16:37 ` [RFC PATCH 2/6] bloom: prepare to discard incompatible Bloom filters Taylor Blau
+2023-08-11 21:48   ` Jonathan Tan
+2023-08-21 20:23     ` Taylor Blau
+2023-08-24 22:20   ` Jonathan Tan
+2023-08-24 22:47     ` Taylor Blau
+2023-08-24 23:05       ` Jonathan Tan
+2023-08-25 19:00         ` Taylor Blau
+2023-08-29 16:49           ` Jonathan Tan
+2023-08-29 19:14             ` Taylor Blau
+2023-08-29 22:04               ` Jonathan Tan
+2023-08-07 16:37 ` [RFC PATCH 3/6] t/t4216-log-bloom.sh: harden `test_bloom_filters_not_used()` Taylor Blau
+2023-08-07 16:37 ` Taylor Blau [this message]
+2023-08-11 22:00   ` [RFC PATCH 4/6] commit-graph.c: unconditionally load Bloom filters Jonathan Tan
+2023-08-21 20:40     ` Taylor Blau
+2023-08-07 16:37 ` [RFC PATCH 5/6] object.h: fix mis-aligned flag bits table Taylor Blau
+2023-08-07 16:37 ` [RFC PATCH 6/6] commit-graph: reuse existing Bloom filters where possible Taylor Blau
+2023-08-11 22:06   ` Jonathan Tan
+2023-08-11 22:13 ` [RFC PATCH 0/6] bloom: reuse existing Bloom filters when possible during upgrade Jonathan Tan
+2023-08-21 20:46   ` Taylor Blau
+find likely ancestor, descendant, or conflicting patches for this message:
+dfblob:38edb1266 dfblob:60e5f9ada
+
+	(help)
+Reply instructions:
+
+You may reply publicly to this message via plain-text email
+using any one of the following methods:
+
+* Save the following mbox file, import it into your mail client,
+  and reply-to-all from there: mbox
+
+  Avoid top-posting and favor interleaved quoting:
+  https://en.wikipedia.org/wiki/Posting_style#Interleaved_style
+
+* Reply using the --to, --cc, and --in-reply-to
+  switches of git-send-email(1):
+
+  git send-email \
+    --in-reply-to=6676afe56db74828ba2532f3460e9b73a3ff20fd.1691426160.git.me@ttaylorr.com \
+    --to=me@ttaylorr.com \
+    --cc=derrickstolee@github.com \
+    --cc=git@vger.kernel.org \
+    --cc=gitster@pobox.com \
+    --cc=jonathantanmy@google.com \
+    /path/to/YOUR_REPLY
+
+  https://kernel.org/pub/software/scm/git/docs/git-send-email.html
+
+* If your mail client supports setting the In-Reply-To header
+  via mailto: links, try the mailto: link
+Be sure your reply has a Subject: header at the top and a blank line before the message body.
+This is a public inbox, see mirroring instructions
+for how to clone and mirror all data and code used for this inbox;
+as well as URLs for NNTP newsgroup(s).{
     "version": "2.0.0",
     "tasks": [
         {
