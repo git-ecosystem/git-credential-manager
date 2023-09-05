@@ -6,3 +6,4 @@ If you discover a security issue in this repo, please submit it through the
 Thanks for helping make GitHub products safe for everyone.
 
 [hackerone-github]: https://hackerone.com/github
+gh pr checkout 1399
