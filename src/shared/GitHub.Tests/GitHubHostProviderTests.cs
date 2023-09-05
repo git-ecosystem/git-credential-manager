@@ -15,8 +15,11 @@ namespace GitHub.Tests
         [InlineData("https://github.com", true)]
         [InlineData("https://gitHUB.CoM", true)]
         [InlineData("https://GITHUB.COM", true)]
+        [InlineData("https://gist.github.com", true)]
         [InlineData("https://foogithub.com", false)]
         [InlineData("https://api.github.com", false)]
+        [InlineData("https://api.gist.github.com", false)]
+        [InlineData("https://foogist.github.com", false)]
         public void GitHubHostProvider_IsGitHubDotCom(string input, bool expected)
         {
             Assert.Equal(expected, GitHubHostProvider.IsGitHubDotCom(new Uri(input)));
@@ -98,6 +101,8 @@ namespace GitHub.Tests
         [InlineData("https://GitHub.Com", "none", GitHubConstants.DotComAuthenticationModes)]
         [InlineData("https://github.com", null, GitHubConstants.DotComAuthenticationModes)]
         [InlineData("https://GitHub.Com", null, GitHubConstants.DotComAuthenticationModes)]
+        [InlineData("https://gist.github.com", null, GitHubConstants.DotComAuthenticationModes)]
+        [InlineData("https://GIST.GITHUB.COM", null, GitHubConstants.DotComAuthenticationModes)]
         public async Task GitHubHostProvider_GetSupportedAuthenticationModes(string uriString, string gitHubAuthModes, AuthenticationModes expectedModes)
         {
             var targetUri = new Uri(uriString);

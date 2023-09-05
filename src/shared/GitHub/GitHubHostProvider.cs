@@ -487,10 +487,12 @@ namespace GitHub
         {
             EnsureArgument.AbsoluteUri(targetUri, nameof(targetUri));
 
-            return StringComparer.OrdinalIgnoreCase.Equals(targetUri.Host, GitHubConstants.GitHubBaseUrlHost);
+            // github.com or gist.github.com are both considered dotcom
+            return StringComparer.OrdinalIgnoreCase.Equals(targetUri.Host, GitHubConstants.GitHubBaseUrlHost) ||
+                   StringComparer.OrdinalIgnoreCase.Equals(targetUri.Host, GitHubConstants.GistBaseUrlHost);
         }
 
-        private static Uri NormalizeUri(Uri uri)
+        internal static Uri NormalizeUri(Uri uri)
         {
             if (uri is null)
             {
@@ -500,8 +502,9 @@ namespace GitHub
             // Special case for gist.github.com which are git backed repositories under the hood.
             // Credentials for these repositories are the same as the one stored with "github.com".
             // Same for gist.github[.subdomain].domain.tld. The general form was already checked via IsSupported.
-            int firstDot = uri.DnsSafeHost.IndexOf(".");
-            if (firstDot > -1 && uri.DnsSafeHost.Substring(0, firstDot).Equals("gist", StringComparison.OrdinalIgnoreCase)) {
+            int firstDot = uri.DnsSafeHost.IndexOf(".", StringComparison.Ordinal);
+            if (firstDot > -1 && uri.DnsSafeHost.Substring(0, firstDot).Equals("gist", StringComparison.OrdinalIgnoreCase))
+            {
                 return new Uri("https://" + uri.DnsSafeHost.Substring(firstDot+1));
             }
 
