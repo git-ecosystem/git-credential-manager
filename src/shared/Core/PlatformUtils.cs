@@ -31,7 +31,6 @@ namespace GitCredentialManager
                 return false;
             }
 
-#if NETFRAMEWORK
             // Check for machine (HKLM) registry keys for Cloud PC indicators
             // Note that the keys are only found in the 64-bit registry view
             using (Microsoft.Win32.RegistryKey hklm64 = Microsoft.Win32.RegistryKey.OpenBaseKey(Microsoft.Win32.RegistryHive.LocalMachine, Microsoft.Win32.RegistryView.Registry64))
@@ -48,9 +47,6 @@ namespace GitCredentialManager
 
                 return w365Value is not null && Guid.TryParse(partnerValue, out Guid partnerId) && partnerId == Constants.DevBoxPartnerId;
             }
-#else
-            return false;
-#endif
         }
 
         /// <summary>
@@ -197,11 +193,9 @@ namespace GitCredentialManager
         {
             if (IsWindows())
             {
-#if NETFRAMEWORK
                 var identity = System.Security.Principal.WindowsIdentity.GetCurrent();
                 var principal = new System.Security.Principal.WindowsPrincipal(identity);
                 return principal.IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator);
-#endif
             }
             else if (IsPosix())
             {
@@ -287,9 +281,6 @@ namespace GitCredentialManager
                 }
             }
 
-#if NETFRAMEWORK
-            return null;
-#else
             //
             // We cannot determine the absolute file path from argv[0]
             // (how we were launched), so let's now try to extract the
@@ -299,7 +290,6 @@ namespace GitCredentialManager
             //
             FileSystemInfo fsi = File.ResolveLinkTarget("/proc/self/exe", returnFinalTarget: false);
             return fsi?.FullName;
-#endif
         }
 
         private static string GetMacOSEntryPath()
@@ -368,12 +358,11 @@ namespace GitCredentialManager
             // However, we still need to use the old method for Windows on .NET Framework
             // and call into the Win32 API to get the correct version (regardless of app
             // compatibility settings).
-#if NETFRAMEWORK
             if (IsWindows() && RtlGetVersionEx(out RTL_OSVERSIONINFOEX osvi) == 0)
             {
                 return $"{osvi.dwMajorVersion}.{osvi.dwMinorVersion} (build {osvi.dwBuildNumber})";
             }
-#endif
+
             if (IsWindows() || IsMacOS())
             {
                 return Environment.OSVersion.Version.ToString();
