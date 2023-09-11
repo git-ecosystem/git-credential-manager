@@ -9,7 +9,6 @@ $ROOT = (Get-Item $THISDIR).parent.parent.parent.FullName
 $SRC = "$ROOT/src"
 $GCM_SRC = "$SRC/shared/Git-Credential-Manager"
 $GCM_UI_SRC = "$SRC/windows/Git-Credential-Manager.UI.Windows"
-$GITLAB_UI_SRC = "$SRC/windows/GitLab.UI.Windows"
 
 # Perform pre-execution checks
 $PAYLOAD = "$OUTPUT"
@@ -46,11 +45,6 @@ dotnet publish "$GCM_SRC" `
 
 Write-Output "Publishing core UI helper..."
 dotnet publish "$GCM_UI_SRC" `
-	--configuration "$CONFIGURATION" `
-	--output "$PAYLOAD"
-
-Write-Output "Publishing GitLab UI helper..."
-dotnet publish "$GITLAB_UI_SRC" `
 	--configuration "$CONFIGURATION" `
 	--output "$PAYLOAD"
 
