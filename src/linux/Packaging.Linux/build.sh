@@ -30,6 +30,10 @@ case "$i" in
     INSTALL_FROM_SOURCE="${i#*=}"
     shift # past argument=value
     ;;
+    --install-location=*)
+    INSTALL_LOCATION="${i#*=}"
+    shift # past argument=value
+    ;;
     *)
           # unknown option
     ;;
@@ -50,10 +54,11 @@ SYMBOLS="$OUTDIR/payload.sym"
 "$INSTALLER_SRC/layout.sh" --configuration="$CONFIGURATION" || exit 1
 
 if [ $INSTALL_FROM_SOURCE = true ]; then
-    INSTALL_LOCATION="/usr/local"
+    #INSTALL_LOCATION="/usr/local"
+
     mkdir -p "$INSTALL_LOCATION"
 
-    echo "Installing..."
+    echo "Installing to $INSTALL_LOCATION"
 
     # Install directories
     INSTALL_TO="$INSTALL_LOCATION/share/gcm-core/"

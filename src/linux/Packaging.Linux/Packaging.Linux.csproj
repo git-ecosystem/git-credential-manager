@@ -23,8 +23,8 @@
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 
   <Target Name="CoreCompile" Condition="'$(OSPlatform)'=='linux'">
-    <Message Text="$(MSBuildProjectDirectory)\build.sh --install-from-source=$(InstallFromSource) --configuration='$(Configuration)' --version='$(Version)'" Importance="High" />
-    <Exec Command="$(MSBuildProjectDirectory)\build.sh --install-from-source=$(InstallFromSource) --configuration='$(Configuration)' --version='$(Version)'" />
+    <Message Text="$(MSBuildProjectDirectory)\build.sh --install-from-source=$(InstallFromSource) --configuration='$(Configuration)' --version='$(Version)' --install-location='$(InstallLocation)'" Importance="High" />
+    <Exec Command="$(MSBuildProjectDirectory)\build.sh --install-from-source=$(InstallFromSource) --configuration='$(Configuration)' --version='$(Version)' --install-location='$(InstallLocation)'" />
   </Target>
 
   <Target Name="CoreClean">

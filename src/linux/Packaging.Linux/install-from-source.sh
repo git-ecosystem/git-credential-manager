@@ -6,6 +6,7 @@
 # for additional details.
 set -e
 
+installLocation=/usr/local
 is_ci=
 for i in "$@"; do
     case "$i" in
@@ -13,15 +14,26 @@ for i in "$@"; do
         is_ci=true
         shift # Past argument=value
         ;;
+        --install-location=*)
+        installLocation="${i#*=}"
+        shift # past argument=value
+        ;;
     esac
 done
+
+
+# If pass the install-location check if it exists
+if [! -d "$installLocation" ]; then
+    echo "The folder $installLocation do not exists"
+    exit
+fi
 
 # In non-ci scenarios, advertise what we will be doing and
 # give user the option to exit.
 if [ -z $is_ci ]; then
     echo "This script will download, compile, and install Git Credential Manager to:
 
-    /usr/local/bin
+    $installLocation/bin
 
 Git Credential Manager is licensed under the MIT License: https://aka.ms/gcm/license"
 
@@ -225,5 +237,5 @@ if [ -z "$DOTNET_ROOT" ]; then
 fi
 
 cd "$toplevel_path"
-$sudo_cmd env "PATH=$PATH" $DOTNET_ROOT/dotnet build ./src/linux/Packaging.Linux/Packaging.Linux.csproj -c Release -p:InstallFromSource=true
-add_to_PATH "/usr/local/bin"
+$sudo_cmd env "PATH=$PATH" $DOTNET_ROOT/dotnet build ./src/linux/Packaging.Linux/Packaging.Linux.csproj -c Release -p:InstallFromSource=true -p:InstallLocation=$installLocation
+add_to_PATH $installLocation
