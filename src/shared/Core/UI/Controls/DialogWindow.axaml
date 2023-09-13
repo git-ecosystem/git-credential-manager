@@ -14,7 +14,9 @@
         WindowState="Normal" WindowStartupLocation="CenterScreen"
         ShowInTaskbar="True" ShowActivated="True"
         PointerPressed="Window_PointerPressed"
-        KeyUp="Window_KeyUp">
+        KeyUp="Window_KeyUp"
+        x:DataType="vm:WindowViewModel"
+        x:CompileBindings="True">
     <Design.DataContext>
         <vm:WindowViewModel/>
     </Design.DataContext>

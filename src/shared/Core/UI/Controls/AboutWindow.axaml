@@ -3,11 +3,14 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:gcm="clr-namespace:GitCredentialManager"
+        xmlns:controls="clr-namespace:GitCredentialManager.UI.Controls"
         mc:Ignorable="d" d:DesignWidth="300" d:DesignHeight="450"
         x:Class="GitCredentialManager.UI.Controls.AboutWindow"
         Title="About Git Credential Manager"
         CanResize="False" Width="300" SizeToContent="Height"
         x:Name="window"
+        x:DataType="controls:AboutWindow"
+        x:CompileBindings="True"
         Background="{DynamicResource WindowBackgroundBrush}">
     <StackPanel Margin="20">
         <Image HorizontalAlignment="Center"
