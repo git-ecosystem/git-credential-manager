@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using GitCredentialManager;
@@ -42,7 +43,7 @@ namespace Atlassian.Bitbucket
             // We override the token endpoint response parsing because the Bitbucket authority returns
             // the non-standard 'scopes' property for the list of scopes, rather than the (optional)
             // 'scope' (note the singular vs plural) property as outlined in the standard.
-            if (TryDeserializeJson(json, out BitbucketTokenEndpointResponseJson jsonObj))
+            if (TryDeserializeJson(json, BitbucketJsonSerializerContext.Default, out BitbucketTokenEndpointResponseJson jsonObj))
             {
                 result = jsonObj.ToResult();
                 return true;

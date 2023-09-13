@@ -43,11 +43,7 @@ namespace Atlassian.Bitbucket.Cloud
 
                     if (response.IsSuccessStatusCode)
                     {
-                        var obj = JsonSerializer.Deserialize<UserInfo>(json,
-                            new JsonSerializerOptions
-                            {
-                                PropertyNameCaseInsensitive = true,
-                            });
+                        UserInfo obj = JsonSerializer.Deserialize(json, BitbucketJsonSerializerContext.Default.Cloud_UserInfo);
 
                         return new RestApiResult<IUserInfo>(response.StatusCode, obj);
                     }
