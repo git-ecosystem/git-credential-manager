@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using GitCredentialManager.Interop.Posix.Native;
 
 namespace GitCredentialManager
@@ -24,6 +26,7 @@ namespace GitCredentialManager
             return new PlatformInformation(osType, osVersion, cpuArch, clrVersion);
         }
 
+        [SupportedOSPlatformGuard(Constants.WindowsPlatformName)]
         public static bool IsDevBox()
         {
             if (!IsWindows())
@@ -65,6 +68,7 @@ namespace GitCredentialManager
             }
         }
 
+        [SupportedOSPlatformGuard(Constants.WindowsPlatformName)]
         public static bool IsWindowsBrokerSupported()
         {
             if (!IsWindows())
@@ -109,33 +113,38 @@ namespace GitCredentialManager
         /// Check if the current Operating System is macOS.
         /// </summary>
         /// <returns>True if running on macOS, false otherwise.</returns>
+        [SupportedOSPlatformGuard(Constants.MacOSPlatformName)]
         public static bool IsMacOS()
         {
-            return RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
+            return OperatingSystem.IsMacOS();
         }
 
         /// <summary>
         /// Check if the current Operating System is Windows.
         /// </summary>
         /// <returns>True if running on Windows, false otherwise.</returns>
+        [SupportedOSPlatformGuard(Constants.WindowsPlatformName)]
         public static bool IsWindows()
         {
-            return RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+            return OperatingSystem.IsWindows();
         }
 
         /// <summary>
         /// Check if the current Operating System is Linux-based.
         /// </summary>
         /// <returns>True if running on a Linux distribution, false otherwise.</returns>
+        [SupportedOSPlatformGuard(Constants.LinuxPlatformName)]
         public static bool IsLinux()
         {
-            return RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
+            return OperatingSystem.IsLinux();
         }
 
         /// <summary>
         /// Check if the current Operating System is POSIX-compliant.
         /// </summary>
         /// <returns>True if running on a POSIX-compliant Operating System, false otherwise.</returns>
+        [SupportedOSPlatformGuard(Constants.LinuxPlatformName)]
+        [SupportedOSPlatformGuard(Constants.MacOSPlatformName)]
         public static bool IsPosix()
         {
             return IsMacOS() || IsLinux();
@@ -145,6 +154,7 @@ namespace GitCredentialManager
         /// Ensure the current Operating System is macOS, fail otherwise.
         /// </summary>
         /// <exception cref="PlatformNotSupportedException">Thrown if the current OS is not macOS.</exception>
+        [SupportedOSPlatformGuard(Constants.MacOSPlatformName)]
         public static void EnsureMacOS()
         {
             if (!IsMacOS())
@@ -157,6 +167,7 @@ namespace GitCredentialManager
         /// Ensure the current Operating System is Windows, fail otherwise.
         /// </summary>
         /// <exception cref="PlatformNotSupportedException">Thrown if the current OS is not Windows.</exception>
+        [SupportedOSPlatformGuard(Constants.WindowsPlatformName)]
         public static void EnsureWindows()
         {
             if (!IsWindows())
@@ -169,6 +180,7 @@ namespace GitCredentialManager
         /// Ensure the current Operating System is Linux-based, fail otherwise.
         /// </summary>
         /// <exception cref="PlatformNotSupportedException">Thrown if the current OS is not Linux-based.</exception>
+        [SupportedOSPlatformGuard(Constants.LinuxPlatformName)]
         public static void EnsureLinux()
         {
             if (!IsLinux())
@@ -181,6 +193,8 @@ namespace GitCredentialManager
         /// Ensure the current Operating System is POSIX-compliant, fail otherwise.
         /// </summary>
         /// <exception cref="PlatformNotSupportedException">Thrown if the current OS is not POSIX-compliant.</exception>
+        [SupportedOSPlatformGuard(Constants.LinuxPlatformName)]
+        [SupportedOSPlatformGuard(Constants.MacOSPlatformName)]
         public static void EnsurePosix()
         {
             if (!IsPosix())

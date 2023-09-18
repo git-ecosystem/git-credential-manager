@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Text;
 using GitCredentialManager.Interop.Windows.Native;
 using Microsoft.Win32.SafeHandles;
@@ -9,6 +10,7 @@ namespace GitCredentialManager.Interop.Windows
     /// <summary>
     /// Represents a thin wrapper around the Windows console device.
     /// </summary>
+    [SupportedOSPlatform(Constants.WindowsPlatformName)]
     public class WindowsTerminal : ITerminal
     {
         // ReadConsole 32768 fail, 32767 OK @linquize [https://github.com/Microsoft/Git-Credential-Manager-for-Windows/commit/a62b9a19f430d038dcd85a610d97e5f763980f85]

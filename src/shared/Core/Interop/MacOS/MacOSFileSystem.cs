@@ -1,9 +1,11 @@
 using System;
 using System.IO;
+using System.Runtime.Versioning;
 using GitCredentialManager.Interop.Posix;
 
 namespace GitCredentialManager.Interop.MacOS
 {
+    [SupportedOSPlatform(Constants.MacOSPlatformName)]
     public class MacOSFileSystem : PosixFileSystem
     {
         public override bool IsSamePath(string a, string b)

@@ -1,7 +1,9 @@
+using System.Runtime.Versioning;
 using GitCredentialManager.Interop.Posix;
 
 namespace GitCredentialManager.Interop.Linux;
 
+[SupportedOSPlatform(Constants.LinuxPlatformName)]
 public class LinuxSessionManager : PosixSessionManager
 {
     private bool? _isWebBrowserAvailable;
