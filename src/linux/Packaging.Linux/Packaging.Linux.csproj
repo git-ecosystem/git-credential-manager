@@ -9,6 +9,7 @@
 
   <PropertyGroup>
     <InstallFromSource>false</InstallFromSource>
+    <InstallLocation>/usr/local</InstallLocation>
   </PropertyGroup>
 
   <ItemGroup>
