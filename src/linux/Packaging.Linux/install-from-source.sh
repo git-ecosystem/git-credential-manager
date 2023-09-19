@@ -6,7 +6,6 @@
 # for additional details.
 set -e
 
-installLocation=/usr/local
 is_ci=
 for i in "$@"; do
     case "$i" in
@@ -21,10 +20,14 @@ for i in "$@"; do
     esac
 done
 
+# If install-location is not passed, use default value
+if [ -z "$installLocation" ]; then
+    installLocation=/usr/local
+fi
 
-# If pass the install-location check if it exists
+# Ensure install location exists
 if [! -d "$installLocation" ]; then
-    echo "The folder $installLocation do not exists"
+    echo "The folder $installLocation does not exist"
     exit
 fi
 

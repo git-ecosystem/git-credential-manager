@@ -40,6 +40,11 @@ case "$i" in
 esac
 done
 
+# Ensure install location exists
+if [! -d "$installLocation" ]; then
+    mkdir -p "$INSTALL_LOCATION"
+fi
+
 # Perform pre-execution checks
 CONFIGURATION="${CONFIGURATION:=Debug}"
 if [ -z "$VERSION" ]; then
@@ -54,10 +59,6 @@ SYMBOLS="$OUTDIR/payload.sym"
 "$INSTALLER_SRC/layout.sh" --configuration="$CONFIGURATION" || exit 1
 
 if [ $INSTALL_FROM_SOURCE = true ]; then
-    #INSTALL_LOCATION="/usr/local"
-
-    mkdir -p "$INSTALL_LOCATION"
-
     echo "Installing to $INSTALL_LOCATION"
 
     # Install directories
