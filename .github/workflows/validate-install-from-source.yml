@@ -36,7 +36,7 @@ jobs:
             dnf install which -y
           fi
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - run: |
           sh "${GITHUB_WORKSPACE}/src/linux/Packaging.Linux/install-from-source.sh" -y
