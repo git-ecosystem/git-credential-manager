@@ -216,7 +216,7 @@ In order to fix the problem, there are a few options:
 
 [azure-refresh-token-terms]: https://docs.microsoft.com/azure/active-directory/devices/concept-primary-refresh-token#key-terminology-and-components
 [azure-conditional-access]: https://docs.microsoft.com/azure/active-directory/conditional-access/overview
-[azure-devops]: https://dev.azure.com
+[azure-devops]: https://azure.microsoft.com/en-us/products/devops
 [GCM_MSAUTH_USEBROKER]: environment.md#GCM_MSAUTH_USEBROKER-experimental
 [GCM_MSAUTH_USEDEFAULTACCOUNT]: environment.md#GCM_MSAUTH_USEDEFAULTACCOUNT-experimental
 [credential.msauthUseBroker]: configuration.md#credentialmsauthusebroker-experimental

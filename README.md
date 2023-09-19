@@ -115,7 +115,7 @@ We're [MIT][gcm-license] licensed.
 When using GitHub logos, please be sure to follow the
 [GitHub logo guidelines][github-logos].
 
-[azure-devops]: https://dev.azure.com/
+[azure-devops]: https://azure.microsoft.com/en-us/products/devops
 [azure-devops-ssh]: https://docs.microsoft.com/en-us/azure/devops/repos/git/use-ssh-keys-to-authenticate?view=azure-devops
 [bitbucket]: https://bitbucket.org
 [bitbucket-ssh]: https://confluence.atlassian.com/bitbucket/ssh-keys-935365775.html
