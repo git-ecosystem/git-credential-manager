@@ -37,7 +37,7 @@ jobs:
     - name: Set up .NET
       uses: actions/setup-dotnet@v4.0.0
       with:
-        dotnet-version: 7.0.x
+        dotnet-version: 8.0.x
 
     - name: Build
       run: |
@@ -152,7 +152,7 @@ jobs:
     - name: Set up .NET
       uses: actions/setup-dotnet@v4.0.0
       with:
-        dotnet-version: 7.0.x
+        dotnet-version: 8.0.x
 
     - name: Build
       run: |
@@ -192,7 +192,7 @@ jobs:
     - name: Set up .NET
       uses: actions/setup-dotnet@v4.0.0
       with:
-        dotnet-version: 7.0.x
+        dotnet-version: 8.0.x
 
     - name: Build with signed payload
       run: |
@@ -238,7 +238,7 @@ jobs:
     - name: Set up .NET
       uses: actions/setup-dotnet@v4.0.0
       with:
-        dotnet-version: 7.0.x
+        dotnet-version: 8.0.x
 
     - name: Build
       run: dotnet build --configuration=LinuxRelease
@@ -316,7 +316,7 @@ jobs:
     - name: Set up .NET
       uses: actions/setup-dotnet@v4.0.0
       with:
-        dotnet-version: 7.0.x
+        dotnet-version: 8.0.x
 
     - name: Build .NET tool
       run: |
@@ -404,7 +404,7 @@ jobs:
     - name: Set up .NET
       uses: actions/setup-dotnet@v4.0.0
       with:
-        dotnet-version: 7.0.x
+        dotnet-version: 8.0.x
 
     - name: Package tool
       run: |
@@ -508,7 +508,7 @@ jobs:
       - name: Set up .NET
         uses: actions/setup-dotnet@v4.0.0
         with:
-          dotnet-version: 7.0.x
+          dotnet-version: 8.0.x
 
       - name: Download artifacts
         uses: actions/download-artifact@v4
@@ -578,7 +578,7 @@ jobs:
       - name: Set up .NET
         uses: actions/setup-dotnet@v4.0.0
         with:
-          dotnet-version: 7.0.x
+          dotnet-version: 8.0.x
 
       - name: Download artifacts
         uses: actions/download-artifact@v4
