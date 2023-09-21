@@ -11,13 +11,12 @@ using Microsoft.Identity.Client.Extensions.Msal;
 using System.Text;
 using System.Threading;
 using GitCredentialManager.UI;
+using GitCredentialManager.UI.Controls;
 using GitCredentialManager.UI.ViewModels;
 using GitCredentialManager.UI.Views;
 using Microsoft.Identity.Client.AppConfig;
 
 #if NETFRAMEWORK
-using System.Drawing;
-using System.Windows.Forms;
 using Microsoft.Identity.Client.Broker;
 #endif
 
@@ -118,10 +117,6 @@ namespace GitCredentialManager.Authentication
             "live", "liveconnect", "liveid",
         };
 
-#if NETFRAMEWORK
-        private DummyWindow _dummyWindow;
-#endif
-
         public MicrosoftAuthentication(ICommandContext context)
             : base(context) { }
 
@@ -130,6 +125,8 @@ namespace GitCredentialManager.Authentication
         public async Task<IMicrosoftAuthenticationResult> GetTokenForUserAsync(
             string authority, string clientId, Uri redirectUri, string[] scopes, string userName, bool msaPt)
         {
+            var uiCts = new CancellationTokenSource();
+
             // Check if we can and should use OS broker authentication
             bool useBroker = CanUseBroker();
             Context.Trace.WriteLine(useBroker
@@ -144,7 +141,7 @@ namespace GitCredentialManager.Authentication
             try
             {
                 // Create the public client application for authentication
-                IPublicClientApplication app = await CreatePublicClientApplicationAsync(authority, clientId, redirectUri, useBroker, msaPt);
+                IPublicClientApplication app = await CreatePublicClientApplicationAsync(authority, clientId, redirectUri, useBroker, msaPt, uiCts);
 
                 AuthenticationResult result = null;
 
@@ -261,10 +258,8 @@ namespace GitCredentialManager.Authentication
             }
             finally
             {
-#if NETFRAMEWORK
-                // If we created a dummy window during authentication we should dispose of it now that we're done
-                _dummyWindow?.Dispose();
-#endif
+                // If we created some global UI (e.g. progress) during authentication we should dismiss them now that we're done
+                uiCts.Cancel();
             }
         }
 
@@ -451,8 +446,8 @@ namespace GitCredentialManager.Authentication
             }
         }
 
-        private async Task<IPublicClientApplication> CreatePublicClientApplicationAsync(
-            string authority, string clientId, Uri redirectUri, bool enableBroker, bool msaPt)
+        private async Task<IPublicClientApplication> CreatePublicClientApplicationAsync(string authority,
+            string clientId, Uri redirectUri, bool enableBroker, bool msaPt, CancellationTokenSource uiCts)
         {
             var httpFactoryAdaptor = new MsalHttpClientFactoryAdaptor(Context.HttpClientFactory);
 
@@ -495,11 +490,8 @@ namespace GitCredentialManager.Authentication
                     }
                     else if (enableBroker) // Only actually need to set a parent window when using the Windows broker
                     {
-#if NETFRAMEWORK
-                        Context.Trace.WriteLine($"Using dummy parent window for MSAL authentication dialogs.");
-                        _dummyWindow = new DummyWindow();
-                        appBuilder.WithParentActivityOrWindow(_dummyWindow.ShowAndGetHandle);
-#endif
+                        Context.Trace.WriteLine("Using progress parent window for MSAL authentication dialogs.");
+                        appBuilder.WithParentActivityOrWindow(() => ProgressWindow.ShowAndGetHandle(uiCts.Token));
                     }
                 }
             }
@@ -899,73 +891,5 @@ namespace GitCredentialManager.Authentication
             public string AccessToken => _msalResult.AccessToken;
             public string AccountUpn => _msalResult.Account?.Username;
         }
-
-#if NETFRAMEWORK
-        private class DummyWindow : IDisposable
-        {
-            private readonly Thread _staThread;
-            private readonly ManualResetEventSlim _readyEvent;
-            private Form _window;
-            private IntPtr _handle;
-
-            public DummyWindow()
-            {
-                _staThread = new Thread(ThreadProc);
-                _staThread.SetApartmentState(ApartmentState.STA);
-                _readyEvent = new ManualResetEventSlim();
-            }
-
-            public IntPtr ShowAndGetHandle()
-            {
-                _staThread.Start();
-                _readyEvent.Wait();
-                return _handle;
-            }
-
-            public void Dispose()
-            {
-                _window?.Invoke(() => _window.Close());
-
-                if (_staThread.IsAlive)
-                {
-                    _staThread.Join();
-                }
-            }
-
-            private void ThreadProc()
-            {
-                System.Windows.Forms.Application.EnableVisualStyles();
-                _window = new Form
-                {
-                    TopMost = true,
-                    ControlBox = false,
-                    MaximizeBox = false,
-                    MinimizeBox = false,
-                    ClientSize = new Size(182, 46),
-                    FormBorderStyle = FormBorderStyle.None,
-                    StartPosition = FormStartPosition.CenterScreen,
-                };
-
-                var progress = new ProgressBar
-                {
-                    Style = ProgressBarStyle.Marquee,
-                    Location = new Point(12, 12),
-                    Size = new Size(158, 23),
-                    MarqueeAnimationSpeed = 30,
-                };
-
-                _window.Controls.Add(progress);
-                _window.Shown += (s, e) =>
-                {
-                    _handle = _window.Handle;
-                    _readyEvent.Set();
-                };
-
-                _window.ShowDialog();
-                _window.Dispose();
-                _window = null;
-            }
-        }
-#endif
     }
 }

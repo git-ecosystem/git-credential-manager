@@ -11,10 +11,6 @@
 
   <ItemGroup>
     <ProjectReference Include="../../shared/Git-Credential-Manager/Git-Credential-Manager.csproj" ReferenceOutputAssembly="false" />
-    <ProjectReference Include="../Atlassian.Bitbucket.UI.Windows/Atlassian.Bitbucket.UI.Windows.csproj" ReferenceOutputAssembly="false" />
-    <ProjectReference Include="../GitHub.UI.Windows/GitHub.UI.Windows.csproj" ReferenceOutputAssembly="false" />
-    <ProjectReference Include="../GitLab.UI.Windows/GitLab.UI.Windows.csproj" ReferenceOutputAssembly="false" />
-    <ProjectReference Include="../Core.UI.Windows/Core.UI.Windows.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <ItemGroup>
