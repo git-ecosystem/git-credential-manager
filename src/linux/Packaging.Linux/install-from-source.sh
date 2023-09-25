@@ -241,4 +241,4 @@ fi
 
 cd "$toplevel_path"
 $sudo_cmd env "PATH=$PATH" $DOTNET_ROOT/dotnet build ./src/linux/Packaging.Linux/Packaging.Linux.csproj -c Release -p:InstallFromSource=true -p:installPrefix=$installPrefix
-add_to_PATH $installPrefix
+add_to_PATH "$installPrefix/bin"
