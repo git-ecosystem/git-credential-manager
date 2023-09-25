@@ -13,21 +13,21 @@ for i in "$@"; do
         is_ci=true
         shift # Past argument=value
         ;;
-        --install-location=*)
-        installLocation="${i#*=}"
+        --install-prefix=*)
+        installPrefix="${i#*=}"
         shift # past argument=value
         ;;
     esac
 done
 
-# If install-location is not passed, use default value
-if [ -z "$installLocation" ]; then
-    installLocation=/usr/local
+# If install-prefix is not passed, use default value
+if [ -z "$installPrefix" ]; then
+    installPrefix=/usr/local
 fi
 
-# Ensure install location exists
-if [! -d "$installLocation" ]; then
-    echo "The folder $installLocation does not exist"
+# Ensure install directory exists
+if [! -d "$installPrefix" ]; then
+    echo "The folder $installPrefix does not exist"
     exit
 fi
 
@@ -36,7 +36,7 @@ fi
 if [ -z $is_ci ]; then
     echo "This script will download, compile, and install Git Credential Manager to:
 
-    $installLocation/bin
+    $installPrefix/bin
 
 Git Credential Manager is licensed under the MIT License: https://aka.ms/gcm/license"
 
@@ -240,5 +240,5 @@ if [ -z "$DOTNET_ROOT" ]; then
 fi
 
 cd "$toplevel_path"
-$sudo_cmd env "PATH=$PATH" $DOTNET_ROOT/dotnet build ./src/linux/Packaging.Linux/Packaging.Linux.csproj -c Release -p:InstallFromSource=true -p:InstallLocation=$installLocation
-add_to_PATH $installLocation
+$sudo_cmd env "PATH=$PATH" $DOTNET_ROOT/dotnet build ./src/linux/Packaging.Linux/Packaging.Linux.csproj -c Release -p:InstallFromSource=true -p:installPrefix=$installPrefix
+add_to_PATH $installPrefix
