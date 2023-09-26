@@ -53,15 +53,7 @@ namespace GitCredentialManager.UI
 #else
                         .UsePlatformDetect()
 #endif
-                        .LogToTrace()
-                        // Workaround https://github.com/AvaloniaUI/Avalonia/issues/10296
-                        // by always setting a application lifetime.
-                        .SetupWithLifetime(
-                            new ClassicDesktopStyleApplicationLifetime
-                            {
-                                ShutdownMode = ShutdownMode.OnExplicitShutdown
-                            }
-                        );
+                        .LogToTrace();
 
                     appInitialized.Set();
 
