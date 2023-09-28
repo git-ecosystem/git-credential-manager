@@ -185,6 +185,11 @@ namespace GitCredentialManager
         bool UseMsAuthDefaultAccount { get; }
 
         /// <summary>
+        /// True if software rendering should be used for graphical user interfaces, false otherwise.
+        /// </summary>
+        bool UseSoftwareRendering { get; }
+
+        /// <summary>
         /// Get TRACE2 settings.
         /// </summary>
         /// <returns>TRACE2 settings object.</returns>
@@ -558,6 +563,17 @@ namespace GitCredentialManager
                 KnownGitCfg.Credential.SectionName,
                 KnownGitCfg.Credential.Trace,
                 out value) && !value.IsFalsey();
+
+        public bool UseSoftwareRendering
+        {
+            get
+            {
+                return TryGetSetting(KnownEnvars.GcmGuiSoftwareRendering,
+                    KnownGitCfg.Credential.SectionName,
+                    KnownGitCfg.Credential.GuiSoftwareRendering,
+                        out string str) && str.ToBooleanyOrDefault(false);
+            }
+        }
 
         public Trace2Settings GetTrace2Settings()
         {

@@ -187,6 +187,8 @@ namespace GitCredentialManager.Tests.Objects
 
         bool ISettings.UseMsAuthDefaultAccount => UseMsAuthDefaultAccount;
 
+        bool ISettings.UseSoftwareRendering => false;
+
         #endregion
 
         #region IDisposable
