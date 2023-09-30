@@ -102,6 +102,7 @@ namespace GitCredentialManager
             public const string GcmCredCacheOptions   = "GCM_CREDENTIAL_CACHE_OPTIONS";
             public const string GcmPlaintextStorePath = "GCM_PLAINTEXT_STORE_PATH";
             public const string GcmDpapiStorePath     = "GCM_DPAPI_STORE_PATH";
+            public const string GcmKeychainAccessGroup = "GCM_KEYCHAIN_ACCESSGROUP";
             public const string GitExecutablePath     = "GIT_EXEC_PATH";
             public const string GpgExecutablePath     = "GCM_GPG_PATH";
             public const string GcmAutoDetectTimeout  = "GCM_AUTODETECT_TIMEOUT";
@@ -154,6 +155,7 @@ namespace GitCredentialManager
                 public const string CredCacheOptions = "cacheOptions";
                 public const string PlaintextStorePath = "plaintextStorePath";
                 public const string DpapiStorePath = "dpapiStorePath";
+                public const string KeychainAccessGroup = "keychainAccessGroup";
                 public const string UserName = "username";
                 public const string AutoDetectTimeout = "autoDetectTimeout";
                 public const string GuiPromptsEnabled = "guiPrompt";

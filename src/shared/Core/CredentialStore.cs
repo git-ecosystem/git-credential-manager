@@ -75,8 +75,8 @@ namespace GitCredentialManager
                     break;
 
                 case StoreNames.MacOSKeychain:
-                    ValidateMacOSKeychain();
-                    _backingStore = new MacOSKeychain(ns);
+                    ValidateMacOSKeychain(out string accessGroup);
+                    _backingStore = new MacOSKeychain(ns, accessGroup);
                     break;
 
                 case StoreNames.SecretService:
@@ -214,7 +214,7 @@ namespace GitCredentialManager
             }
         }
 
-        private void ValidateMacOSKeychain()
+        private void ValidateMacOSKeychain(out string accessGroup)
         {
             if (!PlatformUtils.IsMacOS())
             {
@@ -223,6 +223,17 @@ namespace GitCredentialManager
                 throw new Exception(message  + Environment.NewLine +
                                     $"See {Constants.HelpUrls.GcmCredentialStores} for more information."
                 );
+            }
+
+            // Check for an optional keychain access group
+            if (!_context.Settings.TryGetSetting(
+                    Constants.EnvironmentVariables.GcmKeychainAccessGroup,
+                    Constants.GitConfiguration.Credential.SectionName,
+                    Constants.GitConfiguration.Credential.KeychainAccessGroup,
+                    out accessGroup))
+            {
+                // Use null to specify the default access group
+                accessGroup = null;
             }
         }
 

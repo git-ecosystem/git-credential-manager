@@ -161,6 +161,9 @@ namespace GitCredentialManager
                     break;
             }
 
+            // Write the exception to the trace log
+            Context.Trace.WriteException(ex);
+
             // If tracing is enabled then also print the stack trace to stderr
             bool printStack = Context.Settings.GetTracingEnabled(out _);
             if (printStack)

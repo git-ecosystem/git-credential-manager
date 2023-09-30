@@ -21,6 +21,7 @@ namespace GitCredentialManager.Interop.MacOS.Native
         public static readonly IntPtr kSecMatchItemList;
         public static readonly IntPtr kSecAttrLabel;
         public static readonly IntPtr kSecAttrAccount;
+        public static readonly IntPtr kSecAttrAccessGroup;
         public static readonly IntPtr kSecAttrService;
         public static readonly IntPtr kSecValueRef;
         public static readonly IntPtr kSecValueData;
@@ -41,6 +42,7 @@ namespace GitCredentialManager.Interop.MacOS.Native
             kSecMatchItemList        = GetGlobal(Handle, "kSecMatchItemList");
             kSecAttrLabel            = GetGlobal(Handle, "kSecAttrLabel");
             kSecAttrAccount          = GetGlobal(Handle, "kSecAttrAccount");
+            kSecAttrAccessGroup      = GetGlobal(Handle, "kSecAttrAccessGroup");
             kSecAttrService          = GetGlobal(Handle, "kSecAttrService");
             kSecValueRef             = GetGlobal(Handle, "kSecValueRef");
             kSecValueData            = GetGlobal(Handle, "kSecValueData");
@@ -113,11 +115,13 @@ namespace GitCredentialManager.Interop.MacOS.Native
         public static extern int SecItemCopyMatching(IntPtr query, out IntPtr result);
 
         [DllImport(SecurityFrameworkLib, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int SecKeychainItemCopyFromPersistentReference(IntPtr persistentItemRef, out IntPtr itemRef);
+        public static extern int SecItemAdd(IntPtr query, out IntPtr result);
 
         [DllImport(SecurityFrameworkLib, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int SecKeychainItemCopyContent(IntPtr itemRef, IntPtr itemClass, IntPtr attrList,
-            out uint length, out IntPtr outData);
+        public static extern int SecItemUpdate(IntPtr query, IntPtr attributesToUpdate);
+
+        [DllImport(SecurityFrameworkLib, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int SecItemDelete(IntPtr query);
 
         public const int CallerSecuritySession = -1;
 

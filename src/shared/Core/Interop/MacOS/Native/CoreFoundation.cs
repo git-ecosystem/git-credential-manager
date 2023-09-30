@@ -87,6 +87,9 @@ namespace GitCredentialManager.Interop.MacOS.Native
 
         [DllImport(CoreFoundationFrameworkLib, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
         public static extern int CFDataGetLength(IntPtr theData);
+
+        [DllImport(CoreFoundationFrameworkLib, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr CFDataCreate(IntPtr allocator, byte[] bytes, long length);
     }
 
     public enum CFStringEncoding
