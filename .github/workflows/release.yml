@@ -3,7 +3,23 @@ name: release
 on:
   workflow_dispatch:
 
+permissions:
+  id-token: write
+  contents: write
+
 jobs:
+  prereqs:
+    name: Prerequisites
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set version
+        run: echo "version=$(cat VERSION | sed -E 's/.[0-9]+$//')" >> $GITHUB_OUTPUT
+        id: version
+
 # ================================
 #              macOS
 # ================================
@@ -698,14 +714,9 @@ jobs:
     name: Publish GitHub draft release
     runs-on: ubuntu-latest
     environment: release
-    needs: [ validate ]
+    needs: [ prereqs, validate ]
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set version environment variable
-        run: |
-          # Remove the "revision" portion of the version
-          echo "VERSION=$(cat VERSION | sed -E 's/.[0-9]+$//')" >> $GITHUB_ENV
 
       - name: Set up .NET
         uses: actions/setup-dotnet@v3.2.0
@@ -736,7 +747,7 @@ jobs:
           script: |
             const fs = require('fs');
             const path = require('path');
-            const version = process.env.VERSION
+            const version = "${{ needs.prereqs.outputs.version }}"
 
             var releaseMetadata = {
               owner: context.repo.owner,
