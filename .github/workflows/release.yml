@@ -17,10 +17,10 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Set up dotnet
+    - name: Set up .NET
       uses: actions/setup-dotnet@v3.2.0
       with:
-        dotnet-version: 6.0.201
+        dotnet-version: 7.0.x
 
     - name: Install dependencies
       run: dotnet restore
@@ -141,10 +141,10 @@ jobs:
     - name: Set version environment variable
       run: echo "VERSION=$(cat VERSION | sed -E 's/.[0-9]+$//')" >> $GITHUB_ENV
 
-    - name: Set up dotnet
+    - name: Set up .NET
       uses: actions/setup-dotnet@v3.2.0
       with:
-        dotnet-version: 6.0.201
+        dotnet-version: 7.0.x
 
     - name: Download signed payload
       uses: actions/download-artifact@v3
@@ -249,10 +249,10 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Set up dotnet
+    - name: Set up .NET
       uses: actions/setup-dotnet@v3.2.0
       with:
-        dotnet-version: 6.0.201
+        dotnet-version: 7.0.x
 
     - name: Install dependencies
       run: dotnet restore
@@ -350,10 +350,10 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Setup .NET
+    - name: Set up .NET
       uses: actions/setup-dotnet@v3.2.0
       with:
-        dotnet-version: 6.0.201
+        dotnet-version: 7.0.x
 
     - name: Install dependencies
       run: dotnet restore
@@ -437,10 +437,10 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Setup .NET
+    - name: Set up .NET
       uses: actions/setup-dotnet@v3.2.0
       with:
-        dotnet-version: 6.0.201
+        dotnet-version: 7.0.x
 
     - name: Build .NET tool
       run: |
@@ -530,10 +530,10 @@ jobs:
         name: dotnet-tool-payload-sign
         path: signed
 
-    - name: Setup .NET
+    - name: Set up .NET
       uses: actions/setup-dotnet@v3.2.0
       with:
-        dotnet-version: 6.0.201
+        dotnet-version: 7.0.x
 
     - name: Package tool
       run: |
@@ -707,10 +707,10 @@ jobs:
           # Remove the "revision" portion of the version
           echo "VERSION=$(cat VERSION | sed -E 's/.[0-9]+$//')" >> $GITHUB_ENV
 
-      - name: Set up dotnet
+      - name: Set up .NET
         uses: actions/setup-dotnet@v3.2.0
         with:
-          dotnet-version: 6.0.201
+          dotnet-version: 7.0.x
 
       - name: Download artifacts
         uses: actions/download-artifact@v3
