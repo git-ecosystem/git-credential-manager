@@ -360,9 +360,11 @@ jobs:
 # ================================
 #             Linux
 # ================================
-  linux-build:
-    name: Build Linux
+  create-linux-artifacts:
+    name: Create Linux Artifacts
     runs-on: ubuntu-latest
+    environment: release
+    needs: prereqs
     steps:
     - uses: actions/checkout@v4
 
@@ -371,78 +373,68 @@ jobs:
       with:
         dotnet-version: 7.0.x
 
-    - name: Install dependencies
-      run: dotnet restore
-
     - name: Build
       run: dotnet build --configuration=LinuxRelease
 
-    - name: Lay out
+    - name: Run Linux unit tests
       run: |
-        mkdir -p linux-build/deb linux-build/tar
-        mv out/linux/Packaging.Linux/Release/deb/*.deb linux-build/deb
-        mv out/linux/Packaging.Linux/Release/tar/*.tar.gz linux-build/tar
+        dotnet test --configuration=LinuxRelease
+
+    - name: Log into Azure
+      uses: azure/login@v1
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+    - name: Prepare for GPG signing
+      env:
+        AZURE_VAULT: ${{ secrets.AZURE_VAULT }}
+        GPG_KEY_SECRET_NAME: ${{ secrets.GPG_KEY_SECRET_NAME }}
+        GPG_PASSPHRASE_SECRET_NAME: ${{ secrets.GPG_PASSPHRASE_SECRET_NAME }}
+        GPG_KEYGRIP_SECRET_NAME: ${{ secrets.GPG_KEYGRIP_SECRET_NAME }}
+      run: |
+        # Install debsigs
+        sudo apt install debsigs
+
+        # Download GPG key, passphrase, and keygrip from Azure Key Vault
+        key=$(az keyvault secret show --name $GPG_KEY_SECRET_NAME --vault-name $AZURE_VAULT --query "value")
+        passphrase=$(az keyvault secret show --name $GPG_PASSPHRASE_SECRET_NAME --vault-name $AZURE_VAULT --query "value")
+        keygrip=$(az keyvault secret show --name $GPG_KEYGRIP_SECRET_NAME --vault-name $AZURE_VAULT --query "value")
+
+        # Remove quotes from downloaded values
+        key=$(sed -e 's/^"//' -e 's/"$//' <<<"$key")
+        passphrase=$(sed -e 's/^"//' -e 's/"$//' <<<"$passphrase")
+        keygrip=$(sed -e 's/^"//' -e 's/"$//' <<<"$keygrip")
+
+        # Import GPG key
+        echo "$key" | base64 -d | gpg --import --no-tty --batch --yes
+
+        # Configure GPG
+        echo "allow-preset-passphrase" > ~/.gnupg/gpg-agent.conf
+        gpg-connect-agent RELOADAGENT /bye
+        /usr/lib/gnupg2/gpg-preset-passphrase --preset "$keygrip" <<<"$passphrase"
+
+    - name: Sign Debian package and tarball
+      run: |
+        # Sign Debian package
+        version=${{ needs.prereqs.outputs.version }}
+        mv out/linux/Packaging.Linux/Release/deb/gcm-linux_amd64.$version.deb .
+        debsigs --sign=origin --verify --check gcm-linux_amd64.$version.deb
+
+        # Generate tarball signature file
+        mv -v out/linux/Packaging.Linux/Release/tar/* .
+        gpg --batch --yes --armor --output gcm-linux_amd64.$version.tar.gz.asc \
+          --detach-sig gcm-linux_amd64.$version.tar.gz
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: linux-build
+        name: linux-artifacts
         path: |
-          linux-build
-
-  linux-sign:
-    name: Sign Linux tarball and Debian package
-    needs: linux-build
-    # ESRP service requires signing to run on Windows
-    runs-on: windows-latest
-    environment: release
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Download artifacts
-      uses: actions/download-artifact@v3
-      with:
-        name: linux-build
-
-    - name: Remove symbols
-      run: |
-        rm tar/*symbols*
-
-    - uses: azure/login@v1
-      with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-    - name: Set up ESRP client
-      shell: pwsh
-      env:
-        AZURE_VAULT: ${{ secrets.AZURE_VAULT }}
-        AUTH_CERT: ${{ secrets.AZURE_VAULT_AUTH_CERT_NAME }}
-        REQUEST_SIGNING_CERT: ${{ secrets.AZURE_VAULT_REQUEST_SIGNING_CERT_NAME }}
-      run: |
-        .github\set_up_esrp.ps1
-
-    - name: Run ESRP client
-      shell: pwsh
-      env:
-        AZURE_AAD_ID: ${{ secrets.AZURE_AAD_ID }}
-        LINUX_KEY_CODE: ${{ secrets.LINUX_KEY_CODE }}
-        LINUX_OP_CODE: ${{ secrets.LINUX_OPERATION_CODE }}
-      run: |
-        python .github/run_esrp_signing.py deb $env:LINUX_KEY_CODE $env:LINUX_OP_CODE
-        python .github/run_esrp_signing.py tar $env:LINUX_KEY_CODE $env:LINUX_OP_CODE
-
-    - name: Re-name tarball signature file
-      shell: bash
-      run: |
-        signaturepath=$(find signed/*.tar.gz)
-        mv "$signaturepath" "${signaturepath%.tar.gz}.asc"
-
-    - name: Upload signed tarball and Debian package
-      uses: actions/upload-artifact@v3
-      with:
-        name: linux-sign
-        path: |
-          signed
+          ./*.deb
+          ./*.asc
+          ./*.tar.gz
 
 # ================================
 #           .NET Tool
@@ -628,13 +620,9 @@ jobs:
       matrix:
         component:
           - os: ubuntu-latest
-            artifact: linux-sign
+            artifact: linux-artifacts
             command: git-credential-manager
-            description: debian
-          - os: ubuntu-latest
-            artifact: linux-build
-            command: git-credential-manager
-            description: tarball
+            description: linux
           - os: macos-latest
             artifact: osx-x64-sign
             command: git-credential-manager
@@ -652,7 +640,7 @@ jobs:
             command: git-credential-manager
             description: dotnet-tool
     runs-on: ${{ matrix.component.os }}
-    needs: [ osx-sign, win-sign, linux-sign, dotnet-tool-sign ]
+    needs: [ osx-sign, win-sign, create-linux-artifacts, dotnet-tool-sign ]
     steps:
       - uses: actions/checkout@v4
 
@@ -672,14 +660,14 @@ jobs:
           }
 
       - name: Install Linux (Debian package)
-        if: contains(matrix.component.description, 'debian')
+        if: contains(matrix.component.description, 'linux')
         run: |
           debpath=$(find ./*.deb)
           sudo apt install $debpath
           "${{ matrix.component.command }}" configure
 
       - name: Install Linux (tarball)
-        if: contains(matrix.component.description, 'tarball')
+        if: contains(matrix.component.description, 'linux')
         run: |
           # Ensure we find only the source tarball, not the symbols
           tarpath=$(find ./tar -name '*[[:digit:]].tar.gz')
@@ -797,8 +785,7 @@ jobs:
               uploadDirectoryToRelease('osx-payload-and-symbols'),
 
               // Upload Linux artifacts
-              uploadDirectoryToRelease('linux-build/tar'),
-              uploadDirectoryToRelease('linux-sign'),
+              uploadDirectoryToRelease('linux-artifacts'),
 
               // Upload .NET tool package
               uploadDirectoryToRelease('dotnet-tool-sign'),
