@@ -139,12 +139,13 @@ jobs:
           ./payload/*
 
 # ================================
-#              Windows
+#            Windows
 # ================================
-  win-sign:
-    name: Build and Sign Windows
+  create-windows-artifacts:
+    name: Create Windows Artifacts
     runs-on: windows-latest
     environment: release
+    needs: prereqs
     steps:
     - uses: actions/checkout@v4
 
@@ -152,9 +153,6 @@ jobs:
       uses: actions/setup-dotnet@v3.2.0
       with:
         dotnet-version: 7.0.x
-
-    - name: Install dependencies
-      run: dotnet restore
 
     - name: Build
       run: |
@@ -165,80 +163,66 @@ jobs:
         dotnet test --configuration=WindowsRelease
 
     - name: Lay out Windows payload and symbols
-      shell: pwsh
       run: |
-        cd src/windows/Installer.Windows/
-        ./layout.ps1 -Configuration WindowsRelease -Output payload -SymbolOutput symbols
-        mkdir unsigned-payload
-        Get-ChildItem -Path payload/* -Include *.exe, *.dll | Move-Item -Destination unsigned-payload
+        cd $env:GITHUB_WORKSPACE\src\windows\Installer.Windows\
+        ./layout.ps1 -Configuration WindowsRelease `
+          -Output $env:GITHUB_WORKSPACE\payload `
+          -SymbolOutput $env:GITHUB_WORKSPACE\symbols
 
-    - uses: azure/login@v1
+    - name: Log into Azure
+      uses: azure/login@v1
       with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-    - name: Set up ESRP client
-      shell: pwsh
-      env:
-        AZURE_VAULT: ${{ secrets.AZURE_VAULT }}
-        AUTH_CERT: ${{ secrets.AZURE_VAULT_AUTH_CERT_NAME }}
-        REQUEST_SIGNING_CERT: ${{ secrets.AZURE_VAULT_REQUEST_SIGNING_CERT_NAME }}
-      run: |
-        .github\set_up_esrp.ps1
+    - name: Sign payload files with Azure Code Signing
+      uses: azure/azure-code-signing-action@v0.2.21
+      with:
+        endpoint: https://wus2.codesigning.azure.net/
+        code-signing-account-name: git-fundamentals-signing
+        certificate-profile-name: git-fundamentals-windows-signing
+        files-folder: ${{ github.workspace }}\payload
+        files-folder-filter: exe,dll
+        file-digest: SHA256
+        timestamp-rfc3161: http://timestamp.acs.microsoft.com
+        timestamp-digest: SHA256
 
-    - name: Run ESRP client for unsigned payload
-      shell: pwsh
-      env:
-        AZURE_AAD_ID: ${{ secrets.AZURE_AAD_ID }}
-        WINDOWS_KEY_CODE: ${{ secrets.WINDOWS_KEY_CODE }}
-        WINDOWS_OP_CODE: ${{ secrets.WINDOWS_OPERATION_CODE }}
-      run: |
-        python .github\run_esrp_signing.py `
-          src/windows/Installer.Windows/unsigned-payload `
-          $env:WINDOWS_KEY_CODE $env:WINDOWS_OP_CODE `
-          --params 'OpusName' 'Microsoft' `
-          'OpusInfo' 'http://www.microsoft.com' `
-          'FileDigest' '/fd "SHA256"' 'PageHash' '/NPH' `
-          'TimeStamp' '/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256'
-
-    - name: Lay out signed payload
-      shell: pwsh
-      run: |
-        mkdir signed-payload
-        Move-Item -Path signed/* -Destination signed-payload
-        # ESRP will not sign the *.exe.config or NOTICE files, but they are needed to build the installers.
-        # Due to this, we copy them after signing.
-        Get-ChildItem -Path src/windows/Installer.Windows/payload/* -Include *.exe.config, NOTICE | Move-Item -Destination signed-payload
-        Remove-Item signed -Recurse -Force
+    # The Azure Code Signing action overrides the .NET version, so we reset it.
+    - name: Set up .NET
+      uses: actions/setup-dotnet@v3.2.0
+      with:
+        dotnet-version: 7.0.x
 
     - name: Build with signed payload
-      shell: pwsh
       run: |
-        dotnet build src/windows/Installer.Windows /p:PayloadPath=$env:GITHUB_WORKSPACE/signed-payload /p:NoLayout=true --configuration=WindowsRelease
+        dotnet build $env:GITHUB_WORKSPACE\src\windows\Installer.Windows `
+          /p:PayloadPath=$env:GITHUB_WORKSPACE\payload /p:NoLayout=true `
+          --configuration=WindowsRelease
+        mkdir installers
+        Move-Item -Path .\out\windows\Installer.Windows\bin\Release\net472\*.exe `
+         -Destination $env:GITHUB_WORKSPACE\installers
 
-    - name: Run ESRP client for installers
-      shell: pwsh
-      env:
-        AZURE_AAD_ID: ${{ secrets.AZURE_AAD_ID }}
-        WINDOWS_KEY_CODE: ${{ secrets.WINDOWS_KEY_CODE }}
-        WINDOWS_OP_CODE: ${{ secrets.WINDOWS_OPERATION_CODE }}
-      run: |
-        python .github\run_esrp_signing.py `
-          .\out\windows\Installer.Windows\bin\WindowsRelease\net472 `
-          $env:WINDOWS_KEY_CODE `
-          $env:WINDOWS_OP_CODE `
-          --params 'OpusName' 'Microsoft' `
-          'OpusInfo' 'http://www.microsoft.com' `
-          'FileDigest' '/fd "SHA256"' 'PageHash' '/NPH' `
-          'TimeStamp' '/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256'
+    - name: Sign installers with Azure Code Signing
+      uses: azure/azure-code-signing-action@v0.2.21
+      with:
+        endpoint: https://wus2.codesigning.azure.net/
+        code-signing-account-name: git-fundamentals-signing
+        certificate-profile-name: git-fundamentals-windows-signing
+        files-folder: ${{ github.workspace }}\installers
+        files-folder-filter: exe
+        file-digest: SHA256
+        timestamp-rfc3161: http://timestamp.acs.microsoft.com
+        timestamp-digest: SHA256
 
-    - name: Publish final artifacts
+    - name: Upload artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: win-sign
+        name: windows-artifacts
         path: |
-          signed
-          signed-payload
-          src/windows/Installer.Windows/symbols
+          payload
+          installers
+          symbols
 
 # ================================
 #             Linux
@@ -511,7 +495,7 @@ jobs:
             command: git-credential-manager
             description: osx-x64
           - os: windows-latest
-            artifact: win-sign
+            artifact: windows-artifacts
             # Even when a standalone GCM version is installed, GitHub actions
             # runners still only recognize the version bundled with Git for
             # Windows due to its placement on the PATH. For this reason, we use
@@ -523,9 +507,14 @@ jobs:
             command: git-credential-manager
             description: dotnet-tool
     runs-on: ${{ matrix.component.os }}
-    needs: [ create-macos-artifacts, win-sign, create-linux-artifacts, dotnet-tool-sign ]
+    needs: [ create-macos-artifacts, create-windows-artifacts, create-linux-artifacts, dotnet-tool-sign ]
     steps:
       - uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v3.2.0
+        with:
+          dotnet-version: 7.0.x
 
       - name: Download artifacts
         uses: actions/download-artifact@v3
@@ -536,7 +525,7 @@ jobs:
         if: contains(matrix.component.description, 'windows')
         shell: pwsh
         run: |
-          $exePaths = Get-ChildItem -Path ./signed/*.exe | %{$_.FullName}
+          $exePaths = Get-ChildItem -Path ./installers/*.exe | %{$_.FullName}
           foreach ($exePath in $exePaths)
           {
             Start-Process -Wait -FilePath "$exePath" -ArgumentList "/SILENT /VERYSILENT /NORESTART"
@@ -610,9 +599,10 @@ jobs:
 
       - name: Archive Windows payload and symbols
         run: |
+          version="${{ needs.prereqs.outputs.version }}"
           mkdir win-x86-payload-and-symbols
-          zip -jr win-x86-payload-and-symbols/gcm-win-x86-$VERSION.zip win-sign/signed-payload
-          zip -jr win-x86-payload-and-symbols/gcm-win-x86-$VERSION-symbols.zip win-sign/src/windows/Installer.Windows/symbols
+          zip -jr win-x86-payload-and-symbols/gcm-win-x86-$version.zip windows-artifacts/payload
+          zip -jr win-x86-payload-and-symbols/gcm-win-x86-$version-symbols.zip windows-artifacts/symbols
 
       - uses: actions/github-script@v6
         with:
@@ -660,7 +650,7 @@ jobs:
 
             await Promise.all([
               // Upload Windows artifacts
-              uploadDirectoryToRelease('win-sign/signed'),
+              uploadDirectoryToRelease('windows-artifacts/installers'),
               uploadDirectoryToRelease('win-x86-payload-and-symbols'),
 
               // Upload macOS artifacts
