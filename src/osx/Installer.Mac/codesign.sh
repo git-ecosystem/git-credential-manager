@@ -26,9 +26,9 @@ for f in *
 do
     macho=$(file --mime $f | grep mach)
     # Runtime sign dylibs and Mach-O binaries
-    if [[ $f == *.dylib ]] || [ ! -z "$macho" ]; 
-    then 
-        echo "Runtime Signing $f" 
+    if [[ $f == *.dylib ]] || [ ! -z "$macho" ];
+    then
+        echo "Runtime Signing $f"
         codesign -s "$DEVELOPER_ID" $f --timestamp --force --options=runtime --entitlements $ENTITLEMENTS_FILE
     elif [ -d "$f" ];
     then
@@ -39,7 +39,7 @@ do
             codesign -s "$DEVELOPER_ID" $i --timestamp --force
         done
         cd ..
-    else 
+    else
         echo "Signing $f"
         codesign -s "$DEVELOPER_ID" $f  --timestamp --force
     fi
