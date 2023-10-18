@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using GitCredentialManager;
 using GitCredentialManager.Authentication.OAuth;
 using System.Net.Http.Headers;
+using System.Linq;
 
 namespace GitLab
 {
@@ -65,6 +66,11 @@ namespace GitLab
             // GitLab[.subdomain].domain.tld
             if (domains.Length >= 3 &&
                 StringComparer.OrdinalIgnoreCase.Equals(domains[0], "gitlab"))
+            {
+                return true;
+            }
+
+            if (input.WwwAuth.Any(x => x.Contains("realm=\"GitLab\"")))
             {
                 return true;
             }
