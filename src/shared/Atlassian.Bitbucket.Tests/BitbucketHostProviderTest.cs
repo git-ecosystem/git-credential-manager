@@ -55,6 +55,20 @@ namespace Atlassian.Bitbucket.Tests
             Assert.Equal(expected, provider.IsSupported(input));
         }
 
+        [Theory]
+        [InlineData("Basic realm=\"Atlassian Bitbucket\"", true)]
+        [InlineData("Basic realm=\"GitSponge\"", false)]
+        public void BitbucketHostProvider_IsSupported_WWWAuth(string wwwauth, bool expected)
+        {
+            var input = new InputArguments(new Dictionary<string, string>
+            {
+                ["wwwauth"] = wwwauth,
+            });
+
+            var provider = new BitbucketHostProvider(new TestCommandContext());
+            Assert.Equal(expected, provider.IsSupported(input));
+        }
+
         [Fact]
         public void BitbucketHostProvider_IsSupported_FailsForNullInput()
         {

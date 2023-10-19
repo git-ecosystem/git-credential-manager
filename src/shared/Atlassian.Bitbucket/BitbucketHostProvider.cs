@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Atlassian.Bitbucket.Cloud;
@@ -41,6 +42,11 @@ namespace Atlassian.Bitbucket
             if (input is null)
             {
                 return false;
+            }
+
+            if (input.WwwAuth.Any(x => x.Contains("realm=\"Atlassian Bitbucket\"", StringComparison.InvariantCultureIgnoreCase)))
+            {
+                return true;
             }
 
             // Split port number and hostname from host input argument
