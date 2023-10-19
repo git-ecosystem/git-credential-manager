@@ -63,7 +63,7 @@ namespace GitCredentialManager
                 // Cannot check WIA or OAuth support for non-HTTP based protocols
             }
             // Check for an OAuth configuration for this remote
-            else if (GenericOAuthConfig.TryGet(Context.Trace, Context.Settings, uri, out GenericOAuthConfig oauthConfig))
+            else if (GenericOAuthConfig.TryGet(Context.Trace, Context.Settings, input, out GenericOAuthConfig oauthConfig))
             {
                 Context.Trace.WriteLine($"Found generic OAuth configuration for '{uri}':");
                 Context.Trace.WriteLine($"\tAuthzEndpoint   = {oauthConfig.Endpoints.AuthorizationEndpoint}");
