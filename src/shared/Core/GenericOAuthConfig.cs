@@ -81,9 +81,7 @@ namespace GitCredentialManager
             }
             else
             {
-                trace.WriteLine($"Invalid OAuth configuration - missing/invalid redirect URI: {redirectUrl}");
-                config = null;
-                return false;
+                config.RedirectUri = new Uri("http://127.0.0.1");
             }
 
             if (settings.TryGetSetting(

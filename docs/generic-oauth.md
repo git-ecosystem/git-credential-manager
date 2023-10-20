@@ -40,7 +40,7 @@ following values in your Git configuration:
 
 - Client ID
 - Client Secret (optional)
-- Redirect URL
+- Redirect URL (optional, defaults to `http://127.0.0.1`)
 - Scopes (optional)
 - OAuth Endpoints
   - Authorization Endpoint
