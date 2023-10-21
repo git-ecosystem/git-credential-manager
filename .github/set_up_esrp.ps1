@@ -1,5 +1,5 @@
 # Install ESRP client
-az storage blob download --file esrp.zip --auth-mode login --account-name esrpsigningstorage --container signing-resources --name microsoft.esrpclient.1.2.76.nupkg
+az storage blob download --file esrp.zip --auth-mode login --account-name $env:AZURE_STORAGE_ACCOUNT --container $env:AZURE_STORAGE_CONTAINER --name $env:ESRP_TOOL
 Expand-Archive -Path esrp.zip -DestinationPath .\esrp
 
 # Install certificates
