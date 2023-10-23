@@ -72,15 +72,11 @@ namespace GitCredentialManager.Tests
             var protocol = "https";
             var host = "example.com";
             var remoteUri = new Uri($"{protocol}://{host}");
-            // https://docs.gitea.com/next/development/oauth2-provider?_highlight=oauth#pre-configured-applications
-            const string expectedClientId = "e90ee53c-94e2-48ac-9358-a874fb9e0662";
-            // https://docs.gitea.com/next/development/oauth2-provider?_highlight=oauth#endpoints
-            const string authzEndpoint = "/login/oauth/authorize";
-            const string tokenEndpoint = "/login/oauth/access_token";
+            const string expectedClientId = GenericOAuthConfig.WellKnown.GiteaClientId;
             string[] expectedScopes = Array.Empty<string>();
-            var expectedRedirectUri = new Uri("http://127.0.0.1");
-            var expectedAuthzEndpoint = new Uri(remoteUri, authzEndpoint);
-            var expectedTokenEndpoint = new Uri(remoteUri, tokenEndpoint);
+            var expectedRedirectUri = GenericOAuthConfig.WellKnown.LocalIPv4RedirectUri;
+            var expectedAuthzEndpoint = new Uri(remoteUri, GenericOAuthConfig.WellKnown.GiteaAuthzEndpoint);
+            var expectedTokenEndpoint = new Uri(remoteUri, GenericOAuthConfig.WellKnown.GiteaTokenEndpoint);
 
             var trace = new NullTrace();
             var settings = new TestSettings

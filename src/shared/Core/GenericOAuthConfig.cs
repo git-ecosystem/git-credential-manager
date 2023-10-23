@@ -14,15 +14,14 @@ namespace GitCredentialManager
             Uri tokenEndpointUri = null;
             var remoteUri = input.GetRemoteUri();
 
-            if (input.WwwAuth.Any(x => x.Contains("Basic realm=\"Gitea\"")))
+            if (input.WwwAuth.Any(x => x.Contains("Basic realm=\"Gitea\"", StringComparison.OrdinalIgnoreCase)))
             {
                 trace.WriteLine($"Using universal Gitea OAuth configuration");
                 // https://docs.gitea.com/next/development/oauth2-provider?_highlight=oauth#pre-configured-applications
-                config.ClientId = "e90ee53c-94e2-48ac-9358-a874fb9e0662";
-                // https://docs.gitea.com/next/development/oauth2-provider?_highlight=oauth#endpoints
-                authzEndpointUri = new Uri(remoteUri, "/login/oauth/authorize");
-                tokenEndpointUri = new Uri(remoteUri, "/login/oauth/access_token");
-                config.RedirectUri = new Uri("http://127.0.0.1");
+                config.ClientId = WellKnown.GiteaClientId;
+                authzEndpointUri = new Uri(remoteUri, WellKnown.GiteaAuthzEndpoint);
+                tokenEndpointUri = new Uri(remoteUri, WellKnown.GiteaTokenEndpoint);
+                config.RedirectUri = WellKnown.LocalIPv4RedirectUri;
             }
 
             if (settings.TryGetSetting(
@@ -158,5 +157,15 @@ namespace GitCredentialManager
         public string DefaultUserName { get; set; }
 
         public bool SupportsDeviceCode => Endpoints.DeviceAuthorizationEndpoint != null;
+
+    public static class WellKnown
+    {
+        // https://docs.gitea.com/next/development/oauth2-provider?_highlight=oauth#pre-configured-applications
+        public const string GiteaClientId = "e90ee53c-94e2-48ac-9358-a874fb9e0662";
+        // https://docs.gitea.com/next/development/oauth2-provider?_highlight=oauth#endpoints
+        public const string GiteaAuthzEndpoint = "/login/oauth/authorize";
+        public const string GiteaTokenEndpoint = "/login/oauth/access_token";
+        public static Uri LocalIPv4RedirectUri = new Uri("http://127.0.0.1");
+    }
     }
 }
