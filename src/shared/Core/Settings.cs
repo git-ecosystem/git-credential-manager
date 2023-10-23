@@ -568,10 +568,15 @@ namespace GitCredentialManager
         {
             get
             {
+                // WORKAROUND: Some Windows ARM devices have a graphics driver issue that causes transparent windows
+                // when using hardware rendering. Until this is fixed, we will default to software rendering on these
+                // devices. Users can always override this setting back to HW-accelerated rendering if they wish.
+                bool defaultValue = PlatformUtils.IsWindows() && PlatformUtils.IsArm();
+
                 return TryGetSetting(KnownEnvars.GcmGuiSoftwareRendering,
                     KnownGitCfg.Credential.SectionName,
                     KnownGitCfg.Credential.GuiSoftwareRendering,
-                        out string str) && str.ToBooleanyOrDefault(false);
+                    out string str) ? str.ToBooleanyOrDefault(defaultValue) : defaultValue;
             }
         }
 

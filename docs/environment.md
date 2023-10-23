@@ -294,6 +294,10 @@ export GCM_GUI_SOFTWARE_RENDERING=1
 
 Defaults to false (use hardware acceleration where available).
 
+> [!NOTE]
+> Windows on ARM devices defaults to using software rendering to work around a
+> known Avalonia issue: <https://github.com/AvaloniaUI/Avalonia/issues/10405>
+
 **Also see: [credential.guiSoftwareRendering][credential-guisoftwarerendering]**
 
 ---
