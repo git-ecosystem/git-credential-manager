@@ -233,6 +233,28 @@ Defaults to enabled.
 
 ---
 
+### credential.guiSoftwareRendering
+
+Force the use of software rendering for GUI prompts.
+
+This is currently only applicable on Windows.
+
+#### Example
+
+```shell
+git config --global credential.guiSoftwareRendering true
+```
+
+Defaults to false (use hardware acceleration where available).
+
+> [!NOTE]
+> Windows on ARM devices defaults to using software rendering to work around a
+> known Avalonia issue: <https://github.com/AvaloniaUI/Avalonia/issues/10405>
+
+**Also see: [GCM_GUI_SOFTWARE_RENDERING][gcm-gui-software-rendering]**
+
+---
+
 ### credential.autoDetectTimeout
 
 Set the maximum length of time, in milliseconds, that GCM should wait for a
@@ -978,6 +1000,7 @@ Defaults to disabled.
 [gcm-github-authmodes]: environment.md#GCM_GITHUB_AUTHMODES
 [gcm-gitlab-authmodes]:environment.md#GCM_GITLAB_AUTHMODES
 [gcm-gui-prompt]: environment.md#GCM_GUI_PROMPT
+[gcm-gui-software-rendering]: environment.md#GCM_GUI_SOFTWARE_RENDERING
 [gcm-http-proxy]: environment.md#GCM_HTTP_PROXY-deprecated
 [gcm-interactive]: environment.md#GCM_INTERACTIVE
 [gcm-msauth-flow]: environment.md#GCM_MSAUTH_FLOW

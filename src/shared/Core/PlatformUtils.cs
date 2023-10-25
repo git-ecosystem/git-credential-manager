@@ -53,6 +53,22 @@ namespace GitCredentialManager
 #endif
         }
 
+        /// <summary>
+        /// Returns true if the current process is running on an ARM processor.
+        /// </summary>
+        /// <returns>True if ARM(v6,hf) or ARM64, false otherwise</returns>
+        public static bool IsArm()
+        {
+            switch (RuntimeInformation.OSArchitecture)
+            {
+                case Architecture.Arm:
+                case Architecture.Arm64:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
         public static bool IsWindowsBrokerSupported()
         {
             if (!IsWindows())
