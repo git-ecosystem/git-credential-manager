@@ -35,9 +35,13 @@ namespace GitCredentialManager.Commands
             // Return the credential to Git
             output["username"] = credential.Account;
             output["password"] = credential.Password;
+            if (credential.PasswordExpiry.HasValue)
+                output["password_expiry_utc"] = credential.PasswordExpiry.Value.ToUnixTimeSeconds().ToString();
+            if (!string.IsNullOrEmpty(credential.OAuthRefreshToken))
+                output["oauth_refresh_token"] = credential.OAuthRefreshToken;
 
             Context.Trace.WriteLine("Writing credentials to output:");
-            Context.Trace.WriteDictionarySecrets(output, new []{ "password" }, StringComparer.OrdinalIgnoreCase);
+            Context.Trace.WriteDictionarySecrets(output, new []{ "password", "oauth_refresh_token" }, StringComparer.OrdinalIgnoreCase);
 
             // Write the values to standard out
             Context.Streams.Out.WriteDictionary(output);

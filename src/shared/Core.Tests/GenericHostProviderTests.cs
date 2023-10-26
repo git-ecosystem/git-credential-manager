@@ -201,7 +201,6 @@ namespace GitCredentialManager.Tests
             const string testAcessToken = "OAUTH_TOKEN";
             const string testRefreshToken = "OAUTH_REFRESH_TOKEN";
             const string testResource = "https://git.example.com/foo";
-            const string expectedRefreshTokenService = "https://refresh_token.git.example.com/foo";
 
             var authMode = OAuthAuthenticationModes.Browser;
             string[] scopes = { "code:write", "code:read" };
@@ -249,7 +248,7 @@ namespace GitCredentialManager.Tests
                 .ReturnsAsync(new OAuth2TokenResult(testAcessToken, "access_token")
                 {
                     Scopes = scopes,
-                    RefreshToken = testRefreshToken
+                    RefreshToken = testRefreshToken,
                 });
 
             var provider = new GenericHostProvider(context, basicAuthMock.Object, wiaAuthMock.Object, oauthMock.Object);
@@ -259,10 +258,7 @@ namespace GitCredentialManager.Tests
             Assert.NotNull(credential);
             Assert.Equal(testUserName, credential.Account);
             Assert.Equal(testAcessToken, credential.Password);
-
-            Assert.True(context.CredentialStore.TryGet(expectedRefreshTokenService, null, out TestCredential refreshToken));
-            Assert.Equal(testUserName, refreshToken.Account);
-            Assert.Equal(testRefreshToken, refreshToken.Password);
+            Assert.Equal(testRefreshToken, credential.OAuthRefreshToken);
 
             oauthMock.Verify(x => x.GetAuthenticationModeAsync(testResource, OAuthAuthenticationModes.All), Times.Once);
             oauthMock.Verify(x => x.GetTokenByBrowserAsync(It.IsAny<OAuth2Client>(), scopes), Times.Once);

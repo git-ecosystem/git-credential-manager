@@ -1,3 +1,5 @@
+using Avalonia.OpenGL;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -44,9 +46,16 @@ namespace GitCredentialManager.Tests.Objects
             return false;
         }
 
+        void ICredentialStore.AddOrUpdate(string service, ICredential credential) => Add(service, new TestCredential(service, credential));
+        bool ICredentialStore.Remove(string service, ICredential credential) => (this as ICredentialStore).Remove(service, credential.Account);
+
         #endregion
 
         public int Count => _store.Count;
+
+        public bool CanStorePasswordExpiry => true;
+
+        public bool CanStoreOAuthRefreshToken => true;
 
         public bool TryGet(string service, string account, out TestCredential credential)
         {
@@ -102,10 +111,23 @@ namespace GitCredentialManager.Tests.Objects
             Password = password;
         }
 
+        public TestCredential(string service, ICredential credential)
+        {
+            Service = service;
+            Account = credential.Account;
+            Password = credential.Password;
+            OAuthRefreshToken = credential.OAuthRefreshToken;
+            PasswordExpiry = credential.PasswordExpiry;
+        }
+
         public string Service { get; }
 
         public string Account { get; }
 
         public string Password { get; }
+
+        public DateTimeOffset? PasswordExpiry { get; set; }
+
+        public string OAuthRefreshToken { get; set; }
     }
 }

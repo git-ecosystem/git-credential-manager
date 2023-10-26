@@ -126,10 +126,21 @@ namespace GitCredentialManager.Interop.Linux
         }
 
         public unsafe void AddOrUpdate(string service, string account, string secret)
+            => AddOrUpdate(service, new GitCredential(account, secret));
+
+        public unsafe void AddOrUpdate(string service, ICredential credential)
         {
             GHashTable* attributes = null;
             SecretValue* secretValue = null;
             GError *error = null;
+            var account = credential.Account;
+            var secret = credential.Password;
+            if (credential.OAuthRefreshToken != null) {
+                secret += "\noauth_refresh_token=" + credential.OAuthRefreshToken;
+            }
+            if (credential.PasswordExpiry.HasValue) {
+                secret += "\npassword_expiry_utc=" + credential.PasswordExpiry.Value.ToUnixTimeSeconds();
+            }
 
             // If there is an existing credential that matches the same account and password
             // then don't bother writing out anything because they're the same!
@@ -271,7 +282,7 @@ namespace GitCredentialManager.Interop.Linux
             IntPtr serviceKeyPtr = IntPtr.Zero;
             IntPtr accountKeyPtr = IntPtr.Zero;
             SecretValue* value = null;
-            IntPtr passwordPtr = IntPtr.Zero;
+            IntPtr secretPtr = IntPtr.Zero;
             GError* error = null;
 
             try
@@ -297,10 +308,27 @@ namespace GitCredentialManager.Interop.Linux
                 }
 
                 // Extract the secret/password
-                passwordPtr = secret_value_get(value, out int passwordLength);
-                string password = Marshal.PtrToStringAuto(passwordPtr, passwordLength);
+                secretPtr = secret_value_get(value, out int passwordLength);
+                string secret = Marshal.PtrToStringAuto(secretPtr, passwordLength);
+                var lines = secret.Split('\n');
+                var password = lines[0];
+                string oauth_refresh_token = null;
+                DateTimeOffset? password_expiry_utc = null;
+                for(int i = 1; i < lines.Length; i++) {
+                    var parts = lines[i].Split(['='], 2);
+                    if (parts.Length != 2)
+                        continue;
+                    if (parts[0] == "oauth_refresh_token")
+                        oauth_refresh_token = parts[1];
+                    if (parts[0] == "password_expiry_utc" && long.TryParse(parts[1], out long x))
+                        password_expiry_utc = DateTimeOffset.FromUnixTimeSeconds(x);
+                }
 
-                return new SecretServiceCredential(service, account, password);
+                return new SecretServiceCredential(service, account, password)
+                {
+                    OAuthRefreshToken = oauth_refresh_token,
+                    PasswordExpiry = password_expiry_utc,
+                };
             }
             finally
             {
@@ -366,5 +394,10 @@ namespace GitCredentialManager.Interop.Linux
 
             return schema;
         }
+
+        public bool Remove(string service, ICredential credential) => Remove(service, credential.Account);
+
+        public bool CanStorePasswordExpiry => true;
+        public bool CanStoreOAuthRefreshToken => true;
     }
 }
