@@ -81,7 +81,8 @@ namespace GitCredentialManager.UI
 #else
                         .UsePlatformDetect()
 #endif
-                        .LogToTrace();
+                        .LogToTrace()
+                        .SetupWithoutStarting();
 
                     appInitialized.Set();
 
