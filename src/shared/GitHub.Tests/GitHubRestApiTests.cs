@@ -2,8 +2,6 @@ using System;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text;
 using System.Threading.Tasks;
 using GitCredentialManager.Tests;
 using GitCredentialManager.Tests.Objects;
@@ -13,6 +11,20 @@ namespace GitHub.Tests
 {
     public class GitHubRestApiTests
     {
+        [Theory]
+        [InlineData("https://github.com", "user", "https://api.github.com/user")]
+        [InlineData("https://github.com", "users/123", "https://api.github.com/users/123")]
+        [InlineData("https://gItHuB.cOm", "uSeRs/123", "https://api.github.com/uSeRs/123")]
+        [InlineData("https://gist.github.com", "user", "https://api.github.com/user")]
+        [InlineData("https://github.example.com", "user", "https://github.example.com/api/v3/user")]
+        [InlineData("https://raw.github.example.com", "user", "https://github.example.com/api/v3/user")]
+        [InlineData("https://gist.github.example.com", "user", "https://github.example.com/api/v3/user")]
+        public void GitHubRestApi_GetApiRequestUri(string targetUrl, string apiUrl, string expected)
+        {
+            Uri actualUri = GitHubRestApi.GetApiRequestUri(new Uri(targetUrl), apiUrl);
+            Assert.Equal(expected, actualUri.ToString());
+        }
+
         [Fact]
         public async Task GitHubRestApi_AcquireTokenAsync_NullUri_ThrowsException()
         {

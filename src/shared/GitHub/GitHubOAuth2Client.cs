@@ -11,8 +11,11 @@ namespace GitHub
             : base(httpClient, CreateEndpoints(baseUri),
                 GetClientId(settings), trace2, GetRedirectUri(settings, baseUri), GetClientSecret(settings)) { }
 
-        private static OAuth2ServerEndpoints CreateEndpoints(Uri baseUri)
+        private static OAuth2ServerEndpoints CreateEndpoints(Uri uri)
         {
+            // Ensure that the base URI is normalized to support Gist subdomains
+            Uri baseUri = GitHubHostProvider.NormalizeUri(uri);
+
             Uri authEndpoint = new Uri(baseUri, GitHubConstants.OAuthAuthorizationEndpointRelativeUri);
             Uri tokenEndpoint = new Uri(baseUri, GitHubConstants.OAuthTokenEndpointRelativeUri);
             Uri deviceAuthEndpoint = new Uri(baseUri, GitHubConstants.OAuthDeviceEndpointRelativeUri);

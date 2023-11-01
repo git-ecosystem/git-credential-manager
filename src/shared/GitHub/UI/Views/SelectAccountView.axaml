@@ -43,7 +43,7 @@
         </StackPanel>
 
         <StackPanel Orientation="Vertical" VerticalAlignment="Center">
-            <ListBox Items="{Binding Accounts}"
+            <ListBox ItemsSource="{Binding Accounts}"
                      SelectedItem="{Binding SelectedAccount}"
                      Margin="20,0,20,10"
                      MaxHeight="200"

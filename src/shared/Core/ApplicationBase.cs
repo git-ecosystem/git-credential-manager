@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using GitCredentialManager.UI;
 
 namespace GitCredentialManager
 {
@@ -72,6 +73,12 @@ namespace GitCredentialManager
             {
                 Context.Trace.IsSecretTracingEnabled = true;
                 Context.Trace.WriteLine("Tracing of secrets is enabled. Trace output may contain sensitive information.");
+            }
+
+            // Set software rendering if defined in settings
+            if (Context.Settings.UseSoftwareRendering)
+            {
+                AvaloniaUi.Initialize(win32SoftwareRendering: true);
             }
 
             return RunInternalAsync(args);

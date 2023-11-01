@@ -1,0 +1,14 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="182" d:DesignHeight="46"
+        SizeToContent="WidthAndHeight" CanResize="False" Topmost="True"
+        ExtendClientAreaChromeHints="NoChrome" ExtendClientAreaToDecorationsHint="True"
+        ShowInTaskbar="False" Title="Git Credential Manager" WindowStartupLocation="CenterScreen"
+        x:Class="GitCredentialManager.UI.Controls.ProgressWindow">
+    <ProgressBar Orientation="Horizontal"
+                 IsIndeterminate="True"
+                 Margin="20"
+                 Width="158" Height="23" />
+</Window>

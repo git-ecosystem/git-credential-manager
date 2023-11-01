@@ -9,6 +9,7 @@
 
   <PropertyGroup>
     <InstallFromSource>false</InstallFromSource>
+    <InstallPrefix>/usr/local</InstallPrefix>
   </PropertyGroup>
 
   <ItemGroup>
@@ -23,8 +24,8 @@
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 
   <Target Name="CoreCompile" Condition="'$(OSPlatform)'=='linux'">
-    <Message Text="$(MSBuildProjectDirectory)\build.sh --install-from-source=$(InstallFromSource) --configuration='$(Configuration)' --version='$(Version)'" Importance="High" />
-    <Exec Command="$(MSBuildProjectDirectory)\build.sh --install-from-source=$(InstallFromSource) --configuration='$(Configuration)' --version='$(Version)'" />
+    <Message Text="$(MSBuildProjectDirectory)\build.sh --install-from-source=$(InstallFromSource) --configuration='$(Configuration)' --version='$(Version)' --install-prefix='$(InstallPrefix)'" Importance="High" />
+    <Exec Command="$(MSBuildProjectDirectory)\build.sh --install-from-source=$(InstallFromSource) --configuration='$(Configuration)' --version='$(Version)' --install-prefix='$(InstallPrefix)'" />
   </Target>
 
   <Target Name="CoreClean">

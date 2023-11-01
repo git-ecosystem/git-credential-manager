@@ -118,6 +118,7 @@ namespace GitCredentialManager
             public const string OAuthClientAuthHeader    = "GCM_OAUTH_USE_CLIENT_AUTH_HEADER";
             public const string OAuthDefaultUserName     = "GCM_OAUTH_DEFAULT_USERNAME";
             public const string GcmDevUseLegacyUiHelpers = "GCM_DEV_USELEGACYUIHELPERS";
+            public const string GcmGuiSoftwareRendering  = "GCM_GUI_SOFTWARE_RENDERING";
         }
 
         public static class Http
@@ -160,6 +161,7 @@ namespace GitCredentialManager
                 public const string UiHelper = "uiHelper";
                 public const string DevUseLegacyUiHelpers = "devUseLegacyUiHelpers";
                 public const string MsAuthUseDefaultAccount = "msauthUseDefaultAccount";
+                public const string GuiSoftwareRendering = "guiSoftwareRendering";
 
                 public const string OAuthAuthenticationModes = "oauthAuthModes";
                 public const string OAuthClientId            = "oauthClientId";

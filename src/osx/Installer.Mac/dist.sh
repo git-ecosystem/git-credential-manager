@@ -35,6 +35,10 @@ case "$i" in
     RUNTIME="${i#*=}"
     shift
     ;;
+    --identity=*)
+    IDENTITY="${i#*=}"
+    shift
+    ;;
     *)
           # unknown option
     ;;
@@ -93,6 +97,7 @@ echo "Building product package..."
     --distribution "$DISTPATH" \
     --identifier "$IDENTIFIER" \
     --version "$VERSION" \
+    ${IDENTITY:+"--sign"} ${IDENTITY:+"$IDENTITY"} \
     "$DISTOUT" || exit 1
 
 echo "Product build complete."

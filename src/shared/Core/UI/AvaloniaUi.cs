@@ -3,7 +3,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
 using GitCredentialManager.Interop.Windows.Native;
 using GitCredentialManager.UI.Controls;
@@ -15,6 +14,24 @@ namespace GitCredentialManager.UI
     public static class AvaloniaUi
     {
         private static bool _isAppStarted;
+        private static bool _win32SoftwareRendering;
+
+        /// <summary>
+        /// Configure the Avalonia application.
+        /// </summary>
+        /// <param name="win32SoftwareRendering">True to enable software rendering on Windows, false otherwise.</param>
+        /// <remarks>
+        /// This must be invoked before the Avalonia application loop has started.
+        /// </remarks>
+        public static void Initialize(bool win32SoftwareRendering)
+        {
+            if (_isAppStarted)
+            {
+                throw new InvalidOperationException("Setup must be called before the Avalonia application is started.");
+            }
+
+            _win32SoftwareRendering = win32SoftwareRendering;
+        }
 
         public static Task ShowViewAsync(Func<Control> viewFunc, WindowViewModel viewModel, IntPtr parentHandle, CancellationToken ct) =>
             ShowWindowAsync(() => new DialogWindow(viewFunc()), viewModel, parentHandle, ct);
@@ -46,7 +63,18 @@ namespace GitCredentialManager.UI
                 // This action only returns on our dispatcher shutdown.
                 Dispatcher.MainThread.Post(appCancelToken =>
                 {
-                    AppBuilder.Configure<AvaloniaApp>()
+                    var appBuilder = AppBuilder.Configure<AvaloniaApp>();
+
+#if NETFRAMEWORK
+                    // Set custom rendering options and modes if required
+                    if (PlatformUtils.IsWindows() && _win32SoftwareRendering)
+                    {
+                        appBuilder.With(new Win32PlatformOptions
+                            { RenderingMode = new[] { Win32RenderingMode.Software } });
+                    }
+#endif
+
+                    appBuilder
 #if NETFRAMEWORK
                         .UseWin32()
                         .UseSkia()
@@ -54,14 +82,7 @@ namespace GitCredentialManager.UI
                         .UsePlatformDetect()
 #endif
                         .LogToTrace()
-                        // Workaround https://github.com/AvaloniaUI/Avalonia/issues/10296
-                        // by always setting a application lifetime.
-                        .SetupWithLifetime(
-                            new ClassicDesktopStyleApplicationLifetime
-                            {
-                                ShutdownMode = ShutdownMode.OnExplicitShutdown
-                            }
-                        );
+                        .SetupWithoutStarting();
 
                     appInitialized.Set();
 
@@ -124,11 +145,11 @@ namespace GitCredentialManager.UI
                 return;
             }
 
-            IntPtr ourHandle = window.PlatformImpl.Handle.Handle;
+            IntPtr ourHandle = window.TryGetPlatformHandle()!.Handle;
 
             // Get the desktop scaling factor from our window instance so we
             // can calculate rects correctly for both our window, and the parent window.
-            double scaling = window.PlatformImpl.DesktopScaling;
+            double scaling = window.RenderScaling;
 
             // Get our window rect
             var ourRect = new PixelRect(

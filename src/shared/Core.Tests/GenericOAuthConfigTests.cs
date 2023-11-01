@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using GitCredentialManager.Tests.Objects;
 using Xunit;
 
@@ -9,7 +10,9 @@ namespace GitCredentialManager.Tests
         [Fact]
         public void GenericOAuthConfig_TryGet_Valid_ReturnsTrue()
         {
-            var remoteUri = new Uri("https://example.com");
+            var protocol = "https";
+            var host = "example.com";
+            var remoteUri = new Uri($"{protocol}://{host}");
             const string expectedClientId = "115845b0-77f8-4c06-a3dc-7d277381fad1";
             const string expectedClientSecret = "4D35385D9F24";
             const string expectedUserName = "TEST_USER";
@@ -44,7 +47,12 @@ namespace GitCredentialManager.Tests
                 RemoteUri = remoteUri
             };
 
-            bool result = GenericOAuthConfig.TryGet(trace, settings, remoteUri, out GenericOAuthConfig config);
+            var input = new InputArguments(new Dictionary<string, string> {
+                {"protocol", protocol},
+                {"host", host}, 
+            });
+
+            bool result = GenericOAuthConfig.TryGet(trace, settings, input, out GenericOAuthConfig config);
 
             Assert.True(result);
             Assert.Equal(expectedClientId, config.ClientId);
@@ -56,6 +64,40 @@ namespace GitCredentialManager.Tests
             Assert.Equal(expectedDeviceEndpoint, config.Endpoints.DeviceAuthorizationEndpoint);
             Assert.Equal(expectedUserName, config.DefaultUserName);
             Assert.True(config.UseAuthHeader);
+        }
+
+        [Fact]
+        public void GenericOAuthConfig_TryGet_Gitea()
+        {
+            var protocol = "https";
+            var host = "example.com";
+            var remoteUri = new Uri($"{protocol}://{host}");
+            const string expectedClientId = GenericOAuthConfig.WellKnown.GiteaClientId;
+            string[] expectedScopes = Array.Empty<string>();
+            var expectedRedirectUri = GenericOAuthConfig.WellKnown.LocalIPv4RedirectUri;
+            var expectedAuthzEndpoint = new Uri(remoteUri, GenericOAuthConfig.WellKnown.GiteaAuthzEndpoint);
+            var expectedTokenEndpoint = new Uri(remoteUri, GenericOAuthConfig.WellKnown.GiteaTokenEndpoint);
+
+            var trace = new NullTrace();
+            var settings = new TestSettings
+            {
+                RemoteUri = remoteUri
+            };
+
+            var input = new InputArguments(new Dictionary<string, string> {
+                {"protocol", protocol},
+                {"host", host},
+                {"wwwauth", "Basic realm=\"Gitea\""}
+            });
+
+            bool result = GenericOAuthConfig.TryGet(trace, settings, input, out GenericOAuthConfig config);
+
+            Assert.True(result);
+            Assert.Equal(expectedClientId, config.ClientId);
+            Assert.Equal(expectedRedirectUri, config.RedirectUri);
+            Assert.Equal(expectedScopes, config.Scopes);
+            Assert.Equal(expectedAuthzEndpoint, config.Endpoints.AuthorizationEndpoint);
+            Assert.Equal(expectedTokenEndpoint, config.Endpoints.TokenEndpoint);
         }
     }
 }

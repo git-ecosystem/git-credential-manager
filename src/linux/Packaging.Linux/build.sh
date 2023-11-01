@@ -30,11 +30,20 @@ case "$i" in
     INSTALL_FROM_SOURCE="${i#*=}"
     shift # past argument=value
     ;;
+    --install-prefix=*)
+    INSTALL_PREFIX="${i#*=}"
+    shift # past argument=value
+    ;;
     *)
           # unknown option
     ;;
 esac
 done
+
+# Ensure install prefix exists
+if [! -d "$INSTALL_PREFIX" ]; then
+    mkdir -p "$INSTALL_PREFIX"
+fi
 
 # Perform pre-execution checks
 CONFIGURATION="${CONFIGURATION:=Debug}"
@@ -50,14 +59,11 @@ SYMBOLS="$OUTDIR/payload.sym"
 "$INSTALLER_SRC/layout.sh" --configuration="$CONFIGURATION" || exit 1
 
 if [ $INSTALL_FROM_SOURCE = true ]; then
-    INSTALL_LOCATION="/usr/local"
-    mkdir -p "$INSTALL_LOCATION"
-
-    echo "Installing..."
+    echo "Installing to $INSTALL_PREFIX"
 
     # Install directories
-    INSTALL_TO="$INSTALL_LOCATION/share/gcm-core/"
-    LINK_TO="$INSTALL_LOCATION/bin/"
+    INSTALL_TO="$INSTALL_PREFIX/share/gcm-core/"
+    LINK_TO="$INSTALL_PREFIX/bin/"
 
     mkdir -p "$INSTALL_TO" "$LINK_TO"
 

@@ -20,7 +20,7 @@ namespace GitCredentialManager.Diagnostics
             log.AppendLine($"Flow type is: {msAuth.GetFlowType()}");
 
             log.Append("Gathering MSAL token cache data...");
-            StorageCreationProperties cacheProps = msAuth.CreateTokenCacheProps(true);
+            StorageCreationProperties cacheProps = msAuth.CreateUserTokenCacheProps(true);
             log.AppendLine(" OK");
             log.AppendLine($"CacheDirectory: {cacheProps.CacheDirectory}");
             log.AppendLine($"CacheFileName: {cacheProps.CacheFileName}");

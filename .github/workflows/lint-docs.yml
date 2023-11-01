@@ -18,9 +18,9 @@ jobs:
     name: Lint markdown files
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - uses: DavidAnson/markdownlint-cli2-action@8f3516061301755c97ff833a8e933f09282cc5b5
+      - uses: DavidAnson/markdownlint-cli2-action@ed4dec634fd2ef689c7061d5647371d8248064f1
         with:
           globs: |
             "**/*.md"
@@ -30,7 +30,7 @@ jobs:
     name: Check for broken links
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Run link checker
         # For any troubleshooting, see:
