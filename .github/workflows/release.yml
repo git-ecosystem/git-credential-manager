@@ -606,7 +606,7 @@ jobs:
           tar -C macos-osx-x64-artifacts/payload -czf osx-payload-and-symbols/gcm-osx-x64-$version.tar.gz .
           tar -C macos-osx-x64-artifacts/symbols -czf osx-payload-and-symbols/gcm-osx-x64-$version-symbols.tar.gz .
 
-          tar -C macos-osx-arm64-artifacts -czf osx-payload-and-symbols/gcm-osx-arm64-$version.tar.gz .
+          tar -C macos-osx-arm64-artifacts/payload -czf osx-payload-and-symbols/gcm-osx-arm64-$version.tar.gz .
           tar -C macos-osx-arm64-artifacts/symbols -czf osx-payload-and-symbols/gcm-osx-arm64-$version-symbols.tar.gz .
 
       - name: Archive Windows payload and symbols
