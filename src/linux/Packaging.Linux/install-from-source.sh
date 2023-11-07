@@ -26,7 +26,7 @@ if [ -z "$installPrefix" ]; then
 fi
 
 # Ensure install directory exists
-if [! -d "$installPrefix" ]; then
+if [ ! -d "$installPrefix" ]; then
     echo "The folder $installPrefix does not exist"
     exit
 fi
