@@ -630,7 +630,7 @@ jobs:
             | sed -e 's/^"//' -e 's/"$//' | base64 -d >gcm-public.asc
           mv gcm-public.asc linux-artifacts
 
-      - uses: actions/github-script@v6
+      - uses: actions/github-script@v7
         with:
           script: |
             const fs = require('fs');
