@@ -27,7 +27,7 @@
         <StackPanel Orientation="Vertical" VerticalAlignment="Center">
             <TextBlock Text="{Binding Description}" Margin="0,0,0,20"
                        TextWrapping="Wrap" TextAlignment="Center"/>
-            <controls:SixDigitInput x:Name="codeInput"
+            <controls:SixDigitInput x:Name="_codeInput"
                                     Text="{Binding Code}"
                                     Margin="0,0,0,20"
                                     HorizontalAlignment="Center"/>

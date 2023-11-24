@@ -9,10 +9,5 @@ namespace GitHub.UI.Controls
         {
             InitializeComponent();
         }
-
-        private void InitializeComponent()
-        {
-            AvaloniaXamlLoader.Load(this);
-        }
     }
 }

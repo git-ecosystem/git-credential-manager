@@ -12,7 +12,6 @@ namespace GitCredentialManager.UI.Controls
     public partial class DialogWindow : Window
     {
         private readonly Control _view;
-        private ContentControl _contentHolder;
 
         public DialogWindow() : this(null)
         {
@@ -22,18 +21,8 @@ namespace GitCredentialManager.UI.Controls
         public DialogWindow(Control view)
         {
             InitializeComponent();
-#if DEBUG
-            this.AttachDevTools();
-#endif
             _view = view;
             _contentHolder.Content = _view;
-        }
-
-        private void InitializeComponent()
-        {
-            AvaloniaXamlLoader.Load(this);
-
-            _contentHolder = this.FindControl<ContentControl>("contentHolder");
         }
 
         protected override void OnDataContextChanged(EventArgs e)

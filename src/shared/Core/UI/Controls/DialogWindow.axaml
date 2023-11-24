@@ -64,7 +64,7 @@
                           Content="Show Custom Chrome" Margin="5,0"/>
             </StackPanel>
 
-            <ContentControl x:Name="contentHolder" Margin="30,25,30,30"/>
+            <ContentControl x:Name="_contentHolder" Margin="30,25,30,30"/>
         </DockPanel>
     </Border>
 

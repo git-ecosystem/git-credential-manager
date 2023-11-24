@@ -14,14 +14,6 @@ namespace GitCredentialManager.UI.Controls
         public AboutWindow()
         {
             InitializeComponent();
-#if DEBUG
-            this.AttachDevTools();
-#endif
-        }
-
-        private void InitializeComponent()
-        {
-            AvaloniaXamlLoader.Load(this);
         }
 
         private void ProjectButton_Click(object sender, RoutedEventArgs e)

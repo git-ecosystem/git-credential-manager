@@ -8,28 +8,9 @@ namespace GitHub.UI.Views
 {
     public partial class CredentialsView : UserControl, IFocusable
     {
-        private TabControl _tabControl;
-        private Button _browserButton;
-        private Button _deviceButton;
-        private TextBox _tokenTextBox;
-        private TextBox _userNameTextBox;
-        private TextBox _passwordTextBox;
-
         public CredentialsView()
         {
             InitializeComponent();
-        }
-
-        private void InitializeComponent()
-        {
-            AvaloniaXamlLoader.Load(this);
-
-            _tabControl = this.FindControl<TabControl>("authModesTabControl");
-            _browserButton = this.FindControl<Button>("signInBrowserButton");
-            _deviceButton = this.FindControl<Button>("signInDeviceButton");
-            _tokenTextBox = this.FindControl<TextBox>("tokenTextBox");
-            _userNameTextBox = this.FindControl<TextBox>("userNameTextBox");
-            _passwordTextBox = this.FindControl<TextBox>("passwordTextBox");
         }
 
         public void SetFocus()
@@ -43,17 +24,17 @@ namespace GitHub.UI.Views
             // and focus on the button/text box
             if (vm.ShowBrowserLogin)
             {
-                _tabControl.SelectedIndex = 0;
-                _browserButton.Focus();
+                _authModesTabControl.SelectedIndex = 0;
+                _signInBrowserButton.Focus();
             }
             else if (vm.ShowDeviceLogin)
             {
-                _tabControl.SelectedIndex = 0;
-                _deviceButton.Focus();
+                _authModesTabControl.SelectedIndex = 0;
+                _signInDeviceButton.Focus();
             }
             else if (vm.ShowTokenLogin)
             {
-                _tabControl.SelectedIndex = 1;
+                _authModesTabControl.SelectedIndex = 1;
                 // Workaround: https://github.com/git-ecosystem/git-credential-manager/issues/1293
                 if (!PlatformUtils.IsMacOS())
                     _tokenTextBox.Focus();
@@ -61,7 +42,7 @@ namespace GitHub.UI.Views
             }
             else if (vm.ShowBasicLogin)
             {
-                _tabControl.SelectedIndex = 2;
+                _authModesTabControl.SelectedIndex = 2;
                 if (string.IsNullOrWhiteSpace(vm.UserName))
                 {
                     // Workaround: https://github.com/git-ecosystem/git-credential-manager/issues/1293
