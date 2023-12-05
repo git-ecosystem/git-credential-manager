@@ -18,11 +18,11 @@
         </Style>
     </UserControl.Styles>
     <StackPanel Orientation="Horizontal">
-        <TextBox x:Name="one"/>
-        <TextBox x:Name="two"/>
-        <TextBox x:Name="three"/>
-        <TextBox x:Name="four"/>
-        <TextBox x:Name="five"/>
-        <TextBox x:Name="six" Margin="0"/>
+        <TextBox x:Name="_one"/>
+        <TextBox x:Name="_two"/>
+        <TextBox x:Name="_three"/>
+        <TextBox x:Name="_four"/>
+        <TextBox x:Name="_five"/>
+        <TextBox x:Name="_six" Margin="0"/>
     </StackPanel>
 </UserControl>

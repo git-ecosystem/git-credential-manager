@@ -28,20 +28,15 @@ namespace GitHub.UI.Controls
         public SixDigitInput()
         {
             InitializeComponent();
-        }
-
-        private void InitializeComponent()
-        {
-            AvaloniaXamlLoader.Load(this);
 
             _textBoxes = new[]
             {
-                this.FindControl<TextBox>("one"),
-                this.FindControl<TextBox>("two"),
-                this.FindControl<TextBox>("three"),
-                this.FindControl<TextBox>("four"),
-                this.FindControl<TextBox>("five"),
-                this.FindControl<TextBox>("six"),
+                _one,
+                _two,
+                _three,
+                _four,
+                _five,
+                _six,
             };
 
             foreach (TextBox textBox in _textBoxes)

@@ -9,10 +9,5 @@ namespace GitCredentialManager.UI.Views
         {
             InitializeComponent();
         }
-
-        private void InitializeComponent()
-        {
-            AvaloniaXamlLoader.Load(this);
-        }
     }
 }
