@@ -1,6 +1,6 @@
 # Git Credential Manager
 
-<a href="//www.dmca.com/Protection/Status.aspx?ID=725f0558-5952-4c60-8b21-d43ddbc3ebf4" title="DMCA.com Protection Status">
+</<a href="//www.dmca.com/Protection/Status.aspx?ID=725f0558-5952-4c60-8b21-d43ddbc3ebf4" title="DMCA.com Protection Status" class="dmca-badge"> <img src ="https://images.dmca.com/Badges/dmca_protected_12_120.png?ID=725f0558-5952-4c60-8b21-d43ddbc3ebf4"  alt="DMCA.com Protection Status" /></a>  <script src="https://images.dmca.com/Badges/DMCABadgeHelper.min.js"> </script>>
 
 ---
 
