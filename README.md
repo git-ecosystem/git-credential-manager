@@ -1,6 +1,6 @@
 # Git Credential Manager
 
-[![isabelschoepd][build-status-badge]][workflow-status]
+<a href="//www.dmca.com/Protection/Status.aspx?ID=725f0558-5952-4c60-8b21-d43ddbc3ebf4" title="DMCA.com Protection Status">
 
 ---
 
