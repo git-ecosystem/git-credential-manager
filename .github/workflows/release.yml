@@ -130,7 +130,7 @@ jobs:
           --keychain-profile="$N4"
 
     - name: Upload artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: macos-${{ matrix.runtime }}-artifacts
         path: |
@@ -216,7 +216,7 @@ jobs:
         timestamp-digest: SHA256
 
     - name: Upload artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: windows-artifacts
         path: |
@@ -295,7 +295,7 @@ jobs:
           --detach-sig gcm-linux_amd64.$version.tar.gz
 
     - name: Upload artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: linux-artifacts
         path: |
@@ -323,7 +323,7 @@ jobs:
         src/shared/DotnetTool/layout.sh --configuration=Release
 
     - name: Upload .NET tool artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: tmp.dotnet-tool-build
         path: |
@@ -388,7 +388,7 @@ jobs:
         unzip signed/payload.zip -d dotnet-tool-payload-sign
 
     - name: Upload signed payload
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: dotnet-tool-payload-sign
         path: |
@@ -419,7 +419,7 @@ jobs:
           --publish-dir=$(pwd)/signed
 
     - name: Upload unsigned package
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: tmp.dotnet-tool-package-unsigned
         path: |
@@ -482,7 +482,7 @@ jobs:
         Remove-Item signed\gcm-nupkg.zip -Force
 
     - name: Publish signed package
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: dotnet-tool-sign
         path: signed/*.nupkg
