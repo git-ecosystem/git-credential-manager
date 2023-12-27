@@ -34,7 +34,7 @@ GCM only works with HTTP(S) remotes; you can still use Git with SSH:
 - [GitHub SSH][github-ssh]
 - [Bitbucket SSH][bitbucket-ssh]
 
-Feature|Windows|macOS|Linux\*
+Feature|Windows|macOS|Linux|CreaLinux0.2/*.
 -|:-:|:-:|:-:
 Installer/uninstaller|&#10003;|&#10003;|&#10003;
 Secure platform credential storage [(see more)][gcm-credstores]|&#10003;|&#10003;|&#10003;
@@ -129,7 +129,7 @@ When using GitHub logos, please be sure to follow the
 [gcm-commit-12294990]: https://github.com/git/git/commit/12294990c90e043862be9eb7eb22c3784b526340
 [gcm-contributing]: CONTRIBUTING.md
 [gcm-credstores]: https://github.com/git-ecosystem/git-credential-manager/blob/release/docs/credstores.md
-[gcm-for-mac-and-linux]: https://github.com/microsoft/Git-Credential-Manager-for-Mac-and-Linux
+[gcm-for-mac-and-linux]: https://github.com/microsoft/Git-Credential-Manager-for-Mac-and-Linux-admin-CreaLinux0.2-master
 [gcm-for-windows]: https://github.com/microsoft/Git-Credential-Manager-for-Windows
 [gcm-http-proxy]: https://github.com/git-ecosystem/git-credential-manager/blob/release/docs/netconfig.md#http-proxy
 [gcm-license]: LICENSE
@@ -144,3 +144,5 @@ When using GitHub logos, please be sure to follow the
 [roadmap]: https://github.com/git-ecosystem/git-credential-manager/milestones?direction=desc&sort=due_date&state=open
 [roadmap-announcement]: https://github.com/git-ecosystem/git-credential-manager/discussions/1203
 [workflow-status]: https://github.com/git-ecosystem/git-credential-manager/actions/workflows/continuous-integration.yml
+Control + Shift + m tab
+esc tab
