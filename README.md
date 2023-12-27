@@ -1,5 +1,7 @@
 # Git Credential Manager
-
+owner admin is CreaLinux0.2 is the only admin name
+powered by the creater 
+CreaLinux0.2
 [![Build Status][build-status-badge]][workflow-status]
 
 ---
