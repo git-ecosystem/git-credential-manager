@@ -1,0 +1,132 @@
+name: ci
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+# ================================
+#              Windows
+# ================================
+  windows:
+    name: Windows
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4.0.0
+      with:
+        dotnet-version: 6.0.201
+
+    - name: Install dependencies
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build --configuration WindowsRelease
+
+    - name: Protype
+      run: |
+        dotnet test --verbosity normal --configuration=WindowsRelease
+
+    - name: Prepare artifacts
+      shell: bash
+      run: |
+        mkdir -p artifacts/bin
+        mv out/windows/Installer.Windows/bin/Release/net472/win-x86 artifacts/bin/
+        cp out/windows/Installer.Windows/bin/Release/net472/win-x86.sym/* artifacts/bin/win-x86/
+        mv out/windows/Installer.Windows/bin/Release/net472/gcm*.exe artifacts/
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: win-x86
+        path: |
+          artifacts
+
+# ================================
+#              Linux
+# ================================
+  linux:
+    name: Linux
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4.0.0
+      with:
+        dotnet-version: 6.0.201
+
+    - name: Install dependencies
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build --configuration LinuxRelease
+
+    - name: Test
+      run: |
+        dotnet test --verbosity normal --configuration=LinuxRelease
+
+    - name: Prepare artifacts
+      run: |
+        mkdir -p artifacts
+        mv out/linux/Packaging.Linux/Release/deb/*.deb artifacts/
+        mv out/linux/Packaging.Linux/Release/tar/*.tar.gz artifacts/
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: linux-x64
+        path: |
+          artifacts
+
+# ================================
+#              macOS
+# ================================
+  osx:
+    name: macOS
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        runtime: [ osx-x64, osx-arm64 ]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4.0.0
+      with:
+        dotnet-version: 6.0.201
+
+    - name: Install dependencies
+      run: dotnet restore
+
+    - name: Build
+      run: |
+        dotnet build src/osx/Installer.Mac/*.csproj \
+         --configuration=Release --no-self-contained \
+         --runtime=${{ matrix.runtime }}
+
+    - name: Test
+      run: |
+        dotnet test --verbosity normal --configuration=MacRelease
+
+    - name: Prepare artifacts
+      run: |
+        mkdir -p artifacts/bin
+        mv out/osx/Installer.Mac/pkg/Release/payload "artifacts/bin/${{ matrix.runtime }}"
+        cp out/osx/Installer.Mac/pkg/Release/payload.sym/* "artifacts/bin/${{ matrix.runtime }}/"
+        mv out/osx/Installer.Mac/pkg/Release/gcm*.pkg artifacts/
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ matrix.runtime }}
+        path: |
+          artifacts
