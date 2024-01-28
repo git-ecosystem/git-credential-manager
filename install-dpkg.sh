@@ -25,6 +25,9 @@ else
     out_arch="amd64"
 fi
 
+echo "Install dependencies"
+apt install -y dotnet-sdk-7.0 dpkg-dev
+
 echo "Run layout script"
 sudo -u "$SUDO_USER" "$linux_packaging_path/layout.sh"
 
