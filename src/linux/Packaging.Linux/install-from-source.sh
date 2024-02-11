@@ -189,7 +189,7 @@ case "$distribution" in
         $sudo_cmd apk update
 
         # Install dotnet/GCM dependencies.
-        install_packages apk add "curl git icu-libs krb5-libs libgcc libintl libssl1.1 libstdc++ zlib which bash coreutils gcompat"
+        install_packages apk add "curl git icu-libs krb5-libs libgcc libintl libssl3 libstdc++ zlib which bash coreutils gcompat"
 
         ensure_dotnet_installed
     ;;
