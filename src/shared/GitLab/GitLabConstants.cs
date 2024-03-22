@@ -10,7 +10,6 @@ namespace GitLab
 
         // Owned by https://gitlab.com/gitcredentialmanager
         public const string OAuthClientId = "172b9f227872b5dde33f4d9b1db06a6a5515ae79508e7a00c973c85ce490671e";
-        public const string OAuthClientSecret = "7da92770d1447508601e4ba026bc5eb655c8268e818cd609889cc9bae2023f39";
 
         public static readonly Uri OAuthRedirectUri = new Uri("http://127.0.0.1/");
         // https://docs.gitlab.com/ee/api/oauth2.html#authorization-code-flow
