@@ -93,11 +93,15 @@ namespace Microsoft.AzureRepos
 
             _trace.WriteLine($"Looking up organization binding for '{orgName}'...");
 
-            // NOT using the short-circuiting OR operator here on purpose - we need both branches to be evaluated
-            if (config.TryGet(GitConfigurationLevel.Local, GitConfigurationType.Raw,
-                    orgKey, out string localUser) |
-                config.TryGet(GitConfigurationLevel.Global, GitConfigurationType.Raw,
-                    orgKey, out string globalUser))
+            string localUser = null;
+            bool hasLocal = _git.IsInsideRepository() && // Can only check local config if we are inside a repository
+                            config.TryGet(GitConfigurationLevel.Local, GitConfigurationType.Raw,
+                                orgKey, out localUser);
+
+            bool hasGlobal = config.TryGet(GitConfigurationLevel.Global, GitConfigurationType.Raw,
+                orgKey, out string globalUser);
+
+            if (hasLocal || hasGlobal)
             {
                 return new AzureReposBinding(orgName, globalUser, localUser);
             }
