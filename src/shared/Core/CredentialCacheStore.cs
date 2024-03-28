@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using GitCredentialManager.Authentication.OAuth;
 
 namespace GitCredentialManager
 {
@@ -42,9 +45,10 @@ namespace GitCredentialManager
             return Array.Empty<string>();
         }
 
+
         public ICredential Get(string service, string account)
         {
-            var input = MakeGitCredentialsEntry(service, account);
+            var input = MakeGitCredentialsEntry(service, new GitCredential(account, null));
 
             var result = _git.InvokeHelperAsync(
                 $"credential-cache get {_options}",
@@ -53,16 +57,23 @@ namespace GitCredentialManager
 
             if (result.ContainsKey("username") && result.ContainsKey("password"))
             {
-                return new GitCredential(result["username"], result["password"]);
+                DateTimeOffset? PasswordExpiry = null;
+                if (result.ContainsKey("password_expiry_utc") && long.TryParse(result["password_expiry_utc"], out long x)) {
+                    PasswordExpiry = DateTimeOffset.FromUnixTimeSeconds(x);
+                }
+                return new GitCredential(result["username"], result["password"]) {
+
+                    PasswordExpiry = PasswordExpiry,
+                    OAuthRefreshToken = result.ContainsKey("oauth_refresh_token") ? result["oauth_refresh_token"] : null,
+                };
             }
 
             return null;
         }
 
-        public void AddOrUpdate(string service, string account, string secret)
+        public void AddOrUpdate(string service, ICredential credential)
         {
-            var input = MakeGitCredentialsEntry(service, account);
-            input["password"] = secret;
+            var input = MakeGitCredentialsEntry(service, credential);
 
             // per https://git-scm.com/docs/gitcredentials :
             // For a store or erase operation, the helper’s output is ignored.
@@ -72,9 +83,9 @@ namespace GitCredentialManager
             ).GetAwaiter().GetResult();
         }
 
-        public bool Remove(string service, string account)
+        public bool Remove(string service, ICredential credential)
         {
-            var input = MakeGitCredentialsEntry(service, account);
+            var input = MakeGitCredentialsEntry(service, credential);
 
             // per https://git-scm.com/docs/gitcredentials :
             // For a store or erase operation, the helper’s output is ignored.
@@ -90,17 +101,38 @@ namespace GitCredentialManager
 
         #endregion
 
-        private Dictionary<string, string> MakeGitCredentialsEntry(string service, string account)
+        private Dictionary<string, string> MakeGitCredentialsEntry(string service, ICredential credential)
         {
             var result = new Dictionary<string, string>();
 
             result["url"] = service;
-            if (!string.IsNullOrEmpty(account))
+            if (!string.IsNullOrEmpty(credential?.Account))
             {
-                result["username"] = account;
+                result["username"] = credential.Account;
+            }
+            if (!string.IsNullOrEmpty(credential?.Password))
+            {
+                result["password"] = credential.Password;
+            }
+            if (credential?.PasswordExpiry.HasValue ?? false)
+            {
+                result["password_expiry_utc"] = credential.PasswordExpiry.Value.ToUnixTimeSeconds().ToString();
+            }
+            if (!string.IsNullOrEmpty(credential?.OAuthRefreshToken))
+            {
+                result["oauth_refresh_token"] = credential.OAuthRefreshToken;
             }
 
             return result;
         }
+
+        public void AddOrUpdate(string service, string account, string secret)
+        => AddOrUpdate(service, new GitCredential(account, secret));
+
+        public bool Remove(string service, string account)
+        => Remove(service, new GitCredential(account, null));
+
+        public bool CanStorePasswordExpiry => true;
+        public bool CanStoreOAuthRefreshToken => true;
     }
 }

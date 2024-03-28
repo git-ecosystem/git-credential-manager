@@ -19,13 +19,14 @@ namespace GitCredentialManager.Tests.Interop.Windows
             string service = $"https://example.com/{uniqueGuid}";
             const string userName = "john.doe";
             const string password = "letmein123"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
+            const string testRefreshToken = "xyzzy";
 
             string expectedTargetName = $"{TestNamespace}:https://example.com/{uniqueGuid}";
 
             try
             {
                 // Write
-                credManager.AddOrUpdate(service, userName, password);
+                credManager.AddOrUpdate(service, new GitCredential(userName, password) { OAuthRefreshToken = testRefreshToken});
 
                 // Read
                 ICredential cred = credManager.Get(service, userName);
@@ -37,6 +38,7 @@ namespace GitCredentialManager.Tests.Interop.Windows
                 Assert.Equal(password, winCred.Password);
                 Assert.Equal(service, winCred.Service);
                 Assert.Equal(expectedTargetName, winCred.TargetName);
+                Assert.Equal(testRefreshToken, winCred.OAuthRefreshToken);
             }
             finally
             {

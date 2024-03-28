@@ -34,9 +34,17 @@ namespace GitCredentialManager.Interop.Windows
             return Enumerate(service, account).FirstOrDefault();
         }
 
-        public void AddOrUpdate(string service, string account, string secret)
+        public void AddOrUpdate(string service, string account, string password)
+        => AddOrUpdate(service, new GitCredential(account, password));
+
+        public void AddOrUpdate(string service, ICredential credential)
         {
             EnsureArgument.NotNullOrWhiteSpace(service, nameof(service));
+
+            var account = credential.Account;
+            var secret = credential.Password;
+            if (!string.IsNullOrEmpty(credential.OAuthRefreshToken))
+                secret += "\noauth_refresh_token=" + credential.OAuthRefreshToken;
 
             IntPtr existingCredPtr = IntPtr.Zero;
             IntPtr credBlob = IntPtr.Zero;
@@ -88,6 +96,7 @@ namespace GitCredentialManager.Interop.Windows
                     CredentialBlob = credBlob,
                     Persist = CredentialPersist.LocalMachine,
                     UserName = account,
+                    // TODO: save password expiry in attribute
                 };
 
                 int result = Win32Error.GetLastError(
@@ -211,7 +220,17 @@ namespace GitCredentialManager.Interop.Windows
 
         private WindowsCredential CreateCredentialFromStructure(Win32Credential credential)
         {
-            string password = credential.GetCredentialBlobAsString();
+            string secret = credential.GetCredentialBlobAsString();
+            var lines = secret.Split('\n');
+            var password = lines[0];
+            string oauth_refresh_token = null;
+            for(int i = 1; i < lines.Length; i++) {
+                var parts = lines[i].Split('=', 2);
+                if (parts.Length != 2)
+                    continue;
+                if (parts[0] == "oauth_refresh_token")
+                    oauth_refresh_token = parts[1];
+            }
 
             // Recover the target name we gave from the internal (raw) target name
             string targetName = credential.TargetName.TrimUntilIndexOf(TargetNameLegacyGenericPrefix);
@@ -226,7 +245,17 @@ namespace GitCredentialManager.Interop.Windows
             // Strip any userinfo component from the service name
             serviceName = RemoveUriUserInfo(serviceName);
 
-            return new WindowsCredential(serviceName, credential.UserName, password, targetName);
+            // TODO: read password_expiry_utc from attribute
+            // int ptrSize = Marshal.SizeOf<IntPtr>();
+            // for (int i = 0; i < credential.AttributeCount; i++)
+            // {
+                // IntPtr attrPtr = Marshal.ReadIntPtr(credential.Attributes, i * ptrSize);
+                // Win32CredentialAttribute attr = Marshal.PtrToStructure<Win32Credential>(attrPtr);
+            //  }
+
+            return new WindowsCredential(serviceName, credential.UserName, password, targetName) {
+                OAuthRefreshToken = oauth_refresh_token,
+            };
         }
 
         public /* for testing */ static string RemoveUriUserInfo(string url)
@@ -371,5 +400,7 @@ namespace GitCredentialManager.Interop.Windows
 
             return sb.ToString();
         }
+
+        public bool CanStoreOAuthRefreshToken => true;
     }
 }

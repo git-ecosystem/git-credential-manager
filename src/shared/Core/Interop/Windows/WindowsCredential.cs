@@ -1,7 +1,7 @@
 
 namespace GitCredentialManager.Interop.Windows
 {
-    public class WindowsCredential : ICredential
+    public record WindowsCredential : ICredential
     {
         public WindowsCredential(string service, string userName, string password, string targetName)
         {
@@ -18,6 +18,8 @@ namespace GitCredentialManager.Interop.Windows
         public string Password { get; }
 
         public string TargetName { get; }
+
+        public string OAuthRefreshToken { get; init; }
 
         string ICredential.Account => UserName;
     }
