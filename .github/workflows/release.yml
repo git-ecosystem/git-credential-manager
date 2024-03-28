@@ -200,7 +200,7 @@ jobs:
           /p:PayloadPath=$env:GITHUB_WORKSPACE\payload /p:NoLayout=true `
           --configuration=WindowsRelease
         mkdir installers
-        Move-Item -Path .\out\windows\Installer.Windows\bin\Release\net472\*.exe `
+        Move-Item -Path .\out\windows\Installer.Windows\bin\Release\net8.0\*.exe `
          -Destination $env:GITHUB_WORKSPACE\installers
 
     - name: Sign installers with Azure Code Signing

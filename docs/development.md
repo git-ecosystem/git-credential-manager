@@ -40,9 +40,9 @@ To build from the command line, run:
 dotnet build -c WindowsDebug
 ```
 
-You can find a copy of the installer .exe file in `out\windows\Installer.Windows\bin\Debug\net472`.
+You can find a copy of the installer .exe file in `out\windows\Installer.Windows\bin\Debug\net8.0`.
 
-The flat binaries can also be found in `out\windows\Payload.Windows\bin\Debug\net472\win-x86`.
+The flat binaries can also be found in `out\windows\Payload.Windows\bin\Debug\net8.0\win-x86`.
 
 ### Linux
 
@@ -209,13 +209,13 @@ HTML reports can be generated using ReportGenerator, this should be installed
 during the build process, from the command line:
 
 ```shell
-dotnet ~/.nuget/packages/reportgenerator/*/*/net7.0/ReportGenerator.dll -reports:./**/TestResults/**/coverage.cobertura.xml -targetdir:./out/code-coverage
+dotnet ~/.nuget/packages/reportgenerator/*/*/net8.0/ReportGenerator.dll -reports:./**/TestResults/**/coverage.cobertura.xml -targetdir:./out/code-coverage
 ```
 
 or
 
 ```shell
-dotnet {$env:USERPROFILE}/.nuget/packages/reportgenerator/*/*/net7.0/ReportGenerator.dll -reports:./**/TestResults/**/coverage.cobertura.xml -targetdir:./out/code-coverage
+dotnet {$env:USERPROFILE}/.nuget/packages/reportgenerator/*/*/net8.0/ReportGenerator.dll -reports:./**/TestResults/**/coverage.cobertura.xml -targetdir:./out/code-coverage
 ```
 
 Or via VSCode Terminal/Run Task:

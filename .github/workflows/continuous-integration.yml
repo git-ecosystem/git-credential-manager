@@ -37,9 +37,9 @@ jobs:
       shell: bash
       run: |
         mkdir -p artifacts/bin
-        mv out/windows/Installer.Windows/bin/Release/net472/win-x86 artifacts/bin/
-        cp out/windows/Installer.Windows/bin/Release/net472/win-x86.sym/* artifacts/bin/win-x86/
-        mv out/windows/Installer.Windows/bin/Release/net472/gcm*.exe artifacts/
+        mv out/windows/Installer.Windows/bin/Release/net8.0/win-x86 artifacts/bin/
+        cp out/windows/Installer.Windows/bin/Release/net8.0/win-x86.sym/* artifacts/bin/win-x86/
+        mv out/windows/Installer.Windows/bin/Release/net8.0/gcm*.exe artifacts/
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4

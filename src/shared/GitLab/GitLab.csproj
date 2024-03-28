@@ -1,8 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net7.0</TargetFrameworks>
-    <TargetFrameworks Condition="'$(OSPlatform)'=='windows'">net7.0;net472</TargetFrameworks>
+    <TargetFramework>net8.0</TargetFramework>
     <AssemblyName>GitLab</AssemblyName>
     <RootNamespace>GitLab</RootNamespace>
     <IsTestProject>false</IsTestProject>
@@ -11,10 +10,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Core\Core.csproj" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
-    <Reference Include="System.Net.Http" />
   </ItemGroup>
 
 </Project>
