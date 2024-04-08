@@ -157,7 +157,7 @@ case "$distribution" in
         # Install dotnet packages and dependencies if needed.
         if [ -z "$(verify_existing_dotnet_installation)" ]; then
             # First try to use native feeds (Ubuntu 22.04 and later).
-            if ! apt_install dotnet7; then
+            if ! apt_install dotnet8; then
                 # If the native feeds fail, we fall back to
                 # packages.microsoft.com. We begin by adding the dotnet package
                 # repository/signing key.
@@ -173,7 +173,7 @@ case "$distribution" in
                 $sudo_cmd apt update
                 $sudo_cmd apt install apt-transport-https -y
                 $sudo_cmd apt update
-                $sudo_cmd apt install dotnet-sdk-7.0 dpkg-dev -y
+                $sudo_cmd apt install dotnet-sdk-8.0 dpkg-dev -y
             fi
         fi
     ;;
