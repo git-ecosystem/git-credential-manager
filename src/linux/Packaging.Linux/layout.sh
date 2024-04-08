@@ -39,7 +39,14 @@ PROJ_OUT="$OUT/linux/Packaging.Linux"
 
 # Build parameters
 FRAMEWORK=net7.0
-RUNTIME=linux-x64
+
+arch=$(uname -m)
+
+if [[ "$arch" == arm64* || "$arch" == aarch64 ]]; then
+    RUNTIME=linux-arm64
+else
+    RUNTIME=linux-x64
+fi
 
 # Perform pre-execution checks
 CONFIGURATION="${CONFIGURATION:=Debug}"
