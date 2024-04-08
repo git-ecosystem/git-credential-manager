@@ -16,8 +16,6 @@ namespace GitCredentialManager
 
         public const string GcmDataDirectoryName = ".gcm";
 
-        public static readonly Guid DevBoxPartnerId = new("e3171dd9-9a5f-e5be-b36c-cc7c4f3f3bcf");
-
         /// <summary>
         /// Home tenant ID for Microsoft Accounts (MSA).
         /// </summary>

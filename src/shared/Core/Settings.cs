@@ -828,7 +828,7 @@ namespace GitCredentialManager
                 KnownGitCfg.Credential.MsAuthUseDefaultAccount,
                 out string str)
             ? str.IsTruthy()
-            : PlatformUtils.IsDevBox(); // default to true in DevBox environment
+            : false;
 
         #region IDisposable
 

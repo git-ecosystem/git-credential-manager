@@ -16,7 +16,7 @@ namespace GitCredentialManager.Diagnostics
         protected override async Task<bool> RunInternalAsync(StringBuilder log, IList<string> additionalFiles)
         {
             var msAuth = new MicrosoftAuthentication(CommandContext);
-            log.AppendLine(msAuth.CanUseBroker() ? "Broker is enabled." : "Broker is not enabled.");
+            log.AppendLine("Broker capability does not exist with the upgrade to .NET 8.");
             log.AppendLine($"Flow type is: {msAuth.GetFlowType()}");
 
             log.Append("Gathering MSAL token cache data...");

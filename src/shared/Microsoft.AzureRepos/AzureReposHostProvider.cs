@@ -464,8 +464,8 @@ namespace Microsoft.AzureRepos
         /// <returns>True if Personal Access Tokens should be used, false otherwise.</returns>
         private bool UsePersonalAccessTokens()
         {
-            // Default to using PATs except on DevBox where we prefer OAuth tokens
-            bool defaultValue = !PlatformUtils.IsDevBox();
+            // Default to using PATs.
+            bool shouldUsePAT = true;
 
             if (_context.Settings.TryGetSetting(
                 AzureDevOpsConstants.EnvironmentVariables.CredentialType,
@@ -486,11 +486,11 @@ namespace Microsoft.AzureRepos
                     default:
                         _context.Streams.Error.WriteLine(
                             $"warning: unknown Azure Repos credential type '{valueStr}' - using PATs");
-                        return defaultValue;
+                        return shouldUsePAT;
                 }
             }
 
-            return defaultValue;
+            return shouldUsePAT;
         }
 
         private bool UseServicePrincipal(out ServicePrincipalIdentity sp)
