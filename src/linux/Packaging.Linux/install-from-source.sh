@@ -83,7 +83,7 @@ ensure_dotnet_installed() {
     if [ -z "$(verify_existing_dotnet_installation)" ]; then
         curl -LO https://dot.net/v1/dotnet-install.sh
         chmod +x ./dotnet-install.sh
-        bash -c "./dotnet-install.sh --channel 7.0"
+        bash -c "./dotnet-install.sh --channel 8.0"
 
         # Since we have to run the dotnet install script with bash, dotnet isn't
         # added to the process PATH, so we manually add it here.
@@ -98,7 +98,7 @@ verify_existing_dotnet_installation() {
     sdks=$(dotnet --list-sdks | cut -c 1-3)
 
     # If we have a supported version installed, return.
-    supported_dotnet_versions="7.0"
+    supported_dotnet_versions="8.0"
     for v in $supported_dotnet_versions; do
         if [ $(echo $sdks | grep "$v") ]; then
             echo $sdks
@@ -173,7 +173,7 @@ case "$distribution" in
                 $sudo_cmd apt update
                 $sudo_cmd apt install apt-transport-https -y
                 $sudo_cmd apt update
-                $sudo_cmd apt install dotnet-sdk-7.0 dpkg-dev -y
+                $sudo_cmd apt install dotnet-sdk-8.0 dpkg-dev -y
             fi
         fi
     ;;
