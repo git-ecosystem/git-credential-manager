@@ -137,6 +137,10 @@ print_unsupported_distro() {
     echo "See https://gh.io/gcm/linux for details."
 }
 
+version_at_least() {
+	[ "$(printf '%s\n' "$1" "$2" | sort -V | head -n1)" = "$1" ]
+}
+
 sudo_cmd=
 
 # If the user isn't root, we need to use `sudo` for certain commands
@@ -189,7 +193,14 @@ case "$distribution" in
         $sudo_cmd apk update
 
         # Install dotnet/GCM dependencies.
-        install_packages apk add "curl git icu-libs krb5-libs libgcc libintl libssl1.1 libstdc++ zlib which bash coreutils gcompat"
+        # Alpine 3.14 and earlier need libssl1.1, while later versions need libssl3.
+        if ( version_at_least "3.15" $version ) then
+            libssl_pkg="libssl3"
+        else
+            libssl_pkg="libssl1.1"
+        fi
+
+        install_packages apk add "curl git icu-libs krb5-libs libgcc libintl $libssl_pkg libstdc++ zlib which bash coreutils gcompat"
 
         ensure_dotnet_installed
     ;;
