@@ -35,9 +35,9 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Set up .NET
-      uses: actions/setup-dotnet@v3.2.0
+      uses: actions/setup-dotnet@v4.0.0
       with:
-        dotnet-version: 7.0.x
+        dotnet-version: 8.0.x
 
     - name: Build
       run: |
@@ -130,7 +130,7 @@ jobs:
           --keychain-profile="$N4"
 
     - name: Upload artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: macos-${{ matrix.runtime }}-artifacts
         path: |
@@ -150,9 +150,9 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Set up .NET
-      uses: actions/setup-dotnet@v3.2.0
+      uses: actions/setup-dotnet@v4.0.0
       with:
-        dotnet-version: 7.0.x
+        dotnet-version: 8.0.x
 
     - name: Build
       run: |
@@ -170,14 +170,14 @@ jobs:
           -SymbolOutput $env:GITHUB_WORKSPACE\symbols
 
     - name: Log into Azure
-      uses: azure/login@v1
+      uses: azure/login@v2
       with:
         client-id: ${{ secrets.AZURE_CLIENT_ID }}
         tenant-id: ${{ secrets.AZURE_TENANT_ID }}
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
     - name: Sign payload files with Azure Code Signing
-      uses: azure/azure-code-signing-action@v0.2.21
+      uses: azure/azure-code-signing-action@v0.3.1
       with:
         endpoint: https://wus2.codesigning.azure.net/
         code-signing-account-name: git-fundamentals-signing
@@ -190,9 +190,9 @@ jobs:
 
     # The Azure Code Signing action overrides the .NET version, so we reset it.
     - name: Set up .NET
-      uses: actions/setup-dotnet@v3.2.0
+      uses: actions/setup-dotnet@v4.0.0
       with:
-        dotnet-version: 7.0.x
+        dotnet-version: 8.0.x
 
     - name: Build with signed payload
       run: |
@@ -204,7 +204,7 @@ jobs:
          -Destination $env:GITHUB_WORKSPACE\installers
 
     - name: Sign installers with Azure Code Signing
-      uses: azure/azure-code-signing-action@v0.2.21
+      uses: azure/azure-code-signing-action@v0.3.1
       with:
         endpoint: https://wus2.codesigning.azure.net/
         code-signing-account-name: git-fundamentals-signing
@@ -216,7 +216,7 @@ jobs:
         timestamp-digest: SHA256
 
     - name: Upload artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: windows-artifacts
         path: |
@@ -236,9 +236,9 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Set up .NET
-      uses: actions/setup-dotnet@v3.2.0
+      uses: actions/setup-dotnet@v4.0.0
       with:
-        dotnet-version: 7.0.x
+        dotnet-version: 8.0.x
 
     - name: Build
       run: dotnet build --configuration=LinuxRelease
@@ -248,7 +248,7 @@ jobs:
         dotnet test --configuration=LinuxRelease
 
     - name: Log into Azure
-      uses: azure/login@v1
+      uses: azure/login@v2
       with:
         client-id: ${{ secrets.AZURE_CLIENT_ID }}
         tenant-id: ${{ secrets.AZURE_TENANT_ID }}
@@ -295,7 +295,7 @@ jobs:
           --detach-sig gcm-linux_amd64.$version.tar.gz
 
     - name: Upload artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: linux-artifacts
         path: |
@@ -314,16 +314,16 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Set up .NET
-      uses: actions/setup-dotnet@v3.2.0
+      uses: actions/setup-dotnet@v4.0.0
       with:
-        dotnet-version: 7.0.x
+        dotnet-version: 8.0.x
 
     - name: Build .NET tool
       run: |
         src/shared/DotnetTool/layout.sh --configuration=Release
 
     - name: Upload .NET tool artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: tmp.dotnet-tool-build
         path: |
@@ -331,7 +331,6 @@ jobs:
 
   dotnet-tool-payload-sign:
     name: Sign .NET tool payload
-    # ESRP service requires signing to run on Windows
     runs-on: windows-latest
     environment: release
     needs: dotnet-tool-build
@@ -339,56 +338,51 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Download payload
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: tmp.dotnet-tool-build
 
-    - name: Zip unsigned payload
-      shell: pwsh
-      run: |
-        Compress-Archive -Path payload payload/payload.zip
-        cd payload
-        Get-ChildItem -Exclude payload.zip | Remove-Item -Recurse -Force
-
     - name: Log into Azure
-      uses: azure/login@v1
+      uses: azure/login@v2
       with:
         client-id: ${{ secrets.AZURE_CLIENT_ID }}
         tenant-id: ${{ secrets.AZURE_TENANT_ID }}
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-    - name: Set up ESRP client
-      shell: pwsh
+    - name: Download/extract Sign CLI tool
       env:
-        AZURE_VAULT: ${{ secrets.AZURE_VAULT }}
-        AZURE_STORAGE_ACCOUNT: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
-        AZURE_STORAGE_CONTAINER: ${{ secrets.AZURE_STORAGE_CONTAINER }}
-        ESRP_TOOL: ${{ secrets.ESRP_TOOL }}
-        AUTH_CERT: ${{ secrets.AZURE_VAULT_AUTH_CERT_NAME }}
-        REQUEST_SIGNING_CERT: ${{ secrets.AZURE_VAULT_REQUEST_SIGNING_CERT_NAME }}
+        AST: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
+        ASC: ${{ secrets.AZURE_STORAGE_CONTAINER }}
+        SCT: ${{ secrets.SIGN_CLI_TOOL }}
       run: |
-        .github\set_up_esrp.ps1
+        az storage blob download --file sign-cli.zip --auth-mode login `
+          --account-name $env:AST --container-name $env:ASC --name $env:SCT
+        Expand-Archive -Path sign-cli.zip -DestinationPath .\sign-cli
 
-    - name: Run ESRP client
-      shell: pwsh
+    - name: Sign payload
       env:
-        AZURE_AAD_ID: ${{ secrets.AZURE_AAD_ID }}
-        NUGET_KEY_CODE: ${{ secrets.NUGET_KEY_CODE }}
-        NUGET_OPERATION_CODE: ${{ secrets.NUGET_OPERATION_CODE }}
+        ACST: ${{ secrets.AZURE_TENANT_ID }}
+        ACSI: ${{ secrets.AZURE_CLIENT_ID }}
+        ACSS: ${{ secrets.AZURE_CLIENT_SECRET }}
       run: |
-        python .github\run_esrp_signing.py payload `
-         $env:NUGET_KEY_CODE $env:NUGET_OPERATION_CODE
+        ./sign-cli/sign.exe code azcodesign payload/* `
+          -acsu https://wus2.codesigning.azure.net/ `
+          -acsa git-fundamentals-signing `
+          -acscp git-fundamentals-windows-signing `
+          -d "Git Fundamentals Windows Signing Certificate" `
+          -u "https://github.com/git-ecosystem/git-credential-manager" `
+          -acst $env:ACST `
+          -acsi $env:ACSI `
+          -acss $env:ACSS
 
     - name: Lay out signed payload, images, and symbols
       shell: bash
       run: |
         mkdir dotnet-tool-payload-sign
-        rm -rf payload
-        mv images payload.sym -t dotnet-tool-payload-sign
-        unzip signed/payload.zip -d dotnet-tool-payload-sign
+        mv images payload.sym payload -t dotnet-tool-payload-sign
 
     - name: Upload signed payload
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: dotnet-tool-payload-sign
         path: |
@@ -402,15 +396,15 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Download signed payload
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: dotnet-tool-payload-sign
         path: signed
 
     - name: Set up .NET
-      uses: actions/setup-dotnet@v3.2.0
+      uses: actions/setup-dotnet@v4.0.0
       with:
-        dotnet-version: 7.0.x
+        dotnet-version: 8.0.x
 
     - name: Package tool
       run: |
@@ -419,7 +413,7 @@ jobs:
           --publish-dir=$(pwd)/signed
 
     - name: Upload unsigned package
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: tmp.dotnet-tool-package-unsigned
         path: |
@@ -427,7 +421,6 @@ jobs:
 
   dotnet-tool-sign:
     name: Sign .NET tool package
-    # ESRP service requires signing to run on Windows
     runs-on: windows-latest
     environment: release
     needs: dotnet-tool-pack
@@ -435,57 +428,49 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Download unsigned package
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: tmp.dotnet-tool-package-unsigned
         path: nupkg
 
-    - name: Zip unsigned package
-      shell: pwsh
-      run: |
-        Compress-Archive -Path nupkg/*.nupkg nupkg/gcm-nupkg.zip
-        cd nupkg
-        Get-ChildItem -Exclude gcm-nupkg.zip | Remove-Item -Recurse -Force
-
     - name: Log into Azure
-      uses: azure/login@v1
+      uses: azure/login@v2
       with:
         client-id: ${{ secrets.AZURE_CLIENT_ID }}
         tenant-id: ${{ secrets.AZURE_TENANT_ID }}
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-    - name: Set up ESRP client
-      shell: pwsh
+    - name: Download/extract Sign CLI tool
       env:
-        AZURE_VAULT: ${{ secrets.AZURE_VAULT }}
-        AZURE_STORAGE_ACCOUNT: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
-        AZURE_STORAGE_CONTAINER: ${{ secrets.AZURE_STORAGE_CONTAINER }}
-        ESRP_TOOL: ${{ secrets.ESRP_TOOL }}
-        AUTH_CERT: ${{ secrets.AZURE_VAULT_AUTH_CERT_NAME }}
-        REQUEST_SIGNING_CERT: ${{ secrets.AZURE_VAULT_REQUEST_SIGNING_CERT_NAME }}
+        AST: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
+        ASC: ${{ secrets.AZURE_STORAGE_CONTAINER }}
+        SCT: ${{ secrets.SIGN_CLI_TOOL }}
       run: |
-        .github\set_up_esrp.ps1
+        az storage blob download --file sign-cli.zip --auth-mode login `
+          --account-name $env:AST --container-name $env:ASC --name $env:SCT
+        Expand-Archive -Path sign-cli.zip -DestinationPath .\sign-cli
 
     - name: Sign package
-      shell: pwsh
       env:
-        AZURE_AAD_ID: ${{ secrets.AZURE_AAD_ID }}
-        NUGET_KEY_CODE: ${{ secrets.NUGET_KEY_CODE }}
-        NUGET_OPERATION_CODE: ${{ secrets.NUGET_OPERATION_CODE }}
+        ACST: ${{ secrets.AZURE_TENANT_ID }}
+        ACSI: ${{ secrets.AZURE_CLIENT_ID }}
+        ACSS: ${{ secrets.AZURE_CLIENT_SECRET }}
       run: |
-        python .github\run_esrp_signing.py nupkg $env:NUGET_KEY_CODE $env:NUGET_OPERATION_CODE
-
-    - name: Unzip signed package
-      shell: pwsh
-      run: |
-        Expand-Archive -LiteralPath signed\gcm-nupkg.zip -DestinationPath .\signed -Force
-        Remove-Item signed\gcm-nupkg.zip -Force
+        ./sign-cli/sign.exe code azcodesign nupkg/* `
+          -acsu https://wus2.codesigning.azure.net/ `
+          -acsa git-fundamentals-signing `
+          -acscp git-fundamentals-windows-signing `
+          -d "Git Fundamentals Windows Signing Certificate" `
+          -u "https://github.com/git-ecosystem/git-credential-manager" `
+          -acst $env:ACST `
+          -acsi $env:ACSI `
+          -acss $env:ACSS
 
     - name: Publish signed package
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: dotnet-tool-sign
-        path: signed/*.nupkg
+        path: nupkg/*.nupkg
 
 # ================================
 #           Validate
@@ -521,12 +506,12 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up .NET
-        uses: actions/setup-dotnet@v3.2.0
+        uses: actions/setup-dotnet@v4.0.0
         with:
-          dotnet-version: 7.0.x
+          dotnet-version: 8.0.x
 
       - name: Download artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: ${{ matrix.component.artifact }}
 
@@ -591,12 +576,12 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up .NET
-        uses: actions/setup-dotnet@v3.2.0
+        uses: actions/setup-dotnet@v4.0.0
         with:
-          dotnet-version: 7.0.x
+          dotnet-version: 8.0.x
 
       - name: Download artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
 
       - name: Archive macOS payload and symbols
         run: |
@@ -617,7 +602,7 @@ jobs:
           zip -jr win-x86-payload-and-symbols/gcm-win-x86-$version-symbols.zip windows-artifacts/symbols
 
       - name: Log into Azure
-        uses: azure/login@v1
+        uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
@@ -630,7 +615,7 @@ jobs:
             | sed -e 's/^"//' -e 's/"$//' | base64 -d >gcm-public.asc
           mv gcm-public.asc linux-artifacts
 
-      - uses: actions/github-script@v6
+      - uses: actions/github-script@v7
         with:
           script: |
             const fs = require('fs');

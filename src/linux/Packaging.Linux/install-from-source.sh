@@ -26,7 +26,7 @@ if [ -z "$installPrefix" ]; then
 fi
 
 # Ensure install directory exists
-if [! -d "$installPrefix" ]; then
+if [ ! -d "$installPrefix" ]; then
     echo "The folder $installPrefix does not exist"
     exit
 fi
@@ -83,7 +83,7 @@ ensure_dotnet_installed() {
     if [ -z "$(verify_existing_dotnet_installation)" ]; then
         curl -LO https://dot.net/v1/dotnet-install.sh
         chmod +x ./dotnet-install.sh
-        bash -c "./dotnet-install.sh --channel 7.0"
+        bash -c "./dotnet-install.sh --channel 8.0"
 
         # Since we have to run the dotnet install script with bash, dotnet isn't
         # added to the process PATH, so we manually add it here.
@@ -98,7 +98,7 @@ verify_existing_dotnet_installation() {
     sdks=$(dotnet --list-sdks | cut -c 1-3)
 
     # If we have a supported version installed, return.
-    supported_dotnet_versions="7.0"
+    supported_dotnet_versions="8.0"
     for v in $supported_dotnet_versions; do
         if [ $(echo $sdks | grep "$v") ]; then
             echo $sdks
@@ -137,6 +137,10 @@ print_unsupported_distro() {
     echo "See https://gh.io/gcm/linux for details."
 }
 
+version_at_least() {
+	[ "$(printf '%s\n' "$1" "$2" | sort -V | head -n1)" = "$1" ]
+}
+
 sudo_cmd=
 
 # If the user isn't root, we need to use `sudo` for certain commands
@@ -157,7 +161,7 @@ case "$distribution" in
         # Install dotnet packages and dependencies if needed.
         if [ -z "$(verify_existing_dotnet_installation)" ]; then
             # First try to use native feeds (Ubuntu 22.04 and later).
-            if ! apt_install dotnet7; then
+            if ! apt_install dotnet8; then
                 # If the native feeds fail, we fall back to
                 # packages.microsoft.com. We begin by adding the dotnet package
                 # repository/signing key.
@@ -173,7 +177,7 @@ case "$distribution" in
                 $sudo_cmd apt update
                 $sudo_cmd apt install apt-transport-https -y
                 $sudo_cmd apt update
-                $sudo_cmd apt install dotnet-sdk-7.0 dpkg-dev -y
+                $sudo_cmd apt install dotnet-sdk-8.0 dpkg-dev -y
             fi
         fi
     ;;
@@ -189,7 +193,14 @@ case "$distribution" in
         $sudo_cmd apk update
 
         # Install dotnet/GCM dependencies.
-        install_packages apk add "curl git icu-libs krb5-libs libgcc libintl libssl1.1 libstdc++ zlib which bash coreutils gcompat"
+        # Alpine 3.14 and earlier need libssl1.1, while later versions need libssl3.
+        if ( version_at_least "3.15" $version ) then
+            libssl_pkg="libssl3"
+        else
+            libssl_pkg="libssl1.1"
+        fi
+
+        install_packages apk add "curl git icu-libs krb5-libs libgcc libintl $libssl_pkg libstdc++ zlib which bash coreutils gcompat"
 
         ensure_dotnet_installed
     ;;

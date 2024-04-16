@@ -14,11 +14,6 @@ public partial class ProgressWindow : Window
         InitializeComponent();
     }
 
-    private void InitializeComponent()
-    {
-        AvaloniaXamlLoader.Load(this);
-    }
-
     public static IntPtr ShowAndGetHandle(CancellationToken ct)
     {
         var tsc = new TaskCompletionSource<IntPtr>();

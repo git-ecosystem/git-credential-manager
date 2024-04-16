@@ -13,11 +13,6 @@ public partial class SelectAccountView : UserControl
         InitializeComponent();
     }
 
-    private void InitializeComponent()
-    {
-        AvaloniaXamlLoader.Load(this);
-    }
-
     private void ListBox_OnDoubleTapped(object sender, TappedEventArgs e)
     {
         if (DataContext is SelectAccountViewModel { SelectedAccount: not null } vm)

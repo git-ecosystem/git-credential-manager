@@ -7,20 +7,9 @@ namespace GitCredentialManager.UI.Views
 {
     public partial class CredentialsView : UserControl, IFocusable
     {
-        private TextBox _userNameTextBox;
-        private TextBox _passwordTextBox;
-
         public CredentialsView()
         {
             InitializeComponent();
-        }
-
-        private void InitializeComponent()
-        {
-            AvaloniaXamlLoader.Load(this);
-
-            _userNameTextBox = this.FindControl<TextBox>("userNameTextBox");
-            _passwordTextBox = this.FindControl<TextBox>("passwordTextBox");
         }
 
         public void SetFocus()

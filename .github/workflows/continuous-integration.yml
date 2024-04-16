@@ -19,9 +19,9 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v3.2.0
+      uses: actions/setup-dotnet@v4.0.0
       with:
-        dotnet-version: 6.0.201
+        dotnet-version: 8.0.x
 
     - name: Install dependencies
       run: dotnet restore
@@ -42,7 +42,7 @@ jobs:
         mv out/windows/Installer.Windows/bin/Release/net472/gcm*.exe artifacts/
 
     - name: Upload artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: win-x86
         path: |
@@ -59,9 +59,9 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v3.2.0
+      uses: actions/setup-dotnet@v4.0.0
       with:
-        dotnet-version: 6.0.201
+        dotnet-version: 8.0.x
 
     - name: Install dependencies
       run: dotnet restore
@@ -80,7 +80,7 @@ jobs:
         mv out/linux/Packaging.Linux/Release/tar/*.tar.gz artifacts/
 
     - name: Upload artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: linux-x64
         path: |
@@ -100,9 +100,9 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v3.2.0
+      uses: actions/setup-dotnet@v4.0.0
       with:
-        dotnet-version: 6.0.201
+        dotnet-version: 8.0.x
 
     - name: Install dependencies
       run: dotnet restore
@@ -125,7 +125,7 @@ jobs:
         mv out/osx/Installer.Mac/pkg/Release/gcm*.pkg artifacts/
 
     - name: Upload artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: ${{ matrix.runtime }}
         path: |
