@@ -68,15 +68,9 @@ namespace Atlassian.Bitbucket.DataCenter
 
         private static OAuth2ServerEndpoints GetEndpoints(ISettings settings)
         {
-            var remoteUri = settings.RemoteUri;
-            if (remoteUri == null)
-            {
-                throw new ArgumentException("RemoteUri must be defined to generate Bitbucket DC OAuth2 endpoint Urls");
-            }
-
             return new OAuth2ServerEndpoints(
-                new Uri(BitbucketHelper.GetBaseUri(remoteUri) + "/rest/oauth2/latest/authorize"),
-                new Uri(BitbucketHelper.GetBaseUri(remoteUri) + "/rest/oauth2/latest/token")
+                new Uri(BitbucketHelper.GetBaseUri(settings) + "/rest/oauth2/latest/authorize"),
+                new Uri(BitbucketHelper.GetBaseUri(settings) + "/rest/oauth2/latest/token")
                 );
         }
     }
