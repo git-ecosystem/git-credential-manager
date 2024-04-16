@@ -1,7 +1,6 @@
 using Atlassian.Bitbucket.DataCenter;
 using GitCredentialManager;
 using Moq;
-using Newtonsoft.Json.Linq;
 using System;
 using Xunit;
 

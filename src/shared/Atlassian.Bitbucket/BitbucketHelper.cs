@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Net.NetworkInformation;
 using Atlassian.Bitbucket.Cloud;
 using Atlassian.Bitbucket.DataCenter;
 using GitCredentialManager;
