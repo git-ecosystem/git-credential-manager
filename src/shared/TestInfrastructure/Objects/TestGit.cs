@@ -33,6 +33,8 @@ namespace GitCredentialManager.Tests.Objects
             throw new NotImplementedException();
         }
 
+        bool IGit.IsInsideRepository() => !string.IsNullOrWhiteSpace(CurrentRepository);
+
         string IGit.GetCurrentRepository() => CurrentRepository;
 
         IEnumerable<GitRemote> IGit.GetRemotes() => Remotes;
