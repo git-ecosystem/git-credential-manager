@@ -19,9 +19,16 @@ namespace GitCredentialManager.Diagnostics
             log.AppendLine($"Git version is '{gitVersion.OriginalString}'");
 
             log.Append("Locating current repository...");
-            string thisRepo =CommandContext.Git.GetCurrentRepository();
+            if (!CommandContext.Git.IsInsideRepository())
+            {
+                log.AppendLine("Not inside a Git repository.");
+            }
+            else
+            {
+                string thisRepo = CommandContext.Git.GetCurrentRepository();
+                log.AppendLine($"Git repository at '{thisRepo}'");
+            }
             log.AppendLine(" OK");
-            log.AppendLine(thisRepo is null ? "Not inside a Git repository." : $"Git repository at '{thisRepo}'");
 
             log.Append("Listing all Git configuration...");
             ChildProcess configProc = CommandContext.Git.CreateProcess("config --list --show-origin");
