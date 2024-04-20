@@ -464,13 +464,18 @@ jobs:
           -u "https://github.com/git-ecosystem/git-credential-manager" `
           -acst $env:ACST `
           -acsi $env:ACSI `
-          -acss $env:ACSS
+          -acss $env:ACSS `
+          -acsc nuget-signing-certificate.cer
 
-    - name: Publish signed package
+        mv nupkg/* .
+
+    - name: Publish signed package and certificate
       uses: actions/upload-artifact@v4
       with:
         name: dotnet-tool-sign
-        path: nupkg/*.nupkg
+        path: |
+          *.nupkg
+          *.cer
 
 # ================================
 #           Validate
