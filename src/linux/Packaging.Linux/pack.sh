@@ -78,7 +78,7 @@ echo "Packing Packaging.Linux..."
 # Cleanup any old archive files
 if [ -e "$TAROUT" ]; then
     echo "Deleteing old archive '$TAROUT'..."
-    rm "$TAROUT"
+    rm -r "$TAROUT"
 fi
 
 # Ensure the parent directory for the archive exists
