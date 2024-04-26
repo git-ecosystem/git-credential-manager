@@ -66,7 +66,7 @@ fi
 # Ensure directories exists
 mkdir -p "$PAYLOAD" "$SYMBOLOUT"
 
-if [ -z "$DOTNET_ROOT" ]; then
+if [ -z "${DOTNET_ROOT+x}" ]; then
     DOTNET_ROOT="$(dirname "$(which dotnet)")"
 fi
 
