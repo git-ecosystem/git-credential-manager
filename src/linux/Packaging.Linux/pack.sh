@@ -1,16 +1,18 @@
 #!/bin/bash
+
+set -eu
+
 die () {
     echo "$*" >&2
     exit 1
 }
 
 # Directories
-THISDIR="$( cd "$(dirname "$0")" ; pwd -P )"
-ROOT="$( cd "$THISDIR"/../../.. ; pwd -P )"
+THISDIR="$( cd "$(dirname "$0")" || exit 1 ; pwd -P )"
+ROOT="$( cd "$THISDIR"/../../.. || exit 1 ; pwd -P )"
 SRC="$ROOT/src"
 OUT="$ROOT/out"
 PROJ_OUT="$OUT/linux/Packaging.Linux"
-INSTALLER_SRC="$SRC/osx/Installer.Mac"
 
 # Parse script arguments
 for i in "$@"
@@ -52,7 +54,7 @@ if [ -z "$SYMBOLS" ]; then
     die "--symbols was not set"
 fi
 
-ARCH="`dpkg-architecture -q DEB_HOST_ARCH`"
+ARCH="$(dpkg-architecture -q DEB_HOST_ARCH)"
 
 if test -z "$ARCH"; then
     die "Could not determine host architecture!"
@@ -85,13 +87,13 @@ mkdir -p "$TAROUT" || exit 1
 # Build binaries tarball
 echo "Building binaries tarball..."
 pushd "$PAYLOAD"
-tar -czvf "$TARBALL" * || exit 1
+tar -czvf "$TARBALL" ./* || exit 1
 popd
 
 # Build symbols tarball
 echo "Building symbols tarball..."
 pushd "$SYMBOLS"
-tar -czvf "$SYMTARBALL" * || exit 1
+tar -czvf "$SYMTARBALL" ./* || exit 1
 popd
 
 # Build .deb
@@ -128,4 +130,4 @@ fi
 
 dpkg-deb -Zxz --root-owner-group --build "$DEBROOT" "$DEBPKG" || exit 1
 
-echo $MESSAGE
+echo "$MESSAGE"
