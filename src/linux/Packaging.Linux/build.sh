@@ -1,4 +1,7 @@
 #!/bin/bash
+
+set -eu
+
 die () {
     echo "$*" >&2
     exit 1
@@ -7,8 +10,8 @@ die () {
 echo "Building Packaging.Linux..."
 
 # Directories
-THISDIR="$( cd "$(dirname "$0")" ; pwd -P )"
-ROOT="$( cd "$THISDIR"/../../.. ; pwd -P )"
+THISDIR="$( cd "$(dirname "$0")" || exit 1 ; pwd -P )"
+ROOT="$( cd "$THISDIR"/../../.. || exit 1 ; pwd -P )"
 SRC="$ROOT/src"
 OUT="$ROOT/out"
 INSTALLER_SRC="$SRC/linux/Packaging.Linux"
@@ -41,7 +44,7 @@ esac
 done
 
 # Ensure install prefix exists
-if [! -d "$INSTALL_PREFIX" ]; then
+if [ ! -d "$INSTALL_PREFIX" ]; then
     mkdir -p "$INSTALL_PREFIX"
 fi
 
@@ -58,7 +61,7 @@ SYMBOLS="$OUTDIR/payload.sym"
 # Lay out payload
 "$INSTALLER_SRC/layout.sh" --configuration="$CONFIGURATION" || exit 1
 
-if [ $INSTALL_FROM_SOURCE = true ]; then
+if [ "$INSTALL_FROM_SOURCE" = true ]; then
     echo "Installing to $INSTALL_PREFIX"
 
     # Install directories
