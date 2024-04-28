@@ -21,6 +21,12 @@ namespace GitCredentialManager
         ChildProcess CreateProcess(string args);
 
         /// <summary>
+        /// Returns true if the current Git instance is scoped to a local repository.
+        /// </summary>
+        /// <returns>True if inside a local Git repository, false otherwise.</returns>
+        bool IsInsideRepository();
+
+        /// <summary>
         /// Return the path to the current repository, or null if this instance is not
         /// scoped to a Git repository.
         /// </summary>
@@ -119,10 +125,26 @@ namespace GitCredentialManager
             return new GitProcessConfiguration(_trace, this);
         }
 
+        public bool IsInsideRepository()
+        {
+            return !string.IsNullOrWhiteSpace(GetCurrentRepositoryInternal(suppressStreams: true));
+        }
+
         public string GetCurrentRepository()
+        {
+            return GetCurrentRepositoryInternal(suppressStreams: false);
+        }
+
+        private string GetCurrentRepositoryInternal(bool suppressStreams)
         {
             using (var git = CreateProcess("rev-parse --absolute-git-dir"))
             {
+                // Redirect standard error to ensure any error messages are captured and not exposed to the user's console
+                if (suppressStreams)
+                {
+                    git.StartInfo.RedirectStandardError = true;
+                }
+
                 git.Start(Trace2ProcessClass.Git);
                 string data = git.StandardOutput.ReadToEnd();
                 git.WaitForExit();
@@ -270,14 +292,5 @@ namespace GitCredentialManager
 
     public static class GitExtensions
     {
-        /// <summary>
-        /// Returns true if the current Git instance is scoped to a local repository.
-        /// </summary>
-        /// <param name="git">Git object.</param>
-        /// <returns>True if inside a local Git repository, false otherwise.</returns>
-        public static bool IsInsideRepository(this IGit git)
-        {
-            return !string.IsNullOrWhiteSpace(git.GetCurrentRepository());
-        }
     }
 }

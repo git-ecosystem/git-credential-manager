@@ -126,6 +126,6 @@ if [ ! -f "$LINK_TO/git-credential-manager" ]; then
         "$LINK_TO/git-credential-manager" || exit 1
 fi
 
-dpkg-deb -Zxz --build "$DEBROOT" "$DEBPKG" || exit 1
+dpkg-deb -Zxz --root-owner-group --build "$DEBROOT" "$DEBPKG" || exit 1
 
 echo $MESSAGE
