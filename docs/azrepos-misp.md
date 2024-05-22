@@ -49,11 +49,14 @@ Value|Description
 -|-
 `system`|System-Assigned Managed Identity
 `[guid]`|User-Assigned Managed Identity with the specified client ID
-`id://[guid]`|User-Assigned Managed Identity with the specified client ID
-`resource://[guid]`|User-Assigned Managed Identity for the associated resource
+`id://[guid]` **|User-Assigned Managed Identity with the specified client ID
+`resource://[guid]` **|User-Assigned Managed Identity for the associated resource
 
 You can obtain the `[guid]` from the Azure Portal or by using the Azure CLI
 to inspect the Managed Identity or resource.
+
+** Note there is an open issue that prevents successfull authentication when
+using these formats: https://github.com/git-ecosystem/git-credential-manager/issues/1570
 
 ## Service Principals
 
