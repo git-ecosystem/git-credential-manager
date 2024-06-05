@@ -232,6 +232,9 @@ jobs:
     runs-on: ubuntu-latest
     environment: release
     needs: prereqs
+    strategy:
+      matrix:
+        runtime: [ linux-x64, linux-arm64, linux-arm ]
     steps:
     - uses: actions/checkout@v4
 
@@ -241,7 +244,10 @@ jobs:
         dotnet-version: 8.0.x
 
     - name: Build
-      run: dotnet build --configuration=LinuxRelease
+      run: |
+        dotnet build src/linux/Packaging.Linux/*.csproj \
+        --configuration=LinuxRelease --no-self-contained \
+        --runtime=${{ matrix.runtime }}
 
     - name: Run Linux unit tests
       run: |
@@ -286,18 +292,18 @@ jobs:
       run: |
         # Sign Debian package
         version=${{ needs.prereqs.outputs.version }}
-        mv out/linux/Packaging.Linux/Release/deb/gcm-linux_amd64.$version.deb .
-        debsigs --sign=origin --verify --check gcm-linux_amd64.$version.deb
+        mv out/linux/Packaging.Linux/Release/deb/gcm-${{ matrix.runtime }}.$version.deb .
+        debsigs --sign=origin --verify --check gcm-${{ matrix.runtime }}.$version.deb
 
         # Generate tarball signature file
         mv -v out/linux/Packaging.Linux/Release/tar/* .
-        gpg --batch --yes --armor --output gcm-linux_amd64.$version.tar.gz.asc \
-          --detach-sig gcm-linux_amd64.$version.tar.gz
+        gpg --batch --yes --armor --output gcm-${{ matrix.runtime }}.$version.tar.gz.asc \
+          --detach-sig gcm-${{ matrix.runtime }}.$version.tar.gz
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: linux-artifacts
+        name: ${{ matrix.runtime }}-artifacts
         path: |
           ./*.deb
           ./*.asc
@@ -486,9 +492,9 @@ jobs:
       matrix:
         component:
           - os: ubuntu-latest
-            artifact: linux-artifacts
+            artifact: linux-x64-artifacts
             command: git-credential-manager
-            description: linux
+            description: linux-x64
           - os: macos-latest
             artifact: macos-osx-x64-artifacts
             command: git-credential-manager
@@ -530,15 +536,15 @@ jobs:
             Start-Process -Wait -FilePath "$exePath" -ArgumentList "/SILENT /VERYSILENT /NORESTART"
           }
 
-      - name: Install Linux (Debian package)
-        if: contains(matrix.component.description, 'linux')
+      - name: Install Linux x64 (Debian package)
+        if: contains(matrix.component.description, 'linux-x64')
         run: |
           debpath=$(find ./*.deb)
           sudo apt install $debpath
           "${{ matrix.component.command }}" configure
 
-      - name: Install Linux (tarball)
-        if: contains(matrix.component.description, 'linux')
+      - name: Install Linux x64 (tarball)
+        if: contains(matrix.component.description, 'linux-x64')
         run: |
           # Ensure we find only the source tarball, not the symbols
           tarpath=$(find . -name '*[[:digit:]].tar.gz')
@@ -618,7 +624,9 @@ jobs:
           az keyvault secret show --name "$GPG_PUBLIC_KEY_SECRET_NAME" \
             --vault-name "$AZURE_VAULT" --query "value" \
             | sed -e 's/^"//' -e 's/"$//' | base64 -d >gcm-public.asc
-          mv gcm-public.asc linux-artifacts
+          cp gcm-public.asc linux-x64-artifacts/
+          cp gcm-public.asc linux-arm64-artifacts/
+          mv gcm-public.asc linux-arm-artifacts
 
       - uses: actions/github-script@v7
         with:
@@ -675,7 +683,9 @@ jobs:
               uploadDirectoryToRelease('osx-payload-and-symbols'),
 
               // Upload Linux artifacts
-              uploadDirectoryToRelease('linux-artifacts'),
+              uploadDirectoryToRelease('linux-x64-artifacts'),
+              uploadDirectoryToRelease('linux-arm64-artifacts'),
+              uploadDirectoryToRelease('linux-arm-artifacts'),
 
               // Upload .NET tool package
               uploadDirectoryToRelease('dotnet-tool-sign'),
