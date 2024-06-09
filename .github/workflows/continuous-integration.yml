@@ -1,4 +1,4 @@
-name: ci
+name: RISHOOOZ
 
 on:
   workflow_dispatch:
@@ -11,7 +11,7 @@ jobs:
 # ================================
 #              Windows
 # ================================
-  windows:
+  windows: 11 pro
     name: Windows
     runs-on: windows-latest
 
