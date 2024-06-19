@@ -13,25 +13,25 @@
   <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Web" />
-    <PackageReference Include="Microsoft.Identity.Client.Broker" Version="4.60.3" />
-    <PackageReference Include="Avalonia.Win32" Version="11.0.10" />
+    <PackageReference Include="Microsoft.Identity.Client.Broker" Version="4.61.3" />
+    <PackageReference Include="Avalonia.Win32" Version="11.0.11" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' != 'net472'">
-    <PackageReference Include="Avalonia.Desktop" Version="11.0.10" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.0.11" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Identity.Client" Version="4.60.3" />
-    <PackageReference Include="Microsoft.Identity.Client.Extensions.Msal" Version="4.60.3" />
+    <PackageReference Include="Microsoft.Identity.Client" Version="4.61.3" />
+    <PackageReference Include="Microsoft.Identity.Client.Extensions.Msal" Version="4.61.3" />
     <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
-    <PackageReference Include="Avalonia" Version="11.0.10" />
-    <PackageReference Include="Avalonia.Skia" Version="11.0.10" />
-    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.10" />
+    <PackageReference Include="Avalonia" Version="11.0.11" />
+    <PackageReference Include="Avalonia.Skia" Version="11.0.11" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.11" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)' == 'Debug'">
-    <PackageReference Include="Avalonia.Diagnostics" Version="11.0.10" />
+    <PackageReference Include="Avalonia.Diagnostics" Version="11.0.11" />
   </ItemGroup>
 
 </Project>
