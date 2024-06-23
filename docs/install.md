@@ -75,7 +75,7 @@ installation method.
 Download the latest [.deb package][latest-release]*, and run the following:
 
 ```shell
-sudo dpkg -i <path-to-package>
+sudo gdebi <path-to-package>
 git-credential-manager configure
 ```
 
