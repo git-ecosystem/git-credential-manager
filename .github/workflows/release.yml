@@ -353,27 +353,20 @@ jobs:
       env:
         AST: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
         ASC: ${{ secrets.AZURE_STORAGE_CONTAINER }}
-        SCT: ${{ secrets.SIGN_CLI_TOOL }}
+        SCT: 'Sign.Cli-alpha.zip'
       run: |
         az storage blob download --file sign-cli.zip --auth-mode login `
           --account-name $env:AST --container-name $env:ASC --name $env:SCT
         Expand-Archive -Path sign-cli.zip -DestinationPath .\sign-cli
 
     - name: Sign payload
-      env:
-        ACST: ${{ secrets.AZURE_TENANT_ID }}
-        ACSI: ${{ secrets.AZURE_CLIENT_ID }}
-        ACSS: ${{ secrets.AZURE_CLIENT_SECRET }}
       run: |
-        ./sign-cli/sign.exe code azcodesign payload/* `
-          -acsu https://wus2.codesigning.azure.net/ `
-          -acsa git-fundamentals-signing `
-          -acscp git-fundamentals-windows-signing `
+        ./sign-cli/sign.exe code trusted-signing payload/* `
+          -tse https://wus2.codesigning.azure.net/ `
+          -tsa git-fundamentals-signing `
+          -tscp git-fundamentals-windows-signing `
           -d "Git Fundamentals Windows Signing Certificate" `
-          -u "https://github.com/git-ecosystem/git-credential-manager" `
-          -acst $env:ACST `
-          -acsi $env:ACSI `
-          -acss $env:ACSS
+          -u "https://github.com/git-ecosystem/git-credential-manager"
 
     - name: Lay out signed payload, images, and symbols
       shell: bash
@@ -444,28 +437,21 @@ jobs:
       env:
         AST: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
         ASC: ${{ secrets.AZURE_STORAGE_CONTAINER }}
-        SCT: ${{ secrets.SIGN_CLI_TOOL }}
+        SCT: 'Sign.Cli-alpha.zip'
       run: |
         az storage blob download --file sign-cli.zip --auth-mode login `
           --account-name $env:AST --container-name $env:ASC --name $env:SCT
         Expand-Archive -Path sign-cli.zip -DestinationPath .\sign-cli
 
     - name: Sign package
-      env:
-        ACST: ${{ secrets.AZURE_TENANT_ID }}
-        ACSI: ${{ secrets.AZURE_CLIENT_ID }}
-        ACSS: ${{ secrets.AZURE_CLIENT_SECRET }}
       run: |
-        ./sign-cli/sign.exe code azcodesign nupkg/* `
-          -acsu https://wus2.codesigning.azure.net/ `
-          -acsa git-fundamentals-signing `
-          -acscp git-fundamentals-windows-signing `
+        ./sign-cli/sign.exe code trusted-signing nupkg/* `
+          -tse https://wus2.codesigning.azure.net/ `
+          -tsa git-fundamentals-signing `
+          -tscp git-fundamentals-windows-signing `
           -d "Git Fundamentals Windows Signing Certificate" `
           -u "https://github.com/git-ecosystem/git-credential-manager" `
-          -acst $env:ACST `
-          -acsi $env:ACSI `
-          -acss $env:ACSS `
-          -acsc nuget-signing-certificate.cer
+          -co nuget-signing-certificate.cer
 
         mv nupkg/* .
 
