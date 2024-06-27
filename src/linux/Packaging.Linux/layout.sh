@@ -23,6 +23,10 @@ case "$i" in
     CONFIGURATION="${i#*=}"
     shift # past argument=value
     ;;
+    --runtime=*)
+    RUNTIME="${i#*=}"
+    shift # past argument=value
+    ;;
     *)
           # unknown option
     ;;
@@ -39,7 +43,10 @@ PROJ_OUT="$OUT/linux/Packaging.Linux"
 
 # Build parameters
 FRAMEWORK=net8.0
-RUNTIME=linux-x64
+
+if [ -z "$RUNTIME" ]; then
+    die "--runtime was not set"
+fi
 
 # Perform pre-execution checks
 CONFIGURATION="${CONFIGURATION:=Debug}"
