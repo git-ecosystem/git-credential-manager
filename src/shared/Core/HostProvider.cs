@@ -58,6 +58,9 @@ namespace GitCredentialManager
         /// </summary>
         /// <param name="input">Input arguments of a Git credential query.</param>
         Task EraseCredentialAsync(InputArguments input);
+
+        Task<bool> ValidateCredentialAsync(Uri remoteUri, ICredential credential)
+        => Task.FromResult(credential.PasswordExpiry == null || credential.PasswordExpiry >= DateTimeOffset.UtcNow);
     }
 
     /// <summary>
@@ -125,23 +128,49 @@ namespace GitCredentialManager
             string service = GetServiceName(input);
             Context.Trace.WriteLine($"Looking for existing credential in store with service={service} account={input.UserName}...");
 
-            ICredential credential = Context.CredentialStore.Get(service, input.UserName);
-            if (credential == null)
+            // Query for matching credentials
+            ICredential credential = null;
+            while (true)
             {
-                Context.Trace.WriteLine("No existing credentials found.");
-
-                // No existing credential was found, create a new one
-                Context.Trace.WriteLine("Creating new credential...");
-                credential = await GenerateCredentialAsync(input);
-                Context.Trace.WriteLine("Credential created.");
+                Context.Trace.WriteLine("Querying for existing credentials...");
+                credential = Context.CredentialStore.Get(service, input.UserName);
+                if (credential == null)
+                {
+                    Context.Trace.WriteLine("No existing credentials found.");
+                    break;
+                }
+                else
+                {
+                    Context.Trace.WriteLine("Existing credential found.");
+                    if (await ValidateCredentialAsync(input.GetRemoteUri(), credential))
+                    {
+                        Context.Trace.WriteLine("Existing credential satisfies validation.");
+                        return credential;
+                    }
+                    else
+                    {
+                        Context.Trace.WriteLine("Existing credential fails validation.");
+                        if (credential.OAuthRefreshToken != null)
+                        {
+                            Context.Trace.WriteLine("Found OAuth refresh token.");
+                            input = new InputArguments(input, credential.OAuthRefreshToken);
+                        }
+                        Context.Trace.WriteLine("Erasing invalid credential...");
+                        // Why necessary to erase? We can't be sure that storing a fresh
+                        // credential will overwrite the invalid credential, particularly
+                        // if the usernames differ.
+                        Context.CredentialStore.Remove(service, credential);
+                    }
+                }
             }
-            else
-            {
-                Context.Trace.WriteLine("Existing credential found.");
-            }
-
+            Context.Trace.WriteLine("Creating new credential...");
+            credential = await GenerateCredentialAsync(input);
+            Context.Trace.WriteLine("Credential created.");
             return credential;
         }
+
+        public virtual Task<bool> ValidateCredentialAsync(Uri remoteUri, ICredential credential) 
+        => Task.FromResult(credential.PasswordExpiry == null || credential.PasswordExpiry >= DateTimeOffset.UtcNow);
 
         public virtual Task StoreCredentialAsync(InputArguments input)
         {
@@ -158,7 +187,7 @@ namespace GitCredentialManager
             {
                 // Add or update the credential in the store.
                 Context.Trace.WriteLine($"Storing credential with service={service} account={input.UserName}...");
-                Context.CredentialStore.AddOrUpdate(service, input.UserName, input.Password);
+                Context.CredentialStore.AddOrUpdate(service, new GitCredential(input));
                 Context.Trace.WriteLine("Credential was successfully stored.");
             }
 
@@ -171,7 +200,7 @@ namespace GitCredentialManager
 
             // Try to locate an existing credential
             Context.Trace.WriteLine($"Erasing stored credential in store with service={service} account={input.UserName}...");
-            if (Context.CredentialStore.Remove(service, input.UserName))
+            if (Context.CredentialStore.Remove(service, new GitCredential(input)))
             {
                 Context.Trace.WriteLine("Credential was successfully erased.");
             }

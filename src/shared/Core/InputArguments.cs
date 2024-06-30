@@ -35,6 +35,16 @@ namespace GitCredentialManager
             _dict = new ReadOnlyDictionary<string, IList<string>>(dict);
         }
 
+        /// <summary>
+        /// Return a copy of input, with additional OAuth refresh token.
+        /// </summary>
+        public InputArguments(InputArguments input, string oauthRefreshToken) {
+            _dict = new Dictionary<string, IList<string>>(input._dict)
+            {
+                ["oauth_refresh_token"] = new List<string>() { oauthRefreshToken }
+            };
+        }
+
         #region Common Arguments
 
         public string Protocol => GetArgumentOrDefault("protocol");
@@ -42,6 +52,8 @@ namespace GitCredentialManager
         public string Path     => GetArgumentOrDefault("path");
         public string UserName => GetArgumentOrDefault("username");
         public string Password => GetArgumentOrDefault("password");
+        public string OAuthRefreshToken => GetArgumentOrDefault("oauth_refresh_token");
+        public string PasswordExpiry => GetArgumentOrDefault("password_expiry_utc");
         public IList<string> WwwAuth => GetMultiArgumentOrDefault("wwwauth");
 
         #endregion

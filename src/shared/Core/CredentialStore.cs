@@ -37,6 +37,7 @@ namespace GitCredentialManager
             return _backingStore.Get(service, account);
         }
 
+
         public void AddOrUpdate(string service, string account, string secret)
         {
             EnsureBackingStore();
@@ -47,6 +48,18 @@ namespace GitCredentialManager
         {
             EnsureBackingStore();
             return _backingStore.Remove(service, account);
+        }
+
+        public void AddOrUpdate(string service, ICredential credential)
+        {
+            EnsureBackingStore();
+            _backingStore.AddOrUpdate(service, credential);
+        }
+
+        public bool Remove(string service, ICredential credential)
+        {
+            EnsureBackingStore();
+            return _backingStore.Remove(service, credential);
         }
 
         #endregion
@@ -66,7 +79,7 @@ namespace GitCredentialManager
             {
                 case StoreNames.WindowsCredentialManager:
                     ValidateWindowsCredentialManager();
-                    _backingStore = new WindowsCredentialManager(ns);
+                        _backingStore = new WindowsCredentialManager(ns);
                     break;
 
                 case StoreNames.Dpapi:
@@ -363,6 +376,29 @@ namespace GitCredentialManager
             gpgPath = _context.Environment.LocateExecutable("gpg");
             _context.Trace.WriteLine($"Using PATH-located GPG (gpg) executable: {gpgPath}");
             return gpgPath;
+        }
+
+        public bool CanStoreOAuthRefreshToken
+        {
+            get
+            {
+                EnsureBackingStore();
+                return _backingStore.CanStoreOAuthRefreshToken;
+            }
+        }
+        public bool CanStorePasswordExpiry
+        {
+            get
+            {
+                EnsureBackingStore();
+                return _backingStore.CanStorePasswordExpiry;
+            }
+        }
+
+        public override string ToString()
+        {
+            EnsureBackingStore();
+            return $"{nameof(CredentialStore)} backed by {_backingStore}";
         }
     }
 }
