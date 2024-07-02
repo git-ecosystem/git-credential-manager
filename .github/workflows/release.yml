@@ -358,9 +358,7 @@ jobs:
         sign.exe code trusted-signing payload/* `
           -tse https://wus2.codesigning.azure.net/ `
           -tsa git-fundamentals-signing `
-          -tscp git-fundamentals-windows-signing `
-          -d "Git Fundamentals Windows Signing Certificate" `
-          -u "https://github.com/git-ecosystem/git-credential-manager"
+          -tscp git-fundamentals-windows-signing
 
     - name: Lay out signed payload, images, and symbols
       shell: bash
@@ -436,9 +434,7 @@ jobs:
         sign.exe code trusted-signing nupkg/* `
           -tse https://wus2.codesigning.azure.net/ `
           -tsa git-fundamentals-signing `
-          -tscp git-fundamentals-windows-signing `
-          -d "Git Fundamentals Windows Signing Certificate" `
-          -u "https://github.com/git-ecosystem/git-credential-manager"
+          -tscp git-fundamentals-windows-signing
 
         mv nupkg/* .
 
