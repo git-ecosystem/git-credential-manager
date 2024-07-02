@@ -450,10 +450,20 @@ jobs:
           -tsa git-fundamentals-signing `
           -tscp git-fundamentals-windows-signing `
           -d "Git Fundamentals Windows Signing Certificate" `
-          -u "https://github.com/git-ecosystem/git-credential-manager" `
-          -co nuget-signing-certificate.cer
+          -u "https://github.com/git-ecosystem/git-credential-manager"
 
         mv nupkg/* .
+
+    # Remove this once NuGet supports the subscriber identity validation EKU:
+    # https://github.com/NuGet/NuGetGallery/issues/10027
+    - name: Extract signing certificate from package
+      shell: pwsh
+      run: |
+        dotnet tool install --global Knapcode.CertificateExtractor
+        $nupkg = gci *.nupkg
+        nuget-cert-extractor --file $nupkg --output certs --code-signing --author --leaf
+        $cert = gci certs\*.cer
+        mv $cert .\nuget-signing.cer
 
     - name: Publish signed package and certificate
       uses: actions/upload-artifact@v4
