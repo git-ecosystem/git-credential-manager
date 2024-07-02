@@ -351,7 +351,7 @@ jobs:
 
     - name: Install sign CLI tool
       run: |
-        dotnet tool install -g --version 0.9.1-beta.24325.5
+        dotnet tool install -g sign --version 0.9.1-beta.24325.5
 
     - name: Sign payload
       run: |
@@ -427,7 +427,7 @@ jobs:
 
     - name: Install sign CLI tool
       run: |
-        dotnet tool install -g --version 0.9.1-beta.24325.5
+        dotnet tool install -g sign --version 0.9.1-beta.24325.5
 
     - name: Sign package
       run: |
