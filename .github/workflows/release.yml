@@ -349,19 +349,13 @@ jobs:
         tenant-id: ${{ secrets.AZURE_TENANT_ID }}
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-    - name: Download/extract Sign CLI tool
-      env:
-        AST: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
-        ASC: ${{ secrets.AZURE_STORAGE_CONTAINER }}
-        SCT: 'Sign.Cli-alpha.zip'
+    - name: Install sign CLI tool
       run: |
-        az storage blob download --file sign-cli.zip --auth-mode login `
-          --account-name $env:AST --container-name $env:ASC --name $env:SCT
-        Expand-Archive -Path sign-cli.zip -DestinationPath .\sign-cli
+        dotnet tool install -g --version 0.9.1-beta.24325.5
 
     - name: Sign payload
       run: |
-        ./sign-cli/sign.exe code trusted-signing payload/* `
+        sign.exe code trusted-signing payload/* `
           -tse https://wus2.codesigning.azure.net/ `
           -tsa git-fundamentals-signing `
           -tscp git-fundamentals-windows-signing `
@@ -433,19 +427,13 @@ jobs:
         tenant-id: ${{ secrets.AZURE_TENANT_ID }}
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-    - name: Download/extract Sign CLI tool
-      env:
-        AST: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
-        ASC: ${{ secrets.AZURE_STORAGE_CONTAINER }}
-        SCT: 'Sign.Cli-alpha.zip'
+    - name: Install sign CLI tool
       run: |
-        az storage blob download --file sign-cli.zip --auth-mode login `
-          --account-name $env:AST --container-name $env:ASC --name $env:SCT
-        Expand-Archive -Path sign-cli.zip -DestinationPath .\sign-cli
+        dotnet tool install -g --version 0.9.1-beta.24325.5
 
     - name: Sign package
       run: |
-        ./sign-cli/sign.exe code trusted-signing nupkg/* `
+        sign.exe code trusted-signing nupkg/* `
           -tse https://wus2.codesigning.azure.net/ `
           -tsa git-fundamentals-signing `
           -tscp git-fundamentals-windows-signing `
