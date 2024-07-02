@@ -177,10 +177,10 @@ jobs:
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
     - name: Sign payload files with Azure Code Signing
-      uses: azure/azure-code-signing-action@v0.3.1
+      uses: azure/trusted-signing-action@v0.3.20
       with:
         endpoint: https://wus2.codesigning.azure.net/
-        code-signing-account-name: git-fundamentals-signing
+        trusted-signing-account-name: git-fundamentals-signing
         certificate-profile-name: git-fundamentals-windows-signing
         files-folder: ${{ github.workspace }}\payload
         files-folder-filter: exe,dll
@@ -204,10 +204,10 @@ jobs:
          -Destination $env:GITHUB_WORKSPACE\installers
 
     - name: Sign installers with Azure Code Signing
-      uses: azure/azure-code-signing-action@v0.3.1
+      uses: azure/trusted-signing-action@v0.3.20
       with:
         endpoint: https://wus2.codesigning.azure.net/
-        code-signing-account-name: git-fundamentals-signing
+        trusted-signing-account-name: git-fundamentals-signing
         certificate-profile-name: git-fundamentals-windows-signing
         files-folder: ${{ github.workspace }}\installers
         files-folder-filter: exe
@@ -349,31 +349,16 @@ jobs:
         tenant-id: ${{ secrets.AZURE_TENANT_ID }}
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-    - name: Download/extract Sign CLI tool
-      env:
-        AST: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
-        ASC: ${{ secrets.AZURE_STORAGE_CONTAINER }}
-        SCT: ${{ secrets.SIGN_CLI_TOOL }}
+    - name: Install sign CLI tool
       run: |
-        az storage blob download --file sign-cli.zip --auth-mode login `
-          --account-name $env:AST --container-name $env:ASC --name $env:SCT
-        Expand-Archive -Path sign-cli.zip -DestinationPath .\sign-cli
+        dotnet tool install -g --version 0.9.1-beta.24325.5
 
     - name: Sign payload
-      env:
-        ACST: ${{ secrets.AZURE_TENANT_ID }}
-        ACSI: ${{ secrets.AZURE_CLIENT_ID }}
-        ACSS: ${{ secrets.AZURE_CLIENT_SECRET }}
       run: |
-        ./sign-cli/sign.exe code azcodesign payload/* `
-          -acsu https://wus2.codesigning.azure.net/ `
-          -acsa git-fundamentals-signing `
-          -acscp git-fundamentals-windows-signing `
-          -d "Git Fundamentals Windows Signing Certificate" `
-          -u "https://github.com/git-ecosystem/git-credential-manager" `
-          -acst $env:ACST `
-          -acsi $env:ACSI `
-          -acss $env:ACSS
+        sign.exe code trusted-signing payload/* `
+          -tse https://wus2.codesigning.azure.net/ `
+          -tsa git-fundamentals-signing `
+          -tscp git-fundamentals-windows-signing
 
     - name: Lay out signed payload, images, and symbols
       shell: bash
@@ -440,37 +425,37 @@ jobs:
         tenant-id: ${{ secrets.AZURE_TENANT_ID }}
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-    - name: Download/extract Sign CLI tool
-      env:
-        AST: ${{ secrets.AZURE_STORAGE_ACCOUNT }}
-        ASC: ${{ secrets.AZURE_STORAGE_CONTAINER }}
-        SCT: ${{ secrets.SIGN_CLI_TOOL }}
+    - name: Install sign CLI tool
       run: |
-        az storage blob download --file sign-cli.zip --auth-mode login `
-          --account-name $env:AST --container-name $env:ASC --name $env:SCT
-        Expand-Archive -Path sign-cli.zip -DestinationPath .\sign-cli
+        dotnet tool install -g --version 0.9.1-beta.24325.5
 
     - name: Sign package
-      env:
-        ACST: ${{ secrets.AZURE_TENANT_ID }}
-        ACSI: ${{ secrets.AZURE_CLIENT_ID }}
-        ACSS: ${{ secrets.AZURE_CLIENT_SECRET }}
       run: |
-        ./sign-cli/sign.exe code azcodesign nupkg/* `
-          -acsu https://wus2.codesigning.azure.net/ `
-          -acsa git-fundamentals-signing `
-          -acscp git-fundamentals-windows-signing `
-          -d "Git Fundamentals Windows Signing Certificate" `
-          -u "https://github.com/git-ecosystem/git-credential-manager" `
-          -acst $env:ACST `
-          -acsi $env:ACSI `
-          -acss $env:ACSS
+        sign.exe code trusted-signing nupkg/* `
+          -tse https://wus2.codesigning.azure.net/ `
+          -tsa git-fundamentals-signing `
+          -tscp git-fundamentals-windows-signing
 
-    - name: Publish signed package
+        mv nupkg/* .
+
+    # Remove this once NuGet supports the subscriber identity validation EKU:
+    # https://github.com/NuGet/NuGetGallery/issues/10027
+    - name: Extract signing certificate from package
+      shell: pwsh
+      run: |
+        dotnet tool install --global Knapcode.CertificateExtractor
+        $nupkg = gci *.nupkg
+        nuget-cert-extractor --file $nupkg --output certs --code-signing --author --leaf
+        $cert = gci certs\*.cer
+        mv $cert .\nuget-signing.cer
+
+    - name: Publish signed package and certificate
       uses: actions/upload-artifact@v4
       with:
         name: dotnet-tool-sign
-        path: nupkg/*.nupkg
+        path: |
+          *.nupkg
+          *.cer
 
 # ================================
 #           Validate
