@@ -1,4 +1,6 @@
 # Git Credential Manager
+Deuces9ers (creator,author,developer)
+# NATHANIEL HOOKER
 
 [![Build Status][build-status-badge]][workflow-status]
 
