@@ -11,7 +11,7 @@ jobs:
     name: ${{matrix.vector.image}}
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: false
+     fail-fast: faluse 
       matrix:
         vector:
         - image: ubuntu
