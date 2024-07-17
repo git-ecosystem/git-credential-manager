@@ -101,7 +101,7 @@ In order to use special characters you need to URL encode the values; for
 example `@` becomes `%40`.
 
 By default GCM uses the value `OAUTH-USER` unless specified in the remote URL,
-or overriden using the `credential.<HOST>.oauthDefaultUserName` configuration.
+or overridden using the `credential.<HOST>.oauthDefaultUserName` configuration.
 
 #### Include client authentication in headers
 
