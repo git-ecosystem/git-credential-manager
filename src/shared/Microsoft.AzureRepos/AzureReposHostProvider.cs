@@ -549,6 +549,14 @@ namespace Microsoft.AzureRepos
 
             if (hasCertThumbprint)
             {
+                bool hasX5CSetting = _context.Settings.TryGetSetting(
+                    AzureDevOpsConstants.EnvironmentVariables.ServicePrincipalCertificateSendX5C,
+                    Constants.GitConfiguration.Credential.SectionName,
+                    AzureDevOpsConstants.GitConfiguration.Credential.ServicePrincipalCertificateSendX5C,
+                    out string certHasX5C);
+
+                sp.SendX5C = !hasX5CSetting || certHasX5C == "false";
+
                 X509Certificate2 cert = X509Utils.GetCertificateByThumbprint(certThumbprint);
                 if (cert is null)
                 {

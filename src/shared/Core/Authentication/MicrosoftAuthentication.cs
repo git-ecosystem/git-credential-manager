@@ -92,6 +92,11 @@ namespace GitCredentialManager.Authentication
         /// If both <see cref="Certificate"/> and <see cref="ClientSecret"/> are set, the certificate will be used.
         /// </remarks>
         public string ClientSecret { get; set; }
+
+        /// <summary>
+        /// Whether the authentication should send X5C
+        /// </summary>
+        public bool SendX5C { get; set; }
     }
 
     public interface IMicrosoftAuthenticationResult
@@ -269,7 +274,15 @@ namespace GitCredentialManager.Authentication
 
             try
             {
-                AuthenticationResult result = await app.AcquireTokenForClient(scopes).ExecuteAsync();
+                var tokenBuilder = app.AcquireTokenForClient(scopes);
+
+                if (sp.SendX5C)
+                {
+                    tokenBuilder = tokenBuilder.WithSendX5C(true);
+                }
+
+                AuthenticationResult result = await tokenBuilder.ExecuteAsync();
+
                 return new MsalResult(result);
             }
             catch (Exception ex)

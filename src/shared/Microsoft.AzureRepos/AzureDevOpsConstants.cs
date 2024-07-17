@@ -44,6 +44,7 @@ namespace Microsoft.AzureRepos
             public const string ServicePrincipalId = "GCM_AZREPOS_SERVICE_PRINCIPAL";
             public const string ServicePrincipalSecret = "GCM_AZREPOS_SP_SECRET";
             public const string ServicePrincipalCertificateThumbprint = "GCM_AZREPOS_SP_CERT_THUMBPRINT";
+            public const string ServicePrincipalCertificateSendX5C = "GCM_AZREPOS_SP_CERT_SEND_X5C";
             public const string ManagedIdentity = "GCM_AZREPOS_MANAGEDIDENTITY";
         }
 
@@ -59,6 +60,7 @@ namespace Microsoft.AzureRepos
                 public const string ServicePrincipal = "azreposServicePrincipal";
                 public const string ServicePrincipalSecret = "azreposServicePrincipalSecret";
                 public const string ServicePrincipalCertificateThumbprint = "azreposServicePrincipalCertificateThumbprint";
+                public const string ServicePrincipalCertificateSendX5C = "azreposServicePrincipalCertificateSendX5C";
                 public const string ManagedIdentity = "azreposManagedIdentity";
             }
         }
