@@ -274,20 +274,14 @@ namespace GitCredentialManager.Authentication
 
             try
             {
-                var tokenBuilder = app.AcquireTokenForClient(scopes);
-
-                if (sp.SendX5C)
-                {
-                    tokenBuilder = tokenBuilder.WithSendX5C(true);
-                }
-
-                AuthenticationResult result = await tokenBuilder.ExecuteAsync();
+                Context.Trace.WriteLine($"Sending with X5C: '{sp.SendX5C}'.");
+                AuthenticationResult result = await app.AcquireTokenForClient(scopes).WithSendX5C(sp.SendX5C).ExecuteAsync();;
 
                 return new MsalResult(result);
             }
             catch (Exception ex)
             {
-                Context.Trace.WriteLine($"Failed to acquire token for service principal '{sp.TenantId}/{sp.TenantId}'.");
+                Context.Trace.WriteLine($"Failed to acquire token for service principal '{sp.TenantId}/{sp.Id}'.");
                 Context.Trace.WriteException(ex);
                 throw;
             }

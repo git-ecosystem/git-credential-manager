@@ -555,7 +555,7 @@ namespace Microsoft.AzureRepos
                     AzureDevOpsConstants.GitConfiguration.Credential.ServicePrincipalCertificateSendX5C,
                     out string certHasX5C);
 
-                sp.SendX5C = !hasX5CSetting || certHasX5C == "false";
+                sp.SendX5C = !hasX5CSetting || certHasX5C != "false";
 
                 X509Certificate2 cert = X509Utils.GetCertificateByThumbprint(certThumbprint);
                 if (cert is null)
