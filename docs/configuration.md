@@ -858,6 +858,7 @@ You must also set at least one authentication mechanism if you set this value:
 
 - [credential.azreposServicePrincipalSecret][credential-azrepos-sp-secret]
 - [credential.azreposServicePrincipalCertificateThumbprint][credential-azrepos-sp-cert-thumbprint]
+- [credential.azreposServicePrincipalCertificateSendX5C][credential-azrepos-sp-cert-x5c]
 
 For more information about service principals, see the Azure DevOps
 [documentation][azrepos-sp-mid].
@@ -901,6 +902,25 @@ git config --global credential.azreposServicePrincipalCertificateThumbprint "9b6
 ```
 
 **Also see: [GCM_AZREPOS_SP_CERT_THUMBPRINT][gcm-azrepos-sp-cert-thumbprint]**
+
+---
+
+### credential.azreposServicePrincipalCertificateSendX5C
+
+When using a certificate for [service principal][service-principal] authentication, this configuration
+specifies whether the X5C claim should be should be sent to the STS. Sending the x5c
+enables application developers to achieve easy certificate rollover in Azure AD:
+this method will send the public certificate to Azure AD along with the token request,
+so that Azure AD can use it to validate the subject name based on a trusted issuer
+policy. This saves the application admin from the need to explicitly manage the
+certificate rollover. For details see [https://aka.ms/msal-net-sni](https://aka.ms/msal-net-sni).
+
+#### Example
+
+```shell
+git config --global credential.azreposServicePrincipalCertificateSendX5C true
+```
+**Also see: [GCM_AZREPOS_SP_CERT_SEND_X5C][gcm-azrepos-sp-cert-x5c]**
 
 ---
 
@@ -1034,6 +1054,8 @@ Defaults to disabled.
 [credential-azrepos-sp]: #credentialazreposserviceprincipal
 [credential-azrepos-sp-secret]: #credentialazreposserviceprincipalsecret
 [credential-azrepos-sp-cert-thumbprint]: #credentialazreposserviceprincipalcertificatethumbprint
+[credential-azrepos-sp-cert-x5c]: #credentialazreposserviceprincipalcertificatesendx5c
 [gcm-azrepos-service-principal]: environment.md#GCM_AZREPOS_SERVICE_PRINCIPAL
 [gcm-azrepos-sp-secret]: environment.md#GCM_AZREPOS_SP_SECRET
 [gcm-azrepos-sp-cert-thumbprint]: environment.md#GCM_AZREPOS_SP_CERT_THUMBPRINT
+[gcm-azrepos-sp-cert-x5c]: environment.md#GCM_AZREPOS_SP_CERT_SEND_X5C
