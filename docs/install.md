@@ -3,7 +3,7 @@
 There are multiple ways to install GCM on macOS, Windows, and Linux. Preferred
 installation methods for each OS are designated with a :star:.
 
-## macOS
+## macOS (or Linux)
 
 ### Homebrew :star:
 
