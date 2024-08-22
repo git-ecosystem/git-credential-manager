@@ -41,9 +41,6 @@ namespace GitLab
                 return false;
             }
 
-            // We do not support unencrypted HTTP communications to GitLab,
-            // but we report `true` here for HTTP so that we can show a helpful
-            // error message for the user in `CreateCredentialAsync`.
             if (!StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "http") &&
                 !StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "https"))
             {
@@ -93,13 +90,6 @@ namespace GitLab
         public override async Task<ICredential> GenerateCredentialAsync(InputArguments input)
         {
             ThrowIfDisposed();
-
-            // We should not allow unencrypted communication and should inform the user
-            if (StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "http"))
-            {
-                throw new Trace2Exception(Context.Trace2,
-                    "Unencrypted HTTP is not supported for GitHub. Ensure the repository remote URL is using HTTPS.");
-            }
 
             Uri remoteUri = input.GetRemoteUri();
 
