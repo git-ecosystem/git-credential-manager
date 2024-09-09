@@ -633,6 +633,24 @@ git config --global credential.dpapiStorePath D:\credentials
 
 ---
 
+### credential.gpgPassStorePath
+
+Specify a custom directory to store GPG-encrypted [pass][pass]-compatible credential files
+in when [`credential.credentialStore`][credential-credentialstore] is set to `gpg`.
+
+Defaults to the value `~/.password-store` or `%USERPROFILE%\.password-store`.
+
+#### Example
+
+```shell
+git config --global credential.gpgPassStorePath /mnt/external-drive/.password-store
+```
+
+**Note:** Location of the password store used by [pass][pass] can be overridden by the
+`PASSWORD_STORE_DIR` environment variable, see the [man page][pass-man] for details.
+
+---
+
 ### credential.msauthFlow
 
 Specify which authentication flow should be used when performing Microsoft
@@ -1042,6 +1060,7 @@ Defaults to disabled.
 [provider-migrate]: migration.md#gcm_authority
 [cache-options]: https://git-scm.com/docs/git-credential-cache#_options
 [pass]: https://www.passwordstore.org/
+[pass-man]: https://git.zx2c4.com/password-store/about/
 [trace2-normal-docs]: https://git-scm.com/docs/api-trace2#_the_normal_format_target
 [trace2-normal-env]: environment.md#GIT_TRACE2
 [trace2-event-docs]: https://git-scm.com/docs/api-trace2#_the_event_format_target
