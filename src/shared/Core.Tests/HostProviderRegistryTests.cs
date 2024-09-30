@@ -35,13 +35,13 @@ namespace GitCredentialManager.Tests
         }
 
         [Fact]
-        public void HostProviderRegistry_GetProvider_NoProviders_ThrowException()
+        public async Task HostProviderRegistry_GetProvider_NoProviders_ThrowException()
         {
             var context = new TestCommandContext();
             var registry = new HostProviderRegistry(context);
             var input = new InputArguments(new Dictionary<string, string>());
 
-            Assert.ThrowsAsync<Exception>(() => registry.GetProviderAsync(input));
+            await Assert.ThrowsAsync<Exception>(() => registry.GetProviderAsync(input));
         }
 
         [Fact]
