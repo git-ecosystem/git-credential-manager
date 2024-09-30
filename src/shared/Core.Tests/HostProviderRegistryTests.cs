@@ -41,7 +41,7 @@ namespace GitCredentialManager.Tests
             var registry = new HostProviderRegistry(context);
             var input = new InputArguments(new Dictionary<string, string>());
 
-            await Assert.ThrowsAsync<Exception>(() => registry.GetProviderAsync(input));
+            await Assert.ThrowsAsync<GitCredentialManager.Trace2Exception>(() => registry.GetProviderAsync(input));
         }
 
         [Fact]

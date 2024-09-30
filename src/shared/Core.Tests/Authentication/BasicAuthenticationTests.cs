@@ -70,7 +70,7 @@ namespace GitCredentialManager.Tests.Authentication
 
             var basicAuth = new BasicAuthentication(context);
 
-            await Assert.ThrowsAsync<InvalidOperationException>(() => basicAuth.GetCredentialsAsync(testResource));
+            await Assert.ThrowsAsync<GitCredentialManager.Trace2InvalidOperationException>(() => basicAuth.GetCredentialsAsync(testResource));
         }
 
         [Fact]
