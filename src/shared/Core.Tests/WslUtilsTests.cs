@@ -92,7 +92,7 @@ namespace GitCredentialManager.Tests
             Assert.Throws<ArgumentException>(() => WslUtils.ConvertToDistroPath(path, out _));
         }
 
-        [PlatformFact(Platforms.Windows)]
+        [WindowsFact]
         public void WslUtils_CreateWslProcess()
         {
             const string distribution = "ubuntu";
@@ -112,7 +112,7 @@ namespace GitCredentialManager.Tests
             Assert.False(process.StartInfo.UseShellExecute);
         }
 
-        [PlatformFact(Platforms.Windows)]
+        [WindowsFact]
         public void WslUtils_CreateWslProcess_WorkingDirectory()
         {
             const string distribution = "ubuntu";

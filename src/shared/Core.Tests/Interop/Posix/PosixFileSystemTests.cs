@@ -7,7 +7,7 @@ namespace GitCredentialManager.Tests.Interop.Posix
 {
     public class PosixFileSystemTests
     {
-        [PlatformFact(Platforms.Posix)]
+        [PosixFact]
         public void PosixFileSystem_ResolveSymlinks_FileLinks()
         {
             string baseDir = GetTempDirectory();
@@ -19,7 +19,7 @@ namespace GitCredentialManager.Tests.Interop.Posix
             Assert.Equal(realPath, actual);
         }
 
-        [PlatformFact(Platforms.Posix)]
+        [PosixFact]
         public void PosixFileSystem_ResolveSymlinks_DirectoryLinks()
         {
             //

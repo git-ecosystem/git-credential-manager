@@ -169,13 +169,13 @@ namespace GitCredentialManager.Tests
             basicAuthMock.Verify(x => x.GetCredentialsAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
         }
 
-        [PlatformFact(Platforms.Posix)]
+        [PosixFact]
         public async Task GenericHostProvider_CreateCredentialAsync_NonWindows_WiaSupported_ReturnsBasicCredential()
         {
             await TestCreateCredentialAsync_ReturnsBasicCredential(wiaSupported: true);
         }
 
-        [PlatformFact(Platforms.Windows)]
+        [WindowsFact]
         public async Task GenericHostProvider_CreateCredentialAsync_Windows_WiaSupported_ReturnsEmptyCredential()
         {
             await TestCreateCredentialAsync_ReturnsEmptyCredential(wiaSupported: true);

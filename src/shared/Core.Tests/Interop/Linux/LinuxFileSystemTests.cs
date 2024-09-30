@@ -7,7 +7,7 @@ namespace GitCredentialManager.Tests.Interop.Linux
 {
     public class LinuxFileSystemTests
     {
-        [PlatformFact(Platforms.Linux)]
+        [LinuxFact]
         public static void LinuxFileSystem_IsSamePath_SamePath_ReturnsTrue()
         {
             var fs = new LinuxFileSystem();
@@ -18,7 +18,7 @@ namespace GitCredentialManager.Tests.Interop.Linux
             Assert.True(fs.IsSamePath(fileA, fileA));
         }
 
-        [PlatformFact(Platforms.Linux)]
+        [LinuxFact]
         public static void LinuxFileSystem_IsSamePath_DifferentFile_ReturnsFalse()
         {
             var fs = new LinuxFileSystem();
@@ -31,7 +31,7 @@ namespace GitCredentialManager.Tests.Interop.Linux
             Assert.False(fs.IsSamePath(fileB, fileA));
         }
 
-        [PlatformFact(Platforms.Linux)]
+        [LinuxFact]
         public static void LinuxFileSystem_IsSamePath_SameFileDifferentCase_ReturnsFalse()
         {
             var fs = new LinuxFileSystem();
@@ -44,7 +44,7 @@ namespace GitCredentialManager.Tests.Interop.Linux
             Assert.False(fs.IsSamePath(fileA2, fileA1));
         }
 
-        [PlatformFact(Platforms.Linux)]
+        [LinuxFact]
         public static void LinuxFileSystem_IsSamePath_SameFileDifferentPathNormalization_ReturnsTrue()
         {
             var fs = new LinuxFileSystem();
@@ -58,7 +58,7 @@ namespace GitCredentialManager.Tests.Interop.Linux
             Assert.True(fs.IsSamePath(fileA2, fileA1));
         }
 
-        [PlatformFact(Platforms.Linux)]
+        [LinuxFact]
         public static void LinuxFileSystem_IsSamePath_SameFileViaSymlink_ReturnsTrue()
         {
             var fs = new LinuxFileSystem();
@@ -71,7 +71,7 @@ namespace GitCredentialManager.Tests.Interop.Linux
             Assert.True(fs.IsSamePath(fileA2, fileA1));
         }
 
-        [PlatformFact(Platforms.Linux)]
+        [LinuxFact]
         public static void LinuxFileSystem_IsSamePath_SameFileRelativePath_ReturnsTrue()
         {
             var fs = new LinuxFileSystem();
