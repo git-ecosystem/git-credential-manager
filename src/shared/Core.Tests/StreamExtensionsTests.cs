@@ -21,7 +21,7 @@ namespace GitCredentialManager.Tests
             var output = ReadStringStream(input, StreamExtensions.ReadDictionary);
 
             Assert.NotNull(output);
-            Assert.Equal(0, output.Count);
+            Assert.Empty(output);
         }
 
         [Fact]
@@ -73,7 +73,7 @@ namespace GitCredentialManager.Tests
             var output = ReadStringStream(input, x => StreamExtensions.ReadDictionary(x, StringComparer.OrdinalIgnoreCase));
 
             Assert.NotNull(output);
-            Assert.Equal(1, output.Count);
+            Assert.Single(output);
             AssertDictionary("2", "a", output);
         }
 
@@ -197,7 +197,7 @@ namespace GitCredentialManager.Tests
             var output = ReadStringStream(input, StreamExtensions.ReadMultiDictionary);
 
             Assert.NotNull(output);
-            Assert.Equal(0, output.Count);
+            Assert.Empty(output);
         }
 
         [Fact]
@@ -250,7 +250,7 @@ namespace GitCredentialManager.Tests
             var output = ReadStringStream(input, x => StreamExtensions.ReadMultiDictionary(x, StringComparer.OrdinalIgnoreCase));
 
             Assert.NotNull(output);
-            Assert.Equal(1, output.Count);
+            Assert.Single(output);
             AssertMultiDictionary(new[] { "2" }, "a", output);
         }
 
@@ -262,7 +262,7 @@ namespace GitCredentialManager.Tests
             var output = ReadStringStream(input, StreamExtensions.ReadMultiDictionary);
 
             Assert.NotNull(output);
-            Assert.Equal(1, output.Count);
+            Assert.Single(output);
 
             AssertMultiDictionary(new[] { String.Empty,  }, "a", output);
         }

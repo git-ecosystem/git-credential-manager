@@ -35,13 +35,13 @@ namespace GitCredentialManager.Tests
         }
 
         [Fact]
-        public void HostProviderRegistry_GetProvider_NoProviders_ThrowException()
+        public async Task HostProviderRegistry_GetProvider_NoProviders_ThrowException()
         {
             var context = new TestCommandContext();
             var registry = new HostProviderRegistry(context);
             var input = new InputArguments(new Dictionary<string, string>());
 
-            Assert.ThrowsAsync<Exception>(() => registry.GetProviderAsync(input));
+            await Assert.ThrowsAsync<GitCredentialManager.Trace2Exception>(() => registry.GetProviderAsync(input));
         }
 
         [Fact]
@@ -119,7 +119,7 @@ namespace GitCredentialManager.Tests
 
             Assert.Same(providerMock.Object, result);
             Assert.True(context.Git.Configuration.Global.TryGetValue(configKey, out IList<string> config));
-            Assert.Equal(1, config.Count);
+            Assert.Single(config);
             Assert.Equal(providerId, config[0]);
         }
 
@@ -148,7 +148,7 @@ namespace GitCredentialManager.Tests
 
             Assert.Same(providerMock.Object, result);
             Assert.True(context.Git.Configuration.Global.TryGetValue(configKey, out IList<string> config));
-            Assert.Equal(1, config.Count);
+            Assert.Single(config);
             Assert.Equal(providerId, config[0]);
         }
 

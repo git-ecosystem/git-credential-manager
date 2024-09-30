@@ -37,7 +37,7 @@ public class CurlCookieParserTests
 
         IList<Cookie> actual = parser.Parse(content);
 
-        Assert.Equal(1, actual.Count);
+        Assert.Single(actual);
         AssertCookie(actual[0], ".example.com", "/path/here", true, 0, "cookie1", "value1");
     }
 

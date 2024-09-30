@@ -65,7 +65,7 @@ namespace GitCredentialManager.Tests.Objects
 
         public void AssertNoRequests()
         {
-            Assert.Equal(0, _requestCounts.Count);
+            Assert.Empty(_requestCounts);
         }
 
         #region HttpMessageHandler

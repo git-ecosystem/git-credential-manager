@@ -11,7 +11,7 @@ namespace GitCredentialManager.Tests.Interop.Posix
     {
         private const string TestNamespace = "git-test";
 
-        [PlatformFact(Platforms.Posix)]
+        [PosixFact]
         public void GnuPassCredentialStore_ReadWriteDelete()
         {
             var fs = new TestFileSystem();
@@ -54,7 +54,7 @@ namespace GitCredentialManager.Tests.Interop.Posix
             }
         }
 
-        [PlatformFact(Platforms.Posix)]
+        [PosixFact]
         public void GnuPassCredentialStore_Get_NotFound_ReturnsNull()
         {
             var fs = new TestFileSystem();
@@ -70,7 +70,7 @@ namespace GitCredentialManager.Tests.Interop.Posix
             Assert.Null(credential);
         }
 
-        [PlatformFact(Platforms.Posix)]
+        [PosixFact]
         public void GnuPassCredentialStore_Remove_NotFound_ReturnsFalse()
         {
             var fs = new TestFileSystem();

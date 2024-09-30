@@ -30,7 +30,7 @@ namespace GitCredentialManager.Tests
                 IsSupportedFunc = _ => true,
                 GenerateCredentialFunc = _ =>
                 {
-                    Assert.True(false, "Should never be called");
+                    Assert.Fail("Should never be called");
                     return null;
                 },
             };

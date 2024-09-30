@@ -1,76 +1,95 @@
-using System;
 using System.Runtime.InteropServices;
 using Xunit;
 
 namespace GitCredentialManager.Tests
 {
-    public class PlatformFactAttribute : FactAttribute
+    public class WindowsFactAttribute : FactAttribute
     {
-        public PlatformFactAttribute(Platforms platforms)
+        public WindowsFactAttribute()
         {
-            if (!XunitHelpers.IsSupportedPlatform(platforms))
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 Skip = "Test not supported on this platform.";
             }
         }
     }
 
-    public class PlatformTheoryAttribute : TheoryAttribute
+    public class MacOSFactAttribute : FactAttribute
     {
-        public PlatformTheoryAttribute(Platforms platforms)
+        public MacOSFactAttribute()
         {
-            if (!XunitHelpers.IsSupportedPlatform(platforms))
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
                 Skip = "Test not supported on this platform.";
             }
         }
     }
 
-    public class SkippablePlatformFactAttribute : SkippableFactAttribute
+    public class LinuxFactAttribute : FactAttribute
     {
-        public SkippablePlatformFactAttribute(Platforms platforms)
+        public LinuxFactAttribute()
         {
-            Xunit.Skip.IfNot(
-                XunitHelpers.IsSupportedPlatform(platforms),
-                "Test not supported on this platform."
-            );
-        }
-    }
-
-    public class SkippablePlatformTheoryAttribute : SkippableTheoryAttribute
-    {
-        public SkippablePlatformTheoryAttribute(Platforms platforms)
-        {
-            Xunit.Skip.IfNot(
-                XunitHelpers.IsSupportedPlatform(platforms),
-                "Test not supported on this platform."
-            );
-        }
-    }
-
-    internal static class XunitHelpers
-    {
-        public static bool IsSupportedPlatform(Platforms platforms)
-        {
-            if (platforms.HasFlag(Platforms.Windows) && RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ||
-                platforms.HasFlag(Platforms.MacOS)   && RuntimeInformation.IsOSPlatform(OSPlatform.OSX)     ||
-                platforms.HasFlag(Platforms.Linux)   && RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
-                return true;
+                Skip = "Test not supported on this platform.";
             }
-
-            return false;
         }
     }
 
-    [Flags]
-    public enum Platforms
+    public class PosixFactAttribute : FactAttribute
     {
-        None    = 0,
-        Windows = 1 << 0,
-        MacOS   = 1 << 2,
-        Linux   = 1 << 3,
-        Posix   = MacOS | Linux,
-        All     = Windows | Posix
+        public PosixFactAttribute()
+        {
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.OSX) &&
+                !RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                Skip = "Test not supported on this platform.";
+            }
+        }
+    }
+
+    public class WindowsTheoryAttribute : TheoryAttribute
+    {
+        public WindowsTheoryAttribute()
+        {
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                Skip = "Test not supported on this platform.";
+            }
+        }
+    }
+
+    public class MacOSTheoryAttribute : TheoryAttribute
+    {
+        public MacOSTheoryAttribute()
+        {
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                Skip = "Test not supported on this platform.";
+            }
+        }
+    }
+
+    public class LinuxTheoryAttribute : TheoryAttribute
+    {
+        public LinuxTheoryAttribute()
+        {
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                Skip = "Test not supported on this platform.";
+            }
+        }
+    }
+
+    public class PosixTheoryAttribute : TheoryAttribute
+    {
+        public PosixTheoryAttribute()
+        {
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.OSX) &&
+                !RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                Skip = "Test not supported on this platform.";
+            }
+        }
     }
 }

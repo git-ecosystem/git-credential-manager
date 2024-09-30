@@ -4,7 +4,7 @@ namespace GitCredentialManager.Tests;
 
 public class Trace2Tests
 {
-    [PlatformTheory(Platforms.Posix)]
+    [PosixTheory]
     [InlineData("af_unix:foo", "foo")]
     [InlineData("af_unix:stream:foo-bar", "foo-bar")]
     [InlineData("af_unix:dgram:foo-bar-baz", "foo-bar-baz")]
@@ -16,7 +16,7 @@ public class Trace2Tests
         Assert.Matches(actual, expected);
     }
 
-    [PlatformTheory(Platforms.Windows)]
+    [WindowsTheory]
     [InlineData("\\\\.\\pipe\\git-foo", "git-foo")]
     [InlineData("\\\\.\\pipe\\git-foo-bar", "git-foo-bar")]
     [InlineData("\\\\.\\pipe\\foo\\git-bar", "git-bar")]
