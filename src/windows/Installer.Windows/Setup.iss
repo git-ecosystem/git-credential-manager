@@ -51,7 +51,7 @@
 #define VerMinor
 #define VerBuild
 #define VerRevision
-#expr ParseVersion(PayloadDir + "\" + GcmExe, VerMajor, VerMinor, VerBuild, VerRevision)
+#expr GetVersionComponents(PayloadDir + "\" + GcmExe, VerMajor, VerMinor, VerBuild, VerRevision)
 #define GcmVersionSimple str(VerMajor) + "." + str(VerMinor) + "." + str(VerBuild)
 #define GcmVersion str(GcmVersionSimple) + "." + str(VerRevision)
 
