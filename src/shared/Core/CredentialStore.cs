@@ -276,7 +276,8 @@ namespace GitCredentialManager
             // Check for a redirected pass store location
             if (!_context.Settings.TryGetSetting(
                 GpgPassCredentialStore.PasswordStoreDirEnvar,
-                null, null,
+                Constants.GitConfiguration.Credential.SectionName,
+                Constants.GitConfiguration.Credential.GpgPassStorePath,
                 out storeRoot))
             {
                 // Use default store root at ~/.password-store

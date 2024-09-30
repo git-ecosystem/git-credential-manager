@@ -162,6 +162,7 @@ namespace GitCredentialManager
                 public const string DevUseLegacyUiHelpers = "devUseLegacyUiHelpers";
                 public const string MsAuthUseDefaultAccount = "msauthUseDefaultAccount";
                 public const string GuiSoftwareRendering = "guiSoftwareRendering";
+                public const string GpgPassStorePath = "gpgPassStorePath";
 
                 public const string OAuthAuthenticationModes = "oauthAuthModes";
                 public const string OAuthClientId            = "oauthClientId";
