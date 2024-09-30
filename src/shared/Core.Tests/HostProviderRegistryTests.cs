@@ -119,7 +119,7 @@ namespace GitCredentialManager.Tests
 
             Assert.Same(providerMock.Object, result);
             Assert.True(context.Git.Configuration.Global.TryGetValue(configKey, out IList<string> config));
-            Assert.Equal(1, config.Count);
+            Assert.Single(config);
             Assert.Equal(providerId, config[0]);
         }
 
@@ -148,7 +148,7 @@ namespace GitCredentialManager.Tests
 
             Assert.Same(providerMock.Object, result);
             Assert.True(context.Git.Configuration.Global.TryGetValue(configKey, out IList<string> config));
-            Assert.Equal(1, config.Count);
+            Assert.Single(config);
             Assert.Equal(providerId, config[0]);
         }
 
