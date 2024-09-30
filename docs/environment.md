@@ -1039,6 +1039,32 @@ export GCM_AZREPOS_SP_CERT_THUMBPRINT="9b6555292e4ea21cbc2ebd23e66e2f91ebbe92dc"
 
 ---
 
+### GCM_AZREPOS_SP_CERT_SEND_X5C
+
+When using a certificate for service principal authentication, this configuration
+specifies whether the X5C claim should be should be sent to the STS. Sending the x5c
+enables application developers to achieve easy certificate rollover in Azure AD:
+this method will send the public certificate to Azure AD along with the token request,
+so that Azure AD can use it to validate the subject name based on a trusted issuer
+policy. This saves the application admin from the need to explicitly manage the
+certificate rollover. For details see [https://aka.ms/msal-net-sni](https://aka.ms/msal-net-sni).
+
+#### Windows
+
+```batch
+SET GCM_AZREPOS_SP_CERT_SEND_X5C="true"
+```
+
+#### macOS/Linux
+
+```bash
+export GCM_AZREPOS_SP_CERT_SEND_X5C="true"
+```
+
+**Also see: [credential.azreposServicePrincipalCertificateSendX5C][credential-azrepos-sp-cert-x5c]**
+
+---
+
 ### GIT_TRACE2
 
 Turns on Trace2 Normal Format tracing - see [Git's Trace2 Normal Format
@@ -1184,6 +1210,8 @@ Defaults to disabled.
 [gcm-azrepos-sp]: #gcm_azrepos_service_principal
 [gcm-azrepos-sp-secret]: #gcm_azrepos_sp_secret
 [gcm-azrepos-sp-cert-thumbprint]: #gcm_azrepos_sp_cert_thumbprint
+[gcm-azrepos-sp-cert-x5c]: #gcm_azrepos_sp_cert_send_x5c
 [credential-azrepos-sp]: configuration.md#credentialazreposserviceprincipal
 [credential-azrepos-sp-secret]: configuration.md#credentialazreposserviceprincipalsecret
 [credential-azrepos-sp-cert-thumbprint]: configuration.md#credentialazreposserviceprincipalcertificatethumbprint
+[credential-azrepos-sp-cert-x5c]: configuration.md#credentialazreposserviceprincipalcertificatesendx5c

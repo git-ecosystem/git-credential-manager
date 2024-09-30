@@ -9,7 +9,7 @@ namespace GitCredentialManager.Tests.Interop.Windows
     {
         private const string TestNamespace = "git-test";
 
-        [PlatformFact(Platforms.Windows)]
+        [WindowsFact]
         public void WindowsCredentialManager_ReadWriteDelete()
         {
             var credManager = new WindowsCredentialManager(TestNamespace);
@@ -45,7 +45,7 @@ namespace GitCredentialManager.Tests.Interop.Windows
             }
         }
 
-        [PlatformFact(Platforms.Windows)]
+        [WindowsFact]
         public void WindowsCredentialManager_AddOrUpdate_UsernameWithAtCharacter()
         {
             var credManager = new WindowsCredentialManager(TestNamespace);
@@ -81,7 +81,7 @@ namespace GitCredentialManager.Tests.Interop.Windows
             }
         }
 
-        [PlatformFact(Platforms.Windows)]
+        [WindowsFact]
         public void WindowsCredentialManager_Get_KeyNotFound_ReturnsNull()
         {
             var credManager = new WindowsCredentialManager(TestNamespace);
@@ -93,7 +93,7 @@ namespace GitCredentialManager.Tests.Interop.Windows
             Assert.Null(credential);
         }
 
-        [PlatformFact(Platforms.Windows)]
+        [WindowsFact]
         public void WindowsCredentialManager_Remove_KeyNotFound_ReturnsFalse()
         {
             var credManager = new WindowsCredentialManager(TestNamespace);
@@ -105,7 +105,7 @@ namespace GitCredentialManager.Tests.Interop.Windows
             Assert.False(result);
         }
 
-        [PlatformFact(Platforms.Windows)]
+        [WindowsFact]
         public void WindowsCredentialManager_AddOrUpdate_TargetNameAlreadyExists_CreatesWithUserInTargetName()
         {
             var credManager = new WindowsCredentialManager(TestNamespace);
@@ -155,7 +155,7 @@ namespace GitCredentialManager.Tests.Interop.Windows
             }
         }
 
-        [PlatformFact(Platforms.Windows)]
+        [WindowsFact]
         public void WindowsCredentialManager_AddOrUpdate_TargetNameAlreadyExistsAndUserWithAtCharacter_CreatesWithEscapedUserInTargetName()
         {
             var credManager = new WindowsCredentialManager(TestNamespace);
@@ -235,7 +235,7 @@ namespace GitCredentialManager.Tests.Interop.Windows
             Assert.Equal(expected, actual);
         }
 
-        [PlatformTheory(Platforms.Windows)]
+        [WindowsTheory]
         [InlineData("https://example.com", null, "https://example.com", "alice", true)]
         [InlineData("https://example.com", "alice", "https://example.com", "alice", true)]
         [InlineData("https://example.com", null, "https://example.com:443", "alice", true)]
@@ -270,7 +270,7 @@ namespace GitCredentialManager.Tests.Interop.Windows
             Assert.Equal(expected, actual);
         }
 
-        [PlatformFact(Platforms.Windows)]
+        [WindowsFact]
         public void WindowsCredentialManager_IsMatch_NoNamespace_NotMatched()
         {
             var win32Cred = new Win32Credential
@@ -286,7 +286,7 @@ namespace GitCredentialManager.Tests.Interop.Windows
             Assert.False(result);
         }
 
-        [PlatformFact(Platforms.Windows)]
+        [WindowsFact]
         public void WindowsCredentialManager_IsMatch_DifferentNamespace_NotMatched()
         {
             var win32Cred = new Win32Credential
@@ -302,7 +302,7 @@ namespace GitCredentialManager.Tests.Interop.Windows
             Assert.False(result);
         }
 
-        [PlatformFact(Platforms.Windows)]
+        [WindowsFact]
         public void WindowsCredentialManager_IsMatch_CaseSensitiveNamespace_NotMatched()
         {
             var win32Cred = new Win32Credential
@@ -318,7 +318,7 @@ namespace GitCredentialManager.Tests.Interop.Windows
             Assert.False(result);
         }
 
-        [PlatformFact(Platforms.Windows)]
+        [WindowsFact]
         public void WindowsCredentialManager_IsMatch_NoNamespaceInQuery_IsMatched()
         {
             var win32Cred = new Win32Credential
@@ -334,7 +334,7 @@ namespace GitCredentialManager.Tests.Interop.Windows
             Assert.True(result);
         }
 
-        [PlatformTheory(Platforms.Windows)]
+        [WindowsTheory]
         [InlineData("https://example.com", null, "https://example.com")]
         [InlineData("https://example.com", "bob", "https://bob@example.com")]
         [InlineData("https://example.com", "bob@id.example.com", "https://bob_id.example.com@example.com")] // @ in user
@@ -355,7 +355,7 @@ namespace GitCredentialManager.Tests.Interop.Windows
             Assert.Equal(fullExpected, actual);
         }
 
-        [PlatformTheory(Platforms.Windows)]
+        [WindowsTheory]
         [InlineData(TestNamespace, "https://example.com", null, $"{TestNamespace}:https://example.com")]
         [InlineData(null, "https://example.com", null, "https://example.com")]
         [InlineData("", "https://example.com", null, "https://example.com")]

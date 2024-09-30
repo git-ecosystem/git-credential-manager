@@ -7,7 +7,7 @@ namespace GitCredentialManager.Tests.Interop.MacOS
 {
     public class MacOSFileSystemTests
     {
-        [PlatformFact(Platforms.MacOS)]
+        [MacOSFact]
         public static void MacOSFileSystem_IsSamePath_SamePath_ReturnsTrue()
         {
             var fs = new MacOSFileSystem();
@@ -18,7 +18,7 @@ namespace GitCredentialManager.Tests.Interop.MacOS
             Assert.True(fs.IsSamePath(fileA, fileA));
         }
 
-        [PlatformFact(Platforms.MacOS)]
+        [MacOSFact]
         public static void MacOSFileSystem_IsSamePath_DifferentFile_ReturnsFalse()
         {
             var fs = new MacOSFileSystem();
@@ -31,7 +31,7 @@ namespace GitCredentialManager.Tests.Interop.MacOS
             Assert.False(fs.IsSamePath(fileB, fileA));
         }
 
-        [PlatformFact(Platforms.MacOS)]
+        [MacOSFact]
         public static void MacOSFileSystem_IsSamePath_SameFileDifferentCase_ReturnsTrue()
         {
             var fs = new MacOSFileSystem();
@@ -44,7 +44,7 @@ namespace GitCredentialManager.Tests.Interop.MacOS
             Assert.True(fs.IsSamePath(fileA2, fileA1));
         }
 
-        [PlatformFact(Platforms.MacOS)]
+        [MacOSFact]
         public static void MacOSFileSystem_IsSamePath_SameFileDifferentPathNormalization_ReturnsTrue()
         {
             var fs = new MacOSFileSystem();
@@ -58,7 +58,7 @@ namespace GitCredentialManager.Tests.Interop.MacOS
             Assert.True(fs.IsSamePath(fileA2, fileA1));
         }
 
-        [PlatformFact(Platforms.MacOS)]
+        [MacOSFact]
         public static void MacOSFileSystem_IsSamePath_SameFileViaSymlink_ReturnsTrue()
         {
             var fs = new MacOSFileSystem();
@@ -71,7 +71,7 @@ namespace GitCredentialManager.Tests.Interop.MacOS
             Assert.True(fs.IsSamePath(fileA2, fileA1));
         }
 
-        [PlatformFact(Platforms.MacOS)]
+        [MacOSFact]
         public static void MacOSFileSystem_IsSamePath_SameFileRelativePath_ReturnsTrue()
         {
             var fs = new MacOSFileSystem();

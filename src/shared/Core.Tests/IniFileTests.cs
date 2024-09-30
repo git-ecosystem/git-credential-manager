@@ -79,7 +79,7 @@ recovery tests]
             Assert.Equal(6, ini.Sections.Count);
 
             AssertSection(ini, "one", out IniSection one);
-            Assert.Equal(1, one.Properties.Count);
+            Assert.Single(one.Properties);
             AssertProperty(one, "foo", "123");
 
             AssertSection(ini, "two", out IniSection twoA);
@@ -88,7 +88,7 @@ recovery tests]
             AssertProperty(twoA, "widget", "Hello, World!");
 
             AssertSection(ini, "two", "subsection name", out IniSection twoB);
-            Assert.Equal(1, twoB.Properties.Count);
+            Assert.Single(twoB.Properties);
             AssertProperty(twoB, "foo", "this is different");
 
             AssertSection(ini, "three", out IniSection three);
@@ -97,7 +97,7 @@ recovery tests]
             AssertProperty(three, "empty", "");
 
             AssertSection(ini, "four", out IniSection four);
-            Assert.Equal(0, four.Properties.Count);
+            Assert.Empty(four.Properties);
 
             AssertSection(ini, "five", out IniSection five);
             Assert.Equal(3, five.Properties.Count);

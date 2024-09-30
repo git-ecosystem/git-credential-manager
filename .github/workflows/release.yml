@@ -35,7 +35,7 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Set up .NET
-      uses: actions/setup-dotnet@v4.0.0
+      uses: actions/setup-dotnet@v4.0.1
       with:
         dotnet-version: 8.0.x
 
@@ -150,7 +150,7 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Set up .NET
-      uses: actions/setup-dotnet@v4.0.0
+      uses: actions/setup-dotnet@v4.0.1
       with:
         dotnet-version: 8.0.x
 
@@ -177,7 +177,7 @@ jobs:
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
     - name: Sign payload files with Azure Code Signing
-      uses: azure/trusted-signing-action@v0.3.20
+      uses: azure/trusted-signing-action@v0.4.0
       with:
         endpoint: https://wus2.codesigning.azure.net/
         trusted-signing-account-name: git-fundamentals-signing
@@ -190,7 +190,7 @@ jobs:
 
     # The Azure Code Signing action overrides the .NET version, so we reset it.
     - name: Set up .NET
-      uses: actions/setup-dotnet@v4.0.0
+      uses: actions/setup-dotnet@v4.0.1
       with:
         dotnet-version: 8.0.x
 
@@ -204,7 +204,7 @@ jobs:
          -Destination $env:GITHUB_WORKSPACE\installers
 
     - name: Sign installers with Azure Code Signing
-      uses: azure/trusted-signing-action@v0.3.20
+      uses: azure/trusted-signing-action@v0.4.0
       with:
         endpoint: https://wus2.codesigning.azure.net/
         trusted-signing-account-name: git-fundamentals-signing
@@ -236,7 +236,7 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Set up .NET
-      uses: actions/setup-dotnet@v4.0.0
+      uses: actions/setup-dotnet@v4.0.1
       with:
         dotnet-version: 8.0.x
 
@@ -314,7 +314,7 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Set up .NET
-      uses: actions/setup-dotnet@v4.0.0
+      uses: actions/setup-dotnet@v4.0.1
       with:
         dotnet-version: 8.0.x
 
@@ -387,7 +387,7 @@ jobs:
         path: signed
 
     - name: Set up .NET
-      uses: actions/setup-dotnet@v4.0.0
+      uses: actions/setup-dotnet@v4.0.1
       with:
         dotnet-version: 8.0.x
 
@@ -491,7 +491,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up .NET
-        uses: actions/setup-dotnet@v4.0.0
+        uses: actions/setup-dotnet@v4.0.1
         with:
           dotnet-version: 8.0.x
 
@@ -561,7 +561,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up .NET
-        uses: actions/setup-dotnet@v4.0.0
+        uses: actions/setup-dotnet@v4.0.1
         with:
           dotnet-version: 8.0.x
 

@@ -6,7 +6,7 @@
   <Import Project="$(RepoPath)build\GCM.tasks" />
 
   <!-- Use version specified in VERSION file -->
-  <Target Name="GetVersion" BeforeTargets="BeforeBuild">
+  <Target Name="GetVersion" BeforeTargets="BeforeBuild;GenerateWindowsAppManifest">
     <GetVersion VersionFile="$(RepoPath)VERSION">
       <Output TaskParameter="Version" PropertyName="Version" />
       <Output TaskParameter="AssemblyVersion" PropertyName="AssemblyVersion" />
@@ -21,6 +21,7 @@
 
   <!-- Generate the manifest file before we set the win32 manifest properties -->
   <Target Name="GenerateWindowsAppManifest"
+		  AfterTargets="GetVersion"
           BeforeTargets="SetWin32ManifestProperties"
           Condition="'$(GenerateWindowsAppManifest)' != 'false'"
           Inputs="$(FileVersion);$(AssemblyName)"
