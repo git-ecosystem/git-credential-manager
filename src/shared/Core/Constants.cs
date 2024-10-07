@@ -119,6 +119,7 @@ namespace GitCredentialManager
             public const string OAuthDefaultUserName     = "GCM_OAUTH_DEFAULT_USERNAME";
             public const string GcmDevUseLegacyUiHelpers = "GCM_DEV_USELEGACYUIHELPERS";
             public const string GcmGuiSoftwareRendering  = "GCM_GUI_SOFTWARE_RENDERING";
+            public const string GcmAllowUnsafeRemotes    = "GCM_ALLOW_UNSAFE_REMOTES";
         }
 
         public static class Http
@@ -163,6 +164,7 @@ namespace GitCredentialManager
                 public const string MsAuthUseDefaultAccount = "msauthUseDefaultAccount";
                 public const string GuiSoftwareRendering = "guiSoftwareRendering";
                 public const string GpgPassStorePath = "gpgPassStorePath";
+                public const string AllowUnsafeRemotes = "allowUnsafeRemotes";
 
                 public const string OAuthAuthenticationModes = "oauthAuthModes";
                 public const string OAuthClientId            = "oauthClientId";
@@ -226,6 +228,7 @@ namespace GitCredentialManager
             public const string GcmAutoDetect          = "https://aka.ms/gcm/autodetect";
             public const string GcmDefaultAccount      = "https://aka.ms/gcm/defaultaccount";
             public const string GcmMultipleUsers       = "https://aka.ms/gcm/multipleusers";
+            public const string GcmUnsafeRemotes       = "https://aka.ms/gcm/unsaferemotes";
         }
 
         private static Version _gcmVersion;
