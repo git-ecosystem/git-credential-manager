@@ -1022,7 +1022,7 @@ Defaults to disabled.
 [devbox]: https://azure.microsoft.com/en-us/products/dev-box
 [enterprise-config]: enterprise-config.md
 [envars]: environment.md
-[freedesktop-ss]: https://specifications.freedesktop.org/secret-service/
+[freedesktop-ss]: https://specifications.freedesktop.org/secret-service-spec/
 [gcm-allow-windowsauth]: environment.md#GCM_ALLOW_WINDOWSAUTH
 [gcm-authority]: environment.md#GCM_AUTHORITY-deprecated
 [gcm-autodetect-timeout]: environment.md#GCM_AUTODETECT_TIMEOUT
