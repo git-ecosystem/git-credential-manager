@@ -1182,7 +1182,7 @@ Defaults to disabled.
 [credential-trace-msauth]: configuration.md#credentialtracemsauth
 [default-values]: enterprise-config.md
 [devbox]: https://azure.microsoft.com/en-us/products/dev-box
-[freedesktop-ss]: https://specifications.freedesktop.org/secret-service/
+[freedesktop-ss]: https://specifications.freedesktop.org/secret-service-spec/
 [gcm]: usage.md
 [gcm-interactive]: #gcm_interactive
 [gcm-credential-store]: #gcm_credential_store
