@@ -95,10 +95,13 @@ namespace GitLab
             ThrowIfDisposed();
 
             // We should not allow unencrypted communication and should inform the user
-            if (StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "http"))
+            if (!Context.Settings.AllowUnsafeRemotes &&
+                StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "http"))
             {
                 throw new Trace2Exception(Context.Trace2,
-                    "Unencrypted HTTP is not supported for GitHub. Ensure the repository remote URL is using HTTPS.");
+                    "Unencrypted HTTP is not recommended for GitLab. " +
+                    "Ensure the repository remote URL is using HTTPS " +
+                    $"or see {Constants.HelpUrls.GcmUnsafeRemotes} about how to allow unsafe remotes.");
             }
 
             Uri remoteUri = input.GetRemoteUri();
