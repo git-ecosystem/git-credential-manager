@@ -302,6 +302,32 @@ Defaults to false (use hardware acceleration where available).
 
 ---
 
+### GCM_ALLOW_UNSAFE_REMOTES
+
+Allow transmitting credentials to unsafe remote URLs such as unencrypted HTTP
+URLs. This setting is not recommended for general use and should only be used
+when necessary.
+
+Defaults false (disallow unsafe remote URLs).
+
+#### Example
+
+##### Windows
+
+```batch
+SET GCM_ALLOW_UNSAFE_REMOTES=true
+```
+
+##### macOS/Linux
+
+```bash
+export GCM_ALLOW_UNSAFE_REMOTES=true
+```
+
+**Also see: [credential.allowUnsafeRemotes][credential-allowunsaferemotes]**
+
+---
+
 ### GCM_AUTODETECT_TIMEOUT
 
 Set the maximum length of time, in milliseconds, that GCM should wait for a
@@ -1153,7 +1179,8 @@ Defaults to disabled.
 [autodetect]: autodetect.md
 [azure-access-tokens]: azrepos-users-and-tokens.md
 [configuration]: configuration.md
-[credential-allowwindowsauth]: environment.md#credentialallowWindowsAuth
+[credential-allowwindowsauth]: configuration.md#credentialallowwindowsauth
+[credential-allowunsaferemotes]: configuration.md#credentialallowunsaferemotes
 [credential-authority]: configuration.md#credentialauthority-deprecated
 [credential-autodetecttimeout]: configuration.md#credentialautodetecttimeout
 [credential-azrepos-credential-type]: configuration.md#credentialazreposcredentialtype

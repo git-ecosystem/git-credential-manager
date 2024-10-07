@@ -191,6 +191,22 @@ network traffic inspection tool such as [Telerik Fiddler][telerik-fiddler]. If
 you are using such tools please consult their documentation for trusting the
 proxy root certificates.
 
+---
+
+## Unsafe Remote URLs
+
+If you are using a remote URL that is not considered safe, such as unencrypted
+HTTP (remote URLs that start with `http://`), host providers may prevent you
+from authenticating with your credentials.
+
+In this case, you should consider using a HTTPS (starting with `https://`)
+remote URL to ensure your credentials are transmitted securely.
+
+If you accept the risks associated with using an unsafe remote URL, you can
+configure GCM to allow the use of unsafe remote URLS by setting the environment
+variable [`GCM_ALLOW_UNSAFE_REMOTES`][unsafe-envar], or by using the Git
+configuration option [`credential.allowUnsafeRemotes`][unsafe-config] to `true`.
+
 [environment]: environment.md
 [configuration]: configuration.md
 [git-http-proxy]: https://git-scm.com/docs/git-config#Documentation/git-config.txt-httpproxy
@@ -212,3 +228,5 @@ proxy root certificates.
 [git-ssl-no-verify]: https://git-scm.com/book/en/v2/Git-Internals-Environment-Variables#_networking
 [git-http-ssl-verify]: https://git-scm.com/docs/git-config#Documentation/git-config.txt-httpsslVerify
 [telerik-fiddler]: https://www.telerik.com/fiddler
+[unsafe-envar]: environment.md#gcm_allow_unsafe_remotes
+[unsafe-config]: configuration.md#credentialallowunsaferemotes

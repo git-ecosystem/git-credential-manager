@@ -255,6 +255,24 @@ Defaults to false (use hardware acceleration where available).
 
 ---
 
+### credential.allowUnsafeRemotes
+
+Allow transmitting credentials to unsafe remote URLs such as unencrypted HTTP
+URLs. This setting is not recommended for general use and should only be used
+when necessary.
+
+Defaults false (disallow unsafe remote URLs).
+
+#### Example
+
+```shell
+git config --global credential.allowUnsafeRemotes true
+```
+
+**Also see: [GCM_ALLOW_UNSAFE_REMOTES][gcm-allow-unsafe-remotes]**
+
+---
+
 ### credential.autoDetectTimeout
 
 Set the maximum length of time, in milliseconds, that GCM should wait for a
@@ -1024,6 +1042,7 @@ Defaults to disabled.
 [envars]: environment.md
 [freedesktop-ss]: https://specifications.freedesktop.org/secret-service/
 [gcm-allow-windowsauth]: environment.md#GCM_ALLOW_WINDOWSAUTH
+[gcm-allow-unsafe-remotes]: environment.md#GCM_ALLOW_UNSAFE_REMOTES
 [gcm-authority]: environment.md#GCM_AUTHORITY-deprecated
 [gcm-autodetect-timeout]: environment.md#GCM_AUTODETECT_TIMEOUT
 [gcm-azrepos-credentialtype]: environment.md#GCM_AZREPOS_CREDENTIALTYPE
