@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -93,7 +94,7 @@ namespace GitCredentialManager.Tests.Objects
         }
     }
 
-    public class TestCredential : ICredential
+    public record TestCredential : ICredential
     {
         public TestCredential(string service, string account, string password)
         {
@@ -107,5 +108,9 @@ namespace GitCredentialManager.Tests.Objects
         public string Account { get; }
 
         public string Password { get; }
+
+        public DateTimeOffset? PasswordExpiry { get; init; }
+        
+        public string OAuthRefreshToken { get; init; }
     }
 }
