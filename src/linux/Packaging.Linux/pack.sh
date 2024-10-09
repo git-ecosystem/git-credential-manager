@@ -28,6 +28,10 @@ case "$i" in
     SYMBOLS="${i#*=}"
     shift # past argument=value
     ;;
+    --arch=*)
+    ARCH="${i#*=}"
+    shift # past argument=value
+    ;;
     --configuration=*)
     CONFIGURATION="${i#*=}"
     shift # past argument=value
@@ -51,11 +55,8 @@ fi
 if [ -z "$SYMBOLS" ]; then
     die "--symbols was not set"
 fi
-
-ARCH="`dpkg-architecture -q DEB_HOST_ARCH`"
-
-if test -z "$ARCH"; then
-    die "Could not determine host architecture!"
+if [ -z "$ARCH" ]; then
+    die "--arch was not set"
 fi
 
 TAROUT="$PROJ_OUT/$CONFIGURATION/tar/"
