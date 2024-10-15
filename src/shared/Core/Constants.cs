@@ -38,6 +38,7 @@ namespace GitCredentialManager
             public const string SecretService = "secretservice";
             public const string Plaintext = "plaintext";
             public const string Cache = "cache";
+            public const string None = "none";
         }
 
         public static class RegexPatterns
