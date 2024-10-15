@@ -30,6 +30,10 @@ case "$i" in
     INSTALL_FROM_SOURCE="${i#*=}"
     shift # past argument=value
     ;;
+    --runtime=*)
+    RUNTIME="${i#*=}"
+    shift # past argument=value
+    ;;
     --install-prefix=*)
     INSTALL_PREFIX="${i#*=}"
     shift # past argument=value
@@ -41,9 +45,47 @@ esac
 done
 
 # Ensure install prefix exists
-if [! -d "$INSTALL_PREFIX" ]; then
+if [ ! -d "$INSTALL_PREFIX" ]; then
     mkdir -p "$INSTALL_PREFIX"
 fi
+
+# Fall back to host architecture if no explicit runtime is given.
+if test -z "$RUNTIME"; then
+    HOST_ARCH="`dpkg-architecture -q DEB_HOST_ARCH`"
+
+    case $HOST_ARCH in
+        amd64)
+            RUNTIME="linux-x64"
+            ;;
+        arm64)
+            RUNTIME="linux-arm64"
+            ;;
+        armhf)
+            RUNTIME="linux-arm"
+            ;;
+        *)
+            die "Could not determine host architecture!"
+            ;;
+    esac
+fi
+
+# Build parameters
+case $RUNTIME in
+    linux-x64)
+        ARCH="amd64"
+        ;;
+    linux-arm64)
+        ARCH="arm64"
+        ;;
+    linux-arm)
+        ARCH="armhf"
+        ;;
+    *)
+        die "Incompatible runtime architecture given for build.sh"
+		;;
+esac
+
+echo "Building for runtime ${RUNTIME} and arch ${ARCH}"
 
 # Perform pre-execution checks
 CONFIGURATION="${CONFIGURATION:=Debug}"
@@ -56,7 +98,7 @@ PAYLOAD="$OUTDIR/payload"
 SYMBOLS="$OUTDIR/payload.sym"
 
 # Lay out payload
-"$INSTALLER_SRC/layout.sh" --configuration="$CONFIGURATION" || exit 1
+"$INSTALLER_SRC/layout.sh" --configuration="$CONFIGURATION" --runtime="$RUNTIME" || exit 1
 
 if [ $INSTALL_FROM_SOURCE = true ]; then
     echo "Installing to $INSTALL_PREFIX"
@@ -79,7 +121,7 @@ if [ $INSTALL_FROM_SOURCE = true ]; then
     echo "Install complete."
 else
     # Pack
-    "$INSTALLER_SRC/pack.sh" --configuration="$CONFIGURATION" --payload="$PAYLOAD" --symbols="$SYMBOLS" --version="$VERSION" || exit 1
+    "$INSTALLER_SRC/pack.sh" --configuration="$CONFIGURATION" --arch="$ARCH" --payload="$PAYLOAD" --symbols="$SYMBOLS" --version="$VERSION" || exit 1
 fi
 
 echo "Build of Packaging.Linux complete."
