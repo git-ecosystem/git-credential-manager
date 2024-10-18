@@ -210,7 +210,7 @@ the preferred install method for Linux because you can use it to install on any
 distribution][dotnet-supported-distributions]. You
 can also use this method on macOS if you so choose.
 
-**Note:** Make sure you have installed [version 7.0 of the .NET
+**Note:** Make sure you have installed [version 8.0 of the .NET
 SDK][dotnet-install] before attempting to run the following `dotnet tool`
 commands. After installing, you will also need to follow the output instructions
 to add the tools directory to your `PATH`.
