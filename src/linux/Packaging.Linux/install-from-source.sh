@@ -228,7 +228,7 @@ case "$distribution" in
         $sudo_cmd tdnf update -y
 
         # Install dotnet/GCM dependencies.
-        install_packages tdnf install "curl git krb5-libs libicu openssl-libs zlib findutils which bash"
+        install_packages tdnf install "curl git krb5-libs libicu openssl-libs zlib findutils which bash awk"
 
         ensure_dotnet_installed
     ;;
