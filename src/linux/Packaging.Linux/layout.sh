@@ -1,4 +1,7 @@
 #!/bin/bash
+
+set -eu
+
 die () {
     echo "$*" >&2
     exit 1
@@ -30,8 +33,8 @@ esac
 done
 
 # Directories
-THISDIR="$( cd "$(dirname "$0")" ; pwd -P )"
-ROOT="$( cd "$THISDIR"/../../.. ; pwd -P )"
+THISDIR="$( cd "$(dirname "$0")" || exit 1 ; pwd -P )"
+ROOT="$( cd "$THISDIR"/../../.. || exit 1 ; pwd -P )"
 SRC="$ROOT/src"
 OUT="$ROOT/out"
 GCM_SRC="$SRC/shared/Git-Credential-Manager"
@@ -63,13 +66,13 @@ fi
 # Ensure directories exists
 mkdir -p "$PAYLOAD" "$SYMBOLOUT"
 
-if [ -z "$DOTNET_ROOT" ]; then
-    DOTNET_ROOT="$(dirname $(which dotnet))"
+if [ -z "${DOTNET_ROOT+x}" ]; then
+    DOTNET_ROOT="$(dirname "$(which dotnet)")"
 fi
 
 # Publish core application executables
 echo "Publishing core application..."
-$DOTNET_ROOT/dotnet publish "$GCM_SRC" \
+"$DOTNET_ROOT"/dotnet publish "$GCM_SRC" \
 	--configuration="$CONFIGURATION" \
 	--framework="$FRAMEWORK" \
 	--runtime="$RUNTIME" \

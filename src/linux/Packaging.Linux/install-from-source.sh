@@ -41,7 +41,7 @@ if [ -z $is_ci ]; then
 Git Credential Manager is licensed under the MIT License: https://aka.ms/gcm/license"
 
     while true; do
-        read -p "Do you want to continue? [Y/n] " yn
+        read -rp "Do you want to continue? [Y/n] " yn
         case $yn in
             [Yy]*|"")
                 break
@@ -63,18 +63,18 @@ install_packages() {
 
     for package in $packages; do
         # Ensure we don't stomp on existing installations.
-        if [ ! -z $(which $package) ]; then
+        if [ -n "$(which "$package")" ]; then
             continue
         fi
 
-        if [ $pkg_manager = apk ]; then
-            $sudo_cmd $pkg_manager $install_verb $package
-        elif [ $pkg_manager = zypper ]; then
-            $sudo_cmd $pkg_manager -n $install_verb $package
-        elif [ $pkg_manager = pacman ]; then
-            $sudo_cmd $pkg_manager --noconfirm $install_verb $package
+        if [ "$pkg_manager" = apk ]; then
+            "$sudo_cmd" "$pkg_manager" "$install_verb" "$package"
+        elif [ "$pkg_manager" = zypper ]; then
+            "$sudo_cmd" "$pkg_manager" -n "$install_verb" "$package"
+        elif [ "$pkg_manager" = pacman ]; then
+            "$sudo_cmd" "$pkg_manager" --noconfirm "$install_verb" "$package"
         else
-            $sudo_cmd $pkg_manager $install_verb $package -y
+            "$sudo_cmd" "$pkg_manager" "$install_verb" "$package" -y
         fi
     done
 }
@@ -87,21 +87,21 @@ ensure_dotnet_installed() {
 
         # Since we have to run the dotnet install script with bash, dotnet isn't
         # added to the process PATH, so we manually add it here.
-        cd ~
-        export DOTNET_ROOT=$(pwd)/.dotnet
-        add_to_PATH $DOTNET_ROOT
+        cd ~ # XXX why does the script need to change directory here, and not change back?
+        export DOTNET_ROOT="$HOME/.dotnet"
+        add_to_PATH "$DOTNET_ROOT"
     fi
 }
 
 verify_existing_dotnet_installation() {
     # Get initial pieces of installed sdk version(s).
-    sdks=$(dotnet --list-sdks | cut -c 1-3)
+    sdks="$(dotnet --list-sdks | cut -c 1-3)"
 
     # If we have a supported version installed, return.
     supported_dotnet_versions="8.0"
     for v in $supported_dotnet_versions; do
-        if [ $(echo $sdks | grep "$v") ]; then
-            echo $sdks
+        if echo "$sdks" | grep -q "$v" ; then
+            echo "$sdks"
         fi
     done
 }
@@ -116,22 +116,22 @@ add_to_PATH () {
             break
         ;;
         *)
-            export PATH=$PATH:$directory
+            export PATH="$PATH":"$directory"
         ;;
     esac
   done
 }
 
 apt_install() {
-    pkg_name=$1
+    pkg_name="$1"
 
-    $sudo_cmd apt update
-    $sudo_cmd apt install $pkg_name -y 2>/dev/null
+    "$sudo_cmd" apt update
+    "$sudo_cmd" apt install "$pkg_name" -y 2>/dev/null
 }
 
 print_unsupported_distro() {
-    prefix=$1
-    distro=$2
+    prefix="$1"
+    distro="$2"
 
     echo "$prefix: $distro is not officially supported by the GCM project."
     echo "See https://gh.io/gcm/linux for details."
@@ -146,13 +146,13 @@ sudo_cmd=
 # If the user isn't root, we need to use `sudo` for certain commands
 # (e.g. installing packages).
 if [ -z "$sudo_cmd" ]; then
-    if [ `id -u` != 0 ]; then
+    if [ "$(id -u)" != 0 ]; then
         sudo_cmd=sudo
     fi
 fi
 
-eval "$(sed -n 's/^ID=/distribution=/p' /etc/os-release)"
-eval "$(sed -n 's/^VERSION_ID=/version=/p' /etc/os-release | tr -d '"')"
+distribution="$(grep '^ID=' /etc/os-release | sed 's/^ID=//')"
+version="$(grep '^VERSION_ID=' /etc/os-release | sed -r 's/^VERSION_ID=\"(.*)\"/\1/')"
 case "$distribution" in
     debian | ubuntu)
         $sudo_cmd apt update
@@ -194,7 +194,7 @@ case "$distribution" in
 
         # Install dotnet/GCM dependencies.
         # Alpine 3.14 and earlier need libssl1.1, while later versions need libssl3.
-        if ( version_at_least "3.15" $version ) then
+        if ( version_at_least "3.15" "$version" ) then
             libssl_pkg="libssl3"
         else
             libssl_pkg="libssl1.1"
@@ -247,9 +247,9 @@ if [ "z$script_path" = "z$toplevel_path" ] || [ ! -f "$toplevel_path/Git-Credent
 fi
 
 if [ -z "$DOTNET_ROOT" ]; then
-    DOTNET_ROOT="$(dirname $(which dotnet))"
+    DOTNET_ROOT="$(dirname "$(which dotnet)")"
 fi
 
 cd "$toplevel_path"
-$sudo_cmd env "PATH=$PATH" $DOTNET_ROOT/dotnet build ./src/linux/Packaging.Linux/Packaging.Linux.csproj -c Release -p:InstallFromSource=true -p:installPrefix=$installPrefix
+"$sudo_cmd" env "PATH=$PATH" "$DOTNET_ROOT"/dotnet build ./src/linux/Packaging.Linux/Packaging.Linux.csproj -c Release -p:InstallFromSource=true -p:installPrefix="$installPrefix"
 add_to_PATH "$installPrefix/bin"
