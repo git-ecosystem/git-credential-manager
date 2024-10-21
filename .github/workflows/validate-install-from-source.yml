@@ -21,7 +21,6 @@ jobs:
         # tgagor is a contributor who pushes updated images weekly, which should
         # be sufficient for our validation needs.
         - image: tgagor/centos
-        - image: tgagor/centos-stream
         - image: redhat/ubi8
         - image: alpine
         - image: alpine:3.14.10
