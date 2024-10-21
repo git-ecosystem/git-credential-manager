@@ -63,7 +63,7 @@ install_packages() {
 
     for package in $packages; do
         # Ensure we don't stomp on existing installations.
-        if [ ! -z $(which $package) ]; then
+        if type $package >/dev/null 2>&1; then
             continue
         fi
 
