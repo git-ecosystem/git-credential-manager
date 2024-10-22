@@ -47,8 +47,8 @@ Basic HTTP authentication support|&#10003;|&#10003;|&#10003;
 Proxy support|&#10003;|&#10003;|&#10003;
 `amd64` support|&#10003;|&#10003;|&#10003;
 `x86` support|&#10003;|_N/A_|&#10007;
-`arm64` support|best effort|&#10003;|best effort, no packages
-`armhf` support|_N/A_|_N/A_|best effort, no packages
+`arm64` support|best effort|&#10003;|&#10003;
+`armhf` support|_N/A_|_N/A_|&#10003;
 
 (\*) GCM guarantees support only for [the Linux distributions that are officially
 supported by dotnet][dotnet-distributions].
