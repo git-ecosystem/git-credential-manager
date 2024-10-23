@@ -177,7 +177,7 @@ jobs:
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
     - name: Sign payload files with Azure Code Signing
-      uses: azure/trusted-signing-action@v0.4.0
+      uses: azure/trusted-signing-action@v0.5.0
       with:
         endpoint: https://wus2.codesigning.azure.net/
         trusted-signing-account-name: git-fundamentals-signing
@@ -204,7 +204,7 @@ jobs:
          -Destination $env:GITHUB_WORKSPACE\installers
 
     - name: Sign installers with Azure Code Signing
-      uses: azure/trusted-signing-action@v0.4.0
+      uses: azure/trusted-signing-action@v0.5.0
       with:
         endpoint: https://wus2.codesigning.azure.net/
         trusted-signing-account-name: git-fundamentals-signing
