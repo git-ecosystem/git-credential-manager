@@ -1,9 +1,9 @@
+using System;
 using System.Diagnostics;
 
 namespace GitCredentialManager.Interop.Linux
 {
-    [DebuggerDisplay("{DebuggerDisplay}")]
-    public class SecretServiceCredential : ICredential
+    public record SecretServiceCredential : ICredential
     {
         internal SecretServiceCredential(string service, string account, string password)
         {
@@ -18,6 +18,8 @@ namespace GitCredentialManager.Interop.Linux
 
         public string Password { get; }
 
-        private string DebuggerDisplay => $"[Service: {Service}, Account: {Account}]";
+        public string OAuthRefreshToken { get; init; }
+
+        public DateTimeOffset? PasswordExpiry { get; init; }
     }
 }
