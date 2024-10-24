@@ -35,7 +35,7 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Set up .NET
-      uses: actions/setup-dotnet@v4.0.1
+      uses: actions/setup-dotnet@v4.1.0
       with:
         dotnet-version: 8.0.x
 
@@ -150,7 +150,7 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Set up .NET
-      uses: actions/setup-dotnet@v4.0.1
+      uses: actions/setup-dotnet@v4.1.0
       with:
         dotnet-version: 8.0.x
 
@@ -190,7 +190,7 @@ jobs:
 
     # The Azure Code Signing action overrides the .NET version, so we reset it.
     - name: Set up .NET
-      uses: actions/setup-dotnet@v4.0.1
+      uses: actions/setup-dotnet@v4.1.0
       with:
         dotnet-version: 8.0.x
 
@@ -236,7 +236,7 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Set up .NET
-      uses: actions/setup-dotnet@v4.0.1
+      uses: actions/setup-dotnet@v4.1.0
       with:
         dotnet-version: 8.0.x
 
@@ -314,7 +314,7 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Set up .NET
-      uses: actions/setup-dotnet@v4.0.1
+      uses: actions/setup-dotnet@v4.1.0
       with:
         dotnet-version: 8.0.x
 
@@ -387,7 +387,7 @@ jobs:
         path: signed
 
     - name: Set up .NET
-      uses: actions/setup-dotnet@v4.0.1
+      uses: actions/setup-dotnet@v4.1.0
       with:
         dotnet-version: 8.0.x
 
@@ -491,7 +491,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up .NET
-        uses: actions/setup-dotnet@v4.0.1
+        uses: actions/setup-dotnet@v4.1.0
         with:
           dotnet-version: 8.0.x
 
@@ -561,7 +561,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up .NET
-        uses: actions/setup-dotnet@v4.0.1
+        uses: actions/setup-dotnet@v4.1.0
         with:
           dotnet-version: 8.0.x
 
