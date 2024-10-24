@@ -63,7 +63,7 @@ install_packages() {
 
     for package in $packages; do
         # Ensure we don't stomp on existing installations.
-        if [ ! -z $(which $package) ]; then
+        if type $package >/dev/null 2>&1; then
             continue
         fi
 
@@ -228,7 +228,7 @@ case "$distribution" in
         $sudo_cmd tdnf update -y
 
         # Install dotnet/GCM dependencies.
-        install_packages tdnf install "curl git krb5-libs libicu openssl-libs zlib findutils which bash"
+        install_packages tdnf install "curl ca-certificates git krb5-libs libicu openssl-libs zlib findutils which bash awk"
 
         ensure_dotnet_installed
     ;;
