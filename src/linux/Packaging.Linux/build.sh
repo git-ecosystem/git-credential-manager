@@ -41,7 +41,7 @@ esac
 done
 
 # Ensure install prefix exists
-if [! -d "$INSTALL_PREFIX" ]; then
+if [ ! -d "$INSTALL_PREFIX" ]; then
     mkdir -p "$INSTALL_PREFIX"
 fi
 
