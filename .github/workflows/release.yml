@@ -57,8 +57,8 @@ jobs:
 
     - name: Set up signing/notarization infrastructure
       env:
-        A1: ${{ secrets.APPLICATION_CERTIFICATE_BASE64 }}
-        A2: ${{ secrets.APPLICATION_CERTIFICATE_PASSWORD }}
+        A1: ${{ secrets.GATEWATCHER_DEVELOPER_ID_CERT }}
+        A2: ${{ secrets.GATEWATCHER_DEVELOPER_ID_PASSWORD }}
         I1: ${{ secrets.INSTALLER_CERTIFICATE_BASE64 }}
         I2: ${{ secrets.INSTALLER_CERTIFICATE_PASSWORD }}
         N1: ${{ secrets.APPLE_TEAM_ID }}
