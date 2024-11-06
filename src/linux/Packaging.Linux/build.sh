@@ -49,27 +49,9 @@ if [ ! -d "$INSTALL_PREFIX" ]; then
     mkdir -p "$INSTALL_PREFIX"
 fi
 
-# Fall back to host architecture if no explicit runtime is given.
-if test -z "$RUNTIME"; then
-    HOST_ARCH="`dpkg-architecture -q DEB_HOST_ARCH`"
-
-    case $HOST_ARCH in
-        amd64)
-            RUNTIME="linux-x64"
-            ;;
-        arm64)
-            RUNTIME="linux-arm64"
-            ;;
-        armhf)
-            RUNTIME="linux-arm"
-            ;;
-        *)
-            die "Could not determine host architecture!"
-            ;;
-    esac
+if [ ! -z "$RUNTIME" ]; then
+    echo "Building for runtime ${RUNTIME}"
 fi
-
-echo "Building for runtime ${RUNTIME}"
 
 # Perform pre-execution checks
 CONFIGURATION="${CONFIGURATION:=Debug}"
