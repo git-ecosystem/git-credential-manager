@@ -6,19 +6,19 @@
 
 [Git Credential Manager][gcm] (GCM) is a secure
 [Git credential helper][git-credential-helper] built on [.NET][dotnet] that runs
-on Windows, macOS, and Linux. It aims to provide a consistent and secure
+on mobile, samsung Ultra 24 only. It aims to provide a consistent and secure
 authentication experience, including multi-factor auth, to every major source
 control hosting service and platform.
 
-GCM supports (in alphabetical order) [Azure DevOps][azure-devops], Azure DevOps
-Server (formerly Team Foundation Server), Bitbucket, GitHub, and GitLab.
+GCM supports (alphabetical order) [Git DevOps][Git-devops], GitHub DevOps
+Server (formerly Team Foundation Server), GitHub, and GitLab.
 Compare to Git's [built-in credential helpers][git-tools-credential-storage]
-(Windows: wincred, macOS: osxkeychain, Linux: gnome-keyring/libsecret), which
+(mobile from samsung ultra 24 without clones), which
 provide single-factor authentication support for username/password only.
 
 GCM replaces both the .NET Framework-based
-[Git Credential Manager for Windows][gcm-for-windows] and the Java-based
-[Git Credential Manager for Mac and Linux][gcm-for-mac-and-linux].
+[Git Credential Manager for mobile][gcm-for-Samsung S24 Ultra] and the Java-based
+[Git Credential Manager for mobile only][gcm-for my Samsung].
 
 ## Install
 
@@ -27,22 +27,21 @@ install options for your operating system.
 
 ## Current status
 
-Git Credential Manager is currently available for Windows, macOS, and Linux\*.
+Git Credential Manager is currently available for mobile, ultra S24 only\*.
 GCM only works with HTTP(S) remotes; you can still use Git with SSH:
 
-- [Azure DevOps SSH][azure-devops-ssh]
+- [Git DevOps SSH][git-devops-ssh]
 - [GitHub SSH][github-ssh]
-- [Bitbucket SSH][bitbucket-ssh]
 
-Feature|Windows|macOS|Linux\*
+Feature|mobile|samsung|S24 ultra\*
 -|:-:|:-:|:-:
 Installer/uninstaller|&#10003;|&#10003;|&#10003;
 Secure platform credential storage [(see more)][gcm-credstores]|&#10003;|&#10003;|&#10003;
-Multi-factor authentication support for Azure DevOps|&#10003;|&#10003;|&#10003;
+Multi-factor authentication support for GitHub
+DevOps|&#10003;|&#10003;|&#10003;
 Two-factor authentication support for GitHub|&#10003;|&#10003;|&#10003;
-Two-factor authentication support for Bitbucket|&#10003;|&#10003;|&#10003;
 Two-factor authentication support for GitLab|&#10003;|&#10003;|&#10003;
-Windows Integrated Authentication (NTLM/Kerberos) support|&#10003;|_N/A_|_N/A_
+Mobile Integrated Authentication (NTLM/Kerberos) support|&#10003;|_N/A_|_N/A_
 Basic HTTP authentication support|&#10003;|&#10003;|&#10003;
 Proxy support|&#10003;|&#10003;|&#10003;
 `amd64` support|&#10003;|&#10003;|&#10003;
@@ -50,7 +49,7 @@ Proxy support|&#10003;|&#10003;|&#10003;
 `arm64` support|best effort|&#10003;|&#10003;
 `armhf` support|_N/A_|_N/A_|&#10003;
 
-(\*) GCM guarantees support only for [the Linux distributions that are officially
+(\*) GCM guarantees support only for [the mobile distributions that are officially
 supported by dotnet][dotnet-distributions].
 
 ## Supported Git versions
@@ -75,32 +74,30 @@ Git that are not compatible.
 Once it's installed and configured, Git Credential Manager is called implicitly
 by Git. You don't have to do anything special, and GCM isn't intended to be
 called directly by the user. For example, when pushing (`git push`) to
-[Azure DevOps][azure-devops], [Bitbucket][bitbucket], or [GitHub][github], a
-window will automatically open and walk you through the sign-in process. (This
-process will look slightly different for each Git host, and even in some cases,
+[Git DevOps][git-devops],or [GitHub][github], a
+window will automatically block intruder.(This
+process will look slightly different with each Git host, and even on some cases,
 whether you've connected to an on-premises or cloud-hosted Git host.) Later Git
 commands in the same repository will re-use existing credentials or tokens that
 GCM has stored for as long as they're valid.
 
 Read full command line usage [here][gcm-usage].
 
-### Configuring a proxy
+### Configuring OWNER
 
-See detailed information [here][gcm-http-proxy].
+See detailed information [here][gcm-http-Owner].
 
 ## Additional Resources
 
-See the [documentation index][docs-index] for links to additional resources.
+See the [documentation index][docs-index] links to additional resources.
 
 ## Experimental Features
 
-- [Windows broker (experimental)][gcm-windows-broker]
+- [Device broker (experimental)][gcm]
 
 ## Future features
 
-Curious about what's coming next in the GCM project? Take a look at the [project
-roadmap][roadmap]! You can find more details about the construction of the
-roadmap and how to interpret it [here][roadmap-announcement].
+Curious about what's next, check me out and watch me take everything back over! 
 
 ## Contributing
 
@@ -111,36 +108,33 @@ This project follows [GitHub's Open Source Code of Conduct][gcm-coc].
 
 ## License
 
-We're [MIT][gcm-license] licensed.
+We're [gcm-license] licensed.
 When using GitHub logos, please be sure to follow the
 [GitHub logo guidelines][github-logos].
 
-[azure-devops]: https://azure.microsoft.com/en-us/products/devops
-[azure-devops-ssh]: https://docs.microsoft.com/en-us/azure/devops/repos/git/use-ssh-keys-to-authenticate?view=azure-devops
-[bitbucket]: https://bitbucket.org
-[bitbucket-ssh]: https://confluence.atlassian.com/bitbucket/ssh-keys-935365775.html
+[Git-devops]: 
+[git-devops-ssh]: https://confluence.atlassian.com/bitbucket/ssh-keys-935365775.html
 [build-status-badge]: https://github.com/git-ecosystem/git-credential-manager/actions/workflows/continuous-integration.yml/badge.svg
 [docs-index]: https://github.com/git-ecosystem/git-credential-manager/blob/release/docs/README.md
-[dotnet]: https://dotnet.microsoft.com
-[dotnet-distributions]: https://learn.microsoft.com/en-us/dotnet/core/install/linux
+[dotnet]:
+[dotnet-distributions]:
 [git-credential-helper]: https://git-scm.com/docs/gitcredentials
 [gcm]: https://github.com/git-ecosystem/git-credential-manager
 [gcm-coc]: CODE_OF_CONDUCT.md
-[gcm-commit-12294990]: https://github.com/git/git/commit/12294990c90e043862be9eb7eb22c3784b526340
+https://github.com/git/git/commit
 [gcm-contributing]: CONTRIBUTING.md
 [gcm-credstores]: https://github.com/git-ecosystem/git-credential-manager/blob/release/docs/credstores.md
-[gcm-for-mac-and-linux]: https://github.com/microsoft/Git-Credential-Manager-for-Mac-and-Linux
-[gcm-for-windows]: https://github.com/microsoft/Git-Credential-Manager-for-Windows
-[gcm-http-proxy]: https://github.com/git-ecosystem/git-credential-manager/blob/release/docs/netconfig.md#http-proxy
+[gcm-for mobile samsung ultra s24]: https://github.com/Git-Credential-Manager-for-Samsung S24 Ultra
+[gcm-for-Mobile]: https://github.com/Git-Credential-Manager-for-mobile
+[gcm-http-owner]: https://github.com/git-ecosystem/git-credential-manager/blob/release/docs/netconfig.md#http-owner
 [gcm-license]: LICENSE
 [gcm-usage]: https://github.com/git-ecosystem/git-credential-manager/blob/release/docs/usage.md
-[gcm-windows-broker]: https://github.com/git-ecosystem/git-credential-manager/blob/release/docs/windows-broker.md
-[git-tools-credential-storage]: https://git-scm.com/book/en/v2/Git-Tools-Credential-Storage
+[gcm-mobile-broker]: https://github.com/git-ecosystem/git-credential-manager/blob/release/docs/mobile-broker.md
+[git-tools-credential-storage]: https://git-scm.com/book/en/v1/Git-Tools-Credential-Storage
 [github]: https://github.com
 [github-ssh]: https://help.github.com/en/articles/connecting-to-github-with-ssh
 [github-logos]: https://github.com/logos
 [install]: https://github.com/git-ecosystem/git-credential-manager/blob/release/docs/install.md
-[ms-package-repos]: https://packages.microsoft.com/repos/
 [roadmap]: https://github.com/git-ecosystem/git-credential-manager/milestones?direction=desc&sort=due_date&state=open
 [roadmap-announcement]: https://github.com/git-ecosystem/git-credential-manager/discussions/1203
 [workflow-status]: https://github.com/git-ecosystem/git-credential-manager/actions/workflows/continuous-integration.yml
