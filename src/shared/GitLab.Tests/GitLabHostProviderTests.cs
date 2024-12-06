@@ -69,5 +69,11 @@ namespace GitLab.Tests
 
             Assert.Equal(expected, actual);
         }
+
+        [Fact]
+        public void GitLabHostProvider_GetRefreshTokenServiceName()
+        {
+            Assert.Equal("https://oauth-refresh-token.gitlab.example.com", GitLabHostProvider.GetRefreshTokenServiceName(new Uri("https://gitlab.example.com/abc/def.git")));
+        }
     }
 }

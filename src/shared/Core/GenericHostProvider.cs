@@ -87,7 +87,7 @@ namespace GitCredentialManager
                 Context.Trace.WriteLine($"\tUseAuthHeader   = {oauthConfig.UseAuthHeader}");
                 Context.Trace.WriteLine($"\tDefaultUserName = {oauthConfig.DefaultUserName}");
 
-                return await GetOAuthAccessToken(uri, input.UserName, oauthConfig, Context.Trace2);
+                return await GetOAuthAccessToken(uri, input.UserName, input.OAuthRefreshToken, oauthConfig, Context.Trace2);
             }
             // Try detecting WIA for this remote, if permitted
             else if (IsWindowsAuthAllowed)
@@ -125,7 +125,7 @@ namespace GitCredentialManager
             return await _basicAuth.GetCredentialsAsync(uri.AbsoluteUri, input.UserName);
         }
 
-        private async Task<ICredential> GetOAuthAccessToken(Uri remoteUri, string userName, GenericOAuthConfig config, ITrace2 trace2)
+        private async Task<ICredential> GetOAuthAccessToken(Uri remoteUri, string userName, string refreshToken, GenericOAuthConfig config, ITrace2 trace2)
         {
             // TODO: Determined user info from a webcall? ID token? Need OIDC support
             string oauthUser = userName ?? config.DefaultUserName;
@@ -139,33 +139,19 @@ namespace GitCredentialManager
                 config.ClientSecret,
                 config.UseAuthHeader);
 
-            //
-            // Prepend "refresh_token" to the hostname to get a (hopefully) unique service name that
-            // doesn't clash with an existing credential service.
-            //
-            // Appending "/refresh_token" to the end of the remote URI may not always result in a unique
-            // service because users may set credential.useHttpPath and include "/refresh_token" as a
-            // path name.
-            //
-            string refreshService = new UriBuilder(remoteUri) { Host = $"refresh_token.{remoteUri.Host}" }
-                .Uri.AbsoluteUri.TrimEnd('/');
-
-            // Try to use a refresh token if we have one
-            ICredential refreshToken = Context.CredentialStore.Get(refreshService, userName);
+            if (!Context.CredentialStore.CanStoreOAuthRefreshToken) {
+                var refreshService = GetRefreshTokenServiceName(remoteUri);
+                refreshToken ??= Context.CredentialStore.Get(refreshService, userName)?.Password;
+            }
             if (refreshToken != null)
             {
+                Context.Trace.WriteLine("Refreshing OAuth token");
                 try
                 {
-                    var refreshResult = await client.GetTokenByRefreshTokenAsync(refreshToken.Password, CancellationToken.None);
-
-                    // Store new refresh token if we have been given one
-                    if (!string.IsNullOrWhiteSpace(refreshResult.RefreshToken))
-                    {
-                        Context.CredentialStore.AddOrUpdate(refreshService, refreshToken.Account, refreshToken.Password);
-                    }
+                    var refreshResult = await client.GetTokenByRefreshTokenAsync(refreshToken, CancellationToken.None);
 
                     // Return the new access token
-                    return new GitCredential(oauthUser,refreshResult.AccessToken);
+                    return new GitCredential(refreshResult, oauthUser);
                 }
                 catch (OAuth2Exception ex)
                 {
@@ -218,13 +204,25 @@ namespace GitCredentialManager
                     throw new Trace2Exception(Context.Trace2, "No authentication mode selected!");
             }
 
-            // Store the refresh token if we have one
-            if (!string.IsNullOrWhiteSpace(tokenResult.RefreshToken))
-            {
-                Context.CredentialStore.AddOrUpdate(refreshService, oauthUser, tokenResult.RefreshToken);
-            }
+            return new GitCredential(tokenResult, oauthUser);
+        }
 
-            return new GitCredential(oauthUser, tokenResult.AccessToken);
+        public override Task EraseCredentialAsync(InputArguments input)
+        {
+            // delete any refresh token too
+            Context.CredentialStore.Remove(GetRefreshTokenServiceName(input.GetRemoteUri()), "oauth2");
+            return base.EraseCredentialAsync(input);
+        }
+
+        public override Task StoreCredentialAsync(InputArguments input)
+        {
+            if (!Context.CredentialStore.CanStoreOAuthRefreshToken && input.OAuthRefreshToken != null)
+            {
+                var refreshService = GetRefreshTokenServiceName(input.GetRemoteUri());
+                Context.Trace.WriteLine($"Storing refresh token separately under service {refreshService}...");
+                Context.CredentialStore.AddOrUpdate(refreshService, new GitCredential("oauth2", input.OAuthRefreshToken));
+            }
+            return base.StoreCredentialAsync(input);
         }
 
         /// <summary>
@@ -250,6 +248,19 @@ namespace GitCredentialManager
 
                 return false;
             }
+        }
+
+        private string GetRefreshTokenServiceName(Uri uri)
+        {
+            // Prepend "refresh_token" to the hostname to get a (hopefully) unique service name that
+            // doesn't clash with an existing credential service.
+            //
+            // Appending "/refresh_token" to the end of the remote URI may not always result in a unique
+            // service because users may set credential.useHttpPath and include "/refresh_token" as a
+            // path name.
+            //
+            return new UriBuilder(uri) { Host = $"refresh_token.{uri.Host}" }
+                .Uri.AbsoluteUri.TrimEnd('/');
         }
 
         private HttpClient _httpClient;
