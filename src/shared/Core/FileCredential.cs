@@ -1,3 +1,5 @@
+using System;
+
 namespace GitCredentialManager
 {
     public class FileCredential : ICredential
@@ -17,5 +19,9 @@ namespace GitCredentialManager
         public string Account { get; }
 
         public string Password { get; }
+
+        public DateTimeOffset? PasswordExpiry => null;
+
+        public string OAuthRefreshToken => null;
     }
 }

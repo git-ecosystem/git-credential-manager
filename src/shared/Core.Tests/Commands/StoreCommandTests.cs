@@ -13,13 +13,17 @@ namespace GitCredentialManager.Tests.Commands
         {
             const string testUserName = "john.doe";
             const string testPassword = "letmein123"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
-            var stdin = $"protocol=http\nhost=example.com\nusername={testUserName}\npassword={testPassword}\n\n";
+            const string testRefreshToken = "xyzzy";
+            const long testExpiry = 1919539847;
+            var stdin = $"protocol=http\nhost=example.com\nusername={testUserName}\npassword={testPassword}\noauth_refresh_token={testRefreshToken}\npassword_expiry_utc={testExpiry}\n\n";
             var expectedInput = new InputArguments(new Dictionary<string, string>
             {
                 ["protocol"] = "http",
                 ["host"]     = "example.com",
                 ["username"] = testUserName,
-                ["password"] = testPassword
+                ["password"] = testPassword,
+                ["oauth_refresh_token"] = testRefreshToken,
+                ["password_expiry_utc"] = testExpiry.ToString(),
             });
 
             var providerMock = new Mock<IHostProvider>();
@@ -46,7 +50,9 @@ namespace GitCredentialManager.Tests.Commands
                    a.Host     == b.Host &&
                    a.Path     == b.Path &&
                    a.UserName == b.UserName &&
-                   a.Password == b.Password;
+                   a.Password == b.Password &&
+                   a.OAuthRefreshToken == b.OAuthRefreshToken &&
+                   a.PasswordExpiry == b.PasswordExpiry;
         }
     }
 }

@@ -75,6 +75,7 @@ namespace GitCredentialManager.Interop.Windows.Native
         AllCredentials = 0x1
     }
 
+    /// <see cref="https://learn.microsoft.com/en-us/windows/win32/api/wincred/ns-wincred-credentialw"/>
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     public struct Win32Credential
     {
@@ -101,6 +102,28 @@ namespace GitCredentialManager.Interop.Windows.Native
             {
                 byte[] passwordBytes = InteropUtils.ToByteArray(CredentialBlob, CredentialBlobSize);
                 return Encoding.Unicode.GetString(passwordBytes);
+            }
+
+            return null;
+        }
+    }
+
+    /// <see cref="https://learn.microsoft.com/en-us/windows/win32/api/wincred/ns-wincred-credential_attributew"/>
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    public struct Win32CredentialAttribute
+    {
+        [MarshalAs(UnmanagedType.LPWStr)]
+        public string Keyword;
+        public int Flags;
+        public int ValueSize;
+        public IntPtr Value;
+
+        public long? GetValueAsLong()
+        {
+            if (ValueSize != 0 && Value != IntPtr.Zero)
+            {
+                byte[] bytes = InteropUtils.ToByteArray(Value, ValueSize);
+                return BitConverter.ToInt64(bytes, 0);
             }
 
             return null;
