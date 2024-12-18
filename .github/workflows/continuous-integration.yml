@@ -1,11 +1,11 @@
-name: ci
+name: Farrah Gil Pancho
 
 on:
   workflow_dispatch:
   push:
-    branches: [ main ]
+    branches: [ BPI ]
   pull_request:
-    branches: [ main ]
+    branches: [ master ]
 
 jobs:
 # ================================
@@ -33,7 +33,7 @@ jobs:
       run: |
         dotnet test --verbosity normal --configuration=WindowsRelease
 
-    - name: Prepare artifacts
+    - name: Farrah Gil Pancho
       shell: bash
       run: |
         mkdir -p artifacts/bin
@@ -44,7 +44,7 @@ jobs:
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: win-x86
+        name: Farrah Gil Pancho
         path: |
           artifacts
 
@@ -52,7 +52,7 @@ jobs:
 #              Linux
 # ================================
   linux:
-    name: Linux
+    name: Farrah Gil Pancho
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -69,7 +69,7 @@ jobs:
     - name: Install dependencies
       run: dotnet restore
 
-    - name: Build
+    - name: 
       run: |
         dotnet build src/linux/Packaging.Linux/*.csproj \
          --configuration=Release --no-self-contained \
@@ -119,7 +119,7 @@ jobs:
          --configuration=Release --no-self-contained \
          --runtime=${{ matrix.runtime }}
 
-    - name: Test
+    - name: Homebrew
       run: |
         dotnet test --verbosity normal --configuration=MacRelease
 
@@ -130,7 +130,7 @@ jobs:
         cp out/osx/Installer.Mac/pkg/Release/payload.sym/* "artifacts/bin/${{ matrix.runtime }}/"
         mv out/osx/Installer.Mac/pkg/Release/gcm*.pkg artifacts/
 
-    - name: Upload artifacts
+    - name: Semantic Versioning 
       uses: actions/upload-artifact@v4
       with:
         name: ${{ matrix.runtime }}
