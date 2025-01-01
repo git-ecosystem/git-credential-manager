@@ -48,6 +48,8 @@ namespace GitCredentialManager.Interop.Windows
 
             IntPtr existingCredPtr = IntPtr.Zero;
             IntPtr credBlob = IntPtr.Zero;
+            IntPtr expiryPtr = IntPtr.Zero;
+            IntPtr attributesPtr = IntPtr.Zero;
 
             try
             {
@@ -101,7 +103,7 @@ namespace GitCredentialManager.Interop.Windows
                 if (credential.PasswordExpiry != null)
                 {
                     byte[] expiryBytes = BitConverter.GetBytes(credential.PasswordExpiry.Value.ToUnixTimeSeconds());
-                    IntPtr expiryPtr = Marshal.AllocHGlobal(expiryBytes.Length);
+                    expiryPtr = Marshal.AllocHGlobal(expiryBytes.Length);
                     Marshal.Copy(expiryBytes, 0, expiryPtr, expiryBytes.Length);
 
                     var attribute = new Win32CredentialAttribute()
@@ -113,8 +115,9 @@ namespace GitCredentialManager.Interop.Windows
                     };
 
                     newCred.AttributeCount = 1;
-                    newCred.Attributes = Marshal.AllocHGlobal(Marshal.SizeOf(attribute));
-                    Marshal.StructureToPtr(attribute, newCred.Attributes, false);
+                    attributesPtr = Marshal.AllocHGlobal(Marshal.SizeOf(attribute));
+                    Marshal.StructureToPtr(attribute, attributesPtr, false);
+                    newCred.Attributes = attributesPtr;
                 }
 
                 int result = Win32Error.GetLastError(
@@ -133,6 +136,17 @@ namespace GitCredentialManager.Interop.Windows
                 if (existingCredPtr != IntPtr.Zero)
                 {
                     Advapi32.CredFree(existingCredPtr);
+                }
+
+                if (expiryPtr != IntPtr.Zero)
+                {
+                    Marshal.FreeHGlobal(expiryPtr);
+                }
+
+                if (attributesPtr != IntPtr.Zero)
+                {
+                    Marshal.DestroyStructure<Win32CredentialAttribute>(attributesPtr);
+                    Marshal.FreeHGlobal(attributesPtr);
                 }
             }
         }
