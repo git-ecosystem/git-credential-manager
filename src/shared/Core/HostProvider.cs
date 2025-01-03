@@ -131,8 +131,9 @@ namespace GitCredentialManager
             Context.Trace.WriteLine($"Looking for existing credential in store with service={service} account={input.UserName}...");
 
             // Query for matching credentials
-            ICredential credential = null;
-            while (true)
+            ICredential credential;
+            // Limit iterations to avoid infinite loop if CredentialStore.Remove misbehaves
+            for (int i = 0; i < 3; i++)
             {
                 Context.Trace.WriteLine("Querying for existing credentials...");
                 credential = Context.CredentialStore.Get(service, input.UserName);
@@ -141,28 +142,25 @@ namespace GitCredentialManager
                     Context.Trace.WriteLine("No existing credentials found.");
                     break;
                 }
+                Context.Trace.WriteLine("Existing credential found.");
+                if (await ValidateCredentialAsync(input.GetRemoteUri(), credential))
+                {
+                    Context.Trace.WriteLine("Existing credential satisfies validation.");
+                    return credential;
+                }
                 else
                 {
-                    Context.Trace.WriteLine("Existing credential found.");
-                    if (await ValidateCredentialAsync(input.GetRemoteUri(), credential))
+                    Context.Trace.WriteLine("Existing credential fails validation.");
+                    if (credential.OAuthRefreshToken != null)
                     {
-                        Context.Trace.WriteLine("Existing credential satisfies validation.");
-                        return credential;
+                        Context.Trace.WriteLine("Found OAuth refresh token.");
+                        input = new InputArguments(input, credential.OAuthRefreshToken);
                     }
-                    else
-                    {
-                        Context.Trace.WriteLine("Existing credential fails validation.");
-                        if (credential.OAuthRefreshToken != null)
-                        {
-                            Context.Trace.WriteLine("Found OAuth refresh token.");
-                            input = new InputArguments(input, credential.OAuthRefreshToken);
-                        }
-                        Context.Trace.WriteLine("Erasing invalid credential...");
-                        // Why necessary to erase? We can't be sure that storing a fresh
-                        // credential will overwrite the invalid credential, particularly
-                        // if the usernames differ.
-                        Context.CredentialStore.Remove(service, credential);
-                    }
+                    Context.Trace.WriteLine("Erasing invalid credential...");
+                    // Why necessary to erase? We can't be sure that storing a fresh
+                    // credential will overwrite the invalid credential, particularly
+                    // if the usernames differ.
+                    Context.CredentialStore.Remove(service, credential);
                 }
             }
             Context.Trace.WriteLine("Creating new credential...");

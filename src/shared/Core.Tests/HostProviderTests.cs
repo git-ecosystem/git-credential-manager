@@ -76,7 +76,7 @@ namespace GitCredentialManager.Tests
         }
 
         [Fact]
-        public async Task HostProvider_GetCredentialAsync_InvalidCredentialStored_ReturnsNewGeneratedCredential()
+        public async Task HostProvider_GetCredentialAsync_InvalidCredentialsStored_ReturnsNewGeneratedCredential()
         {
             const string userName = "john.doe";
             const string password = "letmein123"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
@@ -93,6 +93,7 @@ namespace GitCredentialManager.Tests
             string refreshTokenSeenByGenerate = null;
             var context = new TestCommandContext();
             context.CredentialStore.Add(service, new TestCredential(service, "stored-user", "stored-password") { OAuthRefreshToken = storedRefreshToken});
+            context.CredentialStore.Add(service, new TestCredential(service, "another-stored-user", "another-stored-password"));
             var provider = new TestHostProvider(context)
             {
                 ValidateCredentialFunc = (_, _) => false,
@@ -114,7 +115,7 @@ namespace GitCredentialManager.Tests
             Assert.Equal(userName, actualCredential.Account);
             Assert.Equal(password, actualCredential.Password);
             Assert.Equal(refreshToken, actualCredential.OAuthRefreshToken);
-            // Invalid credential should be erased
+            // Invalid credentials should be erased
             Assert.Equal(0, context.CredentialStore.Count);
         }
 
