@@ -104,7 +104,7 @@ installation, and not shared with others or the Windows host.
 ## Can I install Git Credential Manager directly inside of WSL?
 
 Yes. Rather than install GCM as a Windows application (and have WSL Git invoke
-the Windows GCM), can you install GCM as a Linux application instead.
+the Windows GCM), you can install GCM as a Linux application instead.
 
 To do this, simply follow the
 [GCM installation instructions for Linux][linux-installation].
