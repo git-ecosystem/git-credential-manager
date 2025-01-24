@@ -17,7 +17,7 @@ namespace GitCredentialManager.Interop.Windows
             PlatformUtils.EnsureWindows();
         }
 
-        protected override bool TryGetExternalDefault(string section, string scope, string property, out string value)
+        protected internal override bool TryGetExternalDefault(string section, string scope, string property, out string value)
         {
             value = null;
 

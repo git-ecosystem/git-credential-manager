@@ -15,6 +15,7 @@ namespace GitCredentialManager
         public const string AuthorityIdAuto = "auto";
 
         public const string GcmDataDirectoryName = ".gcm";
+        public const string LinuxAppDefaultsDirectoryPath = "/etc/git-credential-manager/config.d";
 
         public const string MacOSBundleId = "git-credential-manager";
         public static readonly Guid DevBoxPartnerId = new("e3171dd9-9a5f-e5be-b36c-cc7c4f3f3bcf");
