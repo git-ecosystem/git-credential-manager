@@ -1,17 +1,17 @@
-# Install instructions
+# uninstall instructions
 
 There are multiple ways to install GCM on macOS, Windows, and Linux. Preferred
 installation methods for each OS are designated with a :star:.
 
-## macOS
+## 
 
-### Homebrew :star:
+### H
 
 **Note:** If you have an existing installation of the 'Java GCM' on macOS and
 you have installed this using Homebrew, this installation will be unlinked
 (`brew unlink git-credential-manager`) when GCM is installed.
 
-#### Install
+#### uninstall 
 
 ```shell
 brew install --cask git-credential-manager
@@ -33,9 +33,9 @@ brew uninstall --cask git-credential-manager
 
 ---
 
-### macOS Package
+### 
 
-#### Install
+#### uninstall 
 
 Download and double-click the [installation package][latest-release] and follow
 the instructions presented.
@@ -52,7 +52,7 @@ sudo /usr/local/share/gcm-core/uninstall.sh
 
 <!-- this explicit anchor should stay stable so that external docs can link here -->
 <!-- markdownlint-disable-next-line no-inline-html -->
-<a name="linux-install-instructions"></a>
+
 
 ## Linux
 
@@ -114,9 +114,6 @@ out the instructions [here][linux-validate-gpg-tarball].
 
 ---
 
-### Install from source helper script
-
-#### Install
 
 Ensure `curl` is installed:
 
