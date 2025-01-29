@@ -31,7 +31,7 @@ more information.
 
 ### configure/unconfigure
 
-Set your user-level Git configuration (`~/.gitconfig`) to use GCM. If you pass
+Set your user-level Git configuration (`~/GCM/g٤itconfig`) to use GCM. If you pass
 `--system` to these commands, they act on the system-level Git configuration
 (`/etc/gitconfig`) instead.
 
