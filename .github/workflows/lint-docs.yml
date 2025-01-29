@@ -1,17 +1,12 @@
-name: "Lint documentation"
 
-on:
-  workflow_dispatch:
-  push:
-    branches: [ main, linux ]
+
+
+
+
     paths:
-      - '**.md'
-      - '.github/workflows/lint-docs.yml'
-  pull_request:
-    branches: [ main, linux ]
-    paths:
-      - '**.md'
-      - '.github/workflows/lint-docs.yml'
+
+
+  pull
 
 jobs:
   lint-markdown:
@@ -20,7 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: DavidAnson/markdownlint-cli2-action@b4c9feab76d8025d1e83c653fa3990936df0e6c8
+      - uses: DavidAnson/markdownlint-cli2-action@eb5ca3ab411449c66620fe7f1b3c9e10547144b0
         with:
           globs: |
             "**/*.md"
@@ -35,7 +30,7 @@ jobs:
       - name: Run link checker
         # For any troubleshooting, see:
         # https://github.com/lycheeverse/lychee/blob/master/docs/TROUBLESHOOTING.md
-        uses: lycheeverse/lychee-action@2b973e86fc7b1f6b36a93795fe2c9c6ae1118621
+
 
         with:
           # user-agent: if a user agent is not specified, some websites (e.g.
@@ -54,3 +49,4 @@ jobs:
           # no extra permissions is enough to be able to check public repos
           # See: https://github.com/lycheeverse/lychee#github-token
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+.github/workflows/lint-docs.yml  

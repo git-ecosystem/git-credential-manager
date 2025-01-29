@@ -30,6 +30,10 @@ case "$i" in
     INSTALL_FROM_SOURCE="${i#*=}"
     shift # past argument=value
     ;;
+    --runtime=*)
+    RUNTIME="${i#*=}"
+    shift # past argument=value
+    ;;
     --install-prefix=*)
     INSTALL_PREFIX="${i#*=}"
     shift # past argument=value
@@ -41,8 +45,12 @@ esac
 done
 
 # Ensure install prefix exists
-if [! -d "$INSTALL_PREFIX" ]; then
+if [ ! -d "$INSTALL_PREFIX" ]; then
     mkdir -p "$INSTALL_PREFIX"
+fi
+
+if [ ! -z "$RUNTIME" ]; then
+    echo "Building for runtime ${RUNTIME}"
 fi
 
 # Perform pre-execution checks
@@ -56,7 +64,7 @@ PAYLOAD="$OUTDIR/payload"
 SYMBOLS="$OUTDIR/payload.sym"
 
 # Lay out payload
-"$INSTALLER_SRC/layout.sh" --configuration="$CONFIGURATION" || exit 1
+"$INSTALLER_SRC/layout.sh" --configuration="$CONFIGURATION" --runtime="$RUNTIME" || exit 1
 
 if [ $INSTALL_FROM_SOURCE = true ]; then
     echo "Installing to $INSTALL_PREFIX"
@@ -79,7 +87,7 @@ if [ $INSTALL_FROM_SOURCE = true ]; then
     echo "Install complete."
 else
     # Pack
-    "$INSTALLER_SRC/pack.sh" --configuration="$CONFIGURATION" --payload="$PAYLOAD" --symbols="$SYMBOLS" --version="$VERSION" || exit 1
+    "$INSTALLER_SRC/pack.sh" --configuration="$CONFIGURATION" --runtime="$RUNTIME" --payload="$PAYLOAD" --symbols="$SYMBOLS" --version="$VERSION" || exit 1
 fi
 
 echo "Build of Packaging.Linux complete."
