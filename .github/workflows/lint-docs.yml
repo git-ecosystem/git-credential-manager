@@ -35,7 +35,7 @@ jobs:
       - name: Run link checker
         # For any troubleshooting, see:
         # https://github.com/lycheeverse/lychee/blob/master/docs/TROUBLESHOOTING.md
-        uses: lycheeverse/lychee-action@f81112d0d2814ded911bd23e3beaa9dda9093915
+        uses: lycheeverse/lychee-action@f613c4a64e50d792e0b31ec34bbcbba12263c6a6
 
         with:
           # user-agent: if a user agent is not specified, some websites (e.g.
