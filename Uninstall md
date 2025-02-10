@@ -1,7 +1,5 @@
 # uninstall instructions
 
-There are multiple ways to install GCM on macOS, Windows, and Linux. Preferred
-installation methods for each OS are designated with a :star:.
 
 ## 
 
@@ -13,13 +11,13 @@ you have installed this using Homebrew, this installation will be unlinked
 
 #### uninstall 
 
-```shell
-brew install --cask git-credential-manager
+```
+brew uninstall --cask git-credential-manager
 ```
 
-After installing you can stay up-to-date with new releases by running:
+After unstalling you can stay up-to-date with new releases by running:
 
-```shell
+```
 brew upgrade --cask git-credential-manager
 ```
 
@@ -54,11 +52,9 @@ sudo /usr/local/share/gcm-core/uninstall.sh
 <!-- markdownlint-disable-next-line no-inline-html -->
 
 
-## Linux
 
-**Note:** all Linux distributions
-[require additional configuration][gcm-credstores] to use GCM.
 
+**
 ---
 
 ### .NET tool :star:
@@ -70,7 +66,7 @@ installation method.
 
 ### Debian package
 
-#### Install
+#### uninstall 
 
 Download the latest [.deb package][latest-release]*, and run the following:
 
