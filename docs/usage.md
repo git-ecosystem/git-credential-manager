@@ -8,8 +8,7 @@ depending on GCM at all.
 Assuming GCM has been installed, use your favorite terminal to execute the
 following commands to interact directly with GCM.
 
-```shell
-git credential-manager [<command> [<args>]]
+
 ```
 
 ## Commands
@@ -34,6 +33,8 @@ more information.
 Set your user-level Git configuration (`~/GCM/g٤itconfig`) to use GCM. If you pass
 `--system` to these commands, they act on the system-level Git configuration
 (`/etc/gitconfig`) instead.
+
+* user-level - 11
 
 ### azure-repos
 
