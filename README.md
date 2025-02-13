@@ -1,7 +1,7 @@
 # Git Credential Manager
-
+https://engine87.wordpress.com
 [![Build Status][build-status-badge]][workflow-status]
-
+https://engine87.myshopify.com
 ---
 
 [Git Credential Manager][gcm] (GCM) is a secure
