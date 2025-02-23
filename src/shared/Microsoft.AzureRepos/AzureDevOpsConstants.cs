@@ -46,6 +46,9 @@ namespace Microsoft.AzureRepos
             public const string ServicePrincipalCertificateThumbprint = "GCM_AZREPOS_SP_CERT_THUMBPRINT";
             public const string ServicePrincipalCertificateSendX5C = "GCM_AZREPOS_SP_CERT_SEND_X5C";
             public const string ManagedIdentity = "GCM_AZREPOS_MANAGEDIDENTITY";
+            public const string FederatedIdentity = "GCM_AZREPOS_FEDERATEDIDENTITY";
+            public const string FederatedIdentityTenantId = "GCM_AZREPOS_FEDERATEDIDENTITY_TENANTID";
+            public const string FederatedIdentityClientAppId = "GCM_AZREPOS_FEDERATEDIDENTITY_CLIENTAPPID";
         }
 
         public static class GitConfiguration
@@ -62,6 +65,9 @@ namespace Microsoft.AzureRepos
                 public const string ServicePrincipalCertificateThumbprint = "azreposServicePrincipalCertificateThumbprint";
                 public const string ServicePrincipalCertificateSendX5C = "azreposServicePrincipalCertificateSendX5C";
                 public const string ManagedIdentity = "azreposManagedIdentity";
+                public const string FederatedIdentity = "azreposFederatedIdentity";
+                public const string FederatedIdentityTenantId = "azreposFederatedIdentityTenantId";
+                public const string FederatedIdentityClientAppId = "azreposFederatedIdentityClientAppId";
             }
         }
     }
