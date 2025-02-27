@@ -146,6 +146,9 @@ jobs:
     runs-on: windows-latest
     environment: release
     needs: prereqs
+    strategy:
+      matrix:
+        runtime: [win-x86, win-x64, win-arm64]
     steps:
     - uses: actions/checkout@v4
 
@@ -156,18 +159,23 @@ jobs:
 
     - name: Build
       run: |
-        dotnet build --configuration=WindowsRelease
+        dotnet build src/windows/Installer.Windows/Installer.Windows.csproj `
+        --configuration=Release `
+        --runtime=${{ matrix.runtime }}
 
     - name: Run Windows unit tests
+      # GitHub's hosted runners are x64 so can test x64 and x86, but not arm64
+      if: matrix.runtime != 'win-arm64'
       run: |
-        dotnet test --configuration=WindowsRelease
+        dotnet test --configuration=WindowsRelease --runtime=${{ matrix.runtime }}
 
     - name: Lay out Windows payload and symbols
       run: |
         cd $env:GITHUB_WORKSPACE\src\windows\Installer.Windows\
-        ./layout.ps1 -Configuration WindowsRelease `
+        ./layout.ps1 -Configuration Release `
           -Output $env:GITHUB_WORKSPACE\payload `
-          -SymbolOutput $env:GITHUB_WORKSPACE\symbols
+          -SymbolOutput $env:GITHUB_WORKSPACE\symbols `
+          -RuntimeIdentifier ${{ matrix.runtime }}
 
     - name: Log into Azure
       uses: azure/login@v2
@@ -198,9 +206,10 @@ jobs:
       run: |
         dotnet build $env:GITHUB_WORKSPACE\src\windows\Installer.Windows `
           /p:PayloadPath=$env:GITHUB_WORKSPACE\payload /p:NoLayout=true `
-          --configuration=WindowsRelease
+          --configuration=WindowsRelease `
+          --runtime=${{ matrix.runtime }}
         mkdir installers
-        Move-Item -Path .\out\windows\Installer.Windows\bin\Release\net472\*.exe `
+        Move-Item -Path .\out\windows\Installer.Windows\bin\Release\net472\${{ matrix.runtime }}\gcm*.exe `
          -Destination $env:GITHUB_WORKSPACE\installers
 
     - name: Sign installers with Azure Code Signing

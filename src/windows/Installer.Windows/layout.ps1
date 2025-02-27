@@ -1,7 +1,12 @@
 # Inputs
-param ([Parameter(Mandatory)] $CONFIGURATION, [Parameter(Mandatory)] $OUTPUT, $SYMBOLOUTPUT)
+param ([Parameter(Mandatory)] $CONFIGURATION, [Parameter(Mandatory)] $OUTPUT, [Parameter(Mandatory)] $RuntimeIdentifier, $SYMBOLOUTPUT)
 
 Write-Output "Output: $OUTPUT"
+
+if ($RuntimeIdentifier -ne 'win-x86' -and $RuntimeIdentifier -ne 'win-x64' -and $RuntimeIdentifier -ne 'win-arm64') {
+    Write-Host "Unsupported RuntimeIdentifier: $RuntimeIdentifier"
+    exit 1
+}
 
 # Directories
 $THISDIR = $pwd.path
@@ -39,15 +44,14 @@ Write-Output "Publishing core application..."
 dotnet publish "$GCM_SRC" `
 	--framework net472 `
 	--configuration "$CONFIGURATION" `
-	--runtime win-x86 `
+	--runtime $RuntimeIdentifier `
 	--output "$PAYLOAD"
 
 # Delete libraries that are not needed for Windows but find their way
 # into the publish output.
 Remove-Item -Path "$PAYLOAD/*.dylib" -Force
 
-# Delete extraneous files that get included for other architectures
-# We only care about x86 as the core GCM executable is only targeting x86
+# Delete extraneous files that get included for other runtimes
 Remove-Item -Path "$PAYLOAD/arm/" -Recurse -Force
 Remove-Item -Path "$PAYLOAD/arm64/" -Recurse -Force
 Remove-Item -Path "$PAYLOAD/x64/" -Recurse -Force
