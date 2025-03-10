@@ -1,0 +1,3 @@
+[submodule "ProSeFraudCatcher"]
+	path = ProSeFraudCatcher
+	url = git@github.com:Pro-Se-Fraud-Hunters/ProSeFraudCatcher.git
