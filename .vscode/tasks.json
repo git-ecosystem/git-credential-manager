@@ -5,13 +5,11 @@
             "label": "build",
             "command": "dotnet",
             "type": "process",
-            "group":{
-                "kind": "build",
-                "isDefault": true
-            },
             "args": [
                 "build",
                 "${workspaceFolder}/Git-Credential-Manager.sln",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary;ForceNoAlign"
             ],
             "problemMatcher": "$msCompile"
         },
@@ -79,6 +77,30 @@
                 "reveal": "always",
                 "panel": "dedicated"
             }
+        },
+        {
+            "label": "publish",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "publish",
+                "${workspaceFolder}/Git-Credential-Manager.sln",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary;ForceNoAlign"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "watch",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "watch",
+                "run",
+                "--project",
+                "${workspaceFolder}/Git-Credential-Manager.sln"
+            ],
+            "problemMatcher": "$msCompile"
         }
     ]
 }

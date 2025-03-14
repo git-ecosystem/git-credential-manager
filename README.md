@@ -138,7 +138,7 @@ When using GitHub logos, please be sure to follow the
 [git-tools-credential-storage]: https://git-scm.com/book/en/v2/Git-Tools-Credential-Storage
 [github]: https://github.com
 [github-ssh]: https://help.github.com/en/articles/connecting-to-github-with-ssh
-[github-logos]: https://github.com/logos
+[github-logos]: https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png
 [install]: https://github.com/git-ecosystem/git-credential-manager/blob/release/docs/install.md
 [ms-package-repos]: https://packages.microsoft.com/repos/
 [roadmap]: https://github.com/git-ecosystem/git-credential-manager/milestones?direction=desc&sort=due_date&state=open
