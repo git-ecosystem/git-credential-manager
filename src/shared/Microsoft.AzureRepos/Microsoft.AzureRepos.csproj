@@ -7,6 +7,8 @@
     <RootNamespace>Microsoft.AzureRepos</RootNamespace>
     <IsTestProject>false</IsTestProject>
     <LangVersion>latest</LangVersion>
+    <!-- Add the target framework for publishing -->
+    <TargetFramework>net8.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
