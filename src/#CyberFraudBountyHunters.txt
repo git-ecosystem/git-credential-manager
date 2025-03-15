@@ -1,1 +1,2 @@
 .github/workflows/deploy.yml
+.commitlintrc.js
