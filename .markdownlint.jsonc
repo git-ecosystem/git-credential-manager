@@ -1,11 +1,84 @@
-// For information on writing markdownlint configuration see:
-//  https://github.com/DavidAnson/markdownlint/blob/main/README.md#optionsconfig
-{
-    "MD013": {
-        "line_length": 80,
-        "code_blocks": false,
-        "headings": false,
-        "tables": false
-    },
-    "MD024": false   // The format for some files require repeated headings, e.g. "Example"
-}
+<!DOCTYPE html>
+<html dir="ltr" lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport"
+    content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=0,viewport-fit=cover" />
+  <style>
+    body {
+      -ms-overflow-style: scrollbar;
+      overflow-y: scroll;
+      overscroll-behavior-y: none;
+    }
+
+    .errorContainer {
+      background-color: #FFF;
+      color: #0F1419;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 10%;
+      font-family: Helvetica, sans-serif;
+      font-size: 16px;
+    }
+
+    .errorButton {
+      margin: 3em 0;
+    }
+
+    .errorButton a {
+      background: #1DA1F2;
+      border-radius: 2.5em;
+      color: white;
+      padding: 1em 2em;
+      text-decoration: none;
+    }
+
+    .errorButton a:hover,
+    .errorButton a:focus {
+      background: rgb(26, 145, 218);
+    }
+
+    .errorFooter {
+      color: #657786;
+      font-size: 80%;
+      line-height: 1.5;
+      padding: 1em 0;
+    }
+
+    .errorFooter a,
+    .errorFooter a:visited {
+      color: #657786;
+      text-decoration: none;
+      padding-right: 1em;
+    }
+
+    .errorFooter a:hover,
+    .errorFooter a:active {
+      text-decoration: underline;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="errorContainer">
+    <svg role="img" aria-label="X logo" width="48" height="48" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+      <path fill-rule="evenodd" clip-rule="evenodd" d="M86.8918 28.25H99.0219L72.5243 58.5334L103.698 99.75H79.285L60.1647 74.7536L38.2929 99.75H26.1627L54.5069 67.3565L24.5938 28.25H49.6199L66.9004 51.0974L86.8918 28.25ZM82.6337 92.4904H89.3555L45.9716 35.1301H38.7584L82.6337 92.4904Z" fill="black"/>
+    </svg>
+    <h1>This browser is no longer supported.</h1>
+    <p>
+      Please switch to a supported browser to continue using x.com. You can see a list of supported browsers in our Help Center.
+    </p>
+    <p class="errorButton"><a href="https://help.x.com/using-x/x-supported-browsers">Help Center</a>
+    </p>
+    <p class="errorFooter">
+      <a href="https://twitter.com/tos">Terms of Service</a>
+      <a href="https://twitter.com/privacy">Privacy Policy</a>
+      <a href="https://support.twitter.com/articles/20170514">Cookie Policy</a>
+      <a href="https://legal.twitter.com/imprint.html">Imprint</a>
+      <a href="https://business.twitter.com/en/help/troubleshooting/how-twitter-ads-work.html?ref=web-twc-ao-gbl-adsinfo&utm_source=twc&utm_medium=web&utm_campaign=ao&utm_content=adsinfo">Ads info</a>
+      © 2025 X Corp.
+    </p>
+
+  </div>
+</body>
+</html>
