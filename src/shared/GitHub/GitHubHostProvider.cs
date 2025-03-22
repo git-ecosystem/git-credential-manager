@@ -285,13 +285,10 @@ namespace GitHub
             ThrowIfDisposed();
 
             // We should not allow unencrypted communication and should inform the user
-            if (!_context.Settings.AllowUnsafeRemotes &&
-                StringComparer.OrdinalIgnoreCase.Equals(remoteUri.Scheme, "http"))
+            if (StringComparer.OrdinalIgnoreCase.Equals(remoteUri.Scheme, "http"))
             {
                 throw new Trace2Exception(_context.Trace2,
-                    "Unencrypted HTTP is not recommended for GitHub. " +
-                    "Ensure the repository remote URL is using HTTPS " +
-                    $"or see {Constants.HelpUrls.GcmUnsafeRemotes} about how to allow unsafe remotes.");
+                    "Unencrypted HTTP is not supported for GitHub. Ensure the repository remote URL is using HTTPS.");
             }
 
             string service = GetServiceName(remoteUri);

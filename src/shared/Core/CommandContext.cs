@@ -131,7 +131,7 @@ namespace GitCredentialManager
                                             gitPath,
                                             FileSystem.GetCurrentDirectory()
                                         );
-                Settings          = new MacOSSettings(Environment, Git, Trace);
+                Settings          = new Settings(Environment, Git);
             }
             else if (PlatformUtils.IsLinux())
             {
