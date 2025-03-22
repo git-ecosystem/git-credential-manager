@@ -53,6 +53,8 @@ namespace GitCredentialManager.Tests.Objects
 
         public bool UseMsAuthDefaultAccount { get; set; }
 
+        public bool AllowUnsafeRemotes { get; set; } = false;
+
         public Trace2Settings GetTrace2Settings()
         {
             return new Trace2Settings()
@@ -188,6 +190,8 @@ namespace GitCredentialManager.Tests.Objects
         bool ISettings.UseMsAuthDefaultAccount => UseMsAuthDefaultAccount;
 
         bool ISettings.UseSoftwareRendering => false;
+
+        bool ISettings.AllowUnsafeRemotes => AllowUnsafeRemotes;
 
         #endregion
 
