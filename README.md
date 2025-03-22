@@ -1,146 +1,83 @@
-# Git Credential Manager
-
-[![Build Status][build-status-badge]][workflow-status]
+# Wacom Ink SDK for Verification - Windows
 
 ---
 
-[Git Credential Manager][gcm] (GCM) is a secure
-[Git credential helper][git-credential-helper] built on [.NET][dotnet] that runs
-on Windows, macOS, and Linux. It aims to provide a consistent and secure
-authentication experience, including multi-factor auth, to every major source
-control hosting service and platform.
+## Introduction
 
-GCM supports (in alphabetical order) [Azure DevOps][azure-devops], Azure DevOps
-Server (formerly Team Foundation Server), Bitbucket, GitHub, and GitLab.
-Compare to Git's [built-in credential helpers][git-tools-credential-storage]
-(Windows: wincred, macOS: osxkeychain, Linux: gnome-keyring/libsecret), which
-provide single-factor authentication support for username/password only.
+The purpose of the WISDK for verification is to verify handwritten signatures.
+It uses and extends the existing verification tools, including the SSV (Static Signature Verification) SDK for processing scanned images, 
+and the DSV (Dynamic Signature Verification) SDK which handles signatures captured in Wacom's proprietary FSS (Forensic Signature Store) format.
+The SDK supports all the functionality of the previous SDKs but handles both formats in a single component and allows individual signing variability to be measured by enrolling signature samples in a template.
 
-GCM replaces both the .NET Framework-based
-[Git Credential Manager for Windows][gcm-for-windows] and the Java-based
-[Git Credential Manager for Mac and Linux][gcm-for-mac-and-linux].
 
-## Install
+## Overview
 
-See the [installation instructions][install] for the current version of GCM for
-install options for your operating system.
+The main verification component is the **SignatureEngine** which is a COM component responsible for enrolling and verifying signatures. The SignatureEngine does not store any data but processes signatures and updates a **Template** for each person to record their signing characteristics. It is the responsibility of the calling application to supply the user's template with each signature being verified, and to store the updated version afterwards.
 
-## Current status
+The main features of the SDK's SignatureEngine include the following:-
 
-Git Credential Manager is currently available for Windows, macOS, and Linux\*.
-GCM only works with HTTP(S) remotes; you can still use Git with SSH:
+- A single template can handle either dynamic signatures supplied in FSS format or static signatures supplied as scanned graphical images, or both. In most implementations it is expected than one type or other will be used, but when both types are handled the SignatureEngine checks that the two sets of data are of the same signature. The SignatureEngine will also accept FSS data which is embedded steganographically in a graphical image.
 
-- [Azure DevOps SSH][azure-devops-ssh]
-- [GitHub SSH][github-ssh]
-- [Bitbucket SSH][bitbucket-ssh]
+- When a new person is to be verified the calling system must first create a new template which will record their signing behaviour. There are a number of configuration options that must be set at this stage and which cannot be subsequently changed. These control the way in which the enrollment process is handled and subsequently updated.
 
-Feature|Windows|macOS|Linux\*
--|:-:|:-:|:-:
-Installer/uninstaller|&#10003;|&#10003;|&#10003;
-Secure platform credential storage [(see more)][gcm-credstores]|&#10003;|&#10003;|&#10003;
-Multi-factor authentication support for Azure DevOps|&#10003;|&#10003;|&#10003;
-Two-factor authentication support for GitHub|&#10003;|&#10003;|&#10003;
-Two-factor authentication support for Bitbucket|&#10003;|&#10003;|&#10003;
-Two-factor authentication support for GitLab|&#10003;|&#10003;|&#10003;
-Windows Integrated Authentication (NTLM/Kerberos) support|&#10003;|_N/A_|_N/A_
-Basic HTTP authentication support|&#10003;|&#10003;|&#10003;
-Proxy support|&#10003;|&#10003;|&#10003;
-`amd64` support|&#10003;|&#10003;|&#10003;
-`x86` support|&#10003;|_N/A_|&#10007;
-`arm64` support|best effort|&#10003;|&#10003;
-`armhf` support|_N/A_|_N/A_|&#10003;
+- Once the template has been created signatures can be verified. This is done using the **VerifySignature** method. The method must be supplied with the user's template and the signature.
 
-(\*) GCM guarantees support only for [the Linux distributions that are officially
-supported by dotnet][dotnet-distributions].
+- After the signature has been processed the following is returned to the calling application:-
+  - A score of between 0 (inconsistent signature) and 1 (consistent signature). Note that for the first signature no comparison is possible and the score is meaningless
+  - A flag indicating the type of verification that was used i.e. dynamic or static
+  - A flag indicating the nature of the comparison that was used to arrive at the score e.g. whether the signatures differed in their geometry, timing, pressure variability etc.
+  - A summary of the status of the template, e.g enrolling, enrolled, updated etc.
+  - The updated template which should be saved for the next verification for the user
+  
+- A user's template becomes fully enrolled when the required number of consistent signatures have been verified. By default the number needed is 6 but different values can be set when the template is created. If when the required number has been received one of the signatures is significantly inconsistent with the others then it is rejected and the enrollment process will continue. Some inconsistent signers may need to verify more than the nominal enrollment number of signatures to become fully enrolled. 
 
-## Supported Git versions
+- During enrollment the verification score for each signature is determined using the conventional DSV or SSV engines depending on the data type. These use 1:1 comparisons which are assessed using average variability characteristics. Once enrollment has been completed each signature being verified is compared against the range of characteristics measured in the enrollment set, which generally reduces the false acceptance error rate significantly. 
 
-Git Credential Manager tries to be compatible with the broadest set of Git
-versions (within reason). However there are some know problematic releases of
-Git that are not compatible.
+- After enrollment has been completed the reference data set can be periodically updated to track the drift of a user's signing behaviour with time. The minimum elapsed period between updates is set when the template is created
 
-- Git 1.x
 
-  The initial major version of Git is not supported or tested with GCM.
+## SDK Delivery
 
-- Git 2.26.2
 
-  This version of Git introduced a breaking change with parsing credential
-  configuration that GCM relies on. This issue was fixed in commit
-  [`12294990`][gcm-commit-12294990] of the Git project, and released in Git
-  2.27.0.
+The verification SDK includes the following:
 
-## How to use
+| Name                      | Description |
+| ------------------------- | ----------- |
+| SignatureEngine Component | The core verification functionality is provided in the form of a COM component. The component is secured using a machine specific license |
+| Documentation             | The SDK is supplied with a detailed doxygen API reference |
+| Installer                 | An MSI installer is provided to install and register the SDK COM components. A licenser app is also included to report the machine identifier and install the machine license key |
 
-Once it's installed and configured, Git Credential Manager is called implicitly
-by Git. You don't have to do anything special, and GCM isn't intended to be
-called directly by the user. For example, when pushing (`git push`) to
-[Azure DevOps][azure-devops], [Bitbucket][bitbucket], or [GitHub][github], a
-window will automatically open and walk you through the sign-in process. (This
-process will look slightly different for each Git host, and even in some cases,
-whether you've connected to an on-premises or cloud-hosted Git host.) Later Git
-commands in the same repository will re-use existing credentials or tokens that
-GCM has stored for as long as they're valid.
+## SDK Sample Application
 
-Read full command line usage [here][gcm-usage].
+The C# .NET sample application is supplied with source code and demonstrates the following features :
 
-### Configuring a proxy
+| Feature                       | Description |
+| ----------------------------- | ----------- |
+| Options                        | A menu item opens a dialog which allows the user to modify the ConfigurationOptions, ImageOptions and the template folder. The user options are used whenever a new template is created |
+| Templates                      | Every template is given a name when it is created. A list of all the templates is displayed in a list box and one of them highlighted as the current template. Controls are provided to delete and reset templates.  Templates are stored in the folder shown on the options dialog |
+|  Verify signature from file    | The app allows the user to drag and drop signature files which are then verified using the currently selected template and the results displayed. Dynamic signatures may be in .FSS or .TXT (Base-64 encoded) form. Signature image files can be in any common format, including .PNG, .TIF, .BMP, .JPG etc.  Images containing stegangraphically embedded data will be processed as FSS data. |
+|  Capture and verify signature  |  A button is provided to capture a signature using the Signature SDK and verify it against the currently selected template  |
 
-See detailed information [here][gcm-http-proxy].
+# Additional resources 
 
-## Additional Resources
+## Sample Code
+For further samples check Wacom's Developer additional samples, see [https://github.com/Wacom-Developer](https://github.com/Wacom-Developer)
 
-See the [documentation index][docs-index] for links to additional resources.
+## Documentation
+For further details on using the SDK see [Wacom Ink SDK for verification documentation](http://developer-docs.wacom.com/sdk-for-verification/) 
 
-## Experimental Features
+## Support
+If you experience issues with the technology components, please see related [FAQs](https://developer-support.wacom.com/hc/en-us)
 
-- [Windows broker (experimental)][gcm-windows-broker]
+For further support file a ticket in our **Developer Support Portal** described here: [Request Support](https://developer-support.wacom.com/hc/en-us/requests/new)
 
-## Future features
+## Developer Community 
+Join our developer community:
 
-Curious about what's coming next in the GCM project? Take a look at the [project
-roadmap][roadmap]! You can find more details about the construction of the
-roadmap and how to interpret it [here][roadmap-announcement].
+- [LinkedIn - Wacom for Developers](https://www.linkedin.com/company/wacom-for-developers/)
+- [Twitter - Wacom for Developers](https://twitter.com/Wacomdevelopers)
 
-## Contributing
+## License 
+This sample code is licensed under the [MIT License](https://choosealicense.com/licenses/mit/)
 
-This project welcomes contributions and suggestions.
-See the [contributing guide][gcm-contributing] to get started.
-
-This project follows [GitHub's Open Source Code of Conduct][gcm-coc].
-
-## License
-
-We're [MIT][gcm-license] licensed.
-When using GitHub logos, please be sure to follow the
-[GitHub logo guidelines][github-logos].
-
-[azure-devops]: https://azure.microsoft.com/en-us/products/devops
-[azure-devops-ssh]: https://docs.microsoft.com/en-us/azure/devops/repos/git/use-ssh-keys-to-authenticate?view=azure-devops
-[bitbucket]: https://bitbucket.org
-[bitbucket-ssh]: https://confluence.atlassian.com/bitbucket/ssh-keys-935365775.html
-[build-status-badge]: https://github.com/git-ecosystem/git-credential-manager/actions/workflows/continuous-integration.yml/badge.svg
-[docs-index]: https://github.com/git-ecosystem/git-credential-manager/blob/release/docs/README.md
-[dotnet]: https://dotnet.microsoft.com
-[dotnet-distributions]: https://learn.microsoft.com/en-us/dotnet/core/install/linux
-[git-credential-helper]: https://git-scm.com/docs/gitcredentials
-[gcm]: https://github.com/git-ecosystem/git-credential-manager
-[gcm-coc]: CODE_OF_CONDUCT.md
-[gcm-commit-12294990]: https://github.com/git/git/commit/12294990c90e043862be9eb7eb22c3784b526340
-[gcm-contributing]: CONTRIBUTING.md
-[gcm-credstores]: https://github.com/git-ecosystem/git-credential-manager/blob/release/docs/credstores.md
-[gcm-for-mac-and-linux]: https://github.com/microsoft/Git-Credential-Manager-for-Mac-and-Linux
-[gcm-for-windows]: https://github.com/microsoft/Git-Credential-Manager-for-Windows
-[gcm-http-proxy]: https://github.com/git-ecosystem/git-credential-manager/blob/release/docs/netconfig.md#http-proxy
-[gcm-license]: LICENSE
-[gcm-usage]: https://github.com/git-ecosystem/git-credential-manager/blob/release/docs/usage.md
-[gcm-windows-broker]: https://github.com/git-ecosystem/git-credential-manager/blob/release/docs/windows-broker.md
-[git-tools-credential-storage]: https://git-scm.com/book/en/v2/Git-Tools-Credential-Storage
-[github]: https://github.com
-[github-ssh]: https://help.github.com/en/articles/connecting-to-github-with-ssh
-[github-logos]: https://github.com/logos
-[install]: https://github.com/git-ecosystem/git-credential-manager/blob/release/docs/install.md
-[ms-package-repos]: https://packages.microsoft.com/repos/
-[roadmap]: https://github.com/git-ecosystem/git-credential-manager/milestones?direction=desc&sort=due_date&state=open
-[roadmap-announcement]: https://github.com/git-ecosystem/git-credential-manager/discussions/1203
-[workflow-status]: https://github.com/git-ecosystem/git-credential-manager/actions/workflows/continuous-integration.yml
+---
