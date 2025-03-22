@@ -35,7 +35,7 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Set up .NET
-      uses: actions/setup-dotnet@v4.2.0
+      uses: actions/setup-dotnet@v4.0.1
       with:
         dotnet-version: 8.0.x
 
@@ -57,8 +57,8 @@ jobs:
 
     - name: Set up signing/notarization infrastructure
       env:
-        A1: ${{ secrets.GATEWATCHER_DEVELOPER_ID_CERT }}
-        A2: ${{ secrets.GATEWATCHER_DEVELOPER_ID_PASSWORD }}
+        A1: ${{ secrets.APPLICATION_CERTIFICATE_BASE64 }}
+        A2: ${{ secrets.APPLICATION_CERTIFICATE_PASSWORD }}
         I1: ${{ secrets.INSTALLER_CERTIFICATE_BASE64 }}
         I2: ${{ secrets.INSTALLER_CERTIFICATE_PASSWORD }}
         N1: ${{ secrets.APPLE_TEAM_ID }}
@@ -150,7 +150,7 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Set up .NET
-      uses: actions/setup-dotnet@v4.2.0
+      uses: actions/setup-dotnet@v4.0.1
       with:
         dotnet-version: 8.0.x
 
@@ -177,7 +177,7 @@ jobs:
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
     - name: Sign payload files with Azure Code Signing
-      uses: azure/trusted-signing-action@v0.5.0
+      uses: azure/trusted-signing-action@v0.4.0
       with:
         endpoint: https://wus2.codesigning.azure.net/
         trusted-signing-account-name: git-fundamentals-signing
@@ -190,7 +190,7 @@ jobs:
 
     # The Azure Code Signing action overrides the .NET version, so we reset it.
     - name: Set up .NET
-      uses: actions/setup-dotnet@v4.2.0
+      uses: actions/setup-dotnet@v4.0.1
       with:
         dotnet-version: 8.0.x
 
@@ -204,7 +204,7 @@ jobs:
          -Destination $env:GITHUB_WORKSPACE\installers
 
     - name: Sign installers with Azure Code Signing
-      uses: azure/trusted-signing-action@v0.5.0
+      uses: azure/trusted-signing-action@v0.4.0
       with:
         endpoint: https://wus2.codesigning.azure.net/
         trusted-signing-account-name: git-fundamentals-signing
@@ -232,22 +232,16 @@ jobs:
     runs-on: ubuntu-latest
     environment: release
     needs: prereqs
-    strategy:
-      matrix:
-        runtime: [ linux-x64, linux-arm64, linux-arm ]
     steps:
     - uses: actions/checkout@v4
 
     - name: Set up .NET
-      uses: actions/setup-dotnet@v4.2.0
+      uses: actions/setup-dotnet@v4.0.1
       with:
         dotnet-version: 8.0.x
 
     - name: Build
-      run: |
-        dotnet build src/linux/Packaging.Linux/*.csproj \
-        --configuration=LinuxRelease --no-self-contained \
-        --runtime=${{ matrix.runtime }}
+      run: dotnet build --configuration=LinuxRelease
 
     - name: Run Linux unit tests
       run: |
@@ -292,18 +286,18 @@ jobs:
       run: |
         # Sign Debian package
         version=${{ needs.prereqs.outputs.version }}
-        mv out/linux/Packaging.Linux/Release/deb/gcm-${{ matrix.runtime }}.$version.deb .
-        debsigs --sign=origin --verify --check gcm-${{ matrix.runtime }}.$version.deb
+        mv out/linux/Packaging.Linux/Release/deb/gcm-linux_amd64.$version.deb .
+        debsigs --sign=origin --verify --check gcm-linux_amd64.$version.deb
 
         # Generate tarball signature file
         mv -v out/linux/Packaging.Linux/Release/tar/* .
-        gpg --batch --yes --armor --output gcm-${{ matrix.runtime }}.$version.tar.gz.asc \
-          --detach-sig gcm-${{ matrix.runtime }}.$version.tar.gz
+        gpg --batch --yes --armor --output gcm-linux_amd64.$version.tar.gz.asc \
+          --detach-sig gcm-linux_amd64.$version.tar.gz
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ matrix.runtime }}-artifacts
+        name: linux-artifacts
         path: |
           ./*.deb
           ./*.asc
@@ -320,7 +314,7 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Set up .NET
-      uses: actions/setup-dotnet@v4.2.0
+      uses: actions/setup-dotnet@v4.0.1
       with:
         dotnet-version: 8.0.x
 
@@ -393,7 +387,7 @@ jobs:
         path: signed
 
     - name: Set up .NET
-      uses: actions/setup-dotnet@v4.2.0
+      uses: actions/setup-dotnet@v4.0.1
       with:
         dotnet-version: 8.0.x
 
@@ -472,9 +466,9 @@ jobs:
       matrix:
         component:
           - os: ubuntu-latest
-            artifact: linux-x64-artifacts
+            artifact: linux-artifacts
             command: git-credential-manager
-            description: linux-x64
+            description: linux
           - os: macos-latest
             artifact: macos-osx-x64-artifacts
             command: git-credential-manager
@@ -497,7 +491,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up .NET
-        uses: actions/setup-dotnet@v4.2.0
+        uses: actions/setup-dotnet@v4.0.1
         with:
           dotnet-version: 8.0.x
 
@@ -516,15 +510,15 @@ jobs:
             Start-Process -Wait -FilePath "$exePath" -ArgumentList "/SILENT /VERYSILENT /NORESTART"
           }
 
-      - name: Install Linux x64 (Debian package)
-        if: contains(matrix.component.description, 'linux-x64')
+      - name: Install Linux (Debian package)
+        if: contains(matrix.component.description, 'linux')
         run: |
           debpath=$(find ./*.deb)
           sudo apt install $debpath
           "${{ matrix.component.command }}" configure
 
-      - name: Install Linux x64 (tarball)
-        if: contains(matrix.component.description, 'linux-x64')
+      - name: Install Linux (tarball)
+        if: contains(matrix.component.description, 'linux')
         run: |
           # Ensure we find only the source tarball, not the symbols
           tarpath=$(find . -name '*[[:digit:]].tar.gz')
@@ -567,7 +561,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up .NET
-        uses: actions/setup-dotnet@v4.2.0
+        uses: actions/setup-dotnet@v4.0.1
         with:
           dotnet-version: 8.0.x
 
@@ -604,9 +598,7 @@ jobs:
           az keyvault secret show --name "$GPG_PUBLIC_KEY_SECRET_NAME" \
             --vault-name "$AZURE_VAULT" --query "value" \
             | sed -e 's/^"//' -e 's/"$//' | base64 -d >gcm-public.asc
-          cp gcm-public.asc linux-x64-artifacts/
-          cp gcm-public.asc linux-arm64-artifacts/
-          mv gcm-public.asc linux-arm-artifacts
+          mv gcm-public.asc linux-artifacts
 
       - uses: actions/github-script@v7
         with:
@@ -663,9 +655,7 @@ jobs:
               uploadDirectoryToRelease('osx-payload-and-symbols'),
 
               // Upload Linux artifacts
-              uploadDirectoryToRelease('linux-x64-artifacts'),
-              uploadDirectoryToRelease('linux-arm64-artifacts'),
-              uploadDirectoryToRelease('linux-arm-artifacts'),
+              uploadDirectoryToRelease('linux-artifacts'),
 
               // Upload .NET tool package
               uploadDirectoryToRelease('dotnet-tool-sign'),

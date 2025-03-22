@@ -1,7 +1,5 @@
 using System;
-using System.Diagnostics;
 using System.IO;
-using System.Threading.Tasks;
 
 namespace GitCredentialManager.Tests
 {
@@ -88,42 +86,6 @@ namespace GitCredentialManager.Tests
             }
 
             return uuid.Substring(0, length);
-        }
-
-        public static async Task<string> RunCommandAsync(string filePath, string arguments, string workingDirectory = null)
-        {
-            using var process = new Process
-            {
-                StartInfo = new ProcessStartInfo
-                {
-                    FileName = filePath,
-                    Arguments = arguments,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true,
-                    WorkingDirectory = workingDirectory ?? Environment.CurrentDirectory
-                }
-            };
-
-            process.Start();
-
-            string output = await process.StandardOutput.ReadToEndAsync();
-            string error = await process.StandardError.ReadToEndAsync();
-
-            await process.WaitForExitAsync();
-
-            if (process.ExitCode != 0)
-            {
-                throw new InvalidOperationException(
-                    $"Command `{filePath} {arguments}` failed with exit code {process.ExitCode}." +
-                    Environment.NewLine +
-                    $"Output: {output}" +
-                    Environment.NewLine +
-                    $"Error: {error}");
-            }
-
-            return output;
         }
     }
 }
