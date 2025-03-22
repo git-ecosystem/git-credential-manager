@@ -302,18 +302,35 @@ namespace GitCredentialManager.Interop.MacOS
                 return null;
             }
 
-            if (CFDictionaryGetValueIfPresent(dict, key, out IntPtr value) && value != IntPtr.Zero)
+            IntPtr buffer = IntPtr.Zero;
+            try
             {
-                if (CFGetTypeID(value) == CFStringGetTypeID())
+                if (CFDictionaryGetValueIfPresent(dict, key, out IntPtr value) && value != IntPtr.Zero)
                 {
-                    return CFStringToString(value);
-                }
+                    if (CFGetTypeID(value) == CFStringGetTypeID())
+                    {
+                        int stringLength = (int)CFStringGetLength(value);
+                        int bufferSize = stringLength + 1;
+                        buffer = Marshal.AllocHGlobal(bufferSize);
+                        if (CFStringGetCString(value, buffer, bufferSize, CFStringEncoding.kCFStringEncodingUTF8))
+                        {
+                            return Marshal.PtrToStringAuto(buffer, stringLength);
+                        }
+                    }
 
-                if (CFGetTypeID(value) == CFDataGetTypeID())
+                    if (CFGetTypeID(value) == CFDataGetTypeID())
+                    {
+                        int length = CFDataGetLength(value);
+                        IntPtr ptr = CFDataGetBytePtr(value);
+                        return Marshal.PtrToStringAuto(ptr, length);
+                    }
+                }
+            }
+            finally
+            {
+                if (buffer != IntPtr.Zero)
                 {
-                    int length = CFDataGetLength(value);
-                    IntPtr ptr = CFDataGetBytePtr(value);
-                    return Marshal.PtrToStringAuto(ptr, length);
+                    Marshal.FreeHGlobal(buffer);
                 }
             }
 

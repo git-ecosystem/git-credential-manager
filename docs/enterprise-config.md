@@ -55,38 +55,7 @@ those of the [Git configuration][config] settings.
 The type of each registry key can be either `REG_SZ` (string) or `REG_DWORD`
 (integer).
 
-## macOS
-
-Default settings values come from macOS's preferences system. Configuration
-profiles can be deployed to devices using a compatible Mobile Device Management
-(MDM) solution.
-
-Configuration for Git Credential Manager must take the form of a dictionary, set
-for the domain `git-credential-manager` under the key `configuration`. For
-example:
-
-```shell
-defaults write git-credential-manager configuration -dict-add <key> <value>
-```
-
-..where `<key>` is the name of the settings from the [Git configuration][config]
-reference, and `<value>` is the desired value.
-
-All values in the `configuration` dictionary must be strings. For boolean values
-use `true` or `false`, and for integer values use the number in string form.
-
-To read the current configuration:
-
-```console
-$ defaults read git-credential-manager configuration
-{
-    <key1> = <value1>;
-    ...
-    <keyN> = <valueN>;
-}
-```
-
-## Linux
+## macOS/Linux
 
 Default configuration setting stores has not been implemented.
 

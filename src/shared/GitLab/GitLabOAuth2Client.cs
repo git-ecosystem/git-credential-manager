@@ -59,8 +59,7 @@ namespace GitLab
                 return clientSecret;
             }
 
-            // no secret necessary
-            return null;
+            return GitLabConstants.OAuthClientSecret;
         }
     }
 }
