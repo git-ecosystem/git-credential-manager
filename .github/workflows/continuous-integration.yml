@@ -19,7 +19,7 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4.0.1
+      uses: actions/setup-dotnet@v4.2.0
       with:
         dotnet-version: 8.0.x
 
@@ -54,12 +54,15 @@ jobs:
   linux:
     name: Linux
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        runtime: [ linux-x64, linux-arm64, linux-arm ]
 
     steps:
     - uses: actions/checkout@v4
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4.0.1
+      uses: actions/setup-dotnet@v4.2.0
       with:
         dotnet-version: 8.0.x
 
@@ -67,7 +70,10 @@ jobs:
       run: dotnet restore
 
     - name: Build
-      run: dotnet build --configuration LinuxRelease
+      run: |
+        dotnet build src/linux/Packaging.Linux/*.csproj \
+         --configuration=Release --no-self-contained \
+         --runtime=${{ matrix.runtime }}
 
     - name: Test
       run: |
@@ -82,7 +88,7 @@ jobs:
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: linux-x64
+        name: ${{ matrix.runtime }}
         path: |
           artifacts
 
@@ -100,7 +106,7 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4.0.1
+      uses: actions/setup-dotnet@v4.2.0
       with:
         dotnet-version: 8.0.x
 

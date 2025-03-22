@@ -39,7 +39,7 @@ namespace GitCredentialManager
             {
                 if (_stdIn == null)
                 {
-                    _stdIn = new StreamReader(Console.OpenStandardInput(), EncodingEx.UTF8NoBom);
+                    _stdIn = new GitStreamReader(Console.OpenStandardInput(), EncodingEx.UTF8NoBom);
                 }
 
                 return _stdIn;
