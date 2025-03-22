@@ -9,7 +9,6 @@ There are several options for storing credentials that GCM supports:
 - GPG/[`pass`][passwordstore] compatible files
 - Git's built-in [credential cache][credential-cache]
 - Plaintext files
-- Passthrough/no-op (no credential store)
 
 The default credential stores on macOS and Windows are the macOS Keychain and
 the Windows Credential Manager, respectively.
@@ -252,38 +251,13 @@ permissions on this directory such that no other users or applications can
 access files within. If possible, use a path that exists on an external volume
 that you take with you and use full-disk encryption.
 
-## Passthrough/no-op (no credential store)
-
-**Available on:** _Windows, macOS, Linux_
-
-**:warning: .**
-
-```batch
-SET GCM_CREDENTIAL_STORE="none"
-```
-
-or
-
-```shell
-git config --global credential.credentialStore none
-```
-
-This option disables the internal credential store. All operations to store or
-retrieve credentials will do nothing, and will return success. This is useful if
-you want to use a different credential store, chained in sequence via Git
-configuration, and don't want GCM to store credentials.
-
-Note that you'll want to ensure that another credential helper is placed before
-GCM in the `credential.helper` Git configuration or else you will be prompted to
-enter your credentials every time you interact with a remote repository.
-
 [access-windows-credential-manager]: https://support.microsoft.com/en-us/windows/accessing-credential-manager-1b5c916a-6a16-889f-8581-fc16e8165ac0
 [aws-cloudshell]: https://aws.amazon.com/cloudshell/
 [azure-cloudshell]: https://docs.microsoft.com/azure/cloud-shell/overview
 [cmdkey]: https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/cmdkey
 [credential-store]: configuration.md#credentialcredentialstore
 [credential-cache]: https://git-scm.com/docs/git-credential-cache
-[freedesktop-secret-service]: https://specifications.freedesktop.org/secret-service-spec/
+[freedesktop-secret-service]: https://specifications.freedesktop.org/secret-service/
 [gcm-credential-store]: environment.md#GCM_CREDENTIAL_STORE
 [git-credential-store]: https://git-scm.com/docs/git-credential-store
 [mac-keychain-management]: https://support.apple.com/en-gb/guide/mac-help/mchlf375f392/mac

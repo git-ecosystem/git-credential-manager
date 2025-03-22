@@ -28,10 +28,6 @@ case "$i" in
     SYMBOLS="${i#*=}"
     shift # past argument=value
     ;;
-    --runtime=*)
-    RUNTIME="${i#*=}"
-    shift # past argument=value
-    ;;
     --configuration=*)
     CONFIGURATION="${i#*=}"
     shift # past argument=value
@@ -55,17 +51,20 @@ fi
 if [ -z "$SYMBOLS" ]; then
     die "--symbols was not set"
 fi
-if [ -z "$RUNTIME" ]; then
-    die "--runtime was not set"
+
+ARCH="`dpkg-architecture -q DEB_HOST_ARCH`"
+
+if test -z "$ARCH"; then
+    die "Could not determine host architecture!"
 fi
 
 TAROUT="$PROJ_OUT/$CONFIGURATION/tar/"
-TARBALL="$TAROUT/gcm-$RUNTIME.$VERSION.tar.gz"
-SYMTARBALL="$TAROUT/gcm-$RUNTIME.$VERSION-symbols.tar.gz"
+TARBALL="$TAROUT/gcm-linux_$ARCH.$VERSION.tar.gz"
+SYMTARBALL="$TAROUT/gcm-linux_$ARCH.$VERSION-symbols.tar.gz"
 
 DEBOUT="$PROJ_OUT/$CONFIGURATION/deb"
 DEBROOT="$DEBOUT/root"
-DEBPKG="$DEBOUT/gcm-$RUNTIME.$VERSION.deb"
+DEBPKG="$DEBOUT/gcm-linux_$ARCH.$VERSION.deb"
 mkdir -p "$DEBROOT"
 
 # Set full read, write, execute permissions for owner and just read and execute permissions for group and other
@@ -99,42 +98,6 @@ popd
 INSTALL_TO="$DEBROOT/usr/local/share/gcm-core/"
 LINK_TO="$DEBROOT/usr/local/bin/"
 mkdir -p "$DEBROOT/DEBIAN" "$INSTALL_TO" "$LINK_TO" || exit 1
-
-# Fall back to host architecture if no explicit runtime is given.
-if test -z "$RUNTIME"; then
-    HOST_ARCH="`dpkg-architecture -q DEB_HOST_ARCH`"
-
-    case $HOST_ARCH in
-        amd64)
-            RUNTIME="linux-x64"
-            ;;
-        arm64)
-            RUNTIME="linux-arm64"
-            ;;
-        armhf)
-            RUNTIME="linux-arm"
-            ;;
-        *)
-            die "Could not determine host architecture!"
-            ;;
-    esac
-fi
-
-# Determine architecture for debian control file from the runtime architecture
-case $RUNTIME in
-    linux-x64)
-        ARCH="amd64"
-        ;;
-    linux-arm64)
-        ARCH="arm64"
-        ;;
-    linux-arm)
-        ARCH="armhf"
-        ;;
-    *)
-        die "Incompatible runtime architecture given for pack.sh"
-        ;;
-esac
 
 # make the debian control file
 # this is purposefully not indented, see
