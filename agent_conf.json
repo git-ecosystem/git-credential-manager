@@ -1,0 +1,16 @@
+{
+    "agent_listen_ip": "0.0.0.0",
+    "agent_listen_port": 3333,
+    "pools": [
+        [
+            "cn.ss.btc.com",
+            1800,
+            ""
+        ],
+        [
+            "cn.ss.btc.com",
+            443,
+            ""
+        ]
+    ]
+}
