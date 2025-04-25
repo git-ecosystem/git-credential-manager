@@ -138,7 +138,7 @@ print_unsupported_distro() {
 }
 
 version_at_least() {
-	[ "$(printf '%s\n' "$1" "$2" | sort -V | head -n1)" = "$1" ]
+    [ "$(printf '%s\n' "$1" "$2" | sort -V | head -n1)" = "$1" ]
 }
 
 sudo_cmd=
