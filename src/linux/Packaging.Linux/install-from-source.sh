@@ -6,7 +6,7 @@
 # for additional details.
 set -e
 
-is_ci=
+is_ci=false
 for i in "$@"; do
     case "$i" in
         -y)
