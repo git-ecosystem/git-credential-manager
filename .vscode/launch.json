@@ -5,6 +5,7 @@
    "version": "0.2.0",
    "configurations": [
     
+
         {
             "name": "Git Credential Manager (get)",
             "type": "coreclr",
