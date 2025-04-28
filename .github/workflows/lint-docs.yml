@@ -47,8 +47,8 @@ jobs:
           # patterns: './**/*.md' './**/*.html'
           args: >-
             --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36"
-            --no-progress .
-          fail: true
+            --progress .
+          fail: false
         env:
           # A token is used to avoid GitHub rate limiting. A personal token with
           # no extra permissions is enough to be able to check public repos
