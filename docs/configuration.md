@@ -253,23 +253,6 @@ Defaults to false (use hardware acceleration where available).
 
 **Also see: [GCM_GUI_SOFTWARE_RENDERING][gcm-gui-software-rendering]**
 
----
-
-### credential.allowUnsafeRemotes
-
-Allow transmitting credentials to unsafe remote URLs such as unencrypted HTTP
-URLs. This setting is not recommended for general use and should only be used
-when necessary.
-
-Defaults false (disallow unsafe remote URLs).
-
-#### Example
-
-```shell
-git config --global credential.allowUnsafeRemotes true
-```
-
-**Also see: [GCM_ALLOW_UNSAFE_REMOTES][gcm-allow-unsafe-remotes]**
 
 ---
 
