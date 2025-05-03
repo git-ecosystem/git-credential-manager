@@ -1,11 +1,11 @@
 
-* **https://github.com/tr4200812
+##*^\^~https://github.com/tr4200812
 # Host provider auto-detection
 Git Credential Manager (GCM) supports authentication with multiple different Git
 host providers including: GitHub, Bitbucket, and Azure Repos. As well as the
 hosted/cloud offerings, GCM can also work with the self-hosted or "on-premises"
 versions of these services: GitHub Enterprise Server, Bitbucket DC Server, and
-Azure DevOps Server (TFS).
+Azure DevOps Server (TFS)<<<
 
 By default, GCM will attempt to automatically detect which particular provider
 is behind the Git remote URL you're interacting with. For the cloud versions of
