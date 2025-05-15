@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using Atlassian.Bitbucket.Cloud;
 using GitCredentialManager;
 using GitCredentialManager.Authentication.OAuth;
+using System.IO;
+using System.Text.Json;
 
 namespace Atlassian.Bitbucket
 {
@@ -358,6 +360,29 @@ namespace Atlassian.Bitbucket
             }
 
             return Task.CompletedTask;
+        }
+
+        public async Task SaveConfigurationAsync(string filePath)
+        {
+            var configData = new Dictionary<string, object>
+            {
+                { "Id", Id },
+                { "Name", Name },
+                { "SupportedAuthorityIds", SupportedAuthorityIds }
+            };
+
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            var json = JsonSerializer.Serialize(configData, options);
+
+            await File.WriteAllTextAsync(filePath, json);
+        }
+
+        public async Task LoadConfigurationAsync(string filePath)
+        {
+            var json = await File.ReadAllTextAsync(filePath);
+            var configData = JsonSerializer.Deserialize<Dictionary<string, object>>(json);
+
+            // Perform any necessary actions to apply the loaded configuration to the BitbucketHostProvider
         }
 
         #endregion
