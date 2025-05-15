@@ -1028,6 +1028,30 @@ Defaults to disabled.
 
 **Also see: [GIT_TRACE2_PERF][trace2-performance-env]**
 
+---
+
+### save-config
+
+Save the current configuration to a file.
+
+#### Example
+
+```shell
+git credential-manager save-config --file /path/to/config.json
+```
+
+---
+
+### load-config
+
+Load the configuration from a file.
+
+#### Example
+
+```shell
+git credential-manager load-config --file /path/to/config.json
+```
+
 [auto-detection]: autodetect.md
 [azure-tokens]: azrepos-users-and-tokens.md
 [use-http-path]: https://git-scm.com/docs/gitcredentials/#Documentation/gitcredentials.txt-useHttpPath
