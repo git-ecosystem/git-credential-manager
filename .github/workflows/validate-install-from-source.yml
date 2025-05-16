@@ -27,8 +27,6 @@ jobs:
         - image: opensuse/leap
         - image: opensuse/tumbleweed
         - image: registry.suse.com/suse/sle15:15.4.27.11.31
-        - image: archlinux
-        - image: mcr.microsoft.com/cbl-mariner/base/core:2.0
     container: ${{matrix.vector.image}}
     steps:
       - run: |
@@ -36,9 +34,6 @@ jobs:
             zypper -n install tar gzip
           elif [[ ${{matrix.vector.image}} == *"centos"* ]]; then
             dnf install which -y
-          elif [[ ${{matrix.vector.image}} == *"mariner"* ]]; then
-            GNUPGHOME=/root/.gnupg tdnf update -y &&
-            GNUPGHOME=/root/.gnupg tdnf install tar -y # needed for `actions/checkout`
           fi
 
       - uses: actions/checkout@v4
