@@ -1,0 +1,44 @@
+Markdown	Result
+**Bold**
+__Bold__
+Bold
+*Italics*
+_Italics_
+Italics
+***Bold & Italics***
+___Bold & Italics___
+Bold & Italics
+~Strikethrough~
+Strikethrough
+[Wiki](wikipedia.org)
+Wiki
+# Header 1
+Header 1
+## Header 2
+Header 2
+### Header 3
+Header 3
+#### Header 4
+Header 4
+##### Header 5
+Header 5
+###### Header 6
+Header 6
+* (use space)
+-
+Unordered List
+1. (use space)
+1)
+Ordered List
+:robot: Emoji
+🤖 Emoji
+> (use space)
+Block Quote
+
+```json
+{ // code block
+"fn": "John",
+"ln": "Doe",
+"age": 32
+}
+```
