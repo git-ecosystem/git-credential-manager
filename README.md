@@ -56,7 +56,7 @@ supported by dotnet][dotnet-distributions].
 ## Supported Git versions
 
 Git Credential Manager tries to be compatible with the broadest set of Git
-versions (within reason). However there are some know problematic releases of
+versions (within reason). However there are some known problematic releases of
 Git that are not compatible.
 
 - Git 1.x
