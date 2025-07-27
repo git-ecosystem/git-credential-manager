@@ -1,4 +1,6 @@
-jobs:
+git add .github/workflows/validate-install-from-source.yml
+git commit -m "chore: patch tumbleweed skip+retry in validate-install-from-source"
+git pushjobs:
      validate-install-from-source:
        runs-on: ubuntu-latest
        strategy:
