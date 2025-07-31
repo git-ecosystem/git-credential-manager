@@ -1,4 +1,24 @@
-![Sponsors](https://img.shields.io/github/sponsors/alexandros-thomson?style=for-the-badge)
+const passport = require('passport');
+const ORCIDStrategy = require('passport-orcid').Strategy;
+
+passport.use(new ORCIDStrategy({
+  clientID: process.env.ORCID_CLIENT_ID,
+  clientSecret: process.env.ORCID_CLIENT_SECRET,
+  callbackURL: 'https://yourapp.example.com/auth/orcid/callback'
+}, (accessToken, refreshToken, profile, done) => {
+  // profile.id is the ORCID iD
+  done(null, { orcid_id: profile.id });
+}));
+
+// Routes
+app.get('/auth/orcid', passport.authenticate('orcid'));
+app.get('/auth/orcid/callback',
+  passport.authenticate('orcid', { session: true }),
+  (req, res) => {
+    // Session now contains req.user.orcid_id
+    res.redirect('/pledge');
+  }
+);![Sponsors](https://img.shields.io/github/sponsors/alexandros-thomson?style=for-the-badge)
 ![Stars](https://img.shields.io/github/stars/alexandros-thomson/alexandros-thomson?style=for-the-badge)
 ![Watchers](https://img.shields.io/github/watchers/alexandros-thomson/alexandros-thomson?style=for-the-badge)
 ![Contributions](https://github-readme-stats.vercel.app/api?username=alexandros-thomson&show_icons=true&theme=radical)## Git Credential Manager
