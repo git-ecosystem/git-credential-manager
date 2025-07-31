@@ -1,0 +1,23 @@
+name: Archive Warden Ritual
+
+on:
+  workflow_dispatch:
+
+jobs:
+  ritual:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: pnpm install
+      - run: pnpm run ritual:archive-warden
+        env:
+          DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+          GUILD_ID: ${{ secrets.GUILD_ID }}
+          SENIOR_ROLE_ID: ${{ secrets.SENIOR_ROLE_ID }}
+          JUNIOR_ROLE_ID: ${{ secrets.JUNIOR_ROLE_ID }}
+          VAULT_CORE_CHANNEL_ID: ${{ secrets.VAULT_CORE_CHANNEL_ID }}
+          MENTORING_CHANNEL_ID: ${{ secrets.MENTORING_CHANNEL_ID }}
+          AUDIT_LOG_PATH: ./logs/role-grants.json
