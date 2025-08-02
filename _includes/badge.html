@@ -1,4 +1,46 @@
-{%- assign repo   = include.repo   | default: site.github.repository_owner | append: "/" | append: site.github.repository_name -%}
+# .github/workflows/copilot-badge-updater.yml
+name: 📜 Copilot Badge Updater
+
+on:
+  issues:
+    types: [opened]
+    # optional: filter by label
+    # filters:
+    #   labels: ["auto-badge"]
+
+jobs:
+  assign-and-update:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: write
+
+    steps:
+      - name: Assign issue to Copilot
+        uses: peter-evans/assign-issue@v3
+        with:
+          assignees: github-actions[bot]
+
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Generate Updated Badge
+        run: |
+          # invoke Copilot via GitHub CLI (beta)
+          gh issue comment ${{ github.event.issue.number }} \
+            --body "/copilot edit: update badge for workflow changes"
+
+      - name: Wait for Copilot Commit
+        run: |
+          echo "⏳ Waiting for Copilot agent to commit changes…"
+          sleep 30  # adjust as needed
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          commit-message: "chore(ci): Copilot-updated badge"
+          title: "chore: badge update via Copilot"
+          body: "This PR was created by Copilot in response to #${{ github.event.issue.number }}."{%- assign repo   = include.repo   | default: site.github.repository_owner | append: "/" | append: site.github.repository_name -%}
 {%- assign file   = include.file   | default: "mythic-sigil-pipeline.yml" -%}
 {%- assign branch = include.branch | default: "main"                      -%}
 {%- assign label  = include.label  | default: "Sigil Pipeline"           -%}
