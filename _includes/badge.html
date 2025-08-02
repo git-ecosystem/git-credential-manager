@@ -1,0 +1,14 @@
+{%- assign repo   = include.repo   | default: site.github.repository_owner | append: "/" | append: site.github.repository_name -%}
+{%- assign file   = include.file   | default: "mythic-sigil-pipeline.yml" -%}
+{%- assign branch = include.branch | default: "main"                      -%}
+{%- assign label  = include.label  | default: "Sigil Pipeline"           -%}
+{%- assign style  = include.style  | default: "flat-square"              -%}
+{%- assign color  = include.color  | default: "brightgreen"              -%}
+{%- assign alt    = include.alt    | default: label                      -%}
+
+<a href="https://github.com/{{ repo }}/actions">
+  <img
+    src="https://img.shields.io/github/actions/workflow/status/{{ repo }}/{{ file }}?branch={{ branch }}&label={{ label | uri_escape }}&style={{ style }}&color={{ color }}"
+    alt="{{ alt }}"
+  >
+</a>
