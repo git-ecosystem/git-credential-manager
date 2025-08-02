@@ -1,0 +1,28 @@
+mkdir -p .github/copilot-agentscat << ’EOF’ > .github/copilot-agents/badge-updater.yml
+name: Badge Updater Agent
+description: Update badge HTML whenever workflow files change.
+
+trigger:
+  on:
+    push:
+      paths:
+        - ".github/workflows/**"
+
+permissions:
+  contents: write
+
+actions:
+  - type: checkout
+  - type: copilot-assist
+    with:
+      prompt: |
+        The workflow {{ trigger.head_commit.id }} modified {{ trigger.paths[0] }}.
+        Please update `_includes/badge.html` so the Shields URL matches the new workflow filename and branch.
+  - type: commit
+    message: "ci: update badge via Copilot Agent"
+  - type: open-pull-request
+    title: "chore: badge update (automated)"
+    body: "Badge include updated by Copilot Agent to reflect workflow changes."
+EOFgit add .github/copilot-agents/badge-updater.yml
+git commit -m "feat: add Copilot Agent for badge updates"
+git push origin main
