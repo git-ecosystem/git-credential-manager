@@ -1,4 +1,35 @@
-name: Archive Warden Ritual
+jobs:
+  ritual:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Validate README presence
+        run: |
+          if [[ ! -f README.md ]]; then
+            echo "⚠️ SIGIL MISSING: README.md not found. Badge invocation halted. Restore the scroll and reinitiate the ritual."
+            exit 1
+          fi
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Run Archive Warden Ritual
+        env:
+          DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+          GUILD_ID: ${{ secrets.GUILD_ID }}
+          SENIOR_ROLE_ID: ${{ secrets.SENIOR_ROLE_ID }}
+          JUNIOR_ROLE_ID: ${{ secrets.JUNIOR_ROLE_ID }}
+          VAULT_CORE_CHANNEL_ID: ${{ secrets.VAULT_CORE_CHANNEL_ID }}
+          MENTORING_CHANNEL_ID: ${{ secrets.MENTORING_CHANNEL_ID }}
+          AUDIT_LOG_PATH: ./logs/role-grants.json
+        run: pnpm run ritual:archive-wardenname: Archive Warden Ritual
 
 on:
   workflow_dispatch:
