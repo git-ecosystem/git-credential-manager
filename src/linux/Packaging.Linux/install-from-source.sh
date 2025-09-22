@@ -208,7 +208,7 @@ case "$distribution" in
         $sudo_cmd zypper -n update
 
         # Install dotnet/GCM dependencies.
-        install_packages zypper install "curl git find krb5 libicu libopenssl1_1"
+        install_packages zypper install "curl git find krb5 libicu"
 
         ensure_dotnet_installed
     ;;
