@@ -14,7 +14,7 @@ jobs:
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Set version
         run: echo "version=$(cat VERSION | sed -E 's/.[0-9]+$//')" >> $GITHUB_OUTPUT
@@ -32,7 +32,7 @@ jobs:
       matrix:
         runtime: [ osx-x64, osx-arm64 ]
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - name: Set up .NET
       uses: actions/setup-dotnet@v5.0.0
@@ -147,7 +147,7 @@ jobs:
     environment: release
     needs: prereqs
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - name: Set up .NET
       uses: actions/setup-dotnet@v5.0.0
@@ -236,7 +236,7 @@ jobs:
       matrix:
         runtime: [ linux-x64, linux-arm64, linux-arm ]
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - name: Set up .NET
       uses: actions/setup-dotnet@v5.0.0
@@ -317,7 +317,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: prereqs
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - name: Set up .NET
       uses: actions/setup-dotnet@v5.0.0
@@ -341,7 +341,7 @@ jobs:
     environment: release
     needs: dotnet-tool-build
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - name: Download payload
       uses: actions/download-artifact@v5
@@ -384,7 +384,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [ prereqs, dotnet-tool-payload-sign ]
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - name: Download signed payload
       uses: actions/download-artifact@v5
@@ -416,7 +416,7 @@ jobs:
     environment: release
     needs: dotnet-tool-pack
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - name: Download unsigned package
       uses: actions/download-artifact@v5
@@ -494,7 +494,7 @@ jobs:
     runs-on: ${{ matrix.component.os }}
     needs: [ create-macos-artifacts, create-windows-artifacts, create-linux-artifacts, dotnet-tool-sign ]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Set up .NET
         uses: actions/setup-dotnet@v5.0.0
@@ -564,7 +564,7 @@ jobs:
     environment: release
     needs: [ prereqs, validate ]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Set up .NET
         uses: actions/setup-dotnet@v5.0.0
