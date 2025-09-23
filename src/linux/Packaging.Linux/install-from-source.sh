@@ -6,7 +6,7 @@
 # for additional details.
 set -e
 
-is_ci=
+is_ci=false
 for i in "$@"; do
     case "$i" in
         -y)
@@ -138,7 +138,7 @@ print_unsupported_distro() {
 }
 
 version_at_least() {
-	[ "$(printf '%s\n' "$1" "$2" | sort -V | head -n1)" = "$1" ]
+    [ "$(printf '%s\n' "$1" "$2" | sort -V | head -n1)" = "$1" ]
 }
 
 sudo_cmd=
