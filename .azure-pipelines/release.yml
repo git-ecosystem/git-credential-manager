@@ -1,0 +1,32 @@
+name: Release-$(Date:yyyyMMdd)$(Rev:.r)
+trigger: none
+pr: none
+
+resources:
+  repositories:
+    - repository: 1ESPipelines
+      type: git
+      name: 1ESPipelineTemplates/1ESPipelineTemplates
+      ref: refs/tags/release
+
+parameters:
+  - name: 'esrp'
+    type: boolean
+    default: false
+    displayName: 'Enable ESRP code signing'
+
+extends:
+  template: v1/1ES.Official.PipelineTemplate.yml@1ESPipelines
+  parameters:
+    stages:
+      - stage: windows
+        displayName: 'Windows'
+        jobs:
+          - job: win_x86_build
+            displayName: 'Windows Build and Sign (x86)'
+            pool:
+              name: GitClient-1ESHostedPool-intel-pc
+              image: win-x86_64-ado1es
+              os: windows
+            steps:
+              - checkout: self
