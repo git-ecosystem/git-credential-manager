@@ -1,0 +1,5 @@
+*	@git-ecosystem/git-client
+/src/shared/Microsoft.AzureRepos/	@git-ecosystem/git-client @git-ecosystem/gcm-azure-maintainers
+/src/shared/Microsoft.AzureRepos.Tests/	@git-ecosystem/git-client @git-ecosystem/gcm-azure-maintainers
+/src/shared/GitHub/	@git-ecosystem/git-client @git-ecosystem/hubbers
+/src/shared/GitHub.Tests/	@git-ecosystem/git-client @git-ecosystem/hubbers
