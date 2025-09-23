@@ -15,6 +15,10 @@
   #error Installer target property 'InstallTarget' must be specifed
 #endif
 
+#ifndef GcmRuntimeIdentifier
+  #error GCM Runtime Identifier 'GcmRuntimeIdentifier' must be specifed (e.g. win-x64)
+#endif
+
 #if InstallTarget == "user"
   #define GcmAppId "{{aa76d31d-432c-42ee-844c-bc0bc801cef3}}"
   #define GcmLongName "Git Credential Manager (User)"
@@ -40,7 +44,6 @@
 #define GcmRepoRoot "..\..\.."
 #define GcmAssets GcmRepoRoot + "\assets"
 #define GcmExe "git-credential-manager.exe"
-#define GcmArch "x86"
 
 #ifnexist PayloadDir + "\" + GcmExe
   #error Payload files are missing
@@ -67,9 +70,17 @@ AppUpdatesURL={#GcmUrl}
 AppContact={#GcmUrl}
 AppCopyright={#GcmCopyright}
 AppReadmeFile={#GcmReadme}
+; Windows ARM64 supports installing and running x64 binaries, but not vice versa.
+#if GcmRuntimeIdentifier=="win-x64"
+ArchitecturesAllowed=x64compatible
+ArchitecturesInstallIn64BitMode=x64compatible
+#elif GcmRuntimeIdentifier=="win-arm64"
+ArchitecturesAllowed=arm64
+ArchitecturesInstallIn64BitMode=arm64
+#endif
 VersionInfoVersion={#GcmVersion}
 LicenseFile={#GcmRepoRoot}\LICENSE
-OutputBaseFilename={#GcmSetupExe}-win-{#GcmArch}-{#GcmVersionSimple}
+OutputBaseFilename={#GcmSetupExe}-{#GcmRuntimeIdentifier}-{#GcmVersionSimple}
 DefaultDirName={autopf}\{#GcmShortName}
 Compression=lzma2
 SolidCompression=yes
