@@ -608,7 +608,7 @@ jobs:
           cp gcm-public.asc linux-arm64-artifacts/
           mv gcm-public.asc linux-arm-artifacts
 
-      - uses: actions/github-script@v7
+      - uses: actions/github-script@v8
         with:
           script: |
             const fs = require('fs');
