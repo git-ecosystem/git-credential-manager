@@ -15,6 +15,31 @@ parameters:
     default: false
     displayName: 'Enable ESRP code signing'
 
+#
+# 1ES Pipeline Templates do not allow using a matrix strategy so we create
+# a YAML object parameter with and foreach to create jobs for each entry.
+# Each OS has its own matrix object since their build steps differ.
+#
+  - name: windows_matrix
+    type: object
+    default:
+      - id: windows_x64
+        jobName: 'Windows (x86)'
+        runtime: win-x86
+        pool: GitClientPME-1ESHostedPool-intel-pc
+        image: win-x86_64-ado1es
+        os: windows
+
+variables:
+  - name: 'esrpAppConnectionName'
+    value: '1ESGitClient-ESRP-App'
+  # ESRP signing variables set in the pipeline settings:
+  # - esrpEndpointUrl
+  # - esrpClientId
+  # - esrpTenantId
+  # - esrpKeyVaultName
+  # - esrpSignReqCertName
+
 extends:
   template: v1/1ES.Official.PipelineTemplate.yml@1ESPipelines
   parameters:
@@ -25,14 +50,157 @@ extends:
         image: win-x86_64-ado1es
         os: windows
     stages:
-      - stage: windows
-        displayName: 'Windows'
+      - stage: build
+        displayName: 'Build and Sign'
         jobs:
-          - job: win_x86_build
-            displayName: 'Windows Build and Sign (x86)'
-            pool:
-              name: GitClient-1ESHostedPool-intel-pc
-              image: win-x86_64-ado1es
-              os: windows
-            steps:
-              - checkout: self
+          #
+          # Windows build jobs
+          #
+          - ${{ each dim in parameters.windows_matrix }}:
+            - job: ${{ dim.id }}
+              displayName: ${{ dim.jobName }}
+              pool:
+                name: ${{ dim.pool }}
+                image: ${{ dim.image }}
+                os: ${{ dim.os }}
+              templateContext:
+                outputs:
+                  - output: pipelineArtifact
+                    targetPath: '$(Build.ArtifactStagingDirectory)\_final'
+                    artifactName: '${{ dim.runtime }}'
+              steps:
+                - checkout: self
+                - task: PowerShell@2
+                  displayName: 'Read version file'
+                  inputs:
+                    targetType: inline
+                    script: |
+                      $version = (Get-Content .\VERSION) -replace '\.\d+$', ''
+                      Write-Host "##vso[task.setvariable variable=version;isReadOnly=true]$version"
+                - task: UseDotNet@2
+                  displayName: 'Use .NET 8 SDK'
+                  inputs:
+                    packageType: sdk
+                    version: '8.x'
+                - task: PowerShell@2
+                  displayName: 'Build payload'
+                  inputs:
+                    targetType: filePath
+                    filePath: '.\src\windows\Installer.Windows\layout.ps1'
+                    arguments: |
+                      -Configuration Release `
+                      -Output $(Build.ArtifactStagingDirectory)\payload `
+                      -SymbolOutput $(Build.ArtifactStagingDirectory)\symbols_raw
+                - task: ArchiveFiles@2
+                  displayName: 'Archive symbols'
+                  inputs:
+                    rootFolderOrFile: '$(Build.ArtifactStagingDirectory)\symbols_raw'
+                    includeRootFolder: false
+                    archiveType: zip
+                    archiveFile: '$(Build.ArtifactStagingDirectory)\symbols\gcm-win-x86-$(version)-symbols.zip'
+                - task: EsrpCodeSigning@5
+                  condition: and(succeeded(), eq('${{ parameters.esrp }}', true))
+                  displayName: 'Sign payload'
+                  inputs:
+                    connectedServiceName: '$(esrpAppConnectionName)'
+                    useMSIAuthentication: true
+                    appRegistrationClientId: '$(esrpClientId)'
+                    appRegistrationTenantId: '$(esrpTenantId)'
+                    authAkvName: '$(esrpKeyVaultName)'
+                    authSignCertName: '$(esrpSignReqCertName)'
+                    serviceEndpointUrl: '$(esrpEndpointUrl)'
+                    folderPath: '$(Build.ArtifactStagingDirectory)\payload'
+                    pattern: |
+                      **/*.exe
+                      **/*.dll
+                    useMinimatch: true
+                    signConfigType: inlineSignParams
+                    inlineOperation: |
+                      [
+                        {
+                          "KeyCode": "CP-230012",
+                          "OperationCode": "SigntoolSign",
+                          "ToolName": "sign",
+                          "ToolVersion": "1.0",
+                          "Parameters": {
+                            "OpusName": "Microsoft",
+                            "OpusInfo": "https://www.microsoft.com",
+                            "FileDigest": "/fd SHA256",
+                            "PageHash": "/NPH",
+                            "TimeStamp": "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
+                          }
+                        },
+                        {
+                          "KeyCode": "CP-230012",
+                          "OperationCode": "SigntoolVerify",
+                          "ToolName": "sign",
+                          "ToolVersion": "1.0",
+                          "Parameters": {}
+                        }
+                      ]
+                - task: PowerShell@2
+                  displayName: 'Build installers'
+                  inputs:
+                    targetType: inline
+                    script: |
+                      dotnet build '.\src\windows\Installer.Windows\Installer.Windows.csproj' `
+                        --configuration Release `
+                        --no-dependencies `
+                        -p:NoLayout=true `
+                        -p:PayloadPath="$(Build.ArtifactStagingDirectory)\payload" `
+                        -p:OutputPath="$(Build.ArtifactStagingDirectory)\installers"
+                - task: EsrpCodeSigning@5
+                  condition: and(succeeded(), eq('${{ parameters.esrp }}', true))
+                  displayName: 'Sign installers'
+                  inputs:
+                    connectedServiceName: '$(esrpAppConnectionName)'
+                    useMSIAuthentication: true
+                    appRegistrationClientId: '$(esrpClientId)'
+                    appRegistrationTenantId: '$(esrpTenantId)'
+                    authAkvName: '$(esrpKeyVaultName)'
+                    authSignCertName: '$(esrpSignReqCertName)'
+                    serviceEndpointUrl: '$(esrpEndpointUrl)'
+                    folderPath: '$(Build.ArtifactStagingDirectory)\installers'
+                    pattern: '**/*.exe'
+                    useMinimatch: true
+                    signConfigType: inlineSignParams
+                    inlineOperation: |
+                      [
+                        {
+                          "KeyCode": "CP-230012",
+                          "OperationCode": "SigntoolSign",
+                          "ToolName": "sign",
+                          "ToolVersion": "1.0",
+                          "Parameters": {
+                            "OpusName": "Microsoft",
+                            "OpusInfo": "https://www.microsoft.com",
+                            "FileDigest": "/fd SHA256",
+                            "PageHash": "/NPH",
+                            "TimeStamp": "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
+                          }
+                        },
+                        {
+                          "KeyCode": "CP-230012",
+                          "OperationCode": "SigntoolVerify",
+                          "ToolName": "sign",
+                          "ToolVersion": "1.0",
+                          "Parameters": {}
+                        }
+                      ]
+                - task: ArchiveFiles@2
+                  displayName: 'Archive signed payload'
+                  inputs:
+                    rootFolderOrFile: '$(Build.ArtifactStagingDirectory)\payload'
+                    includeRootFolder: false
+                    archiveType: zip
+                    archiveFile: '$(Build.ArtifactStagingDirectory)\installers\gcm-win-x86-$(version).zip'
+                - task: PowerShell@2
+                  displayName: 'Collect artifacts for publishing'
+                  inputs:
+                    targetType: inline
+                    script: |
+                      New-Item -Path "$(Build.ArtifactStagingDirectory)\_final" -ItemType Directory -Force
+                      Copy-Item "$(Build.ArtifactStagingDirectory)\installers\*.exe" -Destination "$(Build.ArtifactStagingDirectory)\_final"
+                      Copy-Item "$(Build.ArtifactStagingDirectory)\installers\*.zip" -Destination "$(Build.ArtifactStagingDirectory)\_final"
+                      Copy-Item "$(Build.ArtifactStagingDirectory)\symbols\*.zip" -Destination "$(Build.ArtifactStagingDirectory)\_final"
+                      Copy-Item "$(Build.ArtifactStagingDirectory)\payload" -Destination "$(Build.ArtifactStagingDirectory)\_final" -Recurse
