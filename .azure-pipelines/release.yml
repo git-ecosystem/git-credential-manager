@@ -599,3 +599,121 @@ extends:
                       cp $(Build.ArtifactStagingDirectory)/installers/*.tar.gz $(Build.ArtifactStagingDirectory)/_final
                       cp $(Build.ArtifactStagingDirectory)/symbols/*.tar.gz $(Build.ArtifactStagingDirectory)/_final
                       cp -r $(Build.ArtifactStagingDirectory)/payload $(Build.ArtifactStagingDirectory)/_final
+
+          #
+          # .NET Tool build job
+          #
+          - job: dotnet_tool
+            displayName: '.NET Tool NuGet Package'
+            pool:
+              name: GitClientPME-1ESHostedPool-intel-pc
+              image: win-x86_64-ado1es
+              os: windows
+            templateContext:
+              outputs:
+                - output: pipelineArtifact
+                  targetPath: '$(Build.ArtifactStagingDirectory)/packages'
+                  artifactName: 'dotnet-tool'
+            steps:
+              - checkout: self
+              - task: PowerShell@2
+                displayName: 'Read version file'
+                inputs:
+                  targetType: inline
+                  script: |
+                    $version = (Get-Content .\VERSION) -replace '\.\d+$', ''
+                    Write-Host "##vso[task.setvariable variable=version;isReadOnly=true]$version"
+              - task: UseDotNet@2
+                displayName: 'Use .NET 8 SDK'
+                inputs:
+                  packageType: sdk
+                  version: '8.x'
+              - task: NuGetToolInstaller@1
+                displayName: 'Install NuGet CLI'
+                inputs:
+                  versionSpec: '>= 6.0'
+              - task: PowerShell@2
+                displayName: 'Build payload'
+                inputs:
+                  targetType: filePath
+                  filePath: './src/shared/DotnetTool/layout.ps1'
+                  arguments: |
+                    -Configuration Release `
+                    -Output "$(Build.ArtifactStagingDirectory)/nupkg"
+              - task: EsrpCodeSigning@5
+                condition: and(succeeded(), eq('${{ parameters.esrp }}', true))
+                displayName: 'Sign payload'
+                inputs:
+                  connectedServiceName: '$(esrpAppConnectionName)'
+                  useMSIAuthentication: true
+                  appRegistrationClientId: '$(esrpClientId)'
+                  appRegistrationTenantId: '$(esrpTenantId)'
+                  authAkvName: '$(esrpKeyVaultName)'
+                  authSignCertName: '$(esrpSignReqCertName)'
+                  serviceEndpointUrl: '$(esrpEndpointUrl)'
+                  folderPath: '$(Build.ArtifactStagingDirectory)/nupkg'
+                  pattern: |
+                    **/*.exe
+                    **/*.dll
+                  useMinimatch: true
+                  signConfigType: inlineSignParams
+                  inlineOperation: |
+                    [
+                      {
+                        "KeyCode": "CP-230012",
+                        "OperationCode": "SigntoolSign",
+                        "ToolName": "sign",
+                        "ToolVersion": "1.0",
+                        "Parameters": {
+                          "OpusName": "Microsoft",
+                          "OpusInfo": "https://www.microsoft.com",
+                          "FileDigest": "/fd SHA256",
+                          "PageHash": "/NPH",
+                          "TimeStamp": "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
+                        }
+                      },
+                      {
+                        "KeyCode": "CP-230012",
+                        "OperationCode": "SigntoolVerify",
+                        "ToolName": "sign",
+                        "ToolVersion": "1.0",
+                        "Parameters": {}
+                      }
+                    ]
+              - task: PowerShell@2
+                displayName: 'Create NuGet packages'
+                inputs:
+                  targetType: filePath
+                  filePath: './src/shared/DotnetTool/pack.ps1'
+                  arguments: |
+                    -Configuration Release `
+                    -Version "$(version)" `
+                    -PackageRoot "$(Build.ArtifactStagingDirectory)/nupkg" `
+                    -Output "$(Build.ArtifactStagingDirectory)/packages"
+              - task: EsrpCodeSigning@5
+                condition: and(succeeded(), eq('${{ parameters.esrp }}', true))
+                displayName: 'Sign NuGet packages'
+                inputs:
+                  connectedServiceName: '$(esrpAppConnectionName)'
+                  useMSIAuthentication: true
+                  appRegistrationClientId: '$(esrpClientId)'
+                  appRegistrationTenantId: '$(esrpTenantId)'
+                  authAkvName: '$(esrpKeyVaultName)'
+                  authSignCertName: '$(esrpSignReqCertName)'
+                  serviceEndpointUrl: '$(esrpEndpointUrl)'
+                  folderPath: '$(Build.ArtifactStagingDirectory)/packages'
+                  pattern: |
+                    **/*.nupkg
+                    **/*.snupkg
+                  useMinimatch: true
+                  signConfigType: inlineSignParams
+                  inlineOperation: |
+                    [
+                      {
+                        "KeyCode": "CP-401405",
+                        "OperationCode": "NuGetSign",
+                        "ToolName": "sign",
+                        "ToolVersion": "1.0",
+                        "Parameters": {}
+                      }
+                    ]
