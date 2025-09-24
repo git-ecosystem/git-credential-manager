@@ -46,6 +46,16 @@ parameters:
         image: macOS-latest
         os: macos
 
+  - name: linux_matrix
+    type: object
+    default:
+      - id: linux_x64
+        jobName: 'Linux (x64)'
+        runtime: linux-x64
+        pool: GitClientPME-1ESHostedPool-intel-pc
+        image: ubuntu-x86_64-ado1es
+        os: linux
+
 variables:
   - name: 'esrpAppConnectionName'
     value: '1ESGitClient-ESRP-App'
@@ -487,6 +497,105 @@ extends:
                     script: |
                       mkdir -p $(Build.ArtifactStagingDirectory)/_final
                       cp $(Build.ArtifactStagingDirectory)/installers/*.pkg $(Build.ArtifactStagingDirectory)/_final
+                      cp $(Build.ArtifactStagingDirectory)/installers/*.tar.gz $(Build.ArtifactStagingDirectory)/_final
+                      cp $(Build.ArtifactStagingDirectory)/symbols/*.tar.gz $(Build.ArtifactStagingDirectory)/_final
+                      cp -r $(Build.ArtifactStagingDirectory)/payload $(Build.ArtifactStagingDirectory)/_final
+
+          #
+          # Linux build jobs
+          #
+          - ${{ each dim in parameters.linux_matrix }}:
+            - job: ${{ dim.id }}
+              displayName: ${{ dim.jobName }}
+              pool:
+                name: ${{ dim.pool }}
+                image: ${{ dim.image }}
+                os: ${{ dim.os }}
+              templateContext:
+                outputs:
+                  - output: pipelineArtifact
+                    targetPath: '$(Build.ArtifactStagingDirectory)/_final'
+                    artifactName: '${{ dim.runtime }}'
+              steps:
+                - checkout: self
+                - task: Bash@3
+                  displayName: 'Read version file'
+                  inputs:
+                    targetType: inline
+                    script: |
+                      echo "##vso[task.setvariable variable=version;isReadOnly=true]$(cat ./VERSION | sed -E 's/.[0-9]+$//')"
+                - task: UseDotNet@2
+                  displayName: 'Use .NET 8 SDK'
+                  inputs:
+                    packageType: sdk
+                    version: '8.x'
+                - task: Bash@3
+                  displayName: 'Build payload'
+                  inputs:
+                    targetType: filePath
+                    filePath: './src/linux/Packaging.Linux/layout.sh'
+                    arguments: |
+                      --runtime="${{ dim.runtime }}" \
+                      --configuration="Release" \
+                      --output="$(Build.ArtifactStagingDirectory)/payload" \
+                      --symbol-output="$(Build.ArtifactStagingDirectory)/symbols_raw"
+                - task: Bash@3
+                  displayName: 'Build packages'
+                  inputs:
+                    targetType: filePath
+                    filePath: './src/linux/Packaging.Linux/pack.sh'
+                    arguments: |
+                      --version="$(version)" \
+                      --runtime="${{ dim.runtime }}" \
+                      --payload="$(Build.ArtifactStagingDirectory)/payload" \
+                      --symbols="$(Build.ArtifactStagingDirectory)/symbols_raw" \
+                      --output="$(Build.ArtifactStagingDirectory)/pkg"
+                - task: Bash@3
+                  displayName: 'Move packages'
+                  inputs:
+                    targetType: inline
+                    script: |
+                      # Move symbols
+                      mkdir -p $(Build.ArtifactStagingDirectory)/symbols
+                      mv $(Build.ArtifactStagingDirectory)/pkg/tar/gcm-*-symbols.tar.gz $(Build.ArtifactStagingDirectory)/symbols
+
+                      # Move binary packages
+                      mkdir -p $(Build.ArtifactStagingDirectory)/installers
+                      mv $(Build.ArtifactStagingDirectory)/pkg/tar/*.tar.gz $(Build.ArtifactStagingDirectory)/installers
+                      mv $(Build.ArtifactStagingDirectory)/pkg/deb/*.deb $(Build.ArtifactStagingDirectory)/installers
+                - task: EsrpCodeSigning@5
+                  condition: and(succeeded(), eq('${{ parameters.esrp }}', true))
+                  displayName: 'Sign Debian package'
+                  inputs:
+                    connectedServiceName: '$(esrpAppConnectionName)'
+                    useMSIAuthentication: true
+                    appRegistrationClientId: '$(esrpClientId)'
+                    appRegistrationTenantId: '$(esrpTenantId)'
+                    authAkvName: '$(esrpKeyVaultName)'
+                    authSignCertName: '$(esrpSignReqCertName)'
+                    serviceEndpointUrl: '$(esrpEndpointUrl)'
+                    folderPath: '$(Build.ArtifactStagingDirectory)/installers'
+                    pattern: |
+                      **/*.deb
+                    useMinimatch: true
+                    signConfigType: inlineSignParams
+                    inlineOperation: |
+                      [
+                        {
+                          "KeyCode": "CP-453387-Pgp",
+                          "OperationCode": "LinuxSign",
+                          "ToolName": "sign",
+                          "ToolVersion": "1.0",
+                          "Parameters": {}
+                        }
+                      ]
+                - task: Bash@3
+                  displayName: 'Collect artifacts for publishing'
+                  inputs:
+                    targetType: inline
+                    script: |
+                      mkdir -p $(Build.ArtifactStagingDirectory)/_final
+                      cp $(Build.ArtifactStagingDirectory)/installers/*.deb $(Build.ArtifactStagingDirectory)/_final
                       cp $(Build.ArtifactStagingDirectory)/installers/*.tar.gz $(Build.ArtifactStagingDirectory)/_final
                       cp $(Build.ArtifactStagingDirectory)/symbols/*.tar.gz $(Build.ArtifactStagingDirectory)/_final
                       cp -r $(Build.ArtifactStagingDirectory)/payload $(Build.ArtifactStagingDirectory)/_final
