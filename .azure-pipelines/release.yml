@@ -18,6 +18,12 @@ parameters:
 extends:
   template: v1/1ES.Official.PipelineTemplate.yml@1ESPipelines
   parameters:
+    sdl:
+      # SDL source analysis tasks only run on Windows images
+      sourceAnalysisPool:
+        name: GitClientPME-1ESHostedPool-intel-pc
+        image: win-x86_64-ado1es
+        os: windows
     stages:
       - stage: windows
         displayName: 'Windows'
