@@ -14,6 +14,14 @@ parameters:
     type: boolean
     default: false
     displayName: 'Enable ESRP code signing'
+  - name: 'github'
+    type: boolean
+    default: false
+    displayName: 'Enable GitHub release publishing'
+  - name: 'nuget'
+    type: boolean
+    default: false
+    displayName: 'Enable NuGet package publishing'
 
 #
 # 1ES Pipeline Templates do not allow using a matrix strategy so we create
@@ -61,6 +69,10 @@ variables:
     value: '1ESGitClient-ESRP-App'
   - name: 'esrpMIConnectionName'
     value: '1ESGitClient-ESRP-MI'
+  - name: 'githubConnectionName'
+    value: 'GitHub-GitCredentialManager'
+  - name: 'nugetConnectionName'
+    value: '1ESGitClient-NuGet'
   # ESRP signing variables set in the pipeline settings:
   # - esrpEndpointUrl
   # - esrpClientId
@@ -717,3 +729,103 @@ extends:
                         "Parameters": {}
                       }
                     ]
+
+      - stage: release
+        displayName: 'Release'
+        dependsOn: [build]
+        condition: and(succeeded(), or(eq('${{ parameters.github }}', true), eq('${{ parameters.nuget }}', true)))
+        jobs:
+          - job: release_validation
+            displayName: 'Release validation'
+            pool:
+              name: GitClientPME-1ESHostedPool-intel-pc
+              image: ubuntu-x86_64-ado1es
+              os: linux
+            steps:
+              - task: Bash@3
+                displayName: 'Read version file'
+                name: version
+                inputs:
+                  targetType: inline
+                  script: |
+                    echo "##vso[task.setvariable variable=value;isOutput=true;isReadOnly=true]$(cat ./VERSION | sed -E 's/.[0-9]+$//')"
+
+          - job: github
+            displayName: 'Publish GitHub release'
+            dependsOn: release_validation
+            condition: and(succeeded(), eq('${{ parameters.github }}', true))
+            pool:
+              name: GitClientPME-1ESHostedPool-intel-pc
+              image: ubuntu-x86_64-ado1es
+              os: linux
+            variables:
+              version: $[dependencies.release_validation.outputs['version.value']]
+            templateContext:
+              type: releaseJob
+              isProduction: true
+              inputs:
+                # Installers and packages
+                - input: pipelineArtifact
+                  artifactName: 'win-x86'
+                  targetPath: $(Pipeline.Workspace)/assets/win-x86
+                - input: pipelineArtifact
+                  artifactName: 'osx-x64'
+                  targetPath: $(Pipeline.Workspace)/assets/osx-x64
+                - input: pipelineArtifact
+                  artifactName: 'osx-arm64'
+                  targetPath: $(Pipeline.Workspace)/assets/osx-arm64
+                - input: pipelineArtifact
+                  artifactName: 'linux-x64'
+                  targetPath: $(Pipeline.Workspace)/assets/linux-x64
+                - input: pipelineArtifact
+                  artifactName: 'dotnet-tool'
+                  targetPath: $(Pipeline.Workspace)/assets/dotnet-tool
+            steps:
+              - task: GitHubRelease@1
+                displayName: 'Create Draft GitHub Release'
+                condition: and(succeeded(), eq('${{ parameters.github }}', true))
+                inputs:
+                  gitHubConnection: $(githubConnectionName)
+                  repositoryName: git-ecosystem/git-credential-manager
+                  tag: 'v$(version)'
+                  tagSource: userSpecifiedTag
+                  target: release
+                  title: 'GCM $(version)'
+                  isDraft: true
+                  addChangeLog: false
+                  assets: |
+                    $(Pipeline.Workspace)/assets/win-x86/*.exe
+                    $(Pipeline.Workspace)/assets/win-x86/*.zip
+                    $(Pipeline.Workspace)/assets/osx-x64/*.pkg
+                    $(Pipeline.Workspace)/assets/osx-x64/*.tar.gz
+                    $(Pipeline.Workspace)/assets/osx-arm64/*.pkg
+                    $(Pipeline.Workspace)/assets/osx-arm64/*.tar.gz
+                    $(Pipeline.Workspace)/assets/linux-x64/*.deb
+                    $(Pipeline.Workspace)/assets/linux-x64/*.tar.gz
+                    $(Pipeline.Workspace)/assets/dotnet-tool/*.nupkg
+                    $(Pipeline.Workspace)/assets/dotnet-tool/*.snupkg
+
+          - job: nuget
+            displayName: 'Publish NuGet package'
+            dependsOn: release_validation
+            condition: and(succeeded(), eq('${{ parameters.nuget }}', true))
+            pool:
+              name: GitClientPME-1ESHostedPool-intel-pc
+              image: ubuntu-x86_64-ado1es
+              os: linux
+            variables:
+              version: $[dependencies.release_validation.outputs['version.value']]
+            templateContext:
+              inputs:
+                - input: pipelineArtifact
+                  artifactName: 'dotnet-tool'
+                  targetPath: $(Pipeline.Workspace)/assets/dotnet-tool
+              outputs:
+                - output: nuget
+                  condition: and(succeeded(), eq('${{ parameters.nuget }}', true))
+                  displayName: 'Publish .NET Tool NuGet package'
+                  packagesToPush: '$(Pipeline.Workspace)/assets/dotnet-tool/*.nupkg;$(Pipeline.Workspace)/assets/dotnet-tool/*.snupkg'
+                  packageParentPath: $(Pipeline.Workspace)/assets/dotnet-tool
+                  nuGetFeedType: external
+                  publishPackageMetadata: true
+                  publishFeedCredentials: $(nugetConnectionName)
