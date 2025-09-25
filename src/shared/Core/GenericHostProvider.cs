@@ -161,7 +161,7 @@ namespace GitCredentialManager
                     // Store new refresh token if we have been given one
                     if (!string.IsNullOrWhiteSpace(refreshResult.RefreshToken))
                     {
-                        Context.CredentialStore.AddOrUpdate(refreshService, refreshToken.Account, refreshToken.Password);
+                        Context.CredentialStore.AddOrUpdate(refreshService, refreshToken.Account, refreshResult.RefreshToken);
                     }
 
                     // Return the new access token
