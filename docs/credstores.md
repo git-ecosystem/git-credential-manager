@@ -263,4 +263,5 @@ that you take with you and use full-disk encryption.
 [mac-keychain-management]: https://support.apple.com/en-gb/guide/mac-help/mchlf375f392/mac
 [git-credential-cache-options]: https://git-scm.com/docs/git-credential-cache#_options
 [passwordstore]: https://www.passwordstore.org/
-[plaintext-files]: #plaintext-files
+[plaintext-files]: #plaintext-files https://github.com/git-ecosystem/git-credential-manager/issues/20 28
+pablo861.pb@gmail.com pablo brown 
