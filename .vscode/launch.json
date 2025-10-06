@@ -4,6 +4,51 @@
    // For further information visit https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md
    "version": "0.2.0",
    "configurations": [
+    {
+        "name": ".NET Core Launch (console)",
+        "type": "coreclr",
+        "request": "launch",
+        "preLaunchTask": "build",
+        "program": "${workspaceFolder}/bin/Debug/<target-framework>/<project-name.dll>",
+        "args": [],
+        "cwd": "${workspaceFolder}",
+        "stopAtEntry": false,
+        "console": "internalConsole",
+        "pipeTransport": {
+            "pipeCwd": "${workspaceFolder}",
+            "pipeProgram": "enter the fully qualified path for the pipe program name, for example '/usr/bin/ssh'",
+            "pipeArgs": [],
+            "debuggerPath": "enter the path for the debugger on the target machine, for example ~/vsdbg/vsdbg"
+        }
+    },
+    {
+        "name": "Attach to Edge",
+        "port": 9222,
+        "request": "attach",
+        "type": "msedge",
+        "webRoot": "${workspaceFolder}"
+    },
+    {
+        "type": "node",
+        "request": "attach",
+        "name": "Containers: Attach to Node",
+        "remoteRoot": "/usr/src/app"
+    },
+    {
+        "name": "Attach to Chrome",
+        "port": 9222,
+        "request": "attach",
+        "type": "chrome",
+        "webRoot": "${workspaceFolder}"
+    },
+    {
+        "name": "Launch Chrome",
+        "request": "launch",
+        "type": "chrome",
+        "url": "http://localhost:8080",
+        "webRoot": "${workspaceFolder}"
+    },
+
         {
             "name": "Git Credential Manager (get)",
             "type": "coreclr",

@@ -8,6 +8,7 @@
     <EnableDefaultItems>false</EnableDefaultItems>
     <PayloadPath>$(PlatformOutPath)Installer.Windows\bin\$(Configuration)\net472\win-x86</PayloadPath>
     <InnoSetupVersion>6.3.1</InnoSetupVersion>
+    <UserSecretsId>9e875775-fd26-4377-ad24-f0103ee4f16f</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
