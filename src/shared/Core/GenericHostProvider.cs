@@ -67,14 +67,8 @@ namespace GitCredentialManager
 
             Uri uri = input.GetRemoteUri();
 
-            // Determine the if the host supports Windows Integration Authentication (WIA) or OAuth
-            if (!StringComparer.OrdinalIgnoreCase.Equals(uri.Scheme, "http") &&
-                !StringComparer.OrdinalIgnoreCase.Equals(uri.Scheme, "https"))
-            {
-                // Cannot check WIA or OAuth support for non-HTTP based protocols
-            }
             // Check for an OAuth configuration for this remote
-            else if (GenericOAuthConfig.TryGet(Context.Trace, Context.Settings, input, out GenericOAuthConfig oauthConfig))
+            if (GenericOAuthConfig.TryGet(Context.Trace, Context.Settings, input, out GenericOAuthConfig oauthConfig))
             {
                 Context.Trace.WriteLine($"Found generic OAuth configuration for '{uri}':");
                 Context.Trace.WriteLine($"\tAuthzEndpoint   = {oauthConfig.Endpoints.AuthorizationEndpoint}");
