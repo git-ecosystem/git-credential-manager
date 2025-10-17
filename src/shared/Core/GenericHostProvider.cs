@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using GitCredentialManager.Authentication;
+using GitCredentialManager.Authentication.Oauth.Json;
 using GitCredentialManager.Authentication.OAuth;
 
 namespace GitCredentialManager
@@ -125,6 +126,20 @@ namespace GitCredentialManager
             return await _basicAuth.GetCredentialsAsync(uri.AbsoluteUri, input.UserName);
         }
 
+        public override async Task<ICredential> GetCredentialAsync(InputArguments input)
+        {
+            var credential = await base.GetCredentialAsync(input);
+            // discard credential if it's an already expired JSON Web Token
+            if (WebToken.TryCreate(credential.Password, out var token) && token.IsExpired)
+            {
+                // No existing credential was found, create a new one
+                Context.Trace.WriteLine("Refreshing expired JWT credential...");
+                credential = await GenerateCredentialAsync(input);
+                Context.Trace.WriteLine("Credential created.");
+            }
+            return credential;
+        }
+
         private async Task<ICredential> GetOAuthAccessToken(Uri remoteUri, string userName, GenericOAuthConfig config, ITrace2 trace2)
         {
             // TODO: Determined user info from a webcall? ID token? Need OIDC support
@@ -150,9 +165,9 @@ namespace GitCredentialManager
             string refreshService = new UriBuilder(remoteUri) { Host = $"refresh_token.{remoteUri.Host}" }
                 .Uri.AbsoluteUri.TrimEnd('/');
 
-            // Try to use a refresh token if we have one
+            // Try to use a refresh token if we have one (unless it's an expired JSON Web Token)
             ICredential refreshToken = Context.CredentialStore.Get(refreshService, userName);
-            if (refreshToken != null)
+            if (refreshToken != null && !(WebToken.TryCreate(refreshToken.Password, out var token) && token.IsExpired))
             {
                 try
                 {
