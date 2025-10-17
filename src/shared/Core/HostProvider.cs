@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using System.IO;
+using System.Text.Json;
 
 namespace GitCredentialManager
 {
@@ -58,6 +60,18 @@ namespace GitCredentialManager
         /// </summary>
         /// <param name="input">Input arguments of a Git credential query.</param>
         Task EraseCredentialAsync(InputArguments input);
+
+        /// <summary>
+        /// Save the current configuration to a file.
+        /// </summary>
+        /// <param name="filePath">Path to the file where the configuration will be saved.</param>
+        Task SaveConfigurationAsync(string filePath);
+
+        /// <summary>
+        /// Load the configuration from a file.
+        /// </summary>
+        /// <param name="filePath">Path to the file from which the configuration will be loaded.</param>
+        Task LoadConfigurationAsync(string filePath);
     }
 
     /// <summary>
@@ -181,6 +195,29 @@ namespace GitCredentialManager
             }
 
             return Task.CompletedTask;
+        }
+
+        public virtual async Task SaveConfigurationAsync(string filePath)
+        {
+            var configData = new Dictionary<string, object>
+            {
+                { "Id", Id },
+                { "Name", Name },
+                { "SupportedAuthorityIds", SupportedAuthorityIds }
+            };
+
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            var json = JsonSerializer.Serialize(configData, options);
+
+            await File.WriteAllTextAsync(filePath, json);
+        }
+
+        public virtual async Task LoadConfigurationAsync(string filePath)
+        {
+            var json = await File.ReadAllTextAsync(filePath);
+            var configData = JsonSerializer.Deserialize<Dictionary<string, object>>(json);
+
+            // Perform any necessary actions to apply the loaded configuration to the HostProvider
         }
     }
 }
