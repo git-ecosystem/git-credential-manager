@@ -42,7 +42,7 @@ jobs:
         mv out/windows/Installer.Windows/bin/Release/net472/gcm*.exe artifacts/
 
     - name: Upload artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: win-x86
         path: |
@@ -86,7 +86,7 @@ jobs:
         mv out/linux/Packaging.Linux/Release/tar/*.tar.gz artifacts/
 
     - name: Upload artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: ${{ matrix.runtime }}
         path: |
@@ -131,7 +131,7 @@ jobs:
         mv out/osx/Installer.Mac/pkg/Release/gcm*.pkg artifacts/
 
     - name: Upload artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: ${{ matrix.runtime }}
         path: |
