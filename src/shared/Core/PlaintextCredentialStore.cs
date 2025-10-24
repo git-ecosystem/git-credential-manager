@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Security.Cryptography;
 
 namespace GitCredentialManager
 {
@@ -86,7 +87,33 @@ namespace GitCredentialManager
             if (line1Idx > 0)
             {
                 // Password is the first line
-                string password = text.Substring(0, line1Idx);
+                // Decrypt password from base64
+                string protectedPasswordBase64 = text.Substring(0, line1Idx);
+                try
+                {
+                    byte[] protectedPasswordBytes = Convert.FromBase64String(protectedPasswordBase64);
+                    byte[] passwordBytes = ProtectedData.Unprotect(protectedPasswordBytes, null, DataProtectionScope.CurrentUser);
+                    string password = Encoding.UTF8.GetString(passwordBytes);
+
+                    // All subsequent lines are metadata/attributes
+                    string attrText = text.Substring(line1Idx + Environment.NewLine.Length);
+                    using var attrReader = new StringReader(attrText);
+                    IDictionary<string, string> attrs = attrReader.ReadDictionary(StringComparer.OrdinalIgnoreCase);
+
+                    // Account is optional
+                    attrs.TryGetValue("account", out string account);
+
+                    // Service is required
+                    if (attrs.TryGetValue("service", out string service))
+                    {
+                        credential = new FileCredential(path, service, account, password);
+                        return true;
+                    }
+                }
+                catch
+                {
+                    // If decryption fails, treat as not found/corrupt
+                }
 
                 // All subsequent lines are metadata/attributes
                 string attrText = text.Substring(line1Idx + Environment.NewLine.Length);
@@ -120,7 +147,13 @@ namespace GitCredentialManager
             using (var stream = FileSystem.OpenFileStream(credential.FullPath, FileMode.Create, FileAccess.Write, FileShare.None))
             using (var writer = new StreamWriter(stream))
             {
-                writer.WriteLine(credential.Password);
+                // Encrypt password and encode as base64
+                var protectedPasswordBytes = ProtectedData.Protect(
+                    Encoding.UTF8.GetBytes(credential.Password),
+                    null,
+                    DataProtectionScope.CurrentUser); // Choose CurrentUser or LocalMachine as appropriate
+                var protectedPasswordBase64 = Convert.ToBase64String(protectedPasswordBytes);
+                writer.WriteLine(protectedPasswordBase64);
                 writer.WriteLine("service={0}", credential.Service);
                 writer.WriteLine("account={0}", credential.Account);
                 writer.Flush();
