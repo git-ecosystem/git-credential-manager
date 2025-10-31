@@ -20,6 +20,11 @@ echo "Directory: $SIGN_DIR"
 echo "Developer ID: $DEVELOPER_ID"
 echo "Entitlements: $ENTITLEMENTS_FILE"
 echo "======== END INPUTS ========"
+echo
+echo "======== ENTITLEMENTS ========"
+cat $ENTITLEMENTS_FILE
+echo "======== END ENTITLEMENTS ========"
+echo
 
 cd $SIGN_DIR
 for f in *
