@@ -130,7 +130,7 @@ jobs:
           --keychain-profile="$N4"
 
     - name: Upload artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: macos-${{ matrix.runtime }}-artifacts
         path: |
@@ -216,7 +216,7 @@ jobs:
         timestamp-digest: SHA256
 
     - name: Upload artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: windows-artifacts
         path: |
@@ -301,7 +301,7 @@ jobs:
           --detach-sig gcm-${{ matrix.runtime }}.$version.tar.gz
 
     - name: Upload artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: ${{ matrix.runtime }}-artifacts
         path: |
@@ -329,7 +329,7 @@ jobs:
         src/shared/DotnetTool/layout.sh --configuration=Release
 
     - name: Upload .NET tool artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: tmp.dotnet-tool-build
         path: |
@@ -344,7 +344,7 @@ jobs:
     - uses: actions/checkout@v5
 
     - name: Download payload
-      uses: actions/download-artifact@v5
+      uses: actions/download-artifact@v6
       with:
         name: tmp.dotnet-tool-build
 
@@ -373,7 +373,7 @@ jobs:
         mv images payload.sym payload -t dotnet-tool-payload-sign
 
     - name: Upload signed payload
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: dotnet-tool-payload-sign
         path: |
@@ -387,7 +387,7 @@ jobs:
     - uses: actions/checkout@v5
 
     - name: Download signed payload
-      uses: actions/download-artifact@v5
+      uses: actions/download-artifact@v6
       with:
         name: dotnet-tool-payload-sign
         path: signed
@@ -404,7 +404,7 @@ jobs:
           --publish-dir=$(pwd)/signed
 
     - name: Upload unsigned package
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: tmp.dotnet-tool-package-unsigned
         path: |
@@ -419,7 +419,7 @@ jobs:
     - uses: actions/checkout@v5
 
     - name: Download unsigned package
-      uses: actions/download-artifact@v5
+      uses: actions/download-artifact@v6
       with:
         name: tmp.dotnet-tool-package-unsigned
         path: nupkg
@@ -456,7 +456,7 @@ jobs:
         mv $cert .\nuget-signing.cer
 
     - name: Publish signed package and certificate
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: dotnet-tool-sign
         path: |
@@ -502,7 +502,7 @@ jobs:
           dotnet-version: 8.0.x
 
       - name: Download artifacts
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: ${{ matrix.component.artifact }}
 
@@ -572,7 +572,7 @@ jobs:
           dotnet-version: 8.0.x
 
       - name: Download artifacts
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
 
       - name: Archive macOS payload and symbols
         run: |
