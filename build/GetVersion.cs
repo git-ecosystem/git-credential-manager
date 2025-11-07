@@ -34,7 +34,7 @@ namespace GitCredentialManager.MSBuild
             // The main version number we use for GCM contains the first three
             // components.
             // The assembly and file version numbers contain all components, as
-            // ommitting the revision portion from these properties causes
+            // omitting the revision portion from these properties causes
             // runtime failures on Windows.
             Version = $"{fullVersion.Major}.{fullVersion.Minor}.{fullVersion.Build}";
             AssemblyVersion = FileVersion = fullVersion.ToString();
