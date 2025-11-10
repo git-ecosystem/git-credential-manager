@@ -270,6 +270,15 @@ jobs:
         # Install debsigs
         sudo apt install debsigs
 
+        # Stop using SHA-1 for the signature. For details, see
+        # https://gitlab.com/debsigs/debsigs/-/commit/75c6c8f96e6cdc33bca9c5f32195b68ff35bc32f
+        # which seems to have made it to have made it into debsigs v0.2.1, but Ubuntu 24.04 is
+        # stuck with v1.19.
+        mkdir -p patched-debsigs &&
+        sed 's/, "--openpgp"//' </usr/bin/debsigs >patched-debsigs/debsigs &&
+        chmod a+x patched-debsigs/debsigs &&
+        echo "$PWD/patched-debsigs" >>$GITHUB_PATH
+
         # Download GPG key, passphrase, and keygrip from Azure Key Vault
         key=$(az keyvault secret show --name $GPG_KEY_SECRET_NAME --vault-name $AZURE_VAULT --query "value")
         passphrase=$(az keyvault secret show --name $GPG_PASSPHRASE_SECRET_NAME --vault-name $AZURE_VAULT --query "value")
