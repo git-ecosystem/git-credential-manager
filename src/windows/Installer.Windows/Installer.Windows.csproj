@@ -3,10 +3,10 @@
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
 
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <EnableDefaultItems>false</EnableDefaultItems>
-    <PayloadPath>$(PlatformOutPath)Installer.Windows\bin\$(Configuration)\net472\win-x86</PayloadPath>
+    <PayloadPath>$(PlatformOutPath)Installer.Windows\bin\$(Configuration)\net8.0\win-x86</PayloadPath>
     <InnoSetupVersion>6.3.1</InnoSetupVersion>
   </PropertyGroup>
 

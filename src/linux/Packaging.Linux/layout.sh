@@ -77,7 +77,6 @@ if [ -z "$RUNTIME" ]; then
         --configuration="$CONFIGURATION" \
         --framework="$FRAMEWORK" \
         --self-contained \
-        -p:PublishSingleFile=true \
         --output="$(make_absolute "$PAYLOAD")" || exit 1
 else
     $DOTNET_ROOT/dotnet publish "$GCM_SRC" \
@@ -85,7 +84,6 @@ else
         --framework="$FRAMEWORK" \
         --runtime="$RUNTIME" \
         --self-contained \
-        -p:PublishSingleFile=true \
         --output="$(make_absolute "$PAYLOAD")" || exit 1
 fi
 

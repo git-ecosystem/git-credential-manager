@@ -5,6 +5,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Input;
+using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using GitCredentialManager;
@@ -156,7 +157,7 @@ namespace GitHub.UI.Controls
 
         private void OnPaste()
         {
-            Text = TopLevel.GetTopLevel(this)?.Clipboard?.GetTextAsync().GetAwaiter().GetResult();
+            Text = TopLevel.GetTopLevel(this)?.Clipboard?.TryGetTextAsync().GetAwaiter().GetResult();
         }
 
         private bool MoveNext() => MoveFocus(true);

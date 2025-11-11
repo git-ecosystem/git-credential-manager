@@ -106,7 +106,7 @@ namespace GitHub
 
                     string json = await response.Content.ReadAsStringAsync();
 
-                    return JsonSerializer.Deserialize<GitHubUserInfo>(json);
+                    return JsonSerializer.Deserialize(json, GitHubJsonSerializerContext.Default.GitHubUserInfo);
                 }
             }
         }
@@ -125,7 +125,7 @@ namespace GitHub
 
                 string json = await response.Content.ReadAsStringAsync();
 
-                return JsonSerializer.Deserialize<GitHubMetaInfo>(json);
+                return JsonSerializer.Deserialize(json, GitHubJsonSerializerContext.Default.GitHubMetaInfo);
             }
         }
 

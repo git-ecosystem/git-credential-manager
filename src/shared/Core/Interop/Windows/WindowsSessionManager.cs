@@ -1,8 +1,10 @@
 using System;
+using System.Runtime.Versioning;
 using GitCredentialManager.Interop.Windows.Native;
 
 namespace GitCredentialManager.Interop.Windows
 {
+    [SupportedOSPlatform(Constants.WindowsPlatformName)]
     public class WindowsSessionManager : SessionManager
     {
         public WindowsSessionManager(IEnvironment env, IFileSystem fs) : base(env, fs)

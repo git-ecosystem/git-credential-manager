@@ -6,6 +6,7 @@
         SizeToContent="WidthAndHeight" CanResize="False" Topmost="True"
         ExtendClientAreaChromeHints="NoChrome" ExtendClientAreaToDecorationsHint="True"
         ShowInTaskbar="False" Title="Git Credential Manager" WindowStartupLocation="CenterScreen"
+        x:CompileBindings="True"
         x:Class="GitCredentialManager.UI.Controls.ProgressWindow">
     <ProgressBar Orientation="Horizontal"
                  IsIndeterminate="True"

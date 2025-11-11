@@ -21,7 +21,6 @@ SRC="$ROOT/src"
 OUT="$ROOT/out"
 INSTALLER_SRC="$SRC/osx/Installer.Mac"
 GCM_SRC="$SRC/shared/Git-Credential-Manager"
-GCM_UI_SRC="$SRC/shared/Git-Credential-Manager.UI.Avalonia"
 
 # Build parameters
 FRAMEWORK=net8.0

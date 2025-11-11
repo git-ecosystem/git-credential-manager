@@ -17,6 +17,11 @@ namespace GitCredentialManager
         public const string GcmDataDirectoryName = ".gcm";
 
         public const string MacOSBundleId = "git-credential-manager";
+
+        public const string WindowsPlatformName = "windows";
+        public const string LinuxPlatformName = "linux";
+        public const string MacOSPlatformName = "osx";
+
         public static readonly Guid DevBoxPartnerId = new("e3171dd9-9a5f-e5be-b36c-cc7c4f3f3bcf");
 
         /// <summary>

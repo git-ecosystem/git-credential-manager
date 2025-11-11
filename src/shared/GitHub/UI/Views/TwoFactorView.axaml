@@ -5,6 +5,8 @@
              xmlns:controls="clr-namespace:GitHub.UI.Controls"
              xmlns:vm="clr-namespace:GitHub.UI.ViewModels"
              mc:Ignorable="d" d:DesignWidth="420"
+             x:DataType="vm:TwoFactorViewModel"
+             x:CompileBindings="True"
              x:Class="GitHub.UI.Views.TwoFactorView">
     <Design.DataContext>
         <vm:TwoFactorViewModel/>
