@@ -34,4 +34,9 @@
     </ItemGroup>
   </Target>
 
+  <PropertyGroup>
+    <!-- Ignore platform API compatibilty checks in test projects -->
+    <NoWarn Condition="'$(IsTestProject)'=='true'">$(NoWarn);CA1416</NoWarn>
+  </PropertyGroup>
+
 </Project>

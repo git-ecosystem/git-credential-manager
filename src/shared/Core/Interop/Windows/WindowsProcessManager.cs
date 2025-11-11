@@ -1,5 +1,8 @@
+using System.Runtime.Versioning;
+
 namespace GitCredentialManager.Interop.Windows;
 
+[SupportedOSPlatform(Constants.WindowsPlatformName)]
 public class WindowsProcessManager : ProcessManager
 {
     public WindowsProcessManager(ITrace2 trace2) : base(trace2)

@@ -39,29 +39,15 @@ mkdir -p "$PAYLOAD","$SYMBOLS" | Out-Null
 # Publish core application executables
 Write-Output "Publishing core application..."
 dotnet publish "$GCM_SRC" `
-	--framework net472 `
-	--configuration "$Configuration" `
+	--framework net8.0 `
+	--self-contained `
+	--configuration "$CONFIGURATION" `
 	--runtime win-x86 `
 	--output "$PAYLOAD"
 
 # Delete libraries that are not needed for Windows but find their way
 # into the publish output.
 Remove-Item -Path "$PAYLOAD/*.dylib" -Force -ErrorAction Ignore
-
-# Delete extraneous files that get included for other architectures
-# We only care about x86 as the core GCM executable is only targeting x86
-Remove-Item -Path "$PAYLOAD/arm/" -Recurse -Force -ErrorAction Ignore
-Remove-Item -Path "$PAYLOAD/arm64/" -Recurse -Force -ErrorAction Ignore
-Remove-Item -Path "$PAYLOAD/x64/" -Recurse -Force -ErrorAction Ignore
-Remove-Item -Path "$PAYLOAD/musl-x64/" -Recurse -Force -ErrorAction Ignore
-Remove-Item -Path "$PAYLOAD/runtimes/win-arm64/" -Recurse -Force -ErrorAction Ignore
-Remove-Item -Path "$PAYLOAD/runtimes/win-x64/" -Recurse -Force -ErrorAction Ignore
-
-# The Avalonia and MSAL binaries in these directories are already included in
-# the $PAYLOAD directory directly, so we can delete these extra copies.
-Remove-Item -Path "$PAYLOAD/x86/libSkiaSharp.dll" -Recurse -Force -ErrorAction Ignore
-Remove-Item -Path "$PAYLOAD/x86/libHarfBuzzSharp.dll" -Recurse -Force -ErrorAction Ignore
-Remove-Item -Path "$PAYLOAD/runtimes/win-x86/native/msalruntime_x86.dll" -Recurse -Force -ErrorAction Ignore
 
 # Delete localized resource assemblies - we don't localize the core GCM assembly anyway
 Get-ChildItem "$PAYLOAD" -Recurse -Include "*.resources.dll" | Remove-Item -Force -ErrorAction Ignore

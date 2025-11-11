@@ -65,22 +65,15 @@ namespace GitCredentialManager.UI
                 {
                     var appBuilder = AppBuilder.Configure<AvaloniaApp>();
 
-#if NETFRAMEWORK
                     // Set custom rendering options and modes if required
                     if (PlatformUtils.IsWindows() && _win32SoftwareRendering)
                     {
                         appBuilder.With(new Win32PlatformOptions
                             { RenderingMode = new[] { Win32RenderingMode.Software } });
                     }
-#endif
 
                     appBuilder
-#if NETFRAMEWORK
-                        .UseWin32()
-                        .UseSkia()
-#else
                         .UsePlatformDetect()
-#endif
                         .LogToTrace()
                         .SetupWithoutStarting();
 

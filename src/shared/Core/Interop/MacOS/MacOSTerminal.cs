@@ -1,10 +1,12 @@
 using System;
+using System.Runtime.Versioning;
 using GitCredentialManager.Interop.MacOS.Native;
 using GitCredentialManager.Interop.Posix;
 using GitCredentialManager.Interop.Posix.Native;
 
 namespace GitCredentialManager.Interop.MacOS
 {
+    [SupportedOSPlatform(Constants.MacOSPlatformName)]
     public class MacOSTerminal : PosixTerminal
     {
         public MacOSTerminal(ITrace trace, ITrace2 trace2)

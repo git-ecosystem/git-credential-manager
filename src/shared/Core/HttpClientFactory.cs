@@ -99,11 +99,7 @@ namespace GitCredentialManager
                 _streams.Error.WriteLine("warning: ---------------------------------------------------");
                 _streams.Error.WriteLine($"warning: HTTPS connections may not be secure. See {Constants.HelpUrls.GcmTlsVerification} for more information.");
 
-#if NETFRAMEWORK
-                ServicePointManager.ServerCertificateValidationCallback = (req, cert, chain, errors) => true;
-#else
                 handler.ServerCertificateCustomValidationCallback = (req, cert, chain, errors) => true;
-#endif
             }
             // If schannel is the TLS backend, custom certificate usage must be explicitly enabled
             else if (!string.IsNullOrWhiteSpace(_settings.CustomCertificateBundlePath) &&
@@ -178,23 +174,7 @@ namespace GitCredentialManager
 
                 // Set the custom server certificate validation callback.
                 // NOTE: this is executed after the default platform server certificate validation is performed
-#if NETFRAMEWORK
-                ServicePointManager.ServerCertificateValidationCallback = (_, cert, chain, errors) =>
-                {
-                    // Fail immediately if the cert or chain isn't present
-                    if (cert is null || chain is null)
-                    {
-                        return false;
-                    }
-
-                    using (X509Certificate2 cert2 = new X509Certificate2(cert))
-                    {
-                        return validationCallback(cert2, chain, errors);
-                    }
-                };
-#else
                 handler.ServerCertificateCustomValidationCallback = (_, cert, chain, errors) => validationCallback(cert, chain, errors);
-#endif
             }
 
             // If CustomCookieFilePath is set, set Cookie header from cookie file, which is written by libcurl

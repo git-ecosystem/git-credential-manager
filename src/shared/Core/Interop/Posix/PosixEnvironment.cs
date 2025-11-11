@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Versioning;
 
 namespace GitCredentialManager.Interop.Posix
 {
+    [SupportedOSPlatform(Constants.LinuxPlatformName)]
+    [SupportedOSPlatform(Constants.MacOSPlatformName)]
     public class PosixEnvironment : EnvironmentBase
     {
         public PosixEnvironment(IFileSystem fileSystem)

@@ -1,8 +1,10 @@
+using System.Runtime.Versioning;
 using GitCredentialManager.Interop.MacOS.Native;
 using GitCredentialManager.Interop.Posix;
 
 namespace GitCredentialManager.Interop.MacOS
 {
+    [SupportedOSPlatform(Constants.MacOSPlatformName)]
     public class MacOSSessionManager : PosixSessionManager
     {
         public MacOSSessionManager(IEnvironment env, IFileSystem fs) : base(env, fs)

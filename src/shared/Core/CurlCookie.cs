@@ -66,18 +66,12 @@ namespace GitCredentialManager
 
         private static DateTime ParseExpires(string expires)
         {
-#if NETFRAMEWORK
-            DateTime epoch = new DateTime(1970, 01, 01, 0, 0, 0, DateTimeKind.Utc);
-#else
-            DateTime epoch = DateTime.UnixEpoch;
-#endif
-
             if (long.TryParse(expires, out long i))
             {
-                return epoch.AddSeconds(i);
+                return DateTime.UnixEpoch.AddSeconds(i);
             }
 
-            return epoch;
+            return DateTime.UnixEpoch;
         }
     }
 }

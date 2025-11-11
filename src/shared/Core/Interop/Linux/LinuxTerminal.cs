@@ -1,10 +1,12 @@
 using System;
+using System.Runtime.Versioning;
 using GitCredentialManager.Interop.Linux.Native;
 using GitCredentialManager.Interop.Posix;
 using GitCredentialManager.Interop.Posix.Native;
 
 namespace GitCredentialManager.Interop.Linux
 {
+    [SupportedOSPlatform(Constants.LinuxPlatformName)]
     public class LinuxTerminal : PosixTerminal
     {
         public LinuxTerminal(ITrace trace, ITrace2 trace2)

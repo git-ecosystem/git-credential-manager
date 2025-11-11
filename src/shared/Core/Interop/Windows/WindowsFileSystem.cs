@@ -1,8 +1,10 @@
 using System;
 using System.IO;
+using System.Runtime.Versioning;
 
 namespace GitCredentialManager.Interop.Windows
 {
+    [SupportedOSPlatform(Constants.WindowsPlatformName)]
     public class WindowsFileSystem : FileSystem
     {
         public override bool IsSamePath(string a, string b)
