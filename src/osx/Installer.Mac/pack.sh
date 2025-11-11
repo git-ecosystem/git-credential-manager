@@ -52,7 +52,7 @@ fi
 
 # Cleanup any old component
 if [ -e "$PKGOUT" ]; then
-    echo "Deleteing old component '$PKGOUT'..."
+    echo "Deleting old component '$PKGOUT'..."
     rm "$PKGOUT"
 fi
 

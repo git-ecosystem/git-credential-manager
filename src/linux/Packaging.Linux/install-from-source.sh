@@ -40,18 +40,26 @@ if [ -z $is_ci ]; then
 
 Git Credential Manager is licensed under the MIT License: https://aka.ms/gcm/license"
 
-    while true; do
-        read -p "Do you want to continue? [Y/n] " yn
-        case $yn in
-            [Yy]*|"")
-                break
-            ;;
-            [Nn]*)
-                exit
-            ;;
-            *)
-                echo "Please answer yes or no."
-            ;;
+	while true; do
+        # Display prompt once before reading input
+        printf "Do you want to continue? [Y/n] "
+
+        # Prefer reading from the controlling terminal (TTY) when available,
+        # so that input works even if the script is piped (e.g. curl URL | sh)
+        if [ -r /dev/tty ]; then
+            read yn < /dev/tty
+        # If no TTY is available, attempt to read from standard input (stdin)
+        elif ! read yn; then
+            # If input is not possible via TTY or stdin, assume a non-interactive environment
+            # and abort with guidance for automated usage
+            echo "Interactive prompt unavailable in this environment. Use 'sh -s -- -y' for automated install."
+            exit 1
+        fi
+
+        case "$yn" in
+            [Yy]*|"") break ;;
+            [Nn]*) exit ;;
+            *) echo "Please answer yes or no." ;;
         esac
     done
 fi
@@ -208,7 +216,7 @@ case "$distribution" in
         $sudo_cmd zypper -n update
 
         # Install dotnet/GCM dependencies.
-        install_packages zypper install "curl git find krb5 libicu libopenssl1_1"
+        install_packages zypper install "curl git find krb5 libicu"
 
         ensure_dotnet_installed
     ;;

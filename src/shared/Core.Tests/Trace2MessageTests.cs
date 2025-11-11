@@ -54,7 +54,7 @@ public class Trace2MessageTests
             ParameterizedMessage = "baz"
         };
 
-        var expected = "{\"event\":\"error\",\"sid\":\"123\",\"thread\":\"main\",\"time\":\"0001-01-01T00:00:00+00:00\",\"file\":\"foo.cs\",\"line\":1,\"depth\":1,\"msg\":\"bar\",\"format\":\"baz\"}";
+        var expected = "{\"event\":\"error\",\"sid\":\"123\",\"thread\":\"main\",\"time\":\"0001-01-01T00:00:00+00:00\",\"file\":\"foo.cs\",\"line\":1,\"depth\":1,\"msg\":\"bar\",\"fmt\":\"baz\"}";
         var actual = errorMessage.ToJson();
 
         Assert.Equal(expected, actual);

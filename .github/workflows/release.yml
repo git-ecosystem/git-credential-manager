@@ -14,7 +14,7 @@ jobs:
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Set version
         run: echo "version=$(cat VERSION | sed -E 's/.[0-9]+$//')" >> $GITHUB_OUTPUT
@@ -32,10 +32,10 @@ jobs:
       matrix:
         runtime: [ osx-x64, osx-arm64 ]
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - name: Set up .NET
-      uses: actions/setup-dotnet@v4.1.0
+      uses: actions/setup-dotnet@v5.0.0
       with:
         dotnet-version: 8.0.x
 
@@ -57,8 +57,8 @@ jobs:
 
     - name: Set up signing/notarization infrastructure
       env:
-        A1: ${{ secrets.APPLICATION_CERTIFICATE_BASE64 }}
-        A2: ${{ secrets.APPLICATION_CERTIFICATE_PASSWORD }}
+        A1: ${{ secrets.GATEWATCHER_DEVELOPER_ID_CERT }}
+        A2: ${{ secrets.GATEWATCHER_DEVELOPER_ID_PASSWORD }}
         I1: ${{ secrets.INSTALLER_CERTIFICATE_BASE64 }}
         I2: ${{ secrets.INSTALLER_CERTIFICATE_PASSWORD }}
         N1: ${{ secrets.APPLE_TEAM_ID }}
@@ -130,7 +130,7 @@ jobs:
           --keychain-profile="$N4"
 
     - name: Upload artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: macos-${{ matrix.runtime }}-artifacts
         path: |
@@ -147,10 +147,10 @@ jobs:
     environment: release
     needs: prereqs
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - name: Set up .NET
-      uses: actions/setup-dotnet@v4.1.0
+      uses: actions/setup-dotnet@v5.0.0
       with:
         dotnet-version: 8.0.x
 
@@ -177,7 +177,7 @@ jobs:
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
     - name: Sign payload files with Azure Code Signing
-      uses: azure/trusted-signing-action@v0.5.0
+      uses: azure/trusted-signing-action@v0.5.10
       with:
         endpoint: https://wus2.codesigning.azure.net/
         trusted-signing-account-name: git-fundamentals-signing
@@ -190,7 +190,7 @@ jobs:
 
     # The Azure Code Signing action overrides the .NET version, so we reset it.
     - name: Set up .NET
-      uses: actions/setup-dotnet@v4.1.0
+      uses: actions/setup-dotnet@v5.0.0
       with:
         dotnet-version: 8.0.x
 
@@ -204,7 +204,7 @@ jobs:
          -Destination $env:GITHUB_WORKSPACE\installers
 
     - name: Sign installers with Azure Code Signing
-      uses: azure/trusted-signing-action@v0.5.0
+      uses: azure/trusted-signing-action@v0.5.10
       with:
         endpoint: https://wus2.codesigning.azure.net/
         trusted-signing-account-name: git-fundamentals-signing
@@ -216,7 +216,7 @@ jobs:
         timestamp-digest: SHA256
 
     - name: Upload artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: windows-artifacts
         path: |
@@ -236,10 +236,10 @@ jobs:
       matrix:
         runtime: [ linux-x64, linux-arm64, linux-arm ]
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - name: Set up .NET
-      uses: actions/setup-dotnet@v4.1.0
+      uses: actions/setup-dotnet@v5.0.0
       with:
         dotnet-version: 8.0.x
 
@@ -301,7 +301,7 @@ jobs:
           --detach-sig gcm-${{ matrix.runtime }}.$version.tar.gz
 
     - name: Upload artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: ${{ matrix.runtime }}-artifacts
         path: |
@@ -317,10 +317,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: prereqs
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - name: Set up .NET
-      uses: actions/setup-dotnet@v4.1.0
+      uses: actions/setup-dotnet@v5.0.0
       with:
         dotnet-version: 8.0.x
 
@@ -329,7 +329,7 @@ jobs:
         src/shared/DotnetTool/layout.sh --configuration=Release
 
     - name: Upload .NET tool artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: tmp.dotnet-tool-build
         path: |
@@ -341,10 +341,10 @@ jobs:
     environment: release
     needs: dotnet-tool-build
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - name: Download payload
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v6
       with:
         name: tmp.dotnet-tool-build
 
@@ -373,7 +373,7 @@ jobs:
         mv images payload.sym payload -t dotnet-tool-payload-sign
 
     - name: Upload signed payload
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: dotnet-tool-payload-sign
         path: |
@@ -384,16 +384,16 @@ jobs:
     runs-on: ubuntu-latest
     needs: [ prereqs, dotnet-tool-payload-sign ]
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - name: Download signed payload
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v6
       with:
         name: dotnet-tool-payload-sign
         path: signed
 
     - name: Set up .NET
-      uses: actions/setup-dotnet@v4.1.0
+      uses: actions/setup-dotnet@v5.0.0
       with:
         dotnet-version: 8.0.x
 
@@ -404,7 +404,7 @@ jobs:
           --publish-dir=$(pwd)/signed
 
     - name: Upload unsigned package
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: tmp.dotnet-tool-package-unsigned
         path: |
@@ -416,10 +416,10 @@ jobs:
     environment: release
     needs: dotnet-tool-pack
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - name: Download unsigned package
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v6
       with:
         name: tmp.dotnet-tool-package-unsigned
         path: nupkg
@@ -456,7 +456,7 @@ jobs:
         mv $cert .\nuget-signing.cer
 
     - name: Publish signed package and certificate
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: dotnet-tool-sign
         path: |
@@ -494,15 +494,15 @@ jobs:
     runs-on: ${{ matrix.component.os }}
     needs: [ create-macos-artifacts, create-windows-artifacts, create-linux-artifacts, dotnet-tool-sign ]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Set up .NET
-        uses: actions/setup-dotnet@v4.1.0
+        uses: actions/setup-dotnet@v5.0.0
         with:
           dotnet-version: 8.0.x
 
       - name: Download artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: ${{ matrix.component.artifact }}
 
@@ -564,15 +564,15 @@ jobs:
     environment: release
     needs: [ prereqs, validate ]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Set up .NET
-        uses: actions/setup-dotnet@v4.1.0
+        uses: actions/setup-dotnet@v5.0.0
         with:
           dotnet-version: 8.0.x
 
       - name: Download artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
 
       - name: Archive macOS payload and symbols
         run: |
@@ -608,7 +608,7 @@ jobs:
           cp gcm-public.asc linux-arm64-artifacts/
           mv gcm-public.asc linux-arm-artifacts
 
-      - uses: actions/github-script@v7
+      - uses: actions/github-script@v8
         with:
           script: |
             const fs = require('fs');
