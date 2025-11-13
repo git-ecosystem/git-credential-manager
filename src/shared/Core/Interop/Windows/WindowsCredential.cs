@@ -1,4 +1,6 @@
 
+using System;
+
 namespace GitCredentialManager.Interop.Windows
 {
     public class WindowsCredential : ICredential
@@ -18,6 +20,10 @@ namespace GitCredentialManager.Interop.Windows
         public string Password { get; }
 
         public string TargetName { get; }
+
+        public string OAuthRefreshToken { get; set; }
+
+        public DateTimeOffset? PasswordExpiry { get; set; }
 
         string ICredential.Account => UserName;
     }

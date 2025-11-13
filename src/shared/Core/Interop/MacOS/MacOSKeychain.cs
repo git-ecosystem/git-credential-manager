@@ -14,6 +14,10 @@ namespace GitCredentialManager.Interop.MacOS
     {
         private readonly string _namespace;
 
+        public bool CanStorePasswordExpiry => false;
+
+        public bool CanStoreOAuthRefreshToken => false;
+
         #region Constructors
 
         /// <summary>
@@ -331,5 +335,8 @@ namespace GitCredentialManager.Interop.MacOS
             sb.Append(service);
             return sb.ToString();
         }
+
+        public void AddOrUpdate(string service, ICredential credential) => AddOrUpdate(service, credential.Account, credential.Password);
+        public bool Remove(string service, ICredential credential) => Remove(service, credential.Account);
     }
 }
