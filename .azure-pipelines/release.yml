@@ -12,15 +12,15 @@ resources:
 parameters:
   - name: 'esrp'
     type: boolean
-    default: false
+    default: true
     displayName: 'Enable ESRP code signing'
   - name: 'github'
     type: boolean
-    default: false
+    default: true
     displayName: 'Enable GitHub release publishing'
   - name: 'nuget'
     type: boolean
-    default: false
+    default: true
     displayName: 'Enable NuGet package publishing'
 
 #
