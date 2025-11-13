@@ -36,6 +36,10 @@ case "$i" in
     CONFIGURATION="${i#*=}"
     shift # past argument=value
     ;;
+    --output=*)
+    OUTPUT_ROOT="${i#*=}"
+    shift # past argument=value
+    ;;
     *)
           # unknown option
     ;;
@@ -59,11 +63,15 @@ if [ -z "$RUNTIME" ]; then
     die "--runtime was not set"
 fi
 
-TAROUT="$PROJ_OUT/$CONFIGURATION/tar/"
+if [ -z "$OUTPUT_ROOT" ]; then
+    OUTPUT_ROOT="$PROJ_OUT/$CONFIGURATION"
+fi
+
+TAROUT="$OUTPUT_ROOT/tar"
 TARBALL="$TAROUT/gcm-$RUNTIME.$VERSION.tar.gz"
 SYMTARBALL="$TAROUT/gcm-$RUNTIME.$VERSION-symbols.tar.gz"
 
-DEBOUT="$PROJ_OUT/$CONFIGURATION/deb"
+DEBOUT="$OUTPUT_ROOT/deb"
 DEBROOT="$DEBOUT/root"
 DEBPKG="$DEBOUT/gcm-$RUNTIME.$VERSION.deb"
 mkdir -p "$DEBROOT"

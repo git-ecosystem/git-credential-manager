@@ -64,7 +64,7 @@ PAYLOAD="$OUTDIR/payload"
 SYMBOLS="$OUTDIR/payload.sym"
 
 # Lay out payload
-"$INSTALLER_SRC/layout.sh" --configuration="$CONFIGURATION" --runtime="$RUNTIME" || exit 1
+"$INSTALLER_SRC/layout.sh" --configuration="$CONFIGURATION" --runtime="$RUNTIME" --output="$PAYLOAD" --symbol-output="$SYMBOLS" || exit 1
 
 if [ $INSTALL_FROM_SOURCE = true ]; then
     echo "Installing to $INSTALL_PREFIX"
