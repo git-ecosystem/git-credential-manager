@@ -88,7 +88,36 @@ $ defaults read git-credential-manager configuration
 
 ## Linux
 
-Default configuration setting stores has not been implemented.
+Default settings values come from the `/etc/git-credential-manager/config.d`
+directory. Each file in this directory represents a single settings dictionary.
+
+All files in this directory are read at runtime and merged into a single
+collection of settings, in the order they are read from the file system.
+To provide a stable ordering, it is recommended to prefix each filename with a
+number, e.g. `42-my-settings`.
+
+The format of each file is a simple set of key/value pairs, separated by an
+`=` sign, and each line separated by a line-feed (`\n`, LF) character.
+Comments are identified by a `#` character at the beginning of a line.
+
+For example:
+
+```text
+# /etc/git-credential-manager/config.d/00-example1
+credential.noguiprompt=0
+```
+
+```text
+# /etc/git-credential-manager/config.d/01-example2
+credential.trace=true
+credential.traceMsAuth=true
+```
+
+All settings names and values are the same as the [Git configuration][config]
+reference.
+
+> Note: These files are read once at startup. If changes are made to these files
+they will not be reflected in an already running process.
 
 [environment]: environment.md
 [config]: configuration.md
