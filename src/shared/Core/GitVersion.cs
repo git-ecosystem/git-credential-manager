@@ -95,7 +95,7 @@ namespace GitCredentialManager
                 }
             }
 
-            // No discrepencies found in versions
+            // No discrepancies found in versions
             return 0;
         }
 
