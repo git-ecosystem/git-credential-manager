@@ -221,11 +221,11 @@ namespace Atlassian.Bitbucket.Tests
 
             Assert.Equal(username, credential.Account);
             Assert.Equal(accessToken, credential.Password);
+            Assert.Equal(refreshToken, credential.OAuthRefreshToken);
 
             VerifyInteractiveAuthRan(input);
             VerifyOAuthFlowRan(input, accessToken);
             VerifyValidateAccessTokenRan(input, accessToken);
-            VerifyOAuthRefreshTokenStored(context, input, refreshToken);
         }
 
         [Theory]
@@ -234,12 +234,12 @@ namespace Atlassian.Bitbucket.Tests
         public async Task BitbucketHostProvider_GetCredentialAsync_MissingAT_OAuth_Refresh(
             string protocol, string host, string username, string refreshToken, string accessToken)
         {
-            var input = MockInput(protocol, host, username);
+            var input = MockInput(protocol, host, username, refreshToken);
 
             var context = new TestCommandContext();
 
             // AT has does not exist, but RT is still valid
-            MockStoredRefreshToken(context, input, refreshToken);
+            MockStoredAccount(context, input, null);
             MockRemoteAccessTokenValid(input, accessToken);
             MockRemoteRefreshTokenValid(input, refreshToken, accessToken);
 
@@ -261,15 +261,13 @@ namespace Atlassian.Bitbucket.Tests
         public async Task BitbucketHostProvider_GetCredentialAsync_ExpiredAT_OAuth_Refresh(
             string protocol, string host, string username, string refreshToken, string expiredAccessToken, string accessToken)
         {
-            var input = MockInput(protocol, host, username);
+            var input = MockInput(protocol, host, username, refreshToken);
 
             var context = new TestCommandContext();
 
             // AT exists but has expired, but RT is still valid
             MockStoredAccount(context, input, expiredAccessToken);
             MockRemoteAccessTokenExpired(input, expiredAccessToken);
-
-            MockStoredRefreshToken(context, input, refreshToken);
             MockRemoteAccessTokenValid(input, accessToken);
             MockRemoteRefreshTokenValid(input, refreshToken, accessToken);
 
@@ -291,13 +289,12 @@ namespace Atlassian.Bitbucket.Tests
         public async Task BitbucketHostProvider_GetCredentialAsync_PreconfiguredMode_OAuth_ValidRT_IsRespected(
             string protocol, string host, string username, string refreshToken, string accessToken)
         {
-            var input = MockInput(protocol, host, username);
+            var input = MockInput(protocol, host, username, refreshToken);
 
             var context = new TestCommandContext();
             context.Environment.Variables.Add(BitbucketConstants.EnvironmentVariables.AuthenticationModes, "oauth");
 
             // We have a stored RT so we can just use that without any prompts
-            MockStoredRefreshToken(context, input, refreshToken);
             MockRemoteAccessTokenValid(input, accessToken);
             MockRemoteRefreshTokenValid(input, refreshToken, accessToken);
 
@@ -316,7 +313,7 @@ namespace Atlassian.Bitbucket.Tests
         public async Task BitbucketHostProvider_GetCredentialAsync_AlwaysRefreshCredentials_OAuth_IsRespected(
             string protocol, string host, string username, string storedToken, string newToken, string refreshToken)
         {
-            var input = MockInput(protocol, host, username);
+            var input = MockInput(protocol, host, username, refreshToken);
 
             var context = new TestCommandContext();
             context.Environment.Variables.Add(
@@ -324,7 +321,6 @@ namespace Atlassian.Bitbucket.Tests
 
             // User has stored access token that we shouldn't use - RT should be used to mint new AT
             MockStoredAccount(context, input, storedToken);
-            MockStoredRefreshToken(context, input, refreshToken);
             MockRemoteAccessTokenValid(input, newToken);
             MockRemoteRefreshTokenValid(input, refreshToken, newToken);
 
@@ -437,13 +433,14 @@ namespace Atlassian.Bitbucket.Tests
 
         #region Test helpers
 
-        private static InputArguments MockInput(string protocol, string host, string username)
+        private static InputArguments MockInput(string protocol, string host, string username, string refreshToken = null)
         {
             return new InputArguments(new Dictionary<string, string>
             {
                 ["protocol"] = protocol,
                 ["host"] = host,
-                ["username"] = username
+                ["username"] = username,
+                ["oauth_refresh_token"] = refreshToken,
             });
         }
 
@@ -549,13 +546,6 @@ namespace Atlassian.Bitbucket.Tests
             var remoteUri = input.GetRemoteUri();
             var remoteUrl = remoteUri.AbsoluteUri.Substring(0, remoteUri.AbsoluteUri.Length - 1);
             context.CredentialStore.Add(remoteUrl, new TestCredential(input.Host, input.UserName, password));
-        }
-
-        private static void MockStoredRefreshToken(TestCommandContext context, InputArguments input, string token)
-        {
-            var remoteUri = input.GetRemoteUri();
-            var refreshService = BitbucketHostProvider.GetRefreshTokenServiceName(remoteUri);
-            context.CredentialStore.Add(refreshService, new TestCredential(refreshService, input.UserName, token));
         }
 
         private void MockRemoteOAuthTokenCreate(InputArguments input, string accessToken, string refreshToken)
