@@ -189,7 +189,7 @@ case "$distribution" in
             fi
         fi
     ;;
-    fedora | centos | rhel)
+    fedora | centos | rhel | ol)
         $sudo_cmd dnf upgrade -y
 
         # Install dotnet/GCM dependencies.
