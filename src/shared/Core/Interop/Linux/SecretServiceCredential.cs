@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics;
 
 namespace GitCredentialManager.Interop.Linux
@@ -17,6 +18,10 @@ namespace GitCredentialManager.Interop.Linux
         public string Account { get; }
 
         public string Password { get; }
+
+        public string OAuthRefreshToken { get; set; }
+
+        public DateTimeOffset? PasswordExpiry { get; set; }
 
         private string DebuggerDisplay => $"[Service: {Service}, Account: {Account}]";
     }

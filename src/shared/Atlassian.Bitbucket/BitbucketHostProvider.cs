@@ -9,6 +9,7 @@ using GitCredentialManager.Authentication.OAuth;
 
 namespace Atlassian.Bitbucket
 {
+    // TODO: simplify and inherit from HostProvider
     public class BitbucketHostProvider : IHostProvider
     {
         private readonly ICommandContext _context;
@@ -139,9 +140,10 @@ namespace Atlassian.Bitbucket
             var refreshTokenService = GetRefreshTokenServiceName(remoteUri);
 
             _context.Trace.WriteLine("Checking for refresh token...");
-            ICredential refreshToken = SupportsOAuth(authModes)
-                ? _context.CredentialStore.Get(refreshTokenService, input.UserName)
-                : null;
+            string refreshToken = input.OAuthRefreshToken;
+            if (!_context.CredentialStore.CanStoreOAuthRefreshToken && SupportsOAuth(authModes)) {
+                refreshToken ??= _context.CredentialStore.Get(refreshTokenService, input.UserName)?.Password;
+            }
 
             if (refreshToken is null)
             {
@@ -199,26 +201,28 @@ namespace Atlassian.Bitbucket
             return await GetOAuthCredentialsViaInteractiveBrowserFlow(input);
         }
 
-        private async Task<ICredential> GetOAuthCredentialsViaRefreshFlow(InputArguments input, ICredential refreshToken)
+        private async Task<ICredential> GetOAuthCredentialsViaRefreshFlow(InputArguments input, string refreshToken)
         {
             Uri remoteUri = input.GetRemoteUri();
 
             var refreshTokenService = GetRefreshTokenServiceName(remoteUri);
             _context.Trace.WriteLine("Refreshing OAuth credentials using refresh token...");
 
-            OAuth2TokenResult refreshResult = await _bitbucketAuth.RefreshOAuthCredentialsAsync(input, refreshToken.Password);
+            OAuth2TokenResult oauthResult = await _bitbucketAuth.RefreshOAuthCredentialsAsync(input, refreshToken);
 
             // Resolve the username
             _context.Trace.WriteLine("Resolving username for refreshed OAuth credential...");
-            string refreshUserName = await ResolveOAuthUserNameAsync(input, refreshResult.AccessToken);
-            _context.Trace.WriteLine($"Username for refreshed OAuth credential is '{refreshUserName}'");
+            string newUserName = await ResolveOAuthUserNameAsync(input, oauthResult.AccessToken);
+            _context.Trace.WriteLine($"Username for refreshed OAuth credential is '{newUserName}'");
 
-            // Store the refreshed RT
-            _context.Trace.WriteLine("Storing new refresh token...");
-            _context.CredentialStore.AddOrUpdate(refreshTokenService, remoteUri.GetUserName(), refreshResult.RefreshToken);
+            if (!_context.CredentialStore.CanStoreOAuthRefreshToken) {
+                // Store the refreshed RT
+                _context.Trace.WriteLine("Storing new refresh token...");
+                _context.CredentialStore.AddOrUpdate(refreshTokenService, remoteUri.GetUserName(), oauthResult.RefreshToken);
+            }
 
             // Return new access token
-            return new GitCredential(refreshUserName, refreshResult.AccessToken);
+            return new GitCredential(oauthResult, newUserName);
         }
 
         private async Task<ICredential> GetOAuthCredentialsViaInteractiveBrowserFlow(InputArguments input)
@@ -239,13 +243,15 @@ namespace Atlassian.Bitbucket
             string newUserName = await ResolveOAuthUserNameAsync(input, oauthResult.AccessToken);
             _context.Trace.WriteLine($"Username for OAuth credential is '{newUserName}'");
 
-            // Store the new RT
-            _context.Trace.WriteLine("Storing new refresh token...");
-            _context.CredentialStore.AddOrUpdate(refreshTokenService, newUserName, oauthResult.RefreshToken);
-            _context.Trace.WriteLine("Refresh token was successfully stored.");
+            if (!_context.CredentialStore.CanStoreOAuthRefreshToken) {
+                // Store the new RT
+                _context.Trace.WriteLine("Storing new refresh token...");
+                _context.CredentialStore.AddOrUpdate(refreshTokenService, newUserName, oauthResult.RefreshToken);
+                _context.Trace.WriteLine("Refresh token was successfully stored.");
+            }
 
             // Return the new AT as the credential
-            return new GitCredential(newUserName, oauthResult.AccessToken);
+            return new GitCredential(oauthResult, newUserName);
         }
 
         private static bool SupportsOAuth(AuthenticationModes authModes)
@@ -333,7 +339,7 @@ namespace Atlassian.Bitbucket
             string service = GetServiceName(remoteUri);
 
             _context.Trace.WriteLine("Storing credential...");
-            _context.CredentialStore.AddOrUpdate(service, input.UserName, input.Password);
+            _context.CredentialStore.AddOrUpdate(service, new GitCredential(input));
             _context.Trace.WriteLine("Credential was successfully stored.");
 
             return Task.CompletedTask;
@@ -450,7 +456,7 @@ namespace Atlassian.Bitbucket
             return true;
         }
 
-        private static string GetServiceName(Uri remoteUri)
+        internal static string GetServiceName(Uri remoteUri)
         {
             return remoteUri.WithoutUserInfo().AbsoluteUri.TrimEnd('/');
         }
@@ -473,5 +479,7 @@ namespace Atlassian.Bitbucket
             _restApiRegistry.Dispose();
             _bitbucketAuth.Dispose();
         }
+
+        public Task<bool> ValidateCredentialAsync(Uri remoteUri, ICredential credential) => Task.FromResult(credential.PasswordExpiry == null || credential.PasswordExpiry >= DateTimeOffset.UtcNow);
     }
 }
