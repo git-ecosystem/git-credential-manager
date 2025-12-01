@@ -26,7 +26,7 @@ git config --global credential.helper "/mnt/c/Program\ Files/Git/mingw64/bin/git
 ```
 
 > **Note:** the location of git-credential-manager.exe may be different in your
-installation of Git for Windows.
+installation of Git for Windows. On arm64 devices mingw64 will be clangarm64
 
 If you intend to use Azure DevOps you must _also_ set the following Git
 configuration _inside of your WSL installation_.
