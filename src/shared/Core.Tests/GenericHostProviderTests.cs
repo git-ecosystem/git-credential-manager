@@ -98,7 +98,7 @@ namespace GitCredentialManager.Tests
             Assert.NotNull(credential);
             Assert.Equal(testUserName, credential.Account);
             Assert.Equal(testPassword, credential.Password);
-            wiaAuthMock.Verify(x => x.GetIsSupportedAsync(It.IsAny<Uri>()), Times.Never);
+            wiaAuthMock.Verify(x => x.GetAuthenticationTypesAsync(It.IsAny<Uri>()), Times.Never);
             basicAuthMock.Verify(x => x.GetCredentialsAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
         }
 
@@ -133,7 +133,7 @@ namespace GitCredentialManager.Tests
             Assert.NotNull(credential);
             Assert.Equal(testUserName, credential.Account);
             Assert.Equal(testPassword, credential.Password);
-            wiaAuthMock.Verify(x => x.GetIsSupportedAsync(It.IsAny<Uri>()), Times.Never);
+            wiaAuthMock.Verify(x => x.GetAuthenticationTypesAsync(It.IsAny<Uri>()), Times.Never);
             basicAuthMock.Verify(x => x.GetCredentialsAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
         }
 
@@ -165,26 +165,26 @@ namespace GitCredentialManager.Tests
             Assert.NotNull(credential);
             Assert.Equal(testUserName, credential.Account);
             Assert.Equal(testPassword, credential.Password);
-            wiaAuthMock.Verify(x => x.GetIsSupportedAsync(It.IsAny<Uri>()), Times.Never);
+            wiaAuthMock.Verify(x => x.GetAuthenticationTypesAsync(It.IsAny<Uri>()), Times.Never);
             basicAuthMock.Verify(x => x.GetCredentialsAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
         }
 
         [PosixFact]
         public async Task GenericHostProvider_CreateCredentialAsync_NonWindows_WiaSupported_ReturnsBasicCredential()
         {
-            await TestCreateCredentialAsync_ReturnsBasicCredential(wiaSupported: true);
+            await TestCreateCredentialAsync_ReturnsBasicCredential(WindowsAuthenticationTypes.All);
         }
 
         [WindowsFact]
         public async Task GenericHostProvider_CreateCredentialAsync_Windows_WiaSupported_ReturnsEmptyCredential()
         {
-            await TestCreateCredentialAsync_ReturnsEmptyCredential(wiaSupported: true);
+            await TestCreateCredentialAsync_ReturnsEmptyCredential(WindowsAuthenticationTypes.All);
         }
 
         [Fact]
         public async Task GenericHostProvider_CreateCredentialAsync_WiaNotSupported_ReturnsBasicCredential()
         {
-            await TestCreateCredentialAsync_ReturnsBasicCredential(wiaSupported: false);
+            await TestCreateCredentialAsync_ReturnsBasicCredential(WindowsAuthenticationTypes.None);
         }
 
         [Fact]
@@ -267,13 +267,13 @@ namespace GitCredentialManager.Tests
             oauthMock.Verify(x => x.GetAuthenticationModeAsync(testResource, OAuthAuthenticationModes.All), Times.Once);
             oauthMock.Verify(x => x.GetTokenByBrowserAsync(It.IsAny<OAuth2Client>(), scopes), Times.Once);
             oauthMock.Verify(x => x.GetTokenByDeviceCodeAsync(It.IsAny<OAuth2Client>(), scopes), Times.Never);
-            wiaAuthMock.Verify(x => x.GetIsSupportedAsync(It.IsAny<Uri>()), Times.Never);
+            wiaAuthMock.Verify(x => x.GetAuthenticationTypesAsync(It.IsAny<Uri>()), Times.Never);
             basicAuthMock.Verify(x => x.GetCredentialsAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
 
         #region Helpers
 
-        private static async Task TestCreateCredentialAsync_ReturnsEmptyCredential(bool wiaSupported)
+        private static async Task TestCreateCredentialAsync_ReturnsEmptyCredential(WindowsAuthenticationTypes supportedWiaTypes)
         {
             var input = new InputArguments(new Dictionary<string, string>
             {
@@ -286,8 +286,8 @@ namespace GitCredentialManager.Tests
             basicAuthMock.Setup(x => x.GetCredentialsAsync(It.IsAny<string>(), It.IsAny<string>()))
                          .Verifiable();
             var wiaAuthMock = new Mock<IWindowsIntegratedAuthentication>();
-            wiaAuthMock.Setup(x => x.GetIsSupportedAsync(It.IsAny<Uri>()))
-                       .ReturnsAsync(wiaSupported);
+            wiaAuthMock.Setup(x => x.GetAuthenticationTypesAsync(It.IsAny<Uri>()))
+                       .ReturnsAsync(supportedWiaTypes);
             var oauthMock = new Mock<IOAuthAuthentication>();
 
             var provider = new GenericHostProvider(context, basicAuthMock.Object, wiaAuthMock.Object, oauthMock.Object);
@@ -300,7 +300,7 @@ namespace GitCredentialManager.Tests
             basicAuthMock.Verify(x => x.GetCredentialsAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
 
-        private static async Task TestCreateCredentialAsync_ReturnsBasicCredential(bool wiaSupported)
+        private static async Task TestCreateCredentialAsync_ReturnsBasicCredential(WindowsAuthenticationTypes supportedWiaTypes)
         {
             var input = new InputArguments(new Dictionary<string, string>
             {
@@ -318,8 +318,8 @@ namespace GitCredentialManager.Tests
                          .ReturnsAsync(basicCredential)
                          .Verifiable();
             var wiaAuthMock = new Mock<IWindowsIntegratedAuthentication>();
-            wiaAuthMock.Setup(x => x.GetIsSupportedAsync(It.IsAny<Uri>()))
-                       .ReturnsAsync(wiaSupported);
+            wiaAuthMock.Setup(x => x.GetAuthenticationTypesAsync(It.IsAny<Uri>()))
+                       .ReturnsAsync(supportedWiaTypes);
             var oauthMock = new Mock<IOAuthAuthentication>();
 
             var provider = new GenericHostProvider(context, basicAuthMock.Object, wiaAuthMock.Object, oauthMock.Object);

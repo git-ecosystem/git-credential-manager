@@ -19,34 +19,34 @@ namespace GitCredentialManager.Tests.Authentication
             var context = new TestCommandContext();
             var wiaAuth = new WindowsIntegratedAuthentication(context);
 
-            await Assert.ThrowsAsync<ArgumentNullException>(() => wiaAuth.GetIsSupportedAsync(null));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => wiaAuth.GetAuthenticationTypesAsync(null));
         }
 
         [Fact]
         public async Task WindowsIntegratedAuthentication_GetIsSupportedAsync_NegotiateAndNtlm_ReturnsTrue()
         {
-            await TestGetIsSupportedAsync(new[] {NegotiateHeader, NtlmHeader}, expected: true);
+            await TestGetIsSupportedAsync(new[] {NegotiateHeader, NtlmHeader}, expected: WindowsAuthenticationTypes.All);
 
             // Also check with the headers in the other order
-            await TestGetIsSupportedAsync(new[] {NtlmHeader, NegotiateHeader}, expected: true);
+            await TestGetIsSupportedAsync(new[] {NtlmHeader, NegotiateHeader}, expected: WindowsAuthenticationTypes.All);
         }
 
         [Fact]
         public async Task WindowsIntegratedAuthentication_Windows_GetIsSupportedAsync_Ntlm_ReturnsTrue()
         {
-            await TestGetIsSupportedAsync(new[]{NtlmHeader}, expected: true);
+            await TestGetIsSupportedAsync(new[]{NtlmHeader}, expected: WindowsAuthenticationTypes.Ntlm);
         }
 
         [Fact]
         public async Task WindowsIntegratedAuthentication_Windows_GetIsSupportedAsync_Negotiate_ReturnsTrue()
         {
-            await TestGetIsSupportedAsync(new[]{NegotiateHeader}, expected: true);
+            await TestGetIsSupportedAsync(new[]{NegotiateHeader}, expected: WindowsAuthenticationTypes.Negotiate);
         }
 
         [Fact]
         public async Task WindowsIntegratedAuthentication_Windows_GetIsSupportedAsync_NoHeaders_ReturnsFalse()
         {
-            await TestGetIsSupportedAsync(new string[0], expected: false);
+            await TestGetIsSupportedAsync(new string[0], expected: WindowsAuthenticationTypes.None);
         }
 
         [Fact]
@@ -61,12 +61,12 @@ namespace GitCredentialManager.Tests.Authentication
                     "NotNegotiate test test Negotiate test",
                     "NotKerberos test test Negotiate test"
                 },
-                expected: false);
+                expected: WindowsAuthenticationTypes.None);
         }
 
         #region Helpers
 
-        private static async Task TestGetIsSupportedAsync(string[] wwwAuthHeaders, bool expected)
+        private static async Task TestGetIsSupportedAsync(string[] wwwAuthHeaders, WindowsAuthenticationTypes expected)
         {
             var context = new TestCommandContext();
             var uri = new Uri("https://example.com");
@@ -83,7 +83,7 @@ namespace GitCredentialManager.Tests.Authentication
             context.HttpClientFactory.MessageHandler = httpHandler;
             var wiaAuth = new WindowsIntegratedAuthentication(context);
 
-            bool actual = await wiaAuth.GetIsSupportedAsync(uri);
+            WindowsAuthenticationTypes actual = await wiaAuth.GetAuthenticationTypesAsync(uri);
 
             Assert.Equal(expected, actual);
             httpHandler.AssertRequest(HttpMethod.Head, uri, expectedNumberOfCalls: 1);

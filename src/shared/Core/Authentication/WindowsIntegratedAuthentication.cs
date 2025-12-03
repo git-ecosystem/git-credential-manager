@@ -7,7 +7,17 @@ namespace GitCredentialManager.Authentication
 {
     public interface IWindowsIntegratedAuthentication : IDisposable
     {
-        Task<bool> GetIsSupportedAsync(Uri uri);
+        Task<WindowsAuthenticationTypes> GetAuthenticationTypesAsync(Uri uri);
+    }
+
+    [Flags]
+    public enum WindowsAuthenticationTypes
+    {
+        None,
+        Ntlm,
+        Negotiate,
+
+        All = Ntlm | Negotiate
     }
 
     public class WindowsIntegratedAuthentication : IWindowsIntegratedAuthentication
@@ -25,11 +35,11 @@ namespace GitCredentialManager.Authentication
             _context = context;
         }
 
-        public async Task<bool> GetIsSupportedAsync(Uri uri)
+        public async Task<WindowsAuthenticationTypes> GetAuthenticationTypesAsync(Uri uri)
         {
             EnsureArgument.AbsoluteUri(uri, nameof(uri));
 
-            bool supported = false;
+            var types = WindowsAuthenticationTypes.None;
 
             _context.Trace.WriteLine($"HTTP: HEAD {uri}");
             using (HttpResponseMessage response = await HttpClient.HeadAsync(uri))
@@ -42,17 +52,17 @@ namespace GitCredentialManager.Authentication
                     if (StringComparer.OrdinalIgnoreCase.Equals(wwwHeader.Scheme, Constants.Http.WwwAuthenticateNegotiateScheme))
                     {
                         _context.Trace.WriteLine("Found WWW-Authenticate header for Negotiate");
-                        supported = true;
+                        types |= WindowsAuthenticationTypes.Negotiate;
                     }
                     else if (StringComparer.OrdinalIgnoreCase.Equals(wwwHeader.Scheme, Constants.Http.WwwAuthenticateNtlmScheme))
                     {
                         _context.Trace.WriteLine("Found WWW-Authenticate header for NTLM");
-                        supported = true;
+                        types |= WindowsAuthenticationTypes.Ntlm;
                     }
                 }
             }
 
-            return supported;
+            return types;
         }
 
         private HttpClient _httpClient;
