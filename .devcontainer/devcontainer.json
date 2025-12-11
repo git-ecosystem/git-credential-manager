@@ -1,0 +1,5 @@
+{
+  "tasks": {
+    "build": "dotnet restore && dotnet build Git-Credential-Manager.sln"
+  }
+}
