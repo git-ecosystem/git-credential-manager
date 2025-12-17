@@ -63,6 +63,12 @@ parameters:
         pool: GitClientPME-1ESHostedPool-intel-pc
         image: ubuntu-x86_64-ado1es
         os: linux
+      - id: linux_arm64
+        jobName: 'Linux (ARM64)'
+        runtime: linux-arm64
+        pool: GitClientPME-1ESHostedPool-arm64-pc
+        image: ubuntu-arm64-ado1es
+        os: linux
 
 variables:
   - name: 'esrpAppConnectionName'
@@ -778,6 +784,9 @@ extends:
                   artifactName: 'linux-x64'
                   targetPath: $(Pipeline.Workspace)/assets/linux-x64
                 - input: pipelineArtifact
+                  artifactName: 'linux-arm64'
+                  targetPath: $(Pipeline.Workspace)/assets/linux-arm64
+                - input: pipelineArtifact
                   artifactName: 'dotnet-tool'
                   targetPath: $(Pipeline.Workspace)/assets/dotnet-tool
             steps:
@@ -802,6 +811,8 @@ extends:
                     $(Pipeline.Workspace)/assets/osx-arm64/*.tar.gz
                     $(Pipeline.Workspace)/assets/linux-x64/*.deb
                     $(Pipeline.Workspace)/assets/linux-x64/*.tar.gz
+                    $(Pipeline.Workspace)/assets/linux-arm64/*.deb
+                    $(Pipeline.Workspace)/assets/linux-arm64/*.tar.gz
                     $(Pipeline.Workspace)/assets/dotnet-tool/*.nupkg
                     $(Pipeline.Workspace)/assets/dotnet-tool/*.snupkg
 
