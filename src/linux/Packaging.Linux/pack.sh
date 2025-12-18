@@ -59,12 +59,28 @@ fi
 if [ -z "$SYMBOLS" ]; then
     die "--symbols was not set"
 fi
-if [ -z "$RUNTIME" ]; then
-    die "--runtime was not set"
-fi
-
 if [ -z "$OUTPUT_ROOT" ]; then
     OUTPUT_ROOT="$PROJ_OUT/$CONFIGURATION"
+fi
+
+# Fall back to host architecture if no explicit runtime is given.
+if test -z "$RUNTIME"; then
+    HOST_ARCH="`uname -m`"
+
+    case $HOST_ARCH in
+        x86_64|amd64)
+            RUNTIME="linux-x64"
+            ;;
+        aarch64|arm64)
+            RUNTIME="linux-arm64"
+            ;;
+        armhf)
+            RUNTIME="linux-arm"
+            ;;
+        *)
+            die "Could not determine host architecture! ($HOST_ARCH)"
+            ;;
+    esac
 fi
 
 TAROUT="$OUTPUT_ROOT/tar"
@@ -107,26 +123,6 @@ popd
 INSTALL_TO="$DEBROOT/usr/local/share/gcm-core/"
 LINK_TO="$DEBROOT/usr/local/bin/"
 mkdir -p "$DEBROOT/DEBIAN" "$INSTALL_TO" "$LINK_TO" || exit 1
-
-# Fall back to host architecture if no explicit runtime is given.
-if test -z "$RUNTIME"; then
-    HOST_ARCH="`dpkg-architecture -q DEB_HOST_ARCH`"
-
-    case $HOST_ARCH in
-        amd64)
-            RUNTIME="linux-x64"
-            ;;
-        arm64)
-            RUNTIME="linux-arm64"
-            ;;
-        armhf)
-            RUNTIME="linux-arm"
-            ;;
-        *)
-            die "Could not determine host architecture!"
-            ;;
-    esac
-fi
 
 # Determine architecture for debian control file from the runtime architecture
 case $RUNTIME in
