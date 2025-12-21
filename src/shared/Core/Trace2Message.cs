@@ -409,7 +409,7 @@ public class ErrorMessage : Trace2Message
     [JsonPropertyOrder(8)]
     public string Message { get; set; }
 
-    [JsonPropertyName("format")]
+    [JsonPropertyName("fmt")]
     [JsonPropertyOrder(9)]
     public string ParameterizedMessage { get; set; }
 

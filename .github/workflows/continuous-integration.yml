@@ -16,10 +16,10 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4.0.0
+      uses: actions/setup-dotnet@v5.0.1
       with:
         dotnet-version: 8.0.x
 
@@ -42,7 +42,7 @@ jobs:
         mv out/windows/Installer.Windows/bin/Release/net472/gcm*.exe artifacts/
 
     - name: Upload artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: win-x86
         path: |
@@ -54,12 +54,15 @@ jobs:
   linux:
     name: Linux
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        runtime: [ linux-x64, linux-arm64, linux-arm ]
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4.0.0
+      uses: actions/setup-dotnet@v5.0.1
       with:
         dotnet-version: 8.0.x
 
@@ -67,7 +70,10 @@ jobs:
       run: dotnet restore
 
     - name: Build
-      run: dotnet build --configuration LinuxRelease
+      run: |
+        dotnet build src/linux/Packaging.Linux/*.csproj \
+         --configuration=Release --no-self-contained \
+         --runtime=${{ matrix.runtime }}
 
     - name: Test
       run: |
@@ -80,9 +86,9 @@ jobs:
         mv out/linux/Packaging.Linux/Release/tar/*.tar.gz artifacts/
 
     - name: Upload artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
-        name: linux-x64
+        name: ${{ matrix.runtime }}
         path: |
           artifacts
 
@@ -97,10 +103,10 @@ jobs:
         runtime: [ osx-x64, osx-arm64 ]
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4.0.0
+      uses: actions/setup-dotnet@v5.0.1
       with:
         dotnet-version: 8.0.x
 
@@ -125,7 +131,7 @@ jobs:
         mv out/osx/Installer.Mac/pkg/Release/gcm*.pkg artifacts/
 
     - name: Upload artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: ${{ matrix.runtime }}
         path: |

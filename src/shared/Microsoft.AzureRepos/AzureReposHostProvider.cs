@@ -59,7 +59,7 @@ namespace Microsoft.AzureRepos
                 return false;
             }
 
-            // We do not support unencrypted HTTP communications to Azure Repos,
+            // We do not recommend unencrypted HTTP communications to Azure Repos,
             // but we report `true` here for HTTP so that we can show a helpful
             // error message for the user in `CreateCredentialAsync`.
             return input.TryGetHostAndPort(out string hostName, out _)
@@ -208,16 +208,22 @@ namespace Microsoft.AzureRepos
             base.ReleaseManagedResources();
         }
 
+        private void ThrowIfUnsafeRemote(InputArguments input)
+        {
+            if (!_context.Settings.AllowUnsafeRemotes &&
+                StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "http"))
+            {
+                throw new Trace2Exception(_context.Trace2,
+                    "Unencrypted HTTP is not recommended for Azure Repos. " +
+                    "Ensure the repository remote URL is using HTTPS " +
+                    $"or see {Constants.HelpUrls.GcmUnsafeRemotes} about how to allow unsafe remotes.");
+            }
+        }
+
         private async Task<ICredential> GeneratePersonalAccessTokenAsync(InputArguments input)
         {
             ThrowIfDisposed();
-
-            // We should not allow unencrypted communication and should inform the user
-            if (StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "http"))
-            {
-                throw new Trace2Exception(_context.Trace2,
-                    "Unencrypted HTTP is not supported for Azure Repos. Ensure the repository remote URL is using HTTPS.");
-            }
+            ThrowIfUnsafeRemote(input);
 
             Uri remoteUserUri = input.GetRemoteUri(includeUser: true);
             Uri orgUri = UriHelpers.CreateOrganizationUri(remoteUserUri, out _);
@@ -257,15 +263,10 @@ namespace Microsoft.AzureRepos
 
         private async Task<IMicrosoftAuthenticationResult> GetAzureAccessTokenAsync(InputArguments input)
         {
+            ThrowIfUnsafeRemote(input);
+
             Uri remoteWithUserUri = input.GetRemoteUri(includeUser: true);
             string userName = input.UserName;
-
-            // We should not allow unencrypted communication and should inform the user
-            if (StringComparer.OrdinalIgnoreCase.Equals(remoteWithUserUri.Scheme, "http"))
-            {
-                throw new Trace2Exception(_context.Trace2,
-                    "Unencrypted HTTP is not supported for Azure Repos. Ensure the repository remote URL is using HTTPS.");
-            }
 
             Uri orgUri = UriHelpers.CreateOrganizationUri(remoteWithUserUri, out string orgName);
 
@@ -549,6 +550,12 @@ namespace Microsoft.AzureRepos
 
             if (hasCertThumbprint)
             {
+                sp.SendX5C = _context.Settings.TryGetSetting(
+                    AzureDevOpsConstants.EnvironmentVariables.ServicePrincipalCertificateSendX5C,
+                    Constants.GitConfiguration.Credential.SectionName,
+                    AzureDevOpsConstants.GitConfiguration.Credential.ServicePrincipalCertificateSendX5C,
+                    out string certHasX5CStr) && certHasX5CStr.ToBooleanyOrDefault(false);
+
                 X509Certificate2 cert = X509Utils.GetCertificateByThumbprint(certThumbprint);
                 if (cert is null)
                 {

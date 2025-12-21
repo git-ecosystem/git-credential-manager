@@ -302,6 +302,32 @@ Defaults to false (use hardware acceleration where available).
 
 ---
 
+### GCM_ALLOW_UNSAFE_REMOTES
+
+Allow transmitting credentials to unsafe remote URLs such as unencrypted HTTP
+URLs. This setting is not recommended for general use and should only be used
+when necessary.
+
+Defaults false (disallow unsafe remote URLs).
+
+#### Example
+
+##### Windows
+
+```batch
+SET GCM_ALLOW_UNSAFE_REMOTES=true
+```
+
+##### macOS/Linux
+
+```bash
+export GCM_ALLOW_UNSAFE_REMOTES=true
+```
+
+**Also see: [credential.allowUnsafeRemotes][credential-allowunsaferemotes]**
+
+---
+
 ### GCM_AUTODETECT_TIMEOUT
 
 Set the maximum length of time, in milliseconds, that GCM should wait for a
@@ -690,6 +716,7 @@ _(unset)_|Windows: `wincredman`, macOS: `keychain`, Linux: _(none)_|-
 `gpg`|Use GPG to store encrypted files that are compatible with the [`pass` utility][passwordstore] (requires GPG and `pass` to initialize the store).|macOS, Linux
 `cache`|Git's built-in [credential cache][git-credential-cache].|Windows, macOS, Linux
 `plaintext`|Store credentials in plaintext files (**UNSECURE**). Customize the plaintext store location with [`GCM_PLAINTEXT_STORE_PATH`][gcm-plaintext-store-path].|Windows, macOS, Linux
+`none`|Do not store credentials via GCM.|Windows, macOS, Linux
 
 #### Windows
 
@@ -1039,6 +1066,32 @@ export GCM_AZREPOS_SP_CERT_THUMBPRINT="9b6555292e4ea21cbc2ebd23e66e2f91ebbe92dc"
 
 ---
 
+### GCM_AZREPOS_SP_CERT_SEND_X5C
+
+When using a certificate for service principal authentication, this configuration
+specifies whether the X5C claim should be should be sent to the STS. Sending the x5c
+enables application developers to achieve easy certificate rollover in Azure AD:
+this method will send the public certificate to Azure AD along with the token request,
+so that Azure AD can use it to validate the subject name based on a trusted issuer
+policy. This saves the application admin from the need to explicitly manage the
+certificate rollover. For details see [https://aka.ms/msal-net-sni](https://aka.ms/msal-net-sni).
+
+#### Windows
+
+```batch
+SET GCM_AZREPOS_SP_CERT_SEND_X5C="true"
+```
+
+#### macOS/Linux
+
+```bash
+export GCM_AZREPOS_SP_CERT_SEND_X5C="true"
+```
+
+**Also see: [credential.azreposServicePrincipalCertificateSendX5C][credential-azrepos-sp-cert-x5c]**
+
+---
+
 ### GIT_TRACE2
 
 Turns on Trace2 Normal Format tracing - see [Git's Trace2 Normal Format
@@ -1127,7 +1180,8 @@ Defaults to disabled.
 [autodetect]: autodetect.md
 [azure-access-tokens]: azrepos-users-and-tokens.md
 [configuration]: configuration.md
-[credential-allowwindowsauth]: environment.md#credentialallowWindowsAuth
+[credential-allowwindowsauth]: configuration.md#credentialallowwindowsauth
+[credential-allowunsaferemotes]: configuration.md#credentialallowunsaferemotes
 [credential-authority]: configuration.md#credentialauthority-deprecated
 [credential-autodetecttimeout]: configuration.md#credentialautodetecttimeout
 [credential-azrepos-credential-type]: configuration.md#credentialazreposcredentialtype
@@ -1156,7 +1210,7 @@ Defaults to disabled.
 [credential-trace-msauth]: configuration.md#credentialtracemsauth
 [default-values]: enterprise-config.md
 [devbox]: https://azure.microsoft.com/en-us/products/dev-box
-[freedesktop-ss]: https://specifications.freedesktop.org/secret-service/
+[freedesktop-ss]: https://specifications.freedesktop.org/secret-service-spec/
 [gcm]: usage.md
 [gcm-interactive]: #gcm_interactive
 [gcm-credential-store]: #gcm_credential_store
@@ -1184,6 +1238,8 @@ Defaults to disabled.
 [gcm-azrepos-sp]: #gcm_azrepos_service_principal
 [gcm-azrepos-sp-secret]: #gcm_azrepos_sp_secret
 [gcm-azrepos-sp-cert-thumbprint]: #gcm_azrepos_sp_cert_thumbprint
+[gcm-azrepos-sp-cert-x5c]: #gcm_azrepos_sp_cert_send_x5c
 [credential-azrepos-sp]: configuration.md#credentialazreposserviceprincipal
 [credential-azrepos-sp-secret]: configuration.md#credentialazreposserviceprincipalsecret
 [credential-azrepos-sp-cert-thumbprint]: configuration.md#credentialazreposserviceprincipalcertificatethumbprint
+[credential-azrepos-sp-cert-x5c]: configuration.md#credentialazreposserviceprincipalcertificatesendx5c

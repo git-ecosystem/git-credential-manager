@@ -100,6 +100,10 @@ namespace GitCredentialManager
                     _backingStore = new PlaintextCredentialStore(_context.FileSystem, plainStoreRoot, ns);
                     break;
 
+                case StoreNames.None:
+                    _backingStore = new NullCredentialStore();
+                    break;
+
                 default:
                     var sb = new StringBuilder();
                     sb.AppendLine(string.IsNullOrWhiteSpace(credStoreName)
@@ -168,6 +172,9 @@ namespace GitCredentialManager
 
             sb.AppendFormat("  {1,-13} : store credentials in plain-text files (UNSECURE){0}",
                 Environment.NewLine, StoreNames.Plaintext);
+
+            sb.AppendFormat("  {1, -13} : disable internal credential storage{0}",
+                Environment.NewLine, StoreNames.None);
         }
 
         private void ValidateWindowsCredentialManager()
@@ -276,7 +283,8 @@ namespace GitCredentialManager
             // Check for a redirected pass store location
             if (!_context.Settings.TryGetSetting(
                 GpgPassCredentialStore.PasswordStoreDirEnvar,
-                null, null,
+                Constants.GitConfiguration.Credential.SectionName,
+                Constants.GitConfiguration.Credential.GpgPassStorePath,
                 out storeRoot))
             {
                 // Use default store root at ~/.password-store

@@ -13,7 +13,7 @@ namespace GitCredentialManager.Tests.Interop.Windows
         private const string TestStoreRoot = @"C:\dpapi_store";
         private const string TestNamespace = "git-test";
 
-        [PlatformFact(Platforms.Windows)]
+        [WindowsFact]
         public void DpapiCredentialStore_AddOrUpdate_CreatesUTF8ProtectedFile()
         {
             var fs = new TestFileSystem();
@@ -49,7 +49,7 @@ namespace GitCredentialManager.Tests.Interop.Windows
             Assert.True(string.IsNullOrWhiteSpace(lines[3]));
         }
 
-        [PlatformFact(Platforms.Windows)]
+        [WindowsFact]
         public void DpapiCredentialStore_Get_KeyNotFound_ReturnsNull()
         {
             var fs = new TestFileSystem();
@@ -62,7 +62,7 @@ namespace GitCredentialManager.Tests.Interop.Windows
             Assert.Null(credential);
         }
 
-        [PlatformFact(Platforms.Windows)]
+        [WindowsFact]
         public void DpapiCredentialStore_Get_ReadProtectedFile()
         {
             var fs = new TestFileSystem();
@@ -97,7 +97,7 @@ namespace GitCredentialManager.Tests.Interop.Windows
             Assert.Equal(userName, credential.Account);
         }
 
-        [PlatformFact(Platforms.Windows)]
+        [WindowsFact]
         public void DpapiCredentialStore_Remove_KeyNotFound_ReturnsFalse()
         {
             var fs = new TestFileSystem();

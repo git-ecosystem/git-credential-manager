@@ -108,6 +108,7 @@ Type|Git Configuration|Environment Variable
 -|-|-
 Client Secret|[`credential.azreposServicePrincipalSecret`][gcm-sp-secret-config]|[`GCM_AZREPOS_SP_SECRET`][gcm-sp-secret-env]
 Certificate|[`credential.azreposServicePrincipalCertificateThumbprint`][gcm-sp-cert-config]|[`GCM_AZREPOS_SP_CERT_THUMBPRINT`][gcm-sp-cert-env]
+Send X5C|[`credential.azreposServicePrincipalCertificateSendX5C`][gcm-sp-cert-x5c-config]|[`GCM_AZREPOS_SP_CERT_SEND_X5C`][gcm-sp-cert-x5c-env]
 
 The value for these options should be the client secret or the thumbrint of the
 certificate that is associated with the Service Principal.
@@ -126,4 +127,6 @@ current user or the local machine.
 [gcm-sp-secret-config]: https://gh.io/gcm/config#credentialazreposserviceprincipalsecret
 [gcm-sp-secret-env]: https://gh.io/gcm/env#GCM_AZREPOS_SP_SECRET
 [gcm-sp-cert-config]: https://gh.io/gcm/config#credentialazreposserviceprincipalcertificatethumbprint
+[gcm-sp-cert-x5c-config]: https://gh.io/gcm/config#credentialazreposserviceprincipalcertificatesendx5c
 [gcm-sp-cert-env]: https://gh.io/gcm/env#GCM_AZREPOS_SP_CERT_THUMBPRINT
+[gcm-sp-cert-x5c-env]: https://gh.io/gcm/env#GCM_AZREPOS_SP_CERT_SEND_X5C

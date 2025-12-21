@@ -151,7 +151,7 @@ manager.
 GCM is included with [Git for Windows][git-for-windows]. During installation
 you will be asked to select a credential helper, with GCM listed as the default.
 
-![image][git-for-windows-screenshot]
+![image][git-for-windows-gcm-screenshot]
 
 ---
 
@@ -210,7 +210,7 @@ the preferred install method for Linux because you can use it to install on any
 distribution][dotnet-supported-distributions]. You
 can also use this method on macOS if you so choose.
 
-**Note:** Make sure you have installed [version 7.0 of the .NET
+**Note:** Make sure you have installed [version 8.0 of the .NET
 SDK][dotnet-install] before attempting to run the following `dotnet tool`
 commands. After installing, you will also need to follow the output instructions
 to add the tools directory to your `PATH`.
@@ -241,7 +241,7 @@ dotnet tool uninstall -g git-credential-manager
 [gcm-credstores]: credstores.md
 [gcm-wsl]: wsl.md
 [git-for-windows]: https://gitforwindows.org/
-[git-for-windows-screenshot]: https://user-images.githubusercontent.com/5658207/140082529-1ac133c1-0922-4a24-af03-067e27b3988b.png
+[git-for-windows-gcm-screenshot]: img/git-for-windows-gcm-screenshot.png
 [latest-release]: https://github.com/git-ecosystem/git-credential-manager/releases/latest
 [linux-uninstall]: linux-fromsrc-uninstall.md
 [linux-validate-gpg-debian]: ./linux-validate-gpg.md#debian-package

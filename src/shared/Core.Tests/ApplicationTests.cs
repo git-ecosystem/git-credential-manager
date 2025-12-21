@@ -244,7 +244,7 @@ namespace GitCredentialManager.Tests
 
             Assert.Single(context.Git.Configuration.Global);
             Assert.True(context.Git.Configuration.Global.TryGetValue(key, out var actualValues));
-            Assert.Equal(1, actualValues.Count);
+            Assert.Single(actualValues);
             Assert.Equal(beforeHelper, actualValues[0]);
         }
 

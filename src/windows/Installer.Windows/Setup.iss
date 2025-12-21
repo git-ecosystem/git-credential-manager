@@ -51,7 +51,7 @@
 #define VerMinor
 #define VerBuild
 #define VerRevision
-#expr ParseVersion(PayloadDir + "\" + GcmExe, VerMajor, VerMinor, VerBuild, VerRevision)
+#expr GetVersionComponents(PayloadDir + "\" + GcmExe, VerMajor, VerMinor, VerBuild, VerRevision)
 #define GcmVersionSimple str(VerMajor) + "." + str(VerMinor) + "." + str(VerBuild)
 #define GcmVersion str(GcmVersionSimple) + "." + str(VerRevision)
 
@@ -73,7 +73,7 @@ OutputBaseFilename={#GcmSetupExe}-win-{#GcmArch}-{#GcmVersionSimple}
 DefaultDirName={autopf}\{#GcmShortName}
 Compression=lzma2
 SolidCompression=yes
-MinVersion=6.1.7600
+MinVersion=6.1sp1
 DisableDirPage=yes
 UninstallDisplayIcon={app}\{#GcmExe}
 SetupIconFile={#GcmAssets}\gcmicon.ico
@@ -100,7 +100,7 @@ Name: full; Description: "Full installation"; Flags: iscustom;
 Filename: "{app}\{#GcmExe}"; Parameters: "configure {#GcmConfigureCmdArgs}"; Flags: runhidden
 
 [UninstallRun]
-Filename: "{app}\{#GcmExe}"; Parameters: "unconfigure {#GcmConfigureCmdArgs}"; Flags: runhidden
+Filename: "{app}\{#GcmExe}"; Parameters: "unconfigure {#GcmConfigureCmdArgs}"; Flags: runhidden; RunOnceId: "unconfigure"
 
 [Files]
 Source: "{#PayloadDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs

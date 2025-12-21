@@ -480,13 +480,16 @@ public class Trace2 : DisposableObject, ITrace2
     internal static bool TryGetPipeName(string eventTarget, out string name)
     {
         // Use prefixes to determine whether target is a named pipe/socket
-        if (eventTarget.Contains("af_unix:", StringComparison.OrdinalIgnoreCase) ||
-            eventTarget.Contains("\\\\.\\pipe\\", StringComparison.OrdinalIgnoreCase) ||
-            eventTarget.Contains("/./pipe/", StringComparison.OrdinalIgnoreCase))
+        if (eventTarget.StartsWith("af_unix:", StringComparison.OrdinalIgnoreCase) ||
+            eventTarget.StartsWith(@"\\.\pipe\", StringComparison.OrdinalIgnoreCase) ||
+            eventTarget.StartsWith("//./pipe/", StringComparison.OrdinalIgnoreCase))
         {
             name = PlatformUtils.IsWindows()
-                ? eventTarget.TrimUntilLastIndexOf("\\")
-                : eventTarget.TrimUntilLastIndexOf(":");
+                ? eventTarget.Replace('/', '\\')
+                    .TrimUntilIndexOf(@"\\.\pipe\")
+                : eventTarget.Replace("af_unix:dgram:", "")
+                    .Replace("af_unix:stream:", "")
+                    .Replace("af_unix:", "");
             return true;
         }
 

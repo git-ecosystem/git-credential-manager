@@ -12,12 +12,12 @@ namespace GitCredentialManager.Tests.Authentication
     public class BasicAuthenticationTests
     {
         [Fact]
-        public void BasicAuthentication_GetCredentials_NullResource_ThrowsException()
+        public async Task BasicAuthentication_GetCredentials_NullResource_ThrowsException()
         {
             var context = new TestCommandContext();
             var basicAuth = new BasicAuthentication(context);
 
-            Assert.ThrowsAsync<ArgumentNullException>(() => basicAuth.GetCredentialsAsync(null));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => basicAuth.GetCredentialsAsync(null));
         }
 
         [Fact]
@@ -58,7 +58,7 @@ namespace GitCredentialManager.Tests.Authentication
         }
 
         [Fact]
-        public void BasicAuthentication_GetCredentials_NonDesktopSession_NoTerminalPrompts_ThrowsException()
+        public async Task BasicAuthentication_GetCredentials_NonDesktopSession_NoTerminalPrompts_ThrowsException()
         {
             const string testResource = "https://example.com";
 
@@ -70,7 +70,7 @@ namespace GitCredentialManager.Tests.Authentication
 
             var basicAuth = new BasicAuthentication(context);
 
-            Assert.ThrowsAsync<InvalidOperationException>(() => basicAuth.GetCredentialsAsync(testResource));
+            await Assert.ThrowsAsync<GitCredentialManager.Trace2InvalidOperationException>(() => basicAuth.GetCredentialsAsync(testResource));
         }
 
         [Fact]

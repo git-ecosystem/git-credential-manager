@@ -82,7 +82,7 @@ fi
 
 # Cleanup any old package
 if [ -e "$DISTOUT" ]; then
-    echo "Deleteing old product package '$DISTOUT'..."
+    echo "Deleting old product package '$DISTOUT'..."
     rm "$DISTOUT"
 fi
 

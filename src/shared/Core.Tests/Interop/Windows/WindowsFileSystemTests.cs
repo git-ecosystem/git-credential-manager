@@ -7,7 +7,7 @@ namespace GitCredentialManager.Tests.Interop.Windows
 {
     public class WindowsFileSystemTests
     {
-        [PlatformFact(Platforms.Windows)]
+        [WindowsFact]
         public static void WindowsFileSystem_IsSamePath_SamePath_ReturnsTrue()
         {
             var fs = new WindowsFileSystem();
@@ -18,7 +18,7 @@ namespace GitCredentialManager.Tests.Interop.Windows
             Assert.True(fs.IsSamePath(fileA, fileA));
         }
 
-        [PlatformFact(Platforms.Windows)]
+        [WindowsFact]
         public static void WindowsFileSystem_IsSamePath_DifferentFile_ReturnsFalse()
         {
             var fs = new WindowsFileSystem();
@@ -31,7 +31,7 @@ namespace GitCredentialManager.Tests.Interop.Windows
             Assert.False(fs.IsSamePath(fileB, fileA));
         }
 
-        [PlatformFact(Platforms.Windows)]
+        [WindowsFact]
         public static void WindowsFileSystem_IsSamePath_SameFileDifferentCase_ReturnsTrue()
         {
             var fs = new WindowsFileSystem();
@@ -44,7 +44,7 @@ namespace GitCredentialManager.Tests.Interop.Windows
             Assert.True(fs.IsSamePath(fileA2, fileA1));
         }
 
-        [PlatformFact(Platforms.Windows)]
+        [WindowsFact]
         public static void WindowsFileSystem_IsSamePath_SameFileDifferentPathNormalization_ReturnsTrue()
         {
             var fs = new WindowsFileSystem();
@@ -58,7 +58,7 @@ namespace GitCredentialManager.Tests.Interop.Windows
             Assert.True(fs.IsSamePath(fileA2, fileA1));
         }
 
-        [PlatformFact(Platforms.Windows)]
+        [WindowsFact]
         public static void WindowsFileSystem_IsSamePath_SameFileRelativePath_ReturnsTrue()
         {
             var fs = new WindowsFileSystem();

@@ -21,13 +21,14 @@ jobs:
         # tgagor is a contributor who pushes updated images weekly, which should
         # be sufficient for our validation needs.
         - image: tgagor/centos
-        - image: tgagor/centos-stream
         - image: redhat/ubi8
         - image: alpine
-        - image: alpine:3.14.10
+        - image: alpine:3.19.8
         - image: opensuse/leap
         - image: opensuse/tumbleweed
         - image: registry.suse.com/suse/sle15:15.4.27.11.31
+        - image: archlinux
+        - image: mcr.microsoft.com/cbl-mariner/base/core:2.0
     container: ${{matrix.vector.image}}
     steps:
       - run: |
@@ -35,9 +36,12 @@ jobs:
             zypper -n install tar gzip
           elif [[ ${{matrix.vector.image}} == *"centos"* ]]; then
             dnf install which -y
+          elif [[ ${{matrix.vector.image}} == *"mariner"* ]]; then
+            GNUPGHOME=/root/.gnupg tdnf update -y &&
+            GNUPGHOME=/root/.gnupg tdnf install tar -y # needed for `actions/checkout`
           fi
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - run: |
           sh "${GITHUB_WORKSPACE}/src/linux/Packaging.Linux/install-from-source.sh" -y
