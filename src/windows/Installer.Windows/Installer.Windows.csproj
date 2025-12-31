@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
   <!-- Implicit SDK props import -->
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
 
@@ -6,7 +6,7 @@
     <TargetFramework>net472</TargetFramework>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <EnableDefaultItems>false</EnableDefaultItems>
-    <PayloadPath>$(PlatformOutPath)Installer.Windows\bin\$(Configuration)\net472\win-x86</PayloadPath>
+    <PayloadPath>$(PlatformOutPath)Installer.Windows\bin\$(Configuration)\net472\$(RuntimeIdentifier)</PayloadPath>
     <InnoSetupVersion>6.3.1</InnoSetupVersion>
   </PropertyGroup>
 
@@ -27,12 +27,20 @@
 
   <Target Name="CoreCompile" Condition="'$(OSPlatform)'=='windows'">
     <PropertyGroup>
-      <InnoSetupCommandSystem>"$(NuGetPackageRoot)Tools.InnoSetup\$(InnoSetupVersion)\tools\ISCC.exe" /DPayloadDir="$(PayloadPath)" /DInstallTarget=system "$(RepoSrcPath)\windows\Installer.Windows\Setup.iss" /O"$(OutputPath)"</InnoSetupCommandSystem>
-      <InnoSetupCommandUser>"$(NuGetPackageRoot)Tools.InnoSetup\$(InnoSetupVersion)\tools\ISCC.exe" /DPayloadDir="$(PayloadPath)" /DInstallTarget=user "$(RepoSrcPath)\windows\Installer.Windows\Setup.iss" /O"$(OutputPath)"</InnoSetupCommandUser>
+      <InnoSetupCommandSystem>"$(NuGetPackageRoot)Tools.InnoSetup\$(InnoSetupVersion)\tools\ISCC.exe" /DPayloadDir="$(PayloadPath)" /DInstallTarget=system /DGcmRuntimeIdentifier="$(RuntimeIdentifier)" "$(RepoSrcPath)\windows\Installer.Windows\Setup.iss" /O"$(OutputPath)"</InnoSetupCommandSystem>
+      <InnoSetupCommandUser>"$(NuGetPackageRoot)Tools.InnoSetup\$(InnoSetupVersion)\tools\ISCC.exe" /DPayloadDir="$(PayloadPath)" /DInstallTarget=user /DGcmRuntimeIdentifier="$(RuntimeIdentifier)" "$(RepoSrcPath)\windows\Installer.Windows\Setup.iss" /O"$(OutputPath)"</InnoSetupCommandUser>
     </PropertyGroup>
 
     <Message Text="Lay Out" Importance="High" />
-    <Exec Condition="'$(NoLayout)'!='true'" Command="powershell.exe –NonInteractive –ExecutionPolicy Unrestricted -Command &quot;&amp; {&amp;'$(MSBuildProjectDirectory)\layout.ps1' -Configuration '$(Configuration)' -Output '$(PayloadPath)'}&quot;" />
+    <Exec Condition="'$(NoLayout)'!='true'"
+          ConsoleToMSBuild="true"
+          Command="powershell.exe –NonInteractive –ExecutionPolicy Unrestricted -Command &quot;&amp; {&amp;'$(MSBuildProjectDirectory)\layout.ps1' -Configuration '$(Configuration)' -Output '$(PayloadPath)' -RuntimeIdentifier '$(RuntimeIdentifier)'; if ($?) { exit 0 } else { exit 1 }}&quot;"
+          IgnoreExitCode="true">
+      <!-- If we want to display the console output if the exit code is not 0, we need to capture it and then output it using the <Error /> below -->
+      <Output TaskParameter="ExitCode" PropertyName="ExitCodeOfExec" />
+      <Output TaskParameter="ConsoleOutput" PropertyName="OutputOfExec" />
+    </Exec>
+    <Error Condition="'$(NoLayout)'!='true' AND '$(ExitCodeOfExec)' != '0'" Text="Layout script failed with exit code $(ExitCodeOfExec) and message $(OutputOfExec)" />
     <Message Text="$(InnoSetupCommandSystem)" Importance="High" />
     <Exec Command="$(InnoSetupCommandSystem)" />
     <Message Text="$(InnoSetupCommandUser)" Importance="High" />
