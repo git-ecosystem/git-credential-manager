@@ -148,7 +148,7 @@ namespace GitCredentialManager
                                             gitPath,
                                             FileSystem.GetCurrentDirectory()
                                         );
-                Settings          = new Settings(Environment, Git);
+                Settings          = new LinuxSettings(Environment, Git, Trace, FileSystem);
             }
             else
             {
