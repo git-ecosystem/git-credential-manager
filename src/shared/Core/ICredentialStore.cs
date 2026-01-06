@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace GitCredentialManager
 {
@@ -37,5 +38,19 @@ namespace GitCredentialManager
         /// <param name="account">Account name to match against. Use null to match all values.</param>
         /// <returns>True if the credential was deleted, false otherwise.</returns>
         bool Remove(string service, string account);
+
+        /// <summary>
+        /// Save credentials to a file.
+        /// </summary>
+        /// <param name="filePath">Path to the file where credentials will be saved.</param>
+        /// <returns>A task representing the asynchronous operation.</returns>
+        Task SaveCredentialsAsync(string filePath);
+
+        /// <summary>
+        /// Load credentials from a file.
+        /// </summary>
+        /// <param name="filePath">Path to the file from which credentials will be loaded.</param>
+        /// <returns>A task representing the asynchronous operation.</returns>
+        Task LoadCredentialsAsync(string filePath);
     }
 }
