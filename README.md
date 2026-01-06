@@ -2,7 +2,7 @@
 
 [![Build Status][build-status-badge]][workflow-status]
 
----
+--- 
 
 [Git Credential Manager][gcm] (GCM) is a secure
 [Git credential helper][git-credential-helper] built on [.NET][dotnet] that runs
