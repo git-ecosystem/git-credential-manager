@@ -63,6 +63,15 @@ namespace GitCredentialManager.Authentication
         ///  - <c>"resource://{guid}"</c> - Use the user-assigned managed identity with resource ID <c>{guid}</c>.
         /// </remarks>
         Task<IMicrosoftAuthenticationResult> GetTokenForManagedIdentityAsync(string managedIdentity, string resource);
+
+        /// <summary>
+        /// Acquire a token using a federated identity in the current environment.
+        /// </summary>
+        /// <param name="fid">An object containing configuration for the Federated Identity.</param>
+        /// <param name="scopes">Scopes to request.</param>
+        /// <returns>Authentication result including access token.</returns>
+        /// </remarks>
+        Task<IMicrosoftAuthenticationResult> GetTokenForFederatedIdentityAsync(FederatedIdentity fid, string[] scopes);
     }
 
     public class ServicePrincipalIdentity
@@ -97,6 +106,24 @@ namespace GitCredentialManager.Authentication
         /// Whether the authentication should send X5C
         /// </summary>
         public bool SendX5C { get; set; }
+    }
+
+    public class FederatedIdentity
+    {
+        /// <summary>
+        /// Client ID of the assigned Managed Identity.
+        /// </summary>
+        public string ManagedIdentityClientId { get; set; }
+
+        /// <summary>
+        /// Tenant ID of the Managed Identity.
+        /// </summary>
+        public string TenantId { get; set; }
+
+        /// <summary>
+        /// Client ID of the app to request a token for.
+        /// </summary>
+        public string ClientAppId { get; set; }
     }
 
     public interface IMicrosoftAuthenticationResult
@@ -310,6 +337,39 @@ namespace GitCredentialManager.Authentication
                 Context.Trace.WriteException(ex);
                 throw;
             }
+        }
+
+        public async Task<IMicrosoftAuthenticationResult> GetTokenForFederatedIdentityAsync(FederatedIdentity fid, string[] scopes)
+        {
+            string audience = "api://AzureADTokenExchange";
+            Uri authorityUri = new($"https://login.microsoftonline.com/{fid.TenantId}");
+
+            // Request a token for the current Managed Identity
+            async Task<string> miAssertionProvider(AssertionRequestOptions _)
+            {
+                var miApplication = ManagedIdentityApplicationBuilder
+                    .Create(ManagedIdentityId.WithUserAssignedClientId(fid.ManagedIdentityClientId))
+                    .Build();
+
+                var miResult = await miApplication.AcquireTokenForManagedIdentity(audience)
+                    .ExecuteAsync()
+                    .ConfigureAwait(false);
+
+                return miResult.AccessToken;
+            }
+
+            // Exchange the token for an ADO access token
+            IConfidentialClientApplication app = ConfidentialClientApplicationBuilder.Create(fid.ClientAppId)
+              .WithAuthority(authorityUri, false)
+              .WithClientAssertion(miAssertionProvider)
+              .WithCacheOptions(CacheOptions.EnableSharedCacheOptions)
+              .Build();
+
+            AuthenticationResult result = await app.AcquireTokenForClient(scopes)
+              .ExecuteAsync()
+              .ConfigureAwait(false);
+
+            return new MsalResult(result);
         }
 
         private async Task<bool> UseDefaultAccountAsync(string userName)
