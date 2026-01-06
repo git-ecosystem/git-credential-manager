@@ -99,6 +99,8 @@ namespace GitCredentialManager.Authentication.OAuth
             set => _codeGenerator = value;
         }
 
+        public Uri RedirectUri => _redirectUri;
+
         #region IOAuth2Client
 
         public async Task<OAuth2AuthorizationCodeResult> GetAuthorizationCodeAsync(IEnumerable<string> scopes,
