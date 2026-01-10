@@ -14,6 +14,8 @@ namespace GitCredentialManager.Tests.Objects
 
         public Func<InputArguments, ICredential> GenerateCredentialFunc { get; set; }
 
+        public Func<Uri, ICredential, bool> ValidateCredentialFunc { get; set; }
+
         #region HostProvider
 
         public override string Id { get; } = "test-provider";
@@ -28,6 +30,9 @@ namespace GitCredentialManager.Tests.Objects
         {
             return Task.FromResult(GenerateCredentialFunc(input));
         }
+
+        public override Task<bool> ValidateCredentialAsync(Uri remoteUri, ICredential credential)
+            => ValidateCredentialFunc != null ? Task.FromResult(ValidateCredentialFunc(remoteUri, credential)) : base.ValidateCredentialAsync(remoteUri, credential);
 
         #endregion
     }

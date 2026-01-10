@@ -17,11 +17,13 @@ namespace GitCredentialManager.Tests.Interop.Linux
             string service = $"https://example.com/{Guid.NewGuid():N}";
             const string userName = "john.doe";
             const string password = "letmein123"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
+            const string testRefreshToken = "xyzzy";
+            DateTimeOffset testExpiry = DateTimeOffset.FromUnixTimeSeconds(1919539847);
 
             try
             {
                 // Write
-                collection.AddOrUpdate(service, userName, password);
+                collection.AddOrUpdate(service, new GitCredential(userName, password) { PasswordExpiry = testExpiry, OAuthRefreshToken = testRefreshToken});
 
                 // Read
                 ICredential outCredential = collection.Get(service, userName);
@@ -29,6 +31,8 @@ namespace GitCredentialManager.Tests.Interop.Linux
                 Assert.NotNull(outCredential);
                 Assert.Equal(userName, userName);
                 Assert.Equal(password, outCredential.Password);
+                Assert.Equal(testRefreshToken, outCredential.OAuthRefreshToken);
+                Assert.Equal(testExpiry, outCredential.PasswordExpiry);
             }
             finally
             {
