@@ -150,6 +150,13 @@ namespace GitCredentialManager
                 {
                     var refreshResult = await client.GetTokenByRefreshTokenAsync(refreshToken, CancellationToken.None);
 
+                    // Store new refresh token if we have been given one
+                    if (!string.IsNullOrWhiteSpace(refreshResult.RefreshToken))
+                    {
+                        var refreshService = GetRefreshTokenServiceName(remoteUri);
+                        Context.CredentialStore.AddOrUpdate(refreshService, oauthUser, refreshResult.RefreshToken);
+                    }
+
                     // Return the new access token
                     return new GitCredential(refreshResult, oauthUser);
                 }
