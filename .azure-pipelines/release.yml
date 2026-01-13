@@ -46,8 +46,8 @@ parameters:
       - id: windows_arm64
         jobName: 'Windows (ARM64)'
         runtime: win-arm64
-        pool: GitClientPME-1ESHostedPool-intel-pc
-        image: win-x86_64-ado1es
+        pool: GitClientPME-1ESHostedPool-arm64-pc
+        image: win-arm64-ado1es
         os: windows
 
   - name: macos_matrix
@@ -207,7 +207,7 @@ extends:
                         --no-dependencies `
                         -p:NoLayout=true `
                         -p:PayloadPath="$(Build.ArtifactStagingDirectory)\payload" `
-                        -p:OutputPath="$(Build.ArtifactStagingDirectory)\installers"
+                        -p:OutputPath="$(Build.ArtifactStagingDirectory)\installers" `
                         -p:RuntimeIdentifier="${{ dim.runtime }}"
                 - task: EsrpCodeSigning@5
                   condition: and(succeeded(), eq('${{ parameters.esrp }}', true))
