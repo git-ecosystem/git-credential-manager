@@ -31,11 +31,23 @@ parameters:
   - name: windows_matrix
     type: object
     default:
-      - id: windows_x64
+      - id: windows_x86
         jobName: 'Windows (x86)'
         runtime: win-x86
         pool: GitClientPME-1ESHostedPool-intel-pc
         image: win-x86_64-ado1es
+        os: windows
+      - id: windows_x64
+        jobName: 'Windows (x64)'
+        runtime: win-x64
+        pool: GitClientPME-1ESHostedPool-intel-pc
+        image: win-x86_64-ado1es
+        os: windows
+      - id: windows_arm64
+        jobName: 'Windows (ARM64)'
+        runtime: win-arm64
+        pool: GitClientPME-1ESHostedPool-arm64-pc
+        image: win-arm64-ado1es
         os: windows
 
   - name: macos_matrix
@@ -136,14 +148,15 @@ extends:
                     arguments: |
                       -Configuration Release `
                       -Output $(Build.ArtifactStagingDirectory)\payload `
-                      -SymbolOutput $(Build.ArtifactStagingDirectory)\symbols_raw
+                      -SymbolOutput $(Build.ArtifactStagingDirectory)\symbols_raw `
+                      -RuntimeIdentifier ${{ dim.runtime }}
                 - task: ArchiveFiles@2
                   displayName: 'Archive symbols'
                   inputs:
                     rootFolderOrFile: '$(Build.ArtifactStagingDirectory)\symbols_raw'
                     includeRootFolder: false
                     archiveType: zip
-                    archiveFile: '$(Build.ArtifactStagingDirectory)\symbols\gcm-win-x86-$(version)-symbols.zip'
+                    archiveFile: '$(Build.ArtifactStagingDirectory)\symbols\gcm-${{ dim.runtime }}-$(version)-symbols.zip'
                 - task: EsrpCodeSigning@5
                   condition: and(succeeded(), eq('${{ parameters.esrp }}', true))
                   displayName: 'Sign payload'
@@ -194,7 +207,8 @@ extends:
                         --no-dependencies `
                         -p:NoLayout=true `
                         -p:PayloadPath="$(Build.ArtifactStagingDirectory)\payload" `
-                        -p:OutputPath="$(Build.ArtifactStagingDirectory)\installers"
+                        -p:OutputPath="$(Build.ArtifactStagingDirectory)\installers" `
+                        -p:RuntimeIdentifier="${{ dim.runtime }}"
                 - task: EsrpCodeSigning@5
                   condition: and(succeeded(), eq('${{ parameters.esrp }}', true))
                   displayName: 'Sign installers'
@@ -239,7 +253,7 @@ extends:
                     rootFolderOrFile: '$(Build.ArtifactStagingDirectory)\payload'
                     includeRootFolder: false
                     archiveType: zip
-                    archiveFile: '$(Build.ArtifactStagingDirectory)\installers\gcm-win-x86-$(version).zip'
+                    archiveFile: '$(Build.ArtifactStagingDirectory)\installers\gcm-${{ dim.runtime }}-$(version).zip'
                 - task: PowerShell@2
                   displayName: 'Collect artifacts for publishing'
                   inputs:
@@ -775,6 +789,12 @@ extends:
                   artifactName: 'win-x86'
                   targetPath: $(Pipeline.Workspace)/assets/win-x86
                 - input: pipelineArtifact
+                  artifactName: 'win-x64'
+                  targetPath: $(Pipeline.Workspace)/assets/win-x64
+                - input: pipelineArtifact
+                  artifactName: 'win-arm64'
+                  targetPath: $(Pipeline.Workspace)/assets/win-arm64
+                - input: pipelineArtifact
                   artifactName: 'osx-x64'
                   targetPath: $(Pipeline.Workspace)/assets/osx-x64
                 - input: pipelineArtifact
@@ -805,6 +825,10 @@ extends:
                   assets: |
                     $(Pipeline.Workspace)/assets/win-x86/*.exe
                     $(Pipeline.Workspace)/assets/win-x86/*.zip
+                    $(Pipeline.Workspace)/assets/win-x64/*.exe
+                    $(Pipeline.Workspace)/assets/win-x64/*.zip
+                    $(Pipeline.Workspace)/assets/win-arm64/*.exe
+                    $(Pipeline.Workspace)/assets/win-arm64/*.zip
                     $(Pipeline.Workspace)/assets/osx-x64/*.pkg
                     $(Pipeline.Workspace)/assets/osx-x64/*.tar.gz
                     $(Pipeline.Workspace)/assets/osx-arm64/*.pkg
