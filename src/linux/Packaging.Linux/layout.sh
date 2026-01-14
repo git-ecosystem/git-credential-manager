@@ -23,6 +23,17 @@ case "$i" in
     CONFIGURATION="${i#*=}"
     shift # past argument=value
     ;;
+    --output=*)
+    PAYLOAD="${i#*=}"
+    shift # past argument=value
+    ;;
+    --runtime=*)
+    RUNTIME="${i#*=}"
+    shift # past argument=value
+    ;;
+    --symbol-output=*)
+    SYMBOLOUT="${i#*=}"
+    ;;
     *)
           # unknown option
     ;;
@@ -39,14 +50,15 @@ PROJ_OUT="$OUT/linux/Packaging.Linux"
 
 # Build parameters
 FRAMEWORK=net8.0
-RUNTIME=linux-x64
 
 # Perform pre-execution checks
 CONFIGURATION="${CONFIGURATION:=Debug}"
-
-# Outputs
-PAYLOAD="$PROJ_OUT/$CONFIGURATION/payload"
-SYMBOLOUT="$PROJ_OUT/$CONFIGURATION/payload.sym"
+if [ -z "$PAYLOAD" ]; then
+    die "--output was not set"
+fi
+if [ -z "$SYMBOLOUT" ]; then
+    SYMBOLOUT="$PAYLOAD.sym"
+fi
 
 # Cleanup payload directory
 if [ -d "$PAYLOAD" ]; then
@@ -69,13 +81,22 @@ fi
 
 # Publish core application executables
 echo "Publishing core application..."
-$DOTNET_ROOT/dotnet publish "$GCM_SRC" \
-	--configuration="$CONFIGURATION" \
-	--framework="$FRAMEWORK" \
-	--runtime="$RUNTIME" \
-	--self-contained \
-	-p:PublishSingleFile=true \
-	--output="$(make_absolute "$PAYLOAD")" || exit 1
+if [ -z "$RUNTIME" ]; then
+    $DOTNET_ROOT/dotnet publish "$GCM_SRC" \
+        --configuration="$CONFIGURATION" \
+        --framework="$FRAMEWORK" \
+        --self-contained \
+        -p:PublishSingleFile=true \
+        --output="$(make_absolute "$PAYLOAD")" || exit 1
+else
+    $DOTNET_ROOT/dotnet publish "$GCM_SRC" \
+        --configuration="$CONFIGURATION" \
+        --framework="$FRAMEWORK" \
+        --runtime="$RUNTIME" \
+        --self-contained \
+        -p:PublishSingleFile=true \
+        --output="$(make_absolute "$PAYLOAD")" || exit 1
+fi
 
 # Collect symbols
 echo "Collecting managed symbols..."

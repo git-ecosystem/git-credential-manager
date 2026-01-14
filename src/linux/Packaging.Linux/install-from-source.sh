@@ -40,18 +40,26 @@ if [ -z $is_ci ]; then
 
 Git Credential Manager is licensed under the MIT License: https://aka.ms/gcm/license"
 
-    while true; do
-        read -p "Do you want to continue? [Y/n] " yn
-        case $yn in
-            [Yy]*|"")
-                break
-            ;;
-            [Nn]*)
-                exit
-            ;;
-            *)
-                echo "Please answer yes or no."
-            ;;
+	while true; do
+        # Display prompt once before reading input
+        printf "Do you want to continue? [Y/n] "
+
+        # Prefer reading from the controlling terminal (TTY) when available,
+        # so that input works even if the script is piped (e.g. curl URL | sh)
+        if [ -r /dev/tty ]; then
+            read yn < /dev/tty
+        # If no TTY is available, attempt to read from standard input (stdin)
+        elif ! read yn; then
+            # If input is not possible via TTY or stdin, assume a non-interactive environment
+            # and abort with guidance for automated usage
+            echo "Interactive prompt unavailable in this environment. Use 'sh -s -- -y' for automated install."
+            exit 1
+        fi
+
+        case "$yn" in
+            [Yy]*|"") break ;;
+            [Nn]*) exit ;;
+            *) echo "Please answer yes or no." ;;
         esac
     done
 fi
@@ -63,7 +71,7 @@ install_packages() {
 
     for package in $packages; do
         # Ensure we don't stomp on existing installations.
-        if [ ! -z $(which $package) ]; then
+        if type $package >/dev/null 2>&1; then
             continue
         fi
 
@@ -181,7 +189,7 @@ case "$distribution" in
             fi
         fi
     ;;
-    fedora | centos | rhel)
+    fedora | centos | rhel | ol)
         $sudo_cmd dnf upgrade -y
 
         # Install dotnet/GCM dependencies.
@@ -208,7 +216,7 @@ case "$distribution" in
         $sudo_cmd zypper -n update
 
         # Install dotnet/GCM dependencies.
-        install_packages zypper install "curl git find krb5 libicu libopenssl1_1"
+        install_packages zypper install "curl git find krb5 libicu"
 
         ensure_dotnet_installed
     ;;
@@ -228,7 +236,7 @@ case "$distribution" in
         $sudo_cmd tdnf update -y
 
         # Install dotnet/GCM dependencies.
-        install_packages tdnf install "curl git krb5-libs libicu openssl-libs zlib findutils which bash"
+        install_packages tdnf install "curl ca-certificates git krb5-libs libicu openssl-libs zlib findutils which bash awk"
 
         ensure_dotnet_installed
     ;;

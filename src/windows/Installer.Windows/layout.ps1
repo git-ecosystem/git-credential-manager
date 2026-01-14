@@ -1,20 +1,43 @@
 # Inputs
-param ([Parameter(Mandatory)] $CONFIGURATION, [Parameter(Mandatory)] $OUTPUT, $SYMBOLOUTPUT)
+param ([Parameter(Mandatory)] $Configuration, [Parameter(Mandatory)] $Output, $RuntimeIdentifier, $SymbolOutput)
 
-Write-Output "Output: $OUTPUT"
+Write-Output "Output: $Output"
+
+# Determine a runtime if one was not provided
+if (-not $RuntimeIdentifier) {
+    $arch = $env:PROCESSOR_ARCHITECTURE
+    switch ($arch) {
+        "AMD64" { $RuntimeIdentifier = "win-x64" }
+        "x86"   { $RuntimeIdentifier = "win-x86" }
+        "ARM64" { $RuntimeIdentifier = "win-arm64" }
+        default {
+            Write-Host "Unknown architecture: $arch"
+            exit 1
+        }
+    }
+}
+
+Write-Output "Building for runtime '$RuntimeIdentifier'"
+
+if ($RuntimeIdentifier -ne 'win-x86' -and $RuntimeIdentifier -ne 'win-x64' -and $RuntimeIdentifier -ne 'win-arm64') {
+    Write-Host "Unsupported RuntimeIdentifier: $RuntimeIdentifier"
+    exit 1
+}
 
 # Directories
-$THISDIR = $pwd.path
-$ROOT = (Get-Item $THISDIR).parent.parent.parent.FullName
-$SRC = "$ROOT/src"
-$GCM_SRC = "$SRC/shared/Git-Credential-Manager"
+$THISDIR = $PSScriptRoot
+$ROOT = (Get-Item $THISDIR).Parent.Parent.Parent.FullName
+$SRC = "$ROOT\src"
+$GCM_SRC = "$SRC\shared\Git-Credential-Manager"
 
 # Perform pre-execution checks
-$PAYLOAD = "$OUTPUT"
-if ($SYMBOLOUTPUT)
+$PAYLOAD = "$Output"
+if ($SymbolOutput)
 {
-    $SYMBOLS = "$SYMBOLOUTPUT"
-} else {
+    $SYMBOLS = "$SymbolOutput"
+}
+else
+{
     $SYMBOLS = "$PAYLOAD.sym"
 }
 
@@ -32,37 +55,65 @@ if (Test-Path -Path $SYMBOLS)
 }
 
 # Ensure payload and symbol directories exist
-mkdir -p "$PAYLOAD","$SYMBOLS"
+mkdir -p "$PAYLOAD","$SYMBOLS" | Out-Null
 
 # Publish core application executables
 Write-Output "Publishing core application..."
 dotnet publish "$GCM_SRC" `
 	--framework net472 `
-	--configuration "$CONFIGURATION" `
-	--runtime win-x86 `
+	--configuration "$Configuration" `
+	--runtime $RuntimeIdentifier `
 	--output "$PAYLOAD"
 
 # Delete libraries that are not needed for Windows but find their way
 # into the publish output.
-Remove-Item -Path "$PAYLOAD/*.dylib" -Force
+Remove-Item -Path "$PAYLOAD/*.dylib" -Force -ErrorAction Ignore
 
-# Delete extraneous files that get included for other architectures
-# We only care about x86 as the core GCM executable is only targeting x86
-Remove-Item -Path "$PAYLOAD/arm/" -Recurse -Force
-Remove-Item -Path "$PAYLOAD/arm64/" -Recurse -Force
-Remove-Item -Path "$PAYLOAD/x64/" -Recurse -Force
-Remove-Item -Path "$PAYLOAD/musl-x64/" -Recurse -Force
-Remove-Item -Path "$PAYLOAD/runtimes/win-arm64/" -Recurse -Force
-Remove-Item -Path "$PAYLOAD/runtimes/win-x64/" -Recurse -Force
+# Delete extraneous files that get included for other runtimes
+Remove-Item -Path "$PAYLOAD/musl-x64/" -Recurse -Force -ErrorAction Ignore
 
-# The Avalonia and MSAL binaries in these directories are already included in
-# the $PAYLOAD directory directly, so we can delete these extra copies.
-Remove-Item -Path "$PAYLOAD/x86/libSkiaSharp.dll" -Recurse -Force
-Remove-Item -Path "$PAYLOAD/x86/libHarfBuzzSharp.dll" -Recurse -Force
-Remove-Item -Path "$PAYLOAD/runtimes/win-x86/native/msalruntime_x86.dll" -Recurse -Force
+switch ($RuntimeIdentifier) {
+    "win-x86" {
+        Remove-Item -Path "$PAYLOAD/arm/" -Recurse -Force -ErrorAction Ignore
+        Remove-Item -Path "$PAYLOAD/arm64/" -Recurse -Force -ErrorAction Ignore
+        Remove-Item -Path "$PAYLOAD/x64/" -Recurse -Force -ErrorAction Ignore
+        Remove-Item -Path "$PAYLOAD/runtimes/win-arm64/" -Recurse -Force -ErrorAction Ignore
+        Remove-Item -Path "$PAYLOAD/runtimes/win-x64/" -Recurse -Force -ErrorAction Ignore
+        # The Avalonia and MSAL binaries are already included in the $PAYLOAD directory directly
+        Remove-Item -Path "$PAYLOAD/x86/libSkiaSharp.dll" -Force -ErrorAction Ignore
+        Remove-Item -Path "$PAYLOAD/x86/libHarfBuzzSharp.dll" -Force -ErrorAction Ignore
+        Remove-Item -Path "$PAYLOAD/runtimes/win-x86/native/msalruntime_x86.dll" -Force -ErrorAction Ignore
+    }
+    "win-x64" {
+        Remove-Item -Path "$PAYLOAD/arm/" -Recurse -Force -ErrorAction Ignore
+        Remove-Item -Path "$PAYLOAD/arm64/" -Recurse -Force -ErrorAction Ignore
+        Remove-Item -Path "$PAYLOAD/x86/" -Recurse -Force -ErrorAction Ignore
+        Remove-Item -Path "$PAYLOAD/runtimes/win-arm64/" -Recurse -Force -ErrorAction Ignore
+        Remove-Item -Path "$PAYLOAD/runtimes/win-x86/" -Recurse -Force -ErrorAction Ignore
+        # The Avalonia and MSAL binaries are already included in the $PAYLOAD directory directly
+        Remove-Item -Path "$PAYLOAD/x64/libSkiaSharp.dll" -Force -ErrorAction Ignore
+        Remove-Item -Path "$PAYLOAD/x64/libHarfBuzzSharp.dll" -Force -ErrorAction Ignore
+        Remove-Item -Path "$PAYLOAD/x64/libSkiaSharp.so" -Force -ErrorAction Ignore
+        Remove-Item -Path "$PAYLOAD/x64/libHarfBuzzSharp.so" -Force -ErrorAction Ignore
+        Remove-Item -Path "$PAYLOAD/runtimes/win-x64/native/msalruntime.dll" -Force -ErrorAction Ignore
+    }
+    "win-arm64" {
+        Remove-Item -Path "$PAYLOAD/arm/" -Recurse -Force -ErrorAction Ignore
+        Remove-Item -Path "$PAYLOAD/x86/" -Recurse -Force -ErrorAction Ignore
+        Remove-Item -Path "$PAYLOAD/x64/" -Recurse -Force -ErrorAction Ignore
+        Remove-Item -Path "$PAYLOAD/runtimes/win-x86/" -Recurse -Force -ErrorAction Ignore
+        Remove-Item -Path "$PAYLOAD/runtimes/win-x64/" -Recurse -Force -ErrorAction Ignore
+        # The Avalonia and MSAL binaries are already included in the $PAYLOAD directory directly
+        Remove-Item -Path "$PAYLOAD/arm64/libSkiaSharp.dll" -Force -ErrorAction Ignore
+        Remove-Item -Path "$PAYLOAD/arm64/libHarfBuzzSharp.dll" -Force -ErrorAction Ignore
+        Remove-Item -Path "$PAYLOAD/arm64/libSkiaSharp.so" -Force -ErrorAction Ignore
+        Remove-Item -Path "$PAYLOAD/arm64/libHarfBuzzSharp.so" -Force -ErrorAction Ignore
+        Remove-Item -Path "$PAYLOAD/runtimes/win-arm64/native/msalruntime_arm64.dll" -Force -ErrorAction Ignore
+    }
+}
 
 # Delete localized resource assemblies - we don't localize the core GCM assembly anyway
-Get-ChildItem "$PAYLOAD" -Recurse -Include "*.resources.dll" | Remove-Item -Force
+Get-ChildItem "$PAYLOAD" -Recurse -Include "*.resources.dll" | Remove-Item -Force -ErrorAction Ignore
 
 # Delete any empty directories
 Get-ChildItem "$PAYLOAD" -Recurse -Directory `

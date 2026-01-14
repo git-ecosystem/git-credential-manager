@@ -54,6 +54,17 @@ namespace GitCredentialManager
         {
             ThrowIfDisposed();
 
+            // We only want to *warn* about HTTP remotes for the generic provider because it supports all protocols
+            // and, historically, we never blocked HTTP remotes in this provider.
+            // The user can always set the 'GCM_ALLOW_UNSAFE' setting to silence the warning.
+            if (!Context.Settings.AllowUnsafeRemotes &&
+                StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "http"))
+            {
+                Context.Streams.Error.WriteLine(
+                    "warning: use of unencrypted HTTP remote URLs is not recommended; " +
+                    $"see {Constants.HelpUrls.GcmUnsafeRemotes} for more information.");
+            }
+
             Uri uri = input.GetRemoteUri();
 
             // Determine the if the host supports Windows Integration Authentication (WIA) or OAuth
@@ -150,7 +161,7 @@ namespace GitCredentialManager
                     // Store new refresh token if we have been given one
                     if (!string.IsNullOrWhiteSpace(refreshResult.RefreshToken))
                     {
-                        Context.CredentialStore.AddOrUpdate(refreshService, refreshToken.Account, refreshToken.Password);
+                        Context.CredentialStore.AddOrUpdate(refreshService, refreshToken.Account, refreshResult.RefreshToken);
                     }
 
                     // Return the new access token
