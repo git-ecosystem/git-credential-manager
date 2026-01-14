@@ -84,12 +84,12 @@ if test -z "$RUNTIME"; then
 fi
 
 TAROUT="$OUTPUT_ROOT/tar"
-TARBALL="$TAROUT/gcm-$RUNTIME.$VERSION.tar.gz"
-SYMTARBALL="$TAROUT/gcm-$RUNTIME.$VERSION-symbols.tar.gz"
+TARBALL="$TAROUT/gcm-$RUNTIME-$VERSION.tar.gz"
+SYMTARBALL="$TAROUT/gcm-$RUNTIME-$VERSION-symbols.tar.gz"
 
 DEBOUT="$OUTPUT_ROOT/deb"
 DEBROOT="$DEBOUT/root"
-DEBPKG="$DEBOUT/gcm-$RUNTIME.$VERSION.deb"
+DEBPKG="$DEBOUT/gcm-$RUNTIME-$VERSION.deb"
 mkdir -p "$DEBROOT"
 
 # Set full read, write, execute permissions for owner and just read and execute permissions for group and other
