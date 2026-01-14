@@ -283,7 +283,7 @@ enter your credentials every time you interact with a remote repository.
 [cmdkey]: https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/cmdkey
 [credential-store]: configuration.md#credentialcredentialstore
 [credential-cache]: https://git-scm.com/docs/git-credential-cache
-[freedesktop-secret-service]: https://specifications.freedesktop.org/secret-service-spec/
+[freedesktop-secret-service]: https://specifications.freedesktop.org/secret-service/
 [gcm-credential-store]: environment.md#GCM_CREDENTIAL_STORE
 [git-credential-store]: https://git-scm.com/docs/git-credential-store
 [mac-keychain-management]: https://support.apple.com/en-gb/guide/mac-help/mchlf375f392/mac
