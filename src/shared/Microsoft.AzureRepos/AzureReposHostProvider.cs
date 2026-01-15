@@ -850,6 +850,8 @@ namespace Microsoft.AzureRepos
             return Task.FromResult(0);
         }
 
+        public Task<bool> ValidateCredentialAsync(Uri remoteUri, ICredential credential) => Task.FromResult(credential.PasswordExpiry == null || credential.PasswordExpiry >= DateTimeOffset.UtcNow);
+
         #endregion
     }
 }
