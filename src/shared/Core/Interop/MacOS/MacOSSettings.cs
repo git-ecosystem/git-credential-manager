@@ -19,7 +19,7 @@ namespace GitCredentialManager.Interop.MacOS
             PlatformUtils.EnsureMacOS();
         }
 
-        protected override bool TryGetExternalDefault(string section, string scope, string property, out string value)
+        protected internal override bool TryGetExternalDefault(string section, string scope, string property, out string value)
         {
             value = null;
 
