@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+using System.Threading;
 
 namespace GitCredentialManager
 {
@@ -543,6 +544,249 @@ namespace GitCredentialManager
             }
 
             return result.ToString();
+        }
+    }
+
+    /// <summary>
+    /// Git configuration using the 'git config-batch' command for improved performance.
+    /// Falls back to individual git config commands for unsupported operations or when
+    /// config-batch is not available.
+    /// </summary>
+    public class GitBatchConfiguration : IGitConfiguration, IDisposable
+    {
+        private readonly ITrace _trace;
+        private readonly GitProcess _git;
+        private readonly GitProcessConfiguration _fallback;
+        private readonly object _processLock = new object();
+
+        private ChildProcess _batchProcess;
+        private bool _batchAvailable = true;
+        private bool _disposed;
+
+        internal GitBatchConfiguration(ITrace trace, GitProcess git)
+        {
+            EnsureArgument.NotNull(trace, nameof(trace));
+            EnsureArgument.NotNull(git, nameof(git));
+
+            _trace = trace;
+            _git = git;
+            _fallback = new GitProcessConfiguration(trace, git);
+        }
+
+        public void Enumerate(GitConfigurationLevel level, GitConfigurationEnumerationCallback cb)
+        {
+            // Enumerate is not supported by config-batch v1, use fallback
+            _fallback.Enumerate(level, cb);
+        }
+
+        public bool TryGet(GitConfigurationLevel level, GitConfigurationType type, string name, out string value)
+        {
+            // Only use batch for Raw type queries - type canonicalization not yet supported in config-batch
+            if (!_batchAvailable || type != GitConfigurationType.Raw)
+            {
+                return _fallback.TryGet(level, type, name, out value);
+            }
+
+            lock (_processLock)
+            {
+                if (_disposed)
+                {
+                    throw new ObjectDisposedException(nameof(GitBatchConfiguration));
+                }
+
+                // Lazy-initialize the batch process
+                if (_batchProcess == null)
+                {
+                    if (!TryStartBatchProcess())
+                    {
+                        _batchAvailable = false;
+                        return _fallback.TryGet(level, type, name, out value);
+                    }
+                }
+
+                try
+                {
+                    string scope = GetBatchScope(level);
+                    string command = $"get 1 {scope} {name}";
+
+                    _batchProcess.StandardInput.WriteLine(command);
+                    _batchProcess.StandardInput.Flush();
+
+                    string response = _batchProcess.StandardOutput.ReadLine();
+
+                    if (response == null)
+                    {
+                        // Process died, fall back
+                        _trace.WriteLine("git config-batch process terminated unexpectedly");
+                        DisposeBatchProcess();
+                        _batchAvailable = false;
+                        return _fallback.TryGet(level, type, name, out value);
+                    }
+
+                    if (response == "unknown_command")
+                    {
+                        // Command not understood, fall back for all future calls
+                        _trace.WriteLine("git config-batch does not understand 'get' command, falling back");
+                        DisposeBatchProcess();
+                        _batchAvailable = false;
+                        return _fallback.TryGet(level, type, name, out value);
+                    }
+
+                    // Parse response: "get found <key> <scope> <value>" or "get missing <key>"
+                    // Max 5 parts to allow for spaces in value.
+                    string[] parts = response.Split(new[] { ' ' }, 5);
+
+                    if (parts.Length >= 5 && parts[0] == "get" && parts[1] == "found")
+                    {
+                        // Found: parts[2] is key, parts[3] is scope, parts[4] is value (may contain spaces)
+                        value = parts[4];
+                        return true;
+                    }
+                    else if (parts.Length >= 3 && parts[0] == "get" && parts[1] == "missing")
+                    {
+                        // Not found
+                        value = null;
+                        return false;
+                    }
+                    else
+                    {
+                        // Unexpected response format
+                        _trace.WriteLine($"Unexpected response from git config-batch: {response}");
+                        value = null;
+                        return false;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _trace.WriteLine($"Error communicating with git config-batch: {ex.Message}");
+                    DisposeBatchProcess();
+                    _batchAvailable = false;
+                    return _fallback.TryGet(level, type, name, out value);
+                }
+            }
+        }
+
+        public void Set(GitConfigurationLevel level, string name, string value)
+        {
+            // Write operations not _yet_ supported by config-batch, use fallback
+            _fallback.Set(level, name, value);
+        }
+
+        public void Add(GitConfigurationLevel level, string name, string value)
+        {
+            // Write operations not _yet_ supported by config-batch, use fallback
+            _fallback.Add(level, name, value);
+        }
+
+        public void Unset(GitConfigurationLevel level, string name)
+        {
+            // Write operations not _yet_ supported by config-batch, use fallback
+            _fallback.Unset(level, name);
+        }
+
+        public IEnumerable<string> GetAll(GitConfigurationLevel level, GitConfigurationType type, string name)
+        {
+            // GetAll not efficiently supported by config-batch v1, use fallback
+            return _fallback.GetAll(level, type, name);
+        }
+
+        public IEnumerable<string> GetRegex(GitConfigurationLevel level, GitConfigurationType type, string nameRegex, string valueRegex)
+        {
+            // Regex operations not _yet_ supported by config-batch v1, use fallback
+            return _fallback.GetRegex(level, type, nameRegex, valueRegex);
+        }
+
+        public void ReplaceAll(GitConfigurationLevel level, string nameRegex, string valueRegex, string value)
+        {
+            // Write operations not supported by config-batch, use fallback
+            _fallback.ReplaceAll(level, nameRegex, valueRegex, value);
+        }
+
+        public void UnsetAll(GitConfigurationLevel level, string name, string valueRegex)
+        {
+            // Write operations not supported by config-batch, use fallback
+            _fallback.UnsetAll(level, name, valueRegex);
+        }
+
+        private bool TryStartBatchProcess()
+        {
+            try
+            {
+                _batchProcess = _git.CreateProcess("config-batch");
+                _batchProcess.StartInfo.RedirectStandardError = true;
+
+                if (!_batchProcess.Start(Trace2ProcessClass.Git))
+                {
+                    _trace.WriteLine("Failed to start git config-batch process");
+                    return false;
+                }
+
+                _trace.WriteLine("Successfully started git config-batch process");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _trace.WriteLine($"git config-batch not available: {ex.Message}");
+                return false;
+            }
+        }
+
+        private void DisposeBatchProcess()
+        {
+            if (_batchProcess != null)
+            {
+                try
+                {
+                    if (!_batchProcess.Process.HasExited)
+                    {
+                        // Send empty line to allow graceful shutdown
+                        _batchProcess.StandardInput.WriteLine();
+                        _batchProcess.StandardInput.Close();
+
+                        // Give it a moment to exit gracefully
+                        if (!_batchProcess.Process.WaitForExit(1000))
+                        {
+                            _batchProcess.Kill();
+                        }
+                    }
+                }
+                catch
+                {
+                    // Ignore errors during cleanup
+                }
+                finally
+                {
+                    _batchProcess.Dispose();
+                    _batchProcess = null;
+                }
+            }
+        }
+
+        private static string GetBatchScope(GitConfigurationLevel level)
+        {
+            return level switch
+            {
+                GitConfigurationLevel.System => "system",
+                GitConfigurationLevel.Global => "global",
+                GitConfigurationLevel.Local => "local",
+                GitConfigurationLevel.All => "inherited",
+                _ => "inherited"
+            };
+        }
+
+        public void Dispose()
+        {
+            if (!_disposed)
+            {
+                lock (_processLock)
+                {
+                    if (!_disposed)
+                    {
+                        DisposeBatchProcess();
+                        _disposed = true;
+                    }
+                }
+            }
         }
     }
 
