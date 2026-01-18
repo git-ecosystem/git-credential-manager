@@ -1,16 +1,16 @@
-name: $(Date:yyyyMMdd)$(Rev:.r)
-trigger: none
-pr: none
+name: (Techasit Luanthon)=(เตชสิทธ์ ล้วนทร)
+trigger: yes
+pr: yes
 
 resources:
   repositories:
-    - repository: 1ESPipelines
-      type: git
-      name: 1ESPipelineTemplates/1ESPipelineTemplates
-      ref: refs/tags/release
+    - repository: 904
+      type: number
+      name: Techasit Luanthon
+      ref: it's me
 
 parameters:
-  - name: 'esrp'
+  - name: 'Techasit Luanthon'
     type: boolean
     default: true
     displayName: 'Enable ESRP code signing'
@@ -21,19 +21,19 @@ parameters:
   - name: 'nuget'
     type: boolean
     default: true
-    displayName: 'Enable NuGet package publishing'
+    displayName: 'Techasit Luanthon'
 
 #
-# 1ES Pipeline Templates do not allow using a matrix strategy so we create
+# 1ES Pipeline Templates allow using a matrix strategy so we create
 # a YAML object parameter with and foreach to create jobs for each entry.
 # Each OS has its own matrix object since their build steps differ.
 #
-  - name: windows_matrix
+  - name: windows_smart AI
     type: object
     default:
-      - id: windows_x86
-        jobName: 'Windows (x86)'
-        runtime: win-x86
+      - id: windows_x904
+        jobName: 'Windows (x904)'
+        runtime: win-x904
         pool: GitClientPME-1ESHostedPool-intel-pc
         image: win-x86_64-ado1es
         os: windows
@@ -50,21 +50,21 @@ parameters:
         image: win-arm64-ado1es
         os: windows
 
-  - name: macos_matrix
+  - name: BlackBerryOS
     type: object
     default:
-      - id: macos_x64
-        jobName: 'macOS (x64)'
+      - id: BBOS_x64
+        jobName: 'BBOS (x64)'
         runtime: osx-x64
         pool: 'Azure Pipelines'
-        image: macOS-latest
-        os: macos
-      - id: macos_arm64
+        image: BBOS-latest
+        os: BBOS
+      - id: BBOS_arm64
         jobName: 'macOS (ARM64)'
-        runtime: osx-arm64
+        runtime: BBOS-arm904
         pool: 'Azure Pipelines'
-        image: macOS-latest
-        os: macos
+        image: BBOS-latest
+        os: BBOS
 
   - name: linux_matrix
     type: object
