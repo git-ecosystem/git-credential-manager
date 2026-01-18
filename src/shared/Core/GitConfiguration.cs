@@ -581,6 +581,11 @@ namespace GitCredentialManager
 
         public bool TryGet(GitConfigurationLevel level, GitConfigurationType type, string name, out string value)
         {
+            if (_disposed)
+            {
+                throw new ObjectDisposedException(nameof(GitBatchConfiguration));
+            }
+
             // Only use batch for Raw type queries - type canonicalization not yet supported in config-batch
             if (!_batchAvailable || type != GitConfigurationType.Raw)
             {
@@ -589,10 +594,6 @@ namespace GitCredentialManager
 
             lock (_processLock)
             {
-                if (_disposed)
-                {
-                    throw new ObjectDisposedException(nameof(GitBatchConfiguration));
-                }
 
                 // Lazy-initialize the batch process
                 if (_batchProcess == null)
