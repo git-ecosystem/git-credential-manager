@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Text;
 using System.Threading;
 
@@ -608,23 +609,28 @@ namespace GitCredentialManager
                 try
                 {
                     string scope = GetBatchScope(level);
-                    string command = $"get 1 {scope} {name}";
 
-                    _batchProcess.StandardInput.WriteLine(command);
+                    // Write command in NUL-terminated format: <len>:get NUL <len>:1 NUL <len>:scope NUL <len>:name NUL NUL
+                    WriteToken(_batchProcess.StandardInput, "get");
+                    WriteToken(_batchProcess.StandardInput, "1");
+                    WriteToken(_batchProcess.StandardInput, scope);
+                    WriteToken(_batchProcess.StandardInput, name);
+                    WriteCommandTerminator(_batchProcess.StandardInput);
                     _batchProcess.StandardInput.Flush();
 
-                    string response = _batchProcess.StandardOutput.ReadLine();
+                    // Read response tokens
+                    List<string> tokens = ReadTokens(_batchProcess.StandardOutput);
 
-                    if (response == null)
+                    if (tokens == null)
                     {
-                        // Process died, fall back
-                        _trace.WriteLine("git config-batch process terminated unexpectedly");
+                        // Process died or parse error, fall back
+                        _trace.WriteLine("git config-batch process terminated unexpectedly or returned invalid data");
                         DisposeBatchProcess();
                         _batchAvailable = false;
                         return _fallback.TryGet(level, type, name, out value);
                     }
 
-                    if (response == "unknown_command")
+                    if (tokens.Count == 1 && tokens[0] == "unknown_command")
                     {
                         // Command not understood, fall back for all future calls
                         _trace.WriteLine("git config-batch does not understand 'get' command, falling back");
@@ -633,17 +639,14 @@ namespace GitCredentialManager
                         return _fallback.TryGet(level, type, name, out value);
                     }
 
-                    // Parse response: "get 1 found <key> <scope> <value>" or "get 1 missing <key> [<value>]"
-                    // Max 6 parts to allow for spaces in value.
-                    string[] parts = response.Split(new[] { ' ' }, 6);
-
-                    if (parts.Length >= 6 && parts[0] == "get" && parts[1] == "1" && parts[2] == "found")
+                    // Parse response tokens: ["get", "1", "found", key, scope, value] or ["get", "1", "missing", key]
+                    if (tokens.Count >= 6 && tokens[0] == "get" && tokens[1] == "1" && tokens[2] == "found")
                     {
-                        // Found: parts[3] is key, parts[4] is scope, parts[5] is value (may contain spaces)
-                        value = parts[5];
+                        // Found: tokens[3] is key, tokens[4] is scope, tokens[5] is value
+                        value = tokens[5];
                         return true;
                     }
-                    else if (parts.Length >= 4 && parts[0] == "get" && parts[1] == "1" && parts[2] == "missing")
+                    else if (tokens.Count >= 4 && tokens[0] == "get" && tokens[1] == "1" && tokens[2] == "missing")
                     {
                         // Not found
                         value = null;
@@ -652,7 +655,7 @@ namespace GitCredentialManager
                     else
                     {
                         // Unexpected response format
-                        _trace.WriteLine($"Unexpected response from git config-batch: {response}");
+                        _trace.WriteLine($"Unexpected response from git config-batch: [{string.Join(", ", tokens)}]");
                         value = null;
                         return false;
                     }
@@ -713,7 +716,7 @@ namespace GitCredentialManager
         {
             try
             {
-                _batchProcess = _git.CreateProcess("config-batch");
+                _batchProcess = _git.CreateProcess("config-batch -z");
                 _batchProcess.StartInfo.RedirectStandardError = true;
 
                 if (!_batchProcess.Start(Trace2ProcessClass.Git))
@@ -722,7 +725,7 @@ namespace GitCredentialManager
                     return false;
                 }
 
-                _trace.WriteLine("Successfully started git config-batch process");
+                _trace.WriteLine("Successfully started git config-batch -z process");
                 return true;
             }
             catch (Exception ex)
@@ -740,8 +743,8 @@ namespace GitCredentialManager
                 {
                     if (!_batchProcess.Process.HasExited)
                     {
-                        // Send empty line to allow graceful shutdown
-                        _batchProcess.StandardInput.WriteLine();
+                        // Send empty command (just NUL) to allow graceful shutdown in -z mode
+                        _batchProcess.StandardInput.Write('\0');
                         _batchProcess.StandardInput.Close();
 
                         // Give it a moment to exit gracefully
@@ -773,6 +776,110 @@ namespace GitCredentialManager
                 GitConfigurationLevel.All => "inherited",
                 _ => "inherited"
             };
+        }
+
+        /// <summary>
+        /// Writes a single token in the NUL-terminated format: &lt;length&gt;:&lt;string&gt;NUL
+        /// </summary>
+        private static void WriteToken(StreamWriter writer, string token)
+        {
+            writer.Write($"{token.Length}:{token}\0");
+        }
+
+        /// <summary>
+        /// Writes the command terminator (an additional NUL byte) for the -z format.
+        /// </summary>
+        private static void WriteCommandTerminator(StreamWriter writer)
+        {
+            writer.Write('\0');
+        }
+
+        /// <summary>
+        /// Reads tokens from the NUL-terminated format until a command terminator (empty token) is found.
+        /// Returns the list of tokens for one response line.
+        /// </summary>
+        private static List<string> ReadTokens(StreamReader reader)
+        {
+            var tokens = new List<string>();
+
+            while (true)
+            {
+                string token = ReadSingleToken(reader);
+                if (token == null)
+                {
+                    // End of stream or error
+                    return null;
+                }
+
+                if (token.Length == 0)
+                {
+                    // Empty token signals end of command
+                    break;
+                }
+
+                tokens.Add(token);
+            }
+
+            return tokens;
+        }
+
+        /// <summary>
+        /// Reads a single token in the format &lt;length&gt;:&lt;string&gt;NUL
+        /// Returns empty string for command terminator (just NUL), null on error/EOF.
+        /// </summary>
+        private static string ReadSingleToken(StreamReader reader)
+        {
+            // Read the length prefix
+            var lengthBuilder = new StringBuilder();
+            int ch;
+
+            while ((ch = reader.Read()) != -1)
+            {
+                if (ch == '\0')
+                {
+                    // This is the command terminator (NUL without length prefix)
+                    return string.Empty;
+                }
+
+                if (ch == ':')
+                {
+                    break;
+                }
+
+                lengthBuilder.Append((char)ch);
+            }
+
+            if (ch == -1)
+            {
+                return null; // End of stream
+            }
+
+            if (!int.TryParse(lengthBuilder.ToString(), out int length))
+            {
+                return null; // Parse error
+            }
+
+            // Read exactly 'length' characters
+            var buffer = new char[length];
+            int totalRead = 0;
+            while (totalRead < length)
+            {
+                int read = reader.Read(buffer, totalRead, length - totalRead);
+                if (read == 0)
+                {
+                    return null; // Unexpected end of stream
+                }
+                totalRead += read;
+            }
+
+            // Read the trailing NUL
+            ch = reader.Read();
+            if (ch != '\0')
+            {
+                return null; // Expected NUL terminator
+            }
+
+            return new string(buffer);
         }
 
         public void Dispose()
