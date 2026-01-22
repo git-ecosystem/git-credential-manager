@@ -1,6 +1,10 @@
 # Inputs
 param ([Parameter(Mandatory)] $Configuration, [Parameter(Mandatory)] $Output, $RuntimeIdentifier, $SymbolOutput)
 
+# Trim trailing slashes from output paths
+$Output = $Output.TrimEnd('\','/')
+$SymbolOutput = $SymbolOutput.TrimEnd('\','/')
+
 Write-Output "Output: $Output"
 
 # Determine a runtime if one was not provided
