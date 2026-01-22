@@ -13,8 +13,11 @@
     <TargetFramework>net472</TargetFramework>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <EnableDefaultItems>false</EnableDefaultItems>
-    <PayloadPath>$(PlatformOutPath)Installer.Windows\bin\$(Configuration)\net472\$(RuntimeIdentifier)</PayloadPath>
+    <PayloadPath>$(PlatformOutPath)Installer.Windows\bin\$(Configuration)\net472\$(RuntimeIdentifier)\</PayloadPath>
     <InnoSetupVersion>6.3.1</InnoSetupVersion>
+    <!-- We already append the RID to our intermediate PayloadPath and also to the
+         final installer filenames so there's no need to append to the output path. -->
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
   </PropertyGroup>
 
   <ItemGroup>

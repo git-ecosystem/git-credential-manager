@@ -51,7 +51,7 @@ jobs:
       shell: bash
       run: |
         mkdir -p artifacts/bin
-        mv out/windows/Installer.Windows/bin/Release/net472/${{ matrix.runtime }}/gcm*.exe artifacts/
+        mv out/windows/Installer.Windows/bin/Release/net472/gcm*.exe artifacts/
         mv out/windows/Installer.Windows/bin/Release/net472/${{ matrix.runtime }} artifacts/bin/
         cp out/windows/Installer.Windows/bin/Release/net472/${{ matrix.runtime }}.sym/* artifacts/bin/${{ matrix.runtime }}/
 
