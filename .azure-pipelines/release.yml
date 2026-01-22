@@ -197,6 +197,12 @@ extends:
                             "Parameters": {}
                           }
                         ]
+                  - task: PowerShell@2
+                    displayName: 'Clean up code signing artifacts'
+                    inputs:
+                      targetType: inline
+                      script: |
+                        Remove-Item "$(Build.ArtifactStagingDirectory)\payload\CodeSignSummary-*.md"
                 - task: PowerShell@2
                   displayName: 'Build installers'
                   inputs:
