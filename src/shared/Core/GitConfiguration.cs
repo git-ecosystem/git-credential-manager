@@ -633,17 +633,17 @@ namespace GitCredentialManager
                         return _fallback.TryGet(level, type, name, out value);
                     }
 
-                    // Parse response: "get found <key> <scope> <value>" or "get missing <key>"
-                    // Max 5 parts to allow for spaces in value.
-                    string[] parts = response.Split(new[] { ' ' }, 5);
+                    // Parse response: "get 1 found <key> <scope> <value>" or "get 1 missing <key> [<value>]"
+                    // Max 6 parts to allow for spaces in value.
+                    string[] parts = response.Split(new[] { ' ' }, 6);
 
-                    if (parts.Length >= 5 && parts[0] == "get" && parts[1] == "found")
+                    if (parts.Length >= 6 && parts[0] == "get" && parts[1] == "1" && parts[2] == "found")
                     {
-                        // Found: parts[2] is key, parts[3] is scope, parts[4] is value (may contain spaces)
-                        value = parts[4];
+                        // Found: parts[3] is key, parts[4] is scope, parts[5] is value (may contain spaces)
+                        value = parts[5];
                         return true;
                     }
-                    else if (parts.Length >= 3 && parts[0] == "get" && parts[1] == "missing")
+                    else if (parts.Length >= 4 && parts[0] == "get" && parts[1] == "1" && parts[2] == "missing")
                     {
                         // Not found
                         value = null;
