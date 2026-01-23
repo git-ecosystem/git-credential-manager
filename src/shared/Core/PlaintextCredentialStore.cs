@@ -23,6 +23,10 @@ namespace GitCredentialManager
         protected string Namespace { get; }
         protected virtual string CredentialFileExtension => ".credential";
 
+        public bool CanStorePasswordExpiry => false;
+
+        public bool CanStoreOAuthRefreshToken => false;
+
         public IList<string> GetAccounts(string service)
         {
             return Enumerate(service, null).Select(x => x.Account).Distinct().ToList();
@@ -216,5 +220,8 @@ namespace GitCredentialManager
 
             return sb.ToString();
         }
+
+        public void AddOrUpdate(string service, ICredential credential) => AddOrUpdate(service, credential.Account, credential.Password);
+        public bool Remove(string service, ICredential credential) => Remove(service, credential.Account);
     }
 }
