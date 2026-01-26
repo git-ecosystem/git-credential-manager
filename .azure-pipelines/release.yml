@@ -31,11 +31,23 @@ parameters:
   - name: windows_matrix
     type: object
     default:
-      - id: windows_x64
+      - id: windows_x86
         jobName: 'Windows (x86)'
         runtime: win-x86
         pool: GitClientPME-1ESHostedPool-intel-pc
         image: win-x86_64-ado1es
+        os: windows
+      - id: windows_x64
+        jobName: 'Windows (x64)'
+        runtime: win-x64
+        pool: GitClientPME-1ESHostedPool-intel-pc
+        image: win-x86_64-ado1es
+        os: windows
+      - id: windows_arm64
+        jobName: 'Windows (ARM64)'
+        runtime: win-arm64
+        pool: GitClientPME-1ESHostedPool-arm64-pc
+        image: win-arm64-ado1es
         os: windows
 
   - name: macos_matrix
@@ -62,6 +74,12 @@ parameters:
         runtime: linux-x64
         pool: GitClientPME-1ESHostedPool-intel-pc
         image: ubuntu-x86_64-ado1es
+        os: linux
+      - id: linux_arm64
+        jobName: 'Linux (ARM64)'
+        runtime: linux-arm64
+        pool: GitClientPME-1ESHostedPool-arm64-pc
+        image: ubuntu-arm64-ado1es
         os: linux
 
 variables:
@@ -130,54 +148,61 @@ extends:
                     arguments: |
                       -Configuration Release `
                       -Output $(Build.ArtifactStagingDirectory)\payload `
-                      -SymbolOutput $(Build.ArtifactStagingDirectory)\symbols_raw
+                      -SymbolOutput $(Build.ArtifactStagingDirectory)\symbols_raw `
+                      -RuntimeIdentifier ${{ dim.runtime }}
                 - task: ArchiveFiles@2
                   displayName: 'Archive symbols'
                   inputs:
                     rootFolderOrFile: '$(Build.ArtifactStagingDirectory)\symbols_raw'
                     includeRootFolder: false
                     archiveType: zip
-                    archiveFile: '$(Build.ArtifactStagingDirectory)\symbols\gcm-win-x86-$(version)-symbols.zip'
-                - task: EsrpCodeSigning@5
-                  condition: and(succeeded(), eq('${{ parameters.esrp }}', true))
-                  displayName: 'Sign payload'
-                  inputs:
-                    connectedServiceName: '$(esrpAppConnectionName)'
-                    useMSIAuthentication: true
-                    appRegistrationClientId: '$(esrpClientId)'
-                    appRegistrationTenantId: '$(esrpTenantId)'
-                    authAkvName: '$(esrpKeyVaultName)'
-                    authSignCertName: '$(esrpSignReqCertName)'
-                    serviceEndpointUrl: '$(esrpEndpointUrl)'
-                    folderPath: '$(Build.ArtifactStagingDirectory)\payload'
-                    pattern: |
-                      **/*.exe
-                      **/*.dll
-                    useMinimatch: true
-                    signConfigType: inlineSignParams
-                    inlineOperation: |
-                      [
-                        {
-                          "KeyCode": "CP-230012",
-                          "OperationCode": "SigntoolSign",
-                          "ToolName": "sign",
-                          "ToolVersion": "1.0",
-                          "Parameters": {
-                            "OpusName": "Microsoft",
-                            "OpusInfo": "https://www.microsoft.com",
-                            "FileDigest": "/fd SHA256",
-                            "PageHash": "/NPH",
-                            "TimeStamp": "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
+                    archiveFile: '$(Build.ArtifactStagingDirectory)\symbols\gcm-${{ dim.runtime }}-$(version)-symbols.zip'
+                - ${{ if eq(parameters.esrp, true) }}:
+                  - task: EsrpCodeSigning@5
+                    displayName: 'Sign payload'
+                    inputs:
+                      connectedServiceName: '$(esrpAppConnectionName)'
+                      useMSIAuthentication: true
+                      appRegistrationClientId: '$(esrpClientId)'
+                      appRegistrationTenantId: '$(esrpTenantId)'
+                      authAkvName: '$(esrpKeyVaultName)'
+                      authSignCertName: '$(esrpSignReqCertName)'
+                      serviceEndpointUrl: '$(esrpEndpointUrl)'
+                      folderPath: '$(Build.ArtifactStagingDirectory)\payload'
+                      pattern: |
+                        **/*.exe
+                        **/*.dll
+                      useMinimatch: true
+                      signConfigType: inlineSignParams
+                      inlineOperation: |
+                        [
+                          {
+                            "KeyCode": "CP-230012",
+                            "OperationCode": "SigntoolSign",
+                            "ToolName": "sign",
+                            "ToolVersion": "1.0",
+                            "Parameters": {
+                              "OpusName": "Microsoft",
+                              "OpusInfo": "https://www.microsoft.com",
+                              "FileDigest": "/fd SHA256",
+                              "PageHash": "/NPH",
+                              "TimeStamp": "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
+                            }
+                          },
+                          {
+                            "KeyCode": "CP-230012",
+                            "OperationCode": "SigntoolVerify",
+                            "ToolName": "sign",
+                            "ToolVersion": "1.0",
+                            "Parameters": {}
                           }
-                        },
-                        {
-                          "KeyCode": "CP-230012",
-                          "OperationCode": "SigntoolVerify",
-                          "ToolName": "sign",
-                          "ToolVersion": "1.0",
-                          "Parameters": {}
-                        }
-                      ]
+                        ]
+                  - task: PowerShell@2
+                    displayName: 'Clean up code signing artifacts'
+                    inputs:
+                      targetType: inline
+                      script: |
+                        Remove-Item "$(Build.ArtifactStagingDirectory)\payload\CodeSignSummary-*.md"
                 - task: PowerShell@2
                   displayName: 'Build installers'
                   inputs:
@@ -188,52 +213,54 @@ extends:
                         --no-dependencies `
                         -p:NoLayout=true `
                         -p:PayloadPath="$(Build.ArtifactStagingDirectory)\payload" `
-                        -p:OutputPath="$(Build.ArtifactStagingDirectory)\installers"
-                - task: EsrpCodeSigning@5
-                  condition: and(succeeded(), eq('${{ parameters.esrp }}', true))
-                  displayName: 'Sign installers'
-                  inputs:
-                    connectedServiceName: '$(esrpAppConnectionName)'
-                    useMSIAuthentication: true
-                    appRegistrationClientId: '$(esrpClientId)'
-                    appRegistrationTenantId: '$(esrpTenantId)'
-                    authAkvName: '$(esrpKeyVaultName)'
-                    authSignCertName: '$(esrpSignReqCertName)'
-                    serviceEndpointUrl: '$(esrpEndpointUrl)'
-                    folderPath: '$(Build.ArtifactStagingDirectory)\installers'
-                    pattern: '**/*.exe'
-                    useMinimatch: true
-                    signConfigType: inlineSignParams
-                    inlineOperation: |
-                      [
-                        {
-                          "KeyCode": "CP-230012",
-                          "OperationCode": "SigntoolSign",
-                          "ToolName": "sign",
-                          "ToolVersion": "1.0",
-                          "Parameters": {
-                            "OpusName": "Microsoft",
-                            "OpusInfo": "https://www.microsoft.com",
-                            "FileDigest": "/fd SHA256",
-                            "PageHash": "/NPH",
-                            "TimeStamp": "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
+                        -p:OutputPath="$(Build.ArtifactStagingDirectory)\installers" `
+                        -p:RuntimeIdentifier="${{ dim.runtime }}"
+                - ${{ if eq(parameters.esrp, true) }}:
+                  - task: EsrpCodeSigning@5
+                    condition: and(succeeded(), eq('${{ parameters.esrp }}', true))
+                    displayName: 'Sign installers'
+                    inputs:
+                      connectedServiceName: '$(esrpAppConnectionName)'
+                      useMSIAuthentication: true
+                      appRegistrationClientId: '$(esrpClientId)'
+                      appRegistrationTenantId: '$(esrpTenantId)'
+                      authAkvName: '$(esrpKeyVaultName)'
+                      authSignCertName: '$(esrpSignReqCertName)'
+                      serviceEndpointUrl: '$(esrpEndpointUrl)'
+                      folderPath: '$(Build.ArtifactStagingDirectory)\installers'
+                      pattern: '**/*.exe'
+                      useMinimatch: true
+                      signConfigType: inlineSignParams
+                      inlineOperation: |
+                        [
+                          {
+                            "KeyCode": "CP-230012",
+                            "OperationCode": "SigntoolSign",
+                            "ToolName": "sign",
+                            "ToolVersion": "1.0",
+                            "Parameters": {
+                              "OpusName": "Microsoft",
+                              "OpusInfo": "https://www.microsoft.com",
+                              "FileDigest": "/fd SHA256",
+                              "PageHash": "/NPH",
+                              "TimeStamp": "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
+                            }
+                          },
+                          {
+                            "KeyCode": "CP-230012",
+                            "OperationCode": "SigntoolVerify",
+                            "ToolName": "sign",
+                            "ToolVersion": "1.0",
+                            "Parameters": {}
                           }
-                        },
-                        {
-                          "KeyCode": "CP-230012",
-                          "OperationCode": "SigntoolVerify",
-                          "ToolName": "sign",
-                          "ToolVersion": "1.0",
-                          "Parameters": {}
-                        }
-                      ]
+                        ]
                 - task: ArchiveFiles@2
-                  displayName: 'Archive signed payload'
+                  displayName: 'Archive payload'
                   inputs:
                     rootFolderOrFile: '$(Build.ArtifactStagingDirectory)\payload'
                     includeRootFolder: false
                     archiveType: zip
-                    archiveFile: '$(Build.ArtifactStagingDirectory)\installers\gcm-win-x86-$(version).zip'
+                    archiveFile: '$(Build.ArtifactStagingDirectory)\installers\gcm-${{ dim.runtime }}-$(version).zip'
                 - task: PowerShell@2
                   displayName: 'Collect artifacts for publishing'
                   inputs:
@@ -291,105 +318,105 @@ extends:
                     archiveType: tar
                     tarCompression: gz
                     archiveFile: '$(Build.ArtifactStagingDirectory)/symbols/gcm-${{ dim.runtime }}-$(version)-symbols.tar.gz'
-                - task: AzureKeyVault@2
-                  displayName: 'Download developer certificate'
-                  inputs:
-                    azureSubscription: '$(esrpMIConnectionName)'
-                    keyVaultName: '$(esrpKeyVaultName)'
-                    secretsFilter: 'mac-developer-certificate,mac-developer-certificate-password,mac-developer-certificate-identity'
-                - task: Bash@3
-                  displayName: 'Import developer certificate'
-                  inputs:
-                    targetType: inline
-                    script: |
-                      # Create and unlock a keychain for the developer certificate
-                      security create-keychain -p pwd $(Agent.TempDirectory)/buildagent.keychain
-                      security default-keychain -s $(Agent.TempDirectory)/buildagent.keychain
-                      security unlock-keychain -p pwd $(Agent.TempDirectory)/buildagent.keychain
+                - ${{ if eq(parameters.esrp, true) }}:
+                  - task: AzureKeyVault@2
+                    displayName: 'Download developer certificate'
+                    inputs:
+                      azureSubscription: '$(esrpMIConnectionName)'
+                      keyVaultName: '$(esrpKeyVaultName)'
+                      secretsFilter: 'mac-developer-certificate,mac-developer-certificate-password,mac-developer-certificate-identity'
+                  - task: Bash@3
+                    displayName: 'Import developer certificate'
+                    inputs:
+                      targetType: inline
+                      script: |
+                        # Create and unlock a keychain for the developer certificate
+                        security create-keychain -p pwd $(Agent.TempDirectory)/buildagent.keychain
+                        security default-keychain -s $(Agent.TempDirectory)/buildagent.keychain
+                        security unlock-keychain -p pwd $(Agent.TempDirectory)/buildagent.keychain
 
-                      echo $(mac-developer-certificate) | base64 -D > $(Agent.TempDirectory)/cert.p12
-                      echo $(mac-developer-certificate-password) > $(Agent.TempDirectory)/cert.password
+                        echo $(mac-developer-certificate) | base64 -D > $(Agent.TempDirectory)/cert.p12
+                        echo $(mac-developer-certificate-password) > $(Agent.TempDirectory)/cert.password
 
-                      # Import the developer certificate
-                      security import $(Agent.TempDirectory)/cert.p12 \
-                        -k $(Agent.TempDirectory)/buildagent.keychain \
-                        -P "$(mac-developer-certificate-password)" \
-                        -T /usr/bin/codesign
+                        # Import the developer certificate
+                        security import $(Agent.TempDirectory)/cert.p12 \
+                          -k $(Agent.TempDirectory)/buildagent.keychain \
+                          -P "$(mac-developer-certificate-password)" \
+                          -T /usr/bin/codesign
 
-                      # Clean up the cert file immediately after import
-                      rm $(Agent.TempDirectory)/cert.p12
+                        # Clean up the cert file immediately after import
+                        rm $(Agent.TempDirectory)/cert.p12
 
-                      # Set ACLs to allow codesign to access the private key
-                      security set-key-partition-list \
-                        -S apple-tool:,apple:,codesign: \
-                        -s -k pwd \
-                        $(Agent.TempDirectory)/buildagent.keychain
-                - task: Bash@3
-                  displayName: 'Developer sign payload files'
-                  inputs:
-                    targetType: inline
-                    script: |
-                      mkdir -p $(Build.ArtifactStagingDirectory)/tosign/payload
+                        # Set ACLs to allow codesign to access the private key
+                        security set-key-partition-list \
+                          -S apple-tool:,apple:,codesign: \
+                          -s -k pwd \
+                          $(Agent.TempDirectory)/buildagent.keychain
+                  - task: Bash@3
+                    displayName: 'Developer sign payload files'
+                    inputs:
+                      targetType: inline
+                      script: |
+                        mkdir -p $(Build.ArtifactStagingDirectory)/tosign/payload
 
-                      # Copy the files that need signing (Mach-o executables and dylibs)
-                      pushd $(Build.ArtifactStagingDirectory)/payload
-                      find . -type f -exec file --mime {} + \
-                        | sed -n '/mach/s/: .*//p' \
-                        | while IFS= read -r f; do
-                            rel="${f#./}"
-                            tgt="$(Build.ArtifactStagingDirectory)/tosign/payload/$rel"
-                            mkdir -p "$(dirname "$tgt")"
-                            cp -- "$f" "$tgt"
-                          done
-                      popd
+                        # Copy the files that need signing (Mach-o executables and dylibs)
+                        pushd $(Build.ArtifactStagingDirectory)/payload
+                        find . -type f -exec file --mime {} + \
+                          | sed -n '/mach/s/: .*//p' \
+                          | while IFS= read -r f; do
+                              rel="${f#./}"
+                              tgt="$(Build.ArtifactStagingDirectory)/tosign/payload/$rel"
+                              mkdir -p "$(dirname "$tgt")"
+                              cp -- "$f" "$tgt"
+                            done
+                        popd
 
-                      # Developer sign the files
-                      ./src/osx/Installer.Mac/codesign.sh \
-                        "$(Build.ArtifactStagingDirectory)/tosign/payload" \
-                        "$(mac-developer-certificate-identity)" \
-                        "$PWD/src/osx/Installer.Mac/entitlements.xml"
-                # ESRP code signing for macOS requires the files be packaged in a zip file for submission
-                - task: ArchiveFiles@2
-                  displayName: 'Archive files for signing'
-                  inputs:
-                    rootFolderOrFile: '$(Build.ArtifactStagingDirectory)/tosign/payload'
-                    includeRootFolder: false
-                    archiveType: zip
-                    archiveFile: '$(Build.ArtifactStagingDirectory)/tosign/payload.zip'
-                - task: EsrpCodeSigning@5
-                  condition: and(succeeded(), eq('${{ parameters.esrp }}', true))
-                  displayName: 'Sign payload'
-                  inputs:
-                    connectedServiceName: '$(esrpAppConnectionName)'
-                    useMSIAuthentication: true
-                    appRegistrationClientId: '$(esrpClientId)'
-                    appRegistrationTenantId: '$(esrpTenantId)'
-                    authAkvName: '$(esrpKeyVaultName)'
-                    authSignCertName: '$(esrpSignReqCertName)'
-                    serviceEndpointUrl: '$(esrpEndpointUrl)'
-                    folderPath: '$(Build.ArtifactStagingDirectory)/tosign'
-                    pattern: 'payload.zip'
-                    useMinimatch: true
-                    signConfigType: inlineSignParams
-                    inlineOperation: |
-                      [
-                        {
-                          "KeyCode": "CP-401337-Apple",
-                          "OperationCode": "MacAppDeveloperSign",
-                          "ToolName": "sign",
-                          "ToolVersion": "1.0",
-                          "Parameters": {
-                            "Hardening": "Enable"
+                        # Developer sign the files
+                        ./src/osx/Installer.Mac/codesign.sh \
+                          "$(Build.ArtifactStagingDirectory)/tosign/payload" \
+                          "$(mac-developer-certificate-identity)" \
+                          "$PWD/src/osx/Installer.Mac/entitlements.xml"
+                  # ESRP code signing for macOS requires the files be packaged in a zip file for submission
+                  - task: ArchiveFiles@2
+                    displayName: 'Archive files for signing'
+                    inputs:
+                      rootFolderOrFile: '$(Build.ArtifactStagingDirectory)/tosign/payload'
+                      includeRootFolder: false
+                      archiveType: zip
+                      archiveFile: '$(Build.ArtifactStagingDirectory)/tosign/payload.zip'
+                  - task: EsrpCodeSigning@5
+                    displayName: 'Sign payload'
+                    inputs:
+                      connectedServiceName: '$(esrpAppConnectionName)'
+                      useMSIAuthentication: true
+                      appRegistrationClientId: '$(esrpClientId)'
+                      appRegistrationTenantId: '$(esrpTenantId)'
+                      authAkvName: '$(esrpKeyVaultName)'
+                      authSignCertName: '$(esrpSignReqCertName)'
+                      serviceEndpointUrl: '$(esrpEndpointUrl)'
+                      folderPath: '$(Build.ArtifactStagingDirectory)/tosign'
+                      pattern: 'payload.zip'
+                      useMinimatch: true
+                      signConfigType: inlineSignParams
+                      inlineOperation: |
+                        [
+                          {
+                            "KeyCode": "CP-401337-Apple",
+                            "OperationCode": "MacAppDeveloperSign",
+                            "ToolName": "sign",
+                            "ToolVersion": "1.0",
+                            "Parameters": {
+                              "Hardening": "Enable"
+                            }
                           }
-                        }
-                      ]
-                # Extract signed files, overwriting the unsigned files, ready for packaging
-                - task: Bash@3
-                  displayName: 'Extract signed payload files'
-                  inputs:
-                    targetType: inline
-                    script: |
-                      unzip -uo $(Build.ArtifactStagingDirectory)/tosign/payload.zip -d $(Build.ArtifactStagingDirectory)/payload
+                        ]
+                  # Extract signed files, overwriting the unsigned files, ready for packaging
+                  - task: Bash@3
+                    displayName: 'Extract signed payload files'
+                    inputs:
+                      targetType: inline
+                      script: |
+                        unzip -uo $(Build.ArtifactStagingDirectory)/tosign/payload.zip -d $(Build.ArtifactStagingDirectory)/payload
                 - task: Bash@3
                   displayName: 'Build component package'
                   inputs:
@@ -408,94 +435,95 @@ extends:
                       --version="$(version)" \
                       --runtime="${{ dim.runtime }}" \
                       --package-path="$(Build.ArtifactStagingDirectory)/pkg" \
-                      --output="$(Build.ArtifactStagingDirectory)/installers-presign/gcm-${{ dim.runtime }}-$(version).pkg"
-                # ESRP code signing for macOS requires the files be packaged in a zip file first
-                - task: Bash@3
-                  displayName: 'Prepare installer package for signing'
-                  inputs:
-                    targetType: inline
-                    script: |
-                      mkdir -p $(Build.ArtifactStagingDirectory)/tosign
-                      cd $(Build.ArtifactStagingDirectory)/installers-presign
-                      zip -rX $(Build.ArtifactStagingDirectory)/tosign/installers-presign.zip *.pkg
-                - task: EsrpCodeSigning@5
-                  condition: and(succeeded(), eq('${{ parameters.esrp }}', true))
-                  displayName: 'Sign installer package'
-                  inputs:
-                    connectedServiceName: '$(esrpAppConnectionName)'
-                    useMSIAuthentication: true
-                    appRegistrationClientId: '$(esrpClientId)'
-                    appRegistrationTenantId: '$(esrpTenantId)'
-                    authAkvName: '$(esrpKeyVaultName)'
-                    authSignCertName: '$(esrpSignReqCertName)'
-                    serviceEndpointUrl: '$(esrpEndpointUrl)'
-                    folderPath: '$(Build.ArtifactStagingDirectory)/tosign'
-                    pattern: 'installers-presign.zip'
-                    useMinimatch: true
-                    signConfigType: inlineSignParams
-                    inlineOperation: |
-                      [
-                        {
-                          "KeyCode": "CP-401337-Apple",
-                          "OperationCode": "MacAppDeveloperSign",
-                          "ToolName": "sign",
-                          "ToolVersion": "1.0",
-                          "Parameters": {
-                            "Hardening": "Enable"
+                      --output="$(Build.ArtifactStagingDirectory)/installers/gcm-${{ dim.runtime }}-$(version).pkg"
+                - ${{ if eq(parameters.esrp, true) }}:
+                  # ESRP code signing for macOS requires the files be packaged in a zip file first
+                  - task: Bash@3
+                    displayName: 'Prepare installer package for signing'
+                    inputs:
+                      targetType: inline
+                      script: |
+                        mkdir -p $(Build.ArtifactStagingDirectory)/tosign
+                        cd $(Build.ArtifactStagingDirectory)/installers
+                        zip -rX $(Build.ArtifactStagingDirectory)/tosign/installers.zip *.pkg
+                  - task: EsrpCodeSigning@5
+                    displayName: 'Sign installer package'
+                    inputs:
+                      connectedServiceName: '$(esrpAppConnectionName)'
+                      useMSIAuthentication: true
+                      appRegistrationClientId: '$(esrpClientId)'
+                      appRegistrationTenantId: '$(esrpTenantId)'
+                      authAkvName: '$(esrpKeyVaultName)'
+                      authSignCertName: '$(esrpSignReqCertName)'
+                      serviceEndpointUrl: '$(esrpEndpointUrl)'
+                      folderPath: '$(Build.ArtifactStagingDirectory)/tosign'
+                      pattern: 'installers.zip'
+                      useMinimatch: true
+                      signConfigType: inlineSignParams
+                      inlineOperation: |
+                        [
+                          {
+                            "KeyCode": "CP-401337-Apple",
+                            "OperationCode": "MacAppDeveloperSign",
+                            "ToolName": "sign",
+                            "ToolVersion": "1.0",
+                            "Parameters": {
+                              "Hardening": "Enable"
+                            }
                           }
-                        }
-                      ]
-                # Extract signed installer, overwriting the unsigned installer
-                - task: Bash@3
-                  displayName: 'Extract signed installer package'
-                  inputs:
-                    targetType: inline
-                    script: |
-                      unzip -uo $(Build.ArtifactStagingDirectory)/tosign/installers-presign.zip -d $(Build.ArtifactStagingDirectory)/installers
-                - task: Bash@3
-                  displayName: 'Prepare installer package for notarization'
-                  inputs:
-                    targetType: inline
-                    script: |
-                      mkdir -p $(Build.ArtifactStagingDirectory)/tosign
-                      cd $(Build.ArtifactStagingDirectory)/installers
-                      zip -rX $(Build.ArtifactStagingDirectory)/tosign/installers.zip *.pkg
-                - task: EsrpCodeSigning@5
-                  condition: and(succeeded(), eq('${{ parameters.esrp }}', true))
-                  displayName: 'Notarize installer package'
-                  inputs:
-                    connectedServiceName: '$(esrpAppConnectionName)'
-                    useMSIAuthentication: true
-                    appRegistrationClientId: '$(esrpClientId)'
-                    appRegistrationTenantId: '$(esrpTenantId)'
-                    authAkvName: '$(esrpKeyVaultName)'
-                    authSignCertName: '$(esrpSignReqCertName)'
-                    serviceEndpointUrl: '$(esrpEndpointUrl)'
-                    folderPath: '$(Build.ArtifactStagingDirectory)/tosign'
-                    pattern: 'installers.zip'
-                    useMinimatch: true
-                    signConfigType: inlineSignParams
-                    inlineOperation: |
-                      [
-                        {
-                          "KeyCode": "CP-401337-Apple",
-                          "OperationCode": "MacAppNotarize",
-                          "ToolName": "sign",
-                          "ToolVersion": "1.0",
-                          "Parameters": {
-                            "BundleId": "com.microsoft.gitcredentialmanager"
+                        ]
+                  # Extract signed installer, overwriting the unsigned installer
+                  - task: Bash@3
+                    displayName: 'Extract signed installer package'
+                    inputs:
+                      targetType: inline
+                      script: |
+                        unzip -uo $(Build.ArtifactStagingDirectory)/tosign/installers.zip -d $(Build.ArtifactStagingDirectory)/installers
+                  - task: Bash@3
+                    displayName: 'Prepare installer package for notarization'
+                    inputs:
+                      targetType: inline
+                      script: |
+                        mkdir -p $(Build.ArtifactStagingDirectory)/tosign
+                        cd $(Build.ArtifactStagingDirectory)/installers
+                        # Remove previous installers.zip to avoid any confusion
+                        rm -f $(Build.ArtifactStagingDirectory)/tosign/installers.zip
+                        zip -rX $(Build.ArtifactStagingDirectory)/tosign/installers.zip *.pkg
+                  - task: EsrpCodeSigning@5
+                    displayName: 'Notarize installer package'
+                    inputs:
+                      connectedServiceName: '$(esrpAppConnectionName)'
+                      useMSIAuthentication: true
+                      appRegistrationClientId: '$(esrpClientId)'
+                      appRegistrationTenantId: '$(esrpTenantId)'
+                      authAkvName: '$(esrpKeyVaultName)'
+                      authSignCertName: '$(esrpSignReqCertName)'
+                      serviceEndpointUrl: '$(esrpEndpointUrl)'
+                      folderPath: '$(Build.ArtifactStagingDirectory)/tosign'
+                      pattern: 'installers.zip'
+                      useMinimatch: true
+                      signConfigType: inlineSignParams
+                      inlineOperation: |
+                        [
+                          {
+                            "KeyCode": "CP-401337-Apple",
+                            "OperationCode": "MacAppNotarize",
+                            "ToolName": "sign",
+                            "ToolVersion": "1.0",
+                            "Parameters": {
+                              "BundleId": "com.microsoft.gitcredentialmanager"
+                            }
                           }
-                        }
-                      ]
-                # Extract signed and notarized installer pkg files, overwriting the unsigned files, ready for upload
-                - task: Bash@3
-                  displayName: 'Extract signed and notarized installer package'
-                  inputs:
-                    targetType: inline
-                    script: |
-                      unzip -uo $(Build.ArtifactStagingDirectory)/tosign/installers.zip -d $(Build.ArtifactStagingDirectory)/installers
+                        ]
+                  # Extract signed and notarized installer pkg files, overwriting the unsigned files, ready for upload
+                  - task: Bash@3
+                    displayName: 'Extract signed and notarized installer package'
+                    inputs:
+                      targetType: inline
+                      script: |
+                        unzip -uo $(Build.ArtifactStagingDirectory)/tosign/installers.zip -d $(Build.ArtifactStagingDirectory)/installers
                 - task: ArchiveFiles@2
-                  displayName: 'Archive signed payload'
+                  displayName: 'Archive payload'
                   inputs:
                     rootFolderOrFile: '$(Build.ArtifactStagingDirectory)/payload'
                     includeRootFolder: false
@@ -575,32 +603,32 @@ extends:
                       mkdir -p $(Build.ArtifactStagingDirectory)/installers
                       mv $(Build.ArtifactStagingDirectory)/pkg/tar/*.tar.gz $(Build.ArtifactStagingDirectory)/installers
                       mv $(Build.ArtifactStagingDirectory)/pkg/deb/*.deb $(Build.ArtifactStagingDirectory)/installers
-                - task: EsrpCodeSigning@5
-                  condition: and(succeeded(), eq('${{ parameters.esrp }}', true))
-                  displayName: 'Sign Debian package'
-                  inputs:
-                    connectedServiceName: '$(esrpAppConnectionName)'
-                    useMSIAuthentication: true
-                    appRegistrationClientId: '$(esrpClientId)'
-                    appRegistrationTenantId: '$(esrpTenantId)'
-                    authAkvName: '$(esrpKeyVaultName)'
-                    authSignCertName: '$(esrpSignReqCertName)'
-                    serviceEndpointUrl: '$(esrpEndpointUrl)'
-                    folderPath: '$(Build.ArtifactStagingDirectory)/installers'
-                    pattern: |
-                      **/*.deb
-                    useMinimatch: true
-                    signConfigType: inlineSignParams
-                    inlineOperation: |
-                      [
-                        {
-                          "KeyCode": "CP-453387-Pgp",
-                          "OperationCode": "LinuxSign",
-                          "ToolName": "sign",
-                          "ToolVersion": "1.0",
-                          "Parameters": {}
-                        }
-                      ]
+                - ${{ if eq(parameters.esrp, true) }}:
+                  - task: EsrpCodeSigning@5
+                    displayName: 'Sign Debian package'
+                    inputs:
+                      connectedServiceName: '$(esrpAppConnectionName)'
+                      useMSIAuthentication: true
+                      appRegistrationClientId: '$(esrpClientId)'
+                      appRegistrationTenantId: '$(esrpTenantId)'
+                      authAkvName: '$(esrpKeyVaultName)'
+                      authSignCertName: '$(esrpSignReqCertName)'
+                      serviceEndpointUrl: '$(esrpEndpointUrl)'
+                      folderPath: '$(Build.ArtifactStagingDirectory)/installers'
+                      pattern: |
+                        **/*.deb
+                      useMinimatch: true
+                      signConfigType: inlineSignParams
+                      inlineOperation: |
+                        [
+                          {
+                            "KeyCode": "CP-453387-Pgp",
+                            "OperationCode": "LinuxSign",
+                            "ToolName": "sign",
+                            "ToolVersion": "1.0",
+                            "Parameters": {}
+                          }
+                        ]
                 - task: Bash@3
                   displayName: 'Collect artifacts for publishing'
                   inputs:
@@ -652,46 +680,47 @@ extends:
                   arguments: |
                     -Configuration Release `
                     -Output "$(Build.ArtifactStagingDirectory)/nupkg"
-              - task: EsrpCodeSigning@5
-                condition: and(succeeded(), eq('${{ parameters.esrp }}', true))
-                displayName: 'Sign payload'
-                inputs:
-                  connectedServiceName: '$(esrpAppConnectionName)'
-                  useMSIAuthentication: true
-                  appRegistrationClientId: '$(esrpClientId)'
-                  appRegistrationTenantId: '$(esrpTenantId)'
-                  authAkvName: '$(esrpKeyVaultName)'
-                  authSignCertName: '$(esrpSignReqCertName)'
-                  serviceEndpointUrl: '$(esrpEndpointUrl)'
-                  folderPath: '$(Build.ArtifactStagingDirectory)/nupkg'
-                  pattern: |
-                    **/*.exe
-                    **/*.dll
-                  useMinimatch: true
-                  signConfigType: inlineSignParams
-                  inlineOperation: |
-                    [
-                      {
-                        "KeyCode": "CP-230012",
-                        "OperationCode": "SigntoolSign",
-                        "ToolName": "sign",
-                        "ToolVersion": "1.0",
-                        "Parameters": {
-                          "OpusName": "Microsoft",
-                          "OpusInfo": "https://www.microsoft.com",
-                          "FileDigest": "/fd SHA256",
-                          "PageHash": "/NPH",
-                          "TimeStamp": "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
+              - ${{ if eq(parameters.esrp, true) }}:
+                - task: EsrpCodeSigning@5
+                  condition: and(succeeded(), eq('${{ parameters.esrp }}', true))
+                  displayName: 'Sign payload'
+                  inputs:
+                    connectedServiceName: '$(esrpAppConnectionName)'
+                    useMSIAuthentication: true
+                    appRegistrationClientId: '$(esrpClientId)'
+                    appRegistrationTenantId: '$(esrpTenantId)'
+                    authAkvName: '$(esrpKeyVaultName)'
+                    authSignCertName: '$(esrpSignReqCertName)'
+                    serviceEndpointUrl: '$(esrpEndpointUrl)'
+                    folderPath: '$(Build.ArtifactStagingDirectory)/nupkg'
+                    pattern: |
+                      **/*.exe
+                      **/*.dll
+                    useMinimatch: true
+                    signConfigType: inlineSignParams
+                    inlineOperation: |
+                      [
+                        {
+                          "KeyCode": "CP-230012",
+                          "OperationCode": "SigntoolSign",
+                          "ToolName": "sign",
+                          "ToolVersion": "1.0",
+                          "Parameters": {
+                            "OpusName": "Microsoft",
+                            "OpusInfo": "https://www.microsoft.com",
+                            "FileDigest": "/fd SHA256",
+                            "PageHash": "/NPH",
+                            "TimeStamp": "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
+                          }
+                        },
+                        {
+                          "KeyCode": "CP-230012",
+                          "OperationCode": "SigntoolVerify",
+                          "ToolName": "sign",
+                          "ToolVersion": "1.0",
+                          "Parameters": {}
                         }
-                      },
-                      {
-                        "KeyCode": "CP-230012",
-                        "OperationCode": "SigntoolVerify",
-                        "ToolName": "sign",
-                        "ToolVersion": "1.0",
-                        "Parameters": {}
-                      }
-                    ]
+                      ]
               - task: PowerShell@2
                 displayName: 'Create NuGet packages'
                 inputs:
@@ -702,33 +731,34 @@ extends:
                     -Version "$(version)" `
                     -PackageRoot "$(Build.ArtifactStagingDirectory)/nupkg" `
                     -Output "$(Build.ArtifactStagingDirectory)/packages"
-              - task: EsrpCodeSigning@5
-                condition: and(succeeded(), eq('${{ parameters.esrp }}', true))
-                displayName: 'Sign NuGet packages'
-                inputs:
-                  connectedServiceName: '$(esrpAppConnectionName)'
-                  useMSIAuthentication: true
-                  appRegistrationClientId: '$(esrpClientId)'
-                  appRegistrationTenantId: '$(esrpTenantId)'
-                  authAkvName: '$(esrpKeyVaultName)'
-                  authSignCertName: '$(esrpSignReqCertName)'
-                  serviceEndpointUrl: '$(esrpEndpointUrl)'
-                  folderPath: '$(Build.ArtifactStagingDirectory)/packages'
-                  pattern: |
-                    **/*.nupkg
-                    **/*.snupkg
-                  useMinimatch: true
-                  signConfigType: inlineSignParams
-                  inlineOperation: |
-                    [
-                      {
-                        "KeyCode": "CP-401405",
-                        "OperationCode": "NuGetSign",
-                        "ToolName": "sign",
-                        "ToolVersion": "1.0",
-                        "Parameters": {}
-                      }
-                    ]
+              - ${{ if eq(parameters.esrp, true) }}:
+                - task: EsrpCodeSigning@5
+                  condition: and(succeeded(), eq('${{ parameters.esrp }}', true))
+                  displayName: 'Sign NuGet packages'
+                  inputs:
+                    connectedServiceName: '$(esrpAppConnectionName)'
+                    useMSIAuthentication: true
+                    appRegistrationClientId: '$(esrpClientId)'
+                    appRegistrationTenantId: '$(esrpTenantId)'
+                    authAkvName: '$(esrpKeyVaultName)'
+                    authSignCertName: '$(esrpSignReqCertName)'
+                    serviceEndpointUrl: '$(esrpEndpointUrl)'
+                    folderPath: '$(Build.ArtifactStagingDirectory)/packages'
+                    pattern: |
+                      **/*.nupkg
+                      **/*.snupkg
+                    useMinimatch: true
+                    signConfigType: inlineSignParams
+                    inlineOperation: |
+                      [
+                        {
+                          "KeyCode": "CP-401405",
+                          "OperationCode": "NuGetSign",
+                          "ToolName": "sign",
+                          "ToolVersion": "1.0",
+                          "Parameters": {}
+                        }
+                      ]
 
       - stage: release
         displayName: 'Release'
@@ -769,6 +799,12 @@ extends:
                   artifactName: 'win-x86'
                   targetPath: $(Pipeline.Workspace)/assets/win-x86
                 - input: pipelineArtifact
+                  artifactName: 'win-x64'
+                  targetPath: $(Pipeline.Workspace)/assets/win-x64
+                - input: pipelineArtifact
+                  artifactName: 'win-arm64'
+                  targetPath: $(Pipeline.Workspace)/assets/win-arm64
+                - input: pipelineArtifact
                   artifactName: 'osx-x64'
                   targetPath: $(Pipeline.Workspace)/assets/osx-x64
                 - input: pipelineArtifact
@@ -777,6 +813,9 @@ extends:
                 - input: pipelineArtifact
                   artifactName: 'linux-x64'
                   targetPath: $(Pipeline.Workspace)/assets/linux-x64
+                - input: pipelineArtifact
+                  artifactName: 'linux-arm64'
+                  targetPath: $(Pipeline.Workspace)/assets/linux-arm64
                 - input: pipelineArtifact
                   artifactName: 'dotnet-tool'
                   targetPath: $(Pipeline.Workspace)/assets/dotnet-tool
@@ -796,12 +835,18 @@ extends:
                   assets: |
                     $(Pipeline.Workspace)/assets/win-x86/*.exe
                     $(Pipeline.Workspace)/assets/win-x86/*.zip
+                    $(Pipeline.Workspace)/assets/win-x64/*.exe
+                    $(Pipeline.Workspace)/assets/win-x64/*.zip
+                    $(Pipeline.Workspace)/assets/win-arm64/*.exe
+                    $(Pipeline.Workspace)/assets/win-arm64/*.zip
                     $(Pipeline.Workspace)/assets/osx-x64/*.pkg
                     $(Pipeline.Workspace)/assets/osx-x64/*.tar.gz
                     $(Pipeline.Workspace)/assets/osx-arm64/*.pkg
                     $(Pipeline.Workspace)/assets/osx-arm64/*.tar.gz
                     $(Pipeline.Workspace)/assets/linux-x64/*.deb
                     $(Pipeline.Workspace)/assets/linux-x64/*.tar.gz
+                    $(Pipeline.Workspace)/assets/linux-arm64/*.deb
+                    $(Pipeline.Workspace)/assets/linux-arm64/*.tar.gz
                     $(Pipeline.Workspace)/assets/dotnet-tool/*.nupkg
                     $(Pipeline.Workspace)/assets/dotnet-tool/*.snupkg
 

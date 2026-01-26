@@ -13,7 +13,16 @@ jobs:
 # ================================
   windows:
     name: Windows
-    runs-on: windows-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - runtime: win-x86
+            os: windows-latest
+          - runtime: win-x64
+            os: windows-latest
+          - runtime: win-arm64
+            os: windows-11-arm
 
     steps:
     - uses: actions/checkout@v6
@@ -27,24 +36,29 @@ jobs:
       run: dotnet restore
 
     - name: Build
-      run: dotnet build --configuration WindowsRelease
+      run: |
+        dotnet build src/windows/Installer.Windows/Installer.Windows.csproj `
+         --configuration=Release `
+         --runtime=${{ matrix.runtime }}
 
     - name: Test
       run: |
-        dotnet test --verbosity normal --configuration=WindowsRelease
+        dotnet test --verbosity normal `
+        --configuration=WindowsRelease `
+        --runtime=${{ matrix.runtime }}
 
     - name: Prepare artifacts
       shell: bash
       run: |
         mkdir -p artifacts/bin
-        mv out/windows/Installer.Windows/bin/Release/net472/win-x86 artifacts/bin/
-        cp out/windows/Installer.Windows/bin/Release/net472/win-x86.sym/* artifacts/bin/win-x86/
         mv out/windows/Installer.Windows/bin/Release/net472/gcm*.exe artifacts/
+        mv out/windows/Installer.Windows/bin/Release/net472/${{ matrix.runtime }} artifacts/bin/
+        cp out/windows/Installer.Windows/bin/Release/net472/${{ matrix.runtime }}.sym/* artifacts/bin/${{ matrix.runtime }}/
 
     - name: Upload artifacts
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       with:
-        name: win-x86
+        name: ${{ matrix.runtime }}
         path: |
           artifacts
 
@@ -86,7 +100,7 @@ jobs:
         mv out/linux/Packaging.Linux/Release/tar/*.tar.gz artifacts/
 
     - name: Upload artifacts
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       with:
         name: ${{ matrix.runtime }}
         path: |
@@ -131,7 +145,7 @@ jobs:
         mv out/osx/Installer.Mac/pkg/Release/gcm*.pkg artifacts/
 
     - name: Upload artifacts
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       with:
         name: ${{ matrix.runtime }}
         path: |

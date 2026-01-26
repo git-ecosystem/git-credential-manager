@@ -66,7 +66,7 @@ namespace GitCredentialManager.Interop.Linux
                     secService,
                     ref schema,
                     queryAttrs,
-                    SecretSearchFlags.SECRET_SEARCH_UNLOCK,
+                    SecretSearchFlags.SECRET_SEARCH_UNLOCK | SecretSearchFlags.SECRET_SEARCH_ALL,
                     IntPtr.Zero,
                     out error);
 
