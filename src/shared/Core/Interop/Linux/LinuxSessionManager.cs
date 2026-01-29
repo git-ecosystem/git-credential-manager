@@ -58,7 +58,9 @@ public class LinuxSessionManager : PosixSessionManager
             return true;
         }
 
-        // We require an interactive desktop session to be able to launch a browser
-        return IsDesktopSession;
+        // We can launch a browser if we have an interactive desktop session
+        // or if we have a shell execute handler available (e.g., xdg-open).
+        // This matches MSAL's behavior which checks xdg-open availability.
+        return IsDesktopSession || BrowserUtils.TryGetLinuxShellExecuteHandler(Environment, out _);
     }
 }
