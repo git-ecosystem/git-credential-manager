@@ -141,13 +141,7 @@ namespace Atlassian.Bitbucket.DataCenter
         {
             get
             {
-                var remoteUri = _context.Settings?.RemoteUri;
-                if (remoteUri == null)
-                {
-                    throw new ArgumentException("RemoteUri must be defined to generate Bitbucket DC OAuth2 endpoint Urls");
-                }
-
-                return new Uri(BitbucketHelper.GetBaseUri(remoteUri) + "/rest/");
+                return new Uri(BitbucketHelper.GetBaseUri(_context.Settings) + "/rest/");
             }
         }
     }
