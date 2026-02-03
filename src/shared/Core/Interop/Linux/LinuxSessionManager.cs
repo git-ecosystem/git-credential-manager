@@ -8,7 +8,7 @@ public class LinuxSessionManager : PosixSessionManager
 {
     private bool? _isWebBrowserAvailable;
 
-    public LinuxSessionManager(IEnvironment env, IFileSystem fs) : base(env, fs)
+    public LinuxSessionManager(ITrace trace, IEnvironment env, IFileSystem fs) : base(trace, env, fs)
     {
         PlatformUtils.EnsureLinux();
     }
@@ -41,6 +41,8 @@ public class LinuxSessionManager : PosixSessionManager
             throw new Exception("Failed to locate a utility to launch the default web browser.");
         }
 
+        Trace.WriteLine($"Opening browser using '{shellExecPath}: {url}");
+
         var psi = new ProcessStartInfo(shellExecPath, url)
         {
             RedirectStandardOutput = true,
@@ -53,44 +55,47 @@ public class LinuxSessionManager : PosixSessionManager
 
     private bool GetWebBrowserAvailable()
     {
+        // We need a shell execute handler to be able to launch to browser
+        if (!TryGetShellExecuteHandler(Environment, out _))
+        {
+            Trace.WriteLine("Could not locate a shell execute handler for Linux - browser is not available.");
+            return false;
+        }
+
         // If this is a Windows Subsystem for Linux distribution we may
-        // be able to launch the web browser of the host Windows OS.
+        // be able to launch the web browser of the host Windows OS, but
+        // there are further checks to do on the Windows host's session.
+        //
+        // If we are in Windows logon session 0 then the user can never interact,
+        // even in the WinSta0 window station. This is typical when SSH-ing into a
+        // Windows 10+ machine using the default OpenSSH Server configuration,
+        // which runs in the 'services' session 0.
+        //
+        // If we're in any other session, and in the WinSta0 window station then
+        // the user can possibly interact. However, since it's hard to determine
+        // the window station from PowerShell cmdlets (we'd need to write P/Invoke
+        // code and that's just messy and too many levels of indirection quite
+        // frankly!) we just assume any non session 0 is interactive.
+        //
+        // This assumption doesn't hold true if the user has changed the user that
+        // the OpenSSH Server service runs as (not a built-in NT service) *AND*
+        // they've SSH-ed into the Windows host (and then started a WSL shell).
+        // This feels like a very small subset of users...
+        //
         if (WslUtils.IsWslDistribution(Environment, FileSystem, out _))
         {
-            // We need a shell execute handler to be able to launch to browser
-            if (!TryGetShellExecuteHandler(Environment, out _))
-            {
-                return false;
-            }
-
-            //
-            // If we are in Windows logon session 0 then the user can never interact,
-            // even in the WinSta0 window station. This is typical when SSH-ing into a
-            // Windows 10+ machine using the default OpenSSH Server configuration,
-            // which runs in the 'services' session 0.
-            //
-            // If we're in any other session, and in the WinSta0 window station then
-            // the user can possibly interact. However, since it's hard to determine
-            // the window station from PowerShell cmdlets (we'd need to write P/Invoke
-            // code and that's just messy and too many levels of indirection quite
-            // frankly!) we just assume any non session 0 is interactive.
-            //
-            // This assumption doesn't hold true if the user has changed the user that
-            // the OpenSSH Server service runs as (not a built-in NT service) *AND*
-            // they've SSH-ed into the Windows host (and then started a WSL shell).
-            // This feels like a very small subset of users...
-            //
             if (WslUtils.GetWindowsSessionId(FileSystem) == 0)
             {
+                Trace.WriteLine("This is a WSL distribution, but Windows session 0 was detected - browser is not available.");
                 return false;
             }
 
-            // If we are not in session 0, or we cannot get the Windows session ID,
-            // assume that we *CAN* launch the browser so that users are never blocked.
+            // Not on session 0 - we assume the user can interact with browser on Windows.
+            Trace.WriteLine("This is a WSL distribution - browser is available.");
             return true;
         }
 
-        // We require an interactive desktop session to be able to launch a browser
+        // We need a desktop session to be able to launch the browser in the general case
         return IsDesktopSession;
     }
 
