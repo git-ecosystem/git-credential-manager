@@ -11,7 +11,7 @@ namespace GitHub.UI.ViewModels
 {
     public class SelectAccountViewModel : WindowViewModel
     {
-        private readonly IEnvironment _environment;
+        private readonly ISessionManager _sessionManager;
 
         private AccountViewModel _selectedAccount;
         private string _enterpriseUrl;
@@ -36,11 +36,11 @@ namespace GitHub.UI.ViewModels
             // Constructor the XAML designer
         }
 
-        public SelectAccountViewModel(IEnvironment environment, IEnumerable<string> accounts = null)
+        public SelectAccountViewModel(ISessionManager sessionManager, IEnumerable<string> accounts = null)
         {
-            EnsureArgument.NotNull(environment, nameof(environment));
+            EnsureArgument.NotNull(sessionManager, nameof(sessionManager));
 
-            _environment = environment;
+            _sessionManager = sessionManager;
 
             Title = "Select an account";
             ContinueCommand = new RelayCommand(Accept, CanContinue);
@@ -69,7 +69,7 @@ namespace GitHub.UI.ViewModels
 
         private void LearnMore()
         {
-            BrowserUtils.OpenDefaultBrowser(_environment, Constants.HelpUrls.GcmMultipleUsers);
+            _sessionManager.OpenBrowser(Constants.HelpUrls.GcmMultipleUsers);
         }
 
         private bool CanContinue()

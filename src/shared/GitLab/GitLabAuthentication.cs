@@ -88,7 +88,7 @@ namespace GitLab
         private async Task<AuthenticationPromptResult> GetAuthenticationViaUiAsync(
             Uri targetUri, string userName, AuthenticationModes modes)
         {
-            var viewModel = new CredentialsViewModel(Context.Environment)
+            var viewModel = new CredentialsViewModel(Context.SessionManager)
             {
                 ShowBrowserLogin = (modes & AuthenticationModes.Browser) != 0,
                 ShowTokenLogin   = (modes & AuthenticationModes.Pat) != 0,
@@ -274,7 +274,7 @@ namespace GitLab
             }
 
             var browserOptions = new OAuth2WebBrowserOptions { };
-            var browser = new OAuth2SystemWebBrowser(Context.Environment, browserOptions);
+            var browser = new OAuth2SystemWebBrowser(Context.SessionManager, browserOptions);
 
             // Write message to the terminal (if any is attached) for some feedback that we're waiting for a web response
             Context.Terminal.WriteLine("info: please complete authentication in your browser...");

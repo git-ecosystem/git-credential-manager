@@ -8,7 +8,7 @@ namespace GitLab.UI.ViewModels
 {
     public class CredentialsViewModel : WindowViewModel
     {
-        private readonly IEnvironment _environment;
+        private readonly ISessionManager _sessionManager;
 
         private string _url;
         private string _token;
@@ -28,11 +28,11 @@ namespace GitLab.UI.ViewModels
             // Constructor the XAML designer
         }
 
-        public CredentialsViewModel(IEnvironment environment)
+        public CredentialsViewModel(ISessionManager sessionManager)
         {
-            EnsureArgument.NotNull(environment, nameof(environment));
+            EnsureArgument.NotNull(sessionManager, nameof(sessionManager));
 
-            _environment = environment;
+            _sessionManager = sessionManager;
 
             Title = "Connect to GitLab";
             SignUpCommand = new RelayCommand(SignUp);
@@ -60,7 +60,7 @@ namespace GitLab.UI.ViewModels
 
         private void SignUp()
         {
-            BrowserUtils.OpenDefaultBrowser(_environment, "https://about.gitlab.com/");
+            _sessionManager.OpenBrowser("https://about.gitlab.com/");
         }
 
         private void SignInBrowser()

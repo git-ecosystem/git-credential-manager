@@ -23,7 +23,7 @@ namespace GitHub.UI.Commands
 
         private async Task<int> ExecuteAsync(string code, string url)
         {
-            var viewModel = new DeviceCodeViewModel(Context.Environment)
+            var viewModel = new DeviceCodeViewModel(Context.SessionManager)
             {
                 UserCode = code,
                 VerificationUrl = url,

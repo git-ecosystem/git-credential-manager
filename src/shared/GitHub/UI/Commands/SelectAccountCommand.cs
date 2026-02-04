@@ -28,7 +28,7 @@ namespace GitHub.UI.Commands
             // Read accounts from standard input
             IList<string> accounts = ReadAccounts();
 
-            var viewModel = new SelectAccountViewModel(Context.Environment, accounts)
+            var viewModel = new SelectAccountViewModel(Context.SessionManager, accounts)
             {
                 EnterpriseUrl = enterpriseUrl,
                 ShowHelpLink = !noHelp

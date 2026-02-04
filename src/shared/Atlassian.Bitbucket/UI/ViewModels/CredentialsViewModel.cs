@@ -9,7 +9,7 @@ namespace Atlassian.Bitbucket.UI.ViewModels
 {
     public class CredentialsViewModel : WindowViewModel
     {
-        private readonly IEnvironment _environment;
+        private readonly ISessionManager _sessionManager;
 
         private Uri _url;
         private string _userName;
@@ -22,11 +22,11 @@ namespace Atlassian.Bitbucket.UI.ViewModels
             // Constructor the XAML designer
         }
 
-        public CredentialsViewModel(IEnvironment environment)
+        public CredentialsViewModel(ISessionManager sessionManager)
         {
-            EnsureArgument.NotNull(environment, nameof(environment));
+            EnsureArgument.NotNull(sessionManager, nameof(sessionManager));
 
-            _environment = environment;
+            _sessionManager = sessionManager;
 
             Title = "Connect to Bitbucket";
             LoginCommand = new RelayCommand(AcceptBasic, CanLogin);
@@ -77,7 +77,7 @@ namespace Atlassian.Bitbucket.UI.ViewModels
                 ? new Uri(BitbucketConstants.HelpUrls.PasswordReset)
                 : new Uri(_url, BitbucketConstants.HelpUrls.DataCenterPasswordReset);
 
-            BrowserUtils.OpenDefaultBrowser(_environment, passwordResetUri);
+            _sessionManager.OpenBrowser(passwordResetUri);
         }
 
         private void SignUp()
@@ -86,7 +86,7 @@ namespace Atlassian.Bitbucket.UI.ViewModels
                 ? new Uri(BitbucketConstants.HelpUrls.SignUp)
                 : new Uri(_url, BitbucketConstants.HelpUrls.DataCenterLogin);
 
-            BrowserUtils.OpenDefaultBrowser(_environment, signUpUri);
+            _sessionManager.OpenBrowser(signUpUri);
         }
 
         public Uri Url

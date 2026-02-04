@@ -8,7 +8,7 @@ namespace GitHub.UI.ViewModels
 {
     public class TwoFactorViewModel : WindowViewModel
     {
-        private readonly IEnvironment _environment;
+        private readonly ISessionManager _sessionManager;
         private readonly IProcessManager _processManager;
 
         private string _code;
@@ -21,12 +21,12 @@ namespace GitHub.UI.ViewModels
             // Constructor the XAML designer
         }
 
-        public TwoFactorViewModel(IEnvironment environment, IProcessManager processManager)
+        public TwoFactorViewModel(ISessionManager sessionManager, IProcessManager processManager)
         {
-            EnsureArgument.NotNull(environment, nameof(environment));
+            EnsureArgument.NotNull(sessionManager, nameof(sessionManager));
             EnsureArgument.NotNull(processManager, nameof(processManager));
 
-            _environment = environment;
+            _sessionManager = sessionManager;
             _processManager = processManager;
 
             Title = "Two-factor authentication required";
@@ -48,7 +48,7 @@ namespace GitHub.UI.ViewModels
 
         private void LearnMore()
         {
-            BrowserUtils.OpenDefaultBrowser(_environment, "https://aka.ms/vs-core-github-auth-help");
+            _sessionManager.OpenBrowser("https://aka.ms/vs-core-github-auth-help");
         }
         private bool CanVerify()
         {

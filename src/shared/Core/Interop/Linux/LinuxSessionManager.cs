@@ -1,3 +1,5 @@
+using System;
+using System.Diagnostics;
 using GitCredentialManager.Interop.Posix;
 
 namespace GitCredentialManager.Interop.Linux;
@@ -18,7 +20,37 @@ public class LinuxSessionManager : PosixSessionManager
             return _isWebBrowserAvailable ??= GetWebBrowserAvailable();
         }
     }
-    
+
+    protected override void OpenBrowserInternal(string url)
+    {
+        //
+        // On Linux, 'shell execute' utilities like xdg-open launch a process without
+        // detaching from the standard in/out descriptors. Some applications (like
+        // Chromium) write messages to stdout, which is currently hooked up and being
+        // consumed by Git, and cause errors.
+        //
+        // Sadly, the Framework does not allow us to redirect standard streams if we
+        // set ProcessStartInfo::UseShellExecute = true, so we must manually launch
+        // these utilities and redirect the standard streams manually.
+        //
+        // We try and use the same 'shell execute' utilities as the Framework does,
+        // searching for them in the same order until we find one.
+        //
+        if (!TryGetShellExecuteHandler(Environment, out string shellExecPath))
+        {
+            throw new Exception("Failed to locate a utility to launch the default web browser.");
+        }
+
+        var psi = new ProcessStartInfo(shellExecPath, url)
+        {
+            RedirectStandardOutput = true,
+            // Ok to redirect stderr for non-git-related processes
+            RedirectStandardError = true
+        };
+
+        Process.Start(psi);
+    }
+
     private bool GetWebBrowserAvailable()
     {
         // If this is a Windows Subsystem for Linux distribution we may
@@ -26,7 +58,7 @@ public class LinuxSessionManager : PosixSessionManager
         if (WslUtils.IsWslDistribution(Environment, FileSystem, out _))
         {
             // We need a shell execute handler to be able to launch to browser
-            if (!BrowserUtils.TryGetLinuxShellExecuteHandler(Environment, out _))
+            if (!TryGetShellExecuteHandler(Environment, out _))
             {
                 return false;
             }
@@ -60,5 +92,23 @@ public class LinuxSessionManager : PosixSessionManager
 
         // We require an interactive desktop session to be able to launch a browser
         return IsDesktopSession;
+    }
+
+    private static bool TryGetShellExecuteHandler(IEnvironment env, out string shellExecPath)
+    {
+        // One additional 'shell execute' utility we also attempt to use over the Framework
+        // is `wslview` that is commonly found on WSL (Windows Subsystem for Linux) distributions
+        // that opens the browser on the Windows host.
+        string[] shellHandlers = { "xdg-open", "gnome-open", "kfmclient", WslUtils.WslViewShellHandlerName };
+        foreach (string shellExec in shellHandlers)
+        {
+            if (env.TryLocateExecutable(shellExec, out shellExecPath))
+            {
+                return true;
+            }
+        }
+
+        shellExecPath = null;
+        return false;
     }
 }
