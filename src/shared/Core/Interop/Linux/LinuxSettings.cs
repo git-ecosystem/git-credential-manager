@@ -35,14 +35,17 @@ public class LinuxSettings : Settings
 
         _extConfigCache ??= ReadExternalConfiguration();
 
+        if (_extConfigCache is null)
+            return false; // No external config found (or failed to read)
+
         string name = string.IsNullOrWhiteSpace(scope)
             ? $"{section}.{property}"
             : $"{section}.{scope}.{property}";
 
         // Check if the setting exists in the configuration
-        if (!_extConfigCache?.TryGetValue(name, out value) ?? false)
+        if (!_extConfigCache.TryGetValue(name, out value))
         {
-            // No property exists (or failed to read config)
+            // No property exists
             return false;
         }
 
