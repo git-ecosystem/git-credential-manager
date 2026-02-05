@@ -95,6 +95,53 @@ public class LinuxSessionManager : PosixSessionManager
             return true;
         }
 
+        //
+        // We may also be able to launch a browser if we're inside a Visual Studio Code remote session.
+        // VSCode overrides the BROWSER environment variable to a script that allows the user to open
+        // the browser on their client machine.
+        //
+        // Even though we can start a browser, one piece of critical functionality we need is the ability
+        // to have that browser be able to connect back to GCM over localhost. There are several types
+        // of VSCode remote session, and only some of them automatically forward ports in such a way that
+        // the client browser can automatically connect back to GCM over localhost.
+        //
+        // * SSH [OK]
+        //   Connection over SSH to a remote machine.
+        //
+        // * Dev Containers [OK]
+        //   Connection to a container.
+        //
+        // * Dev Tunnels [Not OK - forwarded ports not accessible on the client via localhost]
+        //   Connection to a remote machine over the Internet using Microsoft Dev Tunnels.
+        //
+        // * WSL [Ignored - already handled above]
+        //
+        if (Environment.Variables.ContainsKey("VSCODE_IPC_HOOK_CLI") &&
+            Environment.Variables.ContainsKey("BROWSER"))
+        {
+            // Looking for SSH_CONNECTION tells us we're connected via SSH.
+            // HOWEVER, we may also see SSH_CONNECTION in a Dev Tunnel session if the tunnel server
+            // process was started within an SSH session (and the SSH_CONNECTION environment variable
+            // was inherited).
+            // We therefore check for the absence of the SSH_TTY variable, which gets unset
+            // in Dev Tunnel sessions but is always still set in regular SSH sessions.
+            if (Environment.Variables.ContainsKey("SSH_CONNECTION") &&
+                !Environment.Variables.ContainsKey("SSH_TTY"))
+            {
+                Trace.WriteLine("VSCode (Remote SSH) detected - browser is available.");
+                return true;
+            }
+
+            if (Environment.Variables.ContainsKey("REMOTE_CONTAINERS"))
+            {
+                Trace.WriteLine("VSCode (Dev Containers) detected - browser is available.");
+                return true;
+            }
+
+            Trace.WriteLine("VSCode (Remote Tunnel) detected - browser is not available.");
+            return false;
+        }
+
         // We need a desktop session to be able to launch the browser in the general case
         return IsDesktopSession;
     }
