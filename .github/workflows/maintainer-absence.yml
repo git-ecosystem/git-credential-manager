@@ -19,10 +19,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/github-script@v8
+        env:
+          START_DATE: ${{ github.event.inputs.startDate }}
+          END_DATE: ${{ github.event.inputs.endDate }}
         with:
           script: |
-            const startDate = new Date('${{ github.event.inputs.startDate }}');
-            const endDate = new Date('${{ github.event.inputs.endDate }}');
+            const startDate = new Date(process.env.START_DATE);
+            const endDate = new Date(process.env.END_DATE);
 
             if (startDate > endDate) {
               throw 'Start date cannot be later than end date.';
@@ -37,7 +40,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               // Use the briefer input date format in title (instead of JavaScript's full date string)
-              title: `Maintainer(s) will be away from ${{ github.event.inputs.startDate }} until ${{ github.event.inputs.endDate }}`,
+              title: `Maintainer(s) will be away from ${process.env.START_DATE} until ${process.env.END_DATE}`,
               body: `The ${context.repo.repo} maintainer(s) will be away for ${lengthOfAbsence} day${lengthOfAbsence > 1 ? 's' : ''} beginning on
               ${startDate.toDateString()} and ending on ${endDate.toDateString()}. During this time, the maintainer(s)
               will not be actively monitoring PRs, discussions, etc. Please report any issues
