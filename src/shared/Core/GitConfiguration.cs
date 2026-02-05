@@ -117,37 +117,27 @@ namespace GitCredentialManager
         public string Value { get; set; }
         public GitConfigurationLevel Level { get; set; }
 
-        public ConfigCacheEntry(string origin, string value)
+        public ConfigCacheEntry(string origin, string value, GitConfigurationLevel level)
         {
             Origin = origin;
             Value = value;
-            Level = DetermineLevel(origin);
+            Level = level;
         }
 
-        private static GitConfigurationLevel DetermineLevel(string origin)
+        /// <summary>
+        /// Parse scope string from 'git config --show-scope' to GitConfigurationLevel.
+        /// </summary>
+        public static GitConfigurationLevel ParseScope(string scope)
         {
-            if (string.IsNullOrEmpty(origin))
-                return GitConfigurationLevel.Unknown;
-
-            // Origins look like: "file:/path/to/config", "command line:", "standard input:"
-            if (!origin.StartsWith("file:"))
-                return GitConfigurationLevel.Unknown;
-
-            string path = origin.Substring(5); // Remove "file:" prefix
-
-            // System config is typically in /etc/gitconfig or $(prefix)/etc/gitconfig
-            if (path.Contains("/etc/gitconfig") || path.EndsWith("/gitconfig"))
-                return GitConfigurationLevel.System;
-
-            // Global config is typically in ~/.gitconfig or ~/.config/git/config
-            if (path.Contains("/.gitconfig") || path.Contains("/.config/git/config"))
-                return GitConfigurationLevel.Global;
-
-            // Local config is typically in .git/config within a repository
-            if (path.Contains("/.git/config"))
-                return GitConfigurationLevel.Local;
-
-            return GitConfigurationLevel.Unknown;
+            return scope switch
+            {
+                "system" => GitConfigurationLevel.System,
+                "global" => GitConfigurationLevel.Global,
+                "local" => GitConfigurationLevel.Local,
+                "worktree" => GitConfigurationLevel.Local,  // Treat worktree as local
+                "command" => GitConfigurationLevel.Unknown,
+                _ => GitConfigurationLevel.Unknown
+            };
         }
     }
 
@@ -167,6 +157,7 @@ namespace GitCredentialManager
             {
                 var entries = new Dictionary<string, List<ConfigCacheEntry>>(GitConfigurationKeyComparer.Instance);
 
+                var scope = new StringBuilder();
                 var origin = new StringBuilder();
                 var key = new StringBuilder();
                 var value = new StringBuilder();
@@ -174,9 +165,27 @@ namespace GitCredentialManager
                 int i = 0;
                 while (i < data.Length)
                 {
+                    scope.Clear();
                     origin.Clear();
                     key.Clear();
                     value.Clear();
+
+                    // Read scope (NUL terminated)
+                    while (i < data.Length && data[i] != '\0')
+                    {
+                        scope.Append(data[i++]);
+                    }
+
+                    if (i >= data.Length)
+                    {
+                        trace.WriteLine("Invalid Git configuration output. Expected null terminator (\\0) after scope.");
+                        break;
+                    }
+
+                    // Skip the NUL terminator
+                    i++;
+
+                    GitConfigurationLevel level = ConfigCacheEntry.ParseScope(scope.ToString());
 
                     // Read origin (NUL terminated)
                     while (i < data.Length && data[i] != '\0')
@@ -224,7 +233,7 @@ namespace GitCredentialManager
                     i++;
 
                     string keyStr = key.ToString();
-                    var entry = new ConfigCacheEntry(origin.ToString(), value.ToString());
+                    var entry = new ConfigCacheEntry(origin.ToString(), value.ToString(), level);
 
                     if (!entries.ContainsKey(keyStr))
                     {
@@ -359,7 +368,7 @@ namespace GitCredentialManager
             if (!_useCache || _cache.IsLoaded)
                 return;
 
-            using (ChildProcess git = _git.CreateProcess("config list --show-origin -z"))
+            using (ChildProcess git = _git.CreateProcess("config list --show-scope --show-origin -z"))
             {
                 git.Start(Trace2ProcessClass.Git);
                 // To avoid deadlocks, always read the output stream first and then wait
@@ -372,8 +381,8 @@ namespace GitCredentialManager
                         _cache.Load(data, _trace);
                         break;
                     default:
-                        _trace.WriteLine($"Failed to load config cache (exit={git.ExitCode})");
-                        // Don't throw - fall back to individual commands
+                        _trace.WriteLine($"Failed to load config cache (exit={git.ExitCode}), will use individual git config commands");
+                        // Don't throw - cache stays unloaded and operations fall back to individual commands
                         break;
                 }
             }
