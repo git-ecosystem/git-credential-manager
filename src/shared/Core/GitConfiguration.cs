@@ -253,14 +253,21 @@ namespace GitCredentialManager
                     return false;
                 }
 
-                // Find the first entry matching the level filter
+                // Find the last entry matching the level filter (respects Git's precedence)
+                // Git config precedence: system < global < local, so last match wins
+                ConfigCacheEntry lastMatch = null;
                 foreach (var entry in entryList)
                 {
                     if (level == GitConfigurationLevel.All || entry.Level == level)
                     {
-                        value = entry.Value;
-                        return true;
+                        lastMatch = entry;
                     }
+                }
+
+                if (lastMatch != null)
+                {
+                    value = lastMatch.Value;
+                    return true;
                 }
 
                 value = null;
