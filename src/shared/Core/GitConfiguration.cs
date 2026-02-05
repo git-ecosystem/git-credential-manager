@@ -108,24 +108,291 @@ namespace GitCredentialManager
         void UnsetAll(GitConfigurationLevel level, string name, string valueRegex);
     }
 
+    /// <summary>
+    /// Represents a single configuration entry with its origin and level.
+    /// </summary>
+    internal class ConfigCacheEntry
+    {
+        public string Origin { get; set; }
+        public string Value { get; set; }
+        public GitConfigurationLevel Level { get; set; }
+
+        public ConfigCacheEntry(string origin, string value)
+        {
+            Origin = origin;
+            Value = value;
+            Level = DetermineLevel(origin);
+        }
+
+        private static GitConfigurationLevel DetermineLevel(string origin)
+        {
+            if (string.IsNullOrEmpty(origin))
+                return GitConfigurationLevel.Unknown;
+
+            // Origins look like: "file:/path/to/config", "command line:", "standard input:"
+            if (!origin.StartsWith("file:"))
+                return GitConfigurationLevel.Unknown;
+
+            string path = origin.Substring(5); // Remove "file:" prefix
+
+            // System config is typically in /etc/gitconfig or $(prefix)/etc/gitconfig
+            if (path.Contains("/etc/gitconfig") || path.EndsWith("/gitconfig"))
+                return GitConfigurationLevel.System;
+
+            // Global config is typically in ~/.gitconfig or ~/.config/git/config
+            if (path.Contains("/.gitconfig") || path.Contains("/.config/git/config"))
+                return GitConfigurationLevel.Global;
+
+            // Local config is typically in .git/config within a repository
+            if (path.Contains("/.git/config"))
+                return GitConfigurationLevel.Local;
+
+            return GitConfigurationLevel.Unknown;
+        }
+    }
+
+    /// <summary>
+    /// Cache for Git configuration entries loaded from 'git config list --show-origin -z'.
+    /// </summary>
+    internal class ConfigCache
+    {
+        private Dictionary<string, List<ConfigCacheEntry>> _entries;
+        private readonly object _lock = new object();
+
+        public bool IsLoaded => _entries != null;
+
+        public void Load(string data, ITrace trace)
+        {
+            lock (_lock)
+            {
+                var entries = new Dictionary<string, List<ConfigCacheEntry>>(GitConfigurationKeyComparer.Instance);
+
+                var origin = new StringBuilder();
+                var key = new StringBuilder();
+                var value = new StringBuilder();
+
+                int i = 0;
+                while (i < data.Length)
+                {
+                    origin.Clear();
+                    key.Clear();
+                    value.Clear();
+
+                    // Read origin (NUL terminated)
+                    while (i < data.Length && data[i] != '\0')
+                    {
+                        origin.Append(data[i++]);
+                    }
+
+                    if (i >= data.Length)
+                    {
+                        trace.WriteLine("Invalid Git configuration output. Expected null terminator (\\0) after origin.");
+                        break;
+                    }
+
+                    // Skip the NUL terminator
+                    i++;
+
+                    // Read key (newline terminated)
+                    while (i < data.Length && data[i] != '\n')
+                    {
+                        key.Append(data[i++]);
+                    }
+
+                    if (i >= data.Length)
+                    {
+                        trace.WriteLine("Invalid Git configuration output. Expected newline terminator (\\n) after key.");
+                        break;
+                    }
+
+                    // Skip the newline terminator
+                    i++;
+
+                    // Read value (NUL terminated)
+                    while (i < data.Length && data[i] != '\0')
+                    {
+                        value.Append(data[i++]);
+                    }
+
+                    if (i >= data.Length)
+                    {
+                        trace.WriteLine("Invalid Git configuration output. Expected null terminator (\\0) after value.");
+                        break;
+                    }
+
+                    // Skip the NUL terminator
+                    i++;
+
+                    string keyStr = key.ToString();
+                    var entry = new ConfigCacheEntry(origin.ToString(), value.ToString());
+
+                    if (!entries.ContainsKey(keyStr))
+                    {
+                        entries[keyStr] = new List<ConfigCacheEntry>();
+                    }
+                    entries[keyStr].Add(entry);
+                }
+
+                _entries = entries;
+            }
+        }
+
+        public bool TryGet(string name, GitConfigurationLevel level, out string value)
+        {
+            lock (_lock)
+            {
+                if (_entries == null)
+                {
+                    value = null;
+                    return false;
+                }
+
+                if (!_entries.TryGetValue(name, out var entryList))
+                {
+                    value = null;
+                    return false;
+                }
+
+                // Find the first entry matching the level filter
+                foreach (var entry in entryList)
+                {
+                    if (level == GitConfigurationLevel.All || entry.Level == level)
+                    {
+                        value = entry.Value;
+                        return true;
+                    }
+                }
+
+                value = null;
+                return false;
+            }
+        }
+
+        public IEnumerable<string> GetAll(string name, GitConfigurationLevel level)
+        {
+            lock (_lock)
+            {
+                if (_entries == null || !_entries.TryGetValue(name, out var entryList))
+                {
+                    return Array.Empty<string>();
+                }
+
+                var results = new List<string>();
+                foreach (var entry in entryList)
+                {
+                    if (level == GitConfigurationLevel.All || entry.Level == level)
+                    {
+                        results.Add(entry.Value);
+                    }
+                }
+
+                return results;
+            }
+        }
+
+        public void Enumerate(GitConfigurationLevel level, GitConfigurationEnumerationCallback cb)
+        {
+            lock (_lock)
+            {
+                if (_entries == null)
+                    return;
+
+                foreach (var kvp in _entries)
+                {
+                    foreach (var entry in kvp.Value)
+                    {
+                        if (level == GitConfigurationLevel.All || entry.Level == level)
+                        {
+                            var configEntry = new GitConfigurationEntry(kvp.Key, entry.Value);
+                            if (!cb(configEntry))
+                            {
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        public void Clear()
+        {
+            lock (_lock)
+            {
+                _entries = null;
+            }
+        }
+    }
+
     public class GitProcessConfiguration : IGitConfiguration
     {
         private static readonly GitVersion TypeConfigMinVersion = new GitVersion(2, 18, 0);
 
         private readonly ITrace _trace;
         private readonly GitProcess _git;
+        private readonly ConfigCache _cache;
+        private readonly bool _useCache;
 
-        internal GitProcessConfiguration(ITrace trace, GitProcess git)
+        internal GitProcessConfiguration(ITrace trace, GitProcess git) : this(trace, git, useCache: true)
+        {
+        }
+
+        internal GitProcessConfiguration(ITrace trace, GitProcess git, bool useCache)
         {
             EnsureArgument.NotNull(trace, nameof(trace));
             EnsureArgument.NotNull(git, nameof(git));
 
             _trace = trace;
             _git = git;
+            _useCache = useCache;
+            _cache = useCache ? new ConfigCache() : null;
+        }
+
+        private void EnsureCacheLoaded()
+        {
+            if (!_useCache || _cache.IsLoaded)
+                return;
+
+            using (ChildProcess git = _git.CreateProcess("config list --show-origin -z"))
+            {
+                git.Start(Trace2ProcessClass.Git);
+                // To avoid deadlocks, always read the output stream first and then wait
+                string data = git.StandardOutput.ReadToEnd();
+                git.WaitForExit();
+
+                switch (git.ExitCode)
+                {
+                    case 0: // OK
+                        _cache.Load(data, _trace);
+                        break;
+                    default:
+                        _trace.WriteLine($"Failed to load config cache (exit={git.ExitCode})");
+                        // Don't throw - fall back to individual commands
+                        break;
+                }
+            }
+        }
+
+        private void InvalidateCache()
+        {
+            if (_useCache)
+            {
+                _cache.Clear();
+            }
         }
 
         public void Enumerate(GitConfigurationLevel level, GitConfigurationEnumerationCallback cb)
         {
+            if (_useCache)
+            {
+                EnsureCacheLoaded();
+                if (_cache.IsLoaded)
+                {
+                    _cache.Enumerate(level, cb);
+                    return;
+                }
+            }
+
+            // Fall back to original implementation
             string levelArg = GetLevelFilterArg(level);
             using (ChildProcess git = _git.CreateProcess($"config --null {levelArg} --list"))
             {
@@ -194,6 +461,17 @@ namespace GitCredentialManager
 
         public bool TryGet(GitConfigurationLevel level, GitConfigurationType type, string name, out string value)
         {
+            // Use cache for raw types only - typed queries need Git's canonicalization
+            if (_useCache && type == GitConfigurationType.Raw)
+            {
+                EnsureCacheLoaded();
+                if (_cache.IsLoaded && _cache.TryGet(name, level, out value))
+                {
+                    return true;
+                }
+            }
+
+            // Fall back to individual git config command for typed queries or cache miss
             string levelArg = GetLevelFilterArg(level);
             string typeArg = GetCanonicalizeTypeArg(type);
             using (ChildProcess git = _git.CreateProcess($"config --null {levelArg} {typeArg} {QuoteCmdArg(name)}"))
@@ -242,6 +520,7 @@ namespace GitCredentialManager
                 switch (git.ExitCode)
                 {
                     case 0: // OK
+                        InvalidateCache();
                         break;
                     default:
                         _trace.WriteLine($"Failed to set config entry '{name}' to value '{value}' (exit={git.ExitCode}, level={level})");
@@ -263,6 +542,7 @@ namespace GitCredentialManager
                 switch (git.ExitCode)
                 {
                     case 0: // OK
+                        InvalidateCache();
                         break;
                     default:
                         _trace.WriteLine($"Failed to add config entry '{name}' with value '{value}' (exit={git.ExitCode}, level={level})");
@@ -285,6 +565,7 @@ namespace GitCredentialManager
                 {
                     case 0: // OK
                     case 5: // Trying to unset a value that does not exist
+                        InvalidateCache();
                         break;
                     default:
                         _trace.WriteLine($"Failed to unset config entry '{name}' (exit={git.ExitCode}, level={level})");
@@ -295,6 +576,22 @@ namespace GitCredentialManager
 
         public IEnumerable<string> GetAll(GitConfigurationLevel level, GitConfigurationType type, string name)
         {
+            // Use cache for raw types only - typed queries need Git's canonicalization
+            if (_useCache && type == GitConfigurationType.Raw)
+            {
+                EnsureCacheLoaded();
+                if (_cache.IsLoaded)
+                {
+                    var cachedValues = _cache.GetAll(name, level);
+                    foreach (var val in cachedValues)
+                    {
+                        yield return val;
+                    }
+                    yield break;
+                }
+            }
+
+            // Fall back to individual git config command
             string levelArg = GetLevelFilterArg(level);
             string typeArg = GetCanonicalizeTypeArg(type);
 
@@ -392,6 +689,7 @@ namespace GitCredentialManager
                 switch (git.ExitCode)
                 {
                     case 0: // OK
+                        InvalidateCache();
                         break;
                     default:
                         _trace.WriteLine($"Failed to replace all multivar '{name}' and value regex '{valueRegex}' with new value '{value}' (exit={git.ExitCode}, level={level})");
@@ -420,6 +718,7 @@ namespace GitCredentialManager
                 {
                     case 0: // OK
                     case 5: // Trying to unset a value that does not exist
+                        InvalidateCache();
                         break;
                     default:
                         _trace.WriteLine($"Failed to unset all multivar '{name}' with value regex '{valueRegex}' (exit={git.ExitCode}, level={level})");
