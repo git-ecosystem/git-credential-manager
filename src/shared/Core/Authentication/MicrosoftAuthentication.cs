@@ -336,7 +336,7 @@ namespace GitCredentialManager.Authentication
                     }
                 }
 
-                var viewModel = new DefaultAccountViewModel(Context.Environment)
+                var viewModel = new DefaultAccountViewModel(Context.SessionManager)
                 {
                     UserName = userName
                 };

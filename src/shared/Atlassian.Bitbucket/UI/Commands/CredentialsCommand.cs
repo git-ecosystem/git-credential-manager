@@ -32,7 +32,7 @@ namespace Atlassian.Bitbucket.UI.Commands
 
         private async Task<int> ExecuteAsync(Uri url, string userName, bool showOAuth, bool showBasic)
         {
-            var viewModel = new CredentialsViewModel(Context.Environment)
+            var viewModel = new CredentialsViewModel(Context.SessionManager)
             {
                 Url = url,
                 UserName = userName,

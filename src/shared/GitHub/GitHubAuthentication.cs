@@ -100,7 +100,7 @@ namespace GitHub
                     return string.IsNullOrWhiteSpace(selectedAccount) ? null : selectedAccount;
                 }
 
-                var viewModel = new SelectAccountViewModel(Context.Environment, accounts);
+                var viewModel = new SelectAccountViewModel(Context.SessionManager, accounts);
 
                 if (!GitHubHostProvider.IsGitHubDotCom(targetUri))
                 {
@@ -168,7 +168,7 @@ namespace GitHub
         private async Task<AuthenticationPromptResult> GetAuthenticationViaUiAsync(
             Uri targetUri, string userName, AuthenticationModes modes)
         {
-            var viewModel = new CredentialsViewModel(Context.Environment, Context.ProcessManager)
+            var viewModel = new CredentialsViewModel(Context.SessionManager, Context.ProcessManager)
             {
                 ShowBrowserLogin = (modes & AuthenticationModes.Browser) != 0,
                 ShowDeviceLogin  = (modes & AuthenticationModes.Device) != 0,
@@ -364,7 +364,7 @@ namespace GitHub
 
         private async Task<string> GetTwoFactorCodeViaUiAsync(Uri targetUri, bool isSms)
         {
-            var viewModel = new TwoFactorViewModel(Context.Environment, Context.ProcessManager)
+            var viewModel = new TwoFactorViewModel(Context.SessionManager, Context.ProcessManager)
             {
                 IsSms = isSms
             };
@@ -423,7 +423,7 @@ namespace GitHub
                 SuccessResponseHtml = GitHubResources.AuthenticationResponseSuccessHtml,
                 FailureResponseHtmlFormat = GitHubResources.AuthenticationResponseFailureHtmlFormat
             };
-            var browser = new OAuth2SystemWebBrowser(Context.Environment, browserOptions);
+            var browser = new OAuth2SystemWebBrowser(Context.SessionManager, browserOptions);
 
             // If we have a login hint we should pass this to GitHub as an extra query parameter
             IDictionary<string, string> queryParams = null;
@@ -495,7 +495,7 @@ namespace GitHub
 
         private Task ShowDeviceCodeViaUiAsync(OAuth2DeviceCodeResult dcr, CancellationToken ct)
         {
-            var viewModel = new DeviceCodeViewModel(Context.Environment)
+            var viewModel = new DeviceCodeViewModel(Context.SessionManager)
             {
                 UserCode = dcr.UserCode,
                 VerificationUrl = dcr.VerificationUri.ToString(),

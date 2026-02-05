@@ -37,7 +37,7 @@ namespace GitLab.UI.Commands
 
         private async Task<int> ExecuteAsync(string userName, string url, bool basic, bool browser, bool pat, bool all)
         {
-            var viewModel = new CredentialsViewModel(Context.Environment)
+            var viewModel = new CredentialsViewModel(Context.SessionManager)
             {
                 ShowBrowserLogin = all || browser,
                 ShowTokenLogin   = all || pat,

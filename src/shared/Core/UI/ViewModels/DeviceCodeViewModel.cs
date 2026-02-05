@@ -4,7 +4,7 @@ namespace GitCredentialManager.UI.ViewModels
 {
     public class DeviceCodeViewModel : WindowViewModel
     {
-        private readonly IEnvironment _environment;
+        private readonly ISessionManager _sessionManager;
 
         private ICommand _verificationUrlCommand;
         private string _verificationUrl;
@@ -16,11 +16,11 @@ namespace GitCredentialManager.UI.ViewModels
             // Constructor the XAML designer
         }
 
-        public DeviceCodeViewModel(IEnvironment environment)
+        public DeviceCodeViewModel(ISessionManager sessionManager)
         {
-            EnsureArgument.NotNull(environment, nameof(environment));
+            EnsureArgument.NotNull(sessionManager, nameof(sessionManager));
 
-            _environment = environment;
+            _sessionManager = sessionManager;
 
             Title = "Device code authentication";
             VerificationUrlCommand = new RelayCommand(OpenVerificationUrl);
@@ -28,7 +28,7 @@ namespace GitCredentialManager.UI.ViewModels
 
         private void OpenVerificationUrl()
         {
-            BrowserUtils.OpenDefaultBrowser(_environment, VerificationUrl);
+            _sessionManager.OpenBrowser(VerificationUrl);
         }
 
         public string UserCode

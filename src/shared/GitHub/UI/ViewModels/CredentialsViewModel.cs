@@ -8,7 +8,7 @@ namespace GitHub.UI.ViewModels
 {
     public class CredentialsViewModel : WindowViewModel
     {
-        private readonly IEnvironment _environment;
+        private readonly ISessionManager _sessionManager;
         private readonly IProcessManager _processManager;
 
         private string _enterpriseUrl;
@@ -30,12 +30,12 @@ namespace GitHub.UI.ViewModels
             // Constructor the XAML designer
         }
 
-        public CredentialsViewModel(IEnvironment environment, IProcessManager processManager)
+        public CredentialsViewModel(ISessionManager sessionManager, IProcessManager processManager)
         {
-            EnsureArgument.NotNull(environment, nameof(environment));
+            EnsureArgument.NotNull(sessionManager, nameof(sessionManager));
             EnsureArgument.NotNull(processManager, nameof(processManager));
 
-            _environment = environment;
+            _sessionManager = sessionManager;
             _processManager = processManager;
 
             Title = "Connect to GitHub";
@@ -65,7 +65,7 @@ namespace GitHub.UI.ViewModels
 
         private void SignUp()
         {
-            BrowserUtils.OpenDefaultBrowser(_environment, "https://github.com/pricing");
+            _sessionManager.OpenBrowser("https://github.com/pricing");
         }
 
         private void SignInBrowser()
