@@ -40,14 +40,17 @@ namespace GitCredentialManager
     
     public abstract class SessionManager : ISessionManager
     {
+        protected ITrace Trace { get; }
         protected IEnvironment Environment { get; }
         protected IFileSystem FileSystem { get; }
 
-        protected SessionManager(IEnvironment env, IFileSystem fs)
+        protected SessionManager(ITrace trace, IEnvironment env, IFileSystem fs)
         {
+            EnsureArgument.NotNull(trace, nameof(trace));
             EnsureArgument.NotNull(env, nameof(env));
             EnsureArgument.NotNull(fs, nameof(fs));
 
+            Trace = trace;
             Environment = env;
             FileSystem = fs;
         }
@@ -69,6 +72,7 @@ namespace GitCredentialManager
 
         protected virtual void OpenBrowserInternal(string url)
         {
+            Trace.WriteLine("Opening browser using framework shell-execute: " + url);
             var psi = new ProcessStartInfo(url) { UseShellExecute = true };
             Process.Start(psi);
         }

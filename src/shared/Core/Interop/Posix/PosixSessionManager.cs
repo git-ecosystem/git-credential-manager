@@ -2,7 +2,7 @@ namespace GitCredentialManager.Interop.Posix
 {
     public abstract class PosixSessionManager : SessionManager
     {
-        protected PosixSessionManager(IEnvironment env, IFileSystem fs) : base(env, fs)
+        protected PosixSessionManager(ITrace trace, IEnvironment env, IFileSystem fs) : base(trace, env, fs)
         {
             PlatformUtils.EnsurePosix();
         }

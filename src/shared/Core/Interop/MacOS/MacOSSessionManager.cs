@@ -5,7 +5,7 @@ namespace GitCredentialManager.Interop.MacOS
 {
     public class MacOSSessionManager : PosixSessionManager
     {
-        public MacOSSessionManager(IEnvironment env, IFileSystem fs) : base(env, fs)
+        public MacOSSessionManager(ITrace trace, IEnvironment env, IFileSystem fs) : base(trace, env, fs)
         {
             PlatformUtils.EnsureMacOS();
         }
