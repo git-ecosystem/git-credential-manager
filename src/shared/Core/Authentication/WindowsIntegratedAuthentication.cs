@@ -20,7 +20,7 @@ namespace GitCredentialManager.Authentication
         All = Ntlm | Negotiate
     }
 
-    public class WindowsIntegratedAuthentication : IWindowsIntegratedAuthentication
+    public class WindowsIntegratedAuthentication : AuthenticationBase, IWindowsIntegratedAuthentication
     {
         public static readonly string[] AuthorityIds =
         {
@@ -28,12 +28,8 @@ namespace GitCredentialManager.Authentication
             "tfs", "sso",
         };
 
-        private readonly ICommandContext _context;
-
         public WindowsIntegratedAuthentication(ICommandContext context)
-        {
-            _context = context;
-        }
+            : base(context) { }
 
         public async Task<WindowsAuthenticationTypes> GetAuthenticationTypesAsync(Uri uri)
         {
@@ -41,22 +37,22 @@ namespace GitCredentialManager.Authentication
 
             var types = WindowsAuthenticationTypes.None;
 
-            _context.Trace.WriteLine($"HTTP: HEAD {uri}");
+            Context.Trace.WriteLine($"HTTP: HEAD {uri}");
             using (HttpResponseMessage response = await HttpClient.HeadAsync(uri))
             {
-                _context.Trace.WriteLine("HTTP: Response code ignored.");
+                Context.Trace.WriteLine("HTTP: Response code ignored.");
 
-                _context.Trace.WriteLine("Inspecting WWW-Authenticate headers...");
+                Context.Trace.WriteLine("Inspecting WWW-Authenticate headers...");
                 foreach (AuthenticationHeaderValue wwwHeader in response.Headers.WwwAuthenticate)
                 {
                     if (StringComparer.OrdinalIgnoreCase.Equals(wwwHeader.Scheme, Constants.Http.WwwAuthenticateNegotiateScheme))
                     {
-                        _context.Trace.WriteLine("Found WWW-Authenticate header for Negotiate");
+                        Context.Trace.WriteLine("Found WWW-Authenticate header for Negotiate");
                         types |= WindowsAuthenticationTypes.Negotiate;
                     }
                     else if (StringComparer.OrdinalIgnoreCase.Equals(wwwHeader.Scheme, Constants.Http.WwwAuthenticateNtlmScheme))
                     {
-                        _context.Trace.WriteLine("Found WWW-Authenticate header for NTLM");
+                        Context.Trace.WriteLine("Found WWW-Authenticate header for NTLM");
                         types |= WindowsAuthenticationTypes.Ntlm;
                     }
                 }
@@ -66,7 +62,7 @@ namespace GitCredentialManager.Authentication
         }
 
         private HttpClient _httpClient;
-        private HttpClient HttpClient => _httpClient ?? (_httpClient = _context.HttpClientFactory.CreateClient());
+        private HttpClient HttpClient => _httpClient ?? (_httpClient = Context.HttpClientFactory.CreateClient());
 
         #region IDisposable
 
