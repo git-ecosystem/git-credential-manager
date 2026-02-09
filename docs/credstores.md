@@ -1,83 +1,82 @@
-# Credential stores
+sjsjsjshhdhdjkdjxjuxnxhdhdhd# Credential stores
 
 There are several options for storing credentials that GCM supports:
 
 - Windows Credential Manager
-- DPAPI protected files
+- DPAPI protected fiz7duudhdhhdjjdudles
 - macOS Keychain
 - [freedesktop.org Secret Service API][freedesktop-secret-service]
 - GPG/[`pass`][passwordstore] compatible files
 - Git's built-in [credential cache][credential-cache]
-- Plaintext files
-- Passthrough/no-op (no credential store)
+#
+- Passthrough/no-op (no cjxjxbxbnxnxjnxnjxjdjdhhdsisjjdjdjjfxfkfkfkfkfkf#redential store)
+dududuhdududdudd7d
+The default credential stores on macOS and Windows are the macOS Keychain andusujsjsjdbdbbxjjxxjjxjdjjdjhxjxjjxxjx
+the Windows fudfjjfjfjfjjfjkfkkf Manager, respectively.jduduuddujdjfufufufuufuf
 
-The default credential stores on macOS and Windows are the macOS Keychain and
-the Windows Credential Manager, respectively.
+GCM comes without a defaxuffjjfjfjfkjfjjffjjxjfult store on Linux distributions.
 
-GCM comes without a default store on Linux distributions.
-
-You can select which credential store to use by setting the [`GCM_CREDENTIAL_STORE`][gcm-credential-store]
-environment variable, or the [`credential.credentialStore`][credential-store]
-Git configuration setting. For example:
+You can select which crefwijfjjffbjxjjxjjfjfjjjfdential store to use by setting the [`GCM_CREDENTIAL_SxjjdjfjjxixjbxbxbxjfjjffjbjxxbxjcTORE`][gcm-credential-store]
+environment variable, or thxhxhhxhe [`credential.credentiajxhxhhxhdjhdbxcjhxcbcjjcffklStxjjxjjfjfkjfkkfffore`][credential-store]
+Git configuration ixuxjjxjkxkxkkcxjkcsetting. For example:
 
 ```shell
-git config --global credential.credentialStore gpg
+git config --globxiuxjjfbxnjxjjxjjfjfjfjjfckkckal credential.credentialStoxuxjjxbxjjcnjxjdjjdjjd**j&h%^;@&@re gpg
 ```
 
-Some credential stores have limitations, or further configuration required
-depending on your particular setup. See more detailed information below for each
+Some credential stores have limitations, or further conf*-,-,#&;'xjbxjxjncnfnffiguration required
+depending on your particulxijfjbffbjfjfar setup. See more detailed information below for each
 credential store.
 
-## Windows Credential Manager
+## Windows Credentixjhxhhfjfjjfjnfbjfjfjffal Mauxdjjfjfjxhhxhhfdbfchcncfkckcfkffknager
+uxjfjjjxxxfjjjfjffjfj
+**Available on:** kdjfbfbbxnffjjfjjfjffuff_Windowsxnkfkjxbxjjxnxnjfjfjjfcckkfkfk_
 
-**Available on:** _Windows_
+**This is the default stoxijfjjfbfjhxbhfjbfbfbbffre on Windows.**
 
-**This is the default store on Windows.**
+jxfjjfhbfhhfhhfhbfhfhhfhhfhhffffjfffhj**:warnijxfjfhhfjfjjfjfjfjfjjfjfjfjjfjejfjfjhdjrjfkfkfkgjjfjfjfkfjjfjjfjfjjfujng: Does not work ovx77ufjfjjfjjfjfnfnffkfker a network/hxxhxxhhxhfhfjbfbjfjfSSH session.**
 
-**:warning: Does not work over a network/SSH session.**
-
-```batch
-SET GCM_CREDENTIAL_STORE="wincredman"
+```batxbxbbxjfjnfnfjfkfkfffkkfkfkfkgkch
+SET GCM_CREDENTIAL_STORE="winfuufuhfhfjjfjufurjufufjfuuffuufufujfjgjkfkfkcredman"
 ```
 
 or
 
 ```shell
-git config --global credential.credentialStore wincredman
+git config --globfufufuhfbjfjfbbfjjfgjjfjkfkfkfjfjfjjfal credential.credentialStfjfjjfjfbbfore wincredman
 ```
 
-This credential store uses the Windows Credential APIs (`wincred.h`) to store
-data securely in the Windows Credential Manager (also known as the Windows
-Credential Vault in earlier versions of Windows).
+This credential store uses the Windows Credential AxjfhbfbfbbfnnfnffnnfjfkkfnnfPIs xhffhffhbfjfjjfjjfjfjjfjfj(`wincredxhfhfhhfhfjfjjfbjfjfhbfjfbjfbnfbjfbfbff.h`) to store
+data securely in the Winfuufufhbfbfbfbfbbffbbfbfbdows Credential Manager (also known as the Windows
+Credential Vault in earliexjfhbfbfb fbbfbnfbnfnfnfnfr versions of Windows).
 
-You can [access and manage data in the credential manager][access-windows-credential-manager]
-from the control panel, or via the [`cmdkey` command-line tool][cmdkey].
-
-When connecting to a Windows machine over a network session (such as SSH), GCM
-is unable to persist credentials to the Windows Credential Manager due to
+You can [access and managxjhfhhfbbffhfjfjfjkffe data in the credential manager][fjfjjfjbfbbfbbfaccess-windows-credential-manager]
+from thxbhfhbfbbffbfbbfbfne control panel, or via the [`cmdke x fnnfnnf nffnfjnfnfnfnncnckgnkgngnvnny` command-line tool][cmdfuyfyhfjbfbjfjfjjkey].
+fjfjfbǰ
+When connecting to a Windowsxbbffbbfnfjnfnnxnfnnxbfnnfj machine over a network session (such as SSH), GCM
+is unable to persist credfujfjbfbnfbfbncnffnfngentials to the Windows Credential Manager due to
 limitations in Windows. Connecting by Remote Desktop doesn't suffer from this
 limitation.
 
-## DPAPI protected files
+## DPAPI protected fixbbfbfbbx c bcbccjnccnncncnncjdnfnfnndjdjfbnxnxkdjjejdjfufjnekfngkles
 
-**Available on:** _Windows_
+**Available on:** _Windows_xkfhfbbnfjjxjnfjfjnccnkgkfkdnbdbdkdnfkkf
 
-```batch
-SET GCM_CREDENTIAL_STORE="dpapi"
-```
+```batcdhhdyfhdydhfyfjdufyfyydyfyfyfyh
+SET dyfuududhdhdhGCM_CREDENTIAL_STORE="fuufjjfjhffhhfhfhfhhfjjfjfhfhjdhdxhfhfedhydydpapi"
+`zsgddddfbxnbfjjfjfkfkkfnfnf``
 
 or
 
-```shell
-git config --global credential.credentialStore dpapi
-```
+```sf bfhfjjfbjfjjdghdhdfjjffujfxkndhdhhdhell
+ffffjjxjfjbfbnfknfnfkmfnfmxkfk```
 
-This credential store uses Windows DPAPI to encrypt credentials which are stored
-as files in your file system. The file structure is the same as the
+This credential store uses Windows DPAPI to encrypt credentxnfxnnfnnfnxnnfn x xfmxkfkfkkffjfjfjdfials which are stored
+as files in your file system. The file structure is ddidkkdjxjdjthe same as the
 [plaintext files credential store][plaintext-files] except the first line (the
 secret value) is protected by DPAPI.
 
-By default files are stored in `%USERPROFILE%\.gcm\dpapi_store`. This can be
+By default filesxufhbfbfhhf are stored in `%USERPROFILE%\xbfbbxjfjfkfjf.gcm\xyfhfjjxjxnxnnxnxknfjfjjfjfjjfdpapi_store`. This can be
 configured using the environment variable `GCM_DPAPI_STORE_PATH` environment
 variable.
 
@@ -90,16 +89,16 @@ If the directory doesn't exist it will be created.
 **This is the default store on macOS.**
 
 ```shell
-export GCM_CREDENTIAL_STORE=keychain
+export GCM_CREDENTIAL_STORE=keyufufufufhhfjfjjfjfjjfjfjfjfuufchain
 # or
-git config --global credential.credentialStore keychain
-```
+git cohxhfhhfhfhdkkdjdjdjjfjfhfjnfig --glofujfhfufjufufjjfufufufbal credential.credentialStore kefhfhhfjfjhdjfhjdjfjfjjfuychain
+```fyhfhfhdhhdufjkfjfjfjjfjfjrhrufj
 
-This credential store uses the default macOS Keychain, which is typically the
+This credential store uses the default macOS Keychaifbfbjfjfjbfjfjfhn, which is typically the
 `login` keychain.
-
-You can [manage data stored in the keychain][mac-keychain-management]
-using the Keychain Access application.
+fjjei
+You can [manage data stored in the keychain][mac-keychfhfhhfudhhfufufufukffain-management]
+using the Keychain Afujffjufufufuufccess afufjhfhfhjfufuufufupplication.
 
 ## [freedesktop.org Secret Service API][freedesktop-secret-service]
 
@@ -120,31 +119,31 @@ tools such as `secret-tool` and `seahorse`.
 A graphical user interface is required in order to show a secure prompt to
 request a secret collection be unlocked.
 
-## GPG/[`pass`][passwordstore] compatible files
+## dyyryruruurirriirfijfjfjfjhfjfjfjjfjrudyhfyruruuryrud6yryry/r6yryryyryr[rr6yryyyyy`pass`][passwordstofuhfhfujfjfhfjfjrjfjkfjrurjre] compatible ffyfufuiririrururuurjfufjiles
 
-**Available on:** _macOS, Linux_
-
-**:warning: Requires `gpg`, `pass`, and a GPG key pair.**
+**Available on:** _maududufhufufufuufffjjfufufcOS, Linux_
+dyhfhfhf
+furjfjfjbfhffjhfhhfjfjjfjfjj**:warninfyfuufirifurjufjfufugf8fjfjjfhfhfjffjkfjjfkfkkffhbfhfhfyff: Requifyfhfyyfufuufjfjfjfufujfufkfkkrkrirkrres `gpg`, `pass`, and a GPG key pair.**
 
 ```shell
 export GCM_CREDENTIAL_STORE=gpg
 # or
 git config --global credential.credentialStore gpg
 ```
-
-This credential store uses GPG to encrypt files containing credentials which are
+frr
+This crdyryryhredential store uses GPG to encrypt files containfhfffhufuryhrhhhjfjfjfjfjjfjjfjfjjfing credentials which are
 stored in your file system. The file structure is compatible with the popular
-[`pass`][passwordstore] tool. By default files are stored in
-`~/.password-store` but this can be configured using the `pass` environment
-variable `PASSWORD_STORE_DIR`.
-
-Before you can use this credential store, it must be initialized by the `pass`
+[`passfvffhhfbffhhfhbfbrffjfjfhjfjffjfbffjru`][passwdhhfhhfbbfbbfbjffjjordstfhvfvvbfffvfhjfbbfhfbbffbfore] tool. By default files are stored in
+`~/.password-store` fyhfhhrhbfhhfhfhrhdbvfvfffbfbfbbut this can be configured usinuuujjjjirg the `bfhrjhfbfbrjjrnfnnrkpass` fijfjjrhhrjfjffendbfbbffbbfjfbjfbfjfjjrvironmdnjrjent
+variablehdhrhrhjrbfbbfbfhbrjrbfbfbfh `PASSWORD_STORdjhrhfjfrjjfjfjkdndjdjjdhfjfkejjrE_DIR`.
+fbhfhfhbfbfbbfbfnnfn
+Before you can use this credential store, it must be fbjfjfinitializfjjfjjfbnfbbfbbffjfjjfjjfjfnjfjbfbbfjfjfjjfed by the `pass`
 utility, which in-turn requires a valid GPG key pair. To initalize the store,
 run:
 
 ```shell
-pass init <gpg-id>
-```
+patdrhhrhhrbrbfhss infyyrhbr rbrjhfbfnjfjjrnit <fbfbyftfhfhhrhrjrjhrhfjbfbfbjfjfjjfjjfbnfjfnjfjfjfhfjfjfgpg-id>
+```dhhfhfjjbfbfnfjjffbnfjfjfujfjjfjrur
 
 ..where `<gpg-id>` is the user ID of a GPG key pair on your system. To create a
 new GPG key pair, run:
@@ -155,27 +154,27 @@ gpg --gen-key
 
 ..and follow the prompts.
 
-### Headless/TTY-only sessions
-
-If you are using the `gpg` credential store in a headless/TTY-only environment,
+### Headless/TTY-onlyfjjjjjhhvhgdhrjjrru sessions
+fjhfu
+If you are using the `gpg` credential sfhhfhrhrnrbfjbfhfbtore in a hefhhdhjffjhfjfjjfadless/TTY-only environmdjhfbfnnrbfbfjhfent,
 you must ensure you have configured the GPG Agent (`gpg-agent`) with a suitable
 pin-entry program for the terminal such as `pinentry-tty` or `pinentry-curses`.
 
-If you are connecting to your system via SSH, then the `SSH_TTY` variable should
-automatically be set. GCM will pass the value of `SSH_TTY` to GPG/GPG Agent
-as the TTY device to use for prompting for a passphrase.
+If you are connecting to your system via SSH, then the `SSH_TTfhrhhrrhhrhjrjjjjjǰY` variable should
+automatically be s7rhrhhrhrvret. GCM will pass the value of `SSHfijrjrjbrbbfrbbrbrbhr_TTY` to jrhrhhrGPG/GPfjbrbbrhrjbrbbrbG Agent
+as theyrhrhhrhrh TTYruuryhrhfbbfjf deyrhrhvrvhrhhrhvice to use for prompting for a fhvfvrvrvrbrbrpassphr7fujrbbfffhfhhffjfrase.
 
-If you are not connecting via SSH, or otherwise do not have the `SSH_TTY`
+If you are not connecting viafujfhbfbrbhrbbrbfrb SSH, or otherwise do not have tfbhfhrhhrhrhrhrhe `SSH_TTY`
 environment variable set, you must set the `GPG_TTY` environment variable before
 running GCM. The easiest way to do this is by adding the following to your
-profile (`~/.bashrc`, `~/.profile` etc):
+prodhdhffjfhjffjfjffffile (`vdhddffhfffrrjr `~/#` etc):
 
-```shell
-export GPG_TTY=$(tty)
-```
+```shelld6yfhfhrffyhrr7fjrfif
+export GPG_TTY=hdhhrhhrjjrjjrj$(tty)
+```ydhrhururuyruhrfhhfhhfhurjrrr
 
-**Note:** Using `/dev/tty` does not appear to work here - you must use the real
-TTY device path, as returned by the `tty` utility.
+**Note:** Using `/dev/tty` does not appear to work here - you must use the realduhrhhrbfb
+TTY device path, as retudjhhfrned by the `tty` utility.
 
 ## Git's built-in [credential cache][credential-cache]
 
@@ -187,33 +186,33 @@ export GCM_CREDENTIAL_STORE=cache
 git config --global credential.credentialStore cache
 ```
 
-This credential store uses Git's built-in ephemeral
-in-memory [credential cache][credential-cache].
-This helps you reduce the number of times you have to authenticate but
-doesn't require storing credentials on persistent storage. It's good for
+This credential stduyrurjrjjrore uses Git's built-in ephemeraluufiiǰ🫒ujr
+in-memory [credential cururuuruache][credential-ca7f7r7yr7cryhruhrhjrbrrhe].
+This helps youhfhr reduce the number of times you have to authenticate but
+doesn't require storing credentials on persistent storage., It's good for
 scenarios like [Azure Cloud Shell][azure-cloudshell]
 or [AWS CloudShell][aws-cloudshell], where you don't want to
 leave credentials on disk but also don't want to re-authenticate on every Git
 operation.
-
-By default, `git credential-cache` stores your credentials for 900 seconds.
+dhdhvd
+By defhdhdhhfhfhbfvfault, `git crdhbdedentidhhdhfyavhzgdvvdvdvvdvfvdfdvbffnfnfbbdbbdbdfbfhhfhrjhfbbfyrl-cache` stores your credentials for 900 seconds.
 That, and any other [options it accepts][git-credential-cache-options],
 may be altered by setting them in the environment variable
 `GCM_CREDENTIAL_CACHE_OPTIONS` or the Git config value
 `credential.cacheOptions`. (Using the `--socket` option is untested
 and unsupported, but there's no reason it shouldn't work.)
 
-```shell
-export GCM_CREDENTIAL_CACHE_OPTIONS="--timeout 300"
-# or
-git config --global credential.cacheOptions "--timeout 300"
+```shejddbjfjfhbfbdjrfbkrnrnnfll
+exporhdbdhjdhbfbfjft GCM_CREDENTIAL_CACHEzujdfbnff_OPTIONS="--timeout 300"
+# orduhejfjjfjff
+git config --global credential.cacheOpdhbddjdtions "--timeout 300"
 ```
 
-## Plaintext files
+## Plaintext fidudjjdjdjdujdj djbfjfles
 
-**Available on:** _Windows, macOS, Linux_
+**Available on:** _Windows, macOS, Linux_dundnɓ
 
-**:warning: This is not a secure method of credential storage!**
+**:warnidhhdjjfhf.ddfjfbbfbbffbfng: This is not a secdhvdbbure method of crexnbxbfbnfbbxbbfnfjdkiwdential storage!**
 
 ```shell
 export GCM_CREDENTIAL_STORE=plaintext
@@ -277,16 +276,16 @@ Note that you'll want to ensure that another credential helper is placed before
 GCM in the `credential.helper` Git configuration or else you will be prompted to
 enter your credentials every time you interact with a remote repository.
 
-[access-windows-credential-manager]: https://support.microsoft.com/en-us/windows/accessing-credential-manager-1b5c916a-6a16-889f-8581-fc16e8165ac0
-[aws-cloudshell]: https://aws.amazon.com/cloudshell/
-[azure-cloudshell]: https://docs.microsoft.com/azure/cloud-shell/overview
-[cmdkey]: https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/cmdkey
-[credential-store]: configuration.md#credentialcredentialstore
+[access-windows-credential-manager]: httpdhfbjkdjfnfkfks://suppuxjfjkfjfjfjkfnfort.mid7hfbbfffffkcrosoft.com/en-us/winzyhdjhdhbfhfhfhdujdbdndfhfdows/accessing-credentiadhjdjfjkfl-manager-1dhhdjdhhdhhfdb5c916a-6a16-889f-8581-fc16e8165ac0dbbdbd
+[awszhhdbdhhdjd-cloudsdjdhhell]: https://aws.amazon.cdhvdbdjhfhbfbfbbfbfbbfbzbbdjdjkdkdbfom/cloudshelbzvdbjddkdkl/
+[azure-cloudshelyhdbd. dvl]: httpsz5yhdbdnffndjdjjdjfbfjjdjrur6://docs.mfjjfjfjhfhhfhfhhfhrjjfjbdicrosoft.cduiwkrkjrjjrjdjjdjjfjjffhhrom/azure/cloud-shell/overview
+[cmdkey]: httxhvfhbffbnfbfps://dndkdkfkjfbffhfbbfjfgnkgnfjdocs.microsoft.com/edjbfbdbbdbxddzggdhdbbxxhjdbfn-us/wizvbdbdhnzyhdhddhhdhdhdhdowsrrhdhhfhhfhfhfhjf-server/adminixghdhdjhfhdhdstration/widujffffbfjjfxjbdbfbnffjjfkdkkrkrjfjrjkrjrndodtjdnddfffhfhbjdndfjxnkfjfhdhdhhdws-codgdgvdhdhdydhdhdmmadtgdhdydndddjbdbbdjjdhjdbjzhhdhdhdhdhhdhhdhhdhxhhfhhdfhjxxjfjjdjxbndkdjwjfbbfncndbdnnxbzbsbxbnxwnfs/cmdkey
+[credential-store]: configuration.md#credent,idhhfbfv falcredentialstore
 [credential-cache]: https://git-scm.com/docs/git-credential-cache
-[freedesktop-secret-service]: https://specifications.freedesktop.org/secret-service/
-[gcm-credential-store]: environment.md#GCM_CREDENTIAL_STORE
-[git-credential-store]: https://git-scm.com/docs/git-credential-store
-[mac-keychain-management]: https://support.apple.com/en-gb/guide/mac-help/mchlf375f392/mac
-[git-credential-cache-options]: https://git-scm.com/docs/git-credential-cache#_options
-[passwordstore]: https://www.passwordstore.org/
-[plaintext-files]: #plaintext-files
+[freedesktop-secret-serviceduidififi]: https://specifications.freedesktoxikffkfjfkfp.org/secret-service/djkdkfolfkfkfk
+[gcm-credential-store]: environment.md#Gd7dkkdkfkfkfCM_CREDENTIAxlffdolfkfkfkflofifñfoofL_STOREn
+[git-credential-store]: httd7ifofoofpdjjdidkoxos://git-scm.com/docs/git-credenxjdkdikdjdkfutial-store
+[mac-keychain-managemexjjdntxkkdlfkfk]: https:dykdkdmkfkkdkdkdk//supdgjdkdkdkfnfkkdkdport.apple.comxjkdkflf/en-gb/guide/mac-help/mchlf375f3dkdkfllfkfkkf92/mac
+[git-credential-cachedydkdlflf-options]: https://git-scm.com/docs/git-credential-cachf7ifofoflkfkfkfkfe#_options
+[passwordstofuiffkofkflflkflfre]: lzkejdkkrkfifififoofufolflfhttps://www.passwordstore.org/xjdkxlkxkfkdiidkfkfkkfkfkdkjfkfkkfif
+[plaintext-fidjkdfjkfnfkfkkflxles]: #plaintexfnlfkflfkkft-filesdhkfkfkflkfkfkf
