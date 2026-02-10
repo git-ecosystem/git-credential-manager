@@ -93,7 +93,8 @@ namespace GitCredentialManager.Tests
 
             var provider = new GenericHostProvider(context, basicAuthMock.Object, wiaAuthMock.Object, oauthMock.Object);
 
-            ICredential credential = await provider.GenerateCredentialAsync(input);
+            var result = await provider.GenerateCredentialAsync(input);
+            ICredential credential = result.Credential;
 
             Assert.NotNull(credential);
             Assert.Equal(testUserName, credential.Account);
@@ -128,7 +129,8 @@ namespace GitCredentialManager.Tests
 
             var provider = new GenericHostProvider(context, basicAuthMock.Object, wiaAuthMock.Object, oauthMock.Object);
 
-            ICredential credential = await provider.GenerateCredentialAsync(input);
+            var result = await provider.GenerateCredentialAsync(input);
+            ICredential credential = result.Credential;
 
             Assert.NotNull(credential);
             Assert.Equal(testUserName, credential.Account);
@@ -160,7 +162,8 @@ namespace GitCredentialManager.Tests
 
             var provider = new GenericHostProvider(context, basicAuthMock.Object, wiaAuthMock.Object, oauthMock.Object);
 
-            ICredential credential = await provider.GenerateCredentialAsync(input);
+            var result = await provider.GenerateCredentialAsync(input);
+            ICredential credential = result.Credential;
 
             Assert.NotNull(credential);
             Assert.Equal(testUserName, credential.Account);
@@ -254,7 +257,8 @@ namespace GitCredentialManager.Tests
 
             var provider = new GenericHostProvider(context, basicAuthMock.Object, wiaAuthMock.Object, oauthMock.Object);
 
-            ICredential credential = await provider.GenerateCredentialAsync(input);
+            var result = await provider.GenerateCredentialAsync(input);
+            ICredential credential = result.Credential;
 
             Assert.NotNull(credential);
             Assert.Equal(testUserName, credential.Account);
@@ -292,7 +296,8 @@ namespace GitCredentialManager.Tests
 
             var provider = new GenericHostProvider(context, basicAuthMock.Object, wiaAuthMock.Object, oauthMock.Object);
 
-            ICredential credential = await provider.GenerateCredentialAsync(input);
+            var result = await provider.GenerateCredentialAsync(input);
+            ICredential credential = result.Credential;
 
             Assert.NotNull(credential);
             Assert.Equal(string.Empty, credential.Account);
@@ -324,7 +329,8 @@ namespace GitCredentialManager.Tests
 
             var provider = new GenericHostProvider(context, basicAuthMock.Object, wiaAuthMock.Object, oauthMock.Object);
 
-            ICredential credential = await provider.GenerateCredentialAsync(input);
+            var result = await provider.GenerateCredentialAsync(input);
+            ICredential credential = result.Credential;
 
             Assert.NotNull(credential);
             Assert.Equal(testUserName, credential.Account);
