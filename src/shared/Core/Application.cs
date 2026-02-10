@@ -89,6 +89,28 @@ namespace GitCredentialManager
             rootCommand.AddCommand(new UnconfigureCommand(Context, _configurationService));
             rootCommand.AddCommand(diagnoseCommand);
 
+            // Add new commands for saving and loading configuration
+            var saveConfigCommand = new Command("save-config", "Save the current configuration to a file");
+            var loadConfigCommand = new Command("load-config", "Load the configuration from a file");
+
+            var filePathOption = new Option<string>("--file", "Path to the configuration file");
+
+            saveConfigCommand.AddOption(filePathOption);
+            loadConfigCommand.AddOption(filePathOption);
+
+            saveConfigCommand.SetHandler(async (string file) =>
+            {
+                await _configurationService.SaveConfigurationAsync(file);
+            }, filePathOption);
+
+            loadConfigCommand.SetHandler(async (string file) =>
+            {
+                await _configurationService.LoadConfigurationAsync(file);
+            }, filePathOption);
+
+            rootCommand.AddCommand(saveConfigCommand);
+            rootCommand.AddCommand(loadConfigCommand);
+
             // Add any custom provider commands
             foreach (ProviderCommand providerCommand in _providerCommands)
             {

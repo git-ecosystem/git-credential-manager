@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.IO;
+using System.Text.Json;
 
 namespace GitCredentialManager
 {
@@ -61,6 +63,18 @@ namespace GitCredentialManager
         /// </summary>
         /// <param name="target">Target level to unconfigure.</param>
         Task UnconfigureAsync(ConfigurationTarget target);
+
+        /// <summary>
+        /// Save the current configuration to a file.
+        /// </summary>
+        /// <param name="filePath">Path to the file where the configuration will be saved.</param>
+        Task SaveConfigurationAsync(string filePath);
+
+        /// <summary>
+        /// Load the configuration from a file.
+        /// </summary>
+        /// <param name="filePath">Path to the file from which the configuration will be loaded.</param>
+        Task LoadConfigurationAsync(string filePath);
     }
 
     public class ConfigurationService : IConfigurationService
@@ -99,6 +113,43 @@ namespace GitCredentialManager
                 _context.Trace.WriteLine($"Unconfiguring component '{component.Name}'...");
                 _context.Streams.Error.WriteLine($"Unconfiguring component '{component.Name}'...");
                 await component.UnconfigureAsync(target);
+            }
+        }
+
+        public async Task SaveConfigurationAsync(string filePath)
+        {
+            var configData = new Dictionary<string, object>();
+
+            foreach (IConfigurableComponent component in _components)
+            {
+                var componentConfig = new Dictionary<string, object>
+                {
+                    { "Name", component.Name }
+                };
+
+                configData[component.Name] = componentConfig;
+            }
+
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            var json = JsonSerializer.Serialize(configData, options);
+
+            await File.WriteAllTextAsync(filePath, json);
+        }
+
+        public async Task LoadConfigurationAsync(string filePath)
+        {
+            var json = await File.ReadAllTextAsync(filePath);
+            var configData = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, object>>>(json);
+
+            foreach (var componentConfig in configData)
+            {
+                var componentName = componentConfig.Key;
+                var component = _components.FirstOrDefault(c => c.Name == componentName);
+
+                if (component != null)
+                {
+                    // Perform any necessary actions to apply the loaded configuration to the component
+                }
             }
         }
 
