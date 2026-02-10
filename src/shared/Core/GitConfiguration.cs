@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 
 namespace GitCredentialManager
@@ -345,7 +346,7 @@ namespace GitCredentialManager
 
         private readonly ITrace _trace;
         private readonly GitProcess _git;
-        private readonly ConfigCache _cache;
+        private readonly Dictionary<GitConfigurationType, ConfigCache> _cache;
         private readonly bool _useCache;
 
         internal GitProcessConfiguration(ITrace trace, GitProcess git) : this(trace, git, useCache: true)
@@ -360,15 +361,44 @@ namespace GitCredentialManager
             _trace = trace;
             _git = git;
             _useCache = useCache;
-            _cache = useCache ? new ConfigCache() : null;
+            _cache = useCache ? new Dictionary<GitConfigurationType, ConfigCache>() : null;
         }
 
-        private void EnsureCacheLoaded()
+        private void EnsureCacheLoaded(GitConfigurationType type)
         {
-            if (!_useCache || _cache.IsLoaded)
+            ConfigCache cache;
+            if (!_useCache || (_cache.TryGetValue(type, out cache) && cache.IsLoaded))
+            {
                 return;
+            }
 
-            using (ChildProcess git = _git.CreateProcess("config list --show-scope --show-origin -z"))
+            if (cache == null)
+            {
+                cache = new ConfigCache();
+                _cache[type] = cache;
+            }
+
+            string typeArg;
+
+            switch (type)
+            {
+            case GitConfigurationType.Raw:
+                typeArg = "--no-type";
+                break;
+
+            case GitConfigurationType.Path:
+                typeArg = "--type=path";
+                break;
+
+            case GitConfigurationType.Bool:
+                typeArg = "--type=bool";
+                break;
+
+            default:
+                return;
+            }
+
+            using (ChildProcess git = _git.CreateProcess($"config list --show-scope --show-origin -z {typeArg}"))
             {
                 git.Start(Trace2ProcessClass.Git);
                 // To avoid deadlocks, always read the output stream first and then wait
@@ -378,7 +408,7 @@ namespace GitCredentialManager
                 switch (git.ExitCode)
                 {
                     case 0: // OK
-                        _cache.Load(data, _trace);
+                        cache.Load(data, _trace);
                         break;
                     default:
                         _trace.WriteLine($"Failed to load config cache (exit={git.ExitCode}), will use individual git config commands");
@@ -392,7 +422,10 @@ namespace GitCredentialManager
         {
             if (_useCache)
             {
-                _cache.Clear();
+                foreach (ConfigCache cache in _cache.Values)
+                {
+                    cache.Clear();
+                }
             }
         }
 
@@ -400,10 +433,13 @@ namespace GitCredentialManager
         {
             if (_useCache)
             {
-                EnsureCacheLoaded();
-                if (_cache.IsLoaded)
+                EnsureCacheLoaded(GitConfigurationType.Raw);
+
+                ConfigCache cache = _cache[GitConfigurationType.Raw];
+
+                if (cache.IsLoaded)
                 {
-                    _cache.Enumerate(level, cb);
+                    cache.Enumerate(level, cb);
                     return;
                 }
             }
@@ -478,10 +514,12 @@ namespace GitCredentialManager
         public bool TryGet(GitConfigurationLevel level, GitConfigurationType type, string name, out string value)
         {
             // Use cache for raw types only - typed queries need Git's canonicalization
-            if (_useCache && type == GitConfigurationType.Raw)
+            if (_useCache)
             {
-                EnsureCacheLoaded();
-                if (_cache.IsLoaded && _cache.TryGet(name, level, out value))
+                EnsureCacheLoaded(type);
+
+                ConfigCache cache = _cache[type];
+                if (cache.IsLoaded && cache.TryGet(name, level, out value))
                 {
                     return true;
                 }
@@ -593,12 +631,14 @@ namespace GitCredentialManager
         public IEnumerable<string> GetAll(GitConfigurationLevel level, GitConfigurationType type, string name)
         {
             // Use cache for raw types only - typed queries need Git's canonicalization
-            if (_useCache && type == GitConfigurationType.Raw)
+            if (_useCache)
             {
-                EnsureCacheLoaded();
-                if (_cache.IsLoaded)
+                EnsureCacheLoaded(type);
+
+                ConfigCache cache = _cache[type];
+                if (cache.IsLoaded)
                 {
-                    var cachedValues = _cache.GetAll(name, level);
+                    var cachedValues = cache.GetAll(name, level);
                     foreach (var val in cachedValues)
                     {
                         yield return val;
