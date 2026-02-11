@@ -4,7 +4,7 @@ namespace GitCredentialManager.UI.ViewModels;
 
 public class DefaultAccountViewModel : WindowViewModel
 {
-    private readonly IEnvironment _env;
+    private readonly ISessionManager _sessionManager;
 
     private bool _showProductHeader = true;
     private string _userName;
@@ -17,9 +17,9 @@ public class DefaultAccountViewModel : WindowViewModel
         // For designer only
     }
     
-    public DefaultAccountViewModel(IEnvironment environment) : this()
+    public DefaultAccountViewModel(ISessionManager sessionManager) : this()
     {
-        _env = environment;
+        _sessionManager = sessionManager;
 
         ContinueCommand = new RelayCommand(Continue);
         OtherAccountCommand = new RelayCommand(OtherAccount);
@@ -40,7 +40,7 @@ public class DefaultAccountViewModel : WindowViewModel
 
     private void OpenLink()
     {
-        BrowserUtils.OpenDefaultBrowser(_env, Link);
+        _sessionManager.OpenBrowser(Link);
     }
 
     public bool UseDefaultAccount { get; private set; }

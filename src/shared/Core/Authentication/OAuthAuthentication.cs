@@ -187,7 +187,7 @@ namespace GitCredentialManager.Authentication
             }
 
             var browserOptions = new OAuth2WebBrowserOptions();
-            var browser = new OAuth2SystemWebBrowser(Context.Environment, browserOptions);
+            var browser = new OAuth2SystemWebBrowser(Context.SessionManager, browserOptions);
             var authCode = await client.GetAuthorizationCodeAsync(scopes, browser, CancellationToken.None);
             return await client.GetTokenByAuthorizationCodeAsync(authCode, CancellationToken.None);
         }
@@ -241,7 +241,7 @@ namespace GitCredentialManager.Authentication
 
         private Task ShowDeviceCodeViaUiAsync(OAuth2DeviceCodeResult dcr, CancellationToken ct)
         {
-            var viewModel = new DeviceCodeViewModel(Context.Environment)
+            var viewModel = new DeviceCodeViewModel(Context.SessionManager)
             {
                 UserCode = dcr.UserCode,
                 VerificationUrl = dcr.VerificationUri.ToString(),

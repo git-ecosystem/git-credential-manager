@@ -10,9 +10,9 @@ public class OAuth2SystemWebBrowserTests
     [Fact]
     public void OAuth2SystemWebBrowser_UpdateRedirectUri_NonLoopback_ThrowsError()
     {
-        var env = new TestEnvironment();
+        var sm = new TestSessionManager();
         var options = new OAuth2WebBrowserOptions();
-        var browser = new OAuth2SystemWebBrowser(env, options);
+        var browser = new OAuth2SystemWebBrowser(sm, options);
 
         Assert.Throws<ArgumentException>(() => browser.UpdateRedirectUri(new Uri("http://example.com")));
     }
@@ -28,9 +28,9 @@ public class OAuth2SystemWebBrowserTests
     [InlineData("http://127.0.0.7:1234/oauth-callback/", "http://127.0.0.7:1234/oauth-callback/")]
     public void OAuth2SystemWebBrowser_UpdateRedirectUri_SpecificPort(string input, string expected)
     {
-        var env = new TestEnvironment();
+        var sm = new TestSessionManager();
         var options = new OAuth2WebBrowserOptions();
-        var browser = new OAuth2SystemWebBrowser(env, options);
+        var browser = new OAuth2SystemWebBrowser(sm, options);
 
         Uri actualUri = browser.UpdateRedirectUri(new Uri(input));
 
@@ -48,9 +48,9 @@ public class OAuth2SystemWebBrowserTests
     [InlineData("http://127.0.0.7/oauth-callback/")]
     public void OAuth2SystemWebBrowser_UpdateRedirectUri_AnyPort(string input)
     {
-        var env = new TestEnvironment();
+        var sm = new TestSessionManager();
         var options = new OAuth2WebBrowserOptions();
-        var browser = new OAuth2SystemWebBrowser(env, options);
+        var browser = new OAuth2SystemWebBrowser(sm, options);
 
         var inputUri = new Uri(input);
         Uri actualUri = browser.UpdateRedirectUri(inputUri);

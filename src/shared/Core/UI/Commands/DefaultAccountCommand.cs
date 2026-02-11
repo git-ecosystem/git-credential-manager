@@ -28,7 +28,7 @@ public abstract class DefaultAccountCommand : HelperCommand
 
     private async Task<int> ExecuteAsync(string title, string userName, bool noLogo)
     {
-        var viewModel = new DefaultAccountViewModel(Context.Environment)
+        var viewModel = new DefaultAccountViewModel(Context.SessionManager)
         {
             Title = !string.IsNullOrWhiteSpace(title)
                 ? title

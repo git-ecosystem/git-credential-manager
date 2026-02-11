@@ -108,7 +108,7 @@ namespace Atlassian.Bitbucket
         private async Task<CredentialsPromptResult> GetCredentialsViaUiAsync(
             Uri targetUri, string userName, AuthenticationModes modes)
         {
-            var viewModel = new CredentialsViewModel(Context.Environment)
+            var viewModel = new CredentialsViewModel(Context.SessionManager)
             {
                 ShowOAuth = (modes & AuthenticationModes.OAuth) != 0,
                 ShowBasic = (modes & AuthenticationModes.Basic) != 0
@@ -259,7 +259,7 @@ namespace Atlassian.Bitbucket
                 FailureResponseHtmlFormat = BitbucketResources.AuthenticationResponseFailureHtmlFormat
             };
 
-            var browser = new OAuth2SystemWebBrowser(Context.Environment, browserOptions);
+            var browser = new OAuth2SystemWebBrowser(Context.SessionManager, browserOptions);
             var oauth2Client = _oauth2ClientRegistry.Get(input);
 
             var authCodeResult = await oauth2Client.GetAuthorizationCodeAsync(browser, CancellationToken.None);

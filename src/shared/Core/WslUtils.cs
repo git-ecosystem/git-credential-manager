@@ -195,8 +195,16 @@ namespace GitCredentialManager
                 const string script = @"(Get-Process -ID $PID).SessionId";
                 using (Process proc = CreateWindowsShellProcess(fs, WindowsShell.PowerShell, script))
                 {
-                    proc.Start();
-                    proc.WaitForExit();
+                    try
+                    {
+                        proc.Start();
+                        proc.WaitForExit();
+                    }
+                    catch
+                    {
+                        // Unable to start the process, return unknown session ID
+                        return -1;
+                    }
 
                     if (proc.ExitCode == 0)
                     {

@@ -41,7 +41,7 @@ namespace GitHub.UI.Commands
         private async Task<int> ExecuteAsync(string userName, string enterpriseUrl,
             bool basic, bool browser, bool device, bool pat, bool all)
         {
-            var viewModel = new CredentialsViewModel(Context.Environment, Context.ProcessManager)
+            var viewModel = new CredentialsViewModel(Context.SessionManager, Context.ProcessManager)
             {
                 ShowBrowserLogin = all || browser,
                 ShowDeviceLogin  = all || device,

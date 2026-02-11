@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -33,15 +32,15 @@ namespace GitCredentialManager.Authentication.OAuth
 
     public class OAuth2SystemWebBrowser : IOAuth2WebBrowser
     {
-        private readonly IEnvironment _environment;
+        private readonly ISessionManager _sessionManager;
         private readonly OAuth2WebBrowserOptions _options;
 
-        public OAuth2SystemWebBrowser(IEnvironment environment, OAuth2WebBrowserOptions options)
+        public OAuth2SystemWebBrowser(ISessionManager sessionManager, OAuth2WebBrowserOptions options)
         {
-            EnsureArgument.NotNull(environment, nameof(environment));
+            EnsureArgument.NotNull(sessionManager, nameof(sessionManager));
             EnsureArgument.NotNull(options, nameof(options));
 
-            _environment = environment;
+            _sessionManager = sessionManager;
             _options = options;
         }
 
@@ -71,7 +70,7 @@ namespace GitCredentialManager.Authentication.OAuth
 
             Task<Uri> interceptTask = InterceptRequestsAsync(redirectUri, ct);
 
-            BrowserUtils.OpenDefaultBrowser(_environment, authorizationUri);
+            _sessionManager.OpenBrowser(authorizationUri);
 
             return await interceptTask;
         }
