@@ -443,11 +443,11 @@ namespace Atlassian.Bitbucket
                     _context.Trace.WriteLine(message);
                     _context.Trace.WriteException(ex);
                     _context.Trace2.WriteError(message);
-                    return false;
                 }
             }
 
-            return true;
+            // auth refresh will handle expired token (or invalid authModes configuration)
+            return false;
         }
 
         private static string GetServiceName(Uri remoteUri)
