@@ -190,6 +190,136 @@ namespace GitCredentialManager.Tests
             await TestCreateCredentialAsync_ReturnsBasicCredential(WindowsAuthenticationTypes.None);
         }
 
+        [WindowsFact]
+        private static async Task GenericHostProvider_NtlmSuppressed_AllowOnce()
+        {
+            var input = new InputArguments(new Dictionary<string, string>
+            {
+                ["protocol"] = "https",
+                ["host"]     = "example.com",
+                [Constants.CredentialProtocol.NtlmKey] = Constants.CredentialProtocol.NtlmSuppressed,
+            });
+
+            var configKey =
+                $"{Constants.GitConfiguration.Http.SectionName}.https://example.com.{Constants.GitConfiguration.Http.AllowNtlmAuth}";
+
+            var context = new TestCommandContext();
+            context.Git.Configuration.Global.Clear();
+
+            var basicAuthMock = new Mock<IBasicAuthentication>();
+            basicAuthMock.Setup(x => x.GetCredentialsAsync(It.IsAny<string>(), It.IsAny<string>()))
+                .Verifiable();
+            var wiaAuthMock = new Mock<IWindowsIntegratedAuthentication>();
+            wiaAuthMock.Setup(x => x.GetAuthenticationTypesAsync(It.IsAny<Uri>()))
+                .ReturnsAsync(WindowsAuthenticationTypes.Ntlm);
+            wiaAuthMock.Setup(x => x.AskEnableNtlmAsync(It.IsAny<Uri>()))
+                .ReturnsAsync(NtlmSupport.Once);
+            var oauthMock = new Mock<IOAuthAuthentication>();
+
+            var provider = new GenericHostProvider(context, basicAuthMock.Object, wiaAuthMock.Object, oauthMock.Object);
+
+            var result = await provider.GenerateCredentialAsync(input);
+            ICredential credential = result.Credential;
+
+            Assert.NotNull(credential);
+            Assert.Equal(string.Empty, credential.Account);
+            Assert.Equal(string.Empty, credential.Password);
+            Assert.True(result.AdditionalProperties.TryGetValue(Constants.CredentialProtocol.NtlmKey, out string ntlmValue));
+            Assert.Equal(Constants.CredentialProtocol.NtlmAllow, ntlmValue);
+
+            wiaAuthMock.Verify(x => x.AskEnableNtlmAsync(It.IsAny<Uri>()), Times.Once);
+            basicAuthMock.Verify(x => x.GetCredentialsAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+
+            Assert.False(context.Git.Configuration.Global.TryGetValue(configKey, out _));
+        }
+
+        [WindowsFact]
+        private static async Task GenericHostProvider_NtlmSuppressed_AllowAlways()
+        {
+            var input = new InputArguments(new Dictionary<string, string>
+            {
+                ["protocol"] = "https",
+                ["host"]     = "example.com",
+                [Constants.CredentialProtocol.NtlmKey] = Constants.CredentialProtocol.NtlmSuppressed,
+            });
+
+            var configKey =
+                $"{Constants.GitConfiguration.Http.SectionName}.https://example.com.{Constants.GitConfiguration.Http.AllowNtlmAuth}";
+
+            var context = new TestCommandContext();
+            context.Git.Configuration.Global.Clear();
+
+            var basicAuthMock = new Mock<IBasicAuthentication>();
+            basicAuthMock.Setup(x => x.GetCredentialsAsync(It.IsAny<string>(), It.IsAny<string>()))
+                .Verifiable();
+            var wiaAuthMock = new Mock<IWindowsIntegratedAuthentication>();
+            wiaAuthMock.Setup(x => x.GetAuthenticationTypesAsync(It.IsAny<Uri>()))
+                .ReturnsAsync(WindowsAuthenticationTypes.Ntlm);
+            wiaAuthMock.Setup(x => x.AskEnableNtlmAsync(It.IsAny<Uri>()))
+                .ReturnsAsync(NtlmSupport.Always);
+            var oauthMock = new Mock<IOAuthAuthentication>();
+
+            var provider = new GenericHostProvider(context, basicAuthMock.Object, wiaAuthMock.Object, oauthMock.Object);
+
+            var result = await provider.GenerateCredentialAsync(input);
+            ICredential credential = result.Credential;
+
+            Assert.NotNull(credential);
+            Assert.Equal(string.Empty, credential.Account);
+            Assert.Equal(string.Empty, credential.Password);
+            Assert.True(result.AdditionalProperties.TryGetValue(Constants.CredentialProtocol.NtlmKey, out string ntlmValue));
+            Assert.Equal(Constants.CredentialProtocol.NtlmAllow, ntlmValue);
+
+            wiaAuthMock.Verify(x => x.AskEnableNtlmAsync(It.IsAny<Uri>()), Times.Once);
+            basicAuthMock.Verify(x => x.GetCredentialsAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+
+            Assert.True(context.Git.Configuration.Global.TryGetValue(configKey, out IList<string> configValues));
+            string configValue = Assert.Single(configValues);
+            Assert.True(configValue.IsTruthy());
+        }
+
+        [WindowsFact]
+        private static async Task GenericHostProvider_NtlmSuppressed_Disabled()
+        {
+            var input = new InputArguments(new Dictionary<string, string>
+            {
+                ["protocol"] = "https",
+                ["host"]     = "example.com",
+                [Constants.CredentialProtocol.NtlmKey] = Constants.CredentialProtocol.NtlmSuppressed,
+            });
+
+            var configKey =
+                $"{Constants.GitConfiguration.Http.SectionName}.https://example.com.{Constants.GitConfiguration.Http.AllowNtlmAuth}";
+
+            var context = new TestCommandContext();
+            context.Git.Configuration.Global.Clear();
+
+            var basicAuthMock = new Mock<IBasicAuthentication>();
+            basicAuthMock.Setup(x => x.GetCredentialsAsync(It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(new GitCredential("testUser", "testPassword"));
+            var wiaAuthMock = new Mock<IWindowsIntegratedAuthentication>();
+            wiaAuthMock.Setup(x => x.GetAuthenticationTypesAsync(It.IsAny<Uri>()))
+                .ReturnsAsync(WindowsAuthenticationTypes.Ntlm);
+            wiaAuthMock.Setup(x => x.AskEnableNtlmAsync(It.IsAny<Uri>()))
+                .ReturnsAsync(NtlmSupport.Disabled);
+            var oauthMock = new Mock<IOAuthAuthentication>();
+
+            var provider = new GenericHostProvider(context, basicAuthMock.Object, wiaAuthMock.Object, oauthMock.Object);
+
+            var result = await provider.GenerateCredentialAsync(input);
+            ICredential credential = result.Credential;
+
+            Assert.NotNull(credential);
+            Assert.Equal("testUser", credential.Account);
+            Assert.Equal("testPassword", credential.Password);
+            Assert.False(result.AdditionalProperties.TryGetValue(Constants.CredentialProtocol.NtlmKey, out _));
+
+            wiaAuthMock.Verify(x => x.AskEnableNtlmAsync(It.IsAny<Uri>()), Times.Once);
+            basicAuthMock.Verify(x => x.GetCredentialsAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+
+            Assert.False(context.Git.Configuration.Global.TryGetValue(configKey, out _));
+        }
+
         [Fact]
         public async Task GenericHostProvider_GenerateCredentialAsync_OAuth_CompleteOAuthConfig_UsesOAuth()
         {

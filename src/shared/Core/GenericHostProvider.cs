@@ -183,11 +183,49 @@ namespace GitCredentialManager
                     }
                     else
                     {
-                        _context.Trace.WriteLine("Host supports WIA - generating empty credential...");
+                        _context.Trace.WriteLine("Host supports WIA.");
+
+                        var additionalProps = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+                        // Has Git suppressed its own built-in NTLM authentication support?
+                        if (input.TryGetArgument(Constants.CredentialProtocol.NtlmKey, out string ntlmArg) &&
+                            StringComparer.OrdinalIgnoreCase.Equals(Constants.CredentialProtocol.NtlmSuppressed, ntlmArg))
+                        {
+                            _context.Trace.WriteLine("NTLM support has been suppressed by Git - showing warning.");
+
+                            // Show a warning that NTLM authentication will not work without Git's built-in support
+                            // and ask the user what they want to do about it.
+                            NtlmSupport ntlmSupport = await _winAuth.AskEnableNtlmAsync(uri);
+                            switch (ntlmSupport)
+                            {
+                                case NtlmSupport.Once:
+                                    _context.Trace.WriteLine("Enabling NTLM support just once.");
+                                    additionalProps[Constants.CredentialProtocol.NtlmKey] =
+                                        Constants.CredentialProtocol.NtlmAllow;
+                                    break;
+
+                                case NtlmSupport.Always:
+                                    _context.Trace.WriteLine($"Enabling NTLM support for {uri}.");
+                                    additionalProps[Constants.CredentialProtocol.NtlmKey] =
+                                        Constants.CredentialProtocol.NtlmAllow;
+                                    EnableNtlmSupport(uri);
+                                    break;
+
+                                default:
+                                    _context.Trace.WriteLine("User declined to enable NTLM support. Showing basic auth prompt.");
+                                    return new GetCredentialResult(
+                                        await _basicAuth.GetCredentialsAsync(uri.AbsoluteUri, null)
+                                    );
+                            }
+                        }
 
                         // WIA is signaled to Git using an empty username/password
+                        _context.Trace.WriteLine("Returning empty username/password to trigger current user auth with WIA.");
                         ICredential creds = new GitCredential(string.Empty, string.Empty);
-                        return new GetCredentialResult(creds);
+                        return new GetCredentialResult(creds)
+                        {
+                            AdditionalProperties = additionalProps
+                        };
                     }
                 }
                 else
@@ -208,6 +246,21 @@ namespace GitCredentialManager
             );
         }
 
+        private void EnableNtlmSupport(Uri uri)
+        {
+            string url = uri.AbsoluteUri.TrimEnd('/');
+            IGitConfiguration config = _context.Git.GetConfiguration();
+            string key = $"{Constants.GitConfiguration.Http.SectionName}.{url}.{Constants.GitConfiguration.Http.AllowNtlmAuth}";
+
+            try
+            {
+                config.Set(GitConfigurationLevel.Global, key, "true");
+            }
+            catch (Exception ex)
+            {
+                _context.Trace.WriteLine($"Failed to set Git configuration to enable NTLM support for {uri}");
+                _context.Trace.WriteException(ex);
+            }
         }
 
         private async Task<ICredential> GetOAuthAccessToken(Uri remoteUri, string userName, GenericOAuthConfig config, ITrace2 trace2)

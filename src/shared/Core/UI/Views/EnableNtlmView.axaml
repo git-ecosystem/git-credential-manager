@@ -1,0 +1,83 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:GitCredentialManager.UI.ViewModels;assembly=gcmcore"
+             mc:Ignorable="d" d:DesignWidth="420"
+             x:Class="GitCredentialManager.UI.Views.EnableNtlmView">
+    <Design.DataContext>
+        <vm:EnableNtlmViewModel/>
+    </Design.DataContext>
+    <DockPanel>
+        <StackPanel DockPanel.Dock="Top" Margin="10,0,10,10">
+            <StackPanel Margin="0"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Center">
+                <Image Margin="0,0,10,0"
+                       VerticalAlignment="Center"
+                       Source="{DynamicResource GcmLogo}"
+                       Width="32" Height="32" />
+                <TextBlock Text="Git Credential Manager"
+                           VerticalAlignment="Center"
+                           FontSize="18"
+                           FontWeight="Light"/>
+            </StackPanel>
+
+            <TextBlock FontSize="14"
+                       TextAlignment="Center"
+                       HorizontalAlignment="Center"
+                       TextWrapping="Wrap"
+                       Margin="0,15,0,15">
+                NTLM support in Git has been disabled. Do you wish to re-enable NTLM authentication?
+            </TextBlock>
+
+            <TextBlock Text="{Binding Url}"
+                       FontSize="14"
+                       TextAlignment="Center"
+                       HorizontalAlignment="Center"
+                       TextWrapping="Wrap"
+                       Margin="0,0,0,15"/>
+        </StackPanel>
+
+        <StackPanel DockPanel.Dock="Bottom" HorizontalAlignment="Center"
+                    Margin="10,20,10,0">
+            <Grid ColumnDefinitions="Auto,*" Margin="0,0,0,0">
+                <Image Grid.Column="0"
+                       Source="{StaticResource WarningIcon}"
+                       Width="16" Height="16"
+                       Margin="0,0,5,0"/>
+                <TextBlock Grid.Column="1" TextWrapping="Wrap" VerticalAlignment="Center">
+                    <Run>
+                        NTLM authentication is no longer considered secure,
+                        and should only be used with trusted remotes.
+                    </Run>
+                    <InlineUIContainer>
+                        <Button Content="Learn more"
+                                Command="{Binding LearnMoreCommand}"
+                                HorizontalAlignment="Center"
+                                Classes="hyperlink"/>
+                    </InlineUIContainer>
+                </TextBlock>
+            </Grid>
+        </StackPanel>
+
+        <StackPanel Margin="20,0">
+            <Button Content="Yes - just this time"
+                    IsDefault="True"
+                    Command="{Binding OnceCommand}"
+                    HorizontalAlignment="Center"
+                    Margin="0,0,0,10"
+                    Padding="16,8"
+                    Classes="accent"/>
+            <Button Content="Yes - always for this remote"
+                    Command="{Binding AlwaysCommand}"
+                    HorizontalAlignment="Center"
+                    Margin="0,0,0,10"
+                    Padding="16,8"/>
+            <Button Content="No - do not enable NTLM"
+                    Command="{Binding NoCommand}"
+                    Padding="16,8"
+                    HorizontalAlignment="Center"/>
+        </StackPanel>
+    </DockPanel>
+</UserControl>
