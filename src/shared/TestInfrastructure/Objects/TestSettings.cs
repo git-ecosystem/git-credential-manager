@@ -17,6 +17,8 @@ namespace GitCredentialManager.Tests.Objects
 
         public bool IsInteractionAllowed { get; set; } = true;
 
+        public bool SilentExit {get; } = false;
+
         public string Trace { get; set; }
 
         public bool IsSecretTracingEnabled { get; set; }
