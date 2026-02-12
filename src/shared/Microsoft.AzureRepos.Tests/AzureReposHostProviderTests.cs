@@ -596,6 +596,57 @@ namespace Microsoft.AzureRepos.Tests
         }
 
         [Fact]
+        public async Task AzureReposProvider_GetCredentialAsync_FederatedIdentity_ReturnsFederatedIdCredential()
+        {
+            var input = new InputArguments(new Dictionary<string, string>
+            {
+                ["protocol"] = "https",
+                ["host"] = "dev.azure.com",
+                ["path"] = "org/proj/_git/repo"
+            });
+
+            const string accessToken = "FEDERATED-IDENTITY-TOKEN";
+            const string federatedIdentityClientId = "00000000-0000-0000-0000-000000000000";
+            const string tenantId = "00000000-0000-0000-0000-000000000000";
+            const string ClientAppId = "00000000-0000-0000-0000-000000000000";
+
+            var context = new TestCommandContext
+            {
+                Environment =
+                {
+                    Variables =
+                    {
+                        [AzureDevOpsConstants.EnvironmentVariables.FederatedIdentity] = federatedIdentityClientId,
+                        [AzureDevOpsConstants.EnvironmentVariables.FederatedIdentityTenantId] = tenantId,
+                        [AzureDevOpsConstants.EnvironmentVariables.FederatedIdentityClientAppId] = ClientAppId
+                    }
+                }
+            };
+
+            var azDevOps = Mock.Of<IAzureDevOpsRestApi>();
+            var authorityCache = Mock.Of<IAzureDevOpsAuthorityCache>();
+            var userMgr = Mock.Of<IAzureReposBindingManager>();
+            var msAuthMock = new Mock<IMicrosoftAuthentication>();
+            var fidMock = new Mock<FederatedIdentity>();
+
+
+            msAuthMock.Setup(x => x.GetTokenForFederatedIdentityAsync(It.IsAny<FederatedIdentity>(), It.IsAny<string[]>()))
+                .ReturnsAsync(new MockMsAuthResult { AccessToken = accessToken });
+
+            var provider = new AzureReposHostProvider(context, azDevOps, msAuthMock.Object, authorityCache, userMgr);
+
+            ICredential credential = await provider.GetCredentialAsync(input);
+
+            Assert.NotNull(credential);
+            Assert.Equal(federatedIdentityClientId, credential.Account);
+            Assert.Equal(accessToken, credential.Password);
+
+            msAuthMock.Verify(
+                x => x.GetTokenForFederatedIdentityAsync(It.Is<FederatedIdentity>(sp => sp.ManagedIdentityClientId == federatedIdentityClientId && sp.TenantId == tenantId && sp.ClientAppId == ClientAppId),
+                    AzureDevOpsConstants.AzureDevOpsDefaultScopes), Times.Once);
+        }
+
+        [Fact]
         public async Task AzureReposProvider_GetCredentialAsync_ServicePrincipal_ReturnsSPCredential()
         {
             var input = new InputArguments(new Dictionary<string, string>
