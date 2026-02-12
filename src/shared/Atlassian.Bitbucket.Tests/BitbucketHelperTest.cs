@@ -1,3 +1,6 @@
+using Atlassian.Bitbucket.DataCenter;
+using GitCredentialManager;
+using Moq;
 using System;
 using Xunit;
 
@@ -5,6 +8,10 @@ namespace Atlassian.Bitbucket.Tests
 {
     public class BitbucketHelperTest
     {
+
+
+        private Mock<ISettings> settings = new Mock<ISettings>(MockBehavior.Loose);
+
         [Theory]
         [InlineData(null, false)]
         [InlineData("", false)]
@@ -55,6 +62,37 @@ namespace Atlassian.Bitbucket.Tests
         {
             bool actual = BitbucketHelper.IsBitbucketOrg(new Uri(str));
             Assert.Equal(expected, actual);
+        }
+
+        [Theory]
+        // old behavior
+        [InlineData("http://bitbucket.org", null, "http://bitbucket.org:80")]
+        [InlineData("https://bitbucket.org", null, "https://bitbucket.org:443")]
+        [InlineData("https://bitbucket.org/project/repo.git", null, "https://bitbucket.org:443/project")]
+        // with http path
+        [InlineData("http://bitbucket.org", "/bitbucket", "http://bitbucket.org:80/bitbucket")]
+        [InlineData("https://bitbucket.org", "/bitbucket", "https://bitbucket.org:443/bitbucket")]
+        // usehttppath takes preference over httpPath
+        [InlineData("https://bitbucket.org/project/repo.git", "/bitbucket", "https://bitbucket.org:443/project")]
+        public void BitbucketHelper_GetBaseUri(string uri, string httpPath, string expected)
+        {
+
+            settings.Setup(s => s.RemoteUri).Returns(new Uri(uri));
+            if(httpPath != null)
+            {
+                MockHttpPath(httpPath);
+            }
+            var actual = BitbucketHelper.GetBaseUri(settings.Object);
+            Assert.Equal(expected, actual);
+        }
+
+        private string MockHttpPath(string value)
+        {
+            settings.Setup(s => s.TryGetSetting(
+                DataCenterConstants.EnvironmentVariables.HttpPath,
+                Constants.GitConfiguration.Credential.SectionName, DataCenterConstants.GitConfiguration.Credential.HttpPath,
+                out value)).Returns(true);
+            return value;
         }
     }
 }
