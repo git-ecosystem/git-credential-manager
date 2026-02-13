@@ -513,19 +513,19 @@ namespace GitCredentialManager
 
         public bool TryGet(GitConfigurationLevel level, GitConfigurationType type, string name, out string value)
         {
-            // Use cache for raw types only - typed queries need Git's canonicalization
             if (_useCache)
             {
                 EnsureCacheLoaded(type);
 
                 ConfigCache cache = _cache[type];
-                if (cache.IsLoaded && cache.TryGet(name, level, out value))
+                if (cache.IsLoaded)
                 {
-                    return true;
+                    // Cache is loaded, use it for the result (whether found or not)
+                    return cache.TryGet(name, level, out value);
                 }
             }
 
-            // Fall back to individual git config command for typed queries or cache miss
+            // Fall back to individual git config command if cache not available
             string levelArg = GetLevelFilterArg(level);
             string typeArg = GetCanonicalizeTypeArg(type);
             using (ChildProcess git = _git.CreateProcess($"config --null {levelArg} {typeArg} {QuoteCmdArg(name)}"))
