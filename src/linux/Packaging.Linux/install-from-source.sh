@@ -231,7 +231,7 @@ case "$distribution" in
 
         ensure_dotnet_installed
     ;;
-    mariner)
+    mariner | azurelinux*)
         print_unsupported_distro "WARNING" "$distribution"
         $sudo_cmd tdnf update -y
 

@@ -29,6 +29,7 @@ jobs:
         - image: registry.suse.com/suse/sle15:15.4.27.11.31
         - image: archlinux
         - image: mcr.microsoft.com/cbl-mariner/base/core:2.0
+        - image: mcr.microsoft.com/azurelinux/base/core:3.0
     container: ${{matrix.vector.image}}
     steps:
       - run: |
@@ -36,7 +37,7 @@ jobs:
             zypper -n install tar gzip
           elif [[ ${{matrix.vector.image}} == *"centos"* ]]; then
             dnf install which -y
-          elif [[ ${{matrix.vector.image}} == *"mariner"* ]]; then
+          elif [[ ${{matrix.vector.image}} == *"mariner"* || ${{matrix.vector.image}} == *"azurelinux"* ]]; then
             GNUPGHOME=/root/.gnupg tdnf update -y &&
             GNUPGHOME=/root/.gnupg tdnf install tar -y # needed for `actions/checkout`
           fi
