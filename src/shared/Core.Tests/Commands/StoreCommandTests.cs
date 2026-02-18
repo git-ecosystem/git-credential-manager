@@ -8,7 +8,8 @@ using Xunit;
 namespace GitCredentialManager.Tests.Commands
 {
     public class StoreCommandTests
-    {[Fact]
+    {
+        [Fact]
         public async Task StoreCommand_ExecuteAsync_CallsHostProvider()
         {
             const string testUserName = "john.doe";
@@ -38,6 +39,30 @@ namespace GitCredentialManager.Tests.Commands
             providerMock.Verify(
                 x => x.StoreCredentialAsync(It.Is<InputArguments>(y => AreInputArgumentsEquivalent(expectedInput, y))),
                 Times.Once);
+        }
+
+        [Fact]
+        public async Task StoreCommand_SaveConfigurationAsync_SavesConfiguration()
+        {
+            const string filePath = "test-config.json";
+            var context = new TestCommandContext();
+            var command = new StoreCommand(context, new TestHostProviderRegistry());
+
+            await command.SaveConfigurationAsync(filePath);
+
+            // Add assertions to verify that the configuration was saved correctly
+        }
+
+        [Fact]
+        public async Task StoreCommand_LoadConfigurationAsync_LoadsConfiguration()
+        {
+            const string filePath = "test-config.json";
+            var context = new TestCommandContext();
+            var command = new StoreCommand(context, new TestHostProviderRegistry());
+
+            await command.LoadConfigurationAsync(filePath);
+
+            // Add assertions to verify that the configuration was loaded correctly
         }
 
         bool AreInputArgumentsEquivalent(InputArguments a, InputArguments b)

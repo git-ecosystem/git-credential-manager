@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using GitCredentialManager;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.IO;
 
 namespace Atlassian.Bitbucket.DataCenter
 {
@@ -128,6 +129,27 @@ namespace Atlassian.Bitbucket.DataCenter
             }
 
             return authenticationMethods;
+        }
+
+        public async Task SaveConfigurationAsync(string filePath)
+        {
+            var configData = new Dictionary<string, object>
+            {
+                { "ApiUri", ApiUri.ToString() }
+            };
+
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            var json = JsonSerializer.Serialize(configData, options);
+
+            await File.WriteAllTextAsync(filePath, json);
+        }
+
+        public async Task LoadConfigurationAsync(string filePath)
+        {
+            var json = await File.ReadAllTextAsync(filePath);
+            var configData = JsonSerializer.Deserialize<Dictionary<string, object>>(json);
+
+            // Perform any necessary actions to apply the loaded configuration to the BitbucketRestApi
         }
 
         public void Dispose()
