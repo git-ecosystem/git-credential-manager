@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics;
 
 namespace GitCredentialManager.Interop.MacOS
@@ -20,6 +21,10 @@ namespace GitCredentialManager.Interop.MacOS
         public string Label { get; }
 
         public string Password { get; }
+
+        public DateTimeOffset? PasswordExpiry => null;
+
+        public string OAuthRefreshToken => null;
 
         private string DebuggerDisplay => $"{Label} [Service: {Service}, Account: {Account}]";
     }

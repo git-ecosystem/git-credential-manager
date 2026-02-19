@@ -206,6 +206,9 @@ namespace GitCredentialManager
         {
             foreach (var kvp in dict)
             {
+                if (kvp.Value == null) {
+                    continue;
+                }
                 await writer.WriteLineAsync($"{kvp.Key}={kvp.Value}");
             }
 

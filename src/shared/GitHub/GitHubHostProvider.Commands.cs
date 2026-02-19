@@ -118,7 +118,7 @@ public partial class GitHubHostProvider : ICommandProvider
             credential = await GenerateCredentialAsync(url, userName);
         }
 
-        _context.CredentialStore.AddOrUpdate(service, credential.Account, credential.Password);
+        _context.CredentialStore.AddOrUpdate(service, credential);
 
         return 0;
     }
