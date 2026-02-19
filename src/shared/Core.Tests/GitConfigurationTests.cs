@@ -436,5 +436,224 @@ namespace GitCredentialManager.Tests
             Assert.Throws<InvalidOperationException>(() =>
                 config.UnsetAll(GitConfigurationLevel.All, "core.foobar", Constants.RegexPatterns.Any));
         }
+
+        [Fact]
+        public void GitConfiguration_CacheTryGet_ReturnsValueFromCache()
+        {
+            string repoPath = CreateRepository(out string workDirPath);
+            ExecGit(repoPath, workDirPath, "config --local user.name john.doe").AssertSuccess();
+            ExecGit(repoPath, workDirPath, "config --local user.email john@example.com").AssertSuccess();
+
+            string gitPath = GetGitPath();
+            var trace = new NullTrace();
+            var trace2 = new NullTrace2();
+            var processManager = new TestProcessManager();
+
+            var git = new GitProcess(trace, trace2, processManager, gitPath, repoPath);
+            IGitConfiguration config = git.GetConfiguration();
+
+            // First access loads cache
+            bool result1 = config.TryGet("user.name", false, out string value1);
+            Assert.True(result1);
+            Assert.Equal("john.doe", value1);
+
+            // Second access should use cache
+            bool result2 = config.TryGet("user.email", false, out string value2);
+            Assert.True(result2);
+            Assert.Equal("john@example.com", value2);
+        }
+
+        [Fact]
+        public void GitConfiguration_CacheGetAll_ReturnsAllValuesFromCache()
+        {
+            string repoPath = CreateRepository(out string workDirPath);
+            ExecGit(repoPath, workDirPath, "config --local --add test.multi value1").AssertSuccess();
+            ExecGit(repoPath, workDirPath, "config --local --add test.multi value2").AssertSuccess();
+            ExecGit(repoPath, workDirPath, "config --local --add test.multi value3").AssertSuccess();
+
+            string gitPath = GetGitPath();
+            var trace = new NullTrace();
+            var trace2 = new NullTrace2();
+            var processManager = new TestProcessManager();
+
+            var git = new GitProcess(trace, trace2, processManager, gitPath, repoPath);
+            IGitConfiguration config = git.GetConfiguration();
+
+            var values = new List<string>(config.GetAll("test.multi"));
+
+            Assert.Equal(3, values.Count);
+            Assert.Equal("value1", values[0]);
+            Assert.Equal("value2", values[1]);
+            Assert.Equal("value3", values[2]);
+        }
+
+        [Fact]
+        public void GitConfiguration_CacheEnumerate_EnumeratesFromCache()
+        {
+            string repoPath = CreateRepository(out string workDirPath);
+            ExecGit(repoPath, workDirPath, "config --local cache.name test-value").AssertSuccess();
+            ExecGit(repoPath, workDirPath, "config --local cache.enabled true").AssertSuccess();
+
+            string gitPath = GetGitPath();
+            var trace = new NullTrace();
+            var trace2 = new NullTrace2();
+            var processManager = new TestProcessManager();
+
+            var git = new GitProcess(trace, trace2, processManager, gitPath, repoPath);
+            IGitConfiguration config = git.GetConfiguration();
+
+            var cacheEntries = new List<(string key, string value)>();
+            config.Enumerate(entry =>
+            {
+                if (entry.Key.StartsWith("cache."))
+                {
+                    cacheEntries.Add((entry.Key, entry.Value));
+                }
+                return true;
+            });
+
+            Assert.Equal(2, cacheEntries.Count);
+            Assert.Contains(("cache.name", "test-value"), cacheEntries);
+            Assert.Contains(("cache.enabled", "true"), cacheEntries);
+        }
+
+        [Fact]
+        public void GitConfiguration_CacheInvalidation_SetInvalidatesCache()
+        {
+            string repoPath = CreateRepository(out string workDirPath);
+            ExecGit(repoPath, workDirPath, "config --local test.value initial").AssertSuccess();
+
+            string gitPath = GetGitPath();
+            var trace = new NullTrace();
+            var trace2 = new NullTrace2();
+            var processManager = new TestProcessManager();
+
+            var git = new GitProcess(trace, trace2, processManager, gitPath, repoPath);
+            IGitConfiguration config = git.GetConfiguration();
+
+            // Load cache with initial value
+            bool result1 = config.TryGet("test.value", false, out string value1);
+            Assert.True(result1);
+            Assert.Equal("initial", value1);
+
+            // Set new value (should invalidate cache)
+            config.Set(GitConfigurationLevel.Local, "test.value", "updated");
+
+            // Next read should get updated value
+            bool result2 = config.TryGet("test.value", false, out string value2);
+            Assert.True(result2);
+            Assert.Equal("updated", value2);
+        }
+
+        [Fact]
+        public void GitConfiguration_CacheInvalidation_AddInvalidatesCache()
+        {
+            string repoPath = CreateRepository(out string workDirPath);
+            ExecGit(repoPath, workDirPath, "config --local test.multi first").AssertSuccess();
+
+            string gitPath = GetGitPath();
+            var trace = new NullTrace();
+            var trace2 = new NullTrace2();
+            var processManager = new TestProcessManager();
+
+            var git = new GitProcess(trace, trace2, processManager, gitPath, repoPath);
+            IGitConfiguration config = git.GetConfiguration();
+
+            // Load cache
+            var values1 = new List<string>(config.GetAll("test.multi"));
+            Assert.Single(values1);
+            Assert.Equal("first", values1[0]);
+
+            // Add new value (should invalidate cache)
+            config.Add(GitConfigurationLevel.Local, "test.multi", "second");
+
+            // Next read should include new value
+            var values2 = new List<string>(config.GetAll("test.multi"));
+            Assert.Equal(2, values2.Count);
+            Assert.Equal("first", values2[0]);
+            Assert.Equal("second", values2[1]);
+        }
+
+        [Fact]
+        public void GitConfiguration_CacheInvalidation_UnsetInvalidatesCache()
+        {
+            string repoPath = CreateRepository(out string workDirPath);
+            ExecGit(repoPath, workDirPath, "config --local test.value exists").AssertSuccess();
+
+            string gitPath = GetGitPath();
+            var trace = new NullTrace();
+            var trace2 = new NullTrace2();
+            var processManager = new TestProcessManager();
+
+            var git = new GitProcess(trace, trace2, processManager, gitPath, repoPath);
+            IGitConfiguration config = git.GetConfiguration();
+
+            // Load cache
+            bool result1 = config.TryGet("test.value", false, out string value1);
+            Assert.True(result1);
+            Assert.Equal("exists", value1);
+
+            // Unset value (should invalidate cache)
+            config.Unset(GitConfigurationLevel.Local, "test.value");
+
+            // Next read should not find value
+            bool result2 = config.TryGet("test.value", false, out string value2);
+            Assert.False(result2);
+            Assert.Null(value2);
+        }
+
+        [Fact]
+        public void GitConfiguration_CacheLevelFilter_ReturnsOnlyLocalValues()
+        {
+            string repoPath = CreateRepository(out string workDirPath);
+
+            try
+            {
+                ExecGit(repoPath, workDirPath, "config --global test.level global-value").AssertSuccess();
+                ExecGit(repoPath, workDirPath, "config --local test.level local-value").AssertSuccess();
+
+                string gitPath = GetGitPath();
+                var trace = new NullTrace();
+                var trace2 = new NullTrace2();
+                var processManager = new TestProcessManager();
+
+                var git = new GitProcess(trace, trace2, processManager, gitPath, repoPath);
+                IGitConfiguration config = git.GetConfiguration();
+
+                // Get local value only
+                bool result = config.TryGet(GitConfigurationLevel.Local, GitConfigurationType.Raw,
+                    "test.level", out string value);
+                Assert.True(result);
+                Assert.Equal("local-value", value);
+            }
+            finally
+            {
+                // Cleanup global config
+                ExecGit(repoPath, workDirPath, "config --global --unset test.level");
+            }
+        }
+
+        [Fact]
+        public void GitConfiguration_TypedQuery_DoesNotUseCache()
+        {
+            string repoPath = CreateRepository(out string workDirPath);
+            ExecGit(repoPath, workDirPath, "config --local test.path ~/example").AssertSuccess();
+
+            string gitPath = GetGitPath();
+            var trace = new NullTrace();
+            var trace2 = new NullTrace2();
+            var processManager = new TestProcessManager();
+
+            var git = new GitProcess(trace, trace2, processManager, gitPath, repoPath);
+            IGitConfiguration config = git.GetConfiguration();
+
+            // Path type should not use cache (needs Git's canonicalization)
+            bool result = config.TryGet(GitConfigurationLevel.Local, GitConfigurationType.Path,
+                "test.path", out string value);
+            Assert.True(result);
+            Assert.NotNull(value);
+            // Value should be canonicalized path, not raw "~/example"
+            Assert.NotEqual("~/example", value);
+        }
     }
 }
