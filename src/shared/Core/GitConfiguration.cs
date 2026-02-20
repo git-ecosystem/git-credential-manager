@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Text;
+using System.Threading;
 
 namespace GitCredentialManager
 {
@@ -543,6 +545,356 @@ namespace GitCredentialManager
             }
 
             return result.ToString();
+        }
+    }
+
+    /// <summary>
+    /// Git configuration using the 'git config-batch' command for improved performance.
+    /// Falls back to individual git config commands for unsupported operations or when
+    /// config-batch is not available.
+    /// </summary>
+    public class GitBatchConfiguration : IGitConfiguration, IDisposable
+    {
+        private readonly ITrace _trace;
+        private readonly GitProcess _git;
+        private readonly GitProcessConfiguration _fallback;
+        private readonly object _processLock = new object();
+
+        private ChildProcess _batchProcess;
+        private bool _batchAvailable = true;
+        private bool _disposed;
+
+        internal GitBatchConfiguration(ITrace trace, GitProcess git)
+        {
+            EnsureArgument.NotNull(trace, nameof(trace));
+            EnsureArgument.NotNull(git, nameof(git));
+
+            _trace = trace;
+            _git = git;
+            _fallback = new GitProcessConfiguration(trace, git);
+        }
+
+        public void Enumerate(GitConfigurationLevel level, GitConfigurationEnumerationCallback cb)
+        {
+            // Enumerate is not supported by config-batch v1, use fallback
+            _fallback.Enumerate(level, cb);
+        }
+
+        public bool TryGet(GitConfigurationLevel level, GitConfigurationType type, string name, out string value)
+        {
+            if (_disposed)
+            {
+                throw new ObjectDisposedException(nameof(GitBatchConfiguration));
+            }
+
+            // Only use batch for Raw type queries - type canonicalization not yet supported in config-batch
+            if (!_batchAvailable || type != GitConfigurationType.Raw)
+            {
+                return _fallback.TryGet(level, type, name, out value);
+            }
+
+            lock (_processLock)
+            {
+
+                // Lazy-initialize the batch process
+                if (_batchProcess == null)
+                {
+                    if (!TryStartBatchProcess())
+                    {
+                        _batchAvailable = false;
+                        return _fallback.TryGet(level, type, name, out value);
+                    }
+                }
+
+                try
+                {
+                    string scope = GetBatchScope(level);
+
+                    // Write command in NUL-terminated format: <len>:get NUL <len>:1 NUL <len>:scope NUL <len>:name NUL NUL
+                    WriteToken(_batchProcess.StandardInput, "get");
+                    WriteToken(_batchProcess.StandardInput, "1");
+                    WriteToken(_batchProcess.StandardInput, scope);
+                    WriteToken(_batchProcess.StandardInput, name);
+                    WriteCommandTerminator(_batchProcess.StandardInput);
+                    _batchProcess.StandardInput.Flush();
+
+                    // Read response tokens
+                    List<string> tokens = ReadTokens(_batchProcess.StandardOutput);
+
+                    if (tokens == null)
+                    {
+                        // Process died or parse error, fall back
+                        _trace.WriteLine("git config-batch process terminated unexpectedly or returned invalid data");
+                        DisposeBatchProcess();
+                        _batchAvailable = false;
+                        return _fallback.TryGet(level, type, name, out value);
+                    }
+
+                    if (tokens.Count == 1 && tokens[0] == "unknown_command")
+                    {
+                        // Command not understood, fall back for all future calls
+                        _trace.WriteLine("git config-batch does not understand 'get' command, falling back");
+                        DisposeBatchProcess();
+                        _batchAvailable = false;
+                        return _fallback.TryGet(level, type, name, out value);
+                    }
+
+                    // Parse response tokens: ["get", "1", "found", key, scope, value] or ["get", "1", "missing", key]
+                    if (tokens.Count >= 6 && tokens[0] == "get" && tokens[1] == "1" && tokens[2] == "found")
+                    {
+                        // Found: tokens[3] is key, tokens[4] is scope, tokens[5] is value
+                        value = tokens[5];
+                        return true;
+                    }
+                    else if (tokens.Count >= 4 && tokens[0] == "get" && tokens[1] == "1" && tokens[2] == "missing")
+                    {
+                        // Not found
+                        value = null;
+                        return false;
+                    }
+                    else
+                    {
+                        // Unexpected response format
+                        _trace.WriteLine($"Unexpected response from git config-batch: [{string.Join(", ", tokens)}]");
+                        value = null;
+                        return false;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _trace.WriteLine($"Error communicating with git config-batch: {ex.Message}");
+                    DisposeBatchProcess();
+                    _batchAvailable = false;
+                    return _fallback.TryGet(level, type, name, out value);
+                }
+            }
+        }
+
+        public void Set(GitConfigurationLevel level, string name, string value)
+        {
+            // Write operations not _yet_ supported by config-batch, use fallback
+            _fallback.Set(level, name, value);
+        }
+
+        public void Add(GitConfigurationLevel level, string name, string value)
+        {
+            // Write operations not _yet_ supported by config-batch, use fallback
+            _fallback.Add(level, name, value);
+        }
+
+        public void Unset(GitConfigurationLevel level, string name)
+        {
+            // Write operations not _yet_ supported by config-batch, use fallback
+            _fallback.Unset(level, name);
+        }
+
+        public IEnumerable<string> GetAll(GitConfigurationLevel level, GitConfigurationType type, string name)
+        {
+            // GetAll not efficiently supported by config-batch v1, use fallback
+            return _fallback.GetAll(level, type, name);
+        }
+
+        public IEnumerable<string> GetRegex(GitConfigurationLevel level, GitConfigurationType type, string nameRegex, string valueRegex)
+        {
+            // Regex operations not _yet_ supported by config-batch v1, use fallback
+            return _fallback.GetRegex(level, type, nameRegex, valueRegex);
+        }
+
+        public void ReplaceAll(GitConfigurationLevel level, string nameRegex, string valueRegex, string value)
+        {
+            // Write operations not supported by config-batch, use fallback
+            _fallback.ReplaceAll(level, nameRegex, valueRegex, value);
+        }
+
+        public void UnsetAll(GitConfigurationLevel level, string name, string valueRegex)
+        {
+            // Write operations not supported by config-batch, use fallback
+            _fallback.UnsetAll(level, name, valueRegex);
+        }
+
+        private bool TryStartBatchProcess()
+        {
+            try
+            {
+                _batchProcess = _git.CreateProcess("config-batch -z");
+                _batchProcess.StartInfo.RedirectStandardError = true;
+
+                if (!_batchProcess.Start(Trace2ProcessClass.Git))
+                {
+                    _trace.WriteLine("Failed to start git config-batch process");
+                    return false;
+                }
+
+                _trace.WriteLine("Successfully started git config-batch -z process");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _trace.WriteLine($"git config-batch not available: {ex.Message}");
+                return false;
+            }
+        }
+
+        private void DisposeBatchProcess()
+        {
+            if (_batchProcess != null)
+            {
+                try
+                {
+                    if (!_batchProcess.Process.HasExited)
+                    {
+                        // Send empty command (just NUL) to allow graceful shutdown in -z mode
+                        _batchProcess.StandardInput.Write('\0');
+                        _batchProcess.StandardInput.Close();
+
+                        // Give it a moment to exit gracefully
+                        if (!_batchProcess.Process.WaitForExit(1000))
+                        {
+                            _batchProcess.Kill();
+                        }
+                    }
+                }
+                catch
+                {
+                    // Ignore errors during cleanup
+                }
+                finally
+                {
+                    _batchProcess.Dispose();
+                    _batchProcess = null;
+                }
+            }
+        }
+
+        private static string GetBatchScope(GitConfigurationLevel level)
+        {
+            return level switch
+            {
+                GitConfigurationLevel.System => "system",
+                GitConfigurationLevel.Global => "global",
+                GitConfigurationLevel.Local => "local",
+                GitConfigurationLevel.All => "inherited",
+                _ => "inherited"
+            };
+        }
+
+        /// <summary>
+        /// Writes a single token in the NUL-terminated format: &lt;length&gt;:&lt;string&gt;NUL
+        /// </summary>
+        private static void WriteToken(StreamWriter writer, string token)
+        {
+            writer.Write($"{token.Length}:{token}\0");
+        }
+
+        /// <summary>
+        /// Writes the command terminator (an additional NUL byte) for the -z format.
+        /// </summary>
+        private static void WriteCommandTerminator(StreamWriter writer)
+        {
+            writer.Write('\0');
+        }
+
+        /// <summary>
+        /// Reads tokens from the NUL-terminated format until a command terminator (empty token) is found.
+        /// Returns the list of tokens for one response line.
+        /// </summary>
+        private static List<string> ReadTokens(StreamReader reader)
+        {
+            var tokens = new List<string>();
+
+            while (true)
+            {
+                string token = ReadSingleToken(reader);
+                if (token == null)
+                {
+                    // End of stream or error
+                    return null;
+                }
+
+                if (token.Length == 0)
+                {
+                    // Empty token signals end of command
+                    break;
+                }
+
+                tokens.Add(token);
+            }
+
+            return tokens;
+        }
+
+        /// <summary>
+        /// Reads a single token in the format &lt;length&gt;:&lt;string&gt;NUL
+        /// Returns empty string for command terminator (just NUL), null on error/EOF.
+        /// </summary>
+        private static string ReadSingleToken(StreamReader reader)
+        {
+            // Read the length prefix
+            var lengthBuilder = new StringBuilder();
+            int ch;
+
+            while ((ch = reader.Read()) != -1)
+            {
+                if (ch == '\0')
+                {
+                    // This is the command terminator (NUL without length prefix)
+                    return string.Empty;
+                }
+
+                if (ch == ':')
+                {
+                    break;
+                }
+
+                lengthBuilder.Append((char)ch);
+            }
+
+            if (ch == -1)
+            {
+                return null; // End of stream
+            }
+
+            if (!int.TryParse(lengthBuilder.ToString(), out int length))
+            {
+                return null; // Parse error
+            }
+
+            // Read exactly 'length' characters
+            var buffer = new char[length];
+            int totalRead = 0;
+            while (totalRead < length)
+            {
+                int read = reader.Read(buffer, totalRead, length - totalRead);
+                if (read == 0)
+                {
+                    return null; // Unexpected end of stream
+                }
+                totalRead += read;
+            }
+
+            // Read the trailing NUL
+            ch = reader.Read();
+            if (ch != '\0')
+            {
+                return null; // Expected NUL terminator
+            }
+
+            return new string(buffer);
+        }
+
+        public void Dispose()
+        {
+            if (!_disposed)
+            {
+                lock (_processLock)
+                {
+                    if (!_disposed)
+                    {
+                        DisposeBatchProcess();
+                        _disposed = true;
+                    }
+                }
+            }
         }
     }
 
