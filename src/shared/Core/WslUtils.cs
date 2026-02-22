@@ -18,7 +18,6 @@ namespace GitCredentialManager
         private const string WslUncPrefix = @"\\wsl$\";
         private const string WslLocalHostUncPrefix = @"\\wsl.localhost\";
         private const string WslCommandName = "wsl.exe";
-        private const string WslInteropEnvar = "WSL_INTEROP";
         private const string WslConfFilePath = "/etc/wsl.conf";
         private const string DefaultWslMountPrefix = "/mnt";
         private const string DefaultWslSysDriveMountName = "c";
@@ -61,29 +60,17 @@ namespace GitCredentialManager
                 return 0;
             }
 
-            // The WSL_INTEROP variable is set in WSL2 distributions
-            if (env.Variables.TryGetValue(WslInteropEnvar, out _))
+            const string procWslInteropPath = "/proc/sys/fs/binfmt_misc/WSLInterop";
+            const string procWslInteropLatePath = "/proc/sys/fs/binfmt_misc/WSLInterop-Late";
+            // The WSLInterop file exists in WSL1 distributions  
+            if (fs.FileExists(procWslInteropPath))
+            {
+                return 1;
+            }
+            // The WSLInterop-Late file exists in WSL2 distributions  
+            if (fs.FileExists(procWslInteropLatePath))
             {
                 return 2;
-            }
-
-            const string procVersionPath = "/proc/version";
-            if (fs.FileExists(procVersionPath))
-            {
-                // Both WSL1 and WSL2 distributions include "[Mm]icrosoft" in the version string
-                string procVersion = fs.ReadAllText(procVersionPath);
-                if (!Regex.IsMatch(procVersion, "[Mm]icrosoft"))
-                {
-                    return 0;
-                }
-
-                // WSL2 distributions return "WSL2" in the version string
-                if (Regex.IsMatch(procVersion, "wsl2", RegexOptions.IgnoreCase))
-                {
-                    return 2;
-                }
-
-                return 1;
             }
 
             return 0;
