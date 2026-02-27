@@ -21,30 +21,16 @@ namespace GitCredentialManager.Interop.Posix
 
         protected override string CredentialFileExtension => ".gpg";
 
-        private string GetGpgId(string credentialPath)
+        private string GetGpgId()
         {
-            // Walk up from the credential's directory to the store root, looking for a .gpg-id file.
-            // This mimics the behavior of pass, which uses the nearest .gpg-id in the directory hierarchy.
-            string dir = Path.GetDirectoryName(credentialPath);
-            while (dir != null)
+            string gpgIdPath = Path.Combine(StoreRoot, ".gpg-id");
+            if (FileSystem.FileExists(gpgIdPath))
             {
-                string gpgIdPath = Path.Combine(dir, ".gpg-id");
-                if (FileSystem.FileExists(gpgIdPath))
+                using (var stream = FileSystem.OpenFileStream(gpgIdPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                using (var reader = new StreamReader(stream))
                 {
-                    using (var stream = FileSystem.OpenFileStream(gpgIdPath, FileMode.Open, FileAccess.Read, FileShare.Read))
-                    using (var reader = new StreamReader(stream))
-                    {
-                        return reader.ReadLine();
-                    }
+                    return reader.ReadLine();
                 }
-
-                // Stop after checking the store root
-                if (FileSystem.IsSamePath(dir, StoreRoot))
-                {
-                    break;
-                }
-
-                dir = Path.GetDirectoryName(dir);
             }
 
             throw new Exception($"Cannot find GPG ID in password store at '{StoreRoot}'; run `pass init <gpg-id>` to initialize the store.");
@@ -82,7 +68,7 @@ namespace GitCredentialManager.Interop.Posix
 
         protected override void SerializeCredential(FileCredential credential)
         {
-            string gpgId = GetGpgId(credential.FullPath);
+            string gpgId = GetGpgId();
 
             var sb = new StringBuilder(credential.Password);
             sb.AppendFormat("{1}service={0}{1}", credential.Service, Environment.NewLine);
