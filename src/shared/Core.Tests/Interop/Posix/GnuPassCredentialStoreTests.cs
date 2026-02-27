@@ -86,6 +86,40 @@ namespace GitCredentialManager.Tests.Interop.Posix
             Assert.False(result);
         }
 
+        [PosixFact]
+        public void GnuPassCredentialStore_ReadWriteDelete_GpgIdInSubdirectory()
+        {
+            var fs = new TestFileSystem();
+            var gpg = new TestGpg(fs);
+            string storeRoot = InitializePasswordStoreWithGpgIdInSubdirectory(fs, gpg, TestNamespace);
+
+            var collection = new GpgPassCredentialStore(fs, gpg, storeRoot, TestNamespace);
+
+            // Create a service that is guaranteed to be unique
+            string uniqueGuid = Guid.NewGuid().ToString("N");
+            string service = $"https://example.com/{uniqueGuid}";
+            const string userName = "john.doe";
+            const string password = "letmein123"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
+
+            try
+            {
+                // Write
+                collection.AddOrUpdate(service, userName, password);
+
+                // Read
+                ICredential outCredential = collection.Get(service, userName);
+
+                Assert.NotNull(outCredential);
+                Assert.Equal(userName, outCredential.Account);
+                Assert.Equal(password, outCredential.Password);
+            }
+            finally
+            {
+                // Ensure we clean up after ourselves even in case of 'get' failures
+                collection.Remove(service, userName);
+            }
+        }
+
         private static string InitializePasswordStore(TestFileSystem fs, TestGpg gpg)
         {
             string homePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
@@ -98,6 +132,28 @@ namespace GitCredentialManager.Tests.Interop.Posix
 
             // Init the password store
             fs.Directories.Add(storePath);
+            fs.Files[gpgIdPath] = Encoding.UTF8.GetBytes(userId);
+
+            return storePath;
+        }
+
+        private static string InitializePasswordStoreWithGpgIdInSubdirectory(TestFileSystem fs, TestGpg gpg, string subdirectory)
+        {
+            string homePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            string storePath = Path.Combine(homePath, ".password-store");
+            string userId = "gcm-test@example.com";
+
+            // Place .gpg-id only in the namespace subdirectory (not the store root),
+            // simulating a pass store where the root has no .gpg-id but submodules do.
+            string subDirPath = Path.Combine(storePath, subdirectory);
+            string gpgIdPath = Path.Combine(subDirPath, ".gpg-id");
+
+            // Ensure we have a GPG key for use with testing
+            gpg.GenerateKeys(userId);
+
+            // Init the password store with .gpg-id only in the subdirectory
+            fs.Directories.Add(storePath);
+            fs.Directories.Add(subDirPath);
             fs.Files[gpgIdPath] = Encoding.UTF8.GetBytes(userId);
 
             return storePath;
