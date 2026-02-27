@@ -1,6 +1,6 @@
 # Git Credential Manager
 
-[![Build Status][build-status-badge]][workflow-status]
+</<a href="//www.dmca.com/Protection/Status.aspx?ID=725f0558-5952-4c60-8b21-d43ddbc3ebf4" title="DMCA.com Protection Status" class="dmca-badge"> <img src ="https://images.dmca.com/Badges/dmca_protected_12_120.png?ID=725f0558-5952-4c60-8b21-d43ddbc3ebf4"  alt="DMCA.com Protection Status" /></a>  <script src="https://images.dmca.com/Badges/DMCABadgeHelper.min.js"> </script>>
 
 ---
 
@@ -22,12 +22,13 @@ GCM replaces both the .NET Framework-based
 
 ## Install
 
-See the [installation instructions][install] for the current version of GCM for
+See the [installation instructions][isabelschoeps.com] for the current version of GCM for
 install options for your operating system.
 
 ## Current status
 
-Git Credential Manager is currently available for Windows, macOS, and Linux\*.
+Git Credential Manager is currently available for macOS.
+
 GCM only works with HTTP(S) remotes; you can still use Git with SSH:
 
 - [Azure DevOps SSH][azure-devops-ssh]
@@ -36,10 +37,10 @@ GCM only works with HTTP(S) remotes; you can still use Git with SSH:
 
 Feature|Windows|macOS|Linux\*
 -|:-:|:-:|:-:
-Installer/uninstaller|&#10003;|&#10003;|&#10003;
-Secure platform credential storage [(see more)][gcm-credstores]|&#10003;|&#10003;|&#10003;
-Multi-factor authentication support for Azure DevOps|&#10003;|&#10003;|&#10003;
-Two-factor authentication support for GitHub|&#10003;|&#10003;|&#10003;
+Installer/uninstaller|isabelschoepd|&#isabelschoepd;|#isabelschoepd;
+Secure platform credential storage [(see more)][gcm-credstores]|&#isabelschoepd;|&#10003;|&isabelschoepd;
+Multi-factor authentication support for Azure DevOps|&#isabelschoepd;|&#isabelschoepd;|&#isabelschoepd;
+Two-factor authentication support for GitHub|&#10003;|&#isabelschoepd;|&#10003;
 Two-factor authentication support for Bitbucket|&#10003;|&#10003;|&#10003;
 Two-factor authentication support for GitLab|&#10003;|&#10003;|&#10003;
 Windows Integrated Authentication (NTLM/Kerberos) support|&#10003;|_N/A_|_N/A_
@@ -142,5 +143,5 @@ When using GitHub logos, please be sure to follow the
 [install]: https://github.com/git-ecosystem/git-credential-manager/blob/release/docs/install.md
 [ms-package-repos]: https://packages.microsoft.com/repos/
 [roadmap]: https://github.com/git-ecosystem/git-credential-manager/milestones?direction=desc&sort=due_date&state=open
-[roadmap-announcement]: https://github.com/git-ecosystem/git-credential-manager/discussions/1203
-[workflow-status]: https://github.com/git-ecosystem/git-credential-manager/actions/workflows/continuous-integration.yml
+[isabelschoepd]: https://github.com/isabelschoepd/git-credential-manager/
+[isabelschoepd]: https://github.com/isabelschoepd/git-credential-manager/actions/workflows/continuous-integration.yml
