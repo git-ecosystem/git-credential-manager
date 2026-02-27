@@ -255,7 +255,7 @@ namespace GitHub
             {
                 // Add or update the credential in the store.
                 _context.Trace.WriteLine($"Storing credential with service={service} account={input.UserName}...");
-                _context.CredentialStore.AddOrUpdate(service, input.UserName, input.Password);
+                _context.CredentialStore.AddOrUpdate(service, new GitCredential(input));
                 _context.Trace.WriteLine("Credential was successfully stored.");
             }
 
@@ -351,7 +351,7 @@ namespace GitHub
             // Resolve the GitHub user handle
             GitHubUserInfo userInfo = await _gitHubApi.GetUserInfoAsync(targetUri, result.AccessToken);
 
-            return new GitCredential(userInfo.Login, result.AccessToken);
+            return new GitCredential(result, userInfo.Login);
         }
 
         private async Task<GitCredential> GeneratePersonalAccessTokenAsync(Uri targetUri, ICredential credentials)
@@ -513,6 +513,8 @@ namespace GitHub
 
             return uri;
         }
+
+        public Task<bool> ValidateCredentialAsync(Uri remoteUri, ICredential credential) => Task.FromResult(credential.PasswordExpiry == null || credential.PasswordExpiry >= DateTimeOffset.UtcNow);
 
         #endregion
     }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace GitCredentialManager
@@ -28,7 +29,10 @@ namespace GitCredentialManager
         /// <param name="service">Name of the service this credential is for. Use null to match all values.</param>
         /// <param name="account">Account associated with this credential. Use null to match all values.</param>
         /// <param name="secret">Secret value to store.</param>
+//        [Obsolete("Prefer AddOrUpdate(string, ICredential)")]
         void AddOrUpdate(string service, string account, string secret);
+
+        void AddOrUpdate(string service, ICredential credential);
 
         /// <summary>
         /// Delete credential from the store that matches the given query.
@@ -36,6 +40,12 @@ namespace GitCredentialManager
         /// <param name="service">Name of the service to match against. Use null to match all values.</param>
         /// <param name="account">Account name to match against. Use null to match all values.</param>
         /// <returns>True if the credential was deleted, false otherwise.</returns>
+//        [Obsolete("Prefer Remove(string, ICredential)")]
         bool Remove(string service, string account);
+
+        bool Remove(string service, ICredential credential);
+
+        bool CanStorePasswordExpiry { get; }
+        bool CanStoreOAuthRefreshToken { get; }
     }
 }
