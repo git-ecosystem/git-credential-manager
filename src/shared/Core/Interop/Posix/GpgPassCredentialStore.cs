@@ -23,8 +23,10 @@ namespace GitCredentialManager.Interop.Posix
 
         private string GetGpgId()
         {
-            string gpgIdPath = Path.Combine(StoreRoot, ".gpg-id");
-            if (FileSystem.FileExists(gpgIdPath))
+            // Search for a .gpg-id file anywhere under the store root.
+            // This handles configurations where .gpg-id is in a subdirectory
+            // (e.g., a git submodule) rather than the store root itself.
+            foreach (string gpgIdPath in FileSystem.EnumerateFiles(StoreRoot, ".gpg-id"))
             {
                 using (var stream = FileSystem.OpenFileStream(gpgIdPath, FileMode.Open, FileAccess.Read, FileShare.Read))
                 using (var reader = new StreamReader(stream))
