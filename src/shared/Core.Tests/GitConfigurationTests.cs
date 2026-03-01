@@ -634,7 +634,7 @@ namespace GitCredentialManager.Tests
         }
 
         [Fact]
-        public void GitConfiguration_TypedQuery_DoesNotUseCache()
+        public void GitConfiguration_TypedQuery_CanonicalizesValues()
         {
             string repoPath = CreateRepository(out string workDirPath);
             ExecGit(repoPath, workDirPath, "config --local test.path ~/example").AssertSuccess();
@@ -647,7 +647,8 @@ namespace GitCredentialManager.Tests
             var git = new GitProcess(trace, trace2, processManager, gitPath, repoPath);
             IGitConfiguration config = git.GetConfiguration();
 
-            // Path type should not use cache (needs Git's canonicalization)
+            // Path type queries use a separate cache loaded with --type=path,
+            // so Git canonicalizes the values during cache load.
             bool result = config.TryGet(GitConfigurationLevel.Local, GitConfigurationType.Path,
                 "test.path", out string value);
             Assert.True(result);
