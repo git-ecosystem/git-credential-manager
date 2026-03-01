@@ -324,6 +324,8 @@ namespace GitCredentialManager
     {
         private static readonly GitVersion TypeConfigMinVersion = new GitVersion(2, 18, 0);
         private static readonly GitVersion ConfigListTypeMinVersion = new GitVersion(2, 54, 0);
+        private static readonly GitVersion ConfigListTypeMinVfsBase = new GitVersion(2, 53, 0);
+        private static readonly GitVersion ConfigListTypeMinVfsSuffix = new GitVersion(0, 1);
 
         private readonly ITrace _trace;
         private readonly GitProcess _git;
@@ -342,15 +344,41 @@ namespace GitCredentialManager
             _trace = trace;
             _git = git;
 
-            // 'git config list --type=<X>' requires Git 2.54.0+
-            if (useCache && git.Version < ConfigListTypeMinVersion)
+            // 'git config list --type=<X>' requires Git 2.54.0+,
+            // or microsoft/git fork 2.53.0.vfs.0.1+
+            if (useCache && !SupportsConfigListType(git))
             {
-                trace.WriteLine($"Git version {git.Version} is below {ConfigListTypeMinVersion}; config cache disabled");
+                trace.WriteLine($"Git version {git.Version.OriginalString} does not support 'git config list --type'; config cache disabled");
                 useCache = false;
             }
 
             _useCache = useCache;
             _cache = useCache ? new Dictionary<GitConfigurationType, ConfigCache>() : null;
+        }
+
+        private static bool SupportsConfigListType(GitProcess git)
+        {
+            if (git.Version >= ConfigListTypeMinVersion)
+                return true;
+
+            // The microsoft/git fork fast-tracked the fix into 2.53.0.vfs.0.1.
+            // Version strings like "2.53.0.vfs.0.1" parse as [2,53,0] because
+            // GitVersion stops at the non-integer "vfs" component, so we check
+            // the original string for the ".vfs." marker and parse the suffix.
+            string versionStr = git.Version.OriginalString;
+            if (versionStr != null)
+            {
+                int vfsIdx = versionStr.IndexOf(".vfs.");
+                if (vfsIdx >= 0)
+                {
+                    var baseVersion = new GitVersion(versionStr.Substring(0, vfsIdx));
+                    var vfsSuffix = new GitVersion(versionStr.Substring(vfsIdx + 5));
+                    return baseVersion >= ConfigListTypeMinVfsBase
+                        && vfsSuffix >= ConfigListTypeMinVfsSuffix;
+                }
+            }
+
+            return false;
         }
 
         private void EnsureCacheLoaded(GitConfigurationType type)
