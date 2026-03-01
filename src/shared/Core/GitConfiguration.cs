@@ -334,6 +334,7 @@ namespace GitCredentialManager
     public class GitProcessConfiguration : IGitConfiguration
     {
         private static readonly GitVersion TypeConfigMinVersion = new GitVersion(2, 18, 0);
+        private static readonly GitVersion ConfigListTypeMinVersion = new GitVersion(2, 54, 0);
 
         private readonly ITrace _trace;
         private readonly GitProcess _git;
@@ -351,6 +352,14 @@ namespace GitCredentialManager
 
             _trace = trace;
             _git = git;
+
+            // 'git config list --type=<X>' requires Git 2.54.0+
+            if (useCache && git.Version < ConfigListTypeMinVersion)
+            {
+                trace.WriteLine($"Git version {git.Version} is below {ConfigListTypeMinVersion}; config cache disabled");
+                useCache = false;
+            }
+
             _useCache = useCache;
             _cache = useCache ? new Dictionary<GitConfigurationType, ConfigCache>() : null;
         }
