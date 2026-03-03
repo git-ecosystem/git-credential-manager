@@ -120,6 +120,56 @@ namespace GitCredentialManager.Tests.Interop.Posix
             }
         }
 
+        [PosixFact]
+        public void GnuPassCredentialStore_WriteCredential_MultipleGpgIds_UsesNearestGpgId()
+        {
+            // Verify that when two subdirectories each have their own .gpg-id, encrypting a credential
+            // under one subdirectory uses that subdirectory's GPG identity, not the other one.
+            var fs = new TestFileSystem();
+            var gpg = new TestGpg(fs);
+
+            string homePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            string storePath = Path.Combine(homePath, ".password-store");
+
+            const string personalUserId = "personal@example.com";
+            const string workUserId = "work@example.com";
+
+            // Only register the personal key; if the wrong (work) key is picked, EncryptFile will throw.
+            gpg.GenerateKeys(personalUserId);
+
+            string personalSubDir = Path.Combine(storePath, "personal");
+            string workSubDir = Path.Combine(storePath, "work");
+
+            fs.Directories.Add(storePath);
+            fs.Directories.Add(personalSubDir);
+            fs.Directories.Add(workSubDir);
+            fs.Files[Path.Combine(personalSubDir, ".gpg-id")] = Encoding.UTF8.GetBytes(personalUserId);
+            fs.Files[Path.Combine(workSubDir, ".gpg-id")] = Encoding.UTF8.GetBytes(workUserId);
+
+            // Use "personal" namespace so credentials are stored under storePath/personal/...
+            var collection = new GpgPassCredentialStore(fs, gpg, storePath, "personal");
+
+            string service = $"https://example.com/{Guid.NewGuid():N}";
+            const string userName = "john.doe";
+            const string password = "letmein123"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
+
+            try
+            {
+                // Write - should pick personal/.gpg-id (personalUserId), not work/.gpg-id (workUserId)
+                collection.AddOrUpdate(service, userName, password);
+
+                ICredential outCredential = collection.Get(service, userName);
+
+                Assert.NotNull(outCredential);
+                Assert.Equal(userName, outCredential.Account);
+                Assert.Equal(password, outCredential.Password);
+            }
+            finally
+            {
+                collection.Remove(service, userName);
+            }
+        }
+
         private static string InitializePasswordStore(TestFileSystem fs, TestGpg gpg)
         {
             string homePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);

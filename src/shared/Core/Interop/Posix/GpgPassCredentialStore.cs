@@ -21,18 +21,30 @@ namespace GitCredentialManager.Interop.Posix
 
         protected override string CredentialFileExtension => ".gpg";
 
-        private string GetGpgId()
+        private string GetGpgId(string credentialFullPath)
         {
-            // Search for a .gpg-id file anywhere under the store root.
-            // This handles configurations where .gpg-id is in a subdirectory
-            // (e.g., a git submodule) rather than the store root itself.
-            foreach (string gpgIdPath in FileSystem.EnumerateFiles(StoreRoot, ".gpg-id"))
+            // Walk up from the credential's directory to the store root, looking for a .gpg-id file.
+            // This mimics the behaviour of GNU Pass, which uses the nearest .gpg-id in the directory hierarchy.
+            string dir = Path.GetDirectoryName(credentialFullPath);
+            while (dir != null)
             {
-                using (var stream = FileSystem.OpenFileStream(gpgIdPath, FileMode.Open, FileAccess.Read, FileShare.Read))
-                using (var reader = new StreamReader(stream))
+                string gpgIdPath = Path.Combine(dir, ".gpg-id");
+                if (FileSystem.FileExists(gpgIdPath))
                 {
-                    return reader.ReadLine();
+                    using (var stream = FileSystem.OpenFileStream(gpgIdPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                    using (var reader = new StreamReader(stream))
+                    {
+                        return reader.ReadLine();
+                    }
                 }
+
+                // Stop after checking the store root
+                if (FileSystem.IsSamePath(dir, StoreRoot))
+                {
+                    break;
+                }
+
+                dir = Path.GetDirectoryName(dir);
             }
 
             throw new Exception($"Cannot find GPG ID in password store at '{StoreRoot}'; run `pass init <gpg-id>` to initialize the store.");
@@ -70,7 +82,7 @@ namespace GitCredentialManager.Interop.Posix
 
         protected override void SerializeCredential(FileCredential credential)
         {
-            string gpgId = GetGpgId();
+            string gpgId = GetGpgId(credential.FullPath);
 
             var sb = new StringBuilder(credential.Password);
             sb.AppendFormat("{1}service={0}{1}", credential.Service, Environment.NewLine);
