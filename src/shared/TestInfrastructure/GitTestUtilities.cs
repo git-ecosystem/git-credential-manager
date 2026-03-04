@@ -80,6 +80,11 @@ namespace GitCredentialManager.Tests
 
             procInfo.Environment["GIT_DIR"] = repositoryPath;
 
+            // Use an isolated global config file in the test's working directory to avoid
+            // failures when HOME is not set to a valid directory (e.g., in package build
+            // environments). This also prevents tests from polluting the user's real global config.
+            procInfo.Environment["GIT_CONFIG_GLOBAL"] = Path.Combine(workingDirectory, ".gitconfig-global");
+
             var proc = ChildProcess.Start(new NullTrace2(), procInfo, Trace2ProcessClass.None);
             if (proc is null)
             {
@@ -107,6 +112,32 @@ namespace GitCredentialManager.Tests
             public void AssertSuccess()
             {
                 Assert.Equal(0, ExitCode);
+            }
+        }
+
+        /// <summary>
+        /// Sets an environment variable for the scope of a using block, restoring the original value on dispose.
+        /// </summary>
+        /// <remarks>
+        /// This class modifies the process-level environment, which is shared across all threads.
+        /// To avoid interference, tests using this class should not run concurrently. Tests within
+        /// the same xUnit test class are guaranteed to run serially by default.
+        /// </remarks>
+        public sealed class EnvVarScope : IDisposable
+        {
+            private readonly string _name;
+            private readonly string _previousValue;
+
+            public EnvVarScope(string name, string value)
+            {
+                _name = name;
+                _previousValue = Environment.GetEnvironmentVariable(name);
+                Environment.SetEnvironmentVariable(name, value);
+            }
+
+            public void Dispose()
+            {
+                Environment.SetEnvironmentVariable(_name, _previousValue);
             }
         }
     }
