@@ -324,31 +324,29 @@ namespace GitCredentialManager.Tests
         public void GitConfiguration_Unset_Global_UnsetsGlobalConfig()
         {
             string repoPath = CreateRepository(out string workDirPath);
-            try
-            {
-                ExecGit(repoPath, workDirPath, "config --global core.foobar alice").AssertSuccess();
-                ExecGit(repoPath, workDirPath, "config --local core.foobar bob").AssertSuccess();
 
-                string gitPath = GetGitPath();
-                var trace = new NullTrace();
-                var trace2 = new NullTrace2();
-                var processManager = new TestProcessManager();
-                var git = new GitProcess(trace, trace2, processManager, gitPath, repoPath);
-                IGitConfiguration config = git.GetConfiguration();
+            // Use an isolated global config file so tests work even when HOME is not set
+            // to a valid directory (e.g., in package build environments like AUR).
+            using var _ = new GitTestUtilities.EnvVarScope(
+                "GIT_CONFIG_GLOBAL", Path.Combine(workDirPath, ".gitconfig-global"));
 
-                config.Unset(GitConfigurationLevel.Global, "core.foobar");
+            ExecGit(repoPath, workDirPath, "config --global core.foobar alice").AssertSuccess();
+            ExecGit(repoPath, workDirPath, "config --local core.foobar bob").AssertSuccess();
 
-                GitResult globalResult = ExecGit(repoPath, workDirPath, "config --global core.foobar");
-                GitResult localResult = ExecGit(repoPath, workDirPath, "config --local core.foobar");
+            string gitPath = GetGitPath();
+            var trace = new NullTrace();
+            var trace2 = new NullTrace2();
+            var processManager = new TestProcessManager();
+            var git = new GitProcess(trace, trace2, processManager, gitPath, repoPath);
+            IGitConfiguration config = git.GetConfiguration();
 
-                Assert.Equal(string.Empty, globalResult.StandardOutput.Trim());
-                Assert.Equal("bob", localResult.StandardOutput.Trim());
-            }
-            finally
-            {
-                // Cleanup global config changes
-                ExecGit(repoPath, workDirPath, "config --global --unset core.foobar");
-            }
+            config.Unset(GitConfigurationLevel.Global, "core.foobar");
+
+            GitResult globalResult = ExecGit(repoPath, workDirPath, "config --global core.foobar");
+            GitResult localResult = ExecGit(repoPath, workDirPath, "config --local core.foobar");
+
+            Assert.Equal(string.Empty, globalResult.StandardOutput.Trim());
+            Assert.Equal("bob", localResult.StandardOutput.Trim());
         }
 
         [Fact]
@@ -356,31 +354,28 @@ namespace GitCredentialManager.Tests
         {
             string repoPath = CreateRepository(out string workDirPath);
 
-            try
-            {
-                ExecGit(repoPath, workDirPath, "config --global core.foobar alice").AssertSuccess();
-                ExecGit(repoPath, workDirPath, "config --local core.foobar bob").AssertSuccess();
+            // Use an isolated global config file so tests work even when HOME is not set
+            // to a valid directory (e.g., in package build environments like AUR).
+            using var _ = new GitTestUtilities.EnvVarScope(
+                "GIT_CONFIG_GLOBAL", Path.Combine(workDirPath, ".gitconfig-global"));
 
-                string gitPath = GetGitPath();
-                var trace = new NullTrace();
-                var trace2 = new NullTrace2();
-                var processManager = new TestProcessManager();
-                var git = new GitProcess(trace, trace2, processManager, gitPath, repoPath);
-                IGitConfiguration config = git.GetConfiguration();
+            ExecGit(repoPath, workDirPath, "config --global core.foobar alice").AssertSuccess();
+            ExecGit(repoPath, workDirPath, "config --local core.foobar bob").AssertSuccess();
 
-                config.Unset(GitConfigurationLevel.Local, "core.foobar");
+            string gitPath = GetGitPath();
+            var trace = new NullTrace();
+            var trace2 = new NullTrace2();
+            var processManager = new TestProcessManager();
+            var git = new GitProcess(trace, trace2, processManager, gitPath, repoPath);
+            IGitConfiguration config = git.GetConfiguration();
 
-                GitResult globalResult = ExecGit(repoPath, workDirPath, "config --global core.foobar");
-                GitResult localResult = ExecGit(repoPath, workDirPath, "config --local core.foobar");
+            config.Unset(GitConfigurationLevel.Local, "core.foobar");
 
-                Assert.Equal("alice", globalResult.StandardOutput.Trim());
-                Assert.Equal(string.Empty, localResult.StandardOutput.Trim());
-            }
-            finally
-            {
-                // Cleanup global config changes
-                ExecGit(repoPath, workDirPath, "config --global --unset core.foobar");
-            }
+            GitResult globalResult = ExecGit(repoPath, workDirPath, "config --global core.foobar");
+            GitResult localResult = ExecGit(repoPath, workDirPath, "config --local core.foobar");
+
+            Assert.Equal("alice", globalResult.StandardOutput.Trim());
+            Assert.Equal(string.Empty, localResult.StandardOutput.Trim());
         }
 
         [Fact]
