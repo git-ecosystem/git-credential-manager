@@ -337,6 +337,8 @@ out/
 
 # Temporary build directory
 .tmp/
+# --- Personal Custom Ignores ---
+server/_debug/di/
 
 # dotnet local tools
 .tools/
