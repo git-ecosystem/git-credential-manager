@@ -1,16 +1,38 @@
 using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Threading;
 using System.Threading.Tasks;
+using GitCredentialManager.UI;
+using GitCredentialManager.UI.ViewModels;
+using GitCredentialManager.UI.Views;
 
 namespace GitCredentialManager.Authentication
 {
     public interface IWindowsIntegratedAuthentication : IDisposable
     {
-        Task<bool> GetIsSupportedAsync(Uri uri);
+        Task<NtlmSupport> AskEnableNtlmAsync(Uri uri);
+        Task<WindowsAuthenticationTypes> GetAuthenticationTypesAsync(Uri uri);
     }
 
-    public class WindowsIntegratedAuthentication : IWindowsIntegratedAuthentication
+    public enum NtlmSupport
+    {
+        Once,
+        Always,
+        Disabled,
+    }
+
+    [Flags]
+    public enum WindowsAuthenticationTypes
+    {
+        None,
+        Ntlm,
+        Negotiate,
+
+        All = Ntlm | Negotiate
+    }
+
+    public class WindowsIntegratedAuthentication : AuthenticationBase, IWindowsIntegratedAuthentication
     {
         public static readonly string[] AuthorityIds =
         {
@@ -18,45 +40,79 @@ namespace GitCredentialManager.Authentication
             "tfs", "sso",
         };
 
-        private readonly ICommandContext _context;
-
         public WindowsIntegratedAuthentication(ICommandContext context)
+            : base(context) { }
+
+        public async Task<NtlmSupport> AskEnableNtlmAsync(Uri uri)
         {
-            _context = context;
+            ThrowIfUserInteractionDisabled();
+
+            if (Context.SessionManager.IsDesktopSession && Context.Settings.IsGuiPromptsEnabled)
+            {
+                // Note: we do not support the UI helper for WIA so always show the in-proc GUI
+                var vm = new EnableNtlmViewModel(Context.SessionManager)
+                {
+                    Url = uri.ToString(),
+                };
+                await AvaloniaUi.ShowViewAsync<EnableNtlmView>(vm, GetParentWindowHandle(), CancellationToken.None);
+                ThrowIfWindowCancelled(vm);
+
+                return vm.SelectedOption;
+            }
+
+            ThrowIfTerminalPromptsDisabled();
+
+            var menu = new TerminalMenu(Context.Terminal, "Re-enable NTLM support in Git?");
+            TerminalMenuItem onceItem = menu.Add("Yes - just this time");
+            TerminalMenuItem alwaysItem = menu.Add($"Yes - always for {uri}");
+            TerminalMenuItem noItem = menu.Add("No - do not enable NTLM");
+            TerminalMenuItem choice = menu.Show(0);
+
+            if (choice == onceItem)
+            {
+                return NtlmSupport.Once;
+            }
+
+            if (choice == alwaysItem)
+            {
+                return NtlmSupport.Always;
+            }
+
+            return NtlmSupport.Disabled;
         }
 
-        public async Task<bool> GetIsSupportedAsync(Uri uri)
+        public async Task<WindowsAuthenticationTypes> GetAuthenticationTypesAsync(Uri uri)
         {
             EnsureArgument.AbsoluteUri(uri, nameof(uri));
 
-            bool supported = false;
+            var types = WindowsAuthenticationTypes.None;
 
-            _context.Trace.WriteLine($"HTTP: HEAD {uri}");
+            Context.Trace.WriteLine($"HTTP: HEAD {uri}");
             using (HttpResponseMessage response = await HttpClient.HeadAsync(uri))
             {
-                _context.Trace.WriteLine("HTTP: Response code ignored.");
+                Context.Trace.WriteLine("HTTP: Response code ignored.");
 
-                _context.Trace.WriteLine("Inspecting WWW-Authenticate headers...");
+                Context.Trace.WriteLine("Inspecting WWW-Authenticate headers...");
                 foreach (AuthenticationHeaderValue wwwHeader in response.Headers.WwwAuthenticate)
                 {
                     if (StringComparer.OrdinalIgnoreCase.Equals(wwwHeader.Scheme, Constants.Http.WwwAuthenticateNegotiateScheme))
                     {
-                        _context.Trace.WriteLine("Found WWW-Authenticate header for Negotiate");
-                        supported = true;
+                        Context.Trace.WriteLine("Found WWW-Authenticate header for Negotiate");
+                        types |= WindowsAuthenticationTypes.Negotiate;
                     }
                     else if (StringComparer.OrdinalIgnoreCase.Equals(wwwHeader.Scheme, Constants.Http.WwwAuthenticateNtlmScheme))
                     {
-                        _context.Trace.WriteLine("Found WWW-Authenticate header for NTLM");
-                        supported = true;
+                        Context.Trace.WriteLine("Found WWW-Authenticate header for NTLM");
+                        types |= WindowsAuthenticationTypes.Ntlm;
                     }
                 }
             }
 
-            return supported;
+            return types;
         }
 
         private HttpClient _httpClient;
-        private HttpClient HttpClient => _httpClient ?? (_httpClient = _context.HttpClientFactory.CreateClient());
+        private HttpClient HttpClient => _httpClient ?? (_httpClient = Context.HttpClientFactory.CreateClient());
 
         #region IDisposable
 

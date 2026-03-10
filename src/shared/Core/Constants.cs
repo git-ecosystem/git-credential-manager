@@ -31,6 +31,13 @@ namespace GitCredentialManager
         /// </summary>
         public static readonly Guid MsaTransferTenantId = new("f8cdef31-a31e-4b4a-93e4-5f571e91255a");
 
+        public static class CredentialProtocol
+        {
+            public const string NtlmKey = "ntlm";
+            public const string NtlmSuppressed = "suppressed";
+            public const string NtlmAllow = "allow";
+        }
+
         public static class CredentialStoreNames
         {
             public const string WindowsCredentialManager = "wincredman";
@@ -191,6 +198,7 @@ namespace GitCredentialManager
                 public const string SslCaInfo = "sslCAInfo";
                 public const string SslAutoClientCert = "sslAutoClientCert";
                 public const string CookieFile = "cookieFile";
+                public const string AllowNtlmAuth = "allowNTLMAuth";
             }
 
             public static class Remote
@@ -232,6 +240,7 @@ namespace GitCredentialManager
             public const string GcmDefaultAccount      = "https://aka.ms/gcm/defaultaccount";
             public const string GcmMultipleUsers       = "https://aka.ms/gcm/multipleusers";
             public const string GcmUnsafeRemotes       = "https://aka.ms/gcm/unsaferemotes";
+            public const string GcmNtlm                = "https://aka.ms/gcm/ntlm";
         }
 
         private static Version _gcmVersion;

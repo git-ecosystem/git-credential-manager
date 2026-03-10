@@ -30,21 +30,9 @@ that can always be overridden by the user in the usual ways.
 Default setting values come from the Windows Registry, specifically the
 following keys:
 
-### 32-bit Windows
-
 ```text
 HKEY_LOCAL_MACHINE\SOFTWARE\GitCredentialManager\Configuration
 ```
-
-### 64-bit Windows
-
-```text
-HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\GitCredentialManager\Configuration
-```
-
-> GCM is a 32-bit executable on Windows. When running on a 64-bit
-installation of Windows registry access is transparently redirected to the
-`WOW6432Node` node.
 
 By using the Windows Registry, system administrators can use Group Policy to
 easily set defaults for GCM's settings.
@@ -54,6 +42,16 @@ those of the [Git configuration][config] settings.
 
 The type of each registry key can be either `REG_SZ` (string) or `REG_DWORD`
 (integer).
+
+### 32-bit / x86
+
+When running the 32-bit (x86) version of GCM on a 64-bit (x64 or ARM64)
+installation of Windows, the registry access is transparently redirected to
+the `WOW6432Node` node.
+
+```text
+HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\GitCredentialManager\Configuration
+```
 
 ## macOS
 
