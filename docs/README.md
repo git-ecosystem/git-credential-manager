@@ -14,6 +14,7 @@ The following are links to GCM user support documentation:
 - [Azure Managed Identities and Service Principals][gcm-misp]
 - [GitLab support][gcm-gitlab]
 - [Generic OAuth support][gcm-oauth]
+- [NTLM and Kerberos authentication][gcm-ntlm-kerberos]
 
 [gcm-azure-tokens]: azrepos-users-and-tokens.md
 [gcm-config]: configuration.md
@@ -27,3 +28,4 @@ The following are links to GCM user support documentation:
 [gcm-net-config]: netconfig.md
 [gcm-oauth]: generic-oauth.md
 [gcm-usage]: usage.md
+[gcm-ntlm-kerberos]: ntlm-kerberos.md

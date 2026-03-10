@@ -14,7 +14,8 @@ namespace GitCredentialManager.Commands
 
         protected override async Task ExecuteInternalAsync(InputArguments input, IHostProvider provider)
         {
-            ICredential credential = await provider.GetCredentialAsync(input);
+            GetCredentialResult result = await provider.GetCredentialAsync(input);
+            ICredential credential = result.Credential;
 
             var output = new Dictionary<string, string>();
 
@@ -35,6 +36,12 @@ namespace GitCredentialManager.Commands
             // Return the credential to Git
             output["username"] = credential.Account;
             output["password"] = credential.Password;
+
+            // Write any additional output from the provider
+            foreach (var kvp in result.AdditionalProperties)
+            {
+                output[kvp.Key] = kvp.Value;
+            }
 
             Context.Trace.WriteLine("Writing credentials to output:");
             Context.Trace.WriteDictionarySecrets(output, new []{ "password" }, StringComparer.OrdinalIgnoreCase);
