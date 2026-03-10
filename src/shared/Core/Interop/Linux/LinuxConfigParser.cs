@@ -31,7 +31,7 @@ public class LinuxConfigParser
     {
         var result = new Dictionary<string, string>(GitConfigurationKeyComparer.Instance);
 
-        IEnumerable<string> lines = content.Split(['\n'], StringSplitOptions.RemoveEmptyEntries);
+        IEnumerable<string> lines = content.Split("\n", StringSplitOptions.RemoveEmptyEntries);
 
         foreach (string line in lines)
         {
