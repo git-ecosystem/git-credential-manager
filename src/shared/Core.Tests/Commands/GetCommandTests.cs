@@ -28,7 +28,7 @@ namespace GitCredentialManager.Tests.Commands
 
             var providerMock = new Mock<IHostProvider>();
             providerMock.Setup(x => x.GetCredentialAsync(It.IsAny<InputArguments>()))
-                        .ReturnsAsync(testCredential);
+                        .ReturnsAsync(new GetCredentialResult(testCredential));
             var providerRegistry = new TestHostProviderRegistry {Provider = providerMock.Object};
             var context = new TestCommandContext
             {

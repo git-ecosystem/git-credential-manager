@@ -45,7 +45,7 @@ namespace GitCredentialManager
         /// </summary>
         /// <param name="input">Input arguments of a Git credential query.</param>
         /// <returns>A credential Git can use to authenticate to the remote repository.</returns>
-        Task<ICredential> GetCredentialAsync(InputArguments input);
+        Task<GetCredentialResult> GetCredentialAsync(InputArguments input);
 
         /// <summary>
         /// Store a credential for accessing the remote Git repository on this hosting service.
@@ -58,6 +58,18 @@ namespace GitCredentialManager
         /// </summary>
         /// <param name="input">Input arguments of a Git credential query.</param>
         Task EraseCredentialAsync(InputArguments input);
+    }
+
+    public class GetCredentialResult
+    {
+        public GetCredentialResult(ICredential credential)
+        {
+            Credential = credential;
+        }
+
+        public ICredential Credential { get; set; }
+        public IDictionary<string, string> AdditionalProperties { get; set; }
+            = new  Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
     }
 
     /// <summary>
@@ -119,7 +131,7 @@ namespace GitCredentialManager
         /// <returns>A credential Git can use to authenticate to the remote repository.</returns>
         public abstract Task<ICredential> GenerateCredentialAsync(InputArguments input);
 
-        public virtual async Task<ICredential> GetCredentialAsync(InputArguments input)
+        public virtual async Task<GetCredentialResult> GetCredentialAsync(InputArguments input)
         {
             // Try and locate an existing credential in the OS credential store
             string service = GetServiceName(input);
@@ -140,7 +152,7 @@ namespace GitCredentialManager
                 Context.Trace.WriteLine("Existing credential found.");
             }
 
-            return credential;
+            return new GetCredentialResult(credential);
         }
 
         public virtual Task StoreCredentialAsync(InputArguments input)

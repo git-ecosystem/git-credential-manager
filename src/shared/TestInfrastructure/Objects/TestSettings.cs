@@ -72,7 +72,7 @@ namespace GitCredentialManager.Tests.Objects
         {
             value = null;
 
-            if (Environment?.Variables.TryGetValue(envarName, out value) ?? false)
+            if (envarName is not null && (Environment?.Variables.TryGetValue(envarName, out value) ?? false))
             {
                 return true;
             }
