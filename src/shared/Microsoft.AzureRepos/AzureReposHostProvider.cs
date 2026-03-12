@@ -85,6 +85,13 @@ namespace Microsoft.AzureRepos
                 );
             }
 
+            if (UseFederatedIdentity(out FederatedIdentity fid))
+            {
+                _context.Trace.WriteLine($"Getting Azure Access Token for Federated identity {fid.ManagedIdentityClientId}...");
+                var azureResult = await _msAuth.GetTokenForFederatedIdentityAsync(fid, AzureDevOpsConstants.AzureDevOpsDefaultScopes);
+                return new GitCredential(fid.ManagedIdentityClientId, azureResult.AccessToken);
+            }
+
             if (UseServicePrincipal(out ServicePrincipalIdentity sp))
             {
                 _context.Trace.WriteLine($"Getting Azure Access Token for service principal {sp.TenantId}/{sp.Id}...");
@@ -137,6 +144,10 @@ namespace Microsoft.AzureRepos
             {
                 _context.Trace.WriteLine("Nothing to store for managed identity authentication.");
             }
+            else if (UseFederatedIdentity(out _))
+            {
+                _context.Trace.WriteLine("Nothing to store for federated identity authentication.");
+            }
             else if (UseServicePrincipal(out _))
             {
                 _context.Trace.WriteLine("Nothing to store for service principal authentication.");
@@ -171,6 +182,10 @@ namespace Microsoft.AzureRepos
             if (UseManagedIdentity(out _))
             {
                 _context.Trace.WriteLine("Nothing to erase for managed identity authentication.");
+            }
+            else if (UseFederatedIdentity(out _))
+            {
+                _context.Trace.WriteLine("Nothing to erase for federated principal authentication.");
             }
             else if (UseServicePrincipal(out _))
             {
@@ -586,6 +601,47 @@ namespace Microsoft.AzureRepos
                        AzureDevOpsConstants.GitConfiguration.Credential.ManagedIdentity,
                        out mid) &&
                    !string.IsNullOrWhiteSpace(mid);
+        }
+
+        private bool UseFederatedIdentity(out FederatedIdentity fid)
+        {
+            if (!_context.Settings.TryGetSetting(
+                    AzureDevOpsConstants.EnvironmentVariables.FederatedIdentity,
+                    Constants.GitConfiguration.Credential.SectionName,
+                    AzureDevOpsConstants.GitConfiguration.Credential.FederatedIdentity,
+                    out string midStr) || string.IsNullOrWhiteSpace(midStr))
+            {
+                fid = null;
+                return false;
+            }
+
+            bool fedClientAppId = _context.Settings.TryGetSetting(
+                AzureDevOpsConstants.EnvironmentVariables.FederatedIdentityClientAppId,
+                Constants.GitConfiguration.Credential.SectionName,
+                AzureDevOpsConstants.GitConfiguration.Credential.FederatedIdentityClientAppId,
+                out string clientId);
+
+            bool fedTenantId = _context.Settings.TryGetSetting(
+                AzureDevOpsConstants.EnvironmentVariables.FederatedIdentityTenantId,
+                Constants.GitConfiguration.Credential.SectionName,
+                AzureDevOpsConstants.GitConfiguration.Credential.FederatedIdentityTenantId,
+                out string tenantId);
+
+            if (!fedClientAppId || !fedTenantId)
+            {
+                _context.Streams.Error.WriteLine("error: both federated identity client app ID and tenant ID are required");
+                fid = null;
+                return false;
+            }
+
+            fid = new FederatedIdentity()
+            {
+                ManagedIdentityClientId = midStr,
+                ClientAppId = clientId,
+                TenantId = tenantId
+            };
+
+            return true;
         }
 
         #endregion
