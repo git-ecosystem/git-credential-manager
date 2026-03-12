@@ -46,6 +46,12 @@ namespace Microsoft.AzureRepos
             public const string ServicePrincipalCertificateThumbprint = "GCM_AZREPOS_SP_CERT_THUMBPRINT";
             public const string ServicePrincipalCertificateSendX5C = "GCM_AZREPOS_SP_CERT_SEND_X5C";
             public const string ManagedIdentity = "GCM_AZREPOS_MANAGEDIDENTITY";
+            public const string WorkloadFederation = "GCM_AZREPOS_WIF";
+            public const string WorkloadFederationClientId = "GCM_AZREPOS_WIF_CLIENTID";
+            public const string WorkloadFederationTenantId = "GCM_AZREPOS_WIF_TENANTID";
+            public const string WorkloadFederationAudience = "GCM_AZREPOS_WIF_AUDIENCE";
+            public const string WorkloadFederationAssertion = "GCM_AZREPOS_WIF_ASSERTION";
+            public const string WorkloadFederationManagedIdentity = "GCM_AZREPOS_WIF_MANAGEDIDENTITY";
         }
 
         public static class GitConfiguration
@@ -62,6 +68,12 @@ namespace Microsoft.AzureRepos
                 public const string ServicePrincipalCertificateThumbprint = "azreposServicePrincipalCertificateThumbprint";
                 public const string ServicePrincipalCertificateSendX5C = "azreposServicePrincipalCertificateSendX5C";
                 public const string ManagedIdentity = "azreposManagedIdentity";
+                public const string WorkloadFederation = "azreposWorkloadFederation";
+                public const string WorkloadFederationClientId = "azreposWorkloadFederationClientId";
+                public const string WorkloadFederationTenantId = "azreposWorkloadFederationTenantId";
+                public const string WorkloadFederationAudience = "azreposWorkloadFederationAudience";
+                public const string WorkloadFederationAssertion = "azreposWorkloadFederationAssertion";
+                public const string WorkloadFederationManagedIdentity = "azreposWorkloadFederationManagedIdentity";
             }
         }
     }
