@@ -32,9 +32,21 @@ mkdir -p /usr/local/bin
 
 # Configure GCM for the current user (running as the current user to avoid root
 # from taking ownership of ~/.gitconfig).
-# Use stat to determine the console user since the installer may be invoked with
-# USER unset (e.g. when run via Homebrew which explicitly clears USER).
-REAL_USER=$(stat -f%Su /dev/console)
-sudo -u "${REAL_USER}" "$INSTALL_DESTINATION/git-credential-manager" configure
+# Determine the real (non-root) user via multiple methods since the installer
+# may be invoked with USER/LOGNAME unset (e.g. when run via Homebrew which
+# explicitly clears those environment variables).
+# 1. SUDO_USER - set by sudo, works for both GUI (Homebrew) and SSH scenarios.
+# 2. stat /dev/console - works for GUI sessions when not running under sudo.
+REAL_USER="${SUDO_USER}"
+if [ -z "${REAL_USER}" ] || [ "${REAL_USER}" = "root" ]; then
+    REAL_USER=$(stat -f%Su /dev/console 2>/dev/null)
+fi
+
+if [ -n "${REAL_USER}" ] && [ "${REAL_USER}" != "root" ]; then
+    sudo -u "${REAL_USER}" "$INSTALL_DESTINATION/git-credential-manager" configure
+else
+    echo "warning: unable to determine the installing user; GCM has not been configured automatically." >&2
+    echo "warning: run 'git-credential-manager configure' to configure GCM for your user." >&2
+fi
 
 exit 0
