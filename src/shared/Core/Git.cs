@@ -122,7 +122,9 @@ namespace GitCredentialManager
 
         public IGitConfiguration GetConfiguration()
         {
-            return new GitProcessConfiguration(_trace, this);
+            // Try to use batched configuration for better performance
+            // It will automatically fall back to GitProcessConfiguration if config-batch is not available
+            return new GitBatchConfiguration(_trace, this);
         }
 
         public bool IsInsideRepository()
