@@ -43,6 +43,34 @@ those of the [Git configuration][config] settings.
 The type of each registry key can be either `REG_SZ` (string) or `REG_DWORD`
 (integer).
 
+### Group Policy templates
+
+Windows Group Policy Administrative Templates (ADMX/ADML) for GCM are available
+in the [`src/windows/policy-templates`][policy-templates] directory. Copy the
+files to the local or domain policy definitions folder:
+
+**Local machine:**
+
+```text
+GitCredentialManager.admx        → %SystemRoot%\PolicyDefinitions\
+en-US\GitCredentialManager.adml  → %SystemRoot%\PolicyDefinitions\en-US\
+```
+
+**Domain (Active Directory):**
+
+```text
+GitCredentialManager.admx        → \\<domain>\SYSVOL\<domain>\Policies\PolicyDefinitions\
+en-US\GitCredentialManager.adml  → \\<domain>\SYSVOL\<domain>\Policies\PolicyDefinitions\en-US\
+```
+
+After installing the templates, GCM settings appear under
+**Computer Configuration > Administrative Templates > Git Credential Manager**
+in the Group Policy Management Editor.
+
+The templates are generated from the [Git configuration][config] reference using
+the `generate-admx.ps1` script in the same directory. Re-run the script whenever
+the documentation changes to keep the templates up to date.
+
 ### 32-bit / x86
 
 When running the 32-bit (x86) version of GCM on a 64-bit (x64 or ARM64)
@@ -119,3 +147,4 @@ they will not be reflected in an already running process.
 
 [environment]: environment.md
 [config]: configuration.md
+[policy-templates]: ../src/windows/policy-templates
