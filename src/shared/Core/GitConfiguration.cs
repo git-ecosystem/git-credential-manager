@@ -132,6 +132,8 @@ namespace GitCredentialManager
                 case "global":
                     return GitConfigurationLevel.Global;
                 case "local":
+                case "worktree":
+                case "command":
                     return GitConfigurationLevel.Local;
                 default:
                     return GitConfigurationLevel.Unknown;
