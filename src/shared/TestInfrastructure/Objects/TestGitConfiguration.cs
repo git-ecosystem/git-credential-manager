@@ -16,6 +16,9 @@ namespace GitCredentialManager.Tests.Objects
         public IDictionary<string, IList<string>> Local { get; set; } =
             new Dictionary<string, IList<string>>(GitConfigurationKeyComparer.Instance);
 
+        public int SetCallCount { get; private set; }
+        public int UnsetCallCount { get; private set; }
+
         #region IGitConfiguration
 
         public void Enumerate(GitConfigurationLevel level, GitConfigurationEnumerationCallback cb)
@@ -68,6 +71,7 @@ namespace GitCredentialManager.Tests.Objects
 
         public void Set(GitConfigurationLevel level, string name, string value)
         {
+            SetCallCount++;
             IDictionary<string, IList<string>> dict = GetDictionary(level);
 
             if (!dict.TryGetValue(name, out var values))
@@ -107,6 +111,7 @@ namespace GitCredentialManager.Tests.Objects
 
         public void Unset(GitConfigurationLevel level, string name)
         {
+            UnsetCallCount++;
             IDictionary<string, IList<string>> dict = GetDictionary(level);
 
             // Simulate git
