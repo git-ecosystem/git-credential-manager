@@ -85,6 +85,18 @@ On Windows, Git can use the native Windows [SSPI][sspi-wiki] (Security Support
 Provider Interface) to perform NTLM and Kerberos authentication. This allows Git
 to integrate seamlessly with the Windows authentication infrastructure.
 
+> [!IMPORTANT]
+> Kerberos authentication is not enabled by default in Git due to a known bug.
+>
+> To workaround this bug and enable Kerberos authentication, you must set the
+> `http.<url>.emptyAuth` configuration option to `true` for your remote URL.
+>
+> For example:
+>
+> ```shell
+> git config --global http.https://example.com.emptyAuth true
+> ```
+
 > [!NOTE]
 > As of Git for Windows version 2.53.0.2, **NTLM support is disabled by
 > default**.
