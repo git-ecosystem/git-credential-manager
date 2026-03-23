@@ -62,7 +62,9 @@ Provider Interface) to perform NTLM and Kerberos authentication. This allows Git
 to integrate seamlessly with the Windows authentication infrastructure.
 
 > [!NOTE]
-> As of Git for Windows version 2.XX.X, **NTLM support is disabled by default**.
+> As of Git for Windows version 2.53.0.2, **NTLM support is disabled by
+> default**.
+>
 > Kerberos support _remains enabled_.
 
 ### Re-enabling NTLM Support
