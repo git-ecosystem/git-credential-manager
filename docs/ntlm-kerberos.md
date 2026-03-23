@@ -49,6 +49,30 @@ server to agree on which authentication protocol to use (Kerberos or NTLM) based
 on their capabilities. Typically Kerberos is preferred if both the client and
 server support it, with NTLM acting as a fallback.
 
+#### NTLM-over-SPNEGO
+
+> [!CAUTION]
+> When using SPNEGO negotiation if either the client or server does not support
+> Kerberos, or if there is an issue with Kerberos authentication, _NTLM may be
+> selected as a fallback authentication protocol_.
+>
+> **This can expose you to all the security risks associated with NTLM.**
+
+Currently the only way to prevent NTLM from being used as a fallback when SPNEGO
+negotiation is in use on Windows is to set the following registry key on your
+client system to the value `2` (type `DWORD`) to disable NTLM support
+system-wide:
+
+```text
+HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Lsa\MSV1_0\RestrictSendingNTLMTraffic
+```
+
+> [!WARNING]
+> Disabling NTLM support system-wide can have unintended consequences.
+>
+> NTLM is still often used in various legacy applications and services, and
+> disabling it may cause authentication failures in those applications.
+
 ## Built-in Support in Git
 
 Git provides built-in support for NTLM and Kerberos authentication through the
