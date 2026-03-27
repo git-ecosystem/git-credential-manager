@@ -293,11 +293,11 @@ namespace Microsoft.AzureRepos
             else
             {
                 // Global is absent or already matches; ensure global is set and local is clear.
-                if (existingBinding?.GlobalUserName == null)
+                if (existingBinding?.GlobalUserName is null)
                 {
                     bindingManager.Bind(orgName, userName, local: false);
                 }
-                if (existingBinding?.LocalUserName != null)
+                if (existingBinding?.LocalUserName is not null)
                 {
                     bindingManager.Unbind(orgName, local: true);
                 }
