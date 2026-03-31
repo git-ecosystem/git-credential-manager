@@ -35,7 +35,7 @@ namespace GitLab.UI.Commands
             this.SetHandler(ExecuteAsync, url, userName, basic, browser, pat, all);
         }
 
-        private async Task<int> ExecuteAsync(string userName, string url, bool basic, bool browser, bool pat, bool all)
+        private async Task<int> ExecuteAsync(string url, string userName, bool basic, bool browser, bool pat, bool all)
         {
             var viewModel = new CredentialsViewModel(Context.SessionManager)
             {
