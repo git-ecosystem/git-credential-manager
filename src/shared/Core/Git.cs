@@ -146,6 +146,15 @@ namespace GitCredentialManager
                 }
 
                 git.Start(Trace2ProcessClass.Git);
+
+                // Drain and throw away stderr asynchronously to avoid a deadlock
+                // if the child process fills the stderr pipe buffer.
+                if (suppressStreams)
+                {
+                    git.Process.ErrorDataReceived += (_, _) => { };
+                    git.Process.BeginErrorReadLine();
+                }
+
                 string data = git.StandardOutput.ReadToEnd();
                 git.WaitForExit();
 
