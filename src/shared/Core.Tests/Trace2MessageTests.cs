@@ -12,6 +12,8 @@ public class Trace2MessageTests
     [InlineData(26.316083,    " 26.316083 ")]
     [InlineData(100.316083,   "100.316083 ")]
     [InlineData(1000.316083,  "1000.316083")]
+    [InlineData(10000.316083, "10000.316083")]
+    [InlineData(100000.31608, "100000.316080")]
     public void BuildTimeSpan_Match_Returns_Expected_String(double input, string expected)
     {
         var actual = Trace2Message.BuildTimeSpan(input);
