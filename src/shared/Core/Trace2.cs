@@ -460,11 +460,11 @@ public class Trace2 : DisposableObject, ITrace2
         {
             try
             {
-                for (int i = 0; i < _writers.Count; i += 1)
+                for (int i = _writers.Count - 1; i >= 0; i--)
                 {
-                    using (var writer = _writers[i])
+                    using (_writers[i])
                     {
-                        _writers.Remove(writer);
+                        _writers.RemoveAt(i);
                     }
                 }
             }
