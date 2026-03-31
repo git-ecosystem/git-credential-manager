@@ -640,7 +640,7 @@ public class Trace2 : DisposableObject, ITrace2
     private static string BuildThreadName()
     {
         // If this is the entry thread, call it "main", per Trace2 convention
-        if (Thread.CurrentThread.ManagedThreadId == 0)
+        if (Thread.CurrentThread.ManagedThreadId == 1)
         {
             return "main";
         }
