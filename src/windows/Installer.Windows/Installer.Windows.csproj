@@ -44,7 +44,7 @@
     <Message Text="Lay Out" Importance="High" />
     <Exec Condition="'$(NoLayout)'!='true'"
           ConsoleToMSBuild="true"
-          Command="powershell.exe –NonInteractive –ExecutionPolicy Unrestricted -Command &quot;&amp; {&amp;'$(MSBuildProjectDirectory)\layout.ps1' -Configuration '$(Configuration)' -Output '$(PayloadPath)' -RuntimeIdentifier '$(RuntimeIdentifier)'; if ($?) { exit 0 } else { exit 1 }}&quot;"
+          Command="powershell.exe -NonInteractive -ExecutionPolicy Unrestricted -Command &quot;&amp; {&amp;'$(MSBuildProjectDirectory)\layout.ps1' -Configuration '$(Configuration)' -Output '$(PayloadPath)' -RuntimeIdentifier '$(RuntimeIdentifier)'; if ($?) { exit 0 } else { exit 1 }}&quot;"
           IgnoreExitCode="true">
       <!-- If we want to display the console output if the exit code is not 0, we need to capture it and then output it using the <Error /> below -->
       <Output TaskParameter="ExitCode" PropertyName="ExitCodeOfExec" />
