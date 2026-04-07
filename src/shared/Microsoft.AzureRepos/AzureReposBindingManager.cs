@@ -283,12 +283,24 @@ namespace Microsoft.AzureRepos
             if (existingBinding?.GlobalUserName != null &&
                 !StringComparer.OrdinalIgnoreCase.Equals(existingBinding.GlobalUserName, userName))
             {
-                bindingManager.Bind(orgName, userName, local: true);
+                // Global is bound to a different user (B); bind this user locally (-> B | A).
+                // Skip the write if local is already correct.
+                if (!StringComparer.OrdinalIgnoreCase.Equals(existingBinding.LocalUserName, userName))
+                {
+                    bindingManager.Bind(orgName, userName, local: true);
+                }
             }
             else
             {
-                bindingManager.Bind(orgName, userName, local: false);
-                bindingManager.Unbind(orgName, local: true);
+                // Global is absent or already matches; ensure global is set and local is clear.
+                if (existingBinding?.GlobalUserName is null)
+                {
+                    bindingManager.Bind(orgName, userName, local: false);
+                }
+                if (existingBinding?.LocalUserName is not null)
+                {
+                    bindingManager.Unbind(orgName, local: true);
+                }
             }
         }
 

@@ -628,6 +628,93 @@ namespace Microsoft.AzureRepos.Tests
             Assert.Equal(user2, actualGlobalUser);
         }
 
+        // Idempotency: SignIn when state is already correct should not write to git config
+
+        [Fact]
+        public void AzureReposBindingManager_SignIn_SameGlobalNoLocal_NoConfigWrites()
+        {
+            // Steady-state: global already bound to signing-in user, no local override.
+            // This is the common case on every 'git fetch' after the first sign-in.
+            const string orgName = "org";
+            const string user1 = "user1";
+
+            var git = new TestGit();
+            var trace = new NullTrace();
+            var manager = new AzureReposBindingManager(trace, git);
+
+            git.Configuration.Global[CreateKey(orgName)] = new[] {user1};
+
+            manager.SignIn(orgName, user1);
+
+            Assert.Equal(0, git.Configuration.SetCallCount);
+            Assert.Equal(0, git.Configuration.UnsetCallCount);
+        }
+
+        [Fact]
+        public void AzureReposBindingManager_SignIn_OtherGlobalSameLocal_NoConfigWrites()
+        {
+            // Steady-state: a different user holds the global binding, and local is already
+            // bound to the signing-in user. No change needed.
+            const string orgName = "org";
+            const string user1 = "user1";
+            const string user2 = "user2";
+
+            var git = new TestGit();
+            var trace = new NullTrace();
+            var manager = new AzureReposBindingManager(trace, git);
+
+            git.Configuration.Global[CreateKey(orgName)] = new[] {user2};
+            git.Configuration.Local[CreateKey(orgName)] = new[] {user1};
+
+            manager.SignIn(orgName, user1);
+
+            Assert.Equal(0, git.Configuration.SetCallCount);
+            Assert.Equal(0, git.Configuration.UnsetCallCount);
+        }
+
+        [Fact]
+        public void AzureReposBindingManager_SignIn_SameGlobalSameLocal_OnlyUnbindsLocal()
+        {
+            // Global already matches, local redundantly mirrors it.
+            // Only the local unset is needed; re-writing the global value is wasteful.
+            const string orgName = "org";
+            const string user1 = "user1";
+
+            var git = new TestGit();
+            var trace = new NullTrace();
+            var manager = new AzureReposBindingManager(trace, git);
+
+            git.Configuration.Global[CreateKey(orgName)] = new[] {user1};
+            git.Configuration.Local[CreateKey(orgName)] = new[] {user1};
+
+            manager.SignIn(orgName, user1);
+
+            Assert.Equal(0, git.Configuration.SetCallCount);
+            Assert.Equal(1, git.Configuration.UnsetCallCount);
+        }
+
+        [Fact]
+        public void AzureReposBindingManager_SignIn_SameGlobalOtherLocal_OnlyUnbindsLocal()
+        {
+            // Global already matches, local has a different user that needs removing.
+            // Only the local unset is needed; re-writing the global value is wasteful.
+            const string orgName = "org";
+            const string user1 = "user1";
+            const string user2 = "user2";
+
+            var git = new TestGit();
+            var trace = new NullTrace();
+            var manager = new AzureReposBindingManager(trace, git);
+
+            git.Configuration.Global[CreateKey(orgName)] = new[] {user1};
+            git.Configuration.Local[CreateKey(orgName)] = new[] {user2};
+
+            manager.SignIn(orgName, user1);
+
+            Assert.Equal(0, git.Configuration.SetCallCount);
+            Assert.Equal(1, git.Configuration.UnsetCallCount);
+        }
+
         #endregion
 
         #region SignOut
