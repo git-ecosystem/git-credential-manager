@@ -24,7 +24,7 @@ GCM_SRC="$SRC/shared/Git-Credential-Manager"
 GCM_UI_SRC="$SRC/shared/Git-Credential-Manager.UI.Avalonia"
 
 # Build parameters
-FRAMEWORK=net8.0
+FRAMEWORK=net10.0
 
 # Parse script arguments
 for i in "$@"

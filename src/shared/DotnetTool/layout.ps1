@@ -44,7 +44,7 @@ $DotnetToolRel = "shared/DotnetTool"
 $GcmSrc = Join-Path $Src "shared\Git-Credential-Manager"
 $ProjOut = Join-Path $Out $DotnetToolRel
 
-$Framework = "net8.0"
+$Framework = "net10.0"
 
 if (-not $Output -or $Output.Trim() -eq "") {
 	$Output = Join-Path $ProjOut "nupkg\$Configuration"
