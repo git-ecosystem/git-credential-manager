@@ -49,7 +49,7 @@ GCM_SRC="$SRC/shared/Git-Credential-Manager"
 PROJ_OUT="$OUT/linux/Packaging.Linux"
 
 # Build parameters
-FRAMEWORK=net8.0
+FRAMEWORK=net10.0
 
 # Perform pre-execution checks
 CONFIGURATION="${CONFIGURATION:=Debug}"

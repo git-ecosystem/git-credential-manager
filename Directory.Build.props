@@ -27,9 +27,7 @@
   </PropertyGroup>
 
   <ItemGroup Condition = "'$(TargetFramework)' == 'net472'">
-    <PackageReference Include="System.Text.Json">
-      <Version>8.0.5</Version>
-    </PackageReference>
+    <PackageReference Include="System.Text.Json" />
   </ItemGroup>
 
 </Project>

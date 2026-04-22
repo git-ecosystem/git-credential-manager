@@ -30,7 +30,16 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v5.1.0
       with:
-        dotnet-version: 8.0.x
+        dotnet-version: 10.0.x
+
+    # The x86 test host requires an x86 .NET runtime, which isn't pre-installed
+    # on the runner, nor can the actions/setup-dotnet action install it.
+    # Install it manually so tests can run.
+    - name: Setup .NET (x86)
+      if: matrix.runtime == 'win-x86'
+      run: |
+        Invoke-WebRequest 'https://dot.net/v1/dotnet-install.ps1' -OutFile dotnet-install.ps1
+        ./dotnet-install.ps1 -Channel 10.0 -Architecture x86 -InstallDir 'C:\Program Files (x86)\dotnet'
 
     - name: Install dependencies
       run: dotnet restore
@@ -78,7 +87,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v5.1.0
       with:
-        dotnet-version: 8.0.x
+        dotnet-version: 10.0.x
 
     - name: Install dependencies
       run: dotnet restore
@@ -122,7 +131,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v5.1.0
       with:
-        dotnet-version: 8.0.x
+        dotnet-version: 10.0.x
 
     - name: Install dependencies
       run: dotnet restore

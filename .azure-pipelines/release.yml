@@ -136,10 +136,10 @@ extends:
                       $version = (Get-Content .\VERSION) -replace '\.\d+$', ''
                       Write-Host "##vso[task.setvariable variable=version;isReadOnly=true]$version"
                 - task: UseDotNet@2
-                  displayName: 'Use .NET 8 SDK'
+                  displayName: 'Use .NET 10 SDK'
                   inputs:
                     packageType: sdk
-                    version: '8.x'
+                    version: '10.x'
                 - task: PowerShell@2
                   displayName: 'Build payload'
                   inputs:
@@ -296,10 +296,10 @@ extends:
                     script: |
                       echo "##vso[task.setvariable variable=version;isReadOnly=true]$(cat ./VERSION | sed -E 's/.[0-9]+$//')"
                 - task: UseDotNet@2
-                  displayName: 'Use .NET 8 SDK'
+                  displayName: 'Use .NET 10 SDK'
                   inputs:
                     packageType: sdk
-                    version: '8.x'
+                    version: '10.x'
                 - task: Bash@3
                   displayName: 'Build payload'
                   inputs:
@@ -565,10 +565,10 @@ extends:
                     script: |
                       echo "##vso[task.setvariable variable=version;isReadOnly=true]$(cat ./VERSION | sed -E 's/.[0-9]+$//')"
                 - task: UseDotNet@2
-                  displayName: 'Use .NET 8 SDK'
+                  displayName: 'Use .NET 10 SDK'
                   inputs:
                     packageType: sdk
-                    version: '8.x'
+                    version: '10.x'
                 - task: Bash@3
                   displayName: 'Build payload'
                   inputs:
@@ -664,10 +664,10 @@ extends:
                     $version = (Get-Content .\VERSION) -replace '\.\d+$', ''
                     Write-Host "##vso[task.setvariable variable=version;isReadOnly=true]$version"
               - task: UseDotNet@2
-                displayName: 'Use .NET 8 SDK'
+                displayName: 'Use .NET 10 SDK'
                 inputs:
                   packageType: sdk
-                  version: '8.x'
+                  version: '10.x'
               - task: NuGetToolInstaller@1
                 displayName: 'Install NuGet CLI'
                 inputs:

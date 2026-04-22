@@ -11,7 +11,7 @@
         </packageTypes>
   </metadata>
   <files>
-    <file src="tools/net8.0/any/**" />
+    <file src="tools/net10.0/any/**" />
     <file src="images/**" />
   </files>
 </package>
