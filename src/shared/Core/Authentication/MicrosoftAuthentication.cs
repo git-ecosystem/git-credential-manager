@@ -9,6 +9,7 @@ using GitCredentialManager.Interop.Windows.Native;
 using Microsoft.Identity.Client;
 using Microsoft.Identity.Client.Extensions.Msal;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using GitCredentialManager.UI;
 using GitCredentialManager.UI.Controls;
@@ -63,6 +64,14 @@ namespace GitCredentialManager.Authentication
         ///  - <c>"resource://{guid}"</c> - Use the user-assigned managed identity with resource ID <c>{guid}</c>.
         /// </remarks>
         Task<IMicrosoftAuthenticationResult> GetTokenForManagedIdentityAsync(string managedIdentity, string resource);
+
+        /// <summary>
+        /// Acquire a token using workload federation.
+        /// </summary>
+        /// <param name="fedOpts">An object containing configuration workload federation.</param>
+        /// <param name="scopes">Scopes to request.</param>
+        /// <returns>Authentication result including access token.</returns>
+        Task<IMicrosoftAuthenticationResult> GetTokenUsingWorkloadFederationAsync(MicrosoftWorkloadFederationOptions fedOpts, string[] scopes);
     }
 
     public class ServicePrincipalIdentity
@@ -287,7 +296,8 @@ namespace GitCredentialManager.Authentication
             }
         }
 
-        public async Task<IMicrosoftAuthenticationResult> GetTokenForManagedIdentityAsync(string managedIdentity, string resource)
+        public async Task<IMicrosoftAuthenticationResult> GetTokenForManagedIdentityAsync(
+            string managedIdentity, string resource)
         {
             var httpFactoryAdaptor = new MsalHttpClientFactoryAdaptor(Context.HttpClientFactory);
 
@@ -306,8 +316,88 @@ namespace GitCredentialManager.Authentication
             {
                 Context.Trace.WriteLine(mid == ManagedIdentityId.SystemAssigned
                     ? "Failed to acquire token for system managed identity."
-                    : $"Failed to acquire token for user managed identity '{managedIdentity:D}'.");
+                    : $"Failed to acquire token for user managed identity '{managedIdentity}'.");
                 Context.Trace.WriteException(ex);
+                throw;
+            }
+        }
+
+        public async Task<IMicrosoftAuthenticationResult> GetTokenUsingWorkloadFederationAsync(MicrosoftWorkloadFederationOptions fedOpts, string[] scopes)
+        {
+            IConfidentialClientApplication app = await CreateConfidentialClientApplicationAsync(fedOpts);
+
+            AuthenticationResult result = await app.AcquireTokenForClient(scopes)
+              .ExecuteAsync()
+              .ConfigureAwait(false);
+
+            return new MsalResult(result);
+        }
+
+        private async Task<string> GetClientAssertion(MicrosoftWorkloadFederationOptions fedOpts, AssertionRequestOptions _)
+        {
+            switch (fedOpts.Scenario)
+            {
+                case MicrosoftWorkloadFederationScenario.Generic:
+                    Context.Trace.WriteLine("Getting client assertion for generic workload federation scenario...");
+                    if (string.IsNullOrWhiteSpace(fedOpts.GenericClientAssertion))
+                        throw new InvalidOperationException(
+                            "Client assertion must be provided for generic workload federation scenario.");
+                    return fedOpts.GenericClientAssertion;
+
+                case MicrosoftWorkloadFederationScenario.ManagedIdentity:
+                    Context.Trace.WriteLine("Getting client assertion for managed identity workload federation scenario...");
+                    var miResult = await GetTokenForManagedIdentityAsync(fedOpts.ManagedIdentityId, fedOpts.Audience);
+                    return miResult.AccessToken;
+
+                case MicrosoftWorkloadFederationScenario.GitHubActions:
+                    Context.Trace.WriteLine("Getting client assertion for GitHub Actions workload federation scenario...");
+                    return await GetGitHubOidcToken(fedOpts.GitHubTokenRequestUrl, fedOpts.Audience, fedOpts.GitHubTokenRequestToken);
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(fedOpts.Scenario), fedOpts.Scenario, "Unsupported workload federation scenario.");
+            }
+        }
+
+        private async Task<string> GetGitHubOidcToken(Uri requestUri, string audience, string requestToken)
+        {
+            using HttpClient http = Context.HttpClientFactory.CreateClient();
+
+            UriBuilder ub = new UriBuilder(requestUri);
+            if (ub.Query.Length > 0) ub.Query += "&";
+            ub.Query += $"audience={Uri.EscapeDataString(audience)}";
+
+            using var request = new HttpRequestMessage(HttpMethod.Get, ub.Uri);
+            request.AddBearerAuthenticationHeader(requestToken);
+
+            Context.Trace.WriteLine($"Requesting GitHub OIDC token from '{request.RequestUri}'...");
+            Context.Trace.WriteLineSecrets("OIDC request token: {0}", new[] { requestToken });
+            using HttpResponseMessage response = await http.SendAsync(request);
+            if (!response.IsSuccessStatusCode)
+            {
+                string error = await response.Content.ReadAsStringAsync();
+                Context.Trace.WriteLine($"Failed to acquire GitHub OIDC token [{response.StatusCode:D} {response.StatusCode}]: {error}");
+                response.EnsureSuccessStatusCode();
+            }
+
+            string json = await response.Content.ReadAsStringAsync();
+
+            try
+            {
+                using JsonDocument jsonDoc = JsonDocument.Parse(json);
+                if (!jsonDoc.RootElement.TryGetProperty("value", out JsonElement tokenElement))
+                {
+                    throw new InvalidOperationException(
+                        "Invalid response from GitHub OIDC token endpoint: 'value' property not found.");
+                }
+
+                return tokenElement.GetString() ??
+                       throw new InvalidOperationException(
+                           "Invalid response from GitHub OIDC token endpoint: 'value' property is null.");
+            }
+            catch (Exception ex)
+            {
+                Context.Trace.WriteException(ex);
+                Context.Trace.WriteLine($"OIDC token response: {json}");
                 throw;
             }
         }
@@ -550,6 +640,24 @@ namespace GitCredentialManager.Authentication
             {
                 throw new InvalidOperationException("Service principal identity does not contain a certificate or client secret.");
             }
+
+            IConfidentialClientApplication app = appBuilder.Build();
+
+            await RegisterTokenCacheAsync(app.AppTokenCache, CreateAppTokenCacheProps, Context.Trace2);
+
+            return app;
+        }
+
+        private async Task<IConfidentialClientApplication> CreateConfidentialClientApplicationAsync(
+            MicrosoftWorkloadFederationOptions fedOpts)
+        {
+            var httpFactoryAdaptor = new MsalHttpClientFactoryAdaptor(Context.HttpClientFactory);
+
+            Context.Trace.WriteLine($"Creating federated confidential client application for {fedOpts.TenantId}/{fedOpts.ClientId}...");
+            var appBuilder = ConfidentialClientApplicationBuilder.Create(fedOpts.ClientId)
+                .WithTenantId(fedOpts.TenantId)
+                .WithHttpClientFactory(httpFactoryAdaptor)
+                .WithClientAssertion(reqOpts => GetClientAssertion(fedOpts, reqOpts));
 
             IConfidentialClientApplication app = appBuilder.Build();
 
