@@ -32,6 +32,7 @@
 
   <ItemGroup Condition="'$(Configuration)' == 'Debug'">
     <PackageReference Include="Avalonia.Diagnostics" />
+    <PackageReference Include="Tmds.DBus.Protocol" />
   </ItemGroup>
 
 </Project>
