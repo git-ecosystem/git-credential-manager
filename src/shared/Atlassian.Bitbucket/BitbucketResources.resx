@@ -33,6 +33,7 @@
             .aui-page-panel, .aui-page-panel-inner, .aui-page-panel-content { background: #161B22 !important; color: #C9D1D9 !important; border-color: #30363D !important; }
             h1, h2, h3, h4, h5, h6, p { color: #C9D1D9 !important; }
             a { color: #58A6FF !important; }
+            #footer, #footer-logo { background: #0D1117 !important; color: #C9D1D9 !important; }
         }
     </style>
 </head>
@@ -73,6 +74,7 @@
             .aui-page-panel, .aui-page-panel-inner, .aui-page-panel-content {{ background: #161B22 !important; color: #C9D1D9 !important; border-color: #30363D !important; }}
             h1, h2, h3, h4, h5, h6, p, dt, dd {{ color: #C9D1D9 !important; }}
             a {{ color: #58A6FF !important; }}
+            #footer, #footer-logo {{ background: #0D1117 !important; color: #C9D1D9 !important; }}
         }}
     </style>
 </head>
