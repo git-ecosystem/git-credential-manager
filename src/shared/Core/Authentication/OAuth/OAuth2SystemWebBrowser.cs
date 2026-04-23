@@ -10,12 +10,16 @@ namespace GitCredentialManager.Authentication.OAuth
     public class OAuth2WebBrowserOptions
     {
         internal const string DefaultSuccessHtml = @"<!DOCTYPE html><html><head>
-<style>body{font-family:sans-serif;}dt{font-weight:bold;}dd{margin-bottom:10px;}</style>
+<meta name=""color-scheme"" content=""light dark"">
+<style>body{font-family:sans-serif;}dt{font-weight:bold;}dd{margin-bottom:10px;}
+@media (prefers-color-scheme: dark){body{background:#0d1117;color:#c9d1d9;}a{color:#58a6ff;}}</style>
 <title>Authentication successful</title></head>
 <body><h1>Authentication successful</h1><p>You can now close this page.</p></body>
 </html>";
         internal const string DefaultFailureHtmlFormat = @"<!DOCTYPE html><html><head>
-<style>body{{font-family:sans-serif;}}dt{{font-weight:bold;}}dd{{margin-bottom:10px;}}</style>
+<meta name=""color-scheme"" content=""light dark"">
+<style>body{{font-family:sans-serif;}}dt{{font-weight:bold;}}dd{{margin-bottom:10px;}}
+@media (prefers-color-scheme: dark){{body{{background:#0d1117;color:#c9d1d9;}}a{{color:#58a6ff;}}}}</style>
 <title>Authentication failed</title></head>
 <body><h1>Authentication failed</h1><dl>
 <dt>Error:</dt><dd>{0}</dd>
