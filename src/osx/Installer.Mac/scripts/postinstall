@@ -214,24 +214,38 @@ log "Resolving end user for 'git-credential-manager configure'..."
 
 TARGET_USER=""
 
-# Candidate 1: $SUDO_USER. This is set by `sudo` (and by Installer.app /
-# `brew install --cask` in current macOS) to the user who launched the
-# privileged operation. It is the most reliable signal of "the human who
-# actually triggered this install" — including in the awkward case where
-# someone SSH'd in and ran sudo while a *different* person is at the GUI.
+# Candidate 1: $SUDO_USER. This is set by `sudo` to the user who launched
+# the privileged operation. It is the most reliable signal of "the human
+# who actually triggered this install" in CLI/SSH flows — including in the
+# awkward case where someone SSH'd in and ran sudo while a *different*
+# person happens to be at the GUI. NOTE: Installer.app launched from
+# Finder does NOT set SUDO_USER; for that flow Candidate 2 ($USER) wins.
 log "Candidate 1: SUDO_USER='${SUDO_USER:-<unset>}'"
 if is_plausible_interactive_user "${SUDO_USER:-}" "SUDO_USER"; then
     TARGET_USER=$SUDO_USER
 fi
 
-# Candidate 2: macOS console user via SystemConfiguration. Used when
-# SUDO_USER is missing or looks like a service account (e.g. Workbrew/MDM
-# launched us with no sudo context). When nobody is logged in this is empty
-# or "loginwindow".
+# Candidate 2: $USER. When Installer.app is launched from Finder by a
+# logged-in user, the postinstall sees USER=<that user>, LOGNAME=root,
+# HOME=/Users/<that user>, and SUDO_USER unset. $USER is therefore the
+# most direct signal in the GUI flow. Service-account launches (Workbrew,
+# MDM agents) also set $USER, but the plausibility check (UID >= 500,
+# home under /Users/, non-nologin shell) filters those out.
+if [ -z "$TARGET_USER" ]; then
+    log "Candidate 2: USER='${USER:-<unset>}'"
+    if is_plausible_interactive_user "${USER:-}" "USER"; then
+        TARGET_USER=$USER
+    fi
+fi
+
+# Candidate 3: macOS console user via SystemConfiguration. Used when
+# SUDO_USER and USER both fail (e.g. service-account launch with no
+# console session info propagated). When nobody is logged in this is
+# empty or "loginwindow".
 if [ -z "$TARGET_USER" ]; then
     CONSOLE_USER=$(echo "show State:/Users/ConsoleUser" | /usr/sbin/scutil 2>/dev/null \
         | /usr/bin/awk '/Name : / { print $3 }')
-    log "Candidate 2: ConsoleUser='${CONSOLE_USER:-<empty>}'"
+    log "Candidate 3: ConsoleUser='${CONSOLE_USER:-<empty>}'"
     if is_plausible_interactive_user "${CONSOLE_USER:-}" "ConsoleUser"; then
         TARGET_USER=$CONSOLE_USER
     fi
