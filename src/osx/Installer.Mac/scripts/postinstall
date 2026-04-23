@@ -24,10 +24,17 @@
 # and the installer's PATH varies wildly by launch context.
 #
 # So we resolve the real interactive user with this priority order:
-#   1. $SUDO_USER, if it looks like a real interactive account.
+#   1. $USER, if it looks like a real interactive account (and isn't root).
 #   2. The macOS console user (scutil State:/Users/ConsoleUser), if valid.
 #   3. Skip `configure` entirely with a clear notice. This is strictly safer
 #      than silently writing to a service account's gitconfig.
+#
+# Note on $SUDO_USER: empirically, `installer(8)` strips SUDO_USER from the
+# postinstall environment in every observed launch context (Finder double-
+# click, `sudo installer …` over SSH, MDM, Workbrew). It is therefore not
+# consulted — keeping it as a candidate only produced misleading log output
+# and dead code. $USER is the signal that survives the sudo→installer→
+# pkgd→script handoff in the CLI flow as well as the Finder flow.
 #
 # Everything we do is teed into a per-install log file under TMPDIR so that
 # postinstall failures (which Installer.app surfaces only as a generic
@@ -214,47 +221,43 @@ log "Resolving end user for 'git-credential-manager configure'..."
 
 TARGET_USER=""
 
-# Candidate 1: $SUDO_USER. This is set by `sudo` to the user who launched
-# the privileged operation. It is the most reliable signal of "the human
-# who actually triggered this install" in CLI/SSH flows — including in the
-# awkward case where someone SSH'd in and ran sudo while a *different*
-# person happens to be at the GUI. NOTE: Installer.app launched from
-# Finder does NOT set SUDO_USER; for that flow Candidate 2 ($USER) wins.
-log "Candidate 1: SUDO_USER='${SUDO_USER:-<unset>}'"
-if is_plausible_interactive_user "${SUDO_USER:-}" "SUDO_USER"; then
-    TARGET_USER=$SUDO_USER
-fi
-
-# Candidate 2: $USER. When Installer.app is launched from Finder by a
+# Candidate 1: $USER. When Installer.app is launched from Finder by a
 # logged-in user, the postinstall sees USER=<that user>, LOGNAME=root,
-# HOME=/Users/<that user>, and SUDO_USER unset. $USER is therefore the
-# most direct signal in the GUI flow. Service-account launches (Workbrew,
-# MDM agents) also set $USER, but the plausibility check (UID >= 500,
-# home under /Users/, non-nologin shell) filters those out.
-if [ -z "$TARGET_USER" ]; then
-    log "Candidate 2: USER='${USER:-<unset>}'"
-    if is_plausible_interactive_user "${USER:-}" "USER"; then
-        TARGET_USER=$USER
-    fi
+# HOME=/Users/<that user>. Empirically the same is true for
+# `sudo installer …` over SSH: $USER survives the handoff while
+# $SUDO_USER does not. Service-account launches (Workbrew, MDM agents)
+# also set $USER, but the plausibility check (UID >= 500, home under
+# /Users/, non-nologin shell, reserved-name rejection) filters those
+# out. Belt-and-braces: explicitly skip when $USER is literally "root",
+# which can happen under some launch contexts (e.g. a `sudo -i` shell
+# invoking `installer`); the reserved-name list in the plausibility
+# check would also catch it, but checking up front keeps the log output
+# clearer.
+log "Candidate 1: USER='${USER:-<unset>}'"
+if [ "${USER:-}" = "root" ]; then
+    log "  reject (USER='root'): root is not an end user"
+elif is_plausible_interactive_user "${USER:-}" "USER"; then
+    TARGET_USER=$USER
 fi
 
-# Candidate 3: macOS console user via SystemConfiguration. Used when
-# SUDO_USER and USER both fail (e.g. service-account launch with no
-# console session info propagated). When nobody is logged in this is
-# empty or "loginwindow".
+# Candidate 2: macOS console user via SystemConfiguration. Used when
+# $USER fails (e.g. service-account launch from an MDM tool with no
+# interactive $USER propagated). When nobody is logged in this is
+# empty or "loginwindow", which the plausibility check rejects.
 if [ -z "$TARGET_USER" ]; then
     CONSOLE_USER=$(echo "show State:/Users/ConsoleUser" | /usr/sbin/scutil 2>/dev/null \
         | /usr/bin/awk '/Name : / { print $3 }')
-    log "Candidate 3: ConsoleUser='${CONSOLE_USER:-<empty>}'"
+    log "Candidate 2: ConsoleUser='${CONSOLE_USER:-<empty>}'"
     if is_plausible_interactive_user "${CONSOLE_USER:-}" "ConsoleUser"; then
         TARGET_USER=$CONSOLE_USER
     fi
 fi
 
-# No fallback to $USER. If we got here under a service account with nobody
-# logged in at the console, writing to /var/whatever/.gitconfig helps no
-# one and silently masks the problem. Skip with a loud notice instead so
-# the human can run `git-credential-manager configure` themselves later.
+# No further fallback. If we got here under a service account with
+# nobody logged in at the console, writing to /var/whatever/.gitconfig
+# helps no one and silently masks the problem. Skip with a loud notice
+# instead so the human can run `git-credential-manager configure`
+# themselves later.
 if [ -z "$TARGET_USER" ]; then
     log "No plausible interactive user found."
     msg="git-credential-manager: skipped 'configure' — no interactive user detected."
