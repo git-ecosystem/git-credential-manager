@@ -38,7 +38,13 @@ mkdir -p /usr/local/bin
 # we want to update. Fall back to $USER if no console user can be determined
 # (e.g. nobody is logged in, or the value is "loginwindow"/"root").
 CONSOLE_USER=$(echo "show State:/Users/ConsoleUser" | scutil | awk '/Name :/ { print $3 }')
-if [ -z "$CONSOLE_USER" ] || [ "$CONSOLE_USER" = "loginwindow" ] || [ "$CONSOLE_USER" = "root" ]; then
+# Validate the value before using it: it must be a non-empty, well-formed
+# username (alphanumeric, underscore, hyphen, dot) and not a placeholder such
+# as "loginwindow" or the root account. Otherwise fall back to $USER.
+if ! [[ "$CONSOLE_USER" =~ ^[a-zA-Z_][a-zA-Z0-9_.-]*$ ]] \
+    || [ "$CONSOLE_USER" = "loginwindow" ] \
+    || [ "$CONSOLE_USER" = "root" ] \
+    || ! /usr/bin/id -u "$CONSOLE_USER" > /dev/null 2>&1; then
     CONSOLE_USER=$USER
 fi
 
