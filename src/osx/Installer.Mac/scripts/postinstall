@@ -30,8 +30,20 @@ fi
 mkdir -p /usr/local/bin
 /bin/ln -Fs "$INSTALL_DESTINATION/git-credential-manager" /usr/local/bin/git-credential-manager
 
+# Determine the actual end-user to configure GCM for. When the installer is
+# invoked by a service account (e.g. an MDM or fleet-management tool such as
+# Workbrew), $USER refers to the service account rather than the logged-in
+# console user. Querying SystemConfiguration via scutil gives us the user
+# currently owning the console session, which is the user whose ~/.gitconfig
+# we want to update. Fall back to $USER if no console user can be determined
+# (e.g. nobody is logged in, or the value is "loginwindow"/"root").
+CONSOLE_USER=$(echo "show State:/Users/ConsoleUser" | scutil | awk '/Name :/ { print $3 }')
+if [ -z "$CONSOLE_USER" ] || [ "$CONSOLE_USER" = "loginwindow" ] || [ "$CONSOLE_USER" = "root" ]; then
+    CONSOLE_USER=$USER
+fi
+
 # Configure GCM for the current user (running as the current user to avoid root
 # from taking ownership of ~/.gitconfig)
-sudo -u ${USER} "$INSTALL_DESTINATION/git-credential-manager" configure
+sudo -u "$CONSOLE_USER" "$INSTALL_DESTINATION/git-credential-manager" configure
 
 exit 0
