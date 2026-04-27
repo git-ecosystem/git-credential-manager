@@ -659,7 +659,7 @@ namespace GitCredentialManager
         }
 
         public bool AutomaticallyUseClientCertificates =>
-            TryGetSetting(null, KnownGitCfg.Credential.SectionName, KnownGitCfg.Http.SslAutoClientCert, out string value) && value.ToBooleanyOrDefault(false);
+            TryGetSetting(null, KnownGitCfg.Http.SectionName, KnownGitCfg.Http.SslAutoClientCert, out string value) && value.ToBooleanyOrDefault(false);
 
         public string CustomCertificateBundlePath =>
             TryGetPathSetting(KnownEnvars.GitSslCaInfo, KnownGitCfg.Http.SectionName, KnownGitCfg.Http.SslCaInfo, out string value) ? value : null;

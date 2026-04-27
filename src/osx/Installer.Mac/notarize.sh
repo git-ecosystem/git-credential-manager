@@ -1,4 +1,8 @@
 #!/bin/bash
+die () {
+    echo "$*" >&2
+    exit 1
+}
 
 for i in "$@"
 do
