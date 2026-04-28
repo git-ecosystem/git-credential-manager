@@ -220,7 +220,7 @@ case "$distribution" in
 
         ensure_dotnet_installed
     ;;
-    arch)
+    arch | cachyos)
         print_unsupported_distro "WARNING" "$distribution"
 
         # --noconfirm required when running from container

@@ -302,6 +302,11 @@ extends:
                     script: |
                       echo "##vso[task.setvariable variable=version;isReadOnly=true]$(cat ./VERSION | sed -E 's/.[0-9]+$//')"
                 - task: UseDotNet@2
+                  displayName: 'Use .NET 8 SDK (ESRP dependency)'
+                  inputs:
+                    packageType: sdk
+                    version: '8.x'
+                - task: UseDotNet@2
                   displayName: 'Use .NET 10 SDK'
                   inputs:
                     packageType: sdk
@@ -571,6 +576,11 @@ extends:
                     targetType: inline
                     script: |
                       echo "##vso[task.setvariable variable=version;isReadOnly=true]$(cat ./VERSION | sed -E 's/.[0-9]+$//')"
+                - task: UseDotNet@2
+                  displayName: 'Use .NET 8 SDK (ESRP dependency)'
+                  inputs:
+                    packageType: sdk
+                    version: '8.x'
                 - task: UseDotNet@2
                   displayName: 'Use .NET 10 SDK'
                   inputs:
