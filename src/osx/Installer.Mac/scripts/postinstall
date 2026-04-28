@@ -1,37 +1,282 @@
 #!/bin/bash
-set -e
+#
+# Git Credential Manager macOS .pkg postinstall script.
+#
+# Responsibilities:
+#   1. Replace any pre-existing Homebrew (Java) GCM symlink in /usr/local/bin
+#      with a symlink pointing at this package's binary.
+#   2. Run `git-credential-manager configure` for the *real* end user so the
+#      credential helper entry lands in the right ~/.gitconfig.
+#
+# The tricky bit is (2). The postinstall always runs as root, but $USER /
+# $LOGNAME / $HOME refer to whoever invoked the install. That can be:
+#   - A human at Installer.app (good — typically what we want).
+#   - A human running `sudo installer …` over SSH (good).
+#   - `brew install --cask …` running as the brew-owning user (good).
+#   - A service account from an MDM/fleet tool such as Workbrew (BAD —
+#     historically we silently wrote a `credential.helper` entry into the
+#     service account's ~/.gitconfig, which the real human user never sees).
+#
+# `configure --system` is NOT a viable workaround on macOS: it writes to
+# `$(git --exec-path)/../../etc/gitconfig`, which depends on which `git` is
+# first on PATH at postinstall time (Apple `/usr/bin/git`, Homebrew under
+# `/opt/homebrew` or `/usr/local`, or a `.pkg`-installed `/usr/local/git`),
+# and the installer's PATH varies wildly by launch context.
+#
+# So we resolve the real interactive user with this priority order:
+#   1. $USER, if it looks like a real interactive account (and isn't root).
+#   2. The macOS console user (scutil State:/Users/ConsoleUser), if valid.
+#   3. Skip `configure` entirely with a clear notice. This is strictly safer
+#      than silently writing to a service account's gitconfig.
+#
+# Note on $SUDO_USER: empirically, `installer(8)` strips SUDO_USER from the
+# postinstall environment in every observed launch context (Finder double-
+# click, `sudo installer …` over SSH, MDM, Workbrew). It is therefore not
+# consulted — keeping it as a candidate only produced misleading log output
+# and dead code. $USER is the signal that survives the sudo→installer→
+# pkgd→script handoff in the CLI flow as well as the Finder flow.
+#
+# Everything we do is teed into a per-install log file under TMPDIR so that
+# postinstall failures (which Installer.app surfaces only as a generic
+# "installation failed") can be diagnosed after the fact.
 
 PACKAGE=$1
 INSTALL_DESTINATION=$2
 
-function IsBrewPkgInstalled
-{
-    # Check if Homebrew is installed
-    /usr/bin/which brew > /dev/null
-    if [ $? -eq 0 ]
-    then
-        # Check if the package has been installed
-        brew ls --versions "$1" > /dev/null
-        if [ $? -eq 0 ]
-        then
-            return 0
-        fi
-    fi
-    return 1
-}
+# ---------------------------------------------------------------------------
+# Logging
+# ---------------------------------------------------------------------------
+# Use the system temp dir (TMPDIR is set under Installer.app; fall back to
+# /tmp when it isn't, e.g. invoked from a bare `sudo installer` shell).
+# Include both a timestamp and the PID so concurrent or repeated installs
+# don't collide.
+LOG_DIR="${TMPDIR:-/tmp}"
+LOG_FILE="${LOG_DIR%/}/gcm-postinstall-$(date -u +%Y%m%dT%H%M%SZ)-$$.log"
 
-# Check if Java GCM is present on this system and unlink it should it exist
-if [ -L /usr/local/bin/git-credential-manager ] && IsBrewPkgInstalled "git-credential-manager";
-then
-    brew unlink git-credential-manager
+# Best-effort: if we can't create the log file, keep going without it rather
+# than failing the install.
+if : > "$LOG_FILE" 2>/dev/null; then
+    HAVE_LOG=1
+else
+    HAVE_LOG=0
+    LOG_FILE=""
 fi
 
-# Create symlink to GCM in /usr/local/bin
-mkdir -p /usr/local/bin
-/bin/ln -Fs "$INSTALL_DESTINATION/git-credential-manager" /usr/local/bin/git-credential-manager
+log() {
+    # Echo to stderr (captured by Installer.app's install.log) and append to
+    # our debug log file. Prefix every line with a UTC timestamp.
+    local ts
+    ts=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+    local line="[$ts] $*"
+    echo "$line" >&2
+    if [ "$HAVE_LOG" = "1" ]; then
+        echo "$line" >> "$LOG_FILE" 2>/dev/null || true
+    fi
+}
 
-# Configure GCM for the current user (running as the current user to avoid root
-# from taking ownership of ~/.gitconfig)
-sudo -u ${USER} "$INSTALL_DESTINATION/git-credential-manager" configure
+# Run a command, logging both the command line and its combined output. Does
+# not abort on failure; the caller decides what to do with the exit code.
+log_run() {
+    log "exec: $*"
+    local out rc
+    out=$("$@" 2>&1)
+    rc=$?
+    if [ -n "$out" ]; then
+        # Indent output for readability in the log.
+        while IFS= read -r line; do
+            log "    | $line"
+        done <<< "$out"
+    fi
+    log "exit: $rc"
+    return $rc
+}
+
+# Final summary on any exit path so we always know how the script ended.
+on_exit() {
+    local rc=$?
+    log "postinstall exiting with status $rc"
+    if [ "$HAVE_LOG" = "1" ]; then
+        # Surface the log path on stderr so it shows up in install.log.
+        echo "GCM postinstall log: $LOG_FILE" >&2
+    fi
+}
+trap on_exit EXIT
+
+# Note: we deliberately do NOT `set -e`. We want to log and continue past
+# non-fatal errors (e.g. an optional `brew unlink` failing) rather than
+# aborting the entire install.
+
+log "===== git-credential-manager postinstall starting ====="
+log "script:      $0"
+log "package:     $PACKAGE"
+log "destination: $INSTALL_DESTINATION"
+log "uid/gid:     $(id -u)/$(id -g) ($(id -un)/$(id -gn))"
+log "USER=$USER  LOGNAME=$LOGNAME  HOME=$HOME"
+log "SUDO_USER=${SUDO_USER:-<unset>}  SUDO_UID=${SUDO_UID:-<unset>}"
+log "TMPDIR=${TMPDIR:-<unset>}"
+log "PATH=$PATH"
+log "macOS:       $(/usr/bin/sw_vers -productVersion 2>/dev/null || echo unknown)"
+
+# ---------------------------------------------------------------------------
+# Step 1: replace any Homebrew (Java) GCM symlink with our binary.
+# ---------------------------------------------------------------------------
+
+IsBrewPkgInstalled() {
+    # Returns 0 if Homebrew is installed AND the named formula/cask is
+    # currently installed; 1 otherwise. Errors from brew itself are
+    # swallowed because this is purely an "is it there?" probe.
+    /usr/bin/which brew > /dev/null 2>&1 || return 1
+    brew ls --versions "$1" > /dev/null 2>&1 || return 1
+    return 0
+}
+
+if [ -L /usr/local/bin/git-credential-manager ] && IsBrewPkgInstalled "git-credential-manager"; then
+    log "Detected Homebrew git-credential-manager symlink; unlinking."
+    log_run brew unlink git-credential-manager || \
+        log "WARNING: 'brew unlink git-credential-manager' failed; continuing."
+fi
+
+# /usr/local/bin may not exist on a fresh macOS install (Apple Silicon in
+# particular ships without it).
+log_run /bin/mkdir -p /usr/local/bin || \
+    log "WARNING: failed to ensure /usr/local/bin exists; symlink may fail."
+log_run /bin/ln -Fs "$INSTALL_DESTINATION/git-credential-manager" /usr/local/bin/git-credential-manager || \
+    log "WARNING: failed to create /usr/local/bin/git-credential-manager symlink."
+
+# ---------------------------------------------------------------------------
+# Step 2: resolve the real interactive user and run `configure` as them.
+# ---------------------------------------------------------------------------
+
+# A "plausible interactive user" must:
+#   - be a syntactically valid username,
+#   - resolve via dscl/id to an existing local account,
+#   - have UID >= 500 (macOS reserves <500 for system/service accounts),
+#   - have a home directory under /Users/ (service accounts typically live
+#     under /var/, /private/var/, /opt/, etc.),
+#   - and not have a "nologin"/"false" login shell.
+#
+# Returns 0 if the candidate looks interactive, 1 otherwise. Logs the
+# reason for any rejection.
+is_plausible_interactive_user() {
+    local candidate=$1
+    local source=$2
+
+    if [ -z "$candidate" ]; then
+        log "  reject ($source): empty"
+        return 1
+    fi
+    if ! [[ "$candidate" =~ ^[a-zA-Z_][a-zA-Z0-9_.-]*$ ]]; then
+        log "  reject ($source='$candidate'): not a well-formed username"
+        return 1
+    fi
+    case "$candidate" in
+        root|loginwindow|daemon|nobody|_*)
+            log "  reject ($source='$candidate'): reserved/system name"
+            return 1
+            ;;
+    esac
+
+    local uid
+    uid=$(/usr/bin/id -u "$candidate" 2>/dev/null) || {
+        log "  reject ($source='$candidate'): no such user"
+        return 1
+    }
+    if [ "$uid" -lt 500 ]; then
+        log "  reject ($source='$candidate'): uid $uid < 500 (service account)"
+        return 1
+    fi
+
+    # Home directory check. dscl is the macOS-correct way to read this
+    # (getent doesn't exist on macOS).
+    local home
+    home=$(/usr/bin/dscl . -read "/Users/$candidate" NFSHomeDirectory 2>/dev/null \
+        | /usr/bin/awk '/^NFSHomeDirectory:/ { print $2 }')
+    if [ -z "$home" ]; then
+        log "  reject ($source='$candidate'): could not read home directory"
+        return 1
+    fi
+    case "$home" in
+        /Users/*) ;;  # OK
+        *)
+            log "  reject ($source='$candidate'): home '$home' not under /Users/"
+            return 1
+            ;;
+    esac
+
+    local shell
+    shell=$(/usr/bin/dscl . -read "/Users/$candidate" UserShell 2>/dev/null \
+        | /usr/bin/awk '/^UserShell:/ { print $2 }')
+    case "$shell" in
+        */nologin|*/false)
+            log "  reject ($source='$candidate'): shell '$shell' is non-interactive"
+            return 1
+            ;;
+    esac
+
+    log "  accept ($source='$candidate'): uid=$uid home=$home shell=${shell:-<unknown>}"
+    return 0
+}
+
+log "Resolving end user for 'git-credential-manager configure'..."
+
+TARGET_USER=""
+
+# Candidate 1: $USER. When Installer.app is launched from Finder by a
+# logged-in user, the postinstall sees USER=<that user>, LOGNAME=root,
+# HOME=/Users/<that user>. Empirically the same is true for
+# `sudo installer …` over SSH: $USER survives the handoff while
+# $SUDO_USER does not. Service-account launches (Workbrew, MDM agents)
+# also set $USER, but the plausibility check (UID >= 500, home under
+# /Users/, non-nologin shell, reserved-name rejection) filters those
+# out. Belt-and-braces: explicitly skip when $USER is literally "root",
+# which can happen under some launch contexts (e.g. a `sudo -i` shell
+# invoking `installer`); the reserved-name list in the plausibility
+# check would also catch it, but checking up front keeps the log output
+# clearer.
+log "Candidate 1: USER='${USER:-<unset>}'"
+if [ "${USER:-}" = "root" ]; then
+    log "  reject (USER='root'): root is not an end user"
+elif is_plausible_interactive_user "${USER:-}" "USER"; then
+    TARGET_USER=$USER
+fi
+
+# Candidate 2: macOS console user via SystemConfiguration. Used when
+# $USER fails (e.g. service-account launch from an MDM tool with no
+# interactive $USER propagated). When nobody is logged in this is
+# empty or "loginwindow", which the plausibility check rejects.
+if [ -z "$TARGET_USER" ]; then
+    CONSOLE_USER=$(echo "show State:/Users/ConsoleUser" | /usr/sbin/scutil 2>/dev/null \
+        | /usr/bin/awk '/Name : / { print $3 }')
+    log "Candidate 2: ConsoleUser='${CONSOLE_USER:-<empty>}'"
+    if is_plausible_interactive_user "${CONSOLE_USER:-}" "ConsoleUser"; then
+        TARGET_USER=$CONSOLE_USER
+    fi
+fi
+
+# No further fallback. If we got here under a service account with
+# nobody logged in at the console, writing to /var/whatever/.gitconfig
+# helps no one and silently masks the problem. Skip with a loud notice
+# instead so the human can run `git-credential-manager configure`
+# themselves later.
+if [ -z "$TARGET_USER" ]; then
+    log "No plausible interactive user found."
+    msg="git-credential-manager: skipped 'configure' — no interactive user detected."
+    msg2="Run 'git-credential-manager configure' manually as your user to enable it."
+    log "$msg"
+    log "$msg2"
+    # Also surface to stdout so that brew/MDM logs pick it up.
+    echo "$msg"
+    echo "$msg2"
+    exit 0
+fi
+
+log "Resolved end user: $TARGET_USER"
+log "Running configure as $TARGET_USER..."
+# Use `sudo -u` (rather than `su`) so that root's environment is dropped
+# but we don't need a login shell. This avoids root taking ownership of
+# the user's ~/.gitconfig, which would otherwise prevent the user from
+# editing it later.
+log_run /usr/bin/sudo -u "$TARGET_USER" "$INSTALL_DESTINATION/git-credential-manager" configure || \
+    log "WARNING: 'git-credential-manager configure' as '$TARGET_USER' failed."
 
 exit 0
