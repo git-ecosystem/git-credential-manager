@@ -872,9 +872,13 @@ extends:
             dependsOn: release_validation
             condition: and(succeeded(), eq('${{ parameters.nuget }}', true))
             pool:
+              # Run on Windows so the underlying NuGetCommand@2 task can use the
+              # native nuget.exe. On Ubuntu 24.04+ the legacy NuGet task fails
+              # because Mono is no longer available.
+              # See https://aka.ms/nuget-task-mono.
               name: GitClientPME-1ESHostedPool-intel-pc
-              image: ubuntu-x86_64-ado1es
-              os: linux
+              image: win-x86_64-ado1es
+              os: windows
             variables:
               version: $[dependencies.release_validation.outputs['version.value']]
             templateContext:
