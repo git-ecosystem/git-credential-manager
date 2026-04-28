@@ -381,12 +381,13 @@ namespace GitCredentialManager.Tests
             {
                 ["a"] = new[] {"1", "2", "", "3", "4"},
                 ["b"] = new[] {"5"},
-                ["c"] = new[] {"6", "7", ""}
+                ["c"] = new[] {"6", "7", ""},
+                ["d"] = new[] {"8", "", "9"}
             };
 
             string output = WriteStringStream(input, StreamExtensions.WriteDictionary, newLine: LF);
 
-            Assert.Equal("a[]=3\na[]=4\nb=5\n\n", output);
+            Assert.Equal("a[]=3\na[]=4\nb=5\nd=9\n\n", output);
         }
 
         #endregion

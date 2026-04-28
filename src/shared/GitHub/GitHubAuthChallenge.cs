@@ -107,7 +107,15 @@ public class GitHubAuthChallenge : IEquatable<GitHubAuthChallenge>
 
     public override int GetHashCode()
     {
-        return Domain.GetHashCode() * 1019 ^
-               Enterprise.GetHashCode() * 337;
+        int domainHash = Domain is null
+            ? 0
+            : StringComparer.OrdinalIgnoreCase.GetHashCode(Domain);
+
+        int enterpriseHash = Enterprise is null
+            ? 0
+            : StringComparer.OrdinalIgnoreCase.GetHashCode(Enterprise);
+
+        return (domainHash * 1019) ^
+               (enterpriseHash * 337);
     }
 }

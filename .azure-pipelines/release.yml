@@ -35,18 +35,21 @@ parameters:
         jobName: 'Windows (x86)'
         runtime: win-x86
         pool: GitClientPME-1ESHostedPool-intel-pc
+        poolArch: amd64
         image: win-x86_64-ado1es
         os: windows
       - id: windows_x64
         jobName: 'Windows (x64)'
         runtime: win-x64
         pool: GitClientPME-1ESHostedPool-intel-pc
+        poolArch: amd64
         image: win-x86_64-ado1es
         os: windows
       - id: windows_arm64
         jobName: 'Windows (ARM64)'
         runtime: win-arm64
         pool: GitClientPME-1ESHostedPool-arm64-pc
+        poolArch: arm64
         image: win-arm64-ado1es
         os: windows
 
@@ -73,12 +76,14 @@ parameters:
         jobName: 'Linux (x64)'
         runtime: linux-x64
         pool: GitClientPME-1ESHostedPool-intel-pc
+        poolArch: amd64
         image: ubuntu-x86_64-ado1es
         os: linux
       - id: linux_arm64
         jobName: 'Linux (ARM64)'
         runtime: linux-arm64
         pool: GitClientPME-1ESHostedPool-arm64-pc
+        poolArch: arm64
         image: ubuntu-arm64-ado1es
         os: linux
 
@@ -121,6 +126,7 @@ extends:
                 name: ${{ dim.pool }}
                 image: ${{ dim.image }}
                 os: ${{ dim.os }}
+                hostArchitecture: ${{ dim.poolArch }}
               templateContext:
                 outputs:
                   - output: pipelineArtifact
@@ -136,10 +142,10 @@ extends:
                       $version = (Get-Content .\VERSION) -replace '\.\d+$', ''
                       Write-Host "##vso[task.setvariable variable=version;isReadOnly=true]$version"
                 - task: UseDotNet@2
-                  displayName: 'Use .NET 8 SDK'
+                  displayName: 'Use .NET 10 SDK'
                   inputs:
                     packageType: sdk
-                    version: '8.x'
+                    version: '10.x'
                 - task: PowerShell@2
                   displayName: 'Build payload'
                   inputs:
@@ -296,10 +302,10 @@ extends:
                     script: |
                       echo "##vso[task.setvariable variable=version;isReadOnly=true]$(cat ./VERSION | sed -E 's/.[0-9]+$//')"
                 - task: UseDotNet@2
-                  displayName: 'Use .NET 8 SDK'
+                  displayName: 'Use .NET 10 SDK'
                   inputs:
                     packageType: sdk
-                    version: '8.x'
+                    version: '10.x'
                 - task: Bash@3
                   displayName: 'Build payload'
                   inputs:
@@ -551,6 +557,7 @@ extends:
                 name: ${{ dim.pool }}
                 image: ${{ dim.image }}
                 os: ${{ dim.os }}
+                hostArchitecture: ${{ dim.poolArch }}
               templateContext:
                 outputs:
                   - output: pipelineArtifact
@@ -565,10 +572,10 @@ extends:
                     script: |
                       echo "##vso[task.setvariable variable=version;isReadOnly=true]$(cat ./VERSION | sed -E 's/.[0-9]+$//')"
                 - task: UseDotNet@2
-                  displayName: 'Use .NET 8 SDK'
+                  displayName: 'Use .NET 10 SDK'
                   inputs:
                     packageType: sdk
-                    version: '8.x'
+                    version: '10.x'
                 - task: Bash@3
                   displayName: 'Build payload'
                   inputs:
@@ -664,10 +671,10 @@ extends:
                     $version = (Get-Content .\VERSION) -replace '\.\d+$', ''
                     Write-Host "##vso[task.setvariable variable=version;isReadOnly=true]$version"
               - task: UseDotNet@2
-                displayName: 'Use .NET 8 SDK'
+                displayName: 'Use .NET 10 SDK'
                 inputs:
                   packageType: sdk
-                  version: '8.x'
+                  version: '10.x'
               - task: NuGetToolInstaller@1
                 displayName: 'Install NuGet CLI'
                 inputs:

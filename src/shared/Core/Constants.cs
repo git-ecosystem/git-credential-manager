@@ -31,6 +31,8 @@ namespace GitCredentialManager
         /// </summary>
         public static readonly Guid MsaTransferTenantId = new("f8cdef31-a31e-4b4a-93e4-5f571e91255a");
 
+        public const string DefaultWorkloadFederationAudience = "api://AzureADTokenExchange";
+
         public static class CredentialProtocol
         {
             public const string NtlmKey = "ntlm";
@@ -130,6 +132,9 @@ namespace GitCredentialManager
             public const string GcmDevUseLegacyUiHelpers = "GCM_DEV_USELEGACYUIHELPERS";
             public const string GcmGuiSoftwareRendering  = "GCM_GUI_SOFTWARE_RENDERING";
             public const string GcmAllowUnsafeRemotes    = "GCM_ALLOW_UNSAFE_REMOTES";
+
+            public const string GitHubActionsTokenRequestUrl = "ACTIONS_ID_TOKEN_REQUEST_URL";
+            public const string GitHubActionsTokenRequestToken = "ACTIONS_ID_TOKEN_REQUEST_TOKEN";
         }
 
         public static class Http

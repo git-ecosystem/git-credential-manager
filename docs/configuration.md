@@ -884,6 +884,138 @@ git config --global credential.azreposManagedIdentity "id://11111111-1111-1111-1
 
 ---
 
+### credential.azreposWorkloadFederation
+
+Use [Workload Identity Federation][wif] to authenticate with Azure Repos.
+
+The value specifies the federation scenario to use for obtaining a client
+assertion to exchange for an access token.
+
+You must also set the following companion settings:
+
+- [credential.azreposWorkloadFederationClientId][credential-azrepos-wif-clientid]
+- [credential.azreposWorkloadFederationTenantId][credential-azrepos-wif-tenantid]
+
+Depending on the scenario, additional settings may be required.
+
+Value|Description
+-|-
+`generic`|Use a user-supplied client assertion ([credential.azreposWorkloadFederationAssertion][credential-azrepos-wif-assertion])
+`managedidentity`|Use a [Managed Identity][managed-identity] to obtain the federated token ([credential.azreposWorkloadFederationManagedIdentity][credential-azrepos-wif-managedidentity])
+`githubactions`|Automatically obtain an OIDC token from GitHub Actions
+
+For more information about workload identity federation, see the
+[conceptual documentation][azrepos-wif-doc] and the Azure DevOps
+[documentation][azrepos-sp-mid].
+
+#### Example
+
+```shell
+git config --global credential.azreposWorkloadFederation githubactions
+```
+
+**Also see: [GCM_AZREPOS_WIF][gcm-azrepos-wif]**
+
+---
+
+### credential.azreposWorkloadFederationClientId
+
+The client ID of the app registration / service principal to request an access
+token for when using [Workload Identity Federation][wif] with
+[credential.azreposWorkloadFederation][credential-azrepos-wif].
+
+#### Example
+
+```shell
+git config --global credential.azreposWorkloadFederationClientId "11111111-1111-1111-1111-111111111111"
+```
+
+**Also see: [GCM_AZREPOS_WIF_CLIENTID][gcm-azrepos-wif-clientid]**
+
+---
+
+### credential.azreposWorkloadFederationTenantId
+
+The tenant ID of the app registration / service principal to request an access
+token for when using [Workload Identity Federation][wif] with
+[credential.azreposWorkloadFederation][credential-azrepos-wif].
+
+#### Example
+
+```shell
+git config --global credential.azreposWorkloadFederationTenantId "22222222-2222-2222-2222-222222222222"
+```
+
+**Also see: [GCM_AZREPOS_WIF_TENANTID][gcm-azrepos-wif-tenantid]**
+
+---
+
+### credential.azreposWorkloadFederationAudience
+
+The audience to use when requesting the federated token for
+[Workload Identity Federation][wif] with
+[credential.azreposWorkloadFederation][credential-azrepos-wif].
+
+Defaults to `api://AzureADTokenExchange`.
+
+#### Example
+
+```shell
+git config --global credential.azreposWorkloadFederationAudience "api://AzureADTokenExchange"
+```
+
+**Also see: [GCM_AZREPOS_WIF_AUDIENCE][gcm-azrepos-wif-audience]**
+
+---
+
+### credential.azreposWorkloadFederationAssertion
+
+Specifies the client assertion token to use with the `generic`
+[Workload Identity Federation][wif] scenario
+([credential.azreposWorkloadFederation][credential-azrepos-wif]).
+
+This setting is required when `credential.azreposWorkloadFederation` is set to
+`generic`.
+
+#### Example
+
+```shell
+git config --global credential.azreposWorkloadFederationAssertion "eyJhbGci..."
+```
+
+**Also see: [GCM_AZREPOS_WIF_ASSERTION][gcm-azrepos-wif-assertion]**
+
+---
+
+### credential.azreposWorkloadFederationManagedIdentity
+
+Specifies the [Managed Identity][managed-identity] to use to obtain a federated
+token for the `managedidentity` [Workload Identity Federation][wif] scenario
+([credential.azreposWorkloadFederation][credential-azrepos-wif]).
+
+This setting is required when `credential.azreposWorkloadFederation` is set to
+`managedidentity`.
+
+The value accepts the same formats as
+[credential.azreposManagedIdentity](#credentialazreposmanagedidentity).
+
+Value|Description
+-|-
+`system`|System-Assigned Managed Identity
+`[guid]`|User-Assigned Managed Identity with the specified client ID
+`id://[guid]`|User-Assigned Managed Identity with the specified client ID
+`resource://[guid]`|User-Assigned Managed Identity for the associated resource
+
+#### Example
+
+```shell
+git config --global credential.azreposWorkloadFederationManagedIdentity system
+```
+
+**Also see: [GCM_AZREPOS_WIF_MANAGEDIDENTITY][gcm-azrepos-wif-managedidentity]**
+
+---
+
 ### credential.azreposServicePrincipal
 
 Specify the client and tenant IDs of a [service principal][service-principal]
@@ -1048,6 +1180,12 @@ Defaults to disabled.
 [gcm-autodetect-timeout]: environment.md#GCM_AUTODETECT_TIMEOUT
 [gcm-azrepos-credentialtype]: environment.md#GCM_AZREPOS_CREDENTIALTYPE
 [gcm-azrepos-credentialmanagedidentity]: environment.md#GCM_AZREPOS_MANAGEDIDENTITY
+[gcm-azrepos-wif]: environment.md#GCM_AZREPOS_WIF
+[gcm-azrepos-wif-clientid]: environment.md#GCM_AZREPOS_WIF_CLIENTID
+[gcm-azrepos-wif-tenantid]: environment.md#GCM_AZREPOS_WIF_TENANTID
+[gcm-azrepos-wif-audience]: environment.md#GCM_AZREPOS_WIF_AUDIENCE
+[gcm-azrepos-wif-assertion]: environment.md#GCM_AZREPOS_WIF_ASSERTION
+[gcm-azrepos-wif-managedidentity]: environment.md#GCM_AZREPOS_WIF_MANAGEDIDENTITY
 [gcm-bitbucket-always-refresh-credentials]: environment.md#GCM_BITBUCKET_ALWAYS_REFRESH_CREDENTIALS
 [gcm-bitbucket-authmodes]: environment.md#GCM_BITBUCKET_AUTHMODES
 [gcm-credential-cache-options]: environment.md#GCM_CREDENTIAL_CACHE_OPTIONS
@@ -1077,6 +1215,7 @@ Defaults to disabled.
 [autodetect]: autodetect.md
 [libsecret]: https://wiki.gnome.org/Projects/Libsecret
 [managed-identity]: https://docs.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/overview
+[wif]: https://learn.microsoft.com/en-us/entra/workload-id/workload-identity-federation
 [provider-migrate]: migration.md#gcm_authority
 [cache-options]: https://git-scm.com/docs/git-credential-cache#_options
 [pass]: https://www.passwordstore.org/
@@ -1090,6 +1229,13 @@ Defaults to disabled.
 [wam]: windows-broker.md
 [service-principal]: https://docs.microsoft.com/en-us/azure/active-directory/develop/app-objects-and-service-principals
 [azrepos-sp-mid]: https://learn.microsoft.com/en-us/azure/devops/integrate/get-started/authentication/service-principal-managed-identity
+[azrepos-wif-doc]: azrepos-wif.md
+[credential-azrepos-wif]: #credentialazreposworkloadfederation
+[credential-azrepos-wif-clientid]: #credentialazreposworkloadfederationclientid
+[credential-azrepos-wif-tenantid]: #credentialazreposworkloadfederationtenantid
+[credential-azrepos-wif-audience]: #credentialazreposworkloadfederationaudience
+[credential-azrepos-wif-assertion]: #credentialazreposworkloadfederationassertion
+[credential-azrepos-wif-managedidentity]: #credentialazreposworkloadfederationmanagedidentity
 [credential-azrepos-sp]: #credentialazreposserviceprincipal
 [credential-azrepos-sp-secret]: #credentialazreposserviceprincipalsecret
 [credential-azrepos-sp-cert-thumbprint]: #credentialazreposserviceprincipalcertificatethumbprint

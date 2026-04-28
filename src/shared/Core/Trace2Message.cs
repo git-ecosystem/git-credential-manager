@@ -151,7 +151,7 @@ public abstract class Trace2Message
             if (double.TryParse(data, out _))
             {
                 // Remove all padding for values that take up the entire span
-                if (Math.Abs(sizeDifference) == paddingTotal)
+                if (Math.Abs(sizeDifference) >= paddingTotal)
                 {
                     component.BeginPadding = 0;
                     component.EndPadding = 0;

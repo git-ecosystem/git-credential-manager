@@ -179,7 +179,7 @@ namespace GitCredentialManager
                         break;
 
                     case 1:
-                        writer.WriteLine($"{kvp.Key}={kvp.Value[0]}");
+                        writer.WriteLine($"{kvp.Key}={values[0]}");
                         break;
 
                     default:

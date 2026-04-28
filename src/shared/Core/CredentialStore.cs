@@ -291,18 +291,6 @@ namespace GitCredentialManager
                 storeRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".password-store");
             }
 
-            // Check we have a GPG ID to sign credential files with
-            string gpgIdFile = Path.Combine(storeRoot, ".gpg-id");
-            if (!_context.FileSystem.FileExists(gpgIdFile))
-            {
-                var format =
-                    "Password store has not been initialized at '{0}'; run `pass init <gpg-id>` to initialize the store.";
-                var message = string.Format(format, storeRoot);
-                _context.Trace2.WriteError(message);
-                throw new Exception(message + Environment.NewLine +
-                                    $"See {Constants.HelpUrls.GcmCredentialStores} for more information."
-                );
-            }
         }
 
         private void ValidateCredentialCache(out string options)
