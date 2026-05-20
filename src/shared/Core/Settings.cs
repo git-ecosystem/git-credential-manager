@@ -83,6 +83,11 @@ namespace GitCredentialManager
         bool IsInteractionAllowed { get; }
 
         /// <summary>
+        /// Whether to exit silently with status 0 in cases such interaction not allowed and terminal prompts disabled.
+        /// </summary>
+        bool SilentExit { get; }
+
+        /// <summary>
         /// Get if tracing has been enabled, returning trace setting value in the out parameter.
         /// </summary>
         /// <param name="value">Trace setting value.</param>
@@ -562,6 +567,9 @@ namespace GitCredentialManager
                 return defaultValue;
             }
         }
+
+        public bool SilentExit =>
+            !TryGetSetting("GCM_SILENT_EXIT", GitCredCfg.SectionName, "silentExit", out string value) || value.ToBooleanyOrDefault(false);
 
         public bool GetTracingEnabled(out string value) =>
             TryGetSetting(KnownEnvars.GcmTrace,
