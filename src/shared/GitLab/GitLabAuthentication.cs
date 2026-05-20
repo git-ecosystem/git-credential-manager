@@ -278,6 +278,7 @@ namespace GitLab
 
             // Write message to the terminal (if any is attached) for some feedback that we're waiting for a web response
             Context.Terminal.WriteLine("info: please complete authentication in your browser...");
+            Context.Terminal.WriteLine($"uri: {oauthClient.RedirectUri}");
 
             OAuth2AuthorizationCodeResult authCodeResult =
                 await oauthClient.GetAuthorizationCodeAsync(scopes, browser, CancellationToken.None);
