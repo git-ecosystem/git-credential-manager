@@ -217,9 +217,15 @@ namespace GitCredentialManager
                 // Clear any existing app entries in the configuration
                 config.UnsetAll(configLevel, helperKey, Regex.Escape(appPath));
 
+                // Reload updated helper settings (unset only clears entries in primary file, ignores includes and alternatives)
+                currentValues = config.GetAll(configLevel, GitConfigurationType.Raw, helperKey).ToArray();
+
                 // Add an empty value for `credential.helper`, which has the effect of clearing any helper value
                 // from any lower-level Git configuration, then add a second value which is the actual executable path.
-                config.Add(configLevel, helperKey, string.Empty);
+                if ((currentValues.Length == 0) || !string.IsNullOrWhiteSpace(currentValues.Last()))
+                {
+                    config.Add(configLevel, helperKey, string.Empty);
+                }
                 config.Add(configLevel, helperKey, appPath);
             }
 
