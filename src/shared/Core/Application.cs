@@ -204,7 +204,7 @@ namespace GitCredentialManager
 
             // Try to locate an existing app entry with a blank reset/clear entry immediately preceding,
             // and no other blank empty/clear entries following (which effectively disable us).
-            int appIndex = Array.FindIndex(currentValues, x => Context.FileSystem.IsSamePath(x, appPath));
+            int appIndex = Array.FindLastIndex(currentValues, x => Context.FileSystem.IsSamePath(x, appPath));
             int lastEmptyIndex = Array.FindLastIndex(currentValues, string.IsNullOrWhiteSpace);
             if (appIndex > 0 && string.IsNullOrWhiteSpace(currentValues[appIndex - 1]) && lastEmptyIndex < appIndex)
             {
