@@ -204,7 +204,7 @@ namespace GitCredentialManager
 
             // Try to locate an existing app entry with a blank reset/clear entry immediately preceding,
             // and no other blank empty/clear entries following (which effectively disable us).
-            int appIndex = Array.FindIndex(currentValues, x => Context.FileSystem.IsSamePath(x, appPath));
+            int appIndex = Array.FindLastIndex(currentValues, x => Context.FileSystem.IsSamePath(x, appPath));
             int lastEmptyIndex = Array.FindLastIndex(currentValues, string.IsNullOrWhiteSpace);
             if (appIndex > 0 && string.IsNullOrWhiteSpace(currentValues[appIndex - 1]) && lastEmptyIndex < appIndex)
             {
@@ -217,9 +217,15 @@ namespace GitCredentialManager
                 // Clear any existing app entries in the configuration
                 config.UnsetAll(configLevel, helperKey, Regex.Escape(appPath));
 
+                // Reload updated helper settings (unset only clears entries in primary file, ignores includes and alternatives)
+                currentValues = config.GetAll(configLevel, GitConfigurationType.Raw, helperKey).ToArray();
+
                 // Add an empty value for `credential.helper`, which has the effect of clearing any helper value
                 // from any lower-level Git configuration, then add a second value which is the actual executable path.
-                config.Add(configLevel, helperKey, string.Empty);
+                if ((currentValues.Length == 0) || !string.IsNullOrWhiteSpace(currentValues.Last()))
+                {
+                    config.Add(configLevel, helperKey, string.Empty);
+                }
                 config.Add(configLevel, helperKey, appPath);
             }
 
