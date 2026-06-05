@@ -33,6 +33,16 @@ namespace GitCredentialManager.Commands
                 return;
             }
 
+            if (response.IsYielded)
+            {
+                // Provider has nothing to contribute but does not want to stop the
+                // pipeline. Emit an empty response (just the terminating blank line)
+                // so Git proceeds to the next helper or its interactive prompt.
+                Context.Trace.WriteLine("Provider yielded; emitting empty response.");
+                Context.Streams.Out.WriteLine();
+                return;
+            }
+
             ICredential credential = response.Credential;
 
             // Negotiate capabilities by intersecting what Git advertised with what GCM supports.
