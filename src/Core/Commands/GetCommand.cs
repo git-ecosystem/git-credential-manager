@@ -21,7 +21,7 @@ namespace GitCredentialManager.Commands
             // Negotiate capabilities by intersecting what Git advertised with what GCM supports.
             // Capability-gated output fields may only be emitted for capabilities in this set.
             GitCapabilities negotiated = request.Capabilities & Constants.SupportedCapabilities;
-            IList<string> negotiatedNames = GetCapabilityNames(negotiated);
+            IList<string> negotiatedNames = GitCapabilitiesUtils.ToProtocolNames(negotiated).ToList();
 
             // We use a scalar dictionary so that empty string values (notably the
             // empty username/password pair that signals Windows Integrated Authentication
@@ -69,19 +69,6 @@ namespace GitCredentialManager.Commands
 
             // Write the scalar values (and the terminating blank line) to standard out.
             Context.Streams.Out.WriteDictionary(output);
-        }
-
-        private static IList<string> GetCapabilityNames(GitCapabilities caps)
-        {
-            if (caps == GitCapabilities.None)
-            {
-                return Array.Empty<string>();
-            }
-
-            return Enum.GetValues<GitCapabilities>()
-                .Where(c => c != GitCapabilities.None && (caps & c) == c)
-                .Select(GitCapabilitiesUtils.ToProtocolName)
-                .ToList();
         }
     }
 }

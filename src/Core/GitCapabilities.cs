@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace GitCredentialManager;
 
@@ -85,5 +86,34 @@ public static class GitCapabilitiesUtils
                 capability,
                 "No protocol name mapping is defined for the given capability."),
         };
+    }
+
+    /// <summary>
+    /// Enumerate each individual <see cref="GitCapabilities"/> flag set in
+    /// <paramref name="capabilities"/>, rendered to its on-the-wire protocol name.
+    /// </summary>
+    /// <remarks>
+    /// Returns an empty sequence for <see cref="GitCapabilities.None"/>. Each
+    /// emitted name comes from <see cref="ToProtocolName"/>.
+    /// </remarks>
+    public static IEnumerable<string> ToProtocolNames(GitCapabilities capabilities)
+    {
+        if (capabilities == GitCapabilities.None)
+        {
+            yield break;
+        }
+
+        foreach (GitCapabilities flag in Enum.GetValues<GitCapabilities>())
+        {
+            if (flag == GitCapabilities.None)
+            {
+                continue;
+            }
+
+            if ((capabilities & flag) == flag)
+            {
+                yield return ToProtocolName(flag);
+            }
+        }
     }
 }

@@ -32,4 +32,10 @@ public class GitCapabilitiesTests
     {
         Assert.Throws<System.ArgumentException>(() => GitCapabilitiesUtils.ToProtocolName(GitCapabilities.None));
     }
+
+    [Fact]
+    public void ToProtocolNames_None_ReturnsEmpty()
+    {
+        Assert.Empty(GitCapabilitiesUtils.ToProtocolNames(GitCapabilities.None));
+    }
 }
