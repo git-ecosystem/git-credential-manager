@@ -64,7 +64,7 @@ namespace GitCredentialManager
             return request.GetRemoteUri(includeUser: false).AbsoluteUri.TrimEnd('/');
         }
 
-        public async Task<GetCredentialResult> GetCredentialAsync(GitRequest request)
+        public async Task<GitResponse> GetCredentialAsync(GitRequest request)
         {
             // Try and locate an existing credential in the OS credential store
             string service = GetServiceName(request);
@@ -84,7 +84,7 @@ namespace GitCredentialManager
                 _context.Trace.WriteLine("Existing credential found.");
             }
 
-            return new GetCredentialResult(credential);
+            return new GitResponse(credential);
         }
 
         public Task StoreCredentialAsync(GitRequest request)
@@ -127,7 +127,7 @@ namespace GitCredentialManager
             return Task.CompletedTask;
         }
 
-        public async Task<GetCredentialResult> GenerateCredentialAsync(GitRequest request)
+        public async Task<GitResponse> GenerateCredentialAsync(GitRequest request)
         {
             ThrowIfDisposed();
 
@@ -164,7 +164,7 @@ namespace GitCredentialManager
                 _context.Trace.WriteLine($"\tUseAuthHeader   = {oauthConfig.UseAuthHeader}");
                 _context.Trace.WriteLine($"\tDefaultUserName = {oauthConfig.DefaultUserName}");
 
-                return new  GetCredentialResult(
+                return new  GitResponse(
                     await GetOAuthAccessToken(uri, request.UserName, oauthConfig, _context.Trace2)
                 );
             }
@@ -213,7 +213,7 @@ namespace GitCredentialManager
 
                                 default:
                                     _context.Trace.WriteLine("User declined to enable NTLM support. Showing basic auth prompt.");
-                                    return new GetCredentialResult(
+                                    return new GitResponse(
                                         await _basicAuth.GetCredentialsAsync(uri.AbsoluteUri, null)
                                     );
                             }
@@ -222,7 +222,7 @@ namespace GitCredentialManager
                         // WIA is signaled to Git using an empty username/password
                         _context.Trace.WriteLine("Returning empty username/password to trigger current user auth with WIA.");
                         ICredential creds = new GitCredential(string.Empty, string.Empty);
-                        return new GetCredentialResult(creds)
+                        return new GitResponse(creds)
                         {
                             AdditionalProperties = additionalProps
                         };
@@ -241,7 +241,7 @@ namespace GitCredentialManager
 
             // Use basic authentication
             _context.Trace.WriteLine("Prompting for basic credentials...");
-            return new GetCredentialResult(
+            return new GitResponse(
                 await _basicAuth.GetCredentialsAsync(uri.AbsoluteUri, request.UserName)
             );
         }

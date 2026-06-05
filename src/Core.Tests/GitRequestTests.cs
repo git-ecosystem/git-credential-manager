@@ -357,5 +357,35 @@ namespace GitCredentialManager.Tests
 
             Assert.False(result);
         }
+
+        [Fact]
+        public void GitRequest_Capabilities_NoInput_ReturnsNone()
+        {
+            var dict = new Dictionary<string, string>
+            {
+                ["protocol"] = "https",
+                ["host"]     = "example.com",
+            };
+
+            var request = new GitRequest(dict);
+
+            Assert.Equal(GitCapabilities.None, request.Capabilities);
+        }
+
+        [Fact]
+        public void GitRequest_Capabilities_UnknownNames_AreSilentlyDiscarded()
+        {
+            // Per git-credential(1): "Unrecognised attributes and capabilities are silently discarded."
+            var dict = new Dictionary<string, IList<string>>
+            {
+                ["protocol"]   = new[] { "https" },
+                ["host"]       = new[] { "example.com" },
+                ["capability"] = new[] { "this-cap-does-not-exist", "another-unknown" },
+            };
+
+            var request = new GitRequest(dict);
+
+            Assert.Equal(GitCapabilities.None, request.Capabilities);
+        }
     }
 }

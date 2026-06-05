@@ -33,6 +33,11 @@ namespace GitCredentialManager
 
         public const string DefaultWorkloadFederationAudience = "api://AzureADTokenExchange";
 
+        /// <summary>
+        /// The set of Git credential protocol capabilities supported by Git Credential Manager.
+        /// </summary>
+        public const GitCapabilities SupportedCapabilities = GitCapabilities.None;
+
         public static class CredentialProtocol
         {
             public const string NtlmKey = "ntlm";

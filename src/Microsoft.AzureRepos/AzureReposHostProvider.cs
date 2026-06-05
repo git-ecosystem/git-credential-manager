@@ -74,13 +74,13 @@ namespace Microsoft.AzureRepos
             return false;
         }
 
-        public async Task<GetCredentialResult> GetCredentialAsync(GitRequest request)
+        public async Task<GitResponse> GetCredentialAsync(GitRequest request)
         {
             if (UseManagedIdentity(out string mid))
             {
                 _context.Trace.WriteLine($"Getting Azure Access Token for managed identity {mid}...");
                 var azureResult = await _msAuth.GetTokenForManagedIdentityAsync(mid, AzureDevOpsConstants.AzureDevOpsResourceId);
-                return new GetCredentialResult(
+                return new GitResponse(
                     new GitCredential(mid, azureResult.AccessToken)
                 );
             }
@@ -89,7 +89,7 @@ namespace Microsoft.AzureRepos
             {
                 _context.Trace.WriteLine($"Getting Azure Access Token using WIF (scenario: {fedOpts.Scenario})...");
                 var azureResult = await _msAuth.GetTokenUsingWorkloadFederationAsync(fedOpts, AzureDevOpsConstants.AzureDevOpsDefaultScopes);
-                return new GetCredentialResult(
+                return new GitResponse(
                     new GitCredential(fedOpts.ClientId, azureResult.AccessToken)
                 );
             }
@@ -98,7 +98,7 @@ namespace Microsoft.AzureRepos
             {
                 _context.Trace.WriteLine($"Getting Azure Access Token for service principal {sp.TenantId}/{sp.Id}...");
                 var azureResult = await _msAuth.GetTokenForServicePrincipalAsync(sp, AzureDevOpsConstants.AzureDevOpsDefaultScopes);
-                return new GetCredentialResult(
+                return new GitResponse(
                     new GitCredential(sp.Id, azureResult.AccessToken)
                 );
             }
@@ -126,7 +126,7 @@ namespace Microsoft.AzureRepos
                     _context.Trace.WriteLine("Existing credential found.");
                 }
 
-                return new GetCredentialResult(credential);
+                return new GitResponse(credential);
             }
             else
             {
@@ -134,7 +134,7 @@ namespace Microsoft.AzureRepos
                 // for user account lookups when getting Azure Access Tokens.
                 var azureResult = await GetAzureAccessTokenAsync(request);
                 var azureCredential = new GitCredential(azureResult.AccountUpn, azureResult.AccessToken);
-                return new GetCredentialResult(azureCredential);
+                return new GitResponse(azureCredential);
             }
         }
 

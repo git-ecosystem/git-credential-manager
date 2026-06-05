@@ -125,7 +125,7 @@ namespace GitHub
             return url.TrimEnd('/');
         }
 
-        public async Task<GetCredentialResult> GetCredentialAsync(GitRequest request)
+        public async Task<GitResponse> GetCredentialAsync(GitRequest request)
         {
             string service = GetServiceName(request);
             Uri remoteUri = request.GetRemoteUri();
@@ -190,7 +190,7 @@ namespace GitHub
                 _context.Trace.WriteLine("Existing credential found.");
             }
 
-            return new GetCredentialResult(credential);
+            return new GitResponse(credential);
         }
 
         private bool FilterAccounts(Uri remoteUri, IEnumerable<string> wwwAuth, ref IList<string> accounts)

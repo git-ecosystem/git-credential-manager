@@ -78,7 +78,7 @@ namespace Atlassian.Bitbucket
             return supported;
         }
 
-        public async Task<GetCredentialResult> GetCredentialAsync(GitRequest request)
+        public async Task<GitResponse> GetCredentialAsync(GitRequest request)
         {
             // We should not allow unencrypted communication and should inform the user
             if (!_context.Settings.AllowUnsafeRemotes &&
@@ -95,7 +95,7 @@ namespace Atlassian.Bitbucket
 
             ICredential credential = await GetStoredCredentials(request, authModes) ??
                                      await GetRefreshedCredentials(request, authModes);
-            return new GetCredentialResult(credential);
+            return new GitResponse(credential);
         }
 
         private async Task<ICredential> GetStoredCredentials(GitRequest request, AuthenticationModes authModes)

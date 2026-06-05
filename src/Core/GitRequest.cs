@@ -10,11 +10,13 @@ namespace GitCredentialManager
     /// </summary>
     /// <remarks>
     /// Surfaces the input streamed over standard input from Git, including the
-    /// protocol, host, and remote repository path.
+    /// protocol, host, and remote repository path, plus any negotiated protocol
+    /// capabilities.
     /// </remarks>
     public class GitRequest
     {
         private readonly IReadOnlyDictionary<string, IList<string>> _dict;
+        private GitCapabilities? _capabilities;
 
         public GitRequest(IDictionary<string, string> dict)
         {
@@ -33,6 +35,13 @@ namespace GitCredentialManager
             // Wrap the dictionary internally as readonly
             _dict = new ReadOnlyDictionary<string, IList<string>>(dict);
         }
+
+        /// <summary>
+        /// The set of Git credential protocol capabilities that Git itself advertised
+        /// it supports on this invocation. Unrecognized capability names are silently
+        /// discarded per the protocol specification.
+        /// </summary>
+        public GitCapabilities Capabilities => _capabilities ??= ParseCapabilities();
 
         public string Protocol => GetArgumentOrDefault("protocol");
         public string Host     => GetArgumentOrDefault("host");
@@ -158,6 +167,19 @@ namespace GitCredentialManager
             }
 
             return null;
+        }
+
+        private GitCapabilities ParseCapabilities()
+        {
+            var caps = GitCapabilities.None;
+
+            IList<string> values = GetMultiArgumentOrDefault("capability");
+            foreach (string name in values)
+            {
+                caps |= GitCapabilitiesUtils.ParseName(name);
+            }
+
+            return caps;
         }
     }
 }
