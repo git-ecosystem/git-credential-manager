@@ -85,6 +85,7 @@ namespace GitCredentialManager
             rootCommand.AddCommand(new GetCommand(Context, _providerRegistry));
             rootCommand.AddCommand(new StoreCommand(Context, _providerRegistry));
             rootCommand.AddCommand(new EraseCommand(Context, _providerRegistry));
+            rootCommand.AddCommand(new CapabilityCommand(Context));
             rootCommand.AddCommand(new ConfigureCommand(Context, _configurationService));
             rootCommand.AddCommand(new UnconfigureCommand(Context, _configurationService));
             rootCommand.AddCommand(diagnoseCommand);
