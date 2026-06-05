@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace GitCredentialManager.Commands
@@ -14,9 +15,18 @@ namespace GitCredentialManager.Commands
 
         protected override async Task ExecuteInternalAsync(GitRequest request, IHostProvider provider)
         {
-            GetCredentialResult result = await provider.GetCredentialAsync(request);
-            ICredential credential = result.Credential;
+            GitResponse response = await provider.GetCredentialAsync(request);
+            ICredential credential = response.Credential;
 
+            // Negotiate capabilities by intersecting what Git advertised with what GCM supports.
+            // Capability-gated output fields may only be emitted for capabilities in this set.
+            GitCapabilities negotiated = request.Capabilities & Constants.SupportedCapabilities;
+            IList<string> negotiatedNames = GetCapabilityNames(negotiated);
+
+            // We use a scalar dictionary so that empty string values (notably the
+            // empty username/password pair that signals Windows Integrated Authentication
+            // to Git) round-trip correctly. Multi-value protocol fields such as
+            // capability[] are written directly below.
             var output = new Dictionary<string, string>();
 
             // Echo protocol, host, and path back at Git
@@ -33,21 +43,45 @@ namespace GitCredentialManager.Commands
                 output["path"] = request.Path;
             }
 
-            // Return the credential to Git
+            // Return the credential to Git (may be empty/empty for WIA)
             output["username"] = credential.Account;
             output["password"] = credential.Password;
 
             // Write any additional output from the provider
-            foreach (var kvp in result.AdditionalProperties)
+            foreach (var kvp in response.AdditionalProperties)
             {
                 output[kvp.Key] = kvp.Value;
             }
 
             Context.Trace.WriteLine("Writing credentials to output:");
             Context.Trace.WriteDictionarySecrets(output, new []{ "password" }, StringComparer.OrdinalIgnoreCase);
+            if (negotiatedNames.Count > 0)
+            {
+                Context.Trace.WriteLine($"\tcapability[]={string.Join(",", negotiatedNames)}");
+            }
 
-            // Write the values to standard out
+            // Emit negotiated capabilities first, then the scalar fields.
+            // Always use the multi-value capability[]= form per the protocol.
+            foreach (string name in negotiatedNames)
+            {
+                Context.Streams.Out.WriteLine($"capability[]={name}");
+            }
+
+            // Write the scalar values (and the terminating blank line) to standard out.
             Context.Streams.Out.WriteDictionary(output);
+        }
+
+        private static IList<string> GetCapabilityNames(GitCapabilities caps)
+        {
+            if (caps == GitCapabilities.None)
+            {
+                return Array.Empty<string>();
+            }
+
+            return Enum.GetValues<GitCapabilities>()
+                .Where(c => c != GitCapabilities.None && (caps & c) == c)
+                .Select(GitCapabilitiesUtils.ToProtocolName)
+                .ToList();
         }
     }
 }

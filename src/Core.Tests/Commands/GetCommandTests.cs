@@ -28,7 +28,7 @@ namespace GitCredentialManager.Tests.Commands
 
             var providerMock = new Mock<IHostProvider>();
             providerMock.Setup(x => x.GetCredentialAsync(It.IsAny<GitRequest>()))
-                        .ReturnsAsync(new GetCredentialResult(testCredential));
+                        .ReturnsAsync(new GitResponse(testCredential));
             var providerRegistry = new TestHostProviderRegistry {Provider = providerMock.Object};
             var context = new TestCommandContext
             {
@@ -43,6 +43,82 @@ namespace GitCredentialManager.Tests.Commands
 
             providerMock.Verify(x => x.GetCredentialAsync(It.IsAny<GitRequest>()), Times.Once);
             Assert.Equal(expectedStdOutDict, actualStdOutDict);
+        }
+
+        [Fact]
+        public async Task GetCommand_ExecuteAsync_EmptyCredential_PreservesEmptyUsernameAndPassword()
+        {
+            // Regression: the generic provider returns empty username + password to
+            // signal Windows Integrated Authentication. Those empty values MUST be
+            // emitted (as `username=` / `password=`) for Git to use WIA.
+            ICredential emptyCredential = new GitCredential(string.Empty, string.Empty);
+            var stdin = "protocol=https\nhost=example.com\n\n";
+
+            var providerMock = new Mock<IHostProvider>();
+            providerMock.Setup(x => x.GetCredentialAsync(It.IsAny<GitRequest>()))
+                        .ReturnsAsync(new GitResponse(emptyCredential));
+            var providerRegistry = new TestHostProviderRegistry { Provider = providerMock.Object };
+            var context = new TestCommandContext { Streams = { In = stdin } };
+
+            var command = new GetCommand(context, providerRegistry);
+
+            await command.ExecuteAsync();
+
+            string actualOutput = context.Streams.Out.ToString().Replace("\r\n", "\n");
+
+            Assert.Contains("username=\n", actualOutput);
+            Assert.Contains("password=\n", actualOutput);
+        }
+
+        [Fact]
+        public async Task GetCommand_ExecuteAsync_AdditionalProperties_AreEmitted()
+        {
+            // Regression: the generic provider emits `ntlm=allow` via
+            // GitResponse.AdditionalProperties. Those entries must round-trip
+            // to standard out so Git continues to honour them.
+            ICredential testCredential = new GitCredential(string.Empty, string.Empty);
+            var response = new GitResponse(testCredential);
+            response.AdditionalProperties["ntlm"] = "allow";
+
+            var stdin = "protocol=https\nhost=example.com\n\n";
+
+            var providerMock = new Mock<IHostProvider>();
+            providerMock.Setup(x => x.GetCredentialAsync(It.IsAny<GitRequest>()))
+                        .ReturnsAsync(response);
+            var providerRegistry = new TestHostProviderRegistry { Provider = providerMock.Object };
+            var context = new TestCommandContext { Streams = { In = stdin } };
+
+            var command = new GetCommand(context, providerRegistry);
+
+            await command.ExecuteAsync();
+
+            IDictionary<string, string> actualStdOutDict = ParseDictionary(context.Streams.Out);
+
+            Assert.True(actualStdOutDict.TryGetValue("ntlm", out string ntlmValue));
+            Assert.Equal("allow", ntlmValue);
+        }
+
+        [Fact]
+        public async Task GetCommand_ExecuteAsync_NoNegotiatedCapabilities_EmitsNoCapabilityLines()
+        {
+            // GCM advertises no capabilities yet; even when Git declares some,
+            // the intersection is empty and no capability[] lines should be emitted.
+            ICredential testCredential = new GitCredential("alice", "hunter2");
+            var stdin = "protocol=https\nhost=example.com\ncapability[]=authtype\ncapability[]=state\n\n";
+
+            var providerMock = new Mock<IHostProvider>();
+            providerMock.Setup(x => x.GetCredentialAsync(It.IsAny<GitRequest>()))
+                        .ReturnsAsync(new GitResponse(testCredential));
+            var providerRegistry = new TestHostProviderRegistry { Provider = providerMock.Object };
+            var context = new TestCommandContext { Streams = { In = stdin } };
+
+            var command = new GetCommand(context, providerRegistry);
+
+            await command.ExecuteAsync();
+
+            string actualOutput = context.Streams.Out.ToString();
+
+            Assert.DoesNotContain("capability", actualOutput);
         }
 
         #region Helpers

@@ -44,8 +44,8 @@ namespace GitCredentialManager
         /// Get a credential for accessing the remote Git repository on this hosting service.
         /// </summary>
         /// <param name="request">Git credential request.</param>
-        /// <returns>A credential Git can use to authenticate to the remote repository.</returns>
-        Task<GetCredentialResult> GetCredentialAsync(GitRequest request);
+        /// <returns>A response containing the credential Git can use to authenticate to the remote repository.</returns>
+        Task<GitResponse> GetCredentialAsync(GitRequest request);
 
         /// <summary>
         /// Store a credential for accessing the remote Git repository on this hosting service.
@@ -58,18 +58,6 @@ namespace GitCredentialManager
         /// </summary>
         /// <param name="request">Git credential request.</param>
         Task EraseCredentialAsync(GitRequest request);
-    }
-
-    public class GetCredentialResult
-    {
-        public GetCredentialResult(ICredential credential)
-        {
-            Credential = credential;
-        }
-
-        public ICredential Credential { get; set; }
-        public IDictionary<string, string> AdditionalProperties { get; set; }
-            = new  Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
     }
 
     /// <summary>
@@ -131,7 +119,7 @@ namespace GitCredentialManager
         /// <returns>A credential Git can use to authenticate to the remote repository.</returns>
         public abstract Task<ICredential> GenerateCredentialAsync(GitRequest request);
 
-        public virtual async Task<GetCredentialResult> GetCredentialAsync(GitRequest request)
+        public virtual async Task<GitResponse> GetCredentialAsync(GitRequest request)
         {
             // Try and locate an existing credential in the OS credential store
             string service = GetServiceName(request);
@@ -152,7 +140,7 @@ namespace GitCredentialManager
                 Context.Trace.WriteLine("Existing credential found.");
             }
 
-            return new GetCredentialResult(credential);
+            return new GitResponse(credential);
         }
 
         public virtual Task StoreCredentialAsync(GitRequest request)
