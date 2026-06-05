@@ -19,7 +19,7 @@ namespace GitCredentialManager
 
     /// <summary>
     /// Represents a collection of <see cref="IHostProvider"/>s which are selected based on Git credential query
-    /// <see cref="InputArguments"/>.
+    /// <see cref="GitRequest"/>.
     /// </summary>
     /// <remarks>
     /// All registered <see cref="IHostProvider"/>s will be disposed when this <see cref="IHostProviderRegistry"/> is disposed.
@@ -36,11 +36,11 @@ namespace GitCredentialManager
 
         /// <summary>
         /// Select a <see cref="IHostProvider"/> that can service the Git credential query based on the
-        /// <see cref="InputArguments"/>.
+        /// <see cref="GitRequest"/>.
         /// </summary>
-        /// <param name="input">Input arguments of a Git credential query.</param>
+        /// <param name="request">Input arguments of a Git credential query.</param>
         /// <returns>A host provider that can service the given query.</returns>
-        Task<IHostProvider> GetProviderAsync(InputArguments input);
+        Task<IHostProvider> GetProviderAsync(GitRequest request);
     }
 
     /// <summary>
@@ -87,7 +87,7 @@ namespace GitCredentialManager
             providers.Add(hostProvider);
         }
 
-        public async Task<IHostProvider> GetProviderAsync(InputArguments input)
+        public async Task<IHostProvider> GetProviderAsync(GitRequest request)
         {
             IHostProvider provider;
 
@@ -148,7 +148,7 @@ namespace GitCredentialManager
             //
             _context.Trace.WriteLine("Performing auto-detection of host provider.");
 
-            var uri = input.GetRemoteUri();
+            var uri = request.GetRemoteUri();
             if (uri is null)
             {
                 throw new Trace2Exception(_context.Trace2, "Unable to detect host provider without a remote URL");
@@ -169,8 +169,8 @@ namespace GitCredentialManager
                 {
                     _context.Trace.WriteLine($"Checking against {providers.Count} host providers registered with priority '{priority}'.");
 
-                    // Try matching using the static Git input arguments first (cheap)
-                    if (providers.TryGetFirst(x => x.IsSupported(input), out IHostProvider match))
+                    // Try matching using the static Git request arguments first (cheap)
+                    if (providers.TryGetFirst(x => x.IsSupported(request), out IHostProvider match))
                     {
                         return match;
                     }

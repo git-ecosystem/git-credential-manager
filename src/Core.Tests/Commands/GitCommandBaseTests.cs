@@ -17,11 +17,11 @@ namespace GitCredentialManager.Tests.Commands
             var mockProvider = new Mock<IHostProvider>();
             var mockHostRegistry = new Mock<IHostProviderRegistry>();
 
-            mockHostRegistry.Setup(x => x.GetProviderAsync(It.IsAny<InputArguments>()))
+            mockHostRegistry.Setup(x => x.GetProviderAsync(It.IsAny<GitRequest>()))
                 .ReturnsAsync(mockProvider.Object)
                 .Verifiable();
 
-            mockProvider.Setup(x => x.IsSupported(It.IsAny<InputArguments>()))
+            mockProvider.Setup(x => x.IsSupported(It.IsAny<GitRequest>()))
                 .Returns(true);
 
             string standardIn = "protocol=test\nhost=example.com\npath=a/b/c\n\n";
@@ -34,12 +34,12 @@ namespace GitCredentialManager.Tests.Commands
 
             GitCommandBase testCommand = new TestCommand(mockContext.Object, mockHostRegistry.Object)
             {
-                VerifyExecuteInternalAsync = (input, provider) =>
+                VerifyExecuteInternalAsync = (request, provider) =>
                 {
                     Assert.Same(mockProvider.Object, provider);
-                    Assert.Equal("test", input.Protocol);
-                    Assert.Equal("example.com", input.Host);
-                    Assert.Equal("a/b/c", input.Path);
+                    Assert.Equal("test", request.Protocol);
+                    Assert.Equal("example.com", request.Host);
+                    Assert.Equal("a/b/c", request.Path);
                 }
             };
 
@@ -55,7 +55,7 @@ namespace GitCredentialManager.Tests.Commands
             var mockSettings = new Mock<ISettings>();
             var mockHostRegistry = new Mock<IHostProviderRegistry>();
 
-            mockHostRegistry.Setup(x => x.GetProviderAsync(It.IsAny<InputArguments>()))
+            mockHostRegistry.Setup(x => x.GetProviderAsync(It.IsAny<GitRequest>()))
                 .ReturnsAsync(mockProvider.Object);
 
             string standardIn = "protocol=test\nhost=example.com\npath=a/b/c\n\n";
@@ -84,13 +84,13 @@ namespace GitCredentialManager.Tests.Commands
             {
             }
 
-            protected override Task ExecuteInternalAsync(InputArguments input, IHostProvider provider)
+            protected override Task ExecuteInternalAsync(GitRequest request, IHostProvider provider)
             {
-                VerifyExecuteInternalAsync?.Invoke(input, provider);
+                VerifyExecuteInternalAsync?.Invoke(request, provider);
                 return Task.CompletedTask;
             }
 
-            public Action<InputArguments, IHostProvider> VerifyExecuteInternalAsync { get; set; }
+            public Action<GitRequest, IHostProvider> VerifyExecuteInternalAsync { get; set; }
         }
     }
 }

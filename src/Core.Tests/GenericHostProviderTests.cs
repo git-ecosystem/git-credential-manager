@@ -35,7 +35,7 @@ namespace GitCredentialManager.Tests
         [InlineData(null, false)]
         public void GenericHostProvider_IsSupported(string protocol, bool expected)
         {
-            var input = new InputArguments(new Dictionary<string, string>
+            var request = new GitRequest(new Dictionary<string, string>
             {
                 ["protocol"] = protocol,
                 ["host"]     = "example.com",
@@ -44,7 +44,7 @@ namespace GitCredentialManager.Tests
 
             var provider = new GenericHostProvider(new TestCommandContext());
 
-            Assert.Equal(expected, provider.IsSupported(input));
+            Assert.Equal(expected, provider.IsSupported(request));
         }
 
         [Fact]
@@ -52,7 +52,7 @@ namespace GitCredentialManager.Tests
         {
             const string expectedService = "https://example.com/foo/bar";
 
-            var input = new InputArguments(new Dictionary<string, string>
+            var request = new GitRequest(new Dictionary<string, string>
             {
                 ["protocol"] = "https",
                 ["host"]     = "example.com",
@@ -62,7 +62,7 @@ namespace GitCredentialManager.Tests
 
             var provider = new GenericHostProvider(new TestCommandContext());
 
-            string actualService = provider.GetServiceName(input);
+            string actualService = provider.GetServiceName(request);
 
             Assert.Equal(expectedService, actualService);
         }
@@ -70,7 +70,7 @@ namespace GitCredentialManager.Tests
         [Fact]
         public async Task GenericHostProvider_CreateCredentialAsync_WiaNotAllowed_ReturnsBasicCredentialNoWiaCheck()
         {
-            var input = new InputArguments(new Dictionary<string, string>
+            var request = new GitRequest(new Dictionary<string, string>
             {
                 ["protocol"] = "https",
                 ["host"]     = "example.com",
@@ -93,7 +93,7 @@ namespace GitCredentialManager.Tests
 
             var provider = new GenericHostProvider(context, basicAuthMock.Object, wiaAuthMock.Object, oauthMock.Object);
 
-            var result = await provider.GenerateCredentialAsync(input);
+            var result = await provider.GenerateCredentialAsync(request);
             ICredential credential = result.Credential;
 
             Assert.NotNull(credential);
@@ -106,7 +106,7 @@ namespace GitCredentialManager.Tests
         [Fact]
         public async Task GenericHostProvider_CreateCredentialAsync_LegacyAuthorityBasic_ReturnsBasicCredentialNoWiaCheck()
         {
-            var input = new InputArguments(new Dictionary<string, string>
+            var request = new GitRequest(new Dictionary<string, string>
             {
                 ["protocol"] = "https",
                 ["host"]     = "example.com",
@@ -129,7 +129,7 @@ namespace GitCredentialManager.Tests
 
             var provider = new GenericHostProvider(context, basicAuthMock.Object, wiaAuthMock.Object, oauthMock.Object);
 
-            var result = await provider.GenerateCredentialAsync(input);
+            var result = await provider.GenerateCredentialAsync(request);
             ICredential credential = result.Credential;
 
             Assert.NotNull(credential);
@@ -142,7 +142,7 @@ namespace GitCredentialManager.Tests
         [Fact]
         public async Task GenericHostProvider_CreateCredentialAsync_NonHttpProtocol_ReturnsBasicCredentialNoWiaCheck()
         {
-            var input = new InputArguments(new Dictionary<string, string>
+            var request = new GitRequest(new Dictionary<string, string>
             {
                 ["protocol"] = "smtp",
                 ["host"]     = "example.com",
@@ -162,7 +162,7 @@ namespace GitCredentialManager.Tests
 
             var provider = new GenericHostProvider(context, basicAuthMock.Object, wiaAuthMock.Object, oauthMock.Object);
 
-            var result = await provider.GenerateCredentialAsync(input);
+            var result = await provider.GenerateCredentialAsync(request);
             ICredential credential = result.Credential;
 
             Assert.NotNull(credential);
@@ -193,7 +193,7 @@ namespace GitCredentialManager.Tests
         [WindowsFact]
         private static async Task GenericHostProvider_NtlmSuppressed_AllowOnce()
         {
-            var input = new InputArguments(new Dictionary<string, string>
+            var request = new GitRequest(new Dictionary<string, string>
             {
                 ["protocol"] = "https",
                 ["host"]     = "example.com",
@@ -218,7 +218,7 @@ namespace GitCredentialManager.Tests
 
             var provider = new GenericHostProvider(context, basicAuthMock.Object, wiaAuthMock.Object, oauthMock.Object);
 
-            var result = await provider.GenerateCredentialAsync(input);
+            var result = await provider.GenerateCredentialAsync(request);
             ICredential credential = result.Credential;
 
             Assert.NotNull(credential);
@@ -236,7 +236,7 @@ namespace GitCredentialManager.Tests
         [WindowsFact]
         private static async Task GenericHostProvider_NtlmSuppressed_AllowAlways()
         {
-            var input = new InputArguments(new Dictionary<string, string>
+            var request = new GitRequest(new Dictionary<string, string>
             {
                 ["protocol"] = "https",
                 ["host"]     = "example.com",
@@ -261,7 +261,7 @@ namespace GitCredentialManager.Tests
 
             var provider = new GenericHostProvider(context, basicAuthMock.Object, wiaAuthMock.Object, oauthMock.Object);
 
-            var result = await provider.GenerateCredentialAsync(input);
+            var result = await provider.GenerateCredentialAsync(request);
             ICredential credential = result.Credential;
 
             Assert.NotNull(credential);
@@ -281,7 +281,7 @@ namespace GitCredentialManager.Tests
         [WindowsFact]
         private static async Task GenericHostProvider_NtlmSuppressed_Disabled()
         {
-            var input = new InputArguments(new Dictionary<string, string>
+            var request = new GitRequest(new Dictionary<string, string>
             {
                 ["protocol"] = "https",
                 ["host"]     = "example.com",
@@ -306,7 +306,7 @@ namespace GitCredentialManager.Tests
 
             var provider = new GenericHostProvider(context, basicAuthMock.Object, wiaAuthMock.Object, oauthMock.Object);
 
-            var result = await provider.GenerateCredentialAsync(input);
+            var result = await provider.GenerateCredentialAsync(request);
             ICredential credential = result.Credential;
 
             Assert.NotNull(credential);
@@ -323,7 +323,7 @@ namespace GitCredentialManager.Tests
         [Fact]
         public async Task GenericHostProvider_GenerateCredentialAsync_OAuth_CompleteOAuthConfig_UsesOAuth()
         {
-            var input = new InputArguments(new Dictionary<string, string>
+            var request = new GitRequest(new Dictionary<string, string>
             {
                 ["protocol"] = "https",
                 ["host"]     = "git.example.com",
@@ -387,7 +387,7 @@ namespace GitCredentialManager.Tests
 
             var provider = new GenericHostProvider(context, basicAuthMock.Object, wiaAuthMock.Object, oauthMock.Object);
 
-            var result = await provider.GenerateCredentialAsync(input);
+            var result = await provider.GenerateCredentialAsync(request);
             ICredential credential = result.Credential;
 
             Assert.NotNull(credential);
@@ -409,7 +409,7 @@ namespace GitCredentialManager.Tests
 
         private static async Task TestCreateCredentialAsync_ReturnsEmptyCredential(WindowsAuthenticationTypes supportedWiaTypes)
         {
-            var input = new InputArguments(new Dictionary<string, string>
+            var request = new GitRequest(new Dictionary<string, string>
             {
                 ["protocol"] = "https",
                 ["host"]     = "example.com",
@@ -426,7 +426,7 @@ namespace GitCredentialManager.Tests
 
             var provider = new GenericHostProvider(context, basicAuthMock.Object, wiaAuthMock.Object, oauthMock.Object);
 
-            var result = await provider.GenerateCredentialAsync(input);
+            var result = await provider.GenerateCredentialAsync(request);
             ICredential credential = result.Credential;
 
             Assert.NotNull(credential);
@@ -437,7 +437,7 @@ namespace GitCredentialManager.Tests
 
         private static async Task TestCreateCredentialAsync_ReturnsBasicCredential(WindowsAuthenticationTypes supportedWiaTypes)
         {
-            var input = new InputArguments(new Dictionary<string, string>
+            var request = new GitRequest(new Dictionary<string, string>
             {
                 ["protocol"] = "https",
                 ["host"]     = "example.com",
@@ -459,7 +459,7 @@ namespace GitCredentialManager.Tests
 
             var provider = new GenericHostProvider(context, basicAuthMock.Object, wiaAuthMock.Object, oauthMock.Object);
 
-            var result = await provider.GenerateCredentialAsync(input);
+            var result = await provider.GenerateCredentialAsync(request);
             ICredential credential = result.Credential;
 
             Assert.NotNull(credential);

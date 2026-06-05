@@ -8,11 +8,11 @@ namespace GitCredentialManager.Tests.Objects
         public TestHostProvider(ICommandContext context)
             : base(context) { }
 
-        public Func<InputArguments, bool> IsSupportedFunc { get; set; }
+        public Func<GitRequest, bool> IsSupportedFunc { get; set; }
 
         public string LegacyAuthorityIdValue { get; set; }
 
-        public Func<InputArguments, ICredential> GenerateCredentialFunc { get; set; }
+        public Func<GitRequest, ICredential> GenerateCredentialFunc { get; set; }
 
         #region HostProvider
 
@@ -22,11 +22,11 @@ namespace GitCredentialManager.Tests.Objects
 
         public string LegacyAuthorityId => LegacyAuthorityIdValue;
 
-        public override bool IsSupported(InputArguments input) => IsSupportedFunc(input);
+        public override bool IsSupported(GitRequest request) => IsSupportedFunc(request);
 
-        public override Task<ICredential> GenerateCredentialAsync(InputArguments input)
+        public override Task<ICredential> GenerateCredentialAsync(GitRequest request)
         {
-            return Task.FromResult(GenerateCredentialFunc(input));
+            return Task.FromResult(GenerateCredentialFunc(request));
         }
 
         #endregion

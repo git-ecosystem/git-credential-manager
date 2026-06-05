@@ -12,25 +12,25 @@ namespace GitCredentialManager.Commands
         public GetCommand(ICommandContext context, IHostProviderRegistry hostProviderRegistry)
             : base(context, "get", "[Git] Return a stored credential", hostProviderRegistry) { }
 
-        protected override async Task ExecuteInternalAsync(InputArguments input, IHostProvider provider)
+        protected override async Task ExecuteInternalAsync(GitRequest request, IHostProvider provider)
         {
-            GetCredentialResult result = await provider.GetCredentialAsync(input);
+            GetCredentialResult result = await provider.GetCredentialAsync(request);
             ICredential credential = result.Credential;
 
             var output = new Dictionary<string, string>();
 
             // Echo protocol, host, and path back at Git
-            if (input.Protocol != null)
+            if (request.Protocol != null)
             {
-                output["protocol"] = input.Protocol;
+                output["protocol"] = request.Protocol;
             }
-            if (input.Host != null)
+            if (request.Host != null)
             {
-                output["host"] = input.Host;
+                output["host"] = request.Host;
             }
-            if (input.Path != null)
+            if (request.Path != null)
             {
-                output["path"] = input.Path;
+                output["path"] = request.Path;
             }
 
             // Return the credential to Git

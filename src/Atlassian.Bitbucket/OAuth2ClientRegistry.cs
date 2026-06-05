@@ -17,9 +17,9 @@ namespace Atlassian.Bitbucket
             _context = context;
         }
 
-        public BitbucketOAuth2Client Get(InputArguments input)
+        public BitbucketOAuth2Client Get(GitRequest request)
         {
-            if (!BitbucketHelper.IsBitbucketOrg(input))
+            if (!BitbucketHelper.IsBitbucketOrg(request))
             {
                 return DataCenterClient;
             }

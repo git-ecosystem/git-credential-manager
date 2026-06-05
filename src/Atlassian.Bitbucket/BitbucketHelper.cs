@@ -14,9 +14,9 @@ namespace Atlassian.Bitbucket
             return $"{remoteUri.Scheme}://{remoteUri.Host}:{remoteUri.Port}{path}";
         }
 
-        public static bool IsBitbucketOrg(InputArguments input)     
+        public static bool IsBitbucketOrg(GitRequest request)     
         {
-            return IsBitbucketOrg(input.GetRemoteUri());
+            return IsBitbucketOrg(request.GetRemoteUri());
         }
 
         public static bool IsBitbucketOrg(Uri targetUri)
