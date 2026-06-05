@@ -9,7 +9,10 @@ namespace GitCredentialManager.Commands
     public class StoreCommand : GitCommandBase
     {
         public StoreCommand(ICommandContext context, IHostProviderRegistry hostProviderRegistry)
-            : base(context, "store", "[Git] Store a credential", hostProviderRegistry) { }
+            : base(context, "store", "[Git] Store a credential", hostProviderRegistry)
+        {
+            IsHidden = true;
+        }
 
         protected override Task ExecuteInternalAsync(GitRequest request, IHostProvider provider)
         {
