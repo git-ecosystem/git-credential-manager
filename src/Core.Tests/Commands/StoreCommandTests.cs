@@ -14,7 +14,7 @@ namespace GitCredentialManager.Tests.Commands
             const string testUserName = "john.doe";
             const string testPassword = "letmein123"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
             var stdin = $"protocol=http\nhost=example.com\nusername={testUserName}\npassword={testPassword}\n\n";
-            var expectedInput = new InputArguments(new Dictionary<string, string>
+            var expectedInput = new GitRequest(new Dictionary<string, string>
             {
                 ["protocol"] = "http",
                 ["host"]     = "example.com",
@@ -23,7 +23,7 @@ namespace GitCredentialManager.Tests.Commands
             });
 
             var providerMock = new Mock<IHostProvider>();
-            providerMock.Setup(x => x.StoreCredentialAsync(It.IsAny<InputArguments>()))
+            providerMock.Setup(x => x.StoreCredentialAsync(It.IsAny<GitRequest>()))
                         .Returns(Task.CompletedTask);
             var providerRegistry = new TestHostProviderRegistry {Provider = providerMock.Object};
             var context = new TestCommandContext
@@ -36,11 +36,11 @@ namespace GitCredentialManager.Tests.Commands
             await command.ExecuteAsync();
 
             providerMock.Verify(
-                x => x.StoreCredentialAsync(It.Is<InputArguments>(y => AreInputArgumentsEquivalent(expectedInput, y))),
+                x => x.StoreCredentialAsync(It.Is<GitRequest>(y => AreRequestsEquivalent(expectedInput, y))),
                 Times.Once);
         }
 
-        bool AreInputArgumentsEquivalent(InputArguments a, InputArguments b)
+        bool AreRequestsEquivalent(GitRequest a, GitRequest b)
         {
             return a.Protocol == b.Protocol &&
                    a.Host     == b.Host &&

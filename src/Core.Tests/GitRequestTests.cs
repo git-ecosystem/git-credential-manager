@@ -4,17 +4,17 @@ using Xunit;
 
 namespace GitCredentialManager.Tests
 {
-    public class InputArgumentsTests
+    public class GitRequestTests
     {
         [Fact]
-        public void InputArguments_Ctor_Null_ThrowsArgNullException()
+        public void GitRequest_Ctor_Null_ThrowsArgNullException()
         {
-            Assert.Throws<ArgumentNullException>(() => new InputArguments((IDictionary<string, string>)null));
-            Assert.Throws<ArgumentNullException>(() => new InputArguments((IDictionary<string, IList<string>>)null));
+            Assert.Throws<ArgumentNullException>(() => new GitRequest((IDictionary<string, string>)null));
+            Assert.Throws<ArgumentNullException>(() => new GitRequest((IDictionary<string, IList<string>>)null));
         }
 
         [Fact]
-        public void InputArguments_CommonArguments_ValuePresent_ReturnsValues()
+        public void GitRequest_CommonArguments_ValuePresent_ReturnsValues()
         {
             var dict = new Dictionary<string, IList<string>>
             {
@@ -30,38 +30,38 @@ namespace GitCredentialManager.Tests
                 }
             };
 
-            var inputArgs = new InputArguments(dict);
+            var request = new GitRequest(dict);
 
-            Assert.Equal("https",           inputArgs.Protocol);
-            Assert.Equal("example.com",     inputArgs.Host);
-            Assert.Equal("an/example/path", inputArgs.Path);
-            Assert.Equal("john.doe",        inputArgs.UserName);
-            Assert.Equal("password123",     inputArgs.Password);
+            Assert.Equal("https",           request.Protocol);
+            Assert.Equal("example.com",     request.Host);
+            Assert.Equal("an/example/path", request.Path);
+            Assert.Equal("john.doe",        request.UserName);
+            Assert.Equal("password123",     request.Password);
             Assert.Equal(new[]
                 {
                     "basic realm=\"example.com\"",
                     "bearer authorize_uri=https://id.example.com p=1 q=0"
                 },
-                inputArgs.WwwAuth);
+                request.WwwAuth);
         }
 
         [Fact]
-        public void InputArguments_CommonArguments_ValueMissing_ReturnsNullOrEmptyCollection()
+        public void GitRequest_CommonArguments_ValueMissing_ReturnsNullOrEmptyCollection()
         {
             var dict = new Dictionary<string, string>();
 
-            var inputArgs = new InputArguments(dict);
+            var request = new GitRequest(dict);
 
-            Assert.Null(inputArgs.Protocol);
-            Assert.Null(inputArgs.Host);
-            Assert.Null(inputArgs.Path);
-            Assert.Null(inputArgs.UserName);
-            Assert.Null(inputArgs.Password);
-            Assert.Empty(inputArgs.WwwAuth);
+            Assert.Null(request.Protocol);
+            Assert.Null(request.Host);
+            Assert.Null(request.Path);
+            Assert.Null(request.UserName);
+            Assert.Null(request.Password);
+            Assert.Empty(request.WwwAuth);
         }
 
         [Fact]
-        public void InputArguments_OtherArguments()
+        public void GitRequest_OtherArguments()
         {
             var dict = new Dictionary<string, IList<string>>
             {
@@ -69,27 +69,27 @@ namespace GitCredentialManager.Tests
                 ["multi"] = new[] { "val1", "val2", "val3" },
             };
 
-            var inputArgs = new InputArguments(dict);
+            var request = new GitRequest(dict);
 
-            Assert.Equal("bar", inputArgs["foo"]);
-            Assert.Equal("bar", inputArgs.GetArgumentOrDefault("foo"));
-            Assert.Equal(new[] { "val1", "val2", "val3" }, inputArgs.GetMultiArgumentOrDefault("multi"));
+            Assert.Equal("bar", request["foo"]);
+            Assert.Equal("bar", request.GetArgumentOrDefault("foo"));
+            Assert.Equal(new[] { "val1", "val2", "val3" }, request.GetMultiArgumentOrDefault("multi"));
         }
 
         [Fact]
-        public void InputArguments_GetRemoteUri_NoAuthority_ReturnsNull()
+        public void GitRequest_GetRemoteUri_NoAuthority_ReturnsNull()
         {
             var dict = new Dictionary<string, string>();
 
-            var inputArgs = new InputArguments(dict);
+            var request = new GitRequest(dict);
 
-            Uri actualUri = inputArgs.GetRemoteUri();
+            Uri actualUri = request.GetRemoteUri();
 
             Assert.Null(actualUri);
         }
 
         [Fact]
-        public void InputArguments_GetRemoteUri_Authority_ReturnsUriWithAuthority()
+        public void GitRequest_GetRemoteUri_Authority_ReturnsUriWithAuthority()
         {
             var expectedUri = new Uri("https://example.com/");
 
@@ -99,16 +99,16 @@ namespace GitCredentialManager.Tests
                 ["host"]     = "example.com"
             };
 
-            var inputArgs = new InputArguments(dict);
+            var request = new GitRequest(dict);
 
-            Uri actualUri = inputArgs.GetRemoteUri();
+            Uri actualUri = request.GetRemoteUri();
 
             Assert.NotNull(actualUri);
             Assert.Equal(expectedUri, actualUri);
         }
 
         [Fact]
-        public void InputArguments_GetRemoteUri_IncludeUser_Authority_ReturnsUriWithAuthorityAndUser()
+        public void GitRequest_GetRemoteUri_IncludeUser_Authority_ReturnsUriWithAuthorityAndUser()
         {
             var expectedUri = new Uri("https://john.doe@example.com/");
 
@@ -122,16 +122,16 @@ namespace GitCredentialManager.Tests
                 ["password"] = "password123"
             };
 
-            var inputArgs = new InputArguments(dict);
+            var request = new GitRequest(dict);
 
-            Uri actualUri = inputArgs.GetRemoteUri(includeUser: true);
+            Uri actualUri = request.GetRemoteUri(includeUser: true);
 
             Assert.NotNull(actualUri);
             Assert.Equal(expectedUri, actualUri);
         }
 
         [Fact]
-        public void InputArguments_GetRemoteUri_IncludeUserSpecialCharacters_Authority_ReturnsUriWithAuthorityAndUser()
+        public void GitRequest_GetRemoteUri_IncludeUserSpecialCharacters_Authority_ReturnsUriWithAuthorityAndUser()
         {
             var expectedUri = new Uri("https://john.doe%40domain.com@example.com/");
 
@@ -145,16 +145,16 @@ namespace GitCredentialManager.Tests
                 ["password"] = "password123"
             };
 
-            var inputArgs = new InputArguments(dict);
+            var request = new GitRequest(dict);
 
-            Uri actualUri = inputArgs.GetRemoteUri(includeUser: true);
+            Uri actualUri = request.GetRemoteUri(includeUser: true);
 
             Assert.NotNull(actualUri);
             Assert.Equal(expectedUri, actualUri);
         }
 
         [Fact]
-        public void InputArguments_GetRemoteUri_IncludeUserNoUser_Authority_ReturnsUriWithAuthority()
+        public void GitRequest_GetRemoteUri_IncludeUserNoUser_Authority_ReturnsUriWithAuthority()
         {
             var expectedUri = new Uri("https://example.com/");
 
@@ -164,16 +164,16 @@ namespace GitCredentialManager.Tests
                 ["host"]     = "example.com",
             };
 
-            var inputArgs = new InputArguments(dict);
+            var request = new GitRequest(dict);
 
-            Uri actualUri = inputArgs.GetRemoteUri(includeUser: true);
+            Uri actualUri = request.GetRemoteUri(includeUser: true);
 
             Assert.NotNull(actualUri);
             Assert.Equal(expectedUri, actualUri);
         }
 
         [Fact]
-        public void InputArguments_GetRemoteUri_AuthorityAndPort_ReturnsUriWithAuthorityAndPort()
+        public void GitRequest_GetRemoteUri_AuthorityAndPort_ReturnsUriWithAuthorityAndPort()
         {
             var expectedUri = new Uri("https://example.com:456/");
 
@@ -183,16 +183,16 @@ namespace GitCredentialManager.Tests
                 ["host"]     = "example.com:456"
             };
 
-            var inputArgs = new InputArguments(dict);
+            var request = new GitRequest(dict);
 
-            Uri actualUri = inputArgs.GetRemoteUri();
+            Uri actualUri = request.GetRemoteUri();
 
             Assert.NotNull(actualUri);
             Assert.Equal(expectedUri, actualUri);
         }
 
         [Fact]
-        public void InputArguments_GetRemoteUri_AuthorityPath_ReturnsUriWithAuthorityAndPath()
+        public void GitRequest_GetRemoteUri_AuthorityPath_ReturnsUriWithAuthorityAndPath()
         {
             var expectedUri = new Uri("https://example.com/an/example/path");
 
@@ -203,16 +203,16 @@ namespace GitCredentialManager.Tests
                 ["path"]     = "an/example/path"
             };
 
-            var inputArgs = new InputArguments(dict);
+            var request = new GitRequest(dict);
 
-            Uri actualUri = inputArgs.GetRemoteUri();
+            Uri actualUri = request.GetRemoteUri();
 
             Assert.NotNull(actualUri);
             Assert.Equal(expectedUri, actualUri);
         }
 
         [Fact]
-        public void InputArguments_GetRemoteUri_AuthorityPathUserInfo_ReturnsUriWithAuthorityAndPath()
+        public void GitRequest_GetRemoteUri_AuthorityPathUserInfo_ReturnsUriWithAuthorityAndPath()
         {
             var expectedUri = new Uri("https://example.com/an/example/path");
 
@@ -227,9 +227,9 @@ namespace GitCredentialManager.Tests
                 ["password"] = "password123"
             };
 
-            var inputArgs = new InputArguments(dict);
+            var request = new GitRequest(dict);
 
-            Uri actualUri = inputArgs.GetRemoteUri();
+            Uri actualUri = request.GetRemoteUri();
 
             Assert.NotNull(actualUri);
             Assert.Equal(expectedUri, actualUri);
@@ -239,7 +239,7 @@ namespace GitCredentialManager.Tests
         [InlineData("foo?query=true")]
         [InlineData("foo#fragment")]
         [InlineData("foo?query=true#fragment")]
-        public void InputArguments_GetRemoteUri_PathQueryFragment_ReturnsCorrectUri(string path)
+        public void GitRequest_GetRemoteUri_PathQueryFragment_ReturnsCorrectUri(string path)
         {
             var expectedUri = new Uri($"https://example.com/{path}");
 
@@ -250,16 +250,16 @@ namespace GitCredentialManager.Tests
                 ["path"]     = path
             };
 
-            var inputArgs = new InputArguments(dict);
+            var request = new GitRequest(dict);
 
-            Uri actualUri = inputArgs.GetRemoteUri();
+            Uri actualUri = request.GetRemoteUri();
 
             Assert.NotNull(actualUri);
             Assert.Equal(expectedUri, actualUri);
         }
 
         [Fact]
-        public void InputArguments_GetRemoteUri_IncludeUser_AuthorityPathUserInfo_ReturnsUriWithAll()
+        public void GitRequest_GetRemoteUri_IncludeUser_AuthorityPathUserInfo_ReturnsUriWithAll()
         {
             var expectedUri = new Uri("https://john.doe@example.com/an/example/path");
 
@@ -274,16 +274,16 @@ namespace GitCredentialManager.Tests
                 ["password"] = "password123"
             };
 
-            var inputArgs = new InputArguments(dict);
+            var request = new GitRequest(dict);
 
-            Uri actualUri = inputArgs.GetRemoteUri(includeUser: true);
+            Uri actualUri = request.GetRemoteUri(includeUser: true);
 
             Assert.NotNull(actualUri);
             Assert.Equal(expectedUri, actualUri);
         }
 
         [Fact]
-        public void InputArguments_TryGetHostAndPort_NoPort_ReturnsHostName()
+        public void GitRequest_TryGetHostAndPort_NoPort_ReturnsHostName()
         {
             const string expectedHostName = "example.com";
 
@@ -293,9 +293,9 @@ namespace GitCredentialManager.Tests
                 ["host"]     = "example.com"
             };
 
-            var inputArgs = new InputArguments(dict);
+            var request = new GitRequest(dict);
 
-            bool result = inputArgs.TryGetHostAndPort(out string actualHostName, out int? actualPort);
+            bool result = request.TryGetHostAndPort(out string actualHostName, out int? actualPort);
 
             Assert.True(result);
             Assert.NotNull(actualHostName);
@@ -304,7 +304,7 @@ namespace GitCredentialManager.Tests
         }
 
         [Fact]
-        public void InputArguments_TryGetHostAndPort_Port_ReturnsHostNameAndPort()
+        public void GitRequest_TryGetHostAndPort_Port_ReturnsHostNameAndPort()
         {
             const string expectedHostName = "example.com";
             const int expectedPort = 456;
@@ -315,9 +315,9 @@ namespace GitCredentialManager.Tests
                 ["host"]     = "example.com:456"
             };
 
-            var inputArgs = new InputArguments(dict);
+            var request = new GitRequest(dict);
 
-            bool result = inputArgs.TryGetHostAndPort(out string actualHostName, out int? actualPort);
+            bool result = request.TryGetHostAndPort(out string actualHostName, out int? actualPort);
 
             Assert.True(result);
             Assert.NotNull(actualHostName);
@@ -327,7 +327,7 @@ namespace GitCredentialManager.Tests
         }
 
         [Fact]
-        public void InputArguments_TryGetHostAndPort_BadPort_ReturnsFalse()
+        public void GitRequest_TryGetHostAndPort_BadPort_ReturnsFalse()
         {
             var dict = new Dictionary<string, string>
             {
@@ -335,25 +335,25 @@ namespace GitCredentialManager.Tests
                 ["host"]     = "example.com:not-a-port"
             };
 
-            var inputArgs = new InputArguments(dict);
+            var request = new GitRequest(dict);
 
-            bool result = inputArgs.TryGetHostAndPort(out _, out int? actualPort);
+            bool result = request.TryGetHostAndPort(out _, out int? actualPort);
 
             Assert.False(result);
             Assert.Null(actualPort);
         }
 
         [Fact]
-        public void InputArguments_TryGetHostAndPort_NoHostNoPort_ReturnsFalse()
+        public void GitRequest_TryGetHostAndPort_NoHostNoPort_ReturnsFalse()
         {
             var dict = new Dictionary<string, string>
             {
                 ["protocol"] = "https",
             };
 
-            var inputArgs = new InputArguments(dict);
+            var request = new GitRequest(dict);
 
-            bool result = inputArgs.TryGetHostAndPort(out _, out _);
+            bool result = request.TryGetHostAndPort(out _, out _);
 
             Assert.False(result);
         }

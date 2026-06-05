@@ -7,7 +7,7 @@ namespace GitCredentialManager.Commands
 {
     /// <summary>
     /// Represents a command which selects a <see cref="IHostProvider"/> from a <see cref="IHostProviderRegistry"/>
-    /// based on the <see cref="InputArguments"/> from standard input, and interacts with a <see cref="GitCredential"/>.
+    /// based on the <see cref="GitRequest"/> from standard input, and interacts with a <see cref="GitCredential"/>.
     /// </summary>
     public abstract class GitCommandBase : Command
     {
@@ -34,56 +34,56 @@ namespace GitCredentialManager.Commands
             // Parse standard input arguments
             // git-credential treats the keys as case-sensitive; so should we.
             IDictionary<string, IList<string>> inputDict = await Context.Streams.In.ReadMultiDictionaryAsync(StringComparer.Ordinal);
-            var input = new InputArguments(inputDict);
+            var request = new GitRequest(inputDict);
 
             // Validate minimum arguments are present
-            EnsureMinimumInputArguments(input);
+            EnsureMinimumRequest(request);
 
             // Set the remote URI to scope settings to throughout the process from now on
-            Context.Settings.RemoteUri = input.GetRemoteUri();
+            Context.Settings.RemoteUri = request.GetRemoteUri();
 
             // Determine the host provider
-            Context.Trace.WriteLine("Detecting host provider for input:");
+            Context.Trace.WriteLine("Detecting host provider for request:");
             Context.Trace.WriteDictionarySecrets(inputDict, new []{ "password" }, StringComparer.OrdinalIgnoreCase);
-            IHostProvider provider = await _hostProviderRegistry.GetProviderAsync(input);
+            IHostProvider provider = await _hostProviderRegistry.GetProviderAsync(request);
             Context.Trace.WriteLine($"Host provider '{provider.Name}' was selected.");
 
-            await ExecuteInternalAsync(input, provider);
+            await ExecuteInternalAsync(request, provider);
 
             Context.Trace.WriteLine($"End '{Name}' command...");
         }
 
-        protected virtual void EnsureMinimumInputArguments(InputArguments input)
+        protected virtual void EnsureMinimumRequest(GitRequest request)
         {
-            if (input.Protocol is null)
+            if (request.Protocol is null)
             {
-                throw new Trace2InvalidOperationException(Context.Trace2, "Missing 'protocol' input argument");
+                throw new Trace2InvalidOperationException(Context.Trace2, "Missing 'protocol' request argument");
             }
 
-            if (string.IsNullOrWhiteSpace(input.Protocol))
+            if (string.IsNullOrWhiteSpace(request.Protocol))
             {
                 throw new Trace2InvalidOperationException(Context.Trace2,
-                    "Invalid 'protocol' input argument (cannot be empty)");
+                    "Invalid 'protocol' request argument (cannot be empty)");
             }
 
-            if (input.Host is null)
+            if (request.Host is null)
             {
-                throw new Trace2InvalidOperationException(Context.Trace2, "Missing 'host' input argument");
+                throw new Trace2InvalidOperationException(Context.Trace2, "Missing 'host' request argument");
             }
 
-            if (string.IsNullOrWhiteSpace(input.Host))
+            if (string.IsNullOrWhiteSpace(request.Host))
             {
                 throw new Trace2InvalidOperationException(Context.Trace2,
-                    "Invalid 'host' input argument (cannot be empty)");
+                    "Invalid 'host' request argument (cannot be empty)");
             }
         }
 
         /// <summary>
-        /// Execute the command using the given <see cref="InputArguments"/> and <see cref="IHostProvider"/>.
+        /// Execute the command using the given <see cref="GitRequest"/> and <see cref="IHostProvider"/>.
         /// </summary>
-        /// <param name="input">Input arguments of the current Git credential query.</param>
-        /// <param name="provider">Host provider for the current <see cref="InputArguments"/>.</param>
+        /// <param name="request">Input arguments of the current Git credential query.</param>
+        /// <param name="provider">Host provider for the current <see cref="GitRequest"/>.</param>
         /// <returns>Awaitable task for the command execution.</returns>
-        protected abstract Task ExecuteInternalAsync(InputArguments input, IHostProvider provider);
+        protected abstract Task ExecuteInternalAsync(GitRequest request, IHostProvider provider);
     }
 }

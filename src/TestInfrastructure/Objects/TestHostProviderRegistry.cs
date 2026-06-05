@@ -12,7 +12,7 @@ namespace GitCredentialManager.Tests.Objects
         {
         }
 
-        Task<IHostProvider> IHostProviderRegistry.GetProviderAsync(InputArguments input)
+        Task<IHostProvider> IHostProviderRegistry.GetProviderAsync(GitRequest request)
         {
             return Task.FromResult(Provider);
         }

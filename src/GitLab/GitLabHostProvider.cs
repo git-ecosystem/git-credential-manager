@@ -34,9 +34,9 @@ namespace GitLab
 
         public override string Name => "GitLab";
 
-        public override bool IsSupported(InputArguments input)
+        public override bool IsSupported(GitRequest request)
         {
-            if (input is null)
+            if (request is null)
             {
                 return false;
             }
@@ -44,19 +44,19 @@ namespace GitLab
             // We do not support unencrypted HTTP communications to GitLab,
             // but we report `true` here for HTTP so that we can show a helpful
             // error message for the user in `CreateCredentialAsync`.
-            if (!StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "http") &&
-                !StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "https"))
+            if (!StringComparer.OrdinalIgnoreCase.Equals(request.Protocol, "http") &&
+                !StringComparer.OrdinalIgnoreCase.Equals(request.Protocol, "https"))
             {
                 return false;
             }
 
-            if (GitLabConstants.IsGitLabDotCom(input.GetRemoteUri()))
+            if (GitLabConstants.IsGitLabDotCom(request.GetRemoteUri()))
             {
                 return true;
             }
 
-            // Split port number and hostname from host input argument
-            if (!input.TryGetHostAndPort(out string hostName, out _))
+            // Split port number and hostname from host request argument
+            if (!request.TryGetHostAndPort(out string hostName, out _))
             {
                 return false;
             }
@@ -70,7 +70,7 @@ namespace GitLab
                 return true;
             }
 
-            if (input.WwwAuth.Any(x => x.Contains("realm=\"GitLab\"")))
+            if (request.WwwAuth.Any(x => x.Contains("realm=\"GitLab\"")))
             {
                 return true;
             }
@@ -90,13 +90,13 @@ namespace GitLab
             return response.Headers.Contains("X-Gitlab-Feature-Category");
         }
 
-        public override async Task<ICredential> GenerateCredentialAsync(InputArguments input)
+        public override async Task<ICredential> GenerateCredentialAsync(GitRequest request)
         {
             ThrowIfDisposed();
 
             // We should not allow unencrypted communication and should inform the user
             if (!Context.Settings.AllowUnsafeRemotes &&
-                StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "http"))
+                StringComparer.OrdinalIgnoreCase.Equals(request.Protocol, "http"))
             {
                 throw new Trace2Exception(Context.Trace2,
                     "Unencrypted HTTP is not recommended for GitLab. " +
@@ -104,11 +104,11 @@ namespace GitLab
                     $"or see {Constants.HelpUrls.GcmUnsafeRemotes} about how to allow unsafe remotes.");
             }
 
-            Uri remoteUri = input.GetRemoteUri();
+            Uri remoteUri = request.GetRemoteUri();
 
             AuthenticationModes authModes = GetSupportedAuthenticationModes(remoteUri);
 
-            AuthenticationPromptResult promptResult = await _gitLabAuth.GetAuthenticationAsync(remoteUri, input.UserName, authModes);
+            AuthenticationPromptResult promptResult = await _gitLabAuth.GetAuthenticationAsync(remoteUri, request.UserName, authModes);
 
             switch (promptResult.AuthenticationMode)
             {
@@ -117,7 +117,7 @@ namespace GitLab
                     return promptResult.Credential;
 
                 case AuthenticationModes.Browser:
-                    return await GenerateOAuthCredentialAsync(input);
+                    return await GenerateOAuthCredentialAsync(request);
 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(promptResult));
@@ -179,11 +179,11 @@ namespace GitLab
         }
 
         // <remarks>Stores OAuth tokens as a side effect</remarks>
-        public override async Task<GetCredentialResult> GetCredentialAsync(InputArguments input)
+        public override async Task<GetCredentialResult> GetCredentialAsync(GitRequest request)
         {
-            string service = GetServiceName(input);
-            ICredential credential = Context.CredentialStore.Get(service, input.UserName);
-            if (credential?.Account == "oauth2" && await IsOAuthTokenExpired(input.GetRemoteUri(), credential.Password))
+            string service = GetServiceName(request);
+            ICredential credential = Context.CredentialStore.Get(service, request.UserName);
+            if (credential?.Account == "oauth2" && await IsOAuthTokenExpired(request.GetRemoteUri(), credential.Password))
             {
                 Context.Trace.WriteLine("Removing expired OAuth access token...");
                 Context.CredentialStore.Remove(service, credential.Account);
@@ -195,14 +195,14 @@ namespace GitLab
                 return new GetCredentialResult(credential);
             }
 
-            string refreshService = GetRefreshTokenServiceName(input);
-            string refreshToken = Context.CredentialStore.Get(refreshService, input.UserName)?.Password;
+            string refreshService = GetRefreshTokenServiceName(request);
+            string refreshToken = Context.CredentialStore.Get(refreshService, request.UserName)?.Password;
             if (refreshToken != null)
             {
                 Context.Trace.WriteLine("Refreshing OAuth token...");
                 try
                 {
-                    credential = await RefreshOAuthCredentialAsync(input, refreshToken);
+                    credential = await RefreshOAuthCredentialAsync(request, refreshToken);
                 }
                 catch (Exception e)
                 {
@@ -210,7 +210,7 @@ namespace GitLab
                 }
             }
 
-            credential ??= await GenerateCredentialAsync(input);
+            credential ??= await GenerateCredentialAsync(request);
 
             if (credential is OAuthCredential oAuthCredential)
             {
@@ -261,15 +261,15 @@ namespace GitLab
             string ICredential.Password => AccessToken;
         }
 
-        private async Task<OAuthCredential> GenerateOAuthCredentialAsync(InputArguments input)
+        private async Task<OAuthCredential> GenerateOAuthCredentialAsync(GitRequest request)
         {
-            OAuth2TokenResult result = await _gitLabAuth.GetOAuthTokenViaBrowserAsync(input.GetRemoteUri(), GitLabOAuthScopes);
+            OAuth2TokenResult result = await _gitLabAuth.GetOAuthTokenViaBrowserAsync(request.GetRemoteUri(), GitLabOAuthScopes);
             return new OAuthCredential(result);
         }
 
-        private async Task<OAuthCredential> RefreshOAuthCredentialAsync(InputArguments input, string refreshToken)
+        private async Task<OAuthCredential> RefreshOAuthCredentialAsync(GitRequest request, string refreshToken)
         {
-            OAuth2TokenResult result = await _gitLabAuth.GetOAuthTokenViaRefresh(input.GetRemoteUri(), refreshToken);
+            OAuth2TokenResult result = await _gitLabAuth.GetOAuthTokenViaRefresh(request.GetRemoteUri(), refreshToken);
             return new OAuthCredential(result);
         }
 
@@ -279,18 +279,18 @@ namespace GitLab
             base.ReleaseManagedResources();
         }
 
-        private string GetRefreshTokenServiceName(InputArguments input)
+        private string GetRefreshTokenServiceName(GitRequest request)
         {
-            var builder = new UriBuilder(GetServiceName(input));
+            var builder = new UriBuilder(GetServiceName(request));
             builder.Host = "oauth-refresh-token." + builder.Host;
             return builder.Uri.ToString();
         }
 
-        public override Task EraseCredentialAsync(InputArguments input)
+        public override Task EraseCredentialAsync(GitRequest request)
         {
             // delete any refresh token too
-            Context.CredentialStore.Remove(GetRefreshTokenServiceName(input), "oauth2");
-            return base.EraseCredentialAsync(input);
+            Context.CredentialStore.Remove(GetRefreshTokenServiceName(request), "oauth2");
+            return base.EraseCredentialAsync(request);
         }
     }
 }

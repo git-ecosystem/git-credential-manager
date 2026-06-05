@@ -35,13 +35,13 @@ namespace Microsoft.AzureRepos
         /// <summary>
         /// Check if the hostname is the legacy Azure DevOps hostname (*.visualstudio.com).
         /// </summary>
-        /// <param name="input">Git query arguments.</param>
+        /// <param name="request">Git query arguments.</param>
         /// <returns>True if the hostname is the legacy Azure DevOps host, false otherwise.</returns>
-        public static bool IsVisualStudioComHost(InputArguments input)
+        public static bool IsVisualStudioComHost(GitRequest request)
         {
-            EnsureArgument.NotNull(input, nameof(input));
+            EnsureArgument.NotNull(request, nameof(request));
 
-            if (!input.TryGetHostAndPort(out string hostName, out _))
+            if (!request.TryGetHostAndPort(out string hostName, out _))
             {
                 throw new InvalidOperationException("Host name and/or port is invalid.");
             }
@@ -63,13 +63,13 @@ namespace Microsoft.AzureRepos
         /// <summary>
         /// Check if the hostname is the new Azure DevOps hostname (dev.azure.com).
         /// </summary>
-        /// <param name="input">Git query arguments.</param>
+        /// <param name="request">Git query arguments.</param>
         /// <returns>True if the hostname is the new Azure DevOps host, false otherwise.</returns>
-        public static bool IsDevAzureComHost(InputArguments input)
+        public static bool IsDevAzureComHost(GitRequest request)
         {
-            EnsureArgument.NotNull(input, nameof(input));
+            EnsureArgument.NotNull(request, nameof(request));
 
-            if (!input.TryGetHostAndPort(out string hostName, out _))
+            if (!request.TryGetHostAndPort(out string hostName, out _))
             {
                 throw new InvalidOperationException("Host name and/or port is invalid.");
             }
@@ -111,14 +111,14 @@ namespace Microsoft.AzureRepos
         /// <param name="orgName">Azure DevOps organization name.</param>
         /// <returns>Azure DevOps organization URI</returns>
         /// <exception cref="InvalidOperationException">
-        /// Thrown if <see cref="InputArguments.Protocol"/> is null or white space.
+        /// Thrown if <see cref="GitRequest.Protocol"/> is null or white space.
         /// <para/>
-        /// Thrown if <see cref="InputArguments.Host"/> is null or white space.
+        /// Thrown if <see cref="GitRequest.Host"/> is null or white space.
         /// <para/>
-        /// Thrown if <see cref="InputArguments.Host"/> is not an Azure DevOps hostname.
+        /// Thrown if <see cref="GitRequest.Host"/> is not an Azure DevOps hostname.
         /// <para/>
-        /// Thrown if both of <see cref="InputArguments.UserName"/> or <see cref="InputArguments.Path"/>
-        /// are null or white space when <see cref="InputArguments.Host"/> is an Azure-style URL
+        /// Thrown if both of <see cref="GitRequest.UserName"/> or <see cref="GitRequest.Path"/>
+        /// are null or white space when <see cref="GitRequest.Host"/> is an Azure-style URL
         /// ('dev.azure.com' rather than '*.visualstudio.com').
         /// </exception>
         public static Uri CreateOrganizationUri(Uri remoteUri, out string orgName)

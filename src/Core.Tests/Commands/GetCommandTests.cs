@@ -27,7 +27,7 @@ namespace GitCredentialManager.Tests.Commands
             };
 
             var providerMock = new Mock<IHostProvider>();
-            providerMock.Setup(x => x.GetCredentialAsync(It.IsAny<InputArguments>()))
+            providerMock.Setup(x => x.GetCredentialAsync(It.IsAny<GitRequest>()))
                         .ReturnsAsync(new GetCredentialResult(testCredential));
             var providerRegistry = new TestHostProviderRegistry {Provider = providerMock.Object};
             var context = new TestCommandContext
@@ -41,7 +41,7 @@ namespace GitCredentialManager.Tests.Commands
 
             IDictionary<string, string> actualStdOutDict = ParseDictionary(context.Streams.Out);
 
-            providerMock.Verify(x => x.GetCredentialAsync(It.IsAny<InputArguments>()), Times.Once);
+            providerMock.Verify(x => x.GetCredentialAsync(It.IsAny<GitRequest>()), Times.Once);
             Assert.Equal(expectedStdOutDict, actualStdOutDict);
         }
 

@@ -6,18 +6,17 @@ using System.Linq;
 namespace GitCredentialManager
 {
     /// <summary>
-    /// Represents the input for a Git credential query such as get, erase, or store.
+    /// Represents the request for a single Git credential helper invocation (get / store / erase).
     /// </summary>
     /// <remarks>
-    /// This class surfaces the input that is streamed over standard in from Git which provides
-    /// the credential helper the remote repository information, including the protocol, host,
-    /// and remote repository path.
+    /// Surfaces the input streamed over standard input from Git, including the
+    /// protocol, host, and remote repository path.
     /// </remarks>
-    public class InputArguments
+    public class GitRequest
     {
         private readonly IReadOnlyDictionary<string, IList<string>> _dict;
 
-        public InputArguments(IDictionary<string, string> dict)
+        public GitRequest(IDictionary<string, string> dict)
         {
             EnsureArgument.NotNull(dict, nameof(dict));
 
@@ -27,7 +26,7 @@ namespace GitCredentialManager
             );
         }
 
-        public InputArguments(IDictionary<string, IList<string>> dict)
+        public GitRequest(IDictionary<string, IList<string>> dict)
         {
             EnsureArgument.NotNull(dict, nameof(dict));
 
@@ -35,18 +34,12 @@ namespace GitCredentialManager
             _dict = new ReadOnlyDictionary<string, IList<string>>(dict);
         }
 
-        #region Common Arguments
-
         public string Protocol => GetArgumentOrDefault("protocol");
         public string Host     => GetArgumentOrDefault("host");
         public string Path     => GetArgumentOrDefault("path");
         public string UserName => GetArgumentOrDefault("username");
         public string Password => GetArgumentOrDefault("password");
         public IList<string> WwwAuth => GetMultiArgumentOrDefault("wwwauth");
-
-        #endregion
-
-        #region Public Methods
 
         public string this[string key]
         {
@@ -166,7 +159,5 @@ namespace GitCredentialManager
 
             return null;
         }
-
-        #endregion
     }
 }

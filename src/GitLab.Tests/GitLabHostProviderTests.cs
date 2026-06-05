@@ -16,14 +16,14 @@ namespace GitLab.Tests
         [InlineData("https", "github.example.com", false)]
         public void GitLabHostProvider_IsSupported(string protocol, string host, bool expected)
         {
-            var input = new InputArguments(new Dictionary<string, string>
+            var request = new GitRequest(new Dictionary<string, string>
             {
                 ["protocol"] = protocol,
                 ["host"] = host,
             });
 
             var provider = new GitLabHostProvider(new TestCommandContext());
-            Assert.Equal(expected, provider.IsSupported(input));
+            Assert.Equal(expected, provider.IsSupported(request));
         }
 
         [Fact]

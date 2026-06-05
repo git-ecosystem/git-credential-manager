@@ -17,7 +17,7 @@ namespace Atlassian.Bitbucket.Tests
             settings.Setup(s => s.RemoteUri).Returns(new System.Uri("https://bitbucket.org"));
             context.Setup(c => c.Settings).Returns(settings.Object);
 
-            var input = new InputArguments(new Dictionary<string, string>
+            var request = new GitRequest(new Dictionary<string, string>
             {
                 ["protocol"] = "https",
                 ["host"] = "bitbucket.org",
@@ -25,7 +25,7 @@ namespace Atlassian.Bitbucket.Tests
 
             // When
             var registry = new BitbucketRestApiRegistry(context.Object);
-            var api = registry.Get(input);
+            var api = registry.Get(request);
         
             // Then
             Assert.NotNull(api);
@@ -40,7 +40,7 @@ namespace Atlassian.Bitbucket.Tests
             settings.Setup(s => s.RemoteUri).Returns(new System.Uri("https://example.com"));
             context.Setup(c => c.Settings).Returns(settings.Object);
 
-            var input = new InputArguments(new Dictionary<string, string>
+            var request = new GitRequest(new Dictionary<string, string>
             {
                 ["protocol"] = "http",
                 ["host"] = "example.com",
@@ -48,7 +48,7 @@ namespace Atlassian.Bitbucket.Tests
 
             // When
             var registry = new BitbucketRestApiRegistry(context.Object);
-            var api = registry.Get(input);
+            var api = registry.Get(request);
 
             // Then
             Assert.NotNull(api);

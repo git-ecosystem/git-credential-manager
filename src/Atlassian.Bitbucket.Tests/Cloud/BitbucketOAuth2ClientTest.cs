@@ -82,13 +82,13 @@ namespace Atlassian.Bitbucket.Tests.Cloud
         {
             var trace2 = new NullTrace2();
             var client = new Bitbucket.Cloud.BitbucketOAuth2Client(httpClient.Object, settings.Object, trace2);
-            var input = new InputArguments(new Dictionary<string, string>
+            var request = new GitRequest(new Dictionary<string, string>
             {
                 ["protocol"] = protocol,
                 ["host"] = host,
                 ["username"] = username
             });
-            Assert.Equal(expectedResult, client.GetRefreshTokenServiceName(input));
+            Assert.Equal(expectedResult, client.GetRefreshTokenServiceName(request));
         }
 
 

@@ -15,7 +15,7 @@ namespace GitCredentialManager.Tests
             const string userName = "john.doe";
             const string password = "letmein123"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
             const string service = "https://example.com";
-            var input = new InputArguments(new Dictionary<string, string>
+            var request = new GitRequest(new Dictionary<string, string>
             {
                 ["protocol"] = "https",
                 ["host"] = "example.com",
@@ -35,7 +35,7 @@ namespace GitCredentialManager.Tests
                 },
             };
 
-            var result = await ((IHostProvider) provider).GetCredentialAsync(input);
+            var result = await ((IHostProvider) provider).GetCredentialAsync(request);
             ICredential actualCredential = result.Credential; 
 
             Assert.Equal(userName, actualCredential.Account);
@@ -47,7 +47,7 @@ namespace GitCredentialManager.Tests
         {
             const string userName = "john.doe";
             const string password = "letmein123"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
-            var input = new InputArguments(new Dictionary<string, string>
+            var request = new GitRequest(new Dictionary<string, string>
             {
                 ["protocol"] = "https",
                 ["host"] = "example.com",
@@ -67,7 +67,7 @@ namespace GitCredentialManager.Tests
                 },
             };
 
-            var result = await ((IHostProvider) provider).GetCredentialAsync(input);
+            var result = await ((IHostProvider) provider).GetCredentialAsync(request);
             ICredential actualCredential = result.Credential;
 
             Assert.True(generateWasCalled);
@@ -85,7 +85,7 @@ namespace GitCredentialManager.Tests
         {
             const string emptyUserName = "";
             const string emptyPassword = ""; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
-            var input = new InputArguments(new Dictionary<string, string>
+            var request = new GitRequest(new Dictionary<string, string>
             {
                 ["protocol"] = "https",
                 ["host"] = "example.com",
@@ -96,7 +96,7 @@ namespace GitCredentialManager.Tests
             var context = new TestCommandContext();
             var provider = new TestHostProvider(context);
 
-            await ((IHostProvider) provider).StoreCredentialAsync(input);
+            await ((IHostProvider) provider).StoreCredentialAsync(request);
 
             Assert.Equal(0, context.CredentialStore.Count);
         }
@@ -107,7 +107,7 @@ namespace GitCredentialManager.Tests
             const string userName = "john.doe";
             const string password = "letmein123"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
             const string service = "https://example.com";
-            var input = new InputArguments(new Dictionary<string, string>
+            var request = new GitRequest(new Dictionary<string, string>
             {
                 ["protocol"] = "https",
                 ["host"] = "example.com",
@@ -118,7 +118,7 @@ namespace GitCredentialManager.Tests
             var context = new TestCommandContext();
             var provider = new TestHostProvider(context);
 
-            await ((IHostProvider) provider).StoreCredentialAsync(input);
+            await ((IHostProvider) provider).StoreCredentialAsync(request);
 
             Assert.Equal(1, context.CredentialStore.Count);
             Assert.True(context.CredentialStore.TryGet(service, userName, out var storedCredential));
@@ -133,7 +133,7 @@ namespace GitCredentialManager.Tests
             const string testPasswordOld = "letmein123-old"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
             const string testPasswordNew = "letmein123-new"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
             const string testService = "https://example.com";
-            var input = new InputArguments(new Dictionary<string, string>
+            var request = new GitRequest(new Dictionary<string, string>
             {
                 ["protocol"] = "https",
                 ["host"] = "example.com",
@@ -145,7 +145,7 @@ namespace GitCredentialManager.Tests
             context.CredentialStore.Add(testService, testUserName, testPasswordOld);
             var provider = new TestHostProvider(context);
 
-            await ((IHostProvider) provider).StoreCredentialAsync(input);
+            await ((IHostProvider) provider).StoreCredentialAsync(request);
 
             Assert.Equal(1, context.CredentialStore.Count);
             Assert.True(context.CredentialStore.TryGet(testService, testUserName, out var storedCredential));
@@ -164,7 +164,7 @@ namespace GitCredentialManager.Tests
             const string userName1 = "john.doe";
             const string userName2 = "alice";
             const string userName3 = "bob";
-            var input = new InputArguments(new Dictionary<string, string>
+            var request = new GitRequest(new Dictionary<string, string>
             {
                 ["protocol"] = "https",
                 ["host"] = "example.com",
@@ -176,7 +176,7 @@ namespace GitCredentialManager.Tests
             context.CredentialStore.Add(service, userName3, "here-forever");
             var provider = new TestHostProvider(context);
 
-            await ((IHostProvider) provider).EraseCredentialAsync(input);
+            await ((IHostProvider) provider).EraseCredentialAsync(request);
 
             Assert.Equal(2, context.CredentialStore.Count);
         }
@@ -188,7 +188,7 @@ namespace GitCredentialManager.Tests
             const string userName2 = "alice";
             const string password = "letmein123"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
             const string service = "https://example.com";
-            var input = new InputArguments(new Dictionary<string, string>
+            var request = new GitRequest(new Dictionary<string, string>
             {
                 ["protocol"] = "https",
                 ["host"] = "example.com",
@@ -200,7 +200,7 @@ namespace GitCredentialManager.Tests
             context.CredentialStore.Add(service, userName2, password);
             var provider = new TestHostProvider(context);
 
-            await ((IHostProvider) provider).EraseCredentialAsync(input);
+            await ((IHostProvider) provider).EraseCredentialAsync(request);
 
             Assert.Equal(1, context.CredentialStore.Count);
             Assert.True(context.CredentialStore.Contains(service, userName2));
@@ -212,7 +212,7 @@ namespace GitCredentialManager.Tests
             const string userName = "john.doe";
             const string password = "letmein123"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
             const string service = "https://example.com";
-            var input = new InputArguments(new Dictionary<string, string>
+            var request = new GitRequest(new Dictionary<string, string>
             {
                 ["protocol"] = "https",
                 ["host"] = "example.com",
@@ -224,7 +224,7 @@ namespace GitCredentialManager.Tests
             context.CredentialStore.Add(service, userName, password);
             var provider = new TestHostProvider(context);
 
-            await ((IHostProvider) provider).EraseCredentialAsync(input);
+            await ((IHostProvider) provider).EraseCredentialAsync(request);
 
             Assert.Equal(0, context.CredentialStore.Count);
             Assert.False(context.CredentialStore.Contains(service, userName));
@@ -236,7 +236,7 @@ namespace GitCredentialManager.Tests
             const string service2 = "https://example2.com";
             const string service3 = "https://example3.com";
             const string userName = "john.doe";
-            var input = new InputArguments(new Dictionary<string, string>
+            var request = new GitRequest(new Dictionary<string, string>
             {
                 ["protocol"] = "https",
                 ["host"] = "example1.com",
@@ -247,7 +247,7 @@ namespace GitCredentialManager.Tests
             context.CredentialStore.Add(service3, userName, "also-keep-me");
             var provider = new TestHostProvider(context);
 
-            await ((IHostProvider) provider).EraseCredentialAsync(input);
+            await ((IHostProvider) provider).EraseCredentialAsync(request);
 
             Assert.Equal(2, context.CredentialStore.Count);
             Assert.True(context.CredentialStore.Contains(service2, userName));
