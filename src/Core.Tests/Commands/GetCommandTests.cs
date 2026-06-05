@@ -146,6 +146,30 @@ namespace GitCredentialManager.Tests.Commands
             Assert.Equal("quit=1\n\n", actualOutput);
         }
 
+        [Fact]
+        public async Task GetCommand_ExecuteAsync_YieldedResponse_EmitsEmptyResponse()
+        {
+            // A provider that has nothing to contribute but does not want to stop
+            // the pipeline returns GitResponse.Yield(); the command MUST emit just
+            // the terminating blank line (no credential fields, no quit signal) so
+            // Git proceeds to the next helper or its interactive prompt.
+            var stdin = "protocol=https\nhost=example.com\n\n";
+
+            var providerMock = new Mock<IHostProvider>();
+            providerMock.Setup(x => x.GetCredentialAsync(It.IsAny<GitRequest>()))
+                        .ReturnsAsync(GitResponse.Yield());
+            var providerRegistry = new TestHostProviderRegistry { Provider = providerMock.Object };
+            var context = new TestCommandContext { Streams = { In = stdin } };
+
+            var command = new GetCommand(context, providerRegistry);
+
+            await command.ExecuteAsync();
+
+            string actualOutput = context.Streams.Out.ToString().Replace("\r\n", "\n");
+
+            Assert.Equal("\n", actualOutput);
+        }
+
         #region Helpers
 
         private static IDictionary<string, string> ParseDictionary(StringBuilder sb) => ParseDictionary(sb.ToString());

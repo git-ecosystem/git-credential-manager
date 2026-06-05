@@ -9,22 +9,20 @@ namespace GitCredentialManager;
 /// </summary>
 /// <remarks>
 /// <para>
-/// A successful response holds the resolved <see cref="ICredential"/> together
-/// with any non-credential output the provider wants to emit back to Git
-/// (see <see cref="AdditionalProperties"/>).
+/// A response is exactly one of three shapes:
 /// </para>
+/// <list type="bullet">
+///   <item><see cref="Ok(ICredential)"/> -- the provider produced a credential.</item>
+///   <item><see cref="Cancel"/> -- the provider declined and wants the whole
+///     credential acquisition pipeline to stop (emits <c>quit=1</c>; Git aborts
+///     the operation without a fallback interactive prompt).</item>
+///   <item><see cref="Yield"/> -- the provider has nothing to contribute but
+///     wants Git to continue trying other helpers or fall back to its built-in
+///     interactive prompt (emits an empty response).</item>
+/// </list>
 /// <para>
-/// A response can also be a <em>cancellation</em>: the provider was asked for a
-/// credential but deliberately declined to produce one (the user closed an
-/// auth prompt, no eligible account was found, and so on). A cancelled
-/// response has no <see cref="Credential"/> and causes the command layer to
-/// emit <c>quit=1</c> to Git, which terminates the credential acquisition
-/// pipeline without falling back to an interactive prompt.
-/// </para>
-/// <para>
-/// Use the <see cref="Ok(ICredential)"/> and <see cref="Cancel"/> factory
-/// methods rather than the constructor where possible; they make the intent
-/// of each call site obvious.
+/// Use the factory methods rather than the constructor where possible; they
+/// make the intent of each call site obvious.
 /// </para>
 /// <para>
 /// Strongly-typed properties for newer Git credential protocol fields
@@ -38,24 +36,31 @@ namespace GitCredentialManager;
 /// </remarks>
 public class GitResponse
 {
-    private GitResponse(ICredential credential, bool isCancelled)
+    private GitResponse(ICredential credential, bool isCancelled, bool isYielded)
     {
-        if (isCancelled && credential is not null)
+        if (isCancelled && isYielded)
         {
             throw new ArgumentException(
-                "A cancelled response cannot carry a credential.",
+                "A response cannot be both cancelled and yielded.");
+        }
+
+        if ((isCancelled || isYielded) && credential is not null)
+        {
+            throw new ArgumentException(
+                "A cancelled or yielded response cannot carry a credential.",
                 nameof(credential));
         }
 
-        if (!isCancelled && credential is null)
+        if (!isCancelled && !isYielded && credential is null)
         {
             throw new ArgumentNullException(
                 nameof(credential),
-                "A non-cancelled response must carry a credential. Use Cancel() instead.");
+                "A successful response must carry a credential. Use Cancel() or Yield() instead.");
         }
 
         Credential = credential;
         IsCancelled = isCancelled;
+        IsYielded = isYielded;
     }
 
     /// <summary>
@@ -63,7 +68,7 @@ public class GitResponse
     /// </summary>
     /// <remarks>Equivalent to <see cref="Ok(ICredential)"/>.</remarks>
     public GitResponse(ICredential credential)
-        : this(credential, isCancelled: false)
+        : this(credential, isCancelled: false, isYielded: false)
     {
     }
 
@@ -71,11 +76,12 @@ public class GitResponse
     /// Construct a successful response carrying the given credential.
     /// </summary>
     public static GitResponse Ok(ICredential credential) =>
-        new GitResponse(credential, isCancelled: false);
+        new GitResponse(credential, isCancelled: false, isYielded: false);
 
     /// <summary>
     /// Construct a cancellation response: the provider declined to produce a
-    /// credential for this request.
+    /// credential for this request, and the whole credential acquisition
+    /// pipeline should stop.
     /// </summary>
     /// <remarks>
     /// The command layer translates a cancelled response into a <c>quit=1</c>
@@ -85,20 +91,44 @@ public class GitResponse
     /// response are ignored.
     /// </remarks>
     public static GitResponse Cancel() =>
-        new GitResponse(credential: null, isCancelled: true);
+        new GitResponse(credential: null, isCancelled: true, isYielded: false);
+
+    /// <summary>
+    /// Construct a yielded response: the provider has nothing to contribute
+    /// for this request but does not want to stop other helpers from being
+    /// tried (or Git's interactive prompt from being shown).
+    /// </summary>
+    /// <remarks>
+    /// The command layer translates a yielded response into an empty response
+    /// on standard output (no credential fields, no <c>quit</c> signal). Git
+    /// then proceeds to the next helper in the chain or to its built-in
+    /// interactive prompt. Any <see cref="AdditionalProperties"/> set on a
+    /// yielded response are ignored.
+    /// </remarks>
+    public static GitResponse Yield() =>
+        new GitResponse(credential: null, isCancelled: false, isYielded: true);
 
     /// <summary>
     /// The credential resolved or generated for the request, or <see langword="null"/>
-    /// when <see cref="IsCancelled"/> is <see langword="true"/>.
+    /// when <see cref="IsCancelled"/> or <see cref="IsYielded"/> is <see langword="true"/>.
     /// </summary>
     public ICredential Credential { get; }
 
     /// <summary>
     /// <see langword="true"/> when the provider declined to produce a credential
-    /// for this request. The command layer translates this into a <c>quit=1</c>
-    /// signal to Git rather than any specific exit code.
+    /// for this request and wants the whole credential acquisition pipeline to
+    /// stop. The command layer translates this into a <c>quit=1</c> signal to
+    /// Git.
     /// </summary>
     public bool IsCancelled { get; }
+
+    /// <summary>
+    /// <see langword="true"/> when the provider has nothing to contribute but
+    /// does not want to stop the credential acquisition pipeline. The command
+    /// layer translates this into an empty response on standard output so Git
+    /// proceeds to the next helper or its interactive prompt.
+    /// </summary>
+    public bool IsYielded { get; }
 
     /// <summary>
     /// Additional, untyped output to be emitted alongside the credential.
@@ -106,7 +136,7 @@ public class GitResponse
     /// <remarks>
     /// This is the legacy escape hatch for non-credential output. New code
     /// should prefer typed properties on <see cref="GitResponse"/> as they
-    /// are added. Ignored on cancelled responses.
+    /// are added. Ignored on cancelled and yielded responses.
     /// </remarks>
     public IDictionary<string, string> AdditionalProperties { get; set; }
         = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);

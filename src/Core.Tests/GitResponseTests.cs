@@ -83,6 +83,26 @@ public class GitResponseTests
         var response = GitResponse.Cancel();
 
         Assert.True(response.IsCancelled);
+        Assert.False(response.IsYielded);
         Assert.Null(response.Credential);
+    }
+
+    [Fact]
+    public void GitResponse_Yield_ReturnsYieldedResponseWithNoCredential()
+    {
+        var response = GitResponse.Yield();
+
+        Assert.True(response.IsYielded);
+        Assert.False(response.IsCancelled);
+        Assert.Null(response.Credential);
+    }
+
+    [Fact]
+    public void GitResponse_Ok_IsNeitherCancelledNorYielded()
+    {
+        var response = GitResponse.Ok(new GitCredential("alice", "hunter2"));
+
+        Assert.False(response.IsCancelled);
+        Assert.False(response.IsYielded);
     }
 }
