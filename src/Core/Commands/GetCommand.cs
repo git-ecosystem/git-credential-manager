@@ -19,6 +19,20 @@ namespace GitCredentialManager.Commands
         protected override async Task ExecuteInternalAsync(GitRequest request, IHostProvider provider)
         {
             GitResponse response = await provider.GetCredentialAsync(request);
+
+            if (response.IsCancelled)
+            {
+                // Provider declined to produce a credential. Tell Git to stop the
+                // credential acquisition pipeline (no fallback interactive prompt)
+                // via the `quit` protocol attribute. This avoids re-prompting a
+                // user who has already explicitly cancelled in a GUI dialog.
+                Context.Trace.WriteLine("Provider cancelled the credential request; emitting quit=1.");
+                Context.Streams.Error.WriteLine("info: user cancelled the credential request.");
+                Context.Streams.Out.WriteLine("quit=1");
+                Context.Streams.Out.WriteLine();
+                return;
+            }
+
             ICredential credential = response.Credential;
 
             // Negotiate capabilities by intersecting what Git advertised with what GCM supports.
