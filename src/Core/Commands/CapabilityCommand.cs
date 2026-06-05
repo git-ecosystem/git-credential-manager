@@ -41,6 +41,8 @@ public class CapabilityCommand : Command
         EnsureArgument.NotNull(context, nameof(context));
         _context = context;
 
+        IsHidden = true;
+
         this.SetHandler(Execute);
     }
 

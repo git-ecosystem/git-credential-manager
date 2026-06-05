@@ -11,7 +11,10 @@ namespace GitCredentialManager.Commands
     public class GetCommand : GitCommandBase
     {
         public GetCommand(ICommandContext context, IHostProviderRegistry hostProviderRegistry)
-            : base(context, "get", "[Git] Return a stored credential", hostProviderRegistry) { }
+            : base(context, "get", "[Git] Return a stored credential", hostProviderRegistry)
+        {
+            IsHidden = true;
+        }
 
         protected override async Task ExecuteInternalAsync(GitRequest request, IHostProvider provider)
         {
