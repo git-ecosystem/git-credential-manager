@@ -121,6 +121,31 @@ namespace GitCredentialManager.Tests.Commands
             Assert.DoesNotContain("capability", actualOutput);
         }
 
+        [Fact]
+        public async Task GetCommand_ExecuteAsync_CancelledResponse_EmitsQuitAndNoCredential()
+        {
+            // A provider that declines to produce a credential (e.g. the user closed
+            // an auth prompt) returns GitResponse.Cancel(); the command MUST emit
+            // `quit=1` so Git aborts the credential acquisition pipeline rather than
+            // falling back to an interactive prompt that re-asks the user. No
+            // credential fields must be emitted.
+            var stdin = "protocol=https\nhost=example.com\n\n";
+
+            var providerMock = new Mock<IHostProvider>();
+            providerMock.Setup(x => x.GetCredentialAsync(It.IsAny<GitRequest>()))
+                        .ReturnsAsync(GitResponse.Cancel());
+            var providerRegistry = new TestHostProviderRegistry { Provider = providerMock.Object };
+            var context = new TestCommandContext { Streams = { In = stdin } };
+
+            var command = new GetCommand(context, providerRegistry);
+
+            await command.ExecuteAsync();
+
+            string actualOutput = context.Streams.Out.ToString().Replace("\r\n", "\n");
+
+            Assert.Equal("quit=1\n\n", actualOutput);
+        }
+
         #region Helpers
 
         private static IDictionary<string, string> ParseDictionary(StringBuilder sb) => ParseDictionary(sb.ToString());

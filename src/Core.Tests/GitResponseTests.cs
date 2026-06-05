@@ -52,4 +52,37 @@ public class GitResponseTests
         Assert.Single(response.AdditionalProperties);
         Assert.Equal("allow", response.AdditionalProperties["ntlm"]);
     }
+
+    [Fact]
+    public void GitResponse_Constructor_NullCredential_Throws()
+    {
+        // The non-cancelled ctor requires a credential. Use Cancel() for the no-credential case.
+        Assert.Throws<System.ArgumentNullException>(() => new GitResponse(null));
+    }
+
+    [Fact]
+    public void GitResponse_Ok_ReturnsSuccessfulResponseWithCredential()
+    {
+        ICredential credential = new GitCredential("alice", "hunter2");
+
+        var response = GitResponse.Ok(credential);
+
+        Assert.Same(credential, response.Credential);
+        Assert.False(response.IsCancelled);
+    }
+
+    [Fact]
+    public void GitResponse_Ok_NullCredential_Throws()
+    {
+        Assert.Throws<System.ArgumentNullException>(() => GitResponse.Ok(null));
+    }
+
+    [Fact]
+    public void GitResponse_Cancel_ReturnsCancellationResponseWithNoCredential()
+    {
+        var response = GitResponse.Cancel();
+
+        Assert.True(response.IsCancelled);
+        Assert.Null(response.Credential);
+    }
 }
