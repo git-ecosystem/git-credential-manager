@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -99,12 +100,38 @@ namespace GitCredentialManager.Tests.Commands
         }
 
         [Fact]
-        public async Task GetCommand_ExecuteAsync_NoNegotiatedCapabilities_EmitsNoCapabilityLines()
+        public async Task GetCommand_ExecuteAsync_NegotiatedCapability_EchoesIntersection()
         {
-            // GCM advertises no capabilities yet; even when Git declares some,
-            // the intersection is empty and no capability[] lines should be emitted.
+            // Git advertises authtype + state; GCM advertises state. The intersection
+            // (state) MUST be echoed back via `capability[]=state` per the protocol's
+            // capability negotiation rules. The unsupported authtype MUST NOT be
+            // echoed.
             ICredential testCredential = new GitCredential("alice", "hunter2");
             var stdin = "protocol=https\nhost=example.com\ncapability[]=authtype\ncapability[]=state\n\n";
+
+            var providerMock = new Mock<IHostProvider>();
+            providerMock.Setup(x => x.GetCredentialAsync(It.IsAny<GitRequest>()))
+                        .ReturnsAsync(new GitResponse(testCredential));
+            var providerRegistry = new TestHostProviderRegistry { Provider = providerMock.Object };
+            var context = new TestCommandContext { Streams = { In = stdin } };
+
+            var command = new GetCommand(context, providerRegistry);
+
+            await command.ExecuteAsync();
+
+            string actualOutput = context.Streams.Out.ToString().Replace("\r\n", "\n");
+
+            Assert.Contains("capability[]=state\n", actualOutput);
+            Assert.DoesNotContain("capability[]=authtype", actualOutput);
+        }
+
+        [Fact]
+        public async Task GetCommand_ExecuteAsync_NoCapabilityFromGit_EmitsNoCapabilityLines()
+        {
+            // Git declares no capabilities; even though GCM advertises state, the
+            // intersection is empty and no capability[] lines should be emitted.
+            ICredential testCredential = new GitCredential("alice", "hunter2");
+            var stdin = "protocol=https\nhost=example.com\n\n";
 
             var providerMock = new Mock<IHostProvider>();
             providerMock.Setup(x => x.GetCredentialAsync(It.IsAny<GitRequest>()))
@@ -168,6 +195,137 @@ namespace GitCredentialManager.Tests.Commands
             string actualOutput = context.Streams.Out.ToString().Replace("\r\n", "\n");
 
             Assert.Equal("\n", actualOutput);
+        }
+
+        [Fact]
+        public async Task GetCommand_ExecuteAsync_StateNegotiated_EmitsStateLinesWithGcmPrefix()
+        {
+            ICredential testCredential = new GitCredential("alice", "hunter2");
+            var response = GitResponse.Ok(testCredential);
+            response.SetState("github.account", "alice");
+            response.SetState("azure.tenant", "contoso");
+
+            var stdin = "protocol=https\nhost=example.com\ncapability[]=state\n\n";
+
+            var providerMock = new Mock<IHostProvider>();
+            providerMock.Setup(x => x.GetCredentialAsync(It.IsAny<GitRequest>()))
+                        .ReturnsAsync(response);
+            var providerRegistry = new TestHostProviderRegistry { Provider = providerMock.Object };
+            var context = new TestCommandContext { Streams = { In = stdin } };
+
+            var command = new GetCommand(context, providerRegistry);
+
+            await command.ExecuteAsync();
+
+            string actualOutput = context.Streams.Out.ToString().Replace("\r\n", "\n");
+
+            Assert.Contains("state[]=gcm.github.account=alice\n", actualOutput);
+            Assert.Contains("state[]=gcm.azure.tenant=contoso\n", actualOutput);
+        }
+
+        [Fact]
+        public async Task GetCommand_ExecuteAsync_StateNotNegotiated_DropsStateLines()
+        {
+            ICredential testCredential = new GitCredential("alice", "hunter2");
+            var response = GitResponse.Ok(testCredential);
+            response.SetState("github.account", "alice");
+
+            // Git did NOT advertise the state capability.
+            var stdin = "protocol=https\nhost=example.com\n\n";
+
+            var providerMock = new Mock<IHostProvider>();
+            providerMock.Setup(x => x.GetCredentialAsync(It.IsAny<GitRequest>()))
+                        .ReturnsAsync(response);
+            var providerRegistry = new TestHostProviderRegistry { Provider = providerMock.Object };
+            var context = new TestCommandContext { Streams = { In = stdin } };
+
+            var command = new GetCommand(context, providerRegistry);
+
+            await command.ExecuteAsync();
+
+            string actualOutput = context.Streams.Out.ToString();
+
+            Assert.DoesNotContain("state[]", actualOutput);
+        }
+
+        [Fact]
+        public async Task GetCommand_ExecuteAsync_ContinueNegotiated_EmitsContinue1AlongsideCredential()
+        {
+            ICredential testCredential = new GitCredential("alice", "hunter2");
+            var stdin = "protocol=https\nhost=example.com\ncapability[]=state\n\n";
+
+            var providerMock = new Mock<IHostProvider>();
+            providerMock.Setup(x => x.GetCredentialAsync(It.IsAny<GitRequest>()))
+                        .ReturnsAsync(GitResponse.Continue(testCredential));
+            var providerRegistry = new TestHostProviderRegistry { Provider = providerMock.Object };
+            var context = new TestCommandContext { Streams = { In = stdin } };
+
+            var command = new GetCommand(context, providerRegistry);
+
+            await command.ExecuteAsync();
+
+            string actualOutput = context.Streams.Out.ToString().Replace("\r\n", "\n");
+
+            Assert.Contains("username=alice\n", actualOutput);
+            Assert.Contains("password=hunter2\n", actualOutput);
+            Assert.Contains("continue=1\n", actualOutput);
+        }
+
+        [Fact]
+        public async Task GetCommand_ExecuteAsync_ContinueNotNegotiated_DropsContinueLine()
+        {
+            ICredential testCredential = new GitCredential("alice", "hunter2");
+            var stdin = "protocol=https\nhost=example.com\n\n";
+
+            var providerMock = new Mock<IHostProvider>();
+            providerMock.Setup(x => x.GetCredentialAsync(It.IsAny<GitRequest>()))
+                        .ReturnsAsync(GitResponse.Continue(testCredential));
+            var providerRegistry = new TestHostProviderRegistry { Provider = providerMock.Object };
+            var context = new TestCommandContext { Streams = { In = stdin } };
+
+            var command = new GetCommand(context, providerRegistry);
+
+            await command.ExecuteAsync();
+
+            string actualOutput = context.Streams.Out.ToString();
+
+            // Credential still emitted; continue silently dropped.
+            Assert.Contains("username=alice", actualOutput);
+            Assert.DoesNotContain("continue=", actualOutput);
+        }
+
+        [Fact]
+        public async Task GetCommand_ExecuteAsync_OutputOrdering_CapabilitiesFirstThenScalarsThenContinueThenState()
+        {
+            ICredential testCredential = new GitCredential("alice", "hunter2");
+            var response = GitResponse.Continue(testCredential);
+            response.SetState("k", "v");
+
+            var stdin = "protocol=https\nhost=example.com\ncapability[]=state\n\n";
+
+            var providerMock = new Mock<IHostProvider>();
+            providerMock.Setup(x => x.GetCredentialAsync(It.IsAny<GitRequest>()))
+                        .ReturnsAsync(response);
+            var providerRegistry = new TestHostProviderRegistry { Provider = providerMock.Object };
+            var context = new TestCommandContext { Streams = { In = stdin } };
+
+            var command = new GetCommand(context, providerRegistry);
+
+            await command.ExecuteAsync();
+
+            string actualOutput = context.Streams.Out.ToString().Replace("\r\n", "\n");
+
+            int posCapability = actualOutput.IndexOf("capability[]=state", StringComparison.Ordinal);
+            int posUsername   = actualOutput.IndexOf("username=", StringComparison.Ordinal);
+            int posContinue   = actualOutput.IndexOf("continue=1", StringComparison.Ordinal);
+            int posState      = actualOutput.IndexOf("state[]=", StringComparison.Ordinal);
+
+            Assert.True(posCapability >= 0 && posUsername > posCapability,
+                "capability[] must precede scalar fields");
+            Assert.True(posContinue > posUsername,
+                "continue=1 must follow scalar fields");
+            Assert.True(posState > posContinue,
+                "state[] must follow continue=1");
         }
 
         #region Helpers

@@ -28,6 +28,16 @@ public enum GitCapabilities
     /// No capabilities are supported.
     /// </summary>
     None = 0,
+
+    /// <summary>
+    /// The <c>state[]</c> and <c>continue</c> attributes are understood.
+    /// </summary>
+    /// <remarks>
+    /// Provides for opaque per-helper state that Git stores between
+    /// invocations and replays on the next call, plus a continuation
+    /// flag that signals a non-final authentication step is expected.
+    /// </remarks>
+    State = 1 << 0,
 }
 
 /// <summary>
@@ -56,6 +66,7 @@ public static class GitCapabilitiesUtils
         // handling is implemented.
         return name.ToLowerInvariant() switch
         {
+            "state" => GitCapabilities.State,
             _ => GitCapabilities.None,
         };
     }
@@ -78,6 +89,7 @@ public static class GitCapabilitiesUtils
         // protocol name distinct from its .NET enum name).
         return capability switch
         {
+            GitCapabilities.State => "state",
             GitCapabilities.None => throw new ArgumentException(
                 "Cannot render the None capability to a protocol name.",
                 nameof(capability)),

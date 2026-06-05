@@ -387,5 +387,81 @@ namespace GitCredentialManager.Tests
 
             Assert.Equal(GitCapabilities.None, request.Capabilities);
         }
+
+        [Fact]
+        public void GitRequest_State_NoStateInput_IsEmpty()
+        {
+            var dict = new Dictionary<string, string>
+            {
+                ["protocol"] = "https",
+                ["host"]     = "example.com",
+            };
+
+            var request = new GitRequest(dict);
+
+            Assert.Empty(request.State);
+        }
+
+        [Fact]
+        public void GitRequest_State_KeepsOnlyGcmPrefixedEntries_AndStripsPrefix()
+        {
+            var dict = new Dictionary<string, IList<string>>
+            {
+                ["protocol"] = new[] { "https" },
+                ["host"]     = new[] { "example.com" },
+                ["state"]    = new[]
+                {
+                    "gcm.github.account=alice",
+                    "other-helper.foo=bar", // not ours; ignored
+                    "gcm.azure.tenant=contoso",
+                },
+            };
+
+            var request = new GitRequest(dict);
+
+            Assert.Equal(2, request.State.Count);
+            Assert.Equal("alice", request.State["github.account"]);
+            Assert.Equal("contoso", request.State["azure.tenant"]);
+            Assert.False(request.State.ContainsKey("other-helper.foo"));
+        }
+
+        [Fact]
+        public void GitRequest_State_MalformedEntries_AreSilentlyDiscarded()
+        {
+            var dict = new Dictionary<string, IList<string>>
+            {
+                ["protocol"] = new[] { "https" },
+                ["host"]     = new[] { "example.com" },
+                ["state"]    = new[]
+                {
+                    "gcm.valid=ok",
+                    "gcm.no-equals", // malformed: no '='
+                    "=value-without-key", // malformed: empty key
+                    "gcm.=empty-key-after-prefix", // empty key after prefix-strip
+                },
+            };
+
+            var request = new GitRequest(dict);
+
+            Assert.Single(request.State);
+            Assert.Equal("ok", request.State["valid"]);
+        }
+
+        [Fact]
+        public void GitRequest_State_ValueMayContainEquals()
+        {
+            // Only the FIRST '=' separates key from value; the value may itself
+            // contain additional '=' characters.
+            var dict = new Dictionary<string, IList<string>>
+            {
+                ["protocol"] = new[] { "https" },
+                ["host"]     = new[] { "example.com" },
+                ["state"]    = new[] { "gcm.token=abc=def=ghi" },
+            };
+
+            var request = new GitRequest(dict);
+
+            Assert.Equal("abc=def=ghi", request.State["token"]);
+        }
     }
 }
