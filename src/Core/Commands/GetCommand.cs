@@ -1,6 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace GitCredentialManager.Commands
@@ -19,27 +17,27 @@ namespace GitCredentialManager.Commands
         protected override async Task ExecuteInternalAsync(GitRequest request, IHostProvider provider)
         {
             GitResponse response = await provider.GetCredentialAsync(request);
+            TextWriter stdout = Context.Streams.Out;
 
             if (response.IsCancelled)
             {
-                // Provider declined to produce a credential. Tell Git to stop the
-                // credential acquisition pipeline (no fallback interactive prompt)
-                // via the `quit` protocol attribute. This avoids re-prompting a
-                // user who has already explicitly cancelled in a GUI dialog.
+                // Tell Git to stop the credential acquisition pipeline (no
+                // fallback interactive prompt) via the `quit` protocol
+                // attribute. This avoids re-prompting a user who has already
+                // explicitly cancelled in a GUI dialog.
                 Context.Trace.WriteLine("Provider cancelled the credential request; emitting quit=1.");
                 Context.Streams.Error.WriteLine("info: user cancelled the credential request.");
-                Context.Streams.Out.WriteLine("quit=1");
-                Context.Streams.Out.WriteLine();
+                stdout.WriteLine("quit=1");
+                stdout.WriteLine();
                 return;
             }
 
             if (response.IsYielded)
             {
-                // Provider has nothing to contribute but does not want to stop the
-                // pipeline. Emit an empty response (just the terminating blank line)
-                // so Git proceeds to the next helper or its interactive prompt.
+                // Empty response (just the terminating blank line) lets Git
+                // proceed to the next helper or its interactive prompt.
                 Context.Trace.WriteLine("Provider yielded; emitting empty response.");
-                Context.Streams.Out.WriteLine();
+                stdout.WriteLine();
                 return;
             }
 
@@ -48,54 +46,100 @@ namespace GitCredentialManager.Commands
             // Negotiate capabilities by intersecting what Git advertised with what GCM supports.
             // Capability-gated output fields may only be emitted for capabilities in this set.
             GitCapabilities negotiated = request.Capabilities & Constants.SupportedCapabilities;
-            IList<string> negotiatedNames = GitCapabilitiesUtils.ToProtocolNames(negotiated).ToList();
+            bool stateCapNegotiated = (negotiated & GitCapabilities.State) != 0;
 
-            // We use a scalar dictionary so that empty string values (notably the
-            // empty username/password pair that signals Windows Integrated Authentication
-            // to Git) round-trip correctly. Multi-value protocol fields such as
-            // capability[] are written directly below.
-            var output = new Dictionary<string, string>();
+            Context.Trace.WriteLine($"Git capability: {request.Capabilities}");
+            Context.Trace.WriteLine($"GCM capabilities: {Constants.SupportedCapabilities}");
+            Context.Trace.WriteLine($"Negotiated capabilities: {negotiated}");
 
-            // Echo protocol, host, and path back at Git
+            Context.Trace.WriteLine("Writing credentials to output:");
+
+            //
+            // Capabilities
+            //
+            foreach (string name in GitCapabilitiesUtils.ToProtocolNames(negotiated))
+            {
+                stdout.WriteLine($"capability[]={name}");
+                Context.Trace.WriteLine($"\tcapability[]={name}");
+            }
+
+            //
+            // Common arguments
+            //
             if (request.Protocol != null)
             {
-                output["protocol"] = request.Protocol;
+                stdout.WriteLine($"protocol={request.Protocol}");
+                Context.Trace.WriteLine($"\tprotocol={request.Protocol}");
             }
             if (request.Host != null)
             {
-                output["host"] = request.Host;
+                stdout.WriteLine($"host={request.Host}");
+                Context.Trace.WriteLine($"\thost={request.Host}");
             }
             if (request.Path != null)
             {
-                output["path"] = request.Path;
+                stdout.WriteLine($"path={request.Path}");
+                Context.Trace.WriteLine($"\tpath={request.Path}");
             }
 
-            // Return the credential to Git (may be empty/empty for WIA)
-            output["username"] = credential.Account;
-            output["password"] = credential.Password;
+            //
+            // Credential
+            //
+            stdout.WriteLine($"username={credential.Account}");
+            Context.Trace.WriteLine($"\tusername={credential.Account}");
+            stdout.WriteLine($"password={credential.Password}");
+            Context.Trace.WriteLineSecrets("\tpassword={0}", new object[] { credential.Password });
 
-            // Write any additional output from the provider
+            //
+            // Custom additional properties
+            //
             foreach (var kvp in response.AdditionalProperties)
             {
-                output[kvp.Key] = kvp.Value;
+                stdout.WriteLine($"{kvp.Key}={kvp.Value}");
+                Context.Trace.WriteLine($"\t{kvp.Key}={kvp.Value}");
             }
 
-            Context.Trace.WriteLine("Writing credentials to output:");
-            Context.Trace.WriteDictionarySecrets(output, new []{ "password" }, StringComparer.OrdinalIgnoreCase);
-            if (negotiatedNames.Count > 0)
+            if (response.IsContinue)
             {
-                Context.Trace.WriteLine($"\tcapability[]={string.Join(",", negotiatedNames)}");
+                if (stateCapNegotiated)
+                {
+                    stdout.WriteLine($"{Constants.CredentialProtocol.ContinueKey}=1");
+                    Context.Trace.WriteLine($"\t{Constants.CredentialProtocol.ContinueKey}=1");
+                }
+                else
+                {
+                    // Dropping continue=1 changes the auth semantics: Git will treat this
+                    // credential as final and likely fail on the next 401!
+                    Context.Trace.WriteLine(
+                        "WARNING: Provider set continue=1 but the 'state' capability was not " +
+                        "negotiated with Git. Dropping continue=1; multistage authentication " +
+                        "will not work and the credential will likely fail on the next 401.");
+                }
             }
 
-            // Emit negotiated capabilities first, then the scalar fields.
-            // Always use the multi-value capability[]= form per the protocol.
-            foreach (string name in negotiatedNames)
+            if (response.State.Count > 0)
             {
-                Context.Streams.Out.WriteLine($"capability[]={name}");
+                if (stateCapNegotiated)
+                {
+                    foreach (var kvp in response.State)
+                    {
+                        string line =
+                            $"{Constants.CredentialProtocol.StateKey}[]=" +
+                            $"{Constants.CredentialProtocol.GcmStatePrefix}{kvp.Key}={kvp.Value}";
+                        stdout.WriteLine(line);
+                        Context.Trace.WriteLine($"\t{line}");
+                    }
+                }
+                else
+                {
+                    Context.Trace.WriteLine(
+                        $"Provider set {response.State.Count} state entries but the 'state' " +
+                        "capability was not negotiated with Git; dropping.");
+                }
             }
 
-            // Write the scalar values (and the terminating blank line) to standard out.
-            Context.Streams.Out.WriteDictionary(output);
+            // Terminating blank line per the credential protocol.
+            stdout.WriteLine();
         }
     }
 }

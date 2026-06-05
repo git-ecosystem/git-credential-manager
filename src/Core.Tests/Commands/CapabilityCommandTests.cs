@@ -21,8 +21,8 @@ public class CapabilityCommandTests
         // older Gits and helpers treat anything else as "no capabilities supported".
         Assert.StartsWith("version 0\n", actualOutput);
 
-        // GCM advertises no capabilities yet; only the version line should be emitted.
-        Assert.Equal("version 0\n", actualOutput);
+        // GCM advertises the state capability.
+        Assert.Equal("version 0\ncapability state\n", actualOutput);
     }
 
     [Fact]

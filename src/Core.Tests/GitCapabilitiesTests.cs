@@ -5,11 +5,12 @@ namespace GitCredentialManager.Tests;
 public class GitCapabilitiesTests
 {
     [Fact]
-    public void Advertised_DefaultsToNone()
+    public void Advertised_IncludesState()
     {
-        // Until specific capability handling is wired up piecemeal, GCM
-        // advertises no capabilities back to Git.
-        Assert.Equal(GitCapabilities.None, Constants.SupportedCapabilities);
+        // GCM advertises support for the state capability so the negotiation
+        // handshake is functional end-to-end. Individual providers opt in to
+        // emitting state/continue piecemeal.
+        Assert.True(Constants.SupportedCapabilities.HasFlag(GitCapabilities.State));
     }
 
     [Fact]
@@ -28,14 +29,34 @@ public class GitCapabilitiesTests
     }
 
     [Fact]
+    public void ParseName_State_ReturnsStateFlag()
+    {
+        Assert.Equal(GitCapabilities.State, GitCapabilitiesUtils.ParseName("state"));
+        Assert.Equal(GitCapabilities.State, GitCapabilitiesUtils.ParseName("STATE"));
+        Assert.Equal(GitCapabilities.State, GitCapabilitiesUtils.ParseName("State"));
+    }
+
+    [Fact]
     public void ToProtocolName_None_Throws()
     {
         Assert.Throws<System.ArgumentException>(() => GitCapabilitiesUtils.ToProtocolName(GitCapabilities.None));
     }
 
     [Fact]
+    public void ToProtocolName_State_ReturnsStateString()
+    {
+        Assert.Equal("state", GitCapabilitiesUtils.ToProtocolName(GitCapabilities.State));
+    }
+
+    [Fact]
     public void ToProtocolNames_None_ReturnsEmpty()
     {
         Assert.Empty(GitCapabilitiesUtils.ToProtocolNames(GitCapabilities.None));
+    }
+
+    [Fact]
+    public void ToProtocolNames_State_ReturnsStateOnly()
+    {
+        Assert.Equal(new[] { "state" }, GitCapabilitiesUtils.ToProtocolNames(GitCapabilities.State));
     }
 }
