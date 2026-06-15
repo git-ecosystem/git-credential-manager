@@ -133,6 +133,17 @@ namespace GitCredentialManager
 
         private void OnException(Exception ex, InvocationContext invocationContext)
         {
+            // A user interrupt (Ctrl+C during an interactive prompt) is not an
+            // error: exit quietly with the conventional interrupted code and
+            // without the "fatal:" banner. The terminal has already been
+            // restored by the input adapter that threw.
+            if (ContainsInterrupt(ex))
+            {
+                Context.Trace.WriteLine("Operation interrupted by the user (Ctrl+C).");
+                invocationContext.ExitCode = 130;
+                return;
+            }
+
             if (ex is AggregateException aex)
             {
                 aex.Handle(WriteException);
@@ -143,6 +154,29 @@ namespace GitCredentialManager
             }
 
             invocationContext.ExitCode = -1;
+        }
+
+        internal static bool ContainsInterrupt(Exception ex)
+        {
+            while (ex is not null)
+            {
+                switch (ex)
+                {
+                    case InterruptedException:
+                        return true;
+                    case AggregateException aex:
+                        foreach (Exception inner in aex.InnerExceptions)
+                        {
+                            if (ContainsInterrupt(inner))
+                            {
+                                return true;
+                            }
+                        }
+                        return false;
+                }
+                ex = ex.InnerException;
+            }
+            return false;
         }
 
         private bool WriteException(Exception ex)

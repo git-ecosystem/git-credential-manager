@@ -3,6 +3,8 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using GitCredentialManager.Interop.Linux;
+using GitCredentialManager.Interop.MacOS;
 using GitCredentialManager.Interop.Posix;
 using GitCredentialManager.Interop.Windows;
 using Spectre.Console;
@@ -48,7 +50,8 @@ public static class AnsiConsoleFactory
             Interactive = InteractionSupport.Yes,
         });
 
-        return new AnsiConsoleWithInput(inner, new NullAnsiConsoleInput());
+        IAnsiConsoleInput input = TryCreatePlatformInput() ?? new NullAnsiConsoleInput();
+        return new AnsiConsoleWithInput(inner, input);
     }
 
     /// <summary>
@@ -112,6 +115,29 @@ public static class AnsiConsoleFactory
         catch (PlatformNotSupportedException)
         {
             // Unknown platform — fall back to headless.
+        }
+        return null;
+    }
+
+    private static IAnsiConsoleInput TryCreatePlatformInput()
+    {
+        try
+        {
+            if (PlatformUtils.IsMacOS())
+            {
+                return new MacOSAnsiConsoleInput();
+            }
+            if (PlatformUtils.IsLinux())
+            {
+                return new LinuxAnsiConsoleInput();
+            }
+        }
+        catch (IOException)
+        {
+            // No controlling TTY or termios call failed — fall back to no-op input.
+        }
+        catch (PlatformNotSupportedException)
+        {
         }
         return null;
     }
