@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using GitCredentialManager.UI;
 
 namespace GitCredentialManager.Tests.Objects
 {
@@ -15,6 +16,7 @@ namespace GitCredentialManager.Tests.Objects
 
             Streams = new TestStandardStreams();
             Terminal = new TestTerminal();
+            Console = new TestConsoleService();
             SessionManager = new TestSessionManager();
             Trace = new NullTrace();
             Trace2 = new NullTrace2();
@@ -32,6 +34,7 @@ namespace GitCredentialManager.Tests.Objects
         public TestSettings Settings { get; set; }
         public TestStandardStreams Streams { get; set; }
         public TestTerminal Terminal { get; set; }
+        public TestConsoleService Console { get; set; }
         public TestSessionManager SessionManager { get; set; }
         public ITrace Trace { get; set; }
         public ITrace2 Trace2 { get; set; }
@@ -58,6 +61,8 @@ namespace GitCredentialManager.Tests.Objects
         ISettings ICommandContext.Settings => Settings;
 
         ITerminal ICommandContext.Terminal => Terminal;
+
+        IConsoleService ICommandContext.Console => Console;
 
         ISessionManager ICommandContext.SessionManager => SessionManager;
 

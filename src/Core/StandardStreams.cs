@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Text;
 
 namespace GitCredentialManager
 {
@@ -23,6 +22,21 @@ namespace GitCredentialManager
         /// The standard error text stream connected back to the calling process, typically Git.
         /// </summary>
         TextWriter Error { get; }
+
+        /// <summary>
+        /// Returns true if the <see cref="In"/> stream is redirected, and false otherwise.
+        /// </summary>
+        bool IsInputRedirected { get; }
+
+        /// <summary>
+        /// Returns true if the <see cref="Out"/> stream is redirected, and false otherwise.
+        /// </summary>
+        bool IsOutputRedirected { get; }
+
+        /// <summary>
+        /// Returns true if the <see cref="Error"/> stream is redirected, and false otherwise.
+        /// </summary>
+        bool IsErrorRedirected { get; }
     }
 
     public class StandardStreams : IStandardStreams
@@ -79,5 +93,9 @@ namespace GitCredentialManager
                 return _stdErr;
             }
         }
+
+        public bool IsInputRedirected => Console.IsInputRedirected;
+        public bool IsOutputRedirected => Console.IsOutputRedirected;
+        public bool IsErrorRedirected => Console.IsErrorRedirected;
     }
 }

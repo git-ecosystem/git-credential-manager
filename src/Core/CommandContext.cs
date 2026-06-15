@@ -5,6 +5,7 @@ using GitCredentialManager.Interop.Linux;
 using GitCredentialManager.Interop.MacOS;
 using GitCredentialManager.Interop.Posix;
 using GitCredentialManager.Interop.Windows;
+using GitCredentialManager.Tty;
 
 namespace GitCredentialManager
 {
@@ -37,6 +38,13 @@ namespace GitCredentialManager
         /// The attached terminal (TTY) to this process tree.
         /// </summary>
         ITerminal Terminal { get; }
+
+        /// <summary>
+        /// The user-facing console: output-only messages (diagnostics, QR codes) go to
+        /// standard error, and interactive prompts go to the controlling terminal. See
+        /// <see cref="IConsoleService"/>.
+        /// </summary>
+        IConsoleService Console { get; }
 
         /// <summary>
         /// Provides services regarding user sessions.
@@ -95,6 +103,7 @@ namespace GitCredentialManager
             InstallationDirectory = GetInstallationDirectory();
 
             Streams = new StandardStreams();
+            Console = new ConsoleService(Streams);
             Trace   = new Trace();
             Trace2  = new Trace2(this);
 
@@ -201,6 +210,8 @@ namespace GitCredentialManager
         public IStandardStreams Streams { get; }
 
         public ITerminal Terminal { get; }
+
+        public IConsoleService Console { get; }
 
         public ISessionManager SessionManager { get; }
 
