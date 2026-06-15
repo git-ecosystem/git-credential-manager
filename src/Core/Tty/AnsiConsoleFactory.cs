@@ -3,6 +3,8 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using GitCredentialManager.Interop.Posix;
+using GitCredentialManager.Interop.Windows;
 using Spectre.Console;
 
 namespace GitCredentialManager.Tty;
@@ -13,11 +15,11 @@ namespace GitCredentialManager.Tty;
 /// <remarks>
 /// The credential helper's stdin and stdout are reserved for the Git credential
 /// protocol; we cannot let Spectre.Console talk to them. Real platform implementations
-/// (added in follow-on commits) route Spectre over the TTY bypass (<c>/dev/tty</c> on
-/// POSIX, <c>CONIN$</c>/<c>CONOUT$</c> on Windows). When no TTY is reachable, the
-/// factory returns a no-op console: prompts immediately return null and rendered
-/// output is discarded. Callers must treat a null prompt result as "no user
-/// available" and respond accordingly (typically by returning <c>Credential.NotFound</c>).
+/// route Spectre over the TTY bypass (<c>/dev/tty</c> on POSIX, <c>CONIN$</c>/<c>CONOUT$</c>
+/// on Windows). When no TTY is reachable, the factory returns a no-op console:
+/// prompts immediately return null and rendered output is discarded. Callers must
+/// treat a null prompt result as "no user available" and respond accordingly
+/// (typically by returning <c>Credential.NotFound</c>).
 /// </remarks>
 public static class AnsiConsoleFactory
 {
@@ -25,13 +27,28 @@ public static class AnsiConsoleFactory
     /// Construct an <see cref="IAnsiConsole"/> for the current process.
     /// </summary>
     /// <remarks>
-    /// At this stage of the implementation the factory always returns a no-op console.
-    /// Subsequent commits introduce platform-specific input/output adapters and the
-    /// real selection logic.
+    /// Attempts to open the platform TTY bypass for output; falls back to a
+    /// headless no-op console when the device is unavailable. Input adapters
+    /// land in follow-on commits — until then the returned console's
+    /// <see cref="IAnsiConsoleInput"/> always reports no key available.
     /// </remarks>
     public static IAnsiConsole Create()
     {
-        return CreateHeadless();
+        IAnsiConsoleOutput output = TryCreatePlatformOutput();
+        if (output is null)
+        {
+            return CreateHeadless();
+        }
+
+        IAnsiConsole inner = AnsiConsole.Create(new AnsiConsoleSettings
+        {
+            Out = output,
+            Ansi = AnsiSupport.Yes,
+            ColorSystem = ColorSystemSupport.Detect,
+            Interactive = InteractionSupport.Yes,
+        });
+
+        return new AnsiConsoleWithInput(inner, new NullAnsiConsoleInput());
     }
 
     /// <summary>
@@ -75,6 +92,30 @@ public static class AnsiConsoleFactory
         return new AnsiConsoleWithInput(inner, new NullAnsiConsoleInput());
     }
 
+    private static IAnsiConsoleOutput TryCreatePlatformOutput()
+    {
+        try
+        {
+            if (PlatformUtils.IsWindows())
+            {
+                return new WindowsAnsiConsoleOutput();
+            }
+            if (PlatformUtils.IsPosix())
+            {
+                return new PosixAnsiConsoleOutput();
+            }
+        }
+        catch (IOException)
+        {
+            // No controlling TTY — fall back to headless.
+        }
+        catch (PlatformNotSupportedException)
+        {
+            // Unknown platform — fall back to headless.
+        }
+        return null;
+    }
+
     private sealed class NullAnsiConsoleOutput : IAnsiConsoleOutput
     {
         public TextWriter Writer { get; } = TextWriter.Null;
@@ -116,3 +157,4 @@ public static class AnsiConsoleFactory
         }
     }
 }
+

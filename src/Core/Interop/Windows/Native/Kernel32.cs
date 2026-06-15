@@ -639,6 +639,12 @@ namespace GitCredentialManager.Interop.Windows.Native
             /// </summary>
             WrapAtEolOutput = 0x0002,
 
+            /// <summary>
+            /// When writing with WriteFile / WriteConsole / echoing, sequences in the output
+            /// stream are parsed for VT100 / ANSI escape sequences. Windows 10+ only.
+            /// </summary>
+            EnableVirtualTerminalProcessing = 0x0004,
+
             AllFlags = ProcessedInput
                      | LineInput
                      | EchoInput
@@ -647,6 +653,7 @@ namespace GitCredentialManager.Interop.Windows.Native
                      | InsertMode
                      | QuickEdit
                      | ProcessedOuput
-                     | WrapAtEolOutput,
+                     | WrapAtEolOutput
+                     | EnableVirtualTerminalProcessing,
         }
 }
