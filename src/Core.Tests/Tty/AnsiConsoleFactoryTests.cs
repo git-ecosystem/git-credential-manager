@@ -12,7 +12,7 @@ public class AnsiConsoleFactoryTests
     [Fact]
     public void Create_ReturnsNonNullConsole()
     {
-        IAnsiConsole console = AnsiConsoleFactory.Create();
+        IAnsiConsole console = AnsiConsoleFactory.CreateForTty();
 
         Assert.NotNull(console);
     }
@@ -23,7 +23,7 @@ public class AnsiConsoleFactoryTests
         // Until commits 3/4 wire up real input adapters, Create() always returns a
         // console whose Input rejects every read. Headless and platform output paths
         // share this property.
-        IAnsiConsole console = AnsiConsoleFactory.Create();
+        IAnsiConsole console = AnsiConsoleFactory.CreateForTty();
 
         Assert.Null(console.Input.ReadKey(intercept: true));
     }

@@ -29,12 +29,12 @@ public static class AnsiConsoleFactory
     /// Construct an <see cref="IAnsiConsole"/> for the current process.
     /// </summary>
     /// <remarks>
-    /// Attempts to open the platform TTY bypass for output; falls back to a
-    /// headless no-op console when the device is unavailable. Input adapters
-    /// land in follow-on commits — until then the returned console's
-    /// <see cref="IAnsiConsoleInput"/> always reports no key available.
+    /// Attempts to open the platform TTY bypass for output and input. Falls
+    /// back to a headless no-op console when output is unavailable; if only
+    /// input is unavailable, reads report no key while TTY output remains
+    /// available.
     /// </remarks>
-    public static IAnsiConsole Create()
+    public static IAnsiConsole CreateForTty()
     {
         IAnsiConsoleOutput output = TryCreatePlatformOutput();
         if (output is null)
@@ -42,13 +42,15 @@ public static class AnsiConsoleFactory
             return CreateHeadless();
         }
 
-        IAnsiConsole inner = AnsiConsole.Create(new AnsiConsoleSettings
-        {
-            Out = output,
-            Ansi = AnsiSupport.Yes,
-            ColorSystem = ColorSystemSupport.Detect,
-            Interactive = InteractionSupport.Yes,
-        });
+        IAnsiConsole inner = AnsiConsole.Create(
+            new AnsiConsoleSettings
+            {
+                Out = output,
+                Ansi = AnsiSupport.Yes,
+                ColorSystem = ColorSystemSupport.Detect,
+                Interactive = InteractionSupport.Yes,
+            }
+        );
 
         IAnsiConsoleInput input = TryCreatePlatformInput() ?? new NullAnsiConsoleInput();
         return new AnsiConsoleWithInput(inner, input);
@@ -59,7 +61,7 @@ public static class AnsiConsoleFactory
     /// for diagnostics and other messages.
     /// </summary>
     /// <remarks>
-    /// Unlike <see cref="Create"/> this never opens the controlling TTY: standard error
+    /// Unlike <see cref="CreateForTty"/> this never opens the controlling TTY: standard error
     /// is always available (and capturable via <c>2&gt;</c>), so messages are never
     /// silently dropped even when no terminal is attached. The console carries no input.
     /// Styling follows whether standard error is redirected: coloured when connected to a
@@ -84,13 +86,15 @@ public static class AnsiConsoleFactory
     /// </summary>
     internal static IAnsiConsole CreateHeadless()
     {
-        IAnsiConsole inner = AnsiConsole.Create(new AnsiConsoleSettings
-        {
-            Out = new NullAnsiConsoleOutput(),
-            Ansi = AnsiSupport.No,
-            ColorSystem = ColorSystemSupport.NoColors,
-            Interactive = InteractionSupport.No,
-        });
+        IAnsiConsole inner = AnsiConsole.Create(
+            new AnsiConsoleSettings
+            {
+                Out = new NullAnsiConsoleOutput(),
+                Ansi = AnsiSupport.No,
+                ColorSystem = ColorSystemSupport.NoColors,
+                Interactive = InteractionSupport.No,
+            }
+        );
 
         return new AnsiConsoleWithInput(inner, new NullAnsiConsoleInput());
     }
@@ -123,6 +127,10 @@ public static class AnsiConsoleFactory
     {
         try
         {
+            if (PlatformUtils.IsWindows())
+            {
+                return new WindowsAnsiConsoleInput();
+            }
             if (PlatformUtils.IsMacOS())
             {
                 return new MacOSAnsiConsoleInput();
@@ -183,4 +191,3 @@ public static class AnsiConsoleFactory
         }
     }
 }
-

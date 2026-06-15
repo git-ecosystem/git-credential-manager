@@ -235,6 +235,29 @@ namespace GitCredentialManager.Interop.Windows.Native
         public static extern IntPtr GetCommandLine();
 
         /// <summary>
+        /// Reads input records from the console input buffer. Each record describes one
+        /// event (key down/up, mouse motion, focus, window resize, etc.).
+        /// </summary>
+        [DllImport(LibraryName, EntryPoint = "ReadConsoleInputW", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool ReadConsoleInput(
+            [In] SafeFileHandle consoleInputHandle,
+            [Out] INPUT_RECORD[] buffer,
+            [In, MarshalAs(UnmanagedType.U4)] uint bufferLength,
+            [Out, MarshalAs(UnmanagedType.U4)] out uint eventsRead);
+
+        /// <summary>
+        /// Returns the number of unread input records currently in the console input buffer.
+        /// </summary>
+        [DllImport(LibraryName, CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool GetNumberOfConsoleInputEvents(
+            [In] SafeFileHandle consoleInputHandle,
+            [Out, MarshalAs(UnmanagedType.U4)] out uint numberOfEvents);
+
+        public const ushort KEY_EVENT = 0x0001;
+
+        /// <summary>
         /// Frees the specified local memory object and invalidates its handle.
         /// </summary>
         /// <param name="ptr">
@@ -656,4 +679,39 @@ namespace GitCredentialManager.Interop.Windows.Native
                      | WrapAtEolOutput
                      | EnableVirtualTerminalProcessing,
         }
+
+    [StructLayout(LayoutKind.Explicit)]
+    public struct INPUT_RECORD
+    {
+        [FieldOffset(0)] public ushort EventType;
+        [FieldOffset(4)] public KEY_EVENT_RECORD KeyEvent;
+    }
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    public struct KEY_EVENT_RECORD
+    {
+        [MarshalAs(UnmanagedType.Bool)] public bool bKeyDown;
+        public ushort wRepeatCount;
+        public ushort wVirtualKeyCode;
+        public ushort wVirtualScanCode;
+        public char UnicodeChar;
+        public ControlKeyState dwControlKeyState;
+    }
+
+    /// <summary>
+    /// Flags reported in <see cref="KEY_EVENT_RECORD.dwControlKeyState"/>.
+    /// </summary>
+    [Flags]
+    public enum ControlKeyState : uint
+    {
+        RightAltPressed  = 0x0001,
+        LeftAltPressed   = 0x0002,
+        RightCtrlPressed = 0x0004,
+        LeftCtrlPressed  = 0x0008,
+        ShiftPressed     = 0x0010,
+        NumlockOn        = 0x0020,
+        ScrolllockOn     = 0x0040,
+        CapslockOn       = 0x0080,
+        EnhancedKey      = 0x0100,
+    }
 }

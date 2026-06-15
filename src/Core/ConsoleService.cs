@@ -40,7 +40,7 @@ public class ConsoleService : IConsoleService
     private readonly IAnsiConsole _stderrConsole;
 
     public ConsoleService(IStandardStreams streams)
-        : this(AnsiConsoleFactory.Create(), AnsiConsoleFactory.CreateForWriter(streams.Error, streams.IsErrorRedirected))
+        : this(AnsiConsoleFactory.CreateForTty(), AnsiConsoleFactory.CreateForWriter(streams.Error, streams.IsErrorRedirected))
     { }
 
     public ConsoleService(IAnsiConsole ttyConsole, IAnsiConsole stderrConsole)
