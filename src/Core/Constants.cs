@@ -172,6 +172,10 @@ namespace GitCredentialManager
             public const string WwwAuthenticateNtlmScheme      = "NTLM";
 
             public const string MimeTypeJson = "application/json";
+            public const string MimeTypeFormUrlEncoded = "application/x-www-form-urlencoded";
+
+            public const string MethodGet = "GET";
+            public const string MethodPost = "POST";
         }
 
         public static class GitConfiguration

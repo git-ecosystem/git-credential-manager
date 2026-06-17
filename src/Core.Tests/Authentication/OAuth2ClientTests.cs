@@ -174,6 +174,89 @@ namespace GitCredentialManager.Tests.Authentication
                 client.GetAuthorizationCodeAsync(expectedScopes, browser, extraParams, CancellationToken.None));
         }
 
+        [Theory]
+        [InlineData(OAuth2ResponseMode.Query, "query")]
+        [InlineData(OAuth2ResponseMode.Fragment, "fragment")]
+        [InlineData(OAuth2ResponseMode.FormPost, "form_post")]
+        public async Task OAuth2Client_GetAuthorizationCodeAsync_NonDefaultResponseMode_SendsResponseModeParameter(
+            OAuth2ResponseMode responseMode, string expectedValue)
+        {
+            const string expectedAuthCode = "68c39cbd8d";
+
+            var baseUri = new Uri("https://example.com");
+            OAuth2ServerEndpoints endpoints = CreateEndpoints(baseUri);
+
+            var httpHandler = new TestHttpMessageHandler {ThrowOnUnexpectedRequest = true};
+
+            string[] expectedScopes = {"read", "write", "delete"};
+
+            OAuth2Application app = CreateTestApplication();
+
+            var server = new TestOAuth2Server(endpoints);
+            server.RegisterApplication(app);
+            server.Bind(httpHandler);
+            server.TokenGenerator.AuthCodes.Add(expectedAuthCode);
+
+            server.AuthorizationEndpointInvoked += (_, request) =>
+            {
+                IDictionary<string, string> actualParams = request.RequestUri.GetQueryParameters();
+                Assert.True(actualParams.TryGetValue(
+                    OAuth2Constants.AuthorizationEndpoint.ResponseModeParameter, out string actualMode));
+                Assert.Equal(expectedValue, actualMode);
+            };
+
+            IOAuth2WebBrowser browser = new TestOAuth2WebBrowser(httpHandler);
+
+            var trace2 = new NullTrace2();
+            OAuth2Client client = new OAuth2Client(
+                new HttpClient(httpHandler), endpoints, TestClientId, trace2,
+                TestRedirectUri, TestClientSecret, responseMode: responseMode);
+
+            OAuth2AuthorizationCodeResult result = await client.GetAuthorizationCodeAsync(
+                expectedScopes, browser, null, CancellationToken.None);
+
+            Assert.Equal(expectedAuthCode, result.Code);
+        }
+
+        [Fact]
+        public async Task OAuth2Client_GetAuthorizationCodeAsync_DefaultResponseMode_OmitsResponseModeParameter()
+        {
+            const string expectedAuthCode = "68c39cbd8d";
+
+            var baseUri = new Uri("https://example.com");
+            OAuth2ServerEndpoints endpoints = CreateEndpoints(baseUri);
+
+            var httpHandler = new TestHttpMessageHandler {ThrowOnUnexpectedRequest = true};
+
+            string[] expectedScopes = {"read", "write", "delete"};
+
+            OAuth2Application app = CreateTestApplication();
+
+            var server = new TestOAuth2Server(endpoints);
+            server.RegisterApplication(app);
+            server.Bind(httpHandler);
+            server.TokenGenerator.AuthCodes.Add(expectedAuthCode);
+
+            server.AuthorizationEndpointInvoked += (_, request) =>
+            {
+                IDictionary<string, string> actualParams = request.RequestUri.GetQueryParameters();
+                Assert.False(actualParams.ContainsKey(
+                    OAuth2Constants.AuthorizationEndpoint.ResponseModeParameter));
+            };
+
+            IOAuth2WebBrowser browser = new TestOAuth2WebBrowser(httpHandler);
+
+            var trace2 = new NullTrace2();
+            OAuth2Client client = new OAuth2Client(
+                new HttpClient(httpHandler), endpoints, TestClientId, trace2,
+                TestRedirectUri, TestClientSecret, responseMode: OAuth2ResponseMode.Default);
+
+            OAuth2AuthorizationCodeResult result = await client.GetAuthorizationCodeAsync(
+                expectedScopes, browser, null, CancellationToken.None);
+
+            Assert.Equal(expectedAuthCode, result.Code);
+        }
+
         [Fact]
         public async Task OAuth2Client_GetDeviceCodeAsync()
         {

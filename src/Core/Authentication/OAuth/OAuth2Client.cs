@@ -74,6 +74,7 @@ namespace GitCredentialManager.Authentication.OAuth
         private readonly ITrace2 _trace2;
         private readonly string _clientSecret;
         private readonly bool _addAuthHeader;
+        private readonly OAuth2ResponseMode _responseMode;
 
         private IOAuth2CodeGenerator _codeGenerator;
 
@@ -83,7 +84,8 @@ namespace GitCredentialManager.Authentication.OAuth
             ITrace2 trace2,
             Uri redirectUri = null,
             string clientSecret = null,
-            bool addAuthHeader = true)
+            bool addAuthHeader = true,
+            OAuth2ResponseMode responseMode = OAuth2ResponseMode.Default)
         {
             _httpClient = httpClient;
             _endpoints = endpoints;
@@ -92,6 +94,7 @@ namespace GitCredentialManager.Authentication.OAuth
             _redirectUri = redirectUri;
             _clientSecret = clientSecret;
             _addAuthHeader = addAuthHeader;
+            _responseMode = responseMode;
         }
 
         public IOAuth2CodeGenerator CodeGenerator
@@ -119,6 +122,13 @@ namespace GitCredentialManager.Authentication.OAuth
                     OAuth2Constants.AuthorizationEndpoint.PkceChallengeMethodS256,
                 [OAuth2Constants.AuthorizationEndpoint.PkceChallengeParameter] = codeChallenge
             };
+
+            // Only send the parameter when requesting a non-default mode to keep the request unchanged otherwise.
+            if (_responseMode != OAuth2ResponseMode.Default)
+            {
+                queryParams[OAuth2Constants.AuthorizationEndpoint.ResponseModeParameter] =
+                    _responseMode.GetParameterValue();
+            }
 
             if (extraQueryParams?.Count > 0)
             {
@@ -158,25 +168,27 @@ namespace GitCredentialManager.Authentication.OAuth
 
             Uri authorizationUri = authorizationUriBuilder.Uri;
 
-            // Open the browser at the request URI to start the authorization code grant flow.
-            Uri finalUri = await browser.GetAuthenticationCodeAsync(authorizationUri, redirectUri, ct);
+            // Open the browser at the request URI to start the authorization code grant flow, and
+            // intercept the response parameters delivered to the redirect URI.
+            IDictionary<string, string> responseParams =
+                await browser.GetAuthenticationResponseAsync(authorizationUri, redirectUri, _responseMode, ct);
 
             // Check for errors serious enough we should terminate the flow, such as if the state value returned does
             // not match the one we passed. This indicates a badly implemented Authorization Server, or worse, some
             // form of failed MITM or replay attack.
-            IDictionary<string, string> redirectQueryParams = finalUri.GetQueryParameters();
-            if (!redirectQueryParams.TryGetValue(OAuth2Constants.AuthorizationGrantResponse.StateParameter, out string replyState))
-            {
-                throw new Trace2OAuth2Exception(_trace2, $"Missing '{OAuth2Constants.AuthorizationGrantResponse.StateParameter}' in response.");
-            }
-            if (!StringComparer.Ordinal.Equals(state, replyState))
+            if (!responseParams.TryGetValue(OAuth2Constants.AuthorizationGrantResponse.StateParameter, out string replyState))
             {
                 throw new Trace2OAuth2Exception(_trace2,
                     $"Missing '{OAuth2Constants.AuthorizationGrantResponse.StateParameter}' in response.");
             }
+            if (!StringComparer.Ordinal.Equals(state, replyState))
+            {
+                throw new Trace2OAuth2Exception(_trace2,
+                    $"Invalid '{OAuth2Constants.AuthorizationGrantResponse.StateParameter}' in response; does not match the request.");
+            }
 
             // We expect to have the auth code in the response otherwise terminate the flow (we failed authentication for some reason)
-            if (!redirectQueryParams.TryGetValue(OAuth2Constants.AuthorizationGrantResponse.AuthorizationCodeParameter, out string authCode))
+            if (!responseParams.TryGetValue(OAuth2Constants.AuthorizationGrantResponse.AuthorizationCodeParameter, out string authCode))
             {
                 throw new Trace2OAuth2Exception(_trace2,
                     $"Missing '{OAuth2Constants.AuthorizationGrantResponse.AuthorizationCodeParameter}' in response.");
