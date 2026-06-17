@@ -37,7 +37,7 @@ namespace Atlassian.Bitbucket.Tests.DataCenter
 
             var client = GetBitbucketOAuth2Client();
 
-            MockGetAuthenticationCodeAsync(remoteUrl, rootCallbackUri, finalCallbackUri, clientId, client.Scopes);
+            MockGetAuthenticationResponseAsync(remoteUrl, rootCallbackUri, finalCallbackUri, clientId, client.Scopes);
 
             MockCodeGenerator();
 
@@ -58,7 +58,7 @@ namespace Atlassian.Bitbucket.Tests.DataCenter
 
             var client = GetBitbucketOAuth2Client();
 
-            MockGetAuthenticationCodeAsync(remoteUrl, new Uri(rootCallbackUrl), finalCallbackUri, clientId, client.Scopes);
+            MockGetAuthenticationResponseAsync(remoteUrl, new Uri(rootCallbackUrl), finalCallbackUri, clientId, client.Scopes);
 
             MockCodeGenerator();
 
@@ -90,7 +90,7 @@ namespace Atlassian.Bitbucket.Tests.DataCenter
             codeGenerator.Setup(c => c.CreatePkceCodeChallenge(OAuth2PkceChallengeMethod.Sha256, pkceCodeVerifier)).Returns(pkceCodeChallenge);
         }
 
-        private void MockGetAuthenticationCodeAsync(string url, Uri redirectUri, Uri finalCallbackUri, string overrideClientId, IEnumerable<string> scopes)
+        private void MockGetAuthenticationResponseAsync(string url, Uri redirectUri, Uri finalCallbackUri, string overrideClientId, IEnumerable<string> scopes)
         {
             var authorizationUri = new UriBuilder(url + "/rest/oauth2/latest/authorize")
             {
@@ -103,7 +103,8 @@ namespace Atlassian.Bitbucket.Tests.DataCenter
              + "&scope=" + WebUtility.UrlEncode(string.Join(" ", scopes)).ToUpper()
             }.Uri;
 
-            browser.Setup(b => b.GetAuthenticationCodeAsync(authorizationUri, redirectUri, ct)).Returns(Task.FromResult(finalCallbackUri));
+            browser.Setup(b => b.GetAuthenticationResponseAsync(authorizationUri, redirectUri, OAuth2ResponseMode.Default, ct))
+                .Returns(Task.FromResult(finalCallbackUri.GetQueryParameters()));
         }
 
         private Uri MockFinalCallbackUri(Uri redirectUri)
