@@ -30,7 +30,7 @@ namespace GitCredentialManager.Authentication
         /// </summary>
         /// <param name="authority">Azure authority.</param>
         /// <param name="clientId">Client ID.</param>
-        /// <param name="redirectUri">Redirect URI for the client.</param>
+        /// <param name="redirectUri">Redirect URI for the client. Use null for the default redirect URI.</param>
         /// <param name="scopes">Set of scopes to request.</param>
         /// <param name="userName">Optional user name for an existing account.</param>
         /// <param name="msaPt">Use MSA-Passthrough behavior when authenticating.</param>
@@ -116,10 +116,9 @@ namespace GitCredentialManager.Authentication
 
     public enum MicrosoftAuthenticationFlowType
     {
-        Auto = 0,
-        EmbeddedWebView = 1,
-        SystemWebView = 2,
-        DeviceCode = 3
+        EmbeddedWebView,
+        SystemWebView,
+        DeviceCode
     }
 
     public class MicrosoftAuthentication : AuthenticationBase, IMicrosoftAuthentication
@@ -150,6 +149,27 @@ namespace GitCredentialManager.Authentication
             if (msaPt)
             {
                 Context.Trace.WriteLine("MSA passthrough is enabled.");
+            }
+
+            // Check if the user has specified a particular type of authentication flow
+            MicrosoftAuthenticationFlowType flowType = GetFlowType(redirectUri);
+            Context.Trace.WriteLine($"Flow type is: '{flowType}'.");
+
+            // If we are going to use anything *other than* the system webview, we ignore
+            // the provided redirect URI and set it to the default for a native client.
+            // The broker is used above all else, if enabled, but that has a fallback to
+            // the system browser if there is a problem.
+            // We must continue to pass through the provided redirect URI if we're going to
+            // try the system webview, as the system webview requires a real loopback redirect
+            // URI that is registered with the application.
+            if (!useBroker && flowType != MicrosoftAuthenticationFlowType.SystemWebView)
+            {
+                Context.Trace.WriteLine("Using default redirect URI.");
+                redirectUri = null; // null to signal the default redirect URI
+            }
+            else
+            {
+                Context.Trace.WriteLine($"Redirect URI is '{redirectUri}'.");
             }
 
             try
@@ -214,27 +234,17 @@ namespace GitCredentialManager.Authentication
                             Context.Trace.WriteLine("Performing interactive auth with broker...");
                             result = await app.AcquireTokenInteractive(scopes)
                                 .WithPrompt(Prompt.SelectAccount)
-                                // We must configure the system webview as a fallback
+                                // We must configure the system webview as a fallback in case
+                                // the broker is not available on this system.
                                 .WithSystemWebViewOptions(GetSystemWebViewOptions())
                                 .ExecuteAsync();
                         }
                     }
                     else
                     {
-                        // Check for a user flow preference if they've specified one
-                        MicrosoftAuthenticationFlowType flowType = GetFlowType();
+                        // Respect the user's flow preference
                         switch (flowType)
                         {
-                            case MicrosoftAuthenticationFlowType.Auto:
-                                if (CanUseEmbeddedWebView())
-                                    goto case MicrosoftAuthenticationFlowType.EmbeddedWebView;
-
-                                if (CanUseSystemWebView(app, redirectUri))
-                                    goto case MicrosoftAuthenticationFlowType.SystemWebView;
-
-                                // Fall back to device code flow
-                                goto case MicrosoftAuthenticationFlowType.DeviceCode;
-
                             case MicrosoftAuthenticationFlowType.EmbeddedWebView:
                                 Context.Trace.WriteLine("Performing interactive auth with embedded web view...");
                                 EnsureCanUseEmbeddedWebView();
@@ -247,7 +257,7 @@ namespace GitCredentialManager.Authentication
 
                             case MicrosoftAuthenticationFlowType.SystemWebView:
                                 Context.Trace.WriteLine("Performing interactive auth with system web view...");
-                                EnsureCanUseSystemWebView(app, redirectUri);
+                                EnsureCanUseSystemWebView(redirectUri);
                                 result = await app.AcquireTokenInteractive(scopes)
                                     .WithPrompt(Prompt.SelectAccount)
                                     .WithSystemWebViewOptions(GetSystemWebViewOptions())
@@ -263,7 +273,7 @@ namespace GitCredentialManager.Authentication
                                 break;
 
                             default:
-                                goto case MicrosoftAuthenticationFlowType.Auto;
+                                goto case MicrosoftAuthenticationFlowType.DeviceCode; // safe default
                         }
                     }
                 }
@@ -457,7 +467,7 @@ namespace GitCredentialManager.Authentication
             }
         }
 
-        internal MicrosoftAuthenticationFlowType GetFlowType()
+        internal MicrosoftAuthenticationFlowType GetFlowType(Uri redirectUri)
         {
             if (Context.Settings.TryGetSetting(
                 Constants.EnvironmentVariables.MsAuthFlow,
@@ -469,7 +479,7 @@ namespace GitCredentialManager.Authentication
                 switch (valueStr.ToLowerInvariant())
                 {
                     case "auto":
-                        return MicrosoftAuthenticationFlowType.Auto;
+                        return Auto();
                     case "embedded":
                         return MicrosoftAuthenticationFlowType.EmbeddedWebView;
                     case "system":
@@ -483,7 +493,21 @@ namespace GitCredentialManager.Authentication
                 Context.Streams.Error.WriteLine($"warning: unknown Microsoft Authentication flow type '{valueStr}'; using 'auto'");
             }
 
-            return MicrosoftAuthenticationFlowType.Auto;
+            return Auto();
+
+            // Resolve the 'auto' flow type based on the redirect URI and platform capabilities
+            MicrosoftAuthenticationFlowType Auto()
+            {
+                // Prefer embedded webview
+                if (CanUseEmbeddedWebView())
+                    return MicrosoftAuthenticationFlowType.EmbeddedWebView;
+
+                if (CanUseSystemWebView(redirectUri))
+                    return MicrosoftAuthenticationFlowType.SystemWebView;
+
+                // Fall back to device code flow
+                return MicrosoftAuthenticationFlowType.DeviceCode;
+            }
         }
 
         /// <summary>
@@ -550,8 +574,20 @@ namespace GitCredentialManager.Authentication
 
             var appBuilder = PublicClientApplicationBuilder.Create(clientId)
                 .WithAuthority(authority)
-                .WithRedirectUri(redirectUri.ToString())
                 .WithHttpClientFactory(httpFactoryAdaptor);
+
+            // Use the default redirect URI if one is not provided
+            if (redirectUri is null)
+            {
+                // Uses "https://login.microsoftonline.com/common/oauth2/nativeclient" on .NET Framework
+                // but "http://localhost" on .NET Core. This is because there is no embedded webview support
+                // in .NET Core and thus the system webview is the only option.
+                appBuilder.WithDefaultRedirectUri();
+            }
+            else
+            {
+                appBuilder.WithRedirectUri(redirectUri.ToString());
+            }
 
             // Listen to MSAL logs if GCM_TRACE_MSAUTH is set
             if (Context.Settings.IsMsalTracingEnabled)
@@ -988,7 +1024,7 @@ namespace GitCredentialManager.Authentication
 #endif
         }
 
-        private bool CanUseSystemWebView(IPublicClientApplication app, Uri redirectUri)
+        private bool CanUseSystemWebView(Uri redirectUri)
         {
             //
             // MSAL requires the application redirect URI is a loopback address to use the System WebView
@@ -1000,7 +1036,7 @@ namespace GitCredentialManager.Authentication
             return Context.SessionManager.IsWebBrowserAvailable && redirectUri.IsLoopback;
         }
 
-        private void EnsureCanUseSystemWebView(IPublicClientApplication app, Uri redirectUri)
+        private void EnsureCanUseSystemWebView(Uri redirectUri)
         {
             if (!Context.SessionManager.IsWebBrowserAvailable)
             {
