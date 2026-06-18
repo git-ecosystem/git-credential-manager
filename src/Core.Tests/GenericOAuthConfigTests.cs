@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using GitCredentialManager.Authentication.OAuth;
 using GitCredentialManager.Tests.Objects;
 using Xunit;
 
@@ -98,6 +99,76 @@ namespace GitCredentialManager.Tests
             Assert.Equal(expectedScopes, config.Scopes);
             Assert.Equal(expectedAuthzEndpoint, config.Endpoints.AuthorizationEndpoint);
             Assert.Equal(expectedTokenEndpoint, config.Endpoints.TokenEndpoint);
+        }
+
+        [Theory]
+        [InlineData("query", OAuth2ResponseMode.Query)]
+        [InlineData("fragment", OAuth2ResponseMode.Fragment)]
+        [InlineData("form_post", OAuth2ResponseMode.FormPost)]
+        [InlineData("FORM_POST", OAuth2ResponseMode.FormPost)]
+        public void GenericOAuthConfig_TryGet_ParsesResponseMode(string value, OAuth2ResponseMode expected)
+        {
+            bool result = TryGetWithResponseMode(value, out GenericOAuthConfig config);
+
+            Assert.True(result);
+            Assert.Equal(expected, config.ResponseMode);
+        }
+
+        [Fact]
+        public void GenericOAuthConfig_TryGet_InvalidResponseMode_FallsBackToDefault()
+        {
+            bool result = TryGetWithResponseMode("bogus", out GenericOAuthConfig config);
+
+            Assert.True(result);
+            Assert.Equal(OAuth2ResponseMode.Default, config.ResponseMode);
+        }
+
+        [Fact]
+        public void GenericOAuthConfig_TryGet_ResponseModeUnset_UsesDefault()
+        {
+            bool result = TryGetWithResponseMode(null, out GenericOAuthConfig config);
+
+            Assert.True(result);
+            Assert.Equal(OAuth2ResponseMode.Default, config.ResponseMode);
+        }
+
+        private static bool TryGetWithResponseMode(string responseMode, out GenericOAuthConfig config)
+        {
+            const string protocol = "https";
+            const string host = "example.com";
+            var remoteUri = new Uri($"{protocol}://{host}");
+
+            string GetKey(string name) => $"{Constants.GitConfiguration.Credential.SectionName}.https://example.com.{name}";
+
+            var trace = new NullTrace();
+            var gitConfig = new TestGitConfiguration
+            {
+                Global =
+                {
+                    [GetKey(Constants.GitConfiguration.Credential.OAuthClientId)] = new[] { "client-id" },
+                    [GetKey(Constants.GitConfiguration.Credential.OAuthAuthzEndpoint)] = new[] { "/oauth/authorize" },
+                    [GetKey(Constants.GitConfiguration.Credential.OAuthTokenEndpoint)] = new[] { "/oauth/token" },
+                }
+            };
+
+            if (responseMode != null)
+            {
+                gitConfig.Global[GetKey(Constants.GitConfiguration.Credential.OAuthResponseMode)] = new[] { responseMode };
+            }
+
+            var settings = new TestSettings
+            {
+                GitConfiguration = gitConfig,
+                RemoteUri = remoteUri
+            };
+
+            var input = new GitRequest(new Dictionary<string, string>
+            {
+                {"protocol", protocol},
+                {"host", host},
+            });
+
+            return GenericOAuthConfig.TryGet(trace, settings, input, out config);
         }
     }
 }
