@@ -36,7 +36,7 @@ namespace Atlassian.Bitbucket.Tests.Cloud
 
             Bitbucket.Cloud.BitbucketOAuth2Client client = GetBitbucketOAuth2Client();
 
-            MockGetAuthenticationCodeAsync(finalCallbackUri, null, client.Scopes);
+            MockGetAuthenticationResponseAsync(finalCallbackUri, null, client.Scopes);
 
             MockCodeGenerator();
 
@@ -56,7 +56,7 @@ namespace Atlassian.Bitbucket.Tests.Cloud
 
             Bitbucket.Cloud.BitbucketOAuth2Client client = GetBitbucketOAuth2Client();
 
-            MockGetAuthenticationCodeAsync(finalCallbackUri, clientId, client.Scopes);
+            MockGetAuthenticationResponseAsync(finalCallbackUri, clientId, client.Scopes);
 
             MockCodeGenerator();
 
@@ -115,7 +115,7 @@ namespace Atlassian.Bitbucket.Tests.Cloud
             codeGenerator.Setup(c => c.CreatePkceCodeChallenge(OAuth2PkceChallengeMethod.Sha256, pkceCodeVerifier)).Returns(pkceCodeChallenge);
         }
 
-        private void MockGetAuthenticationCodeAsync(Uri finalCallbackUri, string overrideClientId, IEnumerable<string> scopes)
+        private void MockGetAuthenticationResponseAsync(Uri finalCallbackUri, string overrideClientId, IEnumerable<string> scopes)
         {
             var authorizationUri = new UriBuilder(CloudConstants.OAuth2AuthorizationEndpoint)
             {
@@ -128,7 +128,8 @@ namespace Atlassian.Bitbucket.Tests.Cloud
              + "&scope=" + WebUtility.UrlEncode(string.Join(" ", scopes)).ToLower()
             }.Uri;
 
-            browser.Setup(b => b.GetAuthenticationCodeAsync(authorizationUri, rootCallbackUri, ct)).Returns(Task.FromResult(finalCallbackUri));
+            browser.Setup(b => b.GetAuthenticationResponseAsync(authorizationUri, rootCallbackUri, OAuth2ResponseMode.Default, ct))
+                .Returns(Task.FromResult(finalCallbackUri.GetQueryParameters()));
         }
 
         private Uri MockFinalCallbackUri()

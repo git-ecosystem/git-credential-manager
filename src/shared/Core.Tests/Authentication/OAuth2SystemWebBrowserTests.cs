@@ -63,4 +63,20 @@ public class OAuth2SystemWebBrowserTests
         );
         Assert.False(actualUri.IsDefaultPort);
     }
+
+    [Theory]
+    [InlineData("application/x-www-form-urlencoded", true)]
+    [InlineData("application/x-www-form-urlencoded; charset=utf-8", true)]
+    [InlineData("application/x-www-form-urlencoded;charset=UTF-8", true)]
+    [InlineData("APPLICATION/X-WWW-FORM-URLENCODED", true)]
+    [InlineData("  application/x-www-form-urlencoded ; charset=utf-8 ", true)]
+    [InlineData("application/json", false)]
+    [InlineData("text/plain; charset=utf-8", false)]
+    [InlineData("multipart/form-data; boundary=----abc", false)]
+    [InlineData("", false)]
+    [InlineData(null, false)]
+    public void OAuth2SystemWebBrowser_IsFormUrlEncoded(string contentType, bool expected)
+    {
+        Assert.Equal(expected, OAuth2SystemWebBrowser.IsFormUrlEncoded(contentType));
+    }
 }

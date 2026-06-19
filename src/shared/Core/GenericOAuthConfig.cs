@@ -134,6 +134,23 @@ namespace GitCredentialManager
                 config.UseAuthHeader = true;
             }
 
+            // Response mode is optional and defaults to 'query'
+            if (settings.TryGetSetting(
+                    Constants.EnvironmentVariables.OAuthResponseMode,
+                    Constants.GitConfiguration.Credential.SectionName,
+                    Constants.GitConfiguration.Credential.OAuthResponseMode,
+                    out string responseModeStr) && !string.IsNullOrWhiteSpace(responseModeStr))
+            {
+                if (OAuth2ResponseModeExtensions.TryParse(responseModeStr, out OAuth2ResponseMode responseMode))
+                {
+                    config.ResponseMode = responseMode;
+                }
+                else
+                {
+                    trace.WriteLine($"Invalid OAuth configuration - unknown response mode '{responseModeStr}'; using default");
+                }
+            }
+
             config.DefaultUserName = settings.TryGetSetting(
                 Constants.EnvironmentVariables.OAuthDefaultUserName,
                 Constants.GitConfiguration.Credential.SectionName,
@@ -152,6 +169,7 @@ namespace GitCredentialManager
         public Uri RedirectUri { get; set; }
         public string[] Scopes { get; set; }
         public bool UseAuthHeader { get; set; }
+        public OAuth2ResponseMode ResponseMode { get; set; }
         public string DefaultUserName { get; set; }
 
         public bool SupportsDeviceCode => Endpoints.DeviceAuthorizationEndpoint != null;
