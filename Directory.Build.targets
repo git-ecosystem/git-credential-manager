@@ -14,6 +14,14 @@
     </GetVersion>
   </Target>
 
+  <!-- Suppress the "This call site is reachable on all platforms" warning
+       for all test projects - we use custom Xunit attributes to dynamically
+       skip OS-specific tests unless the test is running on the appropriate OS.
+       The analyzer for CA1416 does not know how to handle this. -->
+  <PropertyGroup Condition="'$(IsTestProject)' == 'true'">
+    <NoWarn>$(NoWarn);CA1416</NoWarn>
+  </PropertyGroup>
+
   <!-- Windows application manifest generation -->
   <PropertyGroup Condition="'$(GenerateWindowsAppManifest)' != 'false'">
     <ApplicationManifest>$(IntermediateOutputPath)app.manifest</ApplicationManifest>
