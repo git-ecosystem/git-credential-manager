@@ -130,9 +130,6 @@ namespace GitCredentialManager
 
         public bool FileExists(string path) => File.Exists(path);
 
-#if NETFRAMEWORK
-        public bool FileIsExecutable(string path) => true;
-#else
         public bool FileIsExecutable(string path)
         {
             if (!PlatformUtils.IsPosix())
@@ -145,7 +142,6 @@ namespace GitCredentialManager
                             UnixFileMode.OtherExecute)) != 0;
 #pragma warning restore CA1416
         }
-#endif
 
         public bool DirectoryExists(string path) => Directory.Exists(path);
 

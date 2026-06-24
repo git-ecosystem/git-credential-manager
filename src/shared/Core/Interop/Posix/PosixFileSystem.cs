@@ -13,13 +13,6 @@ namespace GitCredentialManager.Interop.Posix
         /// <exception cref="ArgumentException">Path is not absolute.</exception>
         protected internal static string ResolveSymbolicLinks(string path)
         {
-#if NETFRAMEWORK
-            // Support for symlinks only exists in .NET 6+.
-            // Since we're still targeting .NET Framework on Windows it
-            // doesn't matter if we don't resolve symlinks for POSIX here
-            // (unless we're running on Mono.. but why do that?)
-            return path;
-#else
             if (!Path.IsPathRooted(path))
             {
                 throw new ArgumentException("Path must be absolute", nameof(path));
@@ -54,10 +47,8 @@ namespace GitCredentialManager.Interop.Posix
             }
 
             return Path.Combine("/", partialPath);
-#endif
         }
 
-#if !NETFRAMEWORK
         private static bool TryResolveFileLink(string path, out string target)
         {
             FileSystemInfo fsi = File.ResolveLinkTarget(path, true);
@@ -71,6 +62,5 @@ namespace GitCredentialManager.Interop.Posix
             target = fsi?.FullName;
             return fsi != null;
         }
-#endif
     }
 }

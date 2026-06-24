@@ -18,18 +18,10 @@ public class GitStreamReader : StreamReader
 
     public override string ReadLine()
     {
-#if NETFRAMEWORK
-        return ReadLineAsync().ConfigureAwait(false).GetAwaiter().GetResult();
-#else
         return ReadLineAsync(CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
-#endif
     }
 
-#if NETFRAMEWORK
-    public override async Task<string> ReadLineAsync()
-#else
     public override async ValueTask<string> ReadLineAsync(CancellationToken cancellationToken)
-#endif
     {
         int nr;
         var sb = new StringBuilder();

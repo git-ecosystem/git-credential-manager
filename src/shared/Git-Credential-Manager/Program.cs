@@ -76,12 +76,7 @@ namespace GitCredentialManager
         // Required for Avalonia designer
         static AppBuilder BuildAvaloniaApp() =>
             AppBuilder.Configure<AvaloniaApp>()
-#if NETFRAMEWORK
-                .UseWin32()
-                .UseSkia()
-#else
                 .UsePlatformDetect()
-#endif
                 .LogToTrace();
     }
 }
