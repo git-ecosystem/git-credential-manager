@@ -28,7 +28,7 @@ namespace GitCredentialManager
             // Launch debugger
             if (Context.Settings.IsDebuggingEnabled)
             {
-                Context.Streams.Error.WriteLine("Waiting for debugger to be attached...");
+                Context.Streams.Error.WriteLine($"Waiting for debugger to be attached (pid={Environment.ProcessId})...");
                 WaitForDebuggerAttached();
 
                 // Now the debugger is attached, break!
