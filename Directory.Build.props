@@ -26,8 +26,4 @@
     <GenerateWindowsAppManifest Condition="'$(GenerateWindowsAppManifest)' == '' AND '$(OSPlatform)' == 'windows' AND '$(_IsExeProject)' == 'true'">true</GenerateWindowsAppManifest>
   </PropertyGroup>
 
-  <ItemGroup Condition = "'$(TargetFramework)' == 'net472'">
-    <PackageReference Include="System.Text.Json" />
-  </ItemGroup>
-
 </Project>
