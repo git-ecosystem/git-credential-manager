@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using GitCredentialManager.Tty;
 
 namespace GitCredentialManager
 {
@@ -107,7 +108,7 @@ namespace GitCredentialManager
                     if (provider is null)
                     {
                         _context.Trace.WriteLine($"No host provider was found with ID '{providerId}'.. falling back to auto-detection.");
-                        _context.Streams.Error.WriteLine($"warning: a host provider override was set but no such provider '{providerId}' was found. Falling back to auto-detection.");
+                        _context.Console.WriteWarning($"a host provider override was set but no such provider '{providerId}' was found. Falling back to auto-detection.");
                     }
                     else
                     {
@@ -121,8 +122,8 @@ namespace GitCredentialManager
             else if (_context.Settings.LegacyAuthorityOverride is string authority)
             {
                 _context.Trace.WriteLine($"Host provider authority override was set authority='{authority}'");
-                _context.Streams.Error.WriteLine("warning: the `credential.authority` and `GCM_AUTHORITY` settings are deprecated.");
-                _context.Streams.Error.WriteLine($"warning: see {Constants.HelpUrls.GcmAuthorityDeprecated} for more information.");
+                _context.Console.WriteWarning("the `credential.authority` and `GCM_AUTHORITY` settings are deprecated.");
+                _context.Console.WriteWarning($"see {Constants.HelpUrls.GcmAuthorityDeprecated} for more information.");
 
                 if (!StringComparer.OrdinalIgnoreCase.Equals(Constants.AuthorityIdAuto, authority))
                 {
@@ -133,7 +134,7 @@ namespace GitCredentialManager
                     if (provider is null)
                     {
                         _context.Trace.WriteLine($"No host provider was found with authority '{authority}'.. falling back to auto-detection.");
-                        _context.Streams.Error.WriteLine($"warning: a supported authority override was set but no such provider supporting authority '{authority}' was found. Falling back to auto-detection.");
+                        _context.Console.WriteWarning($"a supported authority override was set but no such provider supporting authority '{authority}' was found. Falling back to auto-detection.");
                     }
                     else
                     {
@@ -194,16 +195,16 @@ namespace GitCredentialManager
                                 }
                                 catch (TaskCanceledException)
                                 {
-                                    _context.Streams.Error.WriteLine($"warning: auto-detection of host provider took too long (>{probeTimeout.TotalMilliseconds}ms)");
-                                    _context.Streams.Error.WriteLine($"warning: see {Constants.HelpUrls.GcmAutoDetect} for more information.");
+                                    _context.Console.WriteWarning($"auto-detection of host provider took too long (>{probeTimeout.TotalMilliseconds}ms)");
+                                    _context.Console.WriteWarning($"see {Constants.HelpUrls.GcmAutoDetect} for more information.");
                                 }
                                 catch (Exception ex)
                                 {
                                     // The auto detect probing failed for some other reason.
                                     // We don't particular care why, but we should not crash!
-                                    _context.Streams.Error.WriteLine($"warning: failed to probe '{uri}' to detect provider");
-                                    _context.Streams.Error.WriteLine($"warning: {ex.Message}");
-                                    _context.Streams.Error.WriteLine($"warning: see {Constants.HelpUrls.GcmAutoDetect} for more information.");
+                                    _context.Console.WriteWarning($"failed to probe '{uri}' to detect provider");
+                                    _context.Console.WriteWarning($"{ex.Message}");
+                                    _context.Console.WriteWarning($"see {Constants.HelpUrls.GcmAutoDetect} for more information.");
                                 }
                             }
                         }
@@ -245,8 +246,8 @@ namespace GitCredentialManager
                     _context.Trace.WriteException(ex);
                     _context.Trace2.WriteError(message);
 
-                    _context.Streams.Error.WriteLine("warning: failed to remember result of host provider detection!");
-                    _context.Streams.Error.WriteLine($"warning: try setting this manually: `git config --global {keyName} {match.Id}`");
+                    _context.Console.WriteWarning("failed to remember result of host provider detection!");
+                    _context.Console.WriteWarning($"try setting this manually: `git config --global {keyName} {match.Id}`");
                 }
             }
 

@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using GitCredentialManager.Tty;
 using GitCredentialManager.UI;
 
 namespace GitCredentialManager
@@ -59,12 +60,12 @@ namespace GitCredentialManager
                     }
                     catch (Exception ex)
                     {
-                        Context.Streams.Error.WriteLine($"warning: unable to trace to file '{traceValue}': {ex.Message}");
+                        Context.Console.WriteWarning($"unable to trace to file '{traceValue}': {ex.Message}");
                     }
                 }
                 else
                 {
-                    Context.Streams.Error.WriteLine($"warning: unknown value for {Constants.EnvironmentVariables.GcmTrace} '{traceValue}'");
+                    Context.Console.WriteWarning($"unknown value for {Constants.EnvironmentVariables.GcmTrace} '{traceValue}'");
                 }
             }
 

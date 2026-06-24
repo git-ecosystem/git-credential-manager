@@ -5,6 +5,7 @@ using GitCredentialManager;
 using GitCredentialManager.Authentication.OAuth;
 using System.Net.Http.Headers;
 using System.Linq;
+using GitCredentialManager.Tty;
 
 namespace GitLab
 {
@@ -163,8 +164,8 @@ namespace GitLab
             else
             {
                 // Tell the user that they may wish to configure OAuth for this GitLab instance
-                Context.Streams.Error.WriteLine(
-                    $"warning: missing OAuth configuration for {targetUri.Host} - see {GitLabConstants.HelpUrls.GitLab} for more information");
+                Context.Console.WriteWarning(
+                    $"missing OAuth configuration for {targetUri.Host} - see {GitLabConstants.HelpUrls.GitLab} for more information");
             }
 
             // Would like to query password_authentication_enabled_for_git, but can't unless logged in https://gitlab.com/gitlab-org/gitlab/-/issues/349463.
@@ -206,7 +207,7 @@ namespace GitLab
                 }
                 catch (Exception e)
                 {
-                    Context.Terminal.WriteLine($"OAuth token refresh failed: {e.Message}");
+                    Context.Console.WriteError($"OAuth token refresh failed: {e.Message}");
                 }
             }
 
@@ -240,7 +241,7 @@ namespace GitLab
                 }
                 catch (Exception e)
                 {
-                    Context.Terminal.WriteLine($"OAuth token info request failed: {e.Message}");
+                    Context.Console.WriteError($"OAuth token info request failed: {e.Message}");
                     return false;
                 }
             }

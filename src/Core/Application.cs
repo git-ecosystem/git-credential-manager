@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 using GitCredentialManager.Commands;
 using GitCredentialManager.Diagnostics;
 using GitCredentialManager.Interop;
+using GitCredentialManager.Tty;
+using Spectre.Console;
 
 namespace GitCredentialManager
 {
@@ -185,21 +187,21 @@ namespace GitCredentialManager
             switch (ex)
             {
                 case GitException gitEx:
-                    Context.Streams.Error.WriteLine("fatal: {0} [{1}]", gitEx.Message, gitEx.ExitCode);
-                    Context.Streams.Error.WriteLine(gitEx.GitErrorMessage);
+                    Context.Console.WriteFatal($"{gitEx.Message} [{gitEx.ExitCode}]");
+                    Context.Console.WriteLine(gitEx.GitErrorMessage);
                     break;
                 case InteropException interopEx:
-                    Context.Streams.Error.WriteLine("fatal: {0} [0x{1:x}]", interopEx.Message, interopEx.ErrorCode);
+                    Context.Console.WriteFatal($"{interopEx.Message} [0x{interopEx.ErrorCode:x}]");
                     break;
                 default:
-                    Context.Streams.Error.WriteLine("fatal: {0}", ex.Message);
+                    Context.Console.WriteFatal(ex.Message);
                     break;
             }
 
             // If tracing is enabled then also print the stack trace to stderr
             bool printStack = Context.Settings.GetTracingEnabled(out _);
             if (printStack)
-                Context.Streams.Error.WriteLine(ex.StackTrace);
+                Context.Console.WriteLine(ex.StackTrace ?? string.Empty);
 
             // Recurse to print all inner exceptions
             if (!(ex.InnerException is null))

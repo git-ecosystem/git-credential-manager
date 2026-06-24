@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using GitCredentialManager.Authentication;
 using GitCredentialManager.Authentication.OAuth;
+using GitCredentialManager.Tty;
 
 namespace GitCredentialManager
 {
@@ -137,14 +138,14 @@ namespace GitCredentialManager
             if (!_context.Settings.AllowUnsafeRemotes &&
                 StringComparer.OrdinalIgnoreCase.Equals(request.Protocol, "http"))
             {
-                _context.Streams.Error.WriteLine(
-                    "warning: use of unencrypted HTTP remote URLs is not recommended; " +
+                _context.Console.WriteWarning(
+                    "use of unencrypted HTTP remote URLs is not recommended; " +
                     $"see {Constants.HelpUrls.GcmUnsafeRemotes} for more information.");
             }
 
             Uri uri = request.GetRemoteUri();
 
-            // Determine the if the host supports Windows Integration Authentication (WIA) or OAuth
+            // Determine if the host supports Windows Integration Authentication (WIA) or OAuth
             if (!StringComparer.OrdinalIgnoreCase.Equals(uri.Scheme, "http") &&
                 !StringComparer.OrdinalIgnoreCase.Equals(uri.Scheme, "https"))
             {
@@ -164,7 +165,7 @@ namespace GitCredentialManager
                 _context.Trace.WriteLine($"\tUseAuthHeader   = {oauthConfig.UseAuthHeader}");
                 _context.Trace.WriteLine($"\tDefaultUserName = {oauthConfig.DefaultUserName}");
 
-                return new  GitResponse(
+                return new GitResponse(
                     await GetOAuthAccessToken(uri, request.UserName, oauthConfig, _context.Trace2)
                 );
             }

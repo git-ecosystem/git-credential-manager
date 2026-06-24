@@ -477,7 +477,7 @@ namespace GitCredentialManager.Authentication
                         break;
                 }
 
-                Context.Streams.Error.WriteLine($"warning: unknown Microsoft Authentication flow type '{valueStr}'; using 'auto'");
+                Context.Console.WriteWarning($"unknown Microsoft Authentication flow type '{valueStr}'; using 'auto'");
             }
 
             return MicrosoftAuthenticationFlowType.Auto;

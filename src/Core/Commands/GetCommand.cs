@@ -1,5 +1,7 @@
+using System;
 using System.IO;
 using System.Threading.Tasks;
+using GitCredentialManager.Tty;
 
 namespace GitCredentialManager.Commands
 {
@@ -16,7 +18,16 @@ namespace GitCredentialManager.Commands
 
         protected override async Task ExecuteInternalAsync(GitRequest request, IHostProvider provider)
         {
-            GitResponse response = await provider.GetCredentialAsync(request);
+            GitResponse response;
+            try
+            {
+                response = await provider.GetCredentialAsync(request);
+            }
+            catch (Exception ex) when (ex is OperationCanceledException || ex is InterruptedException)
+            {
+                response = GitResponse.Cancel();
+            }
+
             TextWriter stdout = Context.Streams.Out;
 
             if (response.IsCancelled)
@@ -26,7 +37,7 @@ namespace GitCredentialManager.Commands
                 // attribute. This avoids re-prompting a user who has already
                 // explicitly cancelled in a GUI dialog.
                 Context.Trace.WriteLine("Provider cancelled the credential request; emitting quit=1.");
-                Context.Streams.Error.WriteLine("info: user cancelled the credential request.");
+                Context.Console.WriteInfo("user cancelled the credential request.");
                 stdout.WriteLine("quit=1");
                 stdout.WriteLine();
                 return;

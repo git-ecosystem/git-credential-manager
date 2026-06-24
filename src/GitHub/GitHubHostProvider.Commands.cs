@@ -5,6 +5,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using GitCredentialManager;
 using GitCredentialManager.Commands;
+using GitCredentialManager.Tty;
+using Spectre.Console;
 
 namespace GitHub;
 
@@ -68,7 +70,7 @@ public partial class GitHubHostProvider : ICommandProvider
 
         foreach (string account in accounts)
         {
-            _context.Streams.Out.WriteLine(account);
+            _context.Console.WriteLine(account);
         }
     }
 
@@ -90,7 +92,7 @@ public partial class GitHubHostProvider : ICommandProvider
             if (existingAccounts.Any(x => StringComparer.OrdinalIgnoreCase.Equals(x, userName)))
             {
                 string prettyUrl = url.AbsoluteUri.TrimEnd('/');
-                _context.Streams.Out.WriteLine(
+                _context.Console.WriteLine(
                     $"Account '{userName}' already has credentials for {prettyUrl}; use --force to re-authenticate"
                 );
                 return 0;
@@ -133,7 +135,7 @@ public partial class GitHubHostProvider : ICommandProvider
 
         if (!result)
         {
-            _context.Streams.Error.WriteLine($"warning: no such account '{account}' found.");
+            _context.Console.WriteWarning($"no such account '{account}' found.");
             return Task.FromResult(-1);
         }
 

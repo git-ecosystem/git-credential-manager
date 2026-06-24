@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Spectre.Console;
 
 namespace GitCredentialManager
 {
@@ -87,7 +88,7 @@ namespace GitCredentialManager
             foreach (IConfigurableComponent component in _components)
             {
                 _context.Trace.WriteLine($"Configuring component '{component.Name}'...");
-                _context.Streams.Error.WriteLine($"Configuring component '{component.Name}'...");
+                _context.Console.WriteLine($"Configuring component '{component.Name}'...");
                 await component.ConfigureAsync(target);
             }
         }
@@ -97,7 +98,7 @@ namespace GitCredentialManager
             foreach (IConfigurableComponent component in _components)
             {
                 _context.Trace.WriteLine($"Unconfiguring component '{component.Name}'...");
-                _context.Streams.Error.WriteLine($"Unconfiguring component '{component.Name}'...");
+                _context.Console.WriteLine($"Unconfiguring component '{component.Name}'...");
                 await component.UnconfigureAsync(target);
             }
         }
