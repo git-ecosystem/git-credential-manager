@@ -3,12 +3,12 @@ name: "Lint documentation"
 on:
   workflow_dispatch:
   push:
-    branches: [ main, linux ]
+    branches: [ main, vnext ]
     paths:
       - '**.md'
       - '.github/workflows/lint-docs.yml'
   pull_request:
-    branches: [ main, linux ]
+    branches: [ main, vnext ]
     paths:
       - '**.md'
       - '.github/workflows/lint-docs.yml'

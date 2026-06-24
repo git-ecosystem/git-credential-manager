@@ -3,9 +3,9 @@ name: ci
 on:
   workflow_dispatch:
   push:
-    branches: [ main ]
+    branches: [ main, vnext ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, vnext ]
 
 jobs:
 # ================================

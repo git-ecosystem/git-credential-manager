@@ -5,9 +5,11 @@ on:
   push:
     branches:
       - main
+      - vnext
   pull_request:
     branches:
       - main
+      - vnext
 
 jobs:
   docker:
