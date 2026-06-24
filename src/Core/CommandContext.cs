@@ -35,11 +35,6 @@ namespace GitCredentialManager
         IStandardStreams Streams { get; }
 
         /// <summary>
-        /// The attached terminal (TTY) to this process tree.
-        /// </summary>
-        ITerminal Terminal { get; }
-
-        /// <summary>
         /// The user-facing console: output-only messages (diagnostics, QR codes) go to
         /// standard error, and interactive prompts go to the controlling terminal. See
         /// <see cref="IConsoleService"/>.
@@ -103,9 +98,9 @@ namespace GitCredentialManager
             InstallationDirectory = GetInstallationDirectory();
 
             Streams = new StandardStreams();
-            Console = new ConsoleService(Streams);
             Trace   = new Trace();
             Trace2  = new Trace2(this);
+            Console = new ConsoleService(Streams);
 
             if (PlatformUtils.IsWindows())
             {
@@ -113,7 +108,6 @@ namespace GitCredentialManager
                 Environment       = new WindowsEnvironment(FileSystem);
                 SessionManager    = new WindowsSessionManager(Trace, Environment, FileSystem);
                 ProcessManager    = new WindowsProcessManager(Trace2);
-                Terminal          = new WindowsTerminal(Trace, Trace2);
                 string gitPath    = GetGitPath(Environment, FileSystem, Trace);
                 Git               = new GitProcess(
                                             Trace,
@@ -130,7 +124,6 @@ namespace GitCredentialManager
                 Environment       = new MacOSEnvironment(FileSystem);
                 SessionManager    = new MacOSSessionManager(Trace, Environment, FileSystem);
                 ProcessManager    = new ProcessManager(Trace2);
-                Terminal          = new MacOSTerminal(Trace, Trace2);
                 string gitPath    = GetGitPath(Environment, FileSystem, Trace);
                 Git               = new GitProcess(
                                             Trace,
@@ -147,7 +140,6 @@ namespace GitCredentialManager
                 Environment       = new PosixEnvironment(FileSystem);
                 SessionManager    = new LinuxSessionManager(Trace, Environment, FileSystem);
                 ProcessManager    = new ProcessManager(Trace2);
-                Terminal          = new LinuxTerminal(Trace, Trace2);
                 string gitPath    = GetGitPath(Environment, FileSystem, Trace);
                 Git               = new GitProcess(
                                             Trace,
@@ -163,7 +155,7 @@ namespace GitCredentialManager
                 throw new PlatformNotSupportedException();
             }
 
-            HttpClientFactory = new HttpClientFactory(FileSystem, Trace, Trace2, Settings, Streams);
+            HttpClientFactory = new HttpClientFactory(FileSystem, Trace, Trace2, Settings, Console);
             CredentialStore   = new CredentialStore(this);
         }
 
@@ -208,8 +200,6 @@ namespace GitCredentialManager
         public ISettings Settings { get; }
 
         public IStandardStreams Streams { get; }
-
-        public ITerminal Terminal { get; }
 
         public IConsoleService Console { get; }
 

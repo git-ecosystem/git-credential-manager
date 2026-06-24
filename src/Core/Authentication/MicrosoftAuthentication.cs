@@ -11,11 +11,13 @@ using Microsoft.Identity.Client.Extensions.Msal;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
+using GitCredentialManager.Tty;
 using GitCredentialManager.UI;
 using GitCredentialManager.UI.Controls;
 using GitCredentialManager.UI.ViewModels;
 using GitCredentialManager.UI.Views;
 using Microsoft.Identity.Client.AppConfig;
+using Spectre.Console;
 using Microsoft.Identity.Client.Broker;
 
 namespace GitCredentialManager.Authentication
@@ -438,19 +440,11 @@ namespace GitCredentialManager.Authentication
             else
             {
                 string question = $"Continue with current account ({userName})?";
+                var prompt = TerminalPrompts.CreateSelection<bool>()
+                    .Title(question)
+                    .AddChoices(("Yes", true), ("No, use another account", false));
 
-                var menu = new TerminalMenu(Context.Terminal, question);
-                TerminalMenuItem yesItem = menu.Add("Yes");
-                TerminalMenuItem noItem = menu.Add("No, use another account");
-                TerminalMenuItem choice = menu.Show();
-
-                if (choice == yesItem)
-                    return true;
-
-                if (choice == noItem)
-                    return false;
-
-                throw new Exception();
+                return await prompt.ShowAsync(Context.Console);
             }
         }
 
@@ -692,7 +686,7 @@ namespace GitCredentialManager.Authentication
             catch (MsalCachePersistenceException ex)
             {
                 var message = "Cannot persist Microsoft Authentication data securely!";
-                Context.Streams.Error.WriteLine("warning: cannot persist Microsoft authentication token cache securely!");
+                Context.Console.WriteWarning("cannot persist Microsoft authentication token cache securely!");
                 Context.Trace.WriteLine(message);
                 Context.Trace.WriteException(ex);
                 Context.Trace2.WriteError(message);
@@ -702,14 +696,14 @@ namespace GitCredentialManager.Authentication
                     // On macOS sometimes the Keychain returns the "errSecAuthFailed" error - we don't know why
                     // but it appears to be something to do with not being able to access the keychain.
                     // Locking and unlocking (or restarting) often fixes this.
-                    Context.Streams.Error.WriteLine(
-                        "warning: there is a problem accessing the login Keychain - either manually lock and unlock the " +
+                    Context.Console.WriteWarning(
+                        "there is a problem accessing the login Keychain - either manually lock and unlock the " +
                         "login Keychain, or restart the computer to remedy this");
                 }
                 else if (PlatformUtils.IsLinux())
                 {
                     // On Linux the SecretService/keyring might not be available so we must fall-back to a plaintext file.
-                    Context.Streams.Error.WriteLine("warning: using plain-text fallback token cache");
+                    Context.Console.WriteWarning("using plain-text fallback token cache");
                     Context.Trace.WriteLine("Using fall-back plaintext token cache on Linux.");
                     StorageCreationProperties storageProps = propsBuilder(useLinuxFallback: true);
                     helper = await MsalCacheHelper.CreateAsync(storageProps);
@@ -718,7 +712,7 @@ namespace GitCredentialManager.Authentication
 
             if (helper is null)
             {
-                Context.Streams.Error.WriteLine("error: failed to set up token cache!");
+                Context.Console.WriteError("failed to set up token cache!");
                 Context.Trace.WriteLine("Failed to integrate with token cache!");
             }
             else
@@ -888,7 +882,7 @@ namespace GitCredentialManager.Authentication
 
         private Task ShowDeviceCodeInTty(DeviceCodeResult dcr)
         {
-            Context.Terminal.WriteLine(dcr.Message);
+            Context.Console.WriteLine(dcr.Message);
 
             return Task.CompletedTask;
         }

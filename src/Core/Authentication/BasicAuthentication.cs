@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using GitCredentialManager.Tty;
 using GitCredentialManager.UI;
 using GitCredentialManager.UI.ViewModels;
 using GitCredentialManager.UI.Views;
+using Spectre.Console;
 
 namespace GitCredentialManager.Authentication
 {
@@ -50,7 +52,7 @@ namespace GitCredentialManager.Authentication
 
             ThrowIfTerminalPromptsDisabled();
 
-            return GetCredentialsViaTty(resource, userName);
+            return await GetCredentialsViaTtyAsync(resource, userName);
         }
 
         private async Task<ICredential> GetCredentialsViaUiAsync(string resource, string userName)
@@ -70,23 +72,23 @@ namespace GitCredentialManager.Authentication
             return new GitCredential(viewModel.UserName, viewModel.Password);
         }
 
-        private ICredential GetCredentialsViaTty(string resource, string userName)
+        private async Task<ICredential> GetCredentialsViaTtyAsync(string resource, string userName)
         {
-            Context.Terminal.WriteLine("Enter basic credentials for '{0}':", resource);
+            Context.Console.WriteLine($"Enter basic credentials for '{resource}':");
 
             if (!string.IsNullOrWhiteSpace(userName))
             {
                 // Don't need to prompt for the username if it has been specified already
-                Context.Terminal.WriteLine("Username: {0}", userName);
+                Context.Console.WriteLine($"Username: {userName}");
             }
             else
             {
                 // Prompt for username
-                userName = Context.Terminal.Prompt("Username");
+                userName = await TerminalPrompts.CreateText("Username").ShowAsync(Context.Console);
             }
 
             // Prompt for password
-            string password = Context.Terminal.PromptSecret("Password");
+            string password = await TerminalPrompts.CreateSecret("Password").ShowAsync(Context.Console);
 
             return new GitCredential(userName, password);
         }

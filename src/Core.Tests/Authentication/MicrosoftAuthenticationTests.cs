@@ -69,5 +69,19 @@ namespace GitCredentialManager.Tests.Authentication
         {
             Assert.Throws<ArgumentException>(() => MicrosoftAuthentication.GetManagedIdentity(str));
         }
+
+        [Fact]
+        public void MicrosoftAuthentication_GetFlowType_UnknownValue_WarnsWithConfiguredValue()
+        {
+            const string configuredValue = "unknown-flow";
+            var context = new TestCommandContext();
+            context.Environment.Variables[Constants.EnvironmentVariables.MsAuthFlow] = configuredValue;
+            var authentication = new MicrosoftAuthentication(context);
+
+            MicrosoftAuthenticationFlowType result = authentication.GetFlowType();
+
+            Assert.Equal(MicrosoftAuthenticationFlowType.Auto, result);
+            Assert.Contains(context.Console.WrittenMessages, x => x.Contains(configuredValue));
+        }
     }
 }

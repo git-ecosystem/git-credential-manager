@@ -9,7 +9,9 @@ using Atlassian.Bitbucket.UI.Views;
 using GitCredentialManager;
 using GitCredentialManager.Authentication;
 using GitCredentialManager.Authentication.OAuth;
+using GitCredentialManager.Tty;
 using GitCredentialManager.UI;
+using Spectre.Console;
 
 namespace Atlassian.Bitbucket
 {
@@ -102,7 +104,7 @@ namespace Atlassian.Bitbucket
                 return await GetCredentialsViaUiAsync(targetUri, userName, modes);
             }
 
-            return GetCredentialsViaTty(targetUri, userName, modes);
+            return await GetCredentialsViaTtyAsync(targetUri, userName, modes);
         }
 
         private async Task<CredentialsPromptResult> GetCredentialsViaUiAsync(
@@ -145,28 +147,28 @@ namespace Atlassian.Bitbucket
             }
         }
 
-        private CredentialsPromptResult GetCredentialsViaTty(Uri targetUri, string userName, AuthenticationModes modes)
+        private async Task<CredentialsPromptResult> GetCredentialsViaTtyAsync(Uri targetUri, string userName, AuthenticationModes modes)
         {
             ThrowIfTerminalPromptsDisabled();
 
             switch (modes)
             {
                 case AuthenticationModes.Basic:
-                    Context.Terminal.WriteLine("Enter Bitbucket credentials for '{0}'...", targetUri);
+                    Context.Console.WriteLine($"Enter Bitbucket credentials for '{targetUri}'...");
 
                     if (!string.IsNullOrWhiteSpace(userName))
                     {
                         // Don't need to prompt for the username if it has been specified already
-                        Context.Terminal.WriteLine("Username: {0}", userName);
+                        Context.Console.WriteLine($"Username: {userName}");
                     }
                     else
                     {
                         // Prompt for username
-                        userName = Context.Terminal.Prompt("Username");
+                        userName = await TerminalPrompts.CreateText("Username").ShowAsync(Context.Console);
                     }
 
                     // Prompt for password
-                    string password = Context.Terminal.PromptSecret("Password");
+                    string password = await TerminalPrompts.CreateSecret("Password").ShowAsync(Context.Console);
 
                     return new CredentialsPromptResult(
                         AuthenticationModes.Basic,
@@ -180,20 +182,17 @@ namespace Atlassian.Bitbucket
                         @$"At least one {nameof(AuthenticationModes)} must be supplied");
 
                 default:
-                    var menuTitle = $"Select an authentication method for '{targetUri}'";
-                    var menu = new TerminalMenu(Context.Terminal, menuTitle);
+                    var promptTitle = $"Select an authentication method for '{targetUri}'";
+                    var prompt = TerminalPrompts.CreateSelection<AuthenticationModes>()
+                        .Title(promptTitle);
 
-                    TerminalMenuItem oauthItem = null;
-                    TerminalMenuItem basicItem = null;
+                    if ((modes & AuthenticationModes.OAuth) != 0) prompt.AddChoice("OAuth", AuthenticationModes.OAuth);
+                    if ((modes & AuthenticationModes.Basic) != 0) prompt.AddChoice("Username/password", AuthenticationModes.Basic);
 
-                    if ((modes & AuthenticationModes.OAuth) != 0) oauthItem = menu.Add("OAuth");
-                    if ((modes & AuthenticationModes.Basic) != 0) basicItem = menu.Add("Username/password");
+                    AuthenticationModes choice = await prompt.ShowAsync(Context.Console);
 
-                    // Default to the 'first' choice in the menu
-                    TerminalMenuItem choice = menu.Show(0);
-
-                    if (choice == oauthItem) goto case AuthenticationModes.OAuth;
-                    if (choice == basicItem) goto case AuthenticationModes.Basic;
+                    if (choice == AuthenticationModes.OAuth) goto case AuthenticationModes.OAuth;
+                    if (choice == AuthenticationModes.Basic) goto case AuthenticationModes.Basic;
 
                     throw new Exception();
             }

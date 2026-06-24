@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using GitCredentialManager.UI;
 
 namespace GitCredentialManager.Tests.Objects
 {
@@ -15,7 +14,6 @@ namespace GitCredentialManager.Tests.Objects
             InstallDir = Path.GetDirectoryName(AppPath);
 
             Streams = new TestStandardStreams();
-            Terminal = new TestTerminal();
             Console = new TestConsoleService();
             SessionManager = new TestSessionManager();
             Trace = new NullTrace();
@@ -33,7 +31,6 @@ namespace GitCredentialManager.Tests.Objects
         public string InstallDir { get; set; }
         public TestSettings Settings { get; set; }
         public TestStandardStreams Streams { get; set; }
-        public TestTerminal Terminal { get; set; }
         public TestConsoleService Console { get; set; }
         public TestSessionManager SessionManager { get; set; }
         public ITrace Trace { get; set; }
@@ -59,8 +56,6 @@ namespace GitCredentialManager.Tests.Objects
         IStandardStreams ICommandContext.Streams => Streams;
 
         ISettings ICommandContext.Settings => Settings;
-
-        ITerminal ICommandContext.Terminal => Terminal;
 
         IConsoleService ICommandContext.Console => Console;
 

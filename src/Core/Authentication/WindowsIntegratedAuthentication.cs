@@ -3,9 +3,11 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
+using GitCredentialManager.Tty;
 using GitCredentialManager.UI;
 using GitCredentialManager.UI.ViewModels;
 using GitCredentialManager.UI.Views;
+using Spectre.Console;
 
 namespace GitCredentialManager.Authentication
 {
@@ -62,23 +64,20 @@ namespace GitCredentialManager.Authentication
 
             ThrowIfTerminalPromptsDisabled();
 
-            var menu = new TerminalMenu(Context.Terminal, "Re-enable NTLM support in Git?");
-            TerminalMenuItem onceItem = menu.Add("Yes - just this time");
-            TerminalMenuItem alwaysItem = menu.Add($"Yes - always for {uri}");
-            TerminalMenuItem noItem = menu.Add("No - do not enable NTLM");
-            TerminalMenuItem choice = menu.Show(0);
+            var prompt = TerminalPrompts.CreateSelection<int>()
+                .Title("Re-enable NTLM support in Git?");
 
-            if (choice == onceItem)
+            prompt.AddChoice("Yes - just this time", 0);
+            prompt.AddChoice($"Yes - always for {uri}", 1);
+            prompt.AddChoice("No - do not enable NTLM", 2);
+
+            int choice = await prompt.ShowAsync(Context.Console);
+            return choice switch
             {
-                return NtlmSupport.Once;
-            }
-
-            if (choice == alwaysItem)
-            {
-                return NtlmSupport.Always;
-            }
-
-            return NtlmSupport.Disabled;
+                0 => NtlmSupport.Once,
+                1 => NtlmSupport.Always,
+                _ => NtlmSupport.Disabled
+            };
         }
 
         public async Task<WindowsAuthenticationTypes> GetAuthenticationTypesAsync(Uri uri)

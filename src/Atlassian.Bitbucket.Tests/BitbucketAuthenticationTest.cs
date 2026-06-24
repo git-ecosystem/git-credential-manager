@@ -16,8 +16,7 @@ namespace Atlassian.Bitbucket.Tests
         public async Task BitbucketAuthentication_GetCredentialsAsync_Basic_SucceedsAfterUserInput(string username, string password)
         {
             var context = new TestCommandContext();
-            context.Terminal.Prompts["Username"] = username;
-            context.Terminal.SecretPrompts["Password"] = password;
+            context.Console.PushText(password);
             Uri targetUri = null;
 
             var bitbucketAuthentication = new BitbucketAuthentication(context);
@@ -52,7 +51,7 @@ namespace Atlassian.Bitbucket.Tests
             var context = new TestCommandContext();
             context.SessionManager.IsDesktopSession = true; // Allow OAuth mode
             context.Settings.IsGuiPromptsEnabled = false; // Force text prompts
-            context.Terminal.Prompts["option (enter for default)"] = "1";
+            context.Console.PushSelection(0);
             Uri targetUri = null;
 
             var bitbucketAuthentication = new BitbucketAuthentication(context);
@@ -73,9 +72,9 @@ namespace Atlassian.Bitbucket.Tests
             var context = new TestCommandContext();
             context.SessionManager.IsDesktopSession = true; // Allow OAuth mode
             context.Settings.IsGuiPromptsEnabled = false; // Force text prompts
-            context.Terminal.Prompts["option (enter for default)"] = "2";
-            context.Terminal.Prompts["Username"] = username;
-            context.Terminal.SecretPrompts["Password"] = password;
+            context.Console.PushSelection(1);
+            context.Console.PushText(username);
+            context.Console.PushText(password);
             Uri targetUri = null;
 
             var bitbucketAuthentication = new BitbucketAuthentication(context);
@@ -96,8 +95,8 @@ namespace Atlassian.Bitbucket.Tests
 
             var context = new TestCommandContext();
             context.SessionManager.IsDesktopSession = false; // Disallow OAuth mode
-            context.Terminal.Prompts["Username"] = username;
-            context.Terminal.SecretPrompts["Password"] = password;
+            context.Console.PushText(username);
+            context.Console.PushText(password);
             Uri targetUri = null;
 
             var bitbucketAuthentication = new BitbucketAuthentication(context);

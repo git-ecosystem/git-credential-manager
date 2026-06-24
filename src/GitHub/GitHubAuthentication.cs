@@ -8,9 +8,11 @@ using System.Threading;
 using GitCredentialManager;
 using GitCredentialManager.Authentication;
 using GitCredentialManager.Authentication.OAuth;
+using GitCredentialManager.Tty;
 using GitCredentialManager.UI;
 using GitHub.UI.ViewModels;
 using GitHub.UI.Views;
+using Spectre.Console;
 
 namespace GitHub
 {
@@ -115,17 +117,20 @@ namespace GitHub
             }
 
             ThrowIfTerminalPromptsDisabled();
-            var menuTitle = $"Select an account for '{targetUri}'";
-            var menu = new TerminalMenu(Context.Terminal, menuTitle);
-            var addNewItem = menu.Add("Add a new account");
+            var promptTitle = $"Select an account for '{targetUri}'";
+            var prompt = new SelectionPrompt<(string label, string username)>()
+                .Title(promptTitle)
+                .AddCancelResult(() => throw new OperationCanceledException("User cancelled the prompt"))
+                .UseConverter(x => x.label ?? x.username)
+                .AddChoices(("Add a new account", null));
 
             foreach (string account in accounts)
             {
-                menu.Add(account);
+                prompt.AddChoices((account, account));
             }
 
-            TerminalMenuItem choice = menu.Show();
-            return choice == addNewItem ? null : choice.Name;
+            var choice = await Context.Console.ShowPromptAsync(prompt, CancellationToken.None);
+            return choice.username;
         }
 
         public async Task<AuthenticationPromptResult> GetAuthenticationAsync(Uri targetUri, string userName, AuthenticationModes modes)
@@ -162,7 +167,7 @@ namespace GitHub
                 return await GetAuthenticationViaUiAsync(targetUri, userName, modes);
             }
 
-            return GetAuthenticationViaTty(targetUri, userName, modes);
+            return await GetAuthenticationViaTtyAsync(targetUri, userName, modes);
         }
 
         private async Task<AuthenticationPromptResult> GetAuthenticationViaUiAsync(
@@ -215,25 +220,25 @@ namespace GitHub
             }
         }
 
-        private AuthenticationPromptResult GetAuthenticationViaTty(Uri targetUri, string userName, AuthenticationModes modes)
+        private async Task<AuthenticationPromptResult> GetAuthenticationViaTtyAsync(Uri targetUri, string userName, AuthenticationModes modes)
         {
             ThrowIfTerminalPromptsDisabled();
 
             switch (modes)
             {
                 case AuthenticationModes.Basic:
-                    Context.Terminal.WriteLine("Enter GitHub credentials for '{0}'...", targetUri);
+                    Context.Console.WriteLine($"Enter GitHub credentials for '{targetUri}'...");
 
                     if (string.IsNullOrWhiteSpace(userName))
                     {
-                        userName = Context.Terminal.Prompt("Username");
+                        userName = await TerminalPrompts.CreateText("Username").ShowAsync(Context.Console);
                     }
                     else
                     {
-                        Context.Terminal.WriteLine("Username: {0}", userName);
+                        Context.Console.WriteLine($"Username: {userName}");
                     }
 
-                    string password = Context.Terminal.PromptSecret("Password");
+                    string password = await TerminalPrompts.CreateSecret("Password").ShowAsync(Context.Console);
 
                     return new AuthenticationPromptResult(
                         AuthenticationModes.Basic, new GitCredential(userName, password));
@@ -245,8 +250,8 @@ namespace GitHub
                     return new AuthenticationPromptResult(AuthenticationModes.Device);
 
                 case AuthenticationModes.Pat:
-                    Context.Terminal.WriteLine("Enter GitHub personal access token for '{0}'...", targetUri);
-                    string pat = Context.Terminal.PromptSecret("Token");
+                    Context.Console.WriteLine($"Enter GitHub personal access token for '{targetUri}'...");
+                    string pat = await TerminalPrompts.CreateSecret("Token").ShowAsync(Context.Console);
                     return new AuthenticationPromptResult(
                         AuthenticationModes.Pat, new GitCredential(userName, pat));
 
@@ -255,26 +260,22 @@ namespace GitHub
                         @$"At least one {nameof(AuthenticationModes)} must be supplied");
 
                 default:
-                    var menuTitle = $"Select an authentication method for '{targetUri}'";
-                    var menu = new TerminalMenu(Context.Terminal, menuTitle);
+                    var promptTitle = $"Select an authentication method for '{targetUri}'";
+                    var prompt = TerminalPrompts.CreateSelection<AuthenticationModes>()
+                        .Title(promptTitle);
 
-                    TerminalMenuItem browserItem = null;
-                    TerminalMenuItem deviceItem = null;
-                    TerminalMenuItem basicItem = null;
-                    TerminalMenuItem patItem = null;
-
-                    if ((modes & AuthenticationModes.Browser) != 0) browserItem = menu.Add("Web browser");
-                    if ((modes & AuthenticationModes.Device) != 0) deviceItem = menu.Add("Device code");
-                    if ((modes & AuthenticationModes.Pat) != 0) patItem = menu.Add("Personal access token");
-                    if ((modes & AuthenticationModes.Basic) != 0) basicItem = menu.Add("Username/password");
+                    if ((modes & AuthenticationModes.Browser) != 0) prompt.AddChoice("Web browser", AuthenticationModes.Browser);
+                    if ((modes & AuthenticationModes.Device) != 0) prompt.AddChoice("Device code", AuthenticationModes.Device);
+                    if ((modes & AuthenticationModes.Pat) != 0) prompt.AddChoice("Personal access token", AuthenticationModes.Pat);
+                    if ((modes & AuthenticationModes.Basic) != 0) prompt.AddChoice("Username/password", AuthenticationModes.Basic);
 
                     // Default to the 'first' choice in the menu
-                    TerminalMenuItem choice = menu.Show(0);
+                    AuthenticationModes choice = await prompt.ShowAsync(Context.Console, CancellationToken.None);
 
-                    if (choice == browserItem) goto case AuthenticationModes.Browser;
-                    if (choice == deviceItem) goto case AuthenticationModes.Device;
-                    if (choice == basicItem) goto case AuthenticationModes.Basic;
-                    if (choice == patItem) goto case AuthenticationModes.Pat;
+                    if (choice == AuthenticationModes.Browser) goto case AuthenticationModes.Browser;
+                    if (choice == AuthenticationModes.Device) goto case AuthenticationModes.Device;
+                    if (choice == AuthenticationModes.Basic) goto case AuthenticationModes.Basic;
+                    if (choice == AuthenticationModes.Pat) goto case AuthenticationModes.Pat;
 
                     throw new Exception();
             }
@@ -359,7 +360,7 @@ namespace GitHub
                 return await GetTwoFactorCodeViaUiAsync(targetUri, isSms);
             }
 
-            return GetTwoFactorCodeViaTty(isSms);
+            return await GetTwoFactorCodeViaTtyAsync(isSms);
         }
 
         private async Task<string> GetTwoFactorCodeViaUiAsync(Uri targetUri, bool isSms)
@@ -376,17 +377,17 @@ namespace GitHub
             return viewModel.Code;
         }
 
-        private string GetTwoFactorCodeViaTty(bool isSms)
+        private async Task<string> GetTwoFactorCodeViaTtyAsync(bool isSms)
         {
             ThrowIfTerminalPromptsDisabled();
 
-            Context.Terminal.WriteLine("Two-factor authentication is enabled and an authentication code is required.");
+            Context.Console.WriteLine("Two-factor authentication is enabled and an authentication code is required.");
 
-            Context.Terminal.WriteLine(isSms
+            Context.Console.WriteLine(isSms
                 ? "An SMS containing the authentication code has been sent to your registered device."
                 : "Use your registered authentication app to generate an authentication code.");
 
-            return Context.Terminal.Prompt("Authentication code");
+            return await TerminalPrompts.CreateText("Authentication code").ShowAsync(Context.Console);
         }
 
         private async Task<string> GetTwoFactorCodeViaHelperAsync(bool isSms, string args, string command)
@@ -436,7 +437,7 @@ namespace GitHub
             }
 
             // Write message to the terminal (if any is attached) for some feedback that we're waiting for a web response
-            Context.Terminal.WriteLine("info: please complete authentication in your browser...");
+            Context.Console.WriteInfo("please complete authentication in your browser...");
 
             OAuth2AuthorizationCodeResult authCodeResult =
                 await oauthClient.GetAuthorizationCodeAsync(scopes, browser, queryParams, CancellationToken.None);
@@ -512,7 +513,7 @@ namespace GitHub
                 $"To complete authentication please visit {dcr.VerificationUri} and enter the following code:" +
                 Environment.NewLine +
                 dcr.UserCode;
-            Context.Terminal.WriteLine(deviceMessage);
+            Context.Console.WriteLine(deviceMessage);
 
             return await oauthClient.GetTokenByDeviceCodeAsync(dcr, CancellationToken.None);
         }

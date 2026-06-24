@@ -50,7 +50,7 @@ namespace GitLab.Tests
             var auth = new GitLabAuthentication(context);
             context.SessionManager.IsDesktopSession = true;
             context.Settings.IsGuiPromptsEnabled = false;
-            context.Terminal.Prompts["option (enter for default)"] = "";
+            context.Console.PushSelection(0);
             var result = await auth.GetAuthenticationAsync(null, null, AuthenticationModes.All);
             Assert.Equal(AuthenticationModes.Browser, result.AuthenticationMode);
         }
@@ -60,9 +60,9 @@ namespace GitLab.Tests
         {
             var context = new TestCommandContext();
             var auth = new GitLabAuthentication(context);
-            context.Terminal.Prompts["option (enter for default)"] = "";
-            context.Terminal.Prompts["Username"] = "username";
-            context.Terminal.SecretPrompts["Personal access token"] = "token";
+            context.Console.PushSelection(0);
+            context.Console.PushText("username");
+            context.Console.PushText("token");
             var result = await auth.GetAuthenticationAsync(null, null, AuthenticationModes.All);
             Assert.Equal(AuthenticationModes.Pat, result.AuthenticationMode);
             Assert.Equal("username", result.Credential.Account);
@@ -74,9 +74,9 @@ namespace GitLab.Tests
         {
             var context = new TestCommandContext();
             var auth = new GitLabAuthentication(context);
-            context.Terminal.Prompts["option (enter for default)"] = "2";
-            context.Terminal.Prompts["Username"] = "username";
-            context.Terminal.SecretPrompts["Password"] = "password";
+            context.Console.PushSelection(1);
+            context.Console.PushText("username");
+            context.Console.PushText("password");
             var result = await auth.GetAuthenticationAsync(null, null, AuthenticationModes.All);
             Assert.Equal(AuthenticationModes.Basic, result.AuthenticationMode);
             Assert.Equal("username", result.Credential.Account);
