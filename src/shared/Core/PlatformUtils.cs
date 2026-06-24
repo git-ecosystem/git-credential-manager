@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using GitCredentialManager.Interop.Posix.Native;
 
 namespace GitCredentialManager
@@ -110,33 +110,38 @@ namespace GitCredentialManager
         /// Check if the current Operating System is macOS.
         /// </summary>
         /// <returns>True if running on macOS, false otherwise.</returns>
+        [SupportedOSPlatformGuard("macos")]
         public static bool IsMacOS()
         {
-            return RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
+            return OperatingSystem.IsMacOS();
         }
 
         /// <summary>
         /// Check if the current Operating System is Windows.
         /// </summary>
         /// <returns>True if running on Windows, false otherwise.</returns>
+        [SupportedOSPlatformGuard("windows")]
         public static bool IsWindows()
         {
-            return RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+            return OperatingSystem.IsWindows();
         }
 
         /// <summary>
         /// Check if the current Operating System is Linux-based.
         /// </summary>
         /// <returns>True if running on a Linux distribution, false otherwise.</returns>
+        [SupportedOSPlatformGuard("linux")]
         public static bool IsLinux()
         {
-            return RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
+            return OperatingSystem.IsLinux();
         }
 
         /// <summary>
         /// Check if the current Operating System is POSIX-compliant.
         /// </summary>
         /// <returns>True if running on a POSIX-compliant Operating System, false otherwise.</returns>
+        [SupportedOSPlatformGuard("macos")]
+        [SupportedOSPlatformGuard("linux")]
         public static bool IsPosix()
         {
             return IsMacOS() || IsLinux();

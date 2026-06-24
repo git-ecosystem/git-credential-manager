@@ -1,9 +1,11 @@
+using System.Runtime.Versioning;
 
 namespace GitCredentialManager.Interop.Windows
 {
     /// <summary>
     /// Reads settings from Git configuration, environment variables, and defaults from the Windows Registry.
     /// </summary>
+    [SupportedOSPlatform("windows")]
     public class WindowsSettings : Settings
     {
         private readonly ITrace _trace;

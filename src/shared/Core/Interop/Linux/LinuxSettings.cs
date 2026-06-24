@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.Versioning;
 using System.Text;
-using Avalonia.Markup.Xaml.MarkupExtensions;
 
 namespace GitCredentialManager.Interop.Linux;
 
+[SupportedOSPlatform("linux")]
 public class LinuxSettings : Settings
 {
     private readonly ITrace _trace;

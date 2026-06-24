@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.Versioning;
 
 namespace GitCredentialManager.Interop.MacOS
 {
     /// <summary>
     /// Reads settings from Git configuration, environment variables, and defaults from the system.
     /// </summary>
+    [SupportedOSPlatform("macos")]
     public class MacOSSettings : Settings
     {
         private readonly ITrace _trace;
