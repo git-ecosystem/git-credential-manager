@@ -1,13 +1,16 @@
 using System;
+using Avalonia.Controls;
 
 namespace GitCredentialManager.UI.ViewModels
 {
     public class WindowViewModel : ViewModel
     {
         private bool _extendClientArea;
-        private bool _showCustomChromeOverride;
+        private WindowDecorations _windowDecorations;
         private bool _showDebugControls;
         private string _title;
+
+        public static readonly WindowDecorations[] WindowDecorationsValues = Enum.GetValues<WindowDecorations>();
 
         public event EventHandler Accepted;
         public event EventHandler Canceled;
@@ -18,6 +21,13 @@ namespace GitCredentialManager.UI.ViewModels
             
             // Extend the client area on Windows and macOS only
             ExtendClientArea = PlatformUtils.IsMacOS() || PlatformUtils.IsWindows();
+
+            // On Windows we prefer to show our own title bar, but we want the system
+            // to continue to draw the window border for us, which includes rounded
+            // window corners and shadow.
+            WindowDecorations = PlatformUtils.IsWindows()
+                ? WindowDecorations.BorderOnly
+                : WindowDecorations.Full;
         }
 
         public bool WindowResult { get; private set; }
@@ -28,39 +38,24 @@ namespace GitCredentialManager.UI.ViewModels
             set => SetAndRaisePropertyChanged(ref _showDebugControls, value);
         }
 
-        public bool ShowCustomChrome
+        public WindowDecorations WindowDecorations
         {
-            // On macOS we typically do NOT want to show the custom chrome if we've extended the client area
-            // because the native 'traffic light' controls will still be visible and we don't want to show our own.
-            get => ShowCustomChromeOverride || (ExtendClientArea && !PlatformUtils.IsMacOS());
-        }
-
-        public bool ShowCustomWindowBorder
-        {
-            // Draw the window border explicitly on Windows
-            get => ShowCustomChrome && PlatformUtils.IsWindows();
-        }
-
-        public bool ShowCustomChromeOverride
-        {
-            get => _showCustomChromeOverride;
+            get => _windowDecorations;
             set
             {
-                SetAndRaisePropertyChanged(ref _showCustomChromeOverride, value);
-                RaisePropertyChanged(nameof(ShowCustomChrome));
-                RaisePropertyChanged(nameof(ShowCustomWindowBorder));
+                SetAndRaisePropertyChanged(ref _windowDecorations, value);
+                RaisePropertyChanged(nameof(ShowCustomTitleBar));
             }
         }
+
+        // Without system window decorations there's now way to close the window,
+        // so we need to draw our own title bar and close button.
+        public bool ShowCustomTitleBar => WindowDecorations != WindowDecorations.Full;
 
         public bool ExtendClientArea
         {
             get => _extendClientArea;
-            set
-            {
-                SetAndRaisePropertyChanged(ref _extendClientArea, value);
-                RaisePropertyChanged(nameof(ShowCustomChrome));
-                RaisePropertyChanged(nameof(ShowCustomWindowBorder));
-            }
+            set => SetAndRaisePropertyChanged(ref _extendClientArea, value);
         }
 
         public string Title
