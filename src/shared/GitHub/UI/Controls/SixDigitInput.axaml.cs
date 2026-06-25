@@ -5,8 +5,9 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Input;
+using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
-using Avalonia.Markup.Xaml;
+using Avalonia.VisualTree;
 using GitCredentialManager;
 using GitCredentialManager.UI.Controls;
 
@@ -89,7 +90,7 @@ namespace GitHub.UI.Controls
             void OnPreviewKeyDown(object sender, KeyEventArgs e)
             {
                 // Handle paste
-                if (TopLevel.GetTopLevel(this)?.PlatformSettings?.HotkeyConfiguration.Paste.Any(x => x.Matches(e)) ?? false)
+                if (this.GetPlatformSettings()?.HotkeyConfiguration.Paste.Any(x => x.Matches(e)) ?? false)
                 {
                     OnPaste();
                     e.Handled = true;
@@ -156,7 +157,7 @@ namespace GitHub.UI.Controls
 
         private void OnPaste()
         {
-            Text = TopLevel.GetTopLevel(this)?.Clipboard?.GetTextAsync().GetAwaiter().GetResult();
+            Text = TopLevel.GetTopLevel(this)?.Clipboard?.TryGetTextAsync().GetAwaiter().GetResult();
         }
 
         private bool MoveNext() => MoveFocus(true);
