@@ -15,6 +15,7 @@ namespace GitCredentialManager;
 [JsonSerializable(typeof(RegionEnterMessage))]
 [JsonSerializable(typeof(RegionLeaveMessage))]
 [JsonSourceGenerationOptions(
+    UseStringEnumConverter = true,
     PropertyNamingPolicy = JsonKnownNamingPolicy.SnakeCaseLower,
     PropertyNameCaseInsensitive = true
 )]
@@ -535,10 +536,4 @@ public class RegionLeaveMessage : RegionMessage
     {
         return Message;
     }
-}
-
-public class SnakeCaseNamingPolicy : JsonNamingPolicy
-{
-    public override string ConvertName(string name) =>
-        name.ToSnakeCase();
 }
