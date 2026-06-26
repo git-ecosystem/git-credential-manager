@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Pipes;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading;
 
 namespace GitCredentialManager;
@@ -13,13 +14,21 @@ namespace GitCredentialManager;
 /// </summary>
 public enum Trace2Event
 {
+    [JsonStringEnumMemberName("version")]
     Version = 0,
+    [JsonStringEnumMemberName("start")]
     Start = 1,
+    [JsonStringEnumMemberName("exit")]
     Exit = 2,
+    [JsonStringEnumMemberName("child_start")]
     ChildStart = 3,
+    [JsonStringEnumMemberName("child_exit")]
     ChildExit = 4,
+    [JsonStringEnumMemberName("error")]
     Error = 5,
+    [JsonStringEnumMemberName("region_enter")]
     RegionEnter = 6,
+    [JsonStringEnumMemberName("region_leave")]
     RegionLeave = 7,
 }
 
@@ -28,9 +37,13 @@ public enum Trace2Event
 /// </summary>
 public enum Trace2ProcessClass
 {
+    [JsonStringEnumMemberName("none")]
     None = 0,
+    [JsonStringEnumMemberName("ui_helper")]
     UIHelper = 1,
+    [JsonStringEnumMemberName("git")]
     Git = 2,
+    [JsonStringEnumMemberName("other")]
     Other = 3
 }
 
