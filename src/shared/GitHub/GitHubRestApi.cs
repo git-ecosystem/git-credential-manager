@@ -106,7 +106,7 @@ namespace GitHub
 
                     string json = await response.Content.ReadAsStringAsync();
 
-                    return JsonSerializer.Deserialize<GitHubUserInfo>(json);
+                    return JsonSerializer.Deserialize(json, GitHubRestApiJsonContext.Default.GitHubUserInfo);
                 }
             }
         }
@@ -125,7 +125,7 @@ namespace GitHub
 
                 string json = await response.Content.ReadAsStringAsync();
 
-                return JsonSerializer.Deserialize<GitHubMetaInfo>(json);
+                return JsonSerializer.Deserialize(json, GitHubRestApiJsonContext.Default.GitHubMetaInfo);
             }
         }
 
@@ -268,6 +268,10 @@ namespace GitHub
 
         #endregion
     }
+
+    [JsonSerializable(typeof(GitHubUserInfo))]
+    [JsonSerializable(typeof(GitHubMetaInfo))]
+    public partial class GitHubRestApiJsonContext : JsonSerializerContext;
 
     public class GitHubUserInfo
     {
