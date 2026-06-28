@@ -108,6 +108,31 @@ written to `out/package/debug` (`out/package/release` for a Release build).
 The flat binaries can also be found in
 `out/publish/git-credential-manager/debug_linux-x64`.
 
+### .NET tool
+
+The .NET tool NuGet package is platform-agnostic. Build it the way CI does,
+through the distribution project, which publishes the product as portable IL and
+packs it, stamping the version from the `VERSION` file:
+
+```shell
+dotnet build build/dntool --configuration=Debug
+```
+
+The package metadata and file layout live in
+`build/dntool/Dntool.Distribution.csproj`; packing is just `dotnet pack` over
+that project, so no `nuget.exe` and no hand-authored `.nuspec` are needed. The
+`.nupkg` is written to `out/package/debug` (`out/package/release` for a Release
+build).
+
+To try the freshly built tool without affecting your global tools, install it
+into an isolated tool path:
+
+```shell
+dotnet tool install --tool-path /tmp/gcm-tool \
+  --add-source out/package/debug git-credential-manager
+/tmp/gcm-tool/git-credential-manager --version
+```
+
 ## Debugging
 
 To debug from inside an IDE you'll want to set `git-credential-manager` as the
