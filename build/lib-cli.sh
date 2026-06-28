@@ -171,6 +171,21 @@ require_value () {
     esac
 }
 
+# bool_flag <--name|--no-name>
+# Echo "true" for an affirmative flag (e.g. --aot) or "false" for its negated
+# form (--no-aot), so a script can accept a paired boolean option from a single
+# branch of its argument loop:
+#
+#     --aot|--no-aot) AOT="$(bool_flag "$1")"; shift ;;
+#
+bool_flag () {
+    case "$1" in
+        --no-*) printf 'false' ;;
+        --*)    printf 'true'  ;;
+        *)      die "bool_flag: not a --flag/--no-flag option: '$1'" ;;
+    esac
+}
+
 # ---------------------------------------------------------------------------
 # Runtime identifiers
 # ---------------------------------------------------------------------------

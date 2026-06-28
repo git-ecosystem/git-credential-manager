@@ -6,6 +6,9 @@
     Publishes git-credential-manager for the target runtime, removes files that
     are not shipped on Windows, and moves debug symbols (.pdb files) out of the
     published output into a sibling symbol directory.
+
+    By default this is a native ahead-of-time (AOT) build; pass -Aot:$false for a
+    trimmed, self-contained non-AOT build instead.
 #>
 [CmdletBinding()]
 param (
@@ -13,7 +16,8 @@ param (
     [Alias('r')] [string] $Runtime,
     [Alias('o')] [string] $Output,
     [string] $SymbolOutput,
-    [string] $Version
+    [string] $Version,
+    [bool] $Aot = $true
 )
 
 Set-StrictMode -Version Latest
@@ -61,13 +65,23 @@ foreach ($dir in @($OutDir, $SymOutDir)) {
 }
 New-Item -ItemType Directory -Path $OutDir, $SymOutDir -Force | Out-Null
 
+# By default the application is published ahead-of-time (AOT) compiled, as
+# configured in the project. For a non-AOT build, just turn AOT off: the
+# project then enables trimming, which implies a self-contained publish, so
+# --self-contained does not need to be passed explicitly.
+$aotArgs = @()
+if (-not $Aot) {
+    $aotArgs = @('-p:PublishAot=false')
+}
+
 # Publish the application to the resolved output directory.
 Write-Information "Publishing application..."
 dotnet publish "$GcmSrc" `
     --configuration $Configuration `
     --runtime $Runtime `
     --output $OutDir `
-    -p:VersionOverride=$Version
+    -p:VersionOverride=$Version `
+    @aotArgs
 if ($LASTEXITCODE -ne 0) {
     Write-Error "Failed to publish application (dotnet publish exited $LASTEXITCODE)"
 }
