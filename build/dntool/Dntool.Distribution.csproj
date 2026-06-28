@@ -1,0 +1,69 @@
+<Project Sdk="Microsoft.Build.NoTargets">
+
+  <!--
+    Builds and packs the Git Credential Manager .NET tool ('DotnetTool') NuGet
+    package, mirroring the platform distribution projects.
+
+    Building this project (dotnet build build/dntool) runs build/dntool/build.sh,
+    which publishes the product as portable IL then runs pack.sh. pack.sh invokes
+    'dotnet pack' on this same project, so all package metadata and file layout
+    live here - there is no separate package project or .nuspec. Nothing is
+    compiled (NoBuild); the _CustomPack target zips the pre-published (and, in
+    the release pipeline, code-signed) layout into the package as-is.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+
+    <!-- Package metadata (formerly git-credential-manager.nuspec). -->
+    <PackageId>git-credential-manager</PackageId>
+    <Authors>git-credential-manager</Authors>
+    <Description>Secure, cross-platform Git credential storage with authentication to Azure Repos, GitHub, and other popular Git hosting services.</Description>
+    <PackageProjectUrl>https://github.com/git-ecosystem/git-credential-manager</PackageProjectUrl>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/git-ecosystem/git-credential-manager</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageIcon>images/icon.png</PackageIcon>
+    <PackageTags>git credential manager authentication azure-repos github gitlab bitbucket</PackageTags>
+    <PackageType>DotnetTool</PackageType>
+
+    <!-- Pack the pre-published layout as-is: do not compile, emit no build
+         output, and carry no dependencies (the payload is self-described). -->
+    <NoBuild>true</NoBuild>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+  </PropertyGroup>
+
+  <!-- Build-order-only reference to the product so it is built first. -->
+  <ItemGroup>
+    <ProjectReference Include="$(RepoSrcPath)git-credential-manager\git-credential-manager.csproj"
+                      ReferenceOutputAssembly="false"
+                      Private="false"
+                      ExcludeAssets="all"
+                      SkipGetTargetFrameworkProperties="true" />
+  </ItemGroup>
+
+  <!-- The build scripts are bash; only run them on Unix-like hosts. On Windows,
+       pack directly: dotnet pack build/dntool after publishing the payload. -->
+  <Target Name="_CustomBuild" AfterTargets="Build" Condition="'$(IsUnixLike)' == 'true'">
+    <Exec Command="$(MSBuildProjectDirectory)/build.sh --configuration '$(Configuration)' --version '$(Version)'" />
+  </Target>
+
+  <!-- Static package assets that always live next to this project. -->
+  <ItemGroup>
+    <None Include="DotnetToolSettings.xml" Pack="true" PackagePath="tools/$(TargetFramework)/any" />
+    <None Include="icon.png" Pack="true" PackagePath="images" />
+  </ItemGroup>
+
+  <!-- Lay the published payload into the package at pack time. GcmPublishDir
+       is required so this target fails clearly if nothing is there yet rather
+       than emitting an empty package. -->
+  <Target Name="_CustomPack" BeforeTargets="_GetPackageFiles">
+    <Error Condition="!Exists('$(GcmPublishDir)')"
+           Text="Publish directory '$(GcmPublishDir)' not found. Publish the tool first (build/dntool/publish.sh) or pass -p:GcmPublishDir=&lt;dir&gt;." />
+    <ItemGroup>
+      <None Include="$(GcmPublishDir)/**/*" Pack="true" PackagePath="tools/$(TargetFramework)/any" />
+    </ItemGroup>
+  </Target>
+
+</Project>
