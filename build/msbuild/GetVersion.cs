@@ -9,6 +9,11 @@ namespace GitCredentialManager.MSBuild
         [Required]
         public string VersionFile { get; set; }
 
+        // Optional. When set (non-empty), this value is used as the version
+        // instead of reading the VersionFile, letting callers override the
+        // version, e.g. 'dotnet publish -p:VersionOverride=2.6.1'.
+        public string VersionOverride { get; set; }
+
         [Output]
         public string Version { get; set; }
 
@@ -20,8 +25,17 @@ namespace GitCredentialManager.MSBuild
 
         public override bool Execute()
         {
-            Log.LogMessage(MessageImportance.Normal, "Reading VERSION file...");
-            string textVersion = File.ReadAllText(VersionFile);
+            string textVersion;
+            if (!string.IsNullOrWhiteSpace(VersionOverride))
+            {
+                Log.LogMessage(MessageImportance.Normal, "Using override version '{0}'...", VersionOverride);
+                textVersion = VersionOverride;
+            }
+            else
+            {
+                Log.LogMessage(MessageImportance.Normal, "Reading VERSION file...");
+                textVersion = File.ReadAllText(VersionFile);
+            }
 
             if (!System.Version.TryParse(textVersion, out System.Version fullVersion))
             {
