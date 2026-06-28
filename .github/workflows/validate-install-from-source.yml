@@ -50,5 +50,5 @@ jobs:
       - uses: actions/checkout@v6
 
       - run: |
-          sh "${GITHUB_WORKSPACE}/src/linux/Packaging.Linux/install-from-source.sh" -y
+          sh "${GITHUB_WORKSPACE}/build/linux/install-from-source.sh" -y
           git-credential-manager --help || exit 1
