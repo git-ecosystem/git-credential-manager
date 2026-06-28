@@ -1,7 +1,8 @@
 # Uninstalling after installing from source
 
 These instructions will guide you in removing GCM after running the
-[install from source script][install-from-source] on your Linux distribution.
+[install from source script][install-from-source] on macOS or your Linux
+distribution.
 
 :rotating_light: PROCEED WITH CAUTION :rotating_light:
 
@@ -32,11 +33,28 @@ sudo rm -rf ~/git-credential-manager &&
 sudo rm ~/install-from-source.sh
 ```
 
+## macOS
+
+On macOS the script does not install any system packages — the runtime libraries
+GCM needs are part of the operating system — so the steps under
+[All distributions](#all-distributions) are normally all that is required.
+
+**Note:** If the script installed the .NET SDK for you (because a supported
+version was not already present), it was placed in `~/.dotnet`. To remove it:
+
+```console
+rm -rf ~/.dotnet
+```
+
+If you had a pre-existing .NET installation elsewhere, or want to remove only the
+version the script installed while keeping others, follow
+[these instructions][uninstall-dotnet-macos] instead.
+
 ## Debian/Ubuntu
 
 **Note:** If you had a pre-existing installation of dotnet that was not
 installed via `apt` or `apt-get` when you ran the install from source script,
-you will need to remove it using [these instructions][uninstall-dotnet] and
+you will need to remove it using [these instructions][uninstall-dotnet-linux] and
 remove `dotnet-*` from the below command.
 
 ```console
@@ -49,7 +67,7 @@ sudo apt remove dotnet-* dpkg-dev apt-transport-https git curl wget
 install from source script that was not located at `~/.dotnet`, you will need to
 modify the first command below to point to the custom install location. If you
 would like to remove the specific version of dotnet that the script installed
-and keep other versions, you can do so with [these instructions][uninstall-dotnet].
+and keep other versions, you can do so with [these instructions][uninstall-dotnet-linux].
 
 ```console
 sudo rm -rf ~/.dotnet &&
@@ -62,7 +80,7 @@ sudo apt remove git curl
 install from source script that was not located at `~/.dotnet`, you will need to
 modify the first command below to point to the custom install location. If you
 would like to remove the specific version of dotnet that the script installed
-and keep other versions, you can do so with [these instructions][uninstall-dotnet].
+and keep other versions, you can do so with [these instructions][uninstall-dotnet-linux].
 
 ```console
 sudo rm -rf ~/.dotnet
@@ -74,7 +92,7 @@ sudo rm -rf ~/.dotnet
 install from source script that was not located at `~/.dotnet`, you will need to
 modify the first command below to point to the custom install location. If you
 would like to remove the specific version of dotnet that the script installed
-and keep other versions, you can do so with [these instructions][uninstall-dotnet].
+and keep other versions, you can do so with [these instructions][uninstall-dotnet-linux].
 
 ```console
 sudo rm -rf ~/.dotnet &&
@@ -82,5 +100,6 @@ sudo apk del icu-libs krb5-libs libgcc libintl libssl1.1 libstdc++ zlib which
 bash coreutils gcompat git curl
 ```
 
-[install-from-source]: ../src/linux/Packaging.Linux/install-from-source.sh
-[uninstall-dotnet]: https://docs.microsoft.com/en-us/dotnet/core/install/remove-runtime-sdk-versions?pivots=os-linux#uninstall-net
+[install-from-source]: ../build/install-from-source.sh
+[uninstall-dotnet-linux]: https://docs.microsoft.com/en-us/dotnet/core/install/remove-runtime-sdk-versions?pivots=os-linux#uninstall-net
+[uninstall-dotnet-macos]: https://docs.microsoft.com/en-us/dotnet/core/install/remove-runtime-sdk-versions?pivots=os-macos#uninstall-net

@@ -299,6 +299,6 @@ is not removed and is left as `manager`, the default set by Git for Windows.
 [helper-config-docs]: https://git-scm.com/docs/gitcredentials#Documentation/gitcredentials.txt-helper
 [multiple-users]: multiple-users.md
 [netconfig-http-proxy]: netconfig.md#http-proxy
-[linux-uninstall-from-src]: ./linux-fromsrc-uninstall.md
+[linux-uninstall-from-src]: ./fromsrc-uninstall.md
 [windows-server-tls]: https://docs.microsoft.com/previous-versions/windows/it-pro/windows-server-2012-R2-and-2012/dn786418(v=ws.11)#tls-12
 [wsl]: wsl.md

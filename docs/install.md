@@ -116,6 +116,13 @@ out the instructions [here][linux-validate-gpg-tarball].
 
 ### Install from source helper script
 
+If you wish to build and install GCM from source, you can use the
+`install-from-source.sh` helper script. This script will download the latest
+source code, build it, and install it for you. It will also install any
+dependencies that are required to build GCM from source.
+
+This script supports macOS, and many Linux distributions.
+
 #### Install
 
 Ensure `curl` is installed:
@@ -130,7 +137,7 @@ to install it.
 Download and run the script:
 
 ```shell
-curl -L https://aka.ms/gcm/linux-install-source.sh | sh
+curl -L https://aka.ms/gcm/install-from-source.sh | sh
 git-credential-manager configure
 ```
 
@@ -138,9 +145,18 @@ git-credential-manager configure
 can download GCM's dependencies using your distribution's package
 manager.
 
+By default the script builds a trimmed, self-contained binary that needs only
+the .NET SDK. To instead build a native ahead-of-time (AOT) compiled binary —
+identical to the published packages, but requiring a C toolchain (`clang` and
+the `zlib` development headers) - pass `--aot`:
+
+```shell
+curl -L https://aka.ms/gcm/install-from-source.sh | sh -s -- --aot
+```
+
 #### Uninstall
 
-[Follow these instructions][linux-uninstall] for your distribution.
+[Follow these instructions][fromsrc-uninstall] for your distribution.
 
 ---
 
@@ -243,7 +259,7 @@ dotnet tool uninstall -g git-credential-manager
 [git-for-windows]: https://gitforwindows.org/
 [git-for-windows-gcm-screenshot]: img/git-for-windows-gcm-screenshot.png
 [latest-release]: https://github.com/git-ecosystem/git-credential-manager/releases/latest
-[linux-uninstall]: linux-fromsrc-uninstall.md
+[fromsrc-uninstall]: fromsrc-uninstall.md
 [linux-validate-gpg-debian]: ./linux-validate-gpg.md#debian-package
 [linux-validate-gpg-tarball]: ./linux-validate-gpg.md#tarball
 [ms-wsl]: https://aka.ms/wsl#
