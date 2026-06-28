@@ -146,3 +146,31 @@ jobs:
         path: |
           out/package/release/*.pkg
           out/package/release/*.tar.gz
+
+# ================================
+#             .NET tool
+# ================================
+  dntool:
+    name: .NET Tool
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v5.2.0
+      with:
+        dotnet-version: 10.0.x
+
+    - name: Install dependencies
+      run: dotnet restore
+
+    - name: Build .NET tool package
+      run: dotnet build build/dntool --configuration=release
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v7
+      with:
+        name: dotnet-tool
+        path: |
+          out/package/release/*.nupkg
