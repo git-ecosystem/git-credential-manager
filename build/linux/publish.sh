@@ -26,6 +26,9 @@ Options:
                                (default: <output>.sym)
   --version <version>          Version to stamp into the published binaries.
                                (default: the repository VERSION file)
+  --aot / --no-aot             Publish a native ahead-of-time (AOT) build, or a
+                               trimmed, self-contained non-AOT build instead.
+                               (default: --aot)
   -v, --verbose                Enable verbose output. (default: off)
   -h, --help                   Show this help text and exit.
 
@@ -41,6 +44,7 @@ RUNTIME=""
 OUTPUT=""
 SYMBOL_OUTPUT=""
 VERSION=""
+AOT="true"
 
 # Parse arguments.
 while [ "$#" -gt 0 ]; do
@@ -55,6 +59,7 @@ while [ "$#" -gt 0 ]; do
         -o|--output)        require_value "$@"; OUTPUT="$2"; shift 2 ;;
         --symbol-output)    require_value "$@"; SYMBOL_OUTPUT="$2"; shift 2 ;;
         --version)          require_value "$@"; VERSION="$2"; shift 2 ;;
+        --aot|--no-aot)     AOT="$(bool_flag "$1")"; shift ;;
         --)                 shift; break ;;
         -*)                 die "unknown option '$1' (try '$(basename "$0") --help')" ;;
         *)                  die "unexpected argument '$1' (try '$(basename "$0") --help')" ;;
@@ -90,16 +95,28 @@ fi
 verbose "configuration: $CONFIGURATION"
 verbose "runtime:       $RUNTIME"
 verbose "version:       $VERSION"
+verbose "aot:           $AOT"
 verbose "output dir:    $OUTDIR"
 verbose "symbol dir:    $SYMOUTDIR"
 
+# By default the application is published ahead-of-time (AOT) compiled, as
+# configured in the project. For a non-AOT build, just turn AOT off: the
+# project then enables trimming, which implies a self-contained publish, so
+# --self-contained does not need to be passed explicitly.
+AOT_ARGS=
+if [ "$AOT" != "true" ]; then
+    AOT_ARGS="-p:PublishAot=false"
+fi
+
 # Publish the application to the resolved output directory.
 info "Publishing application..."
+# shellcheck disable=SC2086 # AOT_ARGS is intentionally word-split (0 or 2 args).
 dotnet publish "$GCM_SRC" \
     --configuration="$CONFIGURATION" \
     --runtime="$RUNTIME" \
     --output "$OUTDIR" \
-    -p:VersionOverride="$VERSION" || die "Failed to publish application"
+    -p:VersionOverride="$VERSION" \
+    $AOT_ARGS || die "Failed to publish application"
 
 # Separate debug symbols (managed .pdb files and native .dbg files) out of the
 # shipping payload into the sibling symbol directory, so the published output
