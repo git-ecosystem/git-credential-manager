@@ -231,20 +231,20 @@ SDK][dotnet-install] before attempting to run the following `dotnet tool`
 commands. After installing, you will also need to follow the output instructions
 to add the tools directory to your `PATH`.
 
-#### Install
+### Install
 
 ```shell
 dotnet tool install -g git-credential-manager
 git-credential-manager configure
 ```
 
-#### Update
+### Update
 
 ```shell
 dotnet tool update -g git-credential-manager
 ```
 
-#### Uninstall
+### Uninstall
 
 ```shell
 git-credential-manager unconfigure
