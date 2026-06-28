@@ -15,8 +15,8 @@
   #error Installer target property 'InstallTarget' must be specifed
 #endif
 
-#ifndef GcmRuntimeIdentifier
-  #error GCM Runtime Identifier 'GcmRuntimeIdentifier' must be specifed (e.g. win-x64)
+#ifndef RuntimeIdentifier
+  #error Runtime Identifier 'RuntimeIdentifier' must be specifed (e.g. win-x64)
 #endif
 
 #if InstallTarget == "user"
@@ -71,16 +71,16 @@ AppContact={#GcmUrl}
 AppCopyright={#GcmCopyright}
 AppReadmeFile={#GcmReadme}
 ; Windows ARM64 supports installing and running x64 binaries, but not vice versa.
-#if GcmRuntimeIdentifier=="win-x64"
-ArchitecturesAllowed=x64compatible
-ArchitecturesInstallIn64BitMode=x64compatible
-#elif GcmRuntimeIdentifier=="win-arm64"
-ArchitecturesAllowed=arm64
-ArchitecturesInstallIn64BitMode=arm64
+#if RuntimeIdentifier=="win-x64"
+  ArchitecturesAllowed=x64compatible
+  ArchitecturesInstallIn64BitMode=x64compatible
+#elif RuntimeIdentifier=="win-arm64"
+  ArchitecturesAllowed=arm64
+  ArchitecturesInstallIn64BitMode=arm64
 #endif
 VersionInfoVersion={#GcmVersion}
 LicenseFile={#GcmRepoRoot}\LICENSE
-OutputBaseFilename={#GcmSetupExe}-{#GcmRuntimeIdentifier}-{#GcmVersionSimple}
+OutputBaseFilename={#GcmSetupExe}-{#RuntimeIdentifier}-{#GcmVersionSimple}
 DefaultDirName={autopf}\{#GcmShortName}
 Compression=lzma2
 SolidCompression=yes
