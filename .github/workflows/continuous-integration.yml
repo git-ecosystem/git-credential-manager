@@ -76,7 +76,7 @@ jobs:
 # ================================
   linux:
     name: Linux
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runtime == 'linux-x64' && 'ubuntu-24.04' || 'ubuntu-24.04-arm' }}
     strategy:
       matrix:
         runtime: [ linux-x64, linux-arm64, linux-arm ]
@@ -88,6 +88,13 @@ jobs:
       uses: actions/setup-dotnet@v5.2.0
       with:
         dotnet-version: 10.0.x
+
+    - name: Install cross-compilation toolchain (arm)
+      if: matrix.runtime == 'linux-arm'
+      run: |
+        sudo apt-get update
+        # Brings in cross-compilation toolchain for armhf including binutils
+        sudo apt-get install -y gcc-arm-linux-gnueabihf
 
     - name: Install dependencies
       run: dotnet restore
