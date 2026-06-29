@@ -143,6 +143,6 @@ the new token-based authentication requirements **DO NOT** apply to GHES:
 [windows-cli-save-pat-image]: img/windows-cli-save-pat.png
 [vs-2019]: https://docs.microsoft.com/en-us/visualstudio/install/update-visual-studio?view=vs-2019
 [vs-2017]: https://docs.microsoft.com/en-us/visualstudio/install/update-visual-studio?view=vs-2017
-[windows-credential-manager]: https://support.microsoft.com/en-us/windows/accessing-credential-manager-1b5c916a-6a16-889f-8581-fc16e8165ac0
+[windows-credential-manager]: https://support.microsoft.com/en-US/Windows/Security/credential-manager-in-windows
 [windows-gui-add-pat-image]: img/windows-gui-add-pat.png
 [windows-gui-credentials-image]: img/windows-gui-credentials.png
