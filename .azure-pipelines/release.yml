@@ -134,11 +134,21 @@ extends:
                     artifactName: '${{ dim.runtime }}'
               steps:
                 - checkout: self
-                - task: UseDotNet@2
-                  displayName: 'Use .NET 10 SDK'
+                - task: PowerShell@2
+                  displayName: 'Install .NET 10 SDK'
                   inputs:
-                    packageType: sdk
-                    version: '10.x'
+                    targetType: inline
+                    script: |
+                      # UseDotNet@2 mis-detects Windows-on-Arm agents as win-x86
+                      # and installs the 32-bit SDK, which breaks the win-arm64
+                      # AOT publish. Call dotnet-install directly, keyed on the
+                      # agent architecture, so each leg gets a matching host SDK.
+                      $ProgressPreference = 'SilentlyContinue'
+                      $installDir = Join-Path $env:AGENT_TEMPDIRECTORY 'dotnet'
+                      $installer = Join-Path $env:AGENT_TEMPDIRECTORY 'dotnet-install.ps1'
+                      Invoke-WebRequest -Uri 'https://dot.net/v1/dotnet-install.ps1' -OutFile $installer
+                      & $installer -Channel 10.0 -Architecture ${{ dim.poolArch }} -InstallDir $installDir
+                      Write-Host "##vso[task.prependpath]$installDir"
                 # Native AOT links the published binary with the MSVC linker,
                 # which our images do not ship by default. Install the VC++
                 # build tools for the agent's architecture first.
