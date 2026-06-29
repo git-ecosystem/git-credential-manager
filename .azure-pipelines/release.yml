@@ -139,6 +139,14 @@ extends:
                   inputs:
                     packageType: sdk
                     version: '10.x'
+                # Native AOT links the published binary with the MSVC linker,
+                # which our images do not ship by default. Install the VC++
+                # build tools for the agent's architecture first.
+                - task: PowerShell@2
+                  displayName: 'Install C++ build tools for AOT'
+                  inputs:
+                    filePath: '.azure-pipelines/scripts/windows/setup-aot-build-tools.ps1'
+                    arguments: -Architecture ${{ dim.poolArch }}
                 - task: PowerShell@2
                   displayName: 'Publish payload'
                   inputs:
