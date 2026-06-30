@@ -13,16 +13,11 @@ jobs:
 # ================================
   windows:
     name: Windows
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.runtime == 'win-arm64' && 'windows-11-arm' || 'windows-2025' }}
     strategy:
+      fail-fast: false
       matrix:
-        include:
-          - runtime: win-x86
-            os: windows-latest
-          - runtime: win-x64
-            os: windows-latest
-          - runtime: win-arm64
-            os: windows-11-arm
+          runtime: [ win-x86, win-x64, win-arm64 ]
 
     steps:
     - uses: actions/checkout@v6
@@ -46,38 +41,31 @@ jobs:
 
     - name: Build
       run: |
-        dotnet build src/windows/Installer.Windows/Installer.Windows.csproj `
-         --configuration=Release `
-         --runtime=${{ matrix.runtime }}
+        dotnet build build/windows `
+          --verbosity normal `
+          --configuration=release `
+          --runtime=${{ matrix.runtime }}
 
     - name: Test
       run: |
-        dotnet test --verbosity normal `
-        --configuration=WindowsRelease `
-        --runtime=${{ matrix.runtime }}
-
-    - name: Prepare artifacts
-      shell: bash
-      run: |
-        mkdir -p artifacts/bin
-        mv out/windows/Installer.Windows/bin/Release/net10.0/gcm*.exe artifacts/
-        mv out/windows/Installer.Windows/bin/Release/net10.0/${{ matrix.runtime }} artifacts/bin/
-        cp out/windows/Installer.Windows/bin/Release/net10.0/${{ matrix.runtime }}.sym/* artifacts/bin/${{ matrix.runtime }}/
+        dotnet test --configuration=release
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v7
       with:
         name: ${{ matrix.runtime }}
         path: |
-          artifacts
+          out/package/release/*.exe
+          out/package/release/*.zip
 
 # ================================
 #              Linux
 # ================================
   linux:
     name: Linux
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runtime == 'linux-x64' && 'ubuntu-24.04' || 'ubuntu-24.04-arm' }}
     strategy:
+      fail-fast: false
       matrix:
         runtime: [ linux-x64, linux-arm64, linux-arm ]
 
@@ -89,39 +77,43 @@ jobs:
       with:
         dotnet-version: 10.0.x
 
+    - name: Install cross-compilation toolchain (arm)
+      if: matrix.runtime == 'linux-arm'
+      run: |
+        sudo apt-get update
+        # Brings in cross-compilation toolchain for armhf including binutils
+        sudo apt-get install -y gcc-arm-linux-gnueabihf
+
     - name: Install dependencies
       run: dotnet restore
 
     - name: Build
       run: |
-        dotnet build src/linux/Packaging.Linux/*.csproj \
-         --configuration=Release --no-self-contained \
-         --runtime=${{ matrix.runtime }}
+        dotnet build build/linux \
+          --verbosity normal \
+          --configuration=release \
+          --runtime=${{ matrix.runtime }}
 
     - name: Test
       run: |
-        dotnet test --verbosity normal --configuration=LinuxRelease
-
-    - name: Prepare artifacts
-      run: |
-        mkdir -p artifacts
-        mv out/linux/Packaging.Linux/Release/deb/*.deb artifacts/
-        mv out/linux/Packaging.Linux/Release/tar/*.tar.gz artifacts/
+        dotnet test --configuration=release
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v7
       with:
         name: ${{ matrix.runtime }}
         path: |
-          artifacts
+          out/package/release/*.deb
+          out/package/release/*.tar.gz
 
 # ================================
 #              macOS
 # ================================
   osx:
     name: macOS
-    runs-on: macos-latest
+    runs-on: macos-15
     strategy:
+      fail-fast: false
       matrix:
         runtime: [ osx-x64, osx-arm64 ]
 
@@ -138,24 +130,47 @@ jobs:
 
     - name: Build
       run: |
-        dotnet build src/osx/Installer.Mac/*.csproj \
-         --configuration=Release --no-self-contained \
+        dotnet build build/macos \
+         --verbosity normal \
+         --configuration=release \
          --runtime=${{ matrix.runtime }}
 
     - name: Test
       run: |
-        dotnet test --verbosity normal --configuration=MacRelease
-
-    - name: Prepare artifacts
-      run: |
-        mkdir -p artifacts/bin
-        mv out/osx/Installer.Mac/pkg/Release/payload "artifacts/bin/${{ matrix.runtime }}"
-        cp out/osx/Installer.Mac/pkg/Release/payload.sym/* "artifacts/bin/${{ matrix.runtime }}/"
-        mv out/osx/Installer.Mac/pkg/Release/gcm*.pkg artifacts/
+        dotnet test --configuration=release
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v7
       with:
         name: ${{ matrix.runtime }}
         path: |
-          artifacts
+          out/package/release/*.pkg
+          out/package/release/*.tar.gz
+
+# ================================
+#             .NET tool
+# ================================
+  dntool:
+    name: .NET Tool
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v5.2.0
+      with:
+        dotnet-version: 10.0.x
+
+    - name: Install dependencies
+      run: dotnet restore
+
+    - name: Build .NET tool package
+      run: dotnet build build/dntool --configuration=release
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v7
+      with:
+        name: dotnet-tool
+        path: |
+          out/package/release/*.nupkg
