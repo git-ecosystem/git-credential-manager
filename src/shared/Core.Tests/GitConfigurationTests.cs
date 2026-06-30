@@ -656,5 +656,31 @@ namespace GitCredentialManager.Tests
             // Value should be canonicalized path, not raw "~/example"
             Assert.NotEqual("~/example", value);
         }
+
+        [Fact]
+        public void GitConfiguration_ScopedConfig_ProcessesIncludes()
+        {
+            const string configKey = "test.value";
+            const string configValue = "foo123";
+            string repoPath = CreateRepository(out string workDirPath);
+            ExecGit(repoPath, workDirPath, $"config --file {workDirPath}/git.config {configKey} {configValue}").AssertSuccess();
+            ExecGit(repoPath, workDirPath, $"config --global include.path {workDirPath}/git.config").AssertSuccess();
+            ExecGit(repoPath, workDirPath, $"config --local include.path {workDirPath}/git.config").AssertSuccess();
+
+            string gitPath = GetGitPath();
+            var trace = new NullTrace();
+            var trace2 = new NullTrace2();
+            var processManager = new TestProcessManager();
+
+            var git = new GitProcess(trace, trace2, processManager, gitPath, repoPath);
+            IGitConfiguration config = git.GetConfiguration();
+
+            // value of included file set in scopes
+            foreach (var scope in new GitConfigurationLevel[] { GitConfigurationLevel.Global, GitConfigurationLevel.Local })
+            {
+                Assert.True(config.TryGet(scope, GitConfigurationType.Raw, configKey, out string value));
+                Assert.Equal(configValue, value);
+            }
+        }
     }
 }
