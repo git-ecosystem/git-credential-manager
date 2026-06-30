@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.Build.NoTargets">
+  <ItemGroup>
+    <ProjectReference Include="$(RepoSrcPath)git-credential-manager\git-credential-manager.csproj"
+                      ReferenceOutputAssembly="false"
+                      Private="false"
+                      ExcludeAssets="all"
+                      SkipGetTargetFrameworkProperties="true" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="**/*" />
+  </ItemGroup>
+
+  <Target Name="_CustomBuild" AfterTargets="Build" Condition="'$(OSPlatform)' == 'linux'">
+    <Exec Command="$(MSBuildProjectDirectory)/build.sh --configuration '$(Configuration)' --version '$(Version)' --runtime '$(RuntimeIdentifier)'" />
+  </Target>
+</Project>

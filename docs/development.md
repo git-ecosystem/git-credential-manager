@@ -11,62 +11,131 @@ installed from the [.NET website][dotnet-web].
 
 ## Building
 
-The `Git-Credential-Manager.sln` solution can be opened and built in Visual
-Studio, Visual Studio for Mac, Visual Studio Code, or JetBrains Rider.
+The `git-credential-manager.slnx` solution can be opened and built in Visual
+Studio, Visual Studio Code, or JetBrains Rider.
+
+Each platform's distributables (installers, packages, and archives) are produced
+by building the matching project under `build/`, as shown below. These commands
+mirror what CI runs.
 
 ### macOS
 
-To build from inside an IDE, make sure to select the `MacDebug` or `MacRelease`
-solution configurations.
-
-To build from the command line, run:
+To build the macOS distribution from the command line, run:
 
 ```shell
-dotnet build -c MacDebug
+dotnet build build/macos --configuration=Debug --runtime=osx-arm64
 ```
 
-You can find a copy of the installer .pkg file in `out/osx/Installer.Mac/pkg/Debug`.
+Use `osx-x64` or `osx-arm64` for the `--runtime`, or omit it to build for the
+host architecture.
 
-The flat binaries can also be found in `out/osx/Installer.Mac/pkg/Debug/payload`.
+The installer package (`.pkg`) and the binary and symbol archives (`.tar.gz`)
+are written to `out/package/debug` (`out/package/release` for a Release build).
+
+The flat binaries can also be found in
+`out/publish/git-credential-manager/debug_osx-arm64`.
+
+> [!NOTE]
+> **Building with Homebrew's .NET SDK**
+>
+> If your `dotnet` comes from Homebrew (`brew install dotnet`), building the
+> macOS distribution fails during the Native AOT link step with an error like:
+>
+> ```text
+> ld: library 'ssl' not found
+> clang: error: linker command failed with exit code 1
+> ```
+>
+> Homebrew's .NET is a _non-portable_ build: its Native AOT runtime pack ships a
+> `nonportable.txt` marker that makes the linker reference `-lssl -lcrypto` (and
+> brotli) directly, instead of the portable `dlopen` path macOS normally uses.
+> Those Homebrew libraries aren't on the default linker search path, so the link
+> fails. See [dotnet/runtime#120440][dotnet-runtime-120440] for details. The
+> official .NET SDK is a portable build and is _not_ affected (it's also what CI
+> uses).
+>
+> **Recommended:** use the official .NET SDK instead of Homebrew's. For example,
+> install it side-by-side and put it ahead of Homebrew on your `PATH`:
+>
+> ```shell
+> curl -sSL https://dot.net/v1/dotnet-install.sh | bash -s -- --channel 10.0 --install-dir ~/.dotnet
+> export PATH="$HOME/.dotnet:$PATH"
+> ```
+>
+> This also matters for distributable builds: a binary linked by Homebrew's
+> `dotnet` gains a hard dependency on the Homebrew OpenSSL dylibs and shouldn't
+> be shipped.
+>
+> **Workaround:** to keep using Homebrew's `dotnet`, add the Homebrew OpenSSL and
+> brotli library directories to the linker search path before building:
+>
+> ```shell
+> export LIBRARY_PATH="$(brew --prefix openssl@3)/lib:$(brew --prefix brotli)/lib:$LIBRARY_PATH"
+> ```
 
 ### Windows
 
-To build from inside an IDE, make sure to select the `WindowsDebug` or
-`WindowsRelease` solution configurations.
-
-To build from the command line, run:
+To build the Windows distribution from the command line, run:
 
 ```powershell
-dotnet build -c WindowsDebug
+dotnet build build\windows --configuration=Debug --runtime=win-x64
 ```
 
-You can find a copy of the installer .exe file in `out\windows\Installer.Windows\bin\Debug\net10.0`.
+Use `win-x64`, `win-x86`, or `win-arm64` for the `--runtime`, or omit it to
+build for the host architecture.
 
-The flat binaries can also be found in `out\windows\Payload.Windows\bin\Debug\net10.0\win-x86`.
+The system and user installers (`gcm-<rid>-<version>.exe` and
+`gcmuser-<rid>-<version>.exe`) and the binary archive (`.zip`) are written to
+`out\package\debug` (`out\package\release` for a Release build).
+
+The flat binaries can also be found in
+`out\publish\git-credential-manager\debug_win-x64`.
 
 ### Linux
 
-The two available solution configurations are `LinuxDebug` and `LinuxRelease`.
-
-To build from the command line, run:
+To build the Linux distribution from the command line, run:
 
 ```shell
-dotnet build -c LinuxDebug
+dotnet build build/linux --configuration=Debug --runtime=linux-x64
 ```
 
-If you want to build for a specific architecture, you can provide `linux-x64` or `linux-arm64` or `linux-arm` as the runtime:
+Use `linux-x64`, `linux-arm64`, or `linux-arm` for the `--runtime`, or omit it
+to build for the host architecture.
+
+The Debian package (`.deb`) and the binary and symbol archives (`.tar.gz`) are
+written to `out/package/debug` (`out/package/release` for a Release build).
+
+The flat binaries can also be found in
+`out/publish/git-credential-manager/debug_linux-x64`.
+
+### .NET tool
+
+The .NET tool NuGet package is platform-agnostic. Build it the way CI does,
+through the distribution project, which publishes the product as portable IL and
+packs it, stamping the version from the `VERSION` file:
 
 ```shell
-dotnet build -c LinuxDebug -r linux-arm64
+dotnet build build/dntool --configuration=Debug
 ```
 
-You can find a copy of the Debian package (.deb) file in `out/linux/Packaging.Linux/deb/Debug`.
+The package metadata and file layout live in
+`build/dntool/Dntool.Distribution.csproj`; packing is just `dotnet pack` over
+that project, so no `nuget.exe` and no hand-authored `.nuspec` are needed. The
+`.nupkg` is written to `out/package/debug` (`out/package/release` for a Release
+build).
 
-The flat binaries can also be found in `out/linux/Packaging.Linux/payload/Debug`.
+To try the freshly built tool without affecting your global tools, install it
+into an isolated tool path:
+
+```shell
+dotnet tool install --tool-path /tmp/gcm-tool \
+  --add-source out/package/debug git-credential-manager
+/tmp/gcm-tool/git-credential-manager --version
+```
 
 ## Debugging
 
-To debug from inside an IDE you'll want to set `Git-Credential-Manager` as the
+To debug from inside an IDE you'll want to set `git-credential-manager` as the
 startup project, and specify one of `get`, `store`, or `erase` as a program
 argument.
 
@@ -117,9 +186,15 @@ error, or to an absolute file path to write trace information to a file.
 For example:
 
 ```shell
-$ GCM_TRACE=1 git-credential-manager version
-> 18:47:56.526712 ...er/Application.cs:69 trace: [RunInternalAsync] Git Credential Manager version 2.0.124-beta+e1ebbe1517 (macOS, .NET 5.0) 'version'
-> Git Credential Manager version 2.0.124-beta+e1ebbe1517 (macOS, .NET 5.0)
+GCM_TRACE=1 out/publish/git-credential-manager/debug_osx-arm64/git-credential-manager --version
+16:26:50.667032 ...e/Application.cs:107 trace: [RunInternalAsync] Version: 3.0.0
+16:26:50.667295 ...e/Application.cs:108 trace: [RunInternalAsync] Runtime: .NET 10.0.9
+16:26:50.667303 ...e/Application.cs:109 trace: [RunInternalAsync] Platform: macOS (ARM64)
+16:26:50.667310 ...e/Application.cs:110 trace: [RunInternalAsync] OSVersion: 26.5.1
+16:26:50.667316 ...e/Application.cs:111 trace: [RunInternalAsync] AppPath: /Users/user1/src/gcm/out/publish/git-credential-manager/debug_osx-arm64/git-credential-manager
+16:26:50.667323 ...e/Application.cs:112 trace: [RunInternalAsync] InstallDir: /Users/user1/src/gcm/out/publish/git-credential-manager/debug_osx-arm64/
+16:26:50.667330 ...e/Application.cs:113 trace: [RunInternalAsync] Arguments: --version
+3.0.0+a9ecd9c6e31bbc5cb44c530edfd88a8784de5fb0
 ```
 
 #### Git's Trace2 API
@@ -247,6 +322,7 @@ Documents are checked for link validity using [lychee][lychee]. Lychee can be
 installed in a variety of ways depending on your platform, see the [docs on GitHub][lychee-docs].
 Some URLs are ignored by lychee, per the [lycheeignore][lycheeignore].
 
+[dotnet-runtime-120440]: https://github.com/dotnet/runtime/issues/120440
 [dotnet-web]: https://dotnet.microsoft.com/
 [custom-helpers]: https://git-scm.com/docs/gitcredentials#_custom_helpers
 [ioformat]: https://git-scm.com/docs/git-credential#IOFMT

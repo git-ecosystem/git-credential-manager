@@ -202,7 +202,7 @@ the input arguments from Git - `<protocol>://<host>[/<path>]` - no username is
 included even if present.
 
 Host providers are queried in turn, by priority (then registration order) via
-the `IHostProvider.IsSupported(InputArguments)` method and passed the input
+the `IHostProvider.IsSupported(GitRequest)` method and passed the input
 received from Git. If the provider recognises the request, for example by a
 matching known host name, they can return `true`. If the provider wants to
 cancel and abort an authentication request, for example if this is a HTTP (not
@@ -213,12 +213,12 @@ Host providers can also be queried via the `IHostProvider.IsSupported(HttpRespon
 method and passed the response message from a HEAD call made to the remote URI.
 This is useful for detecting on-premises instances based on header values. GCM
 will only query a provider via this method overload if no other provider at the
-same registration priority has returned `true` to the `InputArguments` overload.
+same registration priority has returned `true` to the `GitRequest` overload.
 
 Depending on the request from Git, one of `GetCredentialAsync` (for `get`
 requests), `StoreCredentialAsync` (for `store` requests) or
 `EraseCredentialAsync` (for `erase` requests) will be called. The argument
-`InputArguments` contains the request information passed over standard input
+`GitRequest` contains the request information passed over standard input
 from Git/the caller; the same as was passed to `IsSupported`.
 
 The return value for the `get` operation must be an `ICredential` that Git can

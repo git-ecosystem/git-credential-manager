@@ -1,0 +1,176 @@
+# Reusable step template for ESRP code signing via EsrpCodeSigning@6.
+#
+# For macOS, ESRP requires files to be submitted as a zip archive.
+# Set 'useArchive: true' to automatically handle the
+# copy → zip → sign → extract cycle. For Windows/Linux where ESRP
+# can sign files directly in a folder, leave it as false (default).
+#
+parameters:
+  - name: displayName
+    type: string
+  - name: folderPath
+    type: string
+  - name: pattern
+    type: string
+  - name: inlineOperation
+    type: string
+  # When true, matching files are copied to a staging dir, zipped,
+  # signed, and extracted back to folderPath.
+  - name: useArchive
+    type: boolean
+    default: false
+  # Comma-separated list of MIME types (as reported by 'file --mime-type'). When
+  # set, the staged files are filtered down to just those whose type matches one
+  # of the listed types before signing, so a mixed payload can be passed straight
+  # through and only the matching files are signed (e.g. pass
+  # 'application/x-mach-binary' to sign only Mach-O executables and dylibs). Only
+  # applies when useArchive is true.
+  - name: archiveMimeFilter
+    type: string
+    default: ''
+  # Where to move the CodeSignSummary-*.md receipt that ESRP writes alongside
+  # the signed files. When empty (default) the receipt is deleted instead, so it
+  # is never packaged or published with the signed output.
+  - name: codeSignSummaryPath
+    type: string
+    default: ''
+  # ESRP connection parameters (defaults use pipeline variables)
+  - name: connectedServiceName
+    type: string
+    default: $(esrpAppConnectionName)
+  - name: appRegistrationClientId
+    type: string
+    default: $(esrpClientId)
+  - name: appRegistrationTenantId
+    type: string
+    default: $(esrpTenantId)
+  - name: authAkvName
+    type: string
+    default: $(esrpKeyVaultName)
+  - name: authSignCertName
+    type: string
+    default: $(esrpSignReqCertName)
+  - name: serviceEndpointUrl
+    type: string
+    default: $(esrpEndpointUrl)
+
+steps:
+  - ${{ if eq(parameters.useArchive, true) }}:
+    - task: DeleteFiles@1
+      displayName: 'Clean staging dir for ${{ parameters.displayName }}'
+      inputs:
+        SourceFolder: '$(Agent.TempDirectory)/esrp-staging'
+        Contents: '*'
+        RemoveSourceFolder: true
+    - task: CopyFiles@2
+      displayName: 'Collect files for ${{ parameters.displayName }}'
+      inputs:
+        SourceFolder: '${{ parameters.folderPath }}'
+        Contents: '${{ parameters.pattern }}'
+        TargetFolder: '$(Agent.TempDirectory)/esrp-staging/contents'
+    - ${{ if ne(parameters.archiveMimeFilter, '') }}:
+      # Filter the staged files to the requested MIME type(s); ESRP would
+      # otherwise try to sign every file in a mixed payload.
+      - task: Bash@3
+        displayName: 'Filter files by MIME type for ${{ parameters.displayName }}'
+        inputs:
+          targetType: inline
+          script: |
+            set -euo pipefail
+            dir="$(Agent.TempDirectory)/esrp-staging/contents"
+            # Comma-separated list of allowed 'file --mime-type' values; strip spaces.
+            filter="$(printf '%s' "${{ parameters.archiveMimeFilter }}" | tr -d '[:space:]')"
+            find "$dir" -type f -print0 \
+              | while IFS= read -r -d '' f; do
+                  mt="$(file --mime-type -b "$f" 2>/dev/null || true)"
+                  # For fat/universal binaries 'file' prints a line per
+                  # architecture; the first line is the overall type.
+                  mt="${mt%%$'\n'*}"
+                  case ",$filter," in
+                    *",$mt,"*) : ;;      # keep: type is in the filter list
+                    *) rm -f "$f" ;;     # drop: not a requested type
+                  esac
+                done
+            # Drop any directories left empty by the filtering.
+            find "$dir" -type d -empty -delete 2>/dev/null || true
+    - task: ArchiveFiles@2
+      displayName: 'Archive files for ${{ parameters.displayName }}'
+      inputs:
+        rootFolderOrFile: '$(Agent.TempDirectory)/esrp-staging/contents'
+        includeRootFolder: false
+        archiveType: zip
+        archiveFile: '$(Agent.TempDirectory)/esrp-staging/archive.zip'
+    - task: EsrpCodeSigning@6
+      displayName: '${{ parameters.displayName }}'
+      inputs:
+        connectedServiceName: '${{ parameters.connectedServiceName }}'
+        useMSIAuthentication: true
+        appRegistrationClientId: '${{ parameters.appRegistrationClientId }}'
+        appRegistrationTenantId: '${{ parameters.appRegistrationTenantId }}'
+        authAkvName: '${{ parameters.authAkvName }}'
+        authSignCertName: '${{ parameters.authSignCertName }}'
+        serviceEndpointUrl: '${{ parameters.serviceEndpointUrl }}'
+        folderPath: '$(Agent.TempDirectory)/esrp-staging'
+        pattern: 'archive.zip'
+        useMinimatch: true
+        signConfigType: inlineSignParams
+        inlineOperation: ${{ parameters.inlineOperation }}
+    - task: ExtractFiles@1
+      displayName: 'Extract signed files for ${{ parameters.displayName }}'
+      inputs:
+        archiveFilePatterns: '$(Agent.TempDirectory)/esrp-staging/archive.zip'
+        destinationFolder: '${{ parameters.folderPath }}'
+        # Only the signed files are present in the returned archive (the MIME
+        # filter can exclude others), so cleaning the destination would delete
+        # every unsigned file that belongs in the folder. Overwrite the
+        # originals in place instead of cleaning first.
+        cleanDestinationFolder: false
+        overwriteExistingFiles: true
+    # ESRP writes a CodeSignSummary-*.md receipt into the staging dir; move it
+    # aside first when a destination is given, otherwise the cleanup below
+    # deletes it along with the rest of the staging dir.
+    - ${{ if ne(parameters.codeSignSummaryPath, '') }}:
+      - task: CopyFiles@2
+        displayName: 'Move code signing summary for ${{ parameters.displayName }}'
+        inputs:
+          SourceFolder: '$(Agent.TempDirectory)/esrp-staging'
+          Contents: '**/CodeSignSummary-*.md'
+          TargetFolder: '${{ parameters.codeSignSummaryPath }}'
+    - task: DeleteFiles@1
+      displayName: 'Clean up staging dir for ${{ parameters.displayName }}'
+      condition: always()
+      inputs:
+        SourceFolder: '$(Agent.TempDirectory)/esrp-staging'
+        Contents: '*'
+        RemoveSourceFolder: true
+  - ${{ else }}:
+    - task: EsrpCodeSigning@6
+      displayName: '${{ parameters.displayName }}'
+      inputs:
+        connectedServiceName: '${{ parameters.connectedServiceName }}'
+        useMSIAuthentication: true
+        appRegistrationClientId: '${{ parameters.appRegistrationClientId }}'
+        appRegistrationTenantId: '${{ parameters.appRegistrationTenantId }}'
+        authAkvName: '${{ parameters.authAkvName }}'
+        authSignCertName: '${{ parameters.authSignCertName }}'
+        serviceEndpointUrl: '${{ parameters.serviceEndpointUrl }}'
+        folderPath: '${{ parameters.folderPath }}'
+        pattern: '${{ parameters.pattern }}'
+        useMinimatch: true
+        signConfigType: inlineSignParams
+        inlineOperation: ${{ parameters.inlineOperation }}
+    # ESRP writes a CodeSignSummary-*.md receipt next to the signed files. Move
+    # it to the given destination when set, then always remove it from the
+    # signed folder so it is not packaged or published with the output.
+    - ${{ if ne(parameters.codeSignSummaryPath, '') }}:
+      - task: CopyFiles@2
+        displayName: 'Move code signing summary for ${{ parameters.displayName }}'
+        inputs:
+          SourceFolder: '${{ parameters.folderPath }}'
+          Contents: '**/CodeSignSummary-*.md'
+          TargetFolder: '${{ parameters.codeSignSummaryPath }}'
+    - task: DeleteFiles@1
+      displayName: 'Remove code signing summary for ${{ parameters.displayName }}'
+      inputs:
+        SourceFolder: '${{ parameters.folderPath }}'
+        Contents: '**/CodeSignSummary-*.md'
