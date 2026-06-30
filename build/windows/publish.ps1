@@ -77,6 +77,7 @@ if (-not $Aot) {
 # Publish the application to the resolved output directory.
 Write-Information "Publishing application..."
 dotnet publish "$GcmSrc" `
+    -v:normal `
     --configuration $Configuration `
     --runtime $Runtime `
     --output $OutDir `
