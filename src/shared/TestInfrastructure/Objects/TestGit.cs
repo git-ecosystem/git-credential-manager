@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -8,7 +7,7 @@ namespace GitCredentialManager.Tests.Objects
 {
     public class TestGit : IGit
     {
-        public GitVersion Version { get; set; } = new GitVersion("2.32.0.test.0");
+        public GitVersion Version { get; set; } = GitVersion.Parse("2.32.0.test.0");
 
         public string CurrentRepository { get; set; }
 
