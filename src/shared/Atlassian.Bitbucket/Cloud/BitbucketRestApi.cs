@@ -8,6 +8,13 @@ using System.Text.Json.Serialization;
 
 namespace Atlassian.Bitbucket.Cloud
 {
+    [JsonSerializable(typeof(UserInfo))]
+    [JsonSourceGenerationOptions(
+        PropertyNameCaseInsensitive = true,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+    )]
+    public partial class BitbucketCloudRestApiJsonContext : JsonSerializerContext;
+
     public class BitbucketRestApi : IBitbucketRestApi
     {
         private readonly ICommandContext _context;
@@ -43,11 +50,7 @@ namespace Atlassian.Bitbucket.Cloud
 
                     if (response.IsSuccessStatusCode)
                     {
-                        var obj = JsonSerializer.Deserialize<UserInfo>(json,
-                            new JsonSerializerOptions
-                            {
-                                PropertyNameCaseInsensitive = true,
-                            });
+                        UserInfo obj = JsonSerializer.Deserialize(json, BitbucketCloudRestApiJsonContext.Default.UserInfo);
 
                         return new RestApiResult<IUserInfo>(response.StatusCode, obj);
                     }

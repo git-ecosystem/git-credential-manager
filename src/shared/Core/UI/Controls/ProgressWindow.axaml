@@ -4,7 +4,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="182" d:DesignHeight="46"
         SizeToContent="WidthAndHeight" CanResize="False" Topmost="True"
-        ExtendClientAreaChromeHints="NoChrome" ExtendClientAreaToDecorationsHint="True"
+        WindowDecorations="None"
         ShowInTaskbar="False" Title="Git Credential Manager" WindowStartupLocation="CenterScreen"
         x:Class="GitCredentialManager.UI.Controls.ProgressWindow">
     <ProgressBar Orientation="Horizontal"

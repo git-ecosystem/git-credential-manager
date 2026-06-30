@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:sharedVms="clr-namespace:GitCredentialManager.UI.ViewModels;assembly=gcmcore"
              mc:Ignorable="d" d:DesignWidth="420"
+             x:DataType="sharedVms:DeviceCodeViewModel"
              x:Class="GitCredentialManager.UI.Views.DeviceCodeView">
     <Design.DataContext>
         <sharedVms:DeviceCodeViewModel/>

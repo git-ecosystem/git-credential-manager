@@ -259,5 +259,9 @@ if [ -z "$DOTNET_ROOT" ]; then
 fi
 
 cd "$toplevel_path"
-$sudo_cmd env "PATH=$PATH" $DOTNET_ROOT/dotnet build ./src/linux/Packaging.Linux/Packaging.Linux.csproj -c Release -p:InstallFromSource=true -p:installPrefix=$installPrefix
+# Build a non-AOT binary so installing from source needs only the .NET SDK,
+# not a C toolchain (clang + zlib) to link a native build. PublishAot is read
+# from the environment by Git-Credential-Manager.csproj and inherited by the
+# nested publish.
+$sudo_cmd env "PATH=$PATH" PublishAot=false $DOTNET_ROOT/dotnet build ./src/linux/Packaging.Linux/Packaging.Linux.csproj -c Release -p:InstallFromSource=true -p:installPrefix=$installPrefix
 add_to_PATH "$installPrefix/bin"

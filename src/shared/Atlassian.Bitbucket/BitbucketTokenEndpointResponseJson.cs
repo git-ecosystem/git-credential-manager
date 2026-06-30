@@ -5,6 +5,9 @@ using System.Text.Json.Serialization;
 
 namespace Atlassian.Bitbucket
 {
+    [JsonSerializable(typeof(BitbucketTokenEndpointResponseJson))]
+    public partial class BitbucketOAuthJsonContext : JsonSerializerContext;
+
     [JsonConverter(typeof(BitbucketCustomTokenEndpointResponseJsonConverter))]
     public class BitbucketTokenEndpointResponseJson : TokenEndpointResponseJson
     {

@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using GitCredentialManager.Authentication.OAuth.Json;
 using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 
 namespace GitCredentialManager.Authentication.OAuth
 {
@@ -213,7 +214,7 @@ namespace GitCredentialManager.Authentication.OAuth
             {
                 string json = await response.Content.ReadAsStringAsync();
 
-                if (response.IsSuccessStatusCode && TryDeserializeJson(json, out DeviceAuthorizationEndpointResponseJson jsonObj))
+                if (response.IsSuccessStatusCode && TryDeserializeJson(json, OAuthJsonContext.Default.DeviceAuthorizationEndpointResponseJson, out DeviceAuthorizationEndpointResponseJson jsonObj))
                 {
                     return jsonObj.ToResult();
                 }
@@ -321,12 +322,9 @@ namespace GitCredentialManager.Authentication.OAuth
                             return result;
                         }
 
-                        var error = JsonSerializer.Deserialize<ErrorResponseJson>(json, new JsonSerializerOptions
-                        {
-                            PropertyNameCaseInsensitive = true
-                        });
+                        TryDeserializeJson(json, OAuthJsonContext.Default.ErrorResponseJson, out ErrorResponseJson error);
 
-                        switch (error.Error)
+                        switch (error?.Error)
                         {
                             case OAuth2Constants.DeviceAuthorization.Errors.AuthorizationPending:
                                 // Retry with the current polling interval value
@@ -358,7 +356,9 @@ namespace GitCredentialManager.Authentication.OAuth
 
         protected virtual bool TryCreateTokenEndpointResult(string json, out OAuth2TokenResult result)
         {
-            if (TryDeserializeJson(json, out TokenEndpointResponseJson jsonObj))
+            if (TryDeserializeJson(json,
+                    OAuthJsonContext.Default.TokenEndpointResponseJson,
+                    out TokenEndpointResponseJson jsonObj))
             {
                 result = jsonObj.ToResult();
                 return true;
@@ -370,7 +370,7 @@ namespace GitCredentialManager.Authentication.OAuth
 
         protected virtual bool TryCreateExceptionFromResponse(string json, out OAuth2Exception exception)
         {
-            if (TryDeserializeJson(json, out ErrorResponseJson obj))
+            if (TryDeserializeJson(json, OAuthJsonContext.Default.ErrorResponseJson, out ErrorResponseJson obj))
             {
                 exception = obj.ToException();
                 return true;
@@ -410,11 +410,11 @@ namespace GitCredentialManager.Authentication.OAuth
             return new Trace2OAuth2Exception(_trace2, message, format);
         }
 
-        protected static bool TryDeserializeJson<T>(string json, out T obj)
+        protected static bool TryDeserializeJson<T>(string json, JsonTypeInfo<T> typeInfo, out T obj)
         {
             try
             {
-                obj = JsonSerializer.Deserialize<T>(json);
+                obj = JsonSerializer.Deserialize(json, typeInfo);
                 return true;
             }
             catch

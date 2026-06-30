@@ -10,6 +10,15 @@ using System.Text.Json.Serialization;
 
 namespace Atlassian.Bitbucket.DataCenter
 {
+    [JsonSerializable(typeof(UserInfo))]
+    [JsonSerializable(typeof(LoginOption))]
+    [JsonSerializable(typeof(LoginOptions))]
+    [JsonSourceGenerationOptions(
+        PropertyNameCaseInsensitive = true,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+    )]
+    public partial class BitbucketDataCenterRestApiJsonContext : JsonSerializerContext;
+
     public class BitbucketRestApi : IBitbucketRestApi
     {
         private readonly ICommandContext _context;
@@ -107,12 +116,8 @@ namespace Atlassian.Bitbucket.DataCenter
 
                     if (response.IsSuccessStatusCode)
                     {
-                        var loginOptions = JsonSerializer.Deserialize<LoginOptions>(json,
-                            new JsonSerializerOptions
-                            {
-                                PropertyNameCaseInsensitive = true,
-                                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-                            });
+                        LoginOptions loginOptions = JsonSerializer.Deserialize(
+                            json, BitbucketDataCenterRestApiJsonContext.Default.LoginOptions);
 
                         if (loginOptions.Results.Any(r => "LOGIN_FORM".Equals(r.Type)))
                         {
