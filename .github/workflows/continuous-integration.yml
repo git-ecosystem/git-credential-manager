@@ -60,9 +60,9 @@ jobs:
       shell: bash
       run: |
         mkdir -p artifacts/bin
-        mv out/windows/Installer.Windows/bin/Release/net472/gcm*.exe artifacts/
-        mv out/windows/Installer.Windows/bin/Release/net472/${{ matrix.runtime }} artifacts/bin/
-        cp out/windows/Installer.Windows/bin/Release/net472/${{ matrix.runtime }}.sym/* artifacts/bin/${{ matrix.runtime }}/
+        mv out/windows/Installer.Windows/bin/Release/net10.0/gcm*.exe artifacts/
+        mv out/windows/Installer.Windows/bin/Release/net10.0/${{ matrix.runtime }} artifacts/bin/
+        cp out/windows/Installer.Windows/bin/Release/net10.0/${{ matrix.runtime }}.sym/* artifacts/bin/${{ matrix.runtime }}/
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v7

@@ -6,15 +6,9 @@ namespace GitCredentialManager.Interop.Linux;
 
 public class LinuxConfigParser
 {
-#if NETFRAMEWORK
-    private const string SQ = "'";
-    private const string DQ = "\"";
-    private const string Hash = "#";
-#else
     private const char SQ = '\'';
     private const char DQ = '"';
     private const char Hash = '#';
-#endif
 
     private static readonly Regex LineRegex = new(@"^\s*(?<key>[a-zA-Z0-9\.-]+)\s*=\s*(?<value>.+?)\s*(?:#.*)?$");
 

@@ -60,11 +60,7 @@ namespace GitCredentialManager.Authentication
             // Write the standard input to the process if we have any to write
             if (standardInput is not null)
             {
-#if NETFRAMEWORK
-                await standardInput.BaseStream.CopyToAsync(process.StandardInput.BaseStream);
-#else
                 await standardInput.BaseStream.CopyToAsync(process.StandardInput.BaseStream, ct);
-#endif
                 process.StandardInput.Close();
             }
 

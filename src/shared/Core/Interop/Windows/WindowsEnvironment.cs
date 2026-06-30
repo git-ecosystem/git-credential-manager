@@ -1,12 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
+using System.Runtime.Versioning;
 using System.Text;
 
 namespace GitCredentialManager.Interop.Windows
 {
+    [SupportedOSPlatform("windows")]
     public class WindowsEnvironment : EnvironmentBase
     {
         public WindowsEnvironment(IFileSystem fileSystem)

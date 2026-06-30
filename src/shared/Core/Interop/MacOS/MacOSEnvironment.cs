@@ -1,12 +1,11 @@
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Threading;
+using System.Runtime.Versioning;
 using GitCredentialManager.Interop.Posix;
 
 namespace GitCredentialManager.Interop.MacOS
 {
+    [SupportedOSPlatform("macos")]
     public class MacOSEnvironment : PosixEnvironment
     {
         private ICollection<string> _pathsToIgnore;
