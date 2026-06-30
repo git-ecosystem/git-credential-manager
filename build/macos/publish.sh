@@ -112,6 +112,7 @@ fi
 info "Publishing application..."
 # shellcheck disable=SC2086 # AOT_ARGS is intentionally word-split (0 or 2 args).
 dotnet publish "$GCM_SRC" \
+    -v:normal \
     --configuration="$CONFIGURATION" \
     --runtime="$RUNTIME" \
     --output "$OUTDIR" \

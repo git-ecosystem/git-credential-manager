@@ -86,6 +86,7 @@ verbose "output dir:    $OUTDIR"
 # No runtime identifier is specified, so the output is portable (tools/<tfm>/any).
 info "Publishing .NET tool application..."
 dotnet publish "$GCM_SRC" \
+    -v:normal \
     --configuration="$CONFIGURATION" \
     --framework net10.0 \
     --output "$OUTDIR" \
