@@ -1,0 +1,43 @@
+name: validate-install-homebrew
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  homebrew:
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            arch: arm64
+          - os: macos-13
+            arch: x64
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install via Homebrew
+        run: brew install --cask git-credential-manager
+
+      - name: Verify installation
+        run: git-credential-manager --version || exit 1
+
+      - name: Uninstall via Homebrew
+        run: brew uninstall --cask git-credential-manager
+
+      - name: Verify uninstallation
+        run: |
+          if command -v git-credential-manager &>/dev/null; then
+            echo "ERROR: git-credential-manager still found after uninstall"
+            exit 1
+          fi
+          echo "git-credential-manager successfully removed"
