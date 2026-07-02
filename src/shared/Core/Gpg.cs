@@ -40,7 +40,7 @@ namespace GitCredentialManager
                 RedirectStandardError = true,
             };
 #if NETFRAMEWORK
-            psi.Arguments = $"--batch --decrypt \"{path}\"";
+            psi.Arguments = $"--batch --decrypt \"{path.Replace("\"", "\\\"")}\"";
 #else
             psi.ArgumentList.Add("--batch");
             psi.ArgumentList.Add("--decrypt");
@@ -81,7 +81,7 @@ namespace GitCredentialManager
                 RedirectStandardError = true, // Ok to redirect stderr for non-git-related processes
             };
 #if NETFRAMEWORK
-            psi.Arguments = $"--encrypt --batch --recipient \"{gpgId}\" --output \"{path}\"";
+            psi.Arguments = $"--encrypt --batch --recipient \"{gpgId.Replace("\"", "\\\"")}\" --output \"{path.Replace("\"", "\\\"")}\"";
 #else
             psi.ArgumentList.Add("--encrypt");
             psi.ArgumentList.Add("--batch");

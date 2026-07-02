@@ -199,7 +199,7 @@ namespace GitCredentialManager
         {
             if (string.IsNullOrEmpty(account))
             {
-                return account;
+                throw new ArgumentException("Account name must not be null or empty.", nameof(account));
             }
 
             // Replace path separator characters (both Unix '/' and Windows '\') and null bytes.
