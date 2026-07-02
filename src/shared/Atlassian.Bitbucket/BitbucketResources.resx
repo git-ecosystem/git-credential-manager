@@ -22,10 +22,20 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
+    <meta name="color-scheme" content="light dark">
     <title>Bitbucket Authentication</title>
     <link rel="stylesheet" href="http://aui-cdn.atlassian.com/aui-adg/5.9.19/css/aui.min.css" media="all">
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
     <script src="http://aui-cdn.atlassian.com/aui-adg/5.9.19/js/aui.min.js"></script>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            html, body, body.aui-page-notification { background: #0D1117 !important; color: #C9D1D9 !important; }
+            .aui-page-panel, .aui-page-panel-inner, .aui-page-panel-content { background: #161B22 !important; color: #C9D1D9 !important; border-color: #30363D !important; }
+            h1, h2, h3, h4, h5, h6, p { color: #C9D1D9 !important; }
+            a { color: #58A6FF !important; }
+            #footer, #footer-logo { background: #0D1117 !important; color: #C9D1D9 !important; }
+        }
+    </style>
 </head>
 <body class="aui-page-notification aui-page-size-large">
 	<div id="page" style="text-align: center;">
@@ -53,11 +63,20 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
+    <meta name="color-scheme" content="light dark">
     <title>Bitbucket Authentication</title>
     <link rel="stylesheet" href="http://aui-cdn.atlassian.com/aui-adg/5.9.19/css/aui.min.css" media="all">
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
 	<script src="http://aui-cdn.atlassian.com/aui-adg/5.9.19/js/aui.min.js"></script>
-	<style>dt {{ font-weight: bold; margin-top: 15px }} dd {{ margin-left: 0; }}</style>
+	<style>dt {{ font-weight: bold; margin-top: 15px }} dd {{ margin-left: 0; }}
+        @media (prefers-color-scheme: dark) {{
+            html, body, body.aui-page-notification {{ background: #0D1117 !important; color: #C9D1D9 !important; }}
+            .aui-page-panel, .aui-page-panel-inner, .aui-page-panel-content {{ background: #161B22 !important; color: #C9D1D9 !important; border-color: #30363D !important; }}
+            h1, h2, h3, h4, h5, h6, p, dt, dd {{ color: #C9D1D9 !important; }}
+            a {{ color: #58A6FF !important; }}
+            #footer, #footer-logo {{ background: #0D1117 !important; color: #C9D1D9 !important; }}
+        }}
+    </style>
 </head>
 <body class="aui-page-notification aui-page-size-large">
 	<div id="page" style="text-align: center;">

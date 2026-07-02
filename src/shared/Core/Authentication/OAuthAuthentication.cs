@@ -247,7 +247,7 @@ namespace GitCredentialManager.Authentication
                 VerificationUrl = dcr.VerificationUri.ToString(),
             };
 
-            return AvaloniaUi.ShowViewAsync<DeviceCodeView>(viewModel, GetParentWindowHandle(), CancellationToken.None);
+            return AvaloniaUi.ShowViewAsync<DeviceCodeView>(viewModel, GetParentWindowHandle(), ct);
         }
 
         private Task ShowDeviceCodeViaHelperAsync(

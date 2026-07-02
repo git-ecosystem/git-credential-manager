@@ -2,6 +2,7 @@ using System;
 using System.Net.Http;
 using System.Security.AccessControl;
 using System.Text;
+using System.Threading.Tasks;
 using GitCredentialManager.Diagnostics;
 using GitCredentialManager.Tests.Objects;
 using Xunit;
@@ -11,7 +12,7 @@ namespace Core.Tests.Commands;
 public class DiagnoseCommandTests
 {
     [Fact]
-    public void NetworkingDiagnostic_SendHttpRequest_Primary_OK()
+    public async Task NetworkingDiagnostic_SendHttpRequest_Primary_OK()
     {
         var primaryUriString = "http://example.com";
         var sb = new StringBuilder();
@@ -24,14 +25,14 @@ public class DiagnoseCommandTests
 
         httpHandler.Setup(HttpMethod.Head, primaryUri, httpResponse);
 
-        networkingDiagnostic.SendHttpRequest(sb, new HttpClient(httpHandler));
+        await networkingDiagnostic.SendHttpRequestAsync(sb, new HttpClient(httpHandler));
 
         httpHandler.AssertRequest(HttpMethod.Head, primaryUri, expectedNumberOfCalls: 1);
         Assert.Contains(expected, sb.ToString());
     }
 
     [Fact]
-    public void NetworkingDiagnostic_SendHttpRequest_Backup_OK()
+    public async Task NetworkingDiagnostic_SendHttpRequest_Backup_OK()
     {
         var primaryUriString = "http://example.com";
         var backupUriString = "http://httpforever.com";
@@ -48,7 +49,7 @@ public class DiagnoseCommandTests
         httpHandler.Setup(HttpMethod.Head, primaryUri, httpResponse);
         httpHandler.Setup(HttpMethod.Head, backupUri, httpResponse);
 
-        networkingDiagnostic.SendHttpRequest(sb, new HttpClient(httpHandler));
+        await networkingDiagnostic.SendHttpRequestAsync(sb, new HttpClient(httpHandler));
 
         httpHandler.AssertRequest(HttpMethod.Head, primaryUri, expectedNumberOfCalls: 1);
         httpHandler.AssertRequest(HttpMethod.Head, backupUri, expectedNumberOfCalls: 1);
@@ -56,7 +57,7 @@ public class DiagnoseCommandTests
     }
 
     [Fact]
-    public void NetworkingDiagnostic_SendHttpRequest_No_Network()
+    public async Task NetworkingDiagnostic_SendHttpRequest_No_Network()
     {
         var primaryUriString = "http://example.com";
         var backupUriString = "http://httpforever.com";
@@ -73,7 +74,7 @@ public class DiagnoseCommandTests
         httpHandler.Setup(HttpMethod.Head, primaryUri, httpResponse);
         httpHandler.Setup(HttpMethod.Head, backupUri, httpResponse);
 
-        networkingDiagnostic.SendHttpRequest(sb, new HttpClient(httpHandler));
+        await networkingDiagnostic.SendHttpRequestAsync(sb, new HttpClient(httpHandler));
 
         httpHandler.AssertRequest(HttpMethod.Head, primaryUri, expectedNumberOfCalls: 1);
         httpHandler.AssertRequest(HttpMethod.Head, backupUri, expectedNumberOfCalls: 1);

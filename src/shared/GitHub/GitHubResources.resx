@@ -20,6 +20,7 @@
     </resheader>
     <data name="AuthenticationResponseSuccessHtml" xml:space="preserve"><![CDATA[<!DOCTYPE html><html><head>
 <meta charset="utf-8">
+<meta name="color-scheme" content="light dark">
 <title>Git Credential Manager - Authentication Succeeded</title>
 <style type="text/css">
 body {
@@ -44,6 +45,9 @@ p {
   justify-content: center;
   align-items: center;
 }
+.icons svg {
+  fill: currentColor;
+}
 .icons .plus {
   margin: 0 10px;
   font-size: 24px;
@@ -60,6 +64,16 @@ p {
   padding: 24px;
   margin: 28px;
 }
+@media (prefers-color-scheme: dark) {
+  body {
+    color: #C9D1D9;
+    background: #0D1117;
+  }
+  .box {
+    border-color: #30363D;
+    background: #161B22;
+  }
+}
 </style>
 </head><body>
     <div class="icons">
@@ -75,6 +89,7 @@ p {
 
     <data name="AuthenticationResponseFailureHtmlFormat" xml:space="preserve"><![CDATA[<!DOCTYPE html><html><head>
 <meta charset="utf-8">
+<meta name="color-scheme" content="light dark">
 <title>Git Credential Manager - Authentication Failed</title>
 <style type="text/css">
 body {{
@@ -103,6 +118,9 @@ dd {{
   justify-content: center;
   align-items: center;
 }}
+.icons svg {{
+  fill: currentColor;
+}}
 .icons .plus {{
   margin: 0 10px;
   font-size: 24px;
@@ -118,6 +136,16 @@ dd {{
   background: white;
   padding: 24px;
   margin: 28px;
+}}
+@media (prefers-color-scheme: dark) {{
+  body {{
+    color: #C9D1D9;
+    background: #0D1117;
+  }}
+  .box {{
+    border-color: #30363D;
+    background: #161B22;
+  }}
 }}
 </style>
 </head><body>

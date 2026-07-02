@@ -146,6 +146,15 @@ namespace GitCredentialManager
                 }
 
                 git.Start(Trace2ProcessClass.Git);
+
+                // Drain and throw away stderr asynchronously to avoid a deadlock
+                // if the child process fills the stderr pipe buffer.
+                if (suppressStreams)
+                {
+                    git.Process.ErrorDataReceived += (_, _) => { };
+                    git.Process.BeginErrorReadLine();
+                }
+
                 string data = git.StandardOutput.ReadToEnd();
                 git.WaitForExit();
 
@@ -167,6 +176,8 @@ namespace GitCredentialManager
         {
             using (var git = CreateProcess("remote -v show"))
             {
+                // Redirect stderr so we can check for 'not a git repository' errors
+                git.StartInfo.RedirectStandardError = true;
                 git.Start(Trace2ProcessClass.Git);
                 // To avoid deadlocks, always read the output stream first and then wait
                 // TODO: don't read in all the data at once; stream it
@@ -267,7 +278,9 @@ namespace GitCredentialManager
 
         public static GitException CreateGitException(ChildProcess git, string message, ITrace2 trace2 = null)
         {
-            var gitMessage = git.StandardError.ReadToEnd();
+            var gitMessage = git.StartInfo.RedirectStandardError
+                ? git.StandardError.ReadToEnd()
+                : null;
 
             if (trace2 != null)
                 throw new Trace2GitException(trace2, message, git.ExitCode, gitMessage);

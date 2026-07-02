@@ -35,6 +35,14 @@ namespace GitCredentialManager
         bool FileExists(string path);
 
         /// <summary>
+        /// Check if a file has execute permissions.
+        /// On Windows this always returns true. On POSIX it checks for any execute bit.
+        /// </summary>
+        /// <param name="path">Full path to file to test.</param>
+        /// <returns>True if the file is executable, false otherwise.</returns>
+        bool FileIsExecutable(string path);
+
+        /// <summary>
         /// Check if a directory exists at the specified path.
         /// </summary>
         /// <param name="path">Full path to directory to test.</param>
@@ -121,6 +129,23 @@ namespace GitCredentialManager
         public abstract bool IsSamePath(string a, string b);
 
         public bool FileExists(string path) => File.Exists(path);
+
+#if NETFRAMEWORK
+        public bool FileIsExecutable(string path) => true;
+#else
+        public bool FileIsExecutable(string path)
+        {
+            if (!PlatformUtils.IsPosix())
+                return true;
+
+#pragma warning disable CA1416 // Platform guard via PlatformUtils.IsPosix()
+            var mode = File.GetUnixFileMode(path);
+            return (mode & (UnixFileMode.UserExecute |
+                            UnixFileMode.GroupExecute |
+                            UnixFileMode.OtherExecute)) != 0;
+#pragma warning restore CA1416
+        }
+#endif
 
         public bool DirectoryExists(string path) => Directory.Exists(path);
 

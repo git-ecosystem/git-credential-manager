@@ -11,6 +11,7 @@ namespace GitCredentialManager.Tests.Objects
         public string UserHomePath { get; set; }
         public string UserDataDirectoryPath { get; set; }
         public IDictionary<string, byte[]> Files { get; set; } = new Dictionary<string, byte[]>();
+        public ISet<string> ExecutableFiles { get; } = new HashSet<string>();
         public ISet<string> Directories { get; set; } = new HashSet<string>();
         public string CurrentDirectory { get; set; } = Path.GetTempPath();
         public bool IsCaseSensitive { get; set; } = false;
@@ -34,6 +35,18 @@ namespace GitCredentialManager.Tests.Objects
         bool IFileSystem.FileExists(string path)
         {
             return Files.ContainsKey(path);
+        }
+
+        bool IFileSystem.FileIsExecutable(string path)
+        {
+            if (!Files.ContainsKey(path))
+                throw new FileNotFoundException("File not found", path);
+
+            // On Windows, all files are considered executable.
+            if (!PlatformUtils.IsPosix())
+                return true;
+
+            return ExecutableFiles.Contains(path);
         }
 
         bool IFileSystem.DirectoryExists(string path)
@@ -129,6 +142,20 @@ namespace GitCredentialManager.Tests.Objects
         }
 
         #endregion
+
+        /// <summary>
+        /// Mark a test file as executable. File must exist in <see cref="Files"/> already.
+        /// </summary>
+        public void SetExecutable(string path, bool isExecutable = true)
+        {
+            if (!Files.ContainsKey(path))
+                throw new FileNotFoundException("File not found", path);
+
+            if (isExecutable)
+                ExecutableFiles.Add(path);
+            else
+                ExecutableFiles.Remove(path);
+        }
 
         /// <summary>
         /// Trim trailing slashes from a path.

@@ -460,11 +460,11 @@ public class Trace2 : DisposableObject, ITrace2
         {
             try
             {
-                for (int i = 0; i < _writers.Count; i += 1)
+                for (int i = _writers.Count - 1; i >= 0; i--)
                 {
-                    using (var writer = _writers[i])
+                    using (_writers[i])
                     {
-                        _writers.Remove(writer);
+                        _writers.RemoveAt(i);
                     }
                 }
             }
@@ -640,7 +640,7 @@ public class Trace2 : DisposableObject, ITrace2
     private static string BuildThreadName()
     {
         // If this is the entry thread, call it "main", per Trace2 convention
-        if (Thread.CurrentThread.ManagedThreadId == 0)
+        if (Thread.CurrentThread.ManagedThreadId == 1)
         {
             return "main";
         }

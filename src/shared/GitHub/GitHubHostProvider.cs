@@ -198,6 +198,7 @@ namespace GitHub
             if (!IsGitHubDotCom(remoteUri))
             {
                 _context.Trace.WriteLine("No account filtering outside of GitHub.com.");
+                return false;
             }
 
             // Allow the user to disable account filtering until this feature stabilises.

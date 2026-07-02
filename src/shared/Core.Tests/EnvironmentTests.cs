@@ -94,6 +94,7 @@ namespace GitCredentialManager.Tests
                     [expectedPath] = Array.Empty<byte>(),
                 }
             };
+            fs.SetExecutable(expectedPath);
             var envars = new Dictionary<string, string> {["PATH"] = PosixPathVar};
             var env = new PosixEnvironment(fs, envars);
 
@@ -116,6 +117,32 @@ namespace GitCredentialManager.Tests
                     ["/bin/foo"] = Array.Empty<byte>(),
                 }
             };
+            fs.SetExecutable(expectedPath);
+            fs.SetExecutable("/usr/local/bin/foo");
+            fs.SetExecutable("/bin/foo");
+            var envars = new Dictionary<string, string> {["PATH"] = PosixPathVar};
+            var env = new PosixEnvironment(fs, envars);
+
+            bool actualResult = env.TryLocateExecutable(PosixExecName, out string actualPath);
+
+            Assert.True(actualResult);
+            Assert.Equal(expectedPath, actualPath);
+        }
+
+        [PosixFact]
+        public void PosixEnvironment_TryLocateExecutable_NotExecutable_SkipsToNextMatch()
+        {
+            string nonExecPath = "/home/john.doe/bin/foo";
+            string expectedPath = "/usr/local/bin/foo";
+            var fs = new TestFileSystem
+            {
+                Files = new Dictionary<string, byte[]>
+                {
+                    [nonExecPath] = Array.Empty<byte>(),
+                    [expectedPath] = Array.Empty<byte>(),
+                }
+            };
+            fs.SetExecutable(expectedPath);
             var envars = new Dictionary<string, string> {["PATH"] = PosixPathVar};
             var env = new PosixEnvironment(fs, envars);
 
@@ -142,6 +169,8 @@ namespace GitCredentialManager.Tests
                     [expectedPath] = Array.Empty<byte>(),
                 }
             };
+            fs.SetExecutable(pathsToIgnore.FirstOrDefault());
+            fs.SetExecutable(expectedPath);
             var envars = new Dictionary<string, string> {["PATH"] = PosixPathVar};
             var env = new PosixEnvironment(fs, envars);
 

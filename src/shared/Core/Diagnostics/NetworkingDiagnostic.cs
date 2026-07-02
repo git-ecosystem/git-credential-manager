@@ -29,7 +29,7 @@ namespace GitCredentialManager.Diagnostics
             bool hasNetwork = NetworkInterface.GetIsNetworkAvailable();
             log.AppendLine($"IsNetworkAvailable: {hasNetwork}");
 
-            SendHttpRequest(log, httpClient);
+            await SendHttpRequestAsync(log, httpClient);
 
             log.Append($"Sending HEAD request to {TestHttpsUri}...");
             using var httpsResponse = await httpClient.HeadAsync(TestHttpsUri);
@@ -98,7 +98,7 @@ namespace GitCredentialManager.Diagnostics
             return true;
         }
 
-        internal /* For testing purposes */ async void SendHttpRequest(StringBuilder log, HttpClient httpClient)
+        internal /* For testing purposes */ async Task SendHttpRequestAsync(StringBuilder log, HttpClient httpClient)
         {
             foreach (var uri in new List<string> { TestHttpUri, TestHttpUriFallback })
             {

@@ -138,7 +138,8 @@ namespace GitCredentialManager
                 {
                     string candidatePath = Path.Combine(basePath, program);
                     if (FileSystem.FileExists(candidatePath) && (pathsToIgnore is null ||
-                        !pathsToIgnore.Contains(candidatePath, StringComparer.OrdinalIgnoreCase)))
+                        !pathsToIgnore.Contains(candidatePath, StringComparer.OrdinalIgnoreCase))
+                        && FileSystem.FileIsExecutable(candidatePath))
                     {
                         path = candidatePath;
                         return true;

@@ -3,7 +3,10 @@ param ([Parameter(Mandatory)] $Configuration, [Parameter(Mandatory)] $Output, $R
 
 # Trim trailing slashes from output paths
 $Output = $Output.TrimEnd('\','/')
-$SymbolOutput = $SymbolOutput.TrimEnd('\','/')
+
+if ($SymbolOutput) {
+    $SymbolOutput = $SymbolOutput.TrimEnd('\','/')
+}
 
 Write-Output "Output: $Output"
 

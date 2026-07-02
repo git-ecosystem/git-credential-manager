@@ -302,6 +302,11 @@ extends:
                     script: |
                       echo "##vso[task.setvariable variable=version;isReadOnly=true]$(cat ./VERSION | sed -E 's/.[0-9]+$//')"
                 - task: UseDotNet@2
+                  displayName: 'Use .NET 8 SDK (ESRP dependency)'
+                  inputs:
+                    packageType: sdk
+                    version: '8.x'
+                - task: UseDotNet@2
                   displayName: 'Use .NET 10 SDK'
                   inputs:
                     packageType: sdk
@@ -571,6 +576,11 @@ extends:
                     targetType: inline
                     script: |
                       echo "##vso[task.setvariable variable=version;isReadOnly=true]$(cat ./VERSION | sed -E 's/.[0-9]+$//')"
+                - task: UseDotNet@2
+                  displayName: 'Use .NET 8 SDK (ESRP dependency)'
+                  inputs:
+                    packageType: sdk
+                    version: '8.x'
                 - task: UseDotNet@2
                   displayName: 'Use .NET 10 SDK'
                   inputs:
@@ -862,9 +872,13 @@ extends:
             dependsOn: release_validation
             condition: and(succeeded(), eq('${{ parameters.nuget }}', true))
             pool:
+              # Run on Windows so the underlying NuGetCommand@2 task can use the
+              # native nuget.exe. On Ubuntu 24.04+ the legacy NuGet task fails
+              # because Mono is no longer available.
+              # See https://aka.ms/nuget-task-mono.
               name: GitClientPME-1ESHostedPool-intel-pc
-              image: ubuntu-x86_64-ado1es
-              os: linux
+              image: win-x86_64-ado1es
+              os: windows
             variables:
               version: $[dependencies.release_validation.outputs['version.value']]
             templateContext:
