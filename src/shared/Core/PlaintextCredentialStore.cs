@@ -56,7 +56,9 @@ namespace GitCredentialManager
                 FileSystem.CreateDirectory(servicePath);
             }
 
-            string fullPath = Path.Combine(servicePath, $"{account}{CredentialFileExtension}");
+            // Sanitize account name to prevent path traversal attacks
+            string safeAccount = GetSafeAccountFileName(account);
+            string fullPath = Path.Combine(servicePath, $"{safeAccount}{CredentialFileExtension}");
             var credential = new FileCredential(fullPath, service, account, secret);
             SerializeCredential(credential);
         }
@@ -143,7 +145,9 @@ namespace GitCredentialManager
             foreach (string fullPath in allFiles)
             {
                 string accountFile = Path.GetFileNameWithoutExtension(fullPath);
-                if (anyAccount || StringComparer.OrdinalIgnoreCase.Equals(account, accountFile))
+                // Compare using the sanitized account name to match how files are named
+                string safeAccount = anyAccount ? null : GetSafeAccountFileName(account);
+                if (anyAccount || StringComparer.OrdinalIgnoreCase.Equals(safeAccount, accountFile))
                 {
                     // Validate the credential metadata also matches our search
                     if (TryDeserializeCredential(fullPath, out FileCredential credential) &&
@@ -184,6 +188,17 @@ namespace GitCredentialManager
 
             // Ignore the return code.. this is a best effort only
             Interop.Posix.Native.Stat.chmod(StoreRoot, mode);
+        }
+
+        /// <summary>
+        /// Sanitize an account name for safe use as a file name by replacing path-separator characters.
+        /// This prevents path traversal attacks where a malicious account name like "../../etc/malicious"
+        /// could be used to write files outside the intended credential store directory.
+        /// </summary>
+        private static string GetSafeAccountFileName(string account)
+        {
+            // Replace path separator characters (both Unix '/' and Windows '\') to prevent directory traversal.
+            return account.Replace('/', '_').Replace('\\', '_');
         }
 
         private string CreateServiceSlug(string service)

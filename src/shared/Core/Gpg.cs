@@ -31,7 +31,7 @@ namespace GitCredentialManager
 
         public string DecryptFile(string path)
         {
-            var psi = new ProcessStartInfo(_gpgPath, $"--batch --decrypt \"{path}\"")
+            var psi = new ProcessStartInfo(_gpgPath)
             {
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
@@ -39,6 +39,13 @@ namespace GitCredentialManager
                 // Ok to redirect stderr for non-Git-related processes
                 RedirectStandardError = true,
             };
+#if NETFRAMEWORK
+            psi.Arguments = $"--batch --decrypt \"{path}\"";
+#else
+            psi.ArgumentList.Add("--batch");
+            psi.ArgumentList.Add("--decrypt");
+            psi.ArgumentList.Add(path);
+#endif
 
             PrepareEnvironment(psi);
 
@@ -66,13 +73,23 @@ namespace GitCredentialManager
 
         public void EncryptFile(string path, string gpgId, string contents)
         {
-            var psi = new ProcessStartInfo(_gpgPath, $"--encrypt --batch --recipient \"{gpgId}\" --output \"{path}\"")
+            var psi = new ProcessStartInfo(_gpgPath)
             {
                 UseShellExecute = false,
                 RedirectStandardInput = true,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true, // Ok to redirect stderr for non-git-related processes
             };
+#if NETFRAMEWORK
+            psi.Arguments = $"--encrypt --batch --recipient \"{gpgId}\" --output \"{path}\"";
+#else
+            psi.ArgumentList.Add("--encrypt");
+            psi.ArgumentList.Add("--batch");
+            psi.ArgumentList.Add("--recipient");
+            psi.ArgumentList.Add(gpgId);
+            psi.ArgumentList.Add("--output");
+            psi.ArgumentList.Add(path);
+#endif
 
             PrepareEnvironment(psi);
 
