@@ -1,34 +1,34 @@
-# Git Credential Manager
+# pamela
 
 [![Build Status][build-status-badge]][workflow-status]
 
 ---
 
-[Git Credential Manager][gcm] (GCM) is a secure
+[pamela][gcm] is a secure
 [Git credential helper][git-credential-helper] built on [.NET][dotnet] that runs
 on Windows, macOS, and Linux. It aims to provide a consistent and secure
 authentication experience, including multi-factor auth, to every major source
 control hosting service and platform.
 
-GCM supports (in alphabetical order) [Azure DevOps][azure-devops], Azure DevOps
+pamela supports (in alphabetical order) [Azure DevOps][azure-devops], Azure DevOps
 Server (formerly Team Foundation Server), Bitbucket, GitHub, and GitLab.
 Compare to Git's [built-in credential helpers][git-tools-credential-storage]
 (Windows: wincred, macOS: osxkeychain, Linux: gnome-keyring/libsecret), which
 provide single-factor authentication support for username/password only.
 
-GCM replaces both the .NET Framework-based
+pamela replaces both the .NET Framework-based
 [Git Credential Manager for Windows][gcm-for-windows] and the Java-based
 [Git Credential Manager for Mac and Linux][gcm-for-mac-and-linux].
 
 ## Install
 
-See the [installation instructions][install] for the current version of GCM for
+See the [installation instructions][install] for the current version of pamela for
 install options for your operating system.
 
 ## Current status
 
-Git Credential Manager is currently available for Windows, macOS, and Linux\*.
-GCM only works with HTTP(S) remotes; you can still use Git with SSH:
+pamela is currently available for Windows, macOS, and Linux\*.
+pamela only works with HTTP(S) remotes; you can still use Git with SSH:
 
 - [Azure DevOps SSH][azure-devops-ssh]
 - [GitHub SSH][github-ssh]
@@ -50,37 +50,37 @@ Proxy support|&#10003;|&#10003;|&#10003;
 `arm64` support|best effort|&#10003;|&#10003;
 `armhf` support|_N/A_|_N/A_|&#10003;
 
-(\*) GCM guarantees support only for [the Linux distributions that are officially
+(\*) pamela guarantees support only for [the Linux distributions that are officially
 supported by dotnet][dotnet-distributions].
 
 ## Supported Git versions
 
-Git Credential Manager tries to be compatible with the broadest set of Git
+pamela tries to be compatible with the broadest set of Git
 versions (within reason). However there are some known problematic releases of
 Git that are not compatible.
 
 - Git 1.x
 
-  The initial major version of Git is not supported or tested with GCM.
+  The initial major version of Git is not supported or tested with pamela.
 
 - Git 2.26.2
 
   This version of Git introduced a breaking change with parsing credential
-  configuration that GCM relies on. This issue was fixed in commit
+  configuration that pamela relies on. This issue was fixed in commit
   [`12294990`][gcm-commit-12294990] of the Git project, and released in Git
   2.27.0.
 
 ## How to use
 
-Once it's installed and configured, Git Credential Manager is called implicitly
-by Git. You don't have to do anything special, and GCM isn't intended to be
+Once it's installed and configured, pamela is called implicitly
+by Git. You don't have to do anything special, and pamela isn't intended to be
 called directly by the user. For example, when pushing (`git push`) to
 [Azure DevOps][azure-devops], [Bitbucket][bitbucket], or [GitHub][github], a
 window will automatically open and walk you through the sign-in process. (This
 process will look slightly different for each Git host, and even in some cases,
 whether you've connected to an on-premises or cloud-hosted Git host.) Later Git
 commands in the same repository will re-use existing credentials or tokens that
-GCM has stored for as long as they're valid.
+pamela has stored for as long as they're valid.
 
 Read full command line usage [here][gcm-usage].
 
@@ -98,7 +98,7 @@ See the [documentation index][docs-index] for links to additional resources.
 
 ## Future features
 
-Curious about what's coming next in the GCM project? Take a look at the [project
+Curious about what's coming next in the pamela project? Take a look at the [project
 roadmap][roadmap]! You can find more details about the construction of the
 roadmap and how to interpret it [here][roadmap-announcement].
 
