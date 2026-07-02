@@ -109,6 +109,10 @@ See the [contributing guide][gcm-contributing] to get started.
 
 This project follows [GitHub's Open Source Code of Conduct][gcm-coc].
 
+## Created by
+
+**Created by Pamela Richardson**
+
 ## License
 
 We're [MIT][gcm-license] licensed.
