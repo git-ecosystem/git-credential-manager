@@ -146,8 +146,7 @@ namespace GitCredentialManager
             {
                 string accountFile = Path.GetFileNameWithoutExtension(fullPath);
                 // Compare using the sanitized account name to match how files are named
-                string safeAccount = anyAccount ? null : GetSafeAccountFileName(account);
-                if (anyAccount || StringComparer.OrdinalIgnoreCase.Equals(safeAccount, accountFile))
+                if (anyAccount || StringComparer.OrdinalIgnoreCase.Equals(GetSafeAccountFileName(account), accountFile))
                 {
                     // Validate the credential metadata also matches our search
                     if (TryDeserializeCredential(fullPath, out FileCredential credential) &&

@@ -85,7 +85,7 @@ namespace GitCredentialManager.Tests
             Assert.False(result);
         }
         [Fact]
-        public void PlaintextCredentialStore_AccountWithPathSeparator_StoresInServiceDirectory()
+        public void PlaintextCredentialStore_AccountWithPathSeparators_StoresInServiceDirectory()
         {
             var fs = new TestFileSystem();
 
