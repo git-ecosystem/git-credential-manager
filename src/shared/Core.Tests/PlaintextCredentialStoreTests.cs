@@ -127,5 +127,77 @@ namespace GitCredentialManager.Tests
             Assert.Equal(password, outCredential.Password);
         }
 
+        [Fact]
+        public void PlaintextCredentialStore_AccountWithNullByte_StoresInServiceDirectory()
+        {
+            var fs = new TestFileSystem();
+
+            var collection = new PlaintextCredentialStore(fs, StoreRoot, TestNamespace);
+
+            string uniqueGuid = Guid.NewGuid().ToString("N");
+            string service = $"https://example.com/{uniqueGuid}";
+            // Account name with null byte (CWE-158: null byte injection)
+            string userName = "user\0name";
+            const string password = "letmein123"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
+
+            // Expected: null byte replaced with '_'
+            string safeUserName = "user_name";
+            string expectedSlug = Path.Combine(
+                TestNamespace,
+                "https",
+                "example.com",
+                uniqueGuid,
+                $"{safeUserName}.credential");
+            string expectedFilePath = Path.Combine(StoreRoot, expectedSlug);
+
+            // Write
+            collection.AddOrUpdate(service, userName, password);
+
+            // Verify the file is created inside the expected service directory
+            Assert.True(fs.Files.ContainsKey(expectedFilePath),
+                $"Expected credential file at '{expectedFilePath}' but it was not found.");
+
+            // Verify no files were created outside the store root
+            foreach (string filePath in fs.Files.Keys)
+            {
+                Assert.True(filePath.StartsWith(StoreRoot, StringComparison.Ordinal),
+                    $"Credential file '{filePath}' was created outside the store root.");
+            }
+
+            // Verify the credential can be retrieved using the original account name
+            ICredential outCredential = collection.Get(service, userName);
+            Assert.NotNull(outCredential);
+            Assert.Equal(password, outCredential.Password);
+        }
+
+        [Theory]
+        [InlineData(".")]
+        [InlineData("..")]
+        public void PlaintextCredentialStore_AccountWithReservedPathComponent_StoresInServiceDirectory(string userName)
+        {
+            var fs = new TestFileSystem();
+
+            var collection = new PlaintextCredentialStore(fs, StoreRoot, TestNamespace);
+
+            string uniqueGuid = Guid.NewGuid().ToString("N");
+            string service = $"https://example.com/{uniqueGuid}";
+            const string password = "letmein123"; // [SuppressMessage("Microsoft.Security", "CS001:SecretInline", Justification="Fake credential")]
+
+            // Write — must not throw and must stay inside the store root
+            collection.AddOrUpdate(service, userName, password);
+
+            // Verify no files were created outside the store root
+            foreach (string filePath in fs.Files.Keys)
+            {
+                Assert.True(filePath.StartsWith(StoreRoot, StringComparison.Ordinal),
+                    $"Credential file '{filePath}' was created outside the store root.");
+            }
+
+            // Verify the credential can be retrieved using the original account name
+            ICredential outCredential = collection.Get(service, userName);
+            Assert.NotNull(outCredential);
+            Assert.Equal(password, outCredential.Password);
+        }
+
     }
 }

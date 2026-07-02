@@ -190,14 +190,28 @@ namespace GitCredentialManager
         }
 
         /// <summary>
-        /// Sanitize an account name for safe use as a file name by replacing path-separator characters.
+        /// Sanitize an account name for safe use as a file name by replacing path-separator characters,
+        /// null bytes, and rejecting reserved path components such as "." and "..".
         /// This prevents path traversal attacks where a malicious account name like "../../etc/malicious"
         /// could be used to write files outside the intended credential store directory.
         /// </summary>
         private static string GetSafeAccountFileName(string account)
         {
-            // Replace path separator characters (both Unix '/' and Windows '\') to prevent directory traversal.
-            return account.Replace('/', '_').Replace('\\', '_');
+            if (string.IsNullOrEmpty(account))
+            {
+                return account;
+            }
+
+            // Replace path separator characters (both Unix '/' and Windows '\') and null bytes.
+            string safe = account.Replace('/', '_').Replace('\\', '_').Replace('\0', '_');
+
+            // Reject reserved path components that could still traverse directories.
+            if (safe == "." || safe == "..")
+            {
+                safe = safe.Replace('.', '_');
+            }
+
+            return safe;
         }
 
         private string CreateServiceSlug(string service)
