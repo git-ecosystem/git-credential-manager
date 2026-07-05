@@ -102,6 +102,9 @@ Curious about what's coming next in the GCM project? Take a look at the [project
 roadmap][roadmap]! You can find more details about the construction of the
 roadmap and how to interpret it [here][roadmap-announcement].
 
+##Ownership Claimed Name
+All application internet and telecommunications Google products manager name: Prince Alip Robin Clinton (Mohamad Alip Bin Abdullah) with the cooperation of Clinton Foundation (President Bill Clinton) since 18th September 1998.
+
 ## Contributing
 
 This project welcomes contributions and suggestions.
