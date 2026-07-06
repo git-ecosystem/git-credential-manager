@@ -6,17 +6,27 @@ using System.Text.Json.Serialization;
 
 namespace GitCredentialManager;
 
+[JsonSerializable(typeof(VersionMessage))]
+[JsonSerializable(typeof(StartMessage))]
+[JsonSerializable(typeof(ExitMessage))]
+[JsonSerializable(typeof(ChildStartMessage))]
+[JsonSerializable(typeof(ChildExitMessage))]
+[JsonSerializable(typeof(ErrorMessage))]
+[JsonSerializable(typeof(RegionEnterMessage))]
+[JsonSerializable(typeof(RegionLeaveMessage))]
+[JsonSourceGenerationOptions(
+    UseStringEnumConverter = true,
+    PropertyNamingPolicy = JsonKnownNamingPolicy.SnakeCaseLower,
+    PropertyNameCaseInsensitive = true
+)]
+public partial class Trace2JsonContext : JsonSerializerContext;
+
 public abstract class Trace2Message
 {
     private const int SourceColumnMaxWidth = 23;
     private const string NormalPerfTimeFormat = "HH:mm:ss.ffffff";
 
     protected const string EmptyPerformanceSpan =  "|     |           |           |             ";
-    protected static readonly JsonSerializerOptions JsonSerializerOptions = new()
-    {
-        PropertyNameCaseInsensitive = true,
-        Converters = { new JsonStringEnumConverter(new SnakeCaseNamingPolicy()) }
-    };
 
     [JsonPropertyName("event")]
     [JsonPropertyOrder(1)]
@@ -194,7 +204,7 @@ public class VersionMessage : Trace2Message
 
     public override string ToJson()
     {
-        return JsonSerializer.Serialize(this, JsonSerializerOptions);
+        return JsonSerializer.Serialize(this, Trace2JsonContext.Default.VersionMessage);
     }
 
     public override string ToNormalString()
@@ -230,7 +240,7 @@ public class StartMessage : Trace2Message
 
     public override string ToJson()
     {
-        return JsonSerializer.Serialize(this, JsonSerializerOptions);
+        return JsonSerializer.Serialize(this, Trace2JsonContext.Default.StartMessage);
     }
 
     public override string ToNormalString()
@@ -266,7 +276,7 @@ public class ExitMessage : Trace2Message
 
     public override string ToJson()
     {
-        return JsonSerializer.Serialize(this, JsonSerializerOptions);
+        return JsonSerializer.Serialize(this, Trace2JsonContext.Default.ExitMessage);
     }
 
     public override string ToNormalString()
@@ -314,7 +324,7 @@ public class ChildStartMessage : Trace2Message
 
     public override string ToJson()
     {
-        return JsonSerializer.Serialize(this, JsonSerializerOptions);
+        return JsonSerializer.Serialize(this, Trace2JsonContext.Default.ChildStartMessage);
     }
 
     public override string ToNormalString()
@@ -371,7 +381,7 @@ public class ChildExitMessage : Trace2Message
 
     public override string ToJson()
     {
-        return JsonSerializer.Serialize(this, JsonSerializerOptions);
+        return JsonSerializer.Serialize(this, Trace2JsonContext.Default.ChildExitMessage);
     }
 
     public override string ToNormalString()
@@ -415,7 +425,7 @@ public class ErrorMessage : Trace2Message
 
     public override string ToJson()
     {
-        return JsonSerializer.Serialize(this, JsonSerializerOptions);
+        return JsonSerializer.Serialize(this, Trace2JsonContext.Default.ErrorMessage);
     }
 
     public override string ToNormalString()
@@ -473,7 +483,7 @@ public class RegionEnterMessage : RegionMessage
 {
     public override string ToJson()
     {
-        return JsonSerializer.Serialize(this, JsonSerializerOptions);
+        return JsonSerializer.Serialize(this, Trace2JsonContext.Default.RegionEnterMessage);
     }
 
     public override string ToNormalString()
@@ -504,7 +514,7 @@ public class RegionLeaveMessage : RegionMessage
 
     public override string ToJson()
     {
-        return JsonSerializer.Serialize(this, JsonSerializerOptions);
+        return JsonSerializer.Serialize(this, Trace2JsonContext.Default.RegionLeaveMessage);
     }
 
     public override string ToNormalString()
@@ -526,10 +536,4 @@ public class RegionLeaveMessage : RegionMessage
     {
         return Message;
     }
-}
-
-public class SnakeCaseNamingPolicy : JsonNamingPolicy
-{
-    public override string ConvertName(string name) =>
-        name.ToSnakeCase();
 }

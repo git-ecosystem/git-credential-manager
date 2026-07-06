@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:GitCredentialManager.UI.ViewModels;assembly=gcmcore"
              mc:Ignorable="d" d:DesignWidth="420"
+             x:DataType="vm:EnableNtlmViewModel"
              x:Class="GitCredentialManager.UI.Views.EnableNtlmView">
     <Design.DataContext>
         <vm:EnableNtlmViewModel/>
