@@ -1,0 +1,11 @@
+Package: gcm
+Version: %%VERSION%%
+Section: vcs
+Priority: optional
+Architecture: %%ARCH%%
+Depends:
+Maintainer: Microsoft Corporation <gcmsupport@microsoft.com>
+Description: Cross Platform Git Credential Manager command line utility.
+ GCM supports authentication with a number of Git hosting providers
+ including GitHub, BitBucket, and Azure DevOps.
+ For more information see https://aka.ms/gcm

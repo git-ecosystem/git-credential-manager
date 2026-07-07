@@ -19,6 +19,13 @@
     <RepoOutPath>$(RepoPath)out\</RepoOutPath>
     <RepoAssetsPath>$(RepoPath)assets\</RepoAssetsPath>
 
+    <!-- Redirect all build outputs to the out directory -->
+    <UseArtifactsOutput>true</UseArtifactsOutput>
+    <ArtifactsPath>$(RepoOutPath)</ArtifactsPath>
+
+    <!-- Set the default Target Framework (individual projects can override) -->
+    <TargetFramework>net10.0</TargetFramework>
+
     <!-- Identify projects that output an executable binary (not libraries) -->
     <_IsExeProject Condition="'$(OutputType)' == 'Exe' OR '$(OutputType)' == 'WinExe'">true</_IsExeProject>
 

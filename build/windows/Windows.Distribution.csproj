@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.Build.NoTargets">
+  <ItemGroup>
+    <ProjectReference Include="$(RepoSrcPath)git-credential-manager\git-credential-manager.csproj"
+                      ReferenceOutputAssembly="false"
+                      Private="false"
+                      ExcludeAssets="all"
+                      SkipGetTargetFrameworkProperties="true" />
+  </ItemGroup>
+
+  <!-- Inno Setup compiler (ISCC.exe). The package sets $(InnoSetupCompiler),
+       which we pass to pack.ps1. Only needed on Windows, where this builds. -->
+  <ItemGroup Condition="'$(OSPlatform)' == 'windows'">
+    <PackageReference Include="Tools.InnoSetup" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="**/*" />
+  </ItemGroup>
+
+  <Target Name="_CustomBuild" AfterTargets="Build" Condition="'$(OSPlatform)' == 'windows'">
+    <Exec Command="pwsh -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\build.ps1&quot; -Configuration &quot;$(Configuration)&quot; -Version &quot;$(Version)&quot; -Runtime &quot;$(RuntimeIdentifier)&quot; -InnoSetup &quot;$(InnoSetupCompiler)&quot;" />
+  </Target>
+</Project>
