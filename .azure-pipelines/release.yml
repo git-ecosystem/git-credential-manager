@@ -639,7 +639,7 @@ extends:
                       inlineOperation: |
                         [
                           {
-                            "KeyCode": "CP-453387-Pgp",
+                            "KeyCode": "CP-500207-Pgp",
                             "OperationCode": "LinuxSign",
                             "ToolName": "sign",
                             "ToolVersion": "1.0",
