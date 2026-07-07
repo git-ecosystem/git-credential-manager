@@ -63,7 +63,7 @@ curl -Os https://packages.microsoft.com/keys/microsoft-2025.asc
 gpg --import microsoft-2025.asc
 
 # Download the tarball and its signature file
-curl -s https://api.github.com/repos/ldennington/git-credential-manager/releases/latest \
+curl -s https://api.github.com/repos/git-ecosystem/git-credential-manager/releases/latest \
 | grep -E 'browser_download_url.*gcm-linux.*[0-9].[0-9].[0-9].tar.gz' \
 | cut -d : -f 2,3 \
 | tr -d \" \
