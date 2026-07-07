@@ -67,7 +67,13 @@ namespace GitCredentialManager
                 throw new ArgumentException("Can only open HTTP/HTTPS URIs", nameof(uri));
             }
 
-            OpenBrowserInternal(uri.ToString());
+            // Important! Use AbsoluteUri to ensure that the URL is properly
+            // escaped (e.g. spaces are converted to %20).
+            // The 'shell execute' handler on some operating systems (e.g. macOS)
+            // will try to validate the URL handed to it and if it sees any
+            // unescaped characters it will decide that the rest of the query
+            // parameters also need esacaping leading to double escaping!
+            OpenBrowserInternal(uri.AbsoluteUri);
         }
 
         protected virtual void OpenBrowserInternal(string url)
