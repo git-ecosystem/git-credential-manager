@@ -9,26 +9,29 @@ namespace GitCredentialManager.Commands
     public class StoreCommand : GitCommandBase
     {
         public StoreCommand(ICommandContext context, IHostProviderRegistry hostProviderRegistry)
-            : base(context, "store", "[Git] Store a credential", hostProviderRegistry) { }
-
-        protected override Task ExecuteInternalAsync(InputArguments input, IHostProvider provider)
+            : base(context, "store", "[Git] Store a credential", hostProviderRegistry)
         {
-            return provider.StoreCredentialAsync(input);
+            IsHidden = true;
         }
 
-        protected override void EnsureMinimumInputArguments(InputArguments input)
+        protected override Task ExecuteInternalAsync(GitRequest request, IHostProvider provider)
         {
-            base.EnsureMinimumInputArguments(input);
+            return provider.StoreCredentialAsync(request);
+        }
+
+        protected override void EnsureMinimumRequest(GitRequest request)
+        {
+            base.EnsureMinimumRequest(request);
 
             // An empty string username/password are valid inputs, so only check for `null` (not provided)
-            if (input.UserName is null)
+            if (request.UserName is null)
             {
-                throw new Trace2InvalidOperationException(Context.Trace2, "Missing 'username' input argument");
+                throw new Trace2InvalidOperationException(Context.Trace2, "Missing 'username' request argument");
             }
 
-            if (input.Password is null)
+            if (request.Password is null)
             {
-                throw new Trace2InvalidOperationException(Context.Trace2, "Missing 'password' input argument");
+                throw new Trace2InvalidOperationException(Context.Trace2, "Missing 'password' request argument");
             }
         }
     }

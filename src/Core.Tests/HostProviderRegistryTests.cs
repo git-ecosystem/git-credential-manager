@@ -39,9 +39,9 @@ namespace GitCredentialManager.Tests
         {
             var context = new TestCommandContext();
             var registry = new HostProviderRegistry(context);
-            var input = new InputArguments(new Dictionary<string, string>());
+            var request = new GitRequest(new Dictionary<string, string>());
 
-            await Assert.ThrowsAsync<GitCredentialManager.Trace2Exception>(() => registry.GetProviderAsync(input));
+            await Assert.ThrowsAsync<GitCredentialManager.Trace2Exception>(() => registry.GetProviderAsync(request));
         }
 
         [Fact]
@@ -50,20 +50,20 @@ namespace GitCredentialManager.Tests
             var context = new TestCommandContext();
             var registry = new HostProviderRegistry(context);
             var remote = new Uri("https://example.com");
-            InputArguments input = CreateInputArguments(remote);
+            GitRequest request = CreateRequest(remote);
 
             var provider1Mock = new Mock<IHostProvider>();
             var provider2Mock = new Mock<IHostProvider>();
             var provider3Mock = new Mock<IHostProvider>();
-            provider1Mock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(false);
-            provider2Mock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(true);
-            provider3Mock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(false);
+            provider1Mock.Setup(x => x.IsSupported(It.IsAny<GitRequest>())).Returns(false);
+            provider2Mock.Setup(x => x.IsSupported(It.IsAny<GitRequest>())).Returns(true);
+            provider3Mock.Setup(x => x.IsSupported(It.IsAny<GitRequest>())).Returns(false);
 
             registry.Register(provider1Mock.Object, HostProviderPriority.Normal);
             registry.Register(provider2Mock.Object, HostProviderPriority.Normal);
             registry.Register(provider3Mock.Object, HostProviderPriority.Normal);
 
-            IHostProvider result = await registry.GetProviderAsync(input);
+            IHostProvider result = await registry.GetProviderAsync(request);
 
             Assert.Same(provider2Mock.Object, result);
         }
@@ -74,7 +74,7 @@ namespace GitCredentialManager.Tests
             var context = new TestCommandContext();
             var registry = new HostProviderRegistry(context);
             var remote = new Uri("https://example.com");
-            InputArguments input = CreateInputArguments(remote);
+            GitRequest request = CreateRequest(remote);
 
             string providerId = "myProvider";
             string configKey = string.Format(CultureInfo.InvariantCulture,
@@ -84,11 +84,11 @@ namespace GitCredentialManager.Tests
 
             var providerMock = new Mock<IHostProvider>();
             providerMock.Setup(x => x.Id).Returns(providerId);
-            providerMock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(true);
+            providerMock.Setup(x => x.IsSupported(It.IsAny<GitRequest>())).Returns(true);
 
             registry.Register(providerMock.Object, HostProviderPriority.Normal);
 
-            IHostProvider result = await registry.GetProviderAsync(input);
+            IHostProvider result = await registry.GetProviderAsync(request);
 
             Assert.Same(providerMock.Object, result);
             Assert.False(context.Git.Configuration.Global.TryGetValue(configKey, out _));
@@ -100,7 +100,7 @@ namespace GitCredentialManager.Tests
             var context = new TestCommandContext();
             var registry = new HostProviderRegistry(context);
             var remote = new Uri("https://example.com");
-            InputArguments input = CreateInputArguments(remote);
+            GitRequest request = CreateRequest(remote);
 
             string providerId = "myProvider";
             string configKey = string.Format(CultureInfo.InvariantCulture,
@@ -110,12 +110,12 @@ namespace GitCredentialManager.Tests
 
             var providerMock = new Mock<IHostProvider>();
             providerMock.Setup(x => x.Id).Returns(providerId);
-            providerMock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(false);
+            providerMock.Setup(x => x.IsSupported(It.IsAny<GitRequest>())).Returns(false);
             providerMock.Setup(x => x.IsSupported(It.IsAny<HttpResponseMessage>())).Returns(true);
 
             registry.Register(providerMock.Object, HostProviderPriority.Normal);
 
-            IHostProvider result = await registry.GetProviderAsync(input);
+            IHostProvider result = await registry.GetProviderAsync(request);
 
             Assert.Same(providerMock.Object, result);
             Assert.True(context.Git.Configuration.Global.TryGetValue(configKey, out IList<string> config));
@@ -129,7 +129,7 @@ namespace GitCredentialManager.Tests
             var context = new TestCommandContext();
             var registry = new HostProviderRegistry(context);
             var remote = new Uri("https://example.com/alice/repo.git/");
-            InputArguments input = CreateInputArguments(remote);
+            GitRequest request = CreateRequest(remote);
 
             string providerId = "myProvider";
             string configKey = string.Format(CultureInfo.InvariantCulture,
@@ -139,12 +139,12 @@ namespace GitCredentialManager.Tests
 
             var providerMock = new Mock<IHostProvider>();
             providerMock.Setup(x => x.Id).Returns(providerId);
-            providerMock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(false);
+            providerMock.Setup(x => x.IsSupported(It.IsAny<GitRequest>())).Returns(false);
             providerMock.Setup(x => x.IsSupported(It.IsAny<HttpResponseMessage>())).Returns(true);
 
             registry.Register(providerMock.Object, HostProviderPriority.Normal);
 
-            IHostProvider result = await registry.GetProviderAsync(input);
+            IHostProvider result = await registry.GetProviderAsync(request);
 
             Assert.Same(providerMock.Object, result);
             Assert.True(context.Git.Configuration.Global.TryGetValue(configKey, out IList<string> config));
@@ -158,20 +158,20 @@ namespace GitCredentialManager.Tests
             var context = new TestCommandContext();
             var registry = new HostProviderRegistry(context);
             var remote = new Uri("https://example.com");
-            InputArguments input = CreateInputArguments(remote);
+            GitRequest request = CreateRequest(remote);
 
             var provider1Mock = new Mock<IHostProvider>();
             var provider2Mock = new Mock<IHostProvider>();
             var provider3Mock = new Mock<IHostProvider>();
-            provider1Mock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(true);
-            provider2Mock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(true);
-            provider3Mock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(true);
+            provider1Mock.Setup(x => x.IsSupported(It.IsAny<GitRequest>())).Returns(true);
+            provider2Mock.Setup(x => x.IsSupported(It.IsAny<GitRequest>())).Returns(true);
+            provider3Mock.Setup(x => x.IsSupported(It.IsAny<GitRequest>())).Returns(true);
 
             registry.Register(provider1Mock.Object, HostProviderPriority.Normal);
             registry.Register(provider2Mock.Object, HostProviderPriority.Normal);
             registry.Register(provider3Mock.Object, HostProviderPriority.Normal);
 
-            IHostProvider result = await registry.GetProviderAsync(input);
+            IHostProvider result = await registry.GetProviderAsync(request);
 
             Assert.Same(provider1Mock.Object, result);
         }
@@ -182,23 +182,23 @@ namespace GitCredentialManager.Tests
             var context = new TestCommandContext();
             var registry = new HostProviderRegistry(context);
             var remote = new Uri("https://example.com");
-            InputArguments input = CreateInputArguments(remote);
+            GitRequest request = CreateRequest(remote);
 
             var provider1Mock = new Mock<IHostProvider>();
             var provider2Mock = new Mock<IHostProvider>();
             var provider3Mock = new Mock<IHostProvider>();
             var provider4Mock = new Mock<IHostProvider>();
-            provider1Mock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(true);
-            provider2Mock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(true);
-            provider3Mock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(true);
-            provider4Mock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(true);
+            provider1Mock.Setup(x => x.IsSupported(It.IsAny<GitRequest>())).Returns(true);
+            provider2Mock.Setup(x => x.IsSupported(It.IsAny<GitRequest>())).Returns(true);
+            provider3Mock.Setup(x => x.IsSupported(It.IsAny<GitRequest>())).Returns(true);
+            provider4Mock.Setup(x => x.IsSupported(It.IsAny<GitRequest>())).Returns(true);
 
             registry.Register(provider1Mock.Object, HostProviderPriority.Low);
             registry.Register(provider2Mock.Object, HostProviderPriority.Normal);
             registry.Register(provider3Mock.Object, HostProviderPriority.High);
             registry.Register(provider4Mock.Object, HostProviderPriority.Low);
 
-            IHostProvider result = await registry.GetProviderAsync(input);
+            IHostProvider result = await registry.GetProviderAsync(request);
 
             Assert.Same(provider3Mock.Object, result);
         }
@@ -211,23 +211,23 @@ namespace GitCredentialManager.Tests
                 Settings = {ProviderOverride = "provider3"}
             };
             var registry = new HostProviderRegistry(context);
-            var input = new InputArguments(new Dictionary<string, string>());
+            var request = new GitRequest(new Dictionary<string, string>());
 
             var provider1Mock = new Mock<IHostProvider>();
             var provider2Mock = new Mock<IHostProvider>();
             var provider3Mock = new Mock<IHostProvider>();
             provider1Mock.Setup(x => x.Id).Returns("provider1");
-            provider1Mock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(true);
+            provider1Mock.Setup(x => x.IsSupported(It.IsAny<GitRequest>())).Returns(true);
             provider2Mock.Setup(x => x.Id).Returns("provider2");
-            provider2Mock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(true);
+            provider2Mock.Setup(x => x.IsSupported(It.IsAny<GitRequest>())).Returns(true);
             provider3Mock.Setup(x => x.Id).Returns("provider3");
-            provider3Mock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(false);
+            provider3Mock.Setup(x => x.IsSupported(It.IsAny<GitRequest>())).Returns(false);
 
             registry.Register(provider1Mock.Object, HostProviderPriority.Normal);
             registry.Register(provider2Mock.Object, HostProviderPriority.Normal);
             registry.Register(provider3Mock.Object, HostProviderPriority.Normal);
 
-            IHostProvider result = await registry.GetProviderAsync(input);
+            IHostProvider result = await registry.GetProviderAsync(request);
 
             Assert.Same(provider3Mock.Object, result);
         }
@@ -241,23 +241,23 @@ namespace GitCredentialManager.Tests
             };
             var registry = new HostProviderRegistry(context);
             var remote = new Uri("https://example.com");
-            InputArguments input = CreateInputArguments(remote);
+            GitRequest request = CreateRequest(remote);
 
             var provider1Mock = new Mock<IHostProvider>();
             var provider2Mock = new Mock<IHostProvider>();
             var provider3Mock = new Mock<IHostProvider>();
             provider1Mock.Setup(x => x.Id).Returns("provider1");
-            provider1Mock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(false);
+            provider1Mock.Setup(x => x.IsSupported(It.IsAny<GitRequest>())).Returns(false);
             provider2Mock.Setup(x => x.Id).Returns("provider2");
-            provider2Mock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(true);
+            provider2Mock.Setup(x => x.IsSupported(It.IsAny<GitRequest>())).Returns(true);
             provider3Mock.Setup(x => x.Id).Returns("provider3");
-            provider3Mock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(false);
+            provider3Mock.Setup(x => x.IsSupported(It.IsAny<GitRequest>())).Returns(false);
 
             registry.Register(provider1Mock.Object, HostProviderPriority.Normal);
             registry.Register(provider2Mock.Object, HostProviderPriority.Normal);
             registry.Register(provider3Mock.Object, HostProviderPriority.Normal);
 
-            IHostProvider result = await registry.GetProviderAsync(input);
+            IHostProvider result = await registry.GetProviderAsync(request);
 
             Assert.Same(provider2Mock.Object, result);
         }
@@ -271,23 +271,23 @@ namespace GitCredentialManager.Tests
             };
             var registry = new HostProviderRegistry(context);
             var remote = new Uri("https://example.com");
-            InputArguments input = CreateInputArguments(remote);
+            GitRequest request = CreateRequest(remote);
 
             var provider1Mock = new Mock<IHostProvider>();
             var provider2Mock = new Mock<IHostProvider>();
             var provider3Mock = new Mock<IHostProvider>();
             provider1Mock.Setup(x => x.Id).Returns("provider1");
-            provider1Mock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(false);
+            provider1Mock.Setup(x => x.IsSupported(It.IsAny<GitRequest>())).Returns(false);
             provider2Mock.Setup(x => x.Id).Returns("provider2");
-            provider2Mock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(true);
+            provider2Mock.Setup(x => x.IsSupported(It.IsAny<GitRequest>())).Returns(true);
             provider3Mock.Setup(x => x.Id).Returns("provider3");
-            provider3Mock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(false);
+            provider3Mock.Setup(x => x.IsSupported(It.IsAny<GitRequest>())).Returns(false);
 
             registry.Register(provider1Mock.Object, HostProviderPriority.Normal);
             registry.Register(provider2Mock.Object, HostProviderPriority.Normal);
             registry.Register(provider3Mock.Object, HostProviderPriority.Normal);
 
-            IHostProvider result = await registry.GetProviderAsync(input);
+            IHostProvider result = await registry.GetProviderAsync(request);
 
             Assert.Same(provider2Mock.Object, result);
         }
@@ -300,23 +300,23 @@ namespace GitCredentialManager.Tests
                 Settings = {LegacyAuthorityOverride = "authorityB"}
             };
             var registry = new HostProviderRegistry(context);
-            var input = new InputArguments(new Dictionary<string, string>());
+            var request = new GitRequest(new Dictionary<string, string>());
 
             var provider1Mock = new Mock<IHostProvider>();
             var provider2Mock = new Mock<IHostProvider>();
             var provider3Mock = new Mock<IHostProvider>();
             provider1Mock.Setup(x => x.SupportedAuthorityIds).Returns(new[]{"authorityA"});
-            provider1Mock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(false);
+            provider1Mock.Setup(x => x.IsSupported(It.IsAny<GitRequest>())).Returns(false);
             provider2Mock.Setup(x => x.SupportedAuthorityIds).Returns(new[]{"authorityB", "authorityC"});
-            provider2Mock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(false);
+            provider2Mock.Setup(x => x.IsSupported(It.IsAny<GitRequest>())).Returns(false);
             provider3Mock.Setup(x => x.SupportedAuthorityIds).Returns(new[]{"authorityD"});
-            provider3Mock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(false);
+            provider3Mock.Setup(x => x.IsSupported(It.IsAny<GitRequest>())).Returns(false);
 
             registry.Register(provider1Mock.Object, HostProviderPriority.Normal);
             registry.Register(provider2Mock.Object, HostProviderPriority.Normal);
             registry.Register(provider3Mock.Object, HostProviderPriority.Normal);
 
-            IHostProvider result = await registry.GetProviderAsync(input);
+            IHostProvider result = await registry.GetProviderAsync(request);
 
             Assert.Same(provider2Mock.Object, result);
         }
@@ -330,23 +330,23 @@ namespace GitCredentialManager.Tests
             };
             var registry = new HostProviderRegistry(context);
             var remote = new Uri("https://example.com");
-            InputArguments input = CreateInputArguments(remote);
+            GitRequest request = CreateRequest(remote);
 
             var provider1Mock = new Mock<IHostProvider>();
             var provider2Mock = new Mock<IHostProvider>();
             var provider3Mock = new Mock<IHostProvider>();
             provider1Mock.Setup(x => x.SupportedAuthorityIds).Returns(new[]{"authorityA"});
-            provider1Mock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(false);
+            provider1Mock.Setup(x => x.IsSupported(It.IsAny<GitRequest>())).Returns(false);
             provider2Mock.Setup(x => x.SupportedAuthorityIds).Returns(new[]{"authorityB", "authorityC"});
-            provider2Mock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(true);
+            provider2Mock.Setup(x => x.IsSupported(It.IsAny<GitRequest>())).Returns(true);
             provider3Mock.Setup(x => x.SupportedAuthorityIds).Returns(new[]{"authorityD"});
-            provider3Mock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(false);
+            provider3Mock.Setup(x => x.IsSupported(It.IsAny<GitRequest>())).Returns(false);
 
             registry.Register(provider1Mock.Object, HostProviderPriority.Normal);
             registry.Register(provider2Mock.Object, HostProviderPriority.Normal);
             registry.Register(provider3Mock.Object, HostProviderPriority.Normal);
 
-            IHostProvider result = await registry.GetProviderAsync(input);
+            IHostProvider result = await registry.GetProviderAsync(request);
 
             Assert.Same(provider2Mock.Object, result);
         }
@@ -357,14 +357,14 @@ namespace GitCredentialManager.Tests
             var context = new TestCommandContext();
             var registry = new HostProviderRegistry(context);
             var remoteUri = new Uri("https://provider2.onprem.example.com");
-            InputArguments input = CreateInputArguments(remoteUri);
+            GitRequest request = CreateRequest(remoteUri);
 
             var provider1Mock = new Mock<IHostProvider>();
-            provider1Mock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(false);
+            provider1Mock.Setup(x => x.IsSupported(It.IsAny<GitRequest>())).Returns(false);
             provider1Mock.Setup(x => x.IsSupported(It.IsAny<HttpResponseMessage>())).Returns(false);
 
             var provider2Mock = new Mock<IHostProvider>();
-            provider2Mock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(false);
+            provider2Mock.Setup(x => x.IsSupported(It.IsAny<GitRequest>())).Returns(false);
             provider2Mock.Setup(x => x.IsSupported(It.IsAny<HttpResponseMessage>())).Returns(true);
 
             var responseMessage = new HttpResponseMessage(HttpStatusCode.Unauthorized)
@@ -380,7 +380,7 @@ namespace GitCredentialManager.Tests
             registry.Register(provider1Mock.Object, HostProviderPriority.Normal);
             registry.Register(provider2Mock.Object, HostProviderPriority.Normal);
 
-            IHostProvider result = await registry.GetProviderAsync(input);
+            IHostProvider result = await registry.GetProviderAsync(request);
 
             httpHandler.AssertRequest(HttpMethod.Head, remoteUri, 1);
             Assert.Same(provider2Mock.Object, result);
@@ -392,7 +392,7 @@ namespace GitCredentialManager.Tests
             var context = new TestCommandContext();
             var registry = new HostProviderRegistry(context);
             var remoteUri = new Uri("https://onprem.example.com");
-            var input = new InputArguments(
+            var request = new GitRequest(
                 new Dictionary<string, string>
                 {
                     ["protocol"] = remoteUri.Scheme,
@@ -401,7 +401,7 @@ namespace GitCredentialManager.Tests
             );
 
             var providerMock = new Mock<IHostProvider>();
-            providerMock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(false);
+            providerMock.Setup(x => x.IsSupported(It.IsAny<GitRequest>())).Returns(false);
             providerMock.Setup(x => x.IsSupported(It.IsAny<HttpResponseMessage>())).Returns(true);
 
             var responseMessage = new HttpResponseMessage(HttpStatusCode.Unauthorized);
@@ -414,7 +414,7 @@ namespace GitCredentialManager.Tests
 
             context.Settings.AutoDetectProviderTimeout = 0;
 
-            await Assert.ThrowsAnyAsync<Exception>(() => registry.GetProviderAsync(input));
+            await Assert.ThrowsAnyAsync<Exception>(() => registry.GetProviderAsync(request));
 
             httpHandler.AssertRequest(HttpMethod.Head, remoteUri, 0);
         }
@@ -425,7 +425,7 @@ namespace GitCredentialManager.Tests
             var context = new TestCommandContext();
             var registry = new HostProviderRegistry(context);
             var remoteUri = new Uri("https://onprem.example.com");
-            var input = new InputArguments(
+            var request = new GitRequest(
                 new Dictionary<string, string>
                 {
                     ["protocol"] = remoteUri.Scheme,
@@ -434,7 +434,7 @@ namespace GitCredentialManager.Tests
             );
 
             var providerMock = new Mock<IHostProvider>();
-            providerMock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(false);
+            providerMock.Setup(x => x.IsSupported(It.IsAny<GitRequest>())).Returns(false);
             providerMock.Setup(x => x.IsSupported(It.IsAny<HttpResponseMessage>())).Returns(true);
 
             var responseMessage = new HttpResponseMessage(HttpStatusCode.Unauthorized);
@@ -447,7 +447,7 @@ namespace GitCredentialManager.Tests
 
             context.Settings.AutoDetectProviderTimeout = -1;
 
-            await Assert.ThrowsAnyAsync<Exception>(() => registry.GetProviderAsync(input));
+            await Assert.ThrowsAnyAsync<Exception>(() => registry.GetProviderAsync(request));
 
             httpHandler.AssertRequest(HttpMethod.Head, remoteUri, 0);
         }
@@ -458,7 +458,7 @@ namespace GitCredentialManager.Tests
             var context = new TestCommandContext();
             var registry = new HostProviderRegistry(context);
             var remoteUri = new Uri("https://provider2.onprem.example.com");
-            var input = new InputArguments(
+            var request = new GitRequest(
                 new Dictionary<string, string>
                 {
                     ["protocol"] = remoteUri.Scheme,
@@ -467,12 +467,12 @@ namespace GitCredentialManager.Tests
             );
 
             var highProviderMock = new Mock<IHostProvider>();
-            highProviderMock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(false);
+            highProviderMock.Setup(x => x.IsSupported(It.IsAny<GitRequest>())).Returns(false);
             highProviderMock.Setup(x => x.IsSupported(It.IsAny<HttpResponseMessage>())).Returns(false);
             registry.Register(highProviderMock.Object, HostProviderPriority.Normal);
 
             var lowProviderMock = new Mock<IHostProvider>();
-            lowProviderMock.Setup(x => x.IsSupported(It.IsAny<InputArguments>())).Returns(true);
+            lowProviderMock.Setup(x => x.IsSupported(It.IsAny<GitRequest>())).Returns(true);
             registry.Register(lowProviderMock.Object, HostProviderPriority.Low);
 
             var responseMessage = new HttpResponseMessage(HttpStatusCode.Unauthorized)
@@ -488,13 +488,13 @@ namespace GitCredentialManager.Tests
             httpHandler.Setup(HttpMethod.Head, remoteUri, responseMessage);
             context.HttpClientFactory.MessageHandler = httpHandler;
 
-            IHostProvider result = await registry.GetProviderAsync(input);
+            IHostProvider result = await registry.GetProviderAsync(request);
 
             httpHandler.AssertRequest(HttpMethod.Head, remoteUri, 1);
             Assert.Same(lowProviderMock.Object, result);
         }
 
-        public static InputArguments CreateInputArguments(Uri uri)
+        public static GitRequest CreateRequest(Uri uri)
         {
             var dict = new Dictionary<string, string>
             {
@@ -507,7 +507,7 @@ namespace GitCredentialManager.Tests
                 dict["path"] = uri.AbsolutePath.TrimEnd('/');
             }
 
-            return new InputArguments(dict);
+            return new GitRequest(dict);
         }
     }
 }

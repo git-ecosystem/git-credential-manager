@@ -49,9 +49,9 @@ namespace GitHub
 
         public IEnumerable<string> SupportedAuthorityIds => GitHubAuthentication.AuthorityIds;
 
-        public bool IsSupported(InputArguments input)
+        public bool IsSupported(GitRequest request)
         {
-            if (input is null)
+            if (request is null)
             {
                 return false;
             }
@@ -59,14 +59,14 @@ namespace GitHub
             // We do not support unencrypted HTTP communications to GitHub,
             // but we report `true` here for HTTP so that we can show a helpful
             // error message for the user in `CreateCredentialAsync`.
-            if (!StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "http") &&
-                !StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "https"))
+            if (!StringComparer.OrdinalIgnoreCase.Equals(request.Protocol, "http") &&
+                !StringComparer.OrdinalIgnoreCase.Equals(request.Protocol, "https"))
             {
                 return false;
             }
 
-            // Split port number and hostname from host input argument
-            if (!input.TryGetHostAndPort(out string hostName, out _))
+            // Split port number and hostname from host request argument
+            if (!request.TryGetHostAndPort(out string hostName, out _))
             {
                 return false;
             }
@@ -108,10 +108,10 @@ namespace GitHub
             return response.Headers.Contains("X-GitHub-Request-Id");
         }
 
-        internal static /* for testing purposes */ string GetServiceName(InputArguments input)
+        internal static /* for testing purposes */ string GetServiceName(GitRequest request)
         {
             // Get the remote URI without user information
-            var baseUri = input.GetRemoteUri(includeUser: false);
+            var baseUri = request.GetRemoteUri(includeUser: false);
 
             return GetServiceName(baseUri);
         }
@@ -125,15 +125,15 @@ namespace GitHub
             return url.TrimEnd('/');
         }
 
-        public async Task<GetCredentialResult> GetCredentialAsync(InputArguments input)
+        public async Task<GitResponse> GetCredentialAsync(GitRequest request)
         {
-            string service = GetServiceName(input);
-            Uri remoteUri = input.GetRemoteUri();
+            string service = GetServiceName(request);
+            Uri remoteUri = request.GetRemoteUri();
 
             // If we have a specific username then we can try and find an existing credential for that account.
             // If not, we should check what accounts are available in the store and prompt the user if there
             // are multiple options.
-            string userName = input.UserName;
+            string userName = request.UserName;
             bool addAccount = false;
             bool filtered = false;
             if (string.IsNullOrWhiteSpace(userName))
@@ -145,7 +145,7 @@ namespace GitHub
                     _context.Trace.WriteLine($"  {account}");
                 }
 
-                filtered = FilterAccounts(remoteUri, input.WwwAuth, ref accounts);
+                filtered = FilterAccounts(remoteUri, request.WwwAuth, ref accounts);
 
                 switch (accounts.Count)
                 {
@@ -190,7 +190,7 @@ namespace GitHub
                 _context.Trace.WriteLine("Existing credential found.");
             }
 
-            return new GetCredentialResult(credential);
+            return new GitResponse(credential);
         }
 
         private bool FilterAccounts(Uri remoteUri, IEnumerable<string> wwwAuth, ref IList<string> accounts)
@@ -241,35 +241,35 @@ namespace GitHub
             return false;
         }
 
-        public virtual Task StoreCredentialAsync(InputArguments input)
+        public virtual Task StoreCredentialAsync(GitRequest request)
         {
-            string service = GetServiceName(input);
+            string service = GetServiceName(request);
 
             // WIA-authentication is signaled to Git as an empty username/password pair
             // and we will get called to 'store' these WIA credentials.
             // We avoid storing empty credentials.
-            if (string.IsNullOrWhiteSpace(input.UserName) && string.IsNullOrWhiteSpace(input.Password))
+            if (string.IsNullOrWhiteSpace(request.UserName) && string.IsNullOrWhiteSpace(request.Password))
             {
                 _context.Trace.WriteLine("Not storing empty credential.");
             }
             else
             {
                 // Add or update the credential in the store.
-                _context.Trace.WriteLine($"Storing credential with service={service} account={input.UserName}...");
-                _context.CredentialStore.AddOrUpdate(service, input.UserName, input.Password);
+                _context.Trace.WriteLine($"Storing credential with service={service} account={request.UserName}...");
+                _context.CredentialStore.AddOrUpdate(service, request.UserName, request.Password);
                 _context.Trace.WriteLine("Credential was successfully stored.");
             }
 
             return Task.CompletedTask;
         }
 
-        public virtual Task EraseCredentialAsync(InputArguments input)
+        public virtual Task EraseCredentialAsync(GitRequest request)
         {
-            string service = GetServiceName(input);
+            string service = GetServiceName(request);
 
             // Try to locate an existing credential
-            _context.Trace.WriteLine($"Erasing stored credential in store with service={service} account={input.UserName}...");
-            if (_context.CredentialStore.Remove(service, input.UserName))
+            _context.Trace.WriteLine($"Erasing stored credential in store with service={service} account={request.UserName}...");
+            if (_context.CredentialStore.Remove(service, request.UserName))
             {
                 _context.Trace.WriteLine("Credential was successfully erased.");
             }

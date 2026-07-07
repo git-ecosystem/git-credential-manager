@@ -8,11 +8,14 @@ namespace GitCredentialManager.Commands
     public class EraseCommand : GitCommandBase
     {
         public EraseCommand(ICommandContext context, IHostProviderRegistry hostProviderRegistry)
-            : base(context, "erase", "[Git] Erase a stored credential", hostProviderRegistry) { }
-
-        protected override Task ExecuteInternalAsync(InputArguments input, IHostProvider provider)
+            : base(context, "erase", "[Git] Erase a stored credential", hostProviderRegistry)
         {
-            return provider.EraseCredentialAsync(input);
+            IsHidden = true;
+        }
+
+        protected override Task ExecuteInternalAsync(GitRequest request, IHostProvider provider)
+        {
+            return provider.EraseCredentialAsync(request);
         }
     }
 }

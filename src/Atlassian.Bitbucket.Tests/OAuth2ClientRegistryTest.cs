@@ -28,7 +28,7 @@ namespace Atlassian.Bitbucket.Tests
             MockSettingOverride(CloudConstants.EnvironmentVariables.OAuthClientSecret, CloudConstants.GitConfiguration.Credential.OAuthClientSecret, "never used", false);
             MockSettingOverride(CloudConstants.EnvironmentVariables.OAuthRedirectUri, CloudConstants.GitConfiguration.Credential.OAuthRedirectUri,  "never used", false);
             MockHttpClientFactory();
-            var input = MockInputArguments(host);
+            var input = MockGitRequest(host);
 
             // When
             var registry = new OAuth2ClientRegistry(context.Object);
@@ -52,7 +52,7 @@ namespace Atlassian.Bitbucket.Tests
             MockSettingOverride(DataCenterConstants.EnvironmentVariables.OAuthClientSecret, DataCenterConstants.GitConfiguration.Credential.OAuthClientSecret, "", true); ;
             MockSettingOverride(DataCenterConstants.EnvironmentVariables.OAuthRedirectUri, DataCenterConstants.GitConfiguration.Credential.OAuthRedirectUri,  "never used", false);
             MockHttpClientFactory();
-            var input = MockInputArguments(host);
+            var input = MockGitRequest(host);
 
             // When
             var registry = new OAuth2ClientRegistry(context.Object);
@@ -64,9 +64,9 @@ namespace Atlassian.Bitbucket.Tests
 
         }
 
-        private static InputArguments MockInputArguments(string host)
+        private static GitRequest MockGitRequest(string host)
         {
-            return new InputArguments(new Dictionary<string, string>
+            return new GitRequest(new Dictionary<string, string>
             {
                 ["protocol"] = "https",
                 ["host"] = host,

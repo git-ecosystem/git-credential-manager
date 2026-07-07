@@ -47,12 +47,12 @@ namespace GitCredentialManager.Tests
                 RemoteUri = remoteUri
             };
 
-            var input = new InputArguments(new Dictionary<string, string> {
+            var request = new GitRequest(new Dictionary<string, string> {
                 {"protocol", protocol},
                 {"host", host}, 
             });
 
-            bool result = GenericOAuthConfig.TryGet(trace, settings, input, out GenericOAuthConfig config);
+            bool result = GenericOAuthConfig.TryGet(trace, settings, request, out GenericOAuthConfig config);
 
             Assert.True(result);
             Assert.Equal(expectedClientId, config.ClientId);
@@ -84,13 +84,13 @@ namespace GitCredentialManager.Tests
                 RemoteUri = remoteUri
             };
 
-            var input = new InputArguments(new Dictionary<string, string> {
+            var request = new GitRequest(new Dictionary<string, string> {
                 {"protocol", protocol},
                 {"host", host},
                 {"wwwauth", "Basic realm=\"Gitea\""}
             });
 
-            bool result = GenericOAuthConfig.TryGet(trace, settings, input, out GenericOAuthConfig config);
+            bool result = GenericOAuthConfig.TryGet(trace, settings, request, out GenericOAuthConfig config);
 
             Assert.True(result);
             Assert.Equal(expectedClientId, config.ClientId);

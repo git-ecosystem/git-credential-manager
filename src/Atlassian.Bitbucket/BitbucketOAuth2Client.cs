@@ -21,9 +21,9 @@ namespace Atlassian.Bitbucket
 
         public abstract IEnumerable<string> Scopes { get; }
 
-        public string GetRefreshTokenServiceName(InputArguments input)
+        public string GetRefreshTokenServiceName(GitRequest request)
         {
-            Uri baseUri = input.GetRemoteUri(includeUser: false);
+            Uri baseUri = request.GetRemoteUri(includeUser: false);
 
             // The refresh token key never includes the path component.
             // Instead we use the path component to specify this is the "refresh_token".

@@ -6,18 +6,20 @@ using System.Linq;
 namespace GitCredentialManager
 {
     /// <summary>
-    /// Represents the input for a Git credential query such as get, erase, or store.
+    /// Represents the request for a single Git credential helper invocation (get / store / erase).
     /// </summary>
     /// <remarks>
-    /// This class surfaces the input that is streamed over standard in from Git which provides
-    /// the credential helper the remote repository information, including the protocol, host,
-    /// and remote repository path.
+    /// Surfaces the input streamed over standard input from Git, including the
+    /// protocol, host, and remote repository path, plus any negotiated protocol
+    /// capabilities.
     /// </remarks>
-    public class InputArguments
+    public class GitRequest
     {
         private readonly IReadOnlyDictionary<string, IList<string>> _dict;
+        private GitCapabilities? _capabilities;
+        private IReadOnlyDictionary<string, string> _state;
 
-        public InputArguments(IDictionary<string, string> dict)
+        public GitRequest(IDictionary<string, string> dict)
         {
             EnsureArgument.NotNull(dict, nameof(dict));
 
@@ -27,7 +29,7 @@ namespace GitCredentialManager
             );
         }
 
-        public InputArguments(IDictionary<string, IList<string>> dict)
+        public GitRequest(IDictionary<string, IList<string>> dict)
         {
             EnsureArgument.NotNull(dict, nameof(dict));
 
@@ -35,7 +37,12 @@ namespace GitCredentialManager
             _dict = new ReadOnlyDictionary<string, IList<string>>(dict);
         }
 
-        #region Common Arguments
+        /// <summary>
+        /// The set of Git credential protocol capabilities that Git itself advertised
+        /// it supports on this invocation. Unrecognized capability names are silently
+        /// discarded per the protocol specification.
+        /// </summary>
+        public GitCapabilities Capabilities => _capabilities ??= ParseCapabilities();
 
         public string Protocol => GetArgumentOrDefault("protocol");
         public string Host     => GetArgumentOrDefault("host");
@@ -44,9 +51,16 @@ namespace GitCredentialManager
         public string Password => GetArgumentOrDefault("password");
         public IList<string> WwwAuth => GetMultiArgumentOrDefault("wwwauth");
 
-        #endregion
-
-        #region Public Methods
+        /// <summary>
+        /// Opaque per-helper state Git is replaying from a previous invocation,
+        /// gated by the <c>state</c> capability.
+        /// </summary>
+        /// <remarks>
+        /// Only entries with our recognized prefix (<see cref="Constants.CredentialProtocol.GcmStatePrefix"/>)
+        /// are kept. The prefix is stripped from dictionary keys. Malformed entries
+        /// (missing <c>=</c>, invalid key/value characters) are silently discarded.
+        /// </remarks>
+        public IReadOnlyDictionary<string, string> State => _state ??= ParseState();
 
         public string this[string key]
         {
@@ -167,6 +181,60 @@ namespace GitCredentialManager
             return null;
         }
 
-        #endregion
+        private GitCapabilities ParseCapabilities()
+        {
+            var caps = GitCapabilities.None;
+
+            IList<string> values = GetMultiArgumentOrDefault("capability");
+            foreach (string name in values)
+            {
+                caps |= GitCapabilitiesUtils.ParseName(name);
+            }
+
+            return caps;
+        }
+
+        private IReadOnlyDictionary<string, string> ParseState()
+        {
+            const string prefix = Constants.CredentialProtocol.GcmStatePrefix;
+            var result = new Dictionary<string, string>(StringComparer.Ordinal);
+
+            IList<string> values = GetMultiArgumentOrDefault(Constants.CredentialProtocol.StateKey);
+            foreach (string entry in values)
+            {
+                int sep = entry.IndexOf('=');
+                if (sep <= 0)
+                {
+                    // Malformed (no '=' or empty key): per the protocol
+                    // "unrecognized attributes are silently discarded".
+                    continue;
+                }
+
+                string rawKey = entry.Substring(0, sep);
+                string value = entry.Substring(sep + 1);
+
+                // Only consume our own namespace; let other helpers' state pass
+                // through us untouched (we never see it once Git stores it
+                // per-helper, but the protocol mandates this discipline).
+                if (!rawKey.StartsWith(prefix, StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                string key = rawKey.Substring(prefix.Length);
+
+                // Defensive: validate the post-prefix key and the value.
+                // Git should never hand us malformed entries, but skip any
+                // that wouldn't round-trip through our own emitter.
+                if (!GitStateValidation.IsValidKey(key) || !GitStateValidation.IsValidValue(value))
+                {
+                    continue;
+                }
+
+                result[key] = value;
+            }
+
+            return new ReadOnlyDictionary<string, string>(result);
+        }
     }
 }

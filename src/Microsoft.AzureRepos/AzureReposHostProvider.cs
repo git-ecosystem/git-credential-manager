@@ -52,9 +52,9 @@ namespace Microsoft.AzureRepos
 
         public IEnumerable<string> SupportedAuthorityIds => MicrosoftAuthentication.AuthorityIds;
 
-        public bool IsSupported(InputArguments input)
+        public bool IsSupported(GitRequest request)
         {
-            if (input is null)
+            if (request is null)
             {
                 return false;
             }
@@ -62,9 +62,9 @@ namespace Microsoft.AzureRepos
             // We do not recommend unencrypted HTTP communications to Azure Repos,
             // but we report `true` here for HTTP so that we can show a helpful
             // error message for the user in `CreateCredentialAsync`.
-            return input.TryGetHostAndPort(out string hostName, out _)
-                   && (StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "http") ||
-                       StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "https")) &&
+            return request.TryGetHostAndPort(out string hostName, out _)
+                   && (StringComparer.OrdinalIgnoreCase.Equals(request.Protocol, "http") ||
+                       StringComparer.OrdinalIgnoreCase.Equals(request.Protocol, "https")) &&
                    UriHelpers.IsAzureDevOpsHost(hostName);
         }
 
@@ -74,13 +74,13 @@ namespace Microsoft.AzureRepos
             return false;
         }
 
-        public async Task<GetCredentialResult> GetCredentialAsync(InputArguments input)
+        public async Task<GitResponse> GetCredentialAsync(GitRequest request)
         {
             if (UseManagedIdentity(out string mid))
             {
                 _context.Trace.WriteLine($"Getting Azure Access Token for managed identity {mid}...");
                 var azureResult = await _msAuth.GetTokenForManagedIdentityAsync(mid, AzureDevOpsConstants.AzureDevOpsResourceId);
-                return new GetCredentialResult(
+                return new GitResponse(
                     new GitCredential(mid, azureResult.AccessToken)
                 );
             }
@@ -89,7 +89,7 @@ namespace Microsoft.AzureRepos
             {
                 _context.Trace.WriteLine($"Getting Azure Access Token using WIF (scenario: {fedOpts.Scenario})...");
                 var azureResult = await _msAuth.GetTokenUsingWorkloadFederationAsync(fedOpts, AzureDevOpsConstants.AzureDevOpsDefaultScopes);
-                return new GetCredentialResult(
+                return new GitResponse(
                     new GitCredential(fedOpts.ClientId, azureResult.AccessToken)
                 );
             }
@@ -98,16 +98,16 @@ namespace Microsoft.AzureRepos
             {
                 _context.Trace.WriteLine($"Getting Azure Access Token for service principal {sp.TenantId}/{sp.Id}...");
                 var azureResult = await _msAuth.GetTokenForServicePrincipalAsync(sp, AzureDevOpsConstants.AzureDevOpsDefaultScopes);
-                return new GetCredentialResult(
+                return new GitResponse(
                     new GitCredential(sp.Id, azureResult.AccessToken)
                 );
             }
 
             if (UsePersonalAccessTokens())
             {
-                Uri remoteWithUserUri = input.GetRemoteUri(includeUser: true);
+                Uri remoteWithUserUri = request.GetRemoteUri(includeUser: true);
                 string service = GetServiceName(remoteWithUserUri);
-                string account = GetAccountNameForCredentialQuery(input);
+                string account = GetAccountNameForCredentialQuery(request);
 
                 _context.Trace.WriteLine($"Looking for existing credential in store with service={service} account={account}...");
 
@@ -118,7 +118,7 @@ namespace Microsoft.AzureRepos
 
                     // No existing credential was found, create a new one
                     _context.Trace.WriteLine("Creating new credential...");
-                    credential = await GeneratePersonalAccessTokenAsync(input);
+                    credential = await GeneratePersonalAccessTokenAsync(request);
                     _context.Trace.WriteLine("Credential created.");
                 }
                 else
@@ -126,21 +126,21 @@ namespace Microsoft.AzureRepos
                     _context.Trace.WriteLine("Existing credential found.");
                 }
 
-                return new GetCredentialResult(credential);
+                return new GitResponse(credential);
             }
             else
             {
                 // Include the username request here so that we may use it as an override
                 // for user account lookups when getting Azure Access Tokens.
-                var azureResult = await GetAzureAccessTokenAsync(input);
+                var azureResult = await GetAzureAccessTokenAsync(request);
                 var azureCredential = new GitCredential(azureResult.AccountUpn, azureResult.AccessToken);
-                return new GetCredentialResult(azureCredential);
+                return new GitResponse(azureCredential);
             }
         }
 
-        public Task StoreCredentialAsync(InputArguments input)
+        public Task StoreCredentialAsync(GitRequest request)
         {
-            Uri remoteUri = input.GetRemoteUri();
+            Uri remoteUri = request.GetRemoteUri();
 
             if (UseManagedIdentity(out _))
             {
@@ -160,26 +160,26 @@ namespace Microsoft.AzureRepos
 
                 // We always store credentials against the given username argument for
                 // both vs.com and dev.azure.com-style URLs.
-                string account = input.UserName;
+                string account = request.UserName;
 
                 // Add or update the credential in the store.
                 _context.Trace.WriteLine($"Storing credential with service={service} account={account}...");
-                _context.CredentialStore.AddOrUpdate(service, account, input.Password);
+                _context.CredentialStore.AddOrUpdate(service, account, request.Password);
                 _context.Trace.WriteLine("Credential was successfully stored.");
             }
             else
             {
                 string orgName = UriHelpers.GetOrganizationName(remoteUri);
-                _context.Trace.WriteLine($"Signing user {input.UserName} in to organization '{orgName}'...");
-                _bindingManager.SignIn(orgName, input.UserName);
+                _context.Trace.WriteLine($"Signing user {request.UserName} in to organization '{orgName}'...");
+                _bindingManager.SignIn(orgName, request.UserName);
             }
 
             return Task.CompletedTask;
         }
 
-        public Task EraseCredentialAsync(InputArguments input)
+        public Task EraseCredentialAsync(GitRequest request)
         {
-            Uri remoteUri = input.GetRemoteUri();
+            Uri remoteUri = request.GetRemoteUri();
 
             if (UseManagedIdentity(out _))
             {
@@ -196,7 +196,7 @@ namespace Microsoft.AzureRepos
             else if (UsePersonalAccessTokens())
             {
                 string service = GetServiceName(remoteUri);
-                string account = GetAccountNameForCredentialQuery(input);
+                string account = GetAccountNameForCredentialQuery(request);
 
                 // Try to locate an existing credential
                 _context.Trace.WriteLine(
@@ -230,10 +230,10 @@ namespace Microsoft.AzureRepos
             base.ReleaseManagedResources();
         }
 
-        private void ThrowIfUnsafeRemote(InputArguments input)
+        private void ThrowIfUnsafeRemote(GitRequest request)
         {
             if (!_context.Settings.AllowUnsafeRemotes &&
-                StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "http"))
+                StringComparer.OrdinalIgnoreCase.Equals(request.Protocol, "http"))
             {
                 throw new Trace2Exception(_context.Trace2,
                     "Unencrypted HTTP is not recommended for Azure Repos. " +
@@ -242,12 +242,12 @@ namespace Microsoft.AzureRepos
             }
         }
 
-        private async Task<ICredential> GeneratePersonalAccessTokenAsync(InputArguments input)
+        private async Task<ICredential> GeneratePersonalAccessTokenAsync(GitRequest request)
         {
             ThrowIfDisposed();
-            ThrowIfUnsafeRemote(input);
+            ThrowIfUnsafeRemote(request);
 
-            Uri remoteUserUri = input.GetRemoteUri(includeUser: true);
+            Uri remoteUserUri = request.GetRemoteUri(includeUser: true);
             Uri orgUri = UriHelpers.CreateOrganizationUri(remoteUserUri, out _);
 
             // Determine the MS authentication authority for this organization
@@ -283,19 +283,19 @@ namespace Microsoft.AzureRepos
             return new GitCredential(result.AccountUpn, pat);
         }
 
-        private async Task<IMicrosoftAuthenticationResult> GetAzureAccessTokenAsync(InputArguments input)
+        private async Task<IMicrosoftAuthenticationResult> GetAzureAccessTokenAsync(GitRequest request)
         {
-            ThrowIfUnsafeRemote(input);
+            ThrowIfUnsafeRemote(request);
 
-            Uri remoteWithUserUri = input.GetRemoteUri(includeUser: true);
-            string userName = input.UserName;
+            Uri remoteWithUserUri = request.GetRemoteUri(includeUser: true);
+            string userName = request.UserName;
 
             Uri orgUri = UriHelpers.CreateOrganizationUri(remoteWithUserUri, out string orgName);
 
             _context.Trace.WriteLine($"Determining Microsoft Authentication authority for Azure DevOps organization '{orgName}'...");
-            if (TryGetAuthorityFromHeaders(input.WwwAuth, out string authAuthority))
+            if (TryGetAuthorityFromHeaders(request.WwwAuth, out string authAuthority))
             {
-                _context.Trace.WriteLine("Authority was found in WWW-Authenticate headers from Git input.");
+                _context.Trace.WriteLine("Authority was found in WWW-Authenticate headers from Git request.");
             }
             else
             {
@@ -451,9 +451,9 @@ namespace Microsoft.AzureRepos
             throw new InvalidOperationException("Host is not Azure DevOps.");
         }
 
-        private static string GetAccountNameForCredentialQuery(InputArguments input)
+        private static string GetAccountNameForCredentialQuery(GitRequest request)
         {
-            if (!input.TryGetHostAndPort(out string hostName, out _))
+            if (!request.TryGetHostAndPort(out string hostName, out _))
             {
                 throw new InvalidOperationException("Failed to parse host name and/or port");
             }
@@ -474,8 +474,8 @@ namespace Microsoft.AzureRepos
             if (UriHelpers.IsVisualStudioComHost(hostName))
             {
                 // If we're given a username for the vs.com-style URLs we can and should respect any
-                // specified username in the remote URL/input arguments.
-                return input.UserName;
+                // specified username in the remote URL/request arguments.
+                return request.UserName;
             }
 
             throw new InvalidOperationException("Host is not Azure DevOps.");

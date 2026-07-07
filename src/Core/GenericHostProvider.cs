@@ -46,10 +46,10 @@ namespace GitCredentialManager
                 WindowsIntegratedAuthentication.AuthorityIds
             );
 
-        public bool IsSupported(InputArguments input)
+        public bool IsSupported(GitRequest request)
         {
             // The generic provider should support all possible protocols (HTTP, HTTPS, SMTP, IMAP, etc)
-            return input != null && !string.IsNullOrWhiteSpace(input.Protocol);
+            return request != null && !string.IsNullOrWhiteSpace(request.Protocol);
         }
 
         public bool IsSupported(HttpResponseMessage response)
@@ -57,65 +57,65 @@ namespace GitCredentialManager
             return false;
         }
 
-        public string GetServiceName(InputArguments input)
+        public string GetServiceName(GitRequest request)
         {
             // By default we assume the service name will be the absolute URI based on the
-            // input arguments from Git, without any userinfo part.
-            return input.GetRemoteUri(includeUser: false).AbsoluteUri.TrimEnd('/');
+            // request arguments from Git, without any userinfo part.
+            return request.GetRemoteUri(includeUser: false).AbsoluteUri.TrimEnd('/');
         }
 
-        public async Task<GetCredentialResult> GetCredentialAsync(InputArguments input)
+        public async Task<GitResponse> GetCredentialAsync(GitRequest request)
         {
             // Try and locate an existing credential in the OS credential store
-            string service = GetServiceName(input);
-            _context.Trace.WriteLine($"Looking for existing credential in store with service={service} account={input.UserName}...");
+            string service = GetServiceName(request);
+            _context.Trace.WriteLine($"Looking for existing credential in store with service={service} account={request.UserName}...");
 
-            ICredential credential = _context.CredentialStore.Get(service, input.UserName);
+            ICredential credential = _context.CredentialStore.Get(service, request.UserName);
             if (credential == null)
             {
                 _context.Trace.WriteLine("No existing credentials found.");
 
                 // No existing credential was found, create a new one
                 _context.Trace.WriteLine("Creating new credential...");
-                return await GenerateCredentialAsync(input);
+                return await GenerateCredentialAsync(request);
             }
             else
             {
                 _context.Trace.WriteLine("Existing credential found.");
             }
 
-            return new GetCredentialResult(credential);
+            return new GitResponse(credential);
         }
 
-        public Task StoreCredentialAsync(InputArguments input)
+        public Task StoreCredentialAsync(GitRequest request)
         {
-            string service = GetServiceName(input);
+            string service = GetServiceName(request);
 
             // WIA-authentication is signaled to Git as an empty username/password pair
             // and we will get called to 'store' these WIA credentials.
             // We avoid storing empty credentials.
-            if (string.IsNullOrWhiteSpace(input.UserName) && string.IsNullOrWhiteSpace(input.Password))
+            if (string.IsNullOrWhiteSpace(request.UserName) && string.IsNullOrWhiteSpace(request.Password))
             {
                 _context.Trace.WriteLine("Not storing empty credential.");
             }
             else
             {
                 // Add or update the credential in the store.
-                _context.Trace.WriteLine($"Storing credential with service={service} account={input.UserName}...");
-                _context.CredentialStore.AddOrUpdate(service, input.UserName, input.Password);
+                _context.Trace.WriteLine($"Storing credential with service={service} account={request.UserName}...");
+                _context.CredentialStore.AddOrUpdate(service, request.UserName, request.Password);
                 _context.Trace.WriteLine("Credential was successfully stored.");
             }
 
             return Task.CompletedTask;
         }
 
-        public Task EraseCredentialAsync(InputArguments input)
+        public Task EraseCredentialAsync(GitRequest request)
         {
-            string service = GetServiceName(input);
+            string service = GetServiceName(request);
 
             // Try to locate an existing credential
-            _context.Trace.WriteLine($"Erasing stored credential in store with service={service} account={input.UserName}...");
-            if (_context.CredentialStore.Remove(service, input.UserName))
+            _context.Trace.WriteLine($"Erasing stored credential in store with service={service} account={request.UserName}...");
+            if (_context.CredentialStore.Remove(service, request.UserName))
             {
                 _context.Trace.WriteLine("Credential was successfully erased.");
             }
@@ -127,7 +127,7 @@ namespace GitCredentialManager
             return Task.CompletedTask;
         }
 
-        public async Task<GetCredentialResult> GenerateCredentialAsync(InputArguments input)
+        public async Task<GitResponse> GenerateCredentialAsync(GitRequest request)
         {
             ThrowIfDisposed();
 
@@ -135,14 +135,14 @@ namespace GitCredentialManager
             // and, historically, we never blocked HTTP remotes in this provider.
             // The user can always set the 'GCM_ALLOW_UNSAFE' setting to silence the warning.
             if (!_context.Settings.AllowUnsafeRemotes &&
-                StringComparer.OrdinalIgnoreCase.Equals(input.Protocol, "http"))
+                StringComparer.OrdinalIgnoreCase.Equals(request.Protocol, "http"))
             {
                 _context.Streams.Error.WriteLine(
                     "warning: use of unencrypted HTTP remote URLs is not recommended; " +
                     $"see {Constants.HelpUrls.GcmUnsafeRemotes} for more information.");
             }
 
-            Uri uri = input.GetRemoteUri();
+            Uri uri = request.GetRemoteUri();
 
             // Determine the if the host supports Windows Integration Authentication (WIA) or OAuth
             if (!StringComparer.OrdinalIgnoreCase.Equals(uri.Scheme, "http") &&
@@ -151,7 +151,7 @@ namespace GitCredentialManager
                 // Cannot check WIA or OAuth support for non-HTTP based protocols
             }
             // Check for an OAuth configuration for this remote
-            else if (GenericOAuthConfig.TryGet(_context.Trace, _context.Settings, input, out GenericOAuthConfig oauthConfig))
+            else if (GenericOAuthConfig.TryGet(_context.Trace, _context.Settings, request, out GenericOAuthConfig oauthConfig))
             {
                 _context.Trace.WriteLine($"Found generic OAuth configuration for '{uri}':");
                 _context.Trace.WriteLine($"\tAuthzEndpoint   = {oauthConfig.Endpoints.AuthorizationEndpoint}");
@@ -164,8 +164,8 @@ namespace GitCredentialManager
                 _context.Trace.WriteLine($"\tUseAuthHeader   = {oauthConfig.UseAuthHeader}");
                 _context.Trace.WriteLine($"\tDefaultUserName = {oauthConfig.DefaultUserName}");
 
-                return new  GetCredentialResult(
-                    await GetOAuthAccessToken(uri, input.UserName, oauthConfig, _context.Trace2)
+                return new  GitResponse(
+                    await GetOAuthAccessToken(uri, request.UserName, oauthConfig, _context.Trace2)
                 );
             }
             // Try detecting WIA for this remote, if permitted
@@ -188,7 +188,7 @@ namespace GitCredentialManager
                         var additionalProps = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
                         // Has Git suppressed its own built-in NTLM authentication support?
-                        if (input.TryGetArgument(Constants.CredentialProtocol.NtlmKey, out string ntlmArg) &&
+                        if (request.TryGetArgument(Constants.CredentialProtocol.NtlmKey, out string ntlmArg) &&
                             StringComparer.OrdinalIgnoreCase.Equals(Constants.CredentialProtocol.NtlmSuppressed, ntlmArg))
                         {
                             _context.Trace.WriteLine("NTLM support has been suppressed by Git - showing warning.");
@@ -213,7 +213,7 @@ namespace GitCredentialManager
 
                                 default:
                                     _context.Trace.WriteLine("User declined to enable NTLM support. Showing basic auth prompt.");
-                                    return new GetCredentialResult(
+                                    return new GitResponse(
                                         await _basicAuth.GetCredentialsAsync(uri.AbsoluteUri, null)
                                     );
                             }
@@ -222,7 +222,7 @@ namespace GitCredentialManager
                         // WIA is signaled to Git using an empty username/password
                         _context.Trace.WriteLine("Returning empty username/password to trigger current user auth with WIA.");
                         ICredential creds = new GitCredential(string.Empty, string.Empty);
-                        return new GetCredentialResult(creds)
+                        return new GitResponse(creds)
                         {
                             AdditionalProperties = additionalProps
                         };
@@ -241,8 +241,8 @@ namespace GitCredentialManager
 
             // Use basic authentication
             _context.Trace.WriteLine("Prompting for basic credentials...");
-            return new GetCredentialResult(
-                await _basicAuth.GetCredentialsAsync(uri.AbsoluteUri, input.UserName)
+            return new GitResponse(
+                await _basicAuth.GetCredentialsAsync(uri.AbsoluteUri, request.UserName)
             );
         }
 

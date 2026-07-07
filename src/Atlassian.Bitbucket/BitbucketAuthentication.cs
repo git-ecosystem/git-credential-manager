@@ -26,9 +26,9 @@ namespace Atlassian.Bitbucket
     public interface IBitbucketAuthentication : IDisposable
     {
         Task<CredentialsPromptResult> GetCredentialsAsync(Uri targetUri, string userName, AuthenticationModes modes);
-        Task<OAuth2TokenResult> CreateOAuthCredentialsAsync(InputArguments input);
-        Task<OAuth2TokenResult> RefreshOAuthCredentialsAsync(InputArguments input, string refreshToken);
-        string GetRefreshTokenServiceName(InputArguments input);
+        Task<OAuth2TokenResult> CreateOAuthCredentialsAsync(GitRequest request);
+        Task<OAuth2TokenResult> RefreshOAuthCredentialsAsync(GitRequest request, string refreshToken);
+        string GetRefreshTokenServiceName(GitRequest request);
     }
 
     public class CredentialsPromptResult
@@ -249,7 +249,7 @@ namespace Atlassian.Bitbucket
             }
         }
 
-        public async Task<OAuth2TokenResult> CreateOAuthCredentialsAsync(InputArguments input)
+        public async Task<OAuth2TokenResult> CreateOAuthCredentialsAsync(GitRequest request)
         {
             ThrowIfUserInteractionDisabled();
 
@@ -260,22 +260,22 @@ namespace Atlassian.Bitbucket
             };
 
             var browser = new OAuth2SystemWebBrowser(Context.SessionManager, browserOptions);
-            var oauth2Client = _oauth2ClientRegistry.Get(input);
+            var oauth2Client = _oauth2ClientRegistry.Get(request);
 
             var authCodeResult = await oauth2Client.GetAuthorizationCodeAsync(browser, CancellationToken.None);
             return await oauth2Client.GetTokenByAuthorizationCodeAsync(authCodeResult, CancellationToken.None);
         }
 
-        public async Task<OAuth2TokenResult> RefreshOAuthCredentialsAsync(InputArguments input, string refreshToken)
+        public async Task<OAuth2TokenResult> RefreshOAuthCredentialsAsync(GitRequest request, string refreshToken)
         {
-            var client = _oauth2ClientRegistry.Get(input);
+            var client = _oauth2ClientRegistry.Get(request);
             return await client.GetTokenByRefreshTokenAsync(refreshToken, CancellationToken.None);
         }
 
-        public string GetRefreshTokenServiceName(InputArguments input)
+        public string GetRefreshTokenServiceName(GitRequest request)
         {
-            var client = _oauth2ClientRegistry.Get(input);
-            return client.GetRefreshTokenServiceName(input);
+            var client = _oauth2ClientRegistry.Get(request);
+            return client.GetRefreshTokenServiceName(request);
         }
 
         protected internal virtual bool TryFindHelperCommand(out string command, out string args)

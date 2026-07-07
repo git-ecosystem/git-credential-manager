@@ -94,18 +94,18 @@ request in a standard way.
 
 ### 2.2. Handling Requests
 
-The `IsSupported(InputArguments)` method will be called on all registered host
+The `IsSupported(GitRequest)` method will be called on all registered host
 providers in-turn on the invocation of a `get`, `store`, or `erase` request. The
 first host provider to return `true` will be called upon to handle the specific
 request. If the user has overridden the host provider selection process, a
 specific host provider may be selected instead, and the
-`IsSupported(InputArguments)` method will NOT be called.
+`IsSupported(GitRequest)` method will NOT be called.
 
 This method MUST return `true` if and only if the provider understands the
 request and can serve or handle the request. If the provider does not know how
 to handle the request it MUST return `false` instead.
 
-If no host provider returns `true` to a call to the `IsSupported(InputArguments)`
+If no host provider returns `true` to a call to the `IsSupported(GitRequest)`
 method for a each host provider priority level, then a HTTP HEAD request will be
 made to the remote URL and each host provider will be be called via the
 `IsSupported(HttpResponseMessage)` method. A host provider SHOULD use this call

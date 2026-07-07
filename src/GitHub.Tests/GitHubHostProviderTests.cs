@@ -20,9 +20,9 @@ namespace GitHub.Tests
         [InlineData("https://api.github.com", false)]
         [InlineData("https://api.gist.github.com", false)]
         [InlineData("https://foogist.github.com", false)]
-        public void GitHubHostProvider_IsGitHubDotCom(string input, bool expected)
+        public void GitHubHostProvider_IsGitHubDotCom(string request, bool expected)
         {
-            Assert.Equal(expected, GitHubHostProvider.IsGitHubDotCom(new Uri(input)));
+            Assert.Equal(expected, GitHubHostProvider.IsGitHubDotCom(new Uri(request)));
         }
 
 
@@ -57,14 +57,14 @@ namespace GitHub.Tests
         [InlineData("https", "GiST.GitHub.My-Company-Server.com", true)]
         public void GitHubHostProvider_IsSupported(string protocol, string host, bool expected)
         {
-            var input = new InputArguments(new Dictionary<string, string>
+            var request = new GitRequest(new Dictionary<string, string>
             {
                 ["protocol"] = protocol,
                 ["host"] = host,
             });
 
             var provider = new GitHubHostProvider(new TestCommandContext());
-            Assert.Equal(expected, provider.IsSupported(input));
+            Assert.Equal(expected, provider.IsSupported(request));
         }
 
         [Theory]
@@ -82,14 +82,14 @@ namespace GitHub.Tests
         [InlineData("https", "GiST.GitHub.My.Company.Server.Com", "https://github.my.company.server.com")]
         public void GitHubHostProvider_GetCredentialServiceUrl(string protocol, string host, string expectedService)
         {
-            var input = new InputArguments(new Dictionary<string, string>
+            var request = new GitRequest(new Dictionary<string, string>
             {
                 ["protocol"] = protocol,
                 ["host"] = host,
             });
 
             var provider = new GitHubHostProvider(new TestCommandContext());
-            Assert.Equal(expectedService, GitHubHostProvider.GetServiceName(input));
+            Assert.Equal(expectedService, GitHubHostProvider.GetServiceName(request));
         }
 
 
@@ -158,7 +158,7 @@ namespace GitHub.Tests
         [Fact]
         public async Task GitHubHostProvider_GetCredentialAsync_NoCredentials_NoUserNoHeaders_PromptsUser()
         {
-            var input = new InputArguments(
+            var request = new GitRequest(
                 new Dictionary<string, string>
                 {
                     ["protocol"] = "https",
@@ -177,7 +177,7 @@ namespace GitHub.Tests
 
             var provider = new GitHubHostProvider(context, ghApiMock.Object, ghAuthMock.Object);
 
-            var result = await provider.GetCredentialAsync(input);
+            var result = await provider.GetCredentialAsync(request);
             ICredential credential = result.Credential;
 
             Assert.Equal(credential.Account, newCredential.Account);
@@ -190,7 +190,7 @@ namespace GitHub.Tests
         [Fact]
         public async Task GitHubHostProvider_GetCredentialAsync_InputUser_ReturnsCredentialForUser()
         {
-            var input = new InputArguments(
+            var request = new GitRequest(
                 new Dictionary<string, string>
                 {
                     ["protocol"] = "https",
@@ -208,7 +208,7 @@ namespace GitHub.Tests
 
             var provider = new GitHubHostProvider(context, ghApiMock.Object, ghAuthMock.Object);
 
-            var result = await provider.GetCredentialAsync(input);
+            var result = await provider.GetCredentialAsync(request);
             ICredential credential = result.Credential;
 
             Assert.NotNull(result);
@@ -219,7 +219,7 @@ namespace GitHub.Tests
         [Fact]
         public async Task GitHubHostProvider_GetCredentialAsync_OneDomainAccount_ReturnsCredentialForRealmAccount()
         {
-            var input = new InputArguments(
+            var request = new GitRequest(
                 new Dictionary<string, string>
                 {
                     ["protocol"] = "https",
@@ -238,7 +238,7 @@ namespace GitHub.Tests
 
             var provider = new GitHubHostProvider(context, ghApiMock.Object, ghAuthMock.Object);
 
-            var result = await provider.GetCredentialAsync(input);
+            var result = await provider.GetCredentialAsync(request);
             ICredential credential = result.Credential;
 
             Assert.NotNull(result);
@@ -249,7 +249,7 @@ namespace GitHub.Tests
         [Fact]
         public async Task GitHubHostProvider_GetCredentialAsync_MultipleDomainAccounts_PromptForAccountAndReturnCredentialForAccount()
         {
-            var input = new InputArguments(
+            var request = new GitRequest(
                 new Dictionary<string, string>
                 {
                     ["protocol"] = "https",
@@ -271,7 +271,7 @@ namespace GitHub.Tests
 
             var provider = new GitHubHostProvider(context, ghApiMock.Object, ghAuthMock.Object);
 
-            var result = await provider.GetCredentialAsync(input);
+            var result = await provider.GetCredentialAsync(request);
             ICredential credential = result.Credential;
 
             Assert.NotNull(result);
@@ -287,7 +287,7 @@ namespace GitHub.Tests
         [Fact]
         public async Task GitHubHostProvider_GetCredentialAsync_MultipleDomainAccounts_PromptForAccountNewAccount()
         {
-            var input = new InputArguments(
+            var request = new GitRequest(
                 new Dictionary<string, string>
                 {
                     ["protocol"] = "https",
@@ -315,7 +315,7 @@ namespace GitHub.Tests
 
             var provider = new GitHubHostProvider(context, ghApiMock.Object, ghAuthMock.Object);
 
-            var result = await provider.GetCredentialAsync(input);
+            var result = await provider.GetCredentialAsync(request);
             ICredential credential = result.Credential;
 
             Assert.Equal(newCredential.Account, credential.Account);

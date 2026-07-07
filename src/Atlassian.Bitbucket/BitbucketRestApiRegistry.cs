@@ -14,9 +14,9 @@ namespace Atlassian.Bitbucket
             this.context = context;
         }
 
-        public IBitbucketRestApi Get(InputArguments input)
+        public IBitbucketRestApi Get(GitRequest request)
         {
-            if(!BitbucketHelper.IsBitbucketOrg(input))
+            if(!BitbucketHelper.IsBitbucketOrg(request))
             {
                 return DataCenterApi;
             }

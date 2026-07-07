@@ -5,6 +5,6 @@ namespace Atlassian.Bitbucket
 {
     public interface IRegistry<T> : IDisposable
     {
-        T Get(InputArguments input);
+        T Get(GitRequest request);
     }
 }

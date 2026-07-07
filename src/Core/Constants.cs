@@ -33,11 +33,38 @@ namespace GitCredentialManager
 
         public const string DefaultWorkloadFederationAudience = "api://AzureADTokenExchange";
 
+        /// <summary>
+        /// The set of Git credential protocol capabilities supported by Git Credential Manager.
+        /// </summary>
+        public const GitCapabilities SupportedCapabilities = GitCapabilities.State;
+
         public static class CredentialProtocol
         {
             public const string NtlmKey = "ntlm";
             public const string NtlmSuppressed = "suppressed";
             public const string NtlmAllow = "allow";
+
+            /// <summary>
+            /// The Git credential protocol attribute name carrying opaque per-helper state
+            /// (multi-valued, gated by the <c>state</c> capability).
+            /// </summary>
+            public const string StateKey = "state";
+
+            /// <summary>
+            /// The Git credential protocol attribute name signalling that the credential
+            /// helper expects a further round of authentication (boolean, gated by the
+            /// <c>state</c> capability).
+            /// </summary>
+            public const string ContinueKey = "continue";
+
+            /// <summary>
+            /// Prefix that Git Credential Manager reserves on every <c>state[]</c> entry
+            /// so its state can be distinguished from other helpers' state per
+            /// <see href="https://git-scm.com/docs/git-credential">git-credential(1)</see>:
+            /// "The value should include a prefix unique to the credential helper and
+            /// should ignore values that don't match its prefix."
+            /// </summary>
+            public const string GcmStatePrefix = "gcm.";
         }
 
         public static class CredentialStoreNames

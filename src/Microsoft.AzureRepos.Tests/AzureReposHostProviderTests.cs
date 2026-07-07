@@ -21,7 +21,7 @@ namespace Microsoft.AzureRepos.Tests
         [Fact]
         public void AzureReposProvider_IsSupported_AzureHost_UnencryptedHttp_ReturnsTrue()
         {
-            var input = new InputArguments(new Dictionary<string, string>
+            var request = new GitRequest(new Dictionary<string, string>
             {
                 ["protocol"] = "http",
                 ["host"] = "dev.azure.com",
@@ -32,13 +32,13 @@ namespace Microsoft.AzureRepos.Tests
 
             // We report that we support unencrypted HTTP here so that we can fail and
             // show a helpful error message in the call to `CreateCredentialAsync` instead.
-            Assert.True(provider.IsSupported(input));
+            Assert.True(provider.IsSupported(request));
         }
 
         [Fact]
         public void AzureReposProvider_IsSupported_VisualStudioHost_UnencryptedHttp_ReturnsTrue()
         {
-            var input = new InputArguments(new Dictionary<string, string>
+            var request = new GitRequest(new Dictionary<string, string>
             {
                 ["protocol"] = "http",
                 ["host"] = "org.visualstudio.com",
@@ -48,13 +48,13 @@ namespace Microsoft.AzureRepos.Tests
 
             // We report that we support unencrypted HTTP here so that we can fail and
             // show a helpful error message in the call to `CreateCredentialAsync` instead.
-            Assert.True(provider.IsSupported(input));
+            Assert.True(provider.IsSupported(request));
         }
 
         [Fact]
         public void AzureReposProvider_IsSupported_AzureHost_WithPath_ReturnsTrue()
         {
-            var input = new InputArguments(new Dictionary<string, string>
+            var request = new GitRequest(new Dictionary<string, string>
             {
                 ["protocol"] = "https",
                 ["host"] = "dev.azure.com",
@@ -62,52 +62,52 @@ namespace Microsoft.AzureRepos.Tests
             });
 
             var provider = new AzureReposHostProvider(new TestCommandContext());
-            Assert.True(provider.IsSupported(input));
+            Assert.True(provider.IsSupported(request));
         }
 
         [Fact]
         public void AzureReposProvider_IsSupported_AzureHost_MissingPath_ReturnsTrue()
         {
-            var input = new InputArguments(new Dictionary<string, string>
+            var request = new GitRequest(new Dictionary<string, string>
             {
                 ["protocol"] = "https",
                 ["host"] = "dev.azure.com",
             });
 
             var provider = new AzureReposHostProvider(new TestCommandContext());
-            Assert.True(provider.IsSupported(input));
+            Assert.True(provider.IsSupported(request));
         }
 
         [Fact]
         public void AzureReposProvider_IsSupported_VisualStudioHost_ReturnsTrue()
         {
-            var input = new InputArguments(new Dictionary<string, string>
+            var request = new GitRequest(new Dictionary<string, string>
             {
                 ["protocol"] = "https",
                 ["host"] = "org.visualstudio.com",
             });
 
             var provider = new AzureReposHostProvider(new TestCommandContext());
-            Assert.True(provider.IsSupported(input));
+            Assert.True(provider.IsSupported(request));
         }
 
         [Fact]
         public void AzureReposProvider_IsSupported_VisualStudioHost_MissingOrgInHost_ReturnsFalse()
         {
-            var input = new InputArguments(new Dictionary<string, string>
+            var request = new GitRequest(new Dictionary<string, string>
             {
                 ["protocol"] = "https",
                 ["host"] = "visualstudio.com",
             });
 
             var provider = new AzureReposHostProvider(new TestCommandContext());
-            Assert.False(provider.IsSupported(input));
+            Assert.False(provider.IsSupported(request));
         }
 
         [Fact]
         public void AzureReposProvider_IsSupported_NonAzureRepos_ReturnsFalse()
         {
-            var input = new InputArguments(new Dictionary<string, string>
+            var request = new GitRequest(new Dictionary<string, string>
             {
                 ["protocol"] = "https",
                 ["host"] = "example.com",
@@ -115,13 +115,13 @@ namespace Microsoft.AzureRepos.Tests
             });
 
             var provider = new AzureReposHostProvider(new TestCommandContext());
-            Assert.False(provider.IsSupported(input));
+            Assert.False(provider.IsSupported(request));
         }
 
         [Fact]
         public async Task AzureReposProvider_GetCredentialAsync_UnencryptedHttp_ThrowsException()
         {
-            var input = new InputArguments(new Dictionary<string, string>
+            var request = new GitRequest(new Dictionary<string, string>
             {
                 ["protocol"] = "http",
                 ["host"] = "dev.azure.com",
@@ -136,7 +136,7 @@ namespace Microsoft.AzureRepos.Tests
 
             var provider = new AzureReposHostProvider(context, azDevOps, msAuth, authorityCache, userMgr);
 
-            await Assert.ThrowsAsync<Trace2Exception>(() => provider.GetCredentialAsync(input));
+            await Assert.ThrowsAsync<Trace2Exception>(() => provider.GetCredentialAsync(request));
         }
 
         [Fact]
@@ -144,7 +144,7 @@ namespace Microsoft.AzureRepos.Tests
         {
             var urlAccount = "jane.doe";
 
-            var input = new InputArguments(new Dictionary<string, string>
+            var request = new GitRequest(new Dictionary<string, string>
             {
                 ["protocol"] = "https",
                 ["host"] = "org.visualstudio.com",
@@ -180,7 +180,7 @@ namespace Microsoft.AzureRepos.Tests
 
             var provider = new AzureReposHostProvider(context, azDevOpsMock.Object, msAuthMock.Object, authorityCacheMock.Object, userMgrMock.Object);
 
-            var result = await provider.GetCredentialAsync(input);
+            var result = await provider.GetCredentialAsync(request);
             ICredential credential = result.Credential;
 
             Assert.NotNull(credential);
@@ -193,7 +193,7 @@ namespace Microsoft.AzureRepos.Tests
         {
             var urlAccount = "jane.doe";
 
-            var input = new InputArguments(new Dictionary<string, string>
+            var request = new GitRequest(new Dictionary<string, string>
             {
                 ["protocol"] = "https",
                 ["host"] = "dev.azure.com",
@@ -230,7 +230,7 @@ namespace Microsoft.AzureRepos.Tests
 
             var provider = new AzureReposHostProvider(context, azDevOpsMock.Object, msAuthMock.Object, authorityCacheMock.Object, userMgrMock.Object);
 
-            var result = await provider.GetCredentialAsync(input);
+            var result = await provider.GetCredentialAsync(request);
             ICredential credential = result.Credential;
 
             Assert.NotNull(credential);
@@ -241,7 +241,7 @@ namespace Microsoft.AzureRepos.Tests
         [Fact]
         public async Task AzureReposProvider_GetCredentialAsync_JwtMode_CachedAuthority_DevAzureUrlOrgName_ReturnsCredential()
         {
-            var input = new InputArguments(new Dictionary<string, string>
+            var request = new GitRequest(new Dictionary<string, string>
             {
                 ["protocol"] = "https",
                 ["host"] = "dev.azure.com",
@@ -278,7 +278,7 @@ namespace Microsoft.AzureRepos.Tests
 
             var provider = new AzureReposHostProvider(context, azDevOpsMock.Object, msAuthMock.Object, authorityCacheMock.Object, userMgrMock.Object);
 
-            var result = await provider.GetCredentialAsync(input);
+            var result = await provider.GetCredentialAsync(request);
             ICredential credential = result.Credential;
 
             Assert.NotNull(credential);
@@ -289,7 +289,7 @@ namespace Microsoft.AzureRepos.Tests
         [Fact]
         public async Task AzureReposProvider_GetCredentialAsync_JwtMode_CachedAuthority_NoUser_ReturnsCredential()
         {
-            var input = new InputArguments(new Dictionary<string, string>
+            var request = new GitRequest(new Dictionary<string, string>
             {
                 ["protocol"] = "https",
                 ["host"] = "dev.azure.com",
@@ -326,7 +326,7 @@ namespace Microsoft.AzureRepos.Tests
 
             var provider = new AzureReposHostProvider(context, azDevOpsMock.Object, msAuthMock.Object, authorityCacheMock.Object, userMgrMock.Object);
 
-            var result = await provider.GetCredentialAsync(input);
+            var result = await provider.GetCredentialAsync(request);
             ICredential credential = result.Credential;
 
             Assert.NotNull(credential);
@@ -338,7 +338,7 @@ namespace Microsoft.AzureRepos.Tests
         public async Task AzureReposProvider_GetCredentialAsync_JwtMode_CachedAuthority_BoundUser_ReturnsCredential()
         {
 
-            var input = new InputArguments(new Dictionary<string, string>
+            var request = new GitRequest(new Dictionary<string, string>
             {
                 ["protocol"] = "https",
                 ["host"] = "dev.azure.com",
@@ -376,7 +376,7 @@ namespace Microsoft.AzureRepos.Tests
 
             var provider = new AzureReposHostProvider(context, azDevOpsMock.Object, msAuthMock.Object, authorityCacheMock.Object, userMgrMock.Object);
 
-            var result = await provider.GetCredentialAsync(input);
+            var result = await provider.GetCredentialAsync(request);
             ICredential credential = result.Credential;
 
             Assert.NotNull(credential);
@@ -387,7 +387,7 @@ namespace Microsoft.AzureRepos.Tests
         [Fact]
         public async Task AzureReposProvider_GetCredentialAsync_JwtMode_NoCachedAuthority_NoUser_ReturnsCredential()
         {
-            var input = new InputArguments(new Dictionary<string, string>
+            var request = new GitRequest(new Dictionary<string, string>
             {
                 ["protocol"] = "https",
                 ["host"] = "dev.azure.com",
@@ -426,7 +426,7 @@ namespace Microsoft.AzureRepos.Tests
 
             var provider = new AzureReposHostProvider(context, azDevOpsMock.Object, msAuthMock.Object, authorityCacheMock.Object, userMgrMock.Object);
 
-            var result = await provider.GetCredentialAsync(input);
+            var result = await provider.GetCredentialAsync(request);
             ICredential credential = result.Credential;
 
             Assert.NotNull(credential);
@@ -437,7 +437,7 @@ namespace Microsoft.AzureRepos.Tests
         [Fact]
         public async Task AzureReposProvider_GetCredentialAsync_PatMode_OrgInUserName_NoExistingPat_GeneratesCredential()
         {
-            var input = new InputArguments(new Dictionary<string, string>
+            var request = new GitRequest(new Dictionary<string, string>
             {
                 ["protocol"] = "https",
                 ["host"] = "dev.azure.com",
@@ -471,7 +471,7 @@ namespace Microsoft.AzureRepos.Tests
 
             var provider = new AzureReposHostProvider(context, azDevOpsMock.Object, msAuthMock.Object, authorityCacheMock.Object, userMgrMock.Object);
 
-            var result = await provider.GetCredentialAsync(input);
+            var result = await provider.GetCredentialAsync(request);
             ICredential credential = result.Credential;
 
             Assert.NotNull(credential);
@@ -482,7 +482,7 @@ namespace Microsoft.AzureRepos.Tests
         [Fact]
         public async Task AzureReposProvider_GetCredentialAsync_PatMode_NoExistingPat_GeneratesCredential()
         {
-            var input = new InputArguments(new Dictionary<string, string>
+            var request = new GitRequest(new Dictionary<string, string>
             {
                 ["protocol"] = "https",
                 ["host"] = "dev.azure.com",
@@ -517,7 +517,7 @@ namespace Microsoft.AzureRepos.Tests
 
             var provider = new AzureReposHostProvider(context, azDevOpsMock.Object, msAuthMock.Object, authorityCacheMock.Object, userMgrMock.Object);
 
-            var result = await provider.GetCredentialAsync(input);
+            var result = await provider.GetCredentialAsync(request);
             ICredential credential = result.Credential;
 
             Assert.NotNull(credential);
@@ -528,7 +528,7 @@ namespace Microsoft.AzureRepos.Tests
         [Fact]
         public async Task AzureReposProvider_GetCredentialAsync_PatMode_ExistingPat_ReturnsExistingCredential()
         {
-            var input = new InputArguments(new Dictionary<string, string>
+            var request = new GitRequest(new Dictionary<string, string>
             {
                 ["protocol"] = "https",
                 ["host"] = "dev.azure.com",
@@ -551,7 +551,7 @@ namespace Microsoft.AzureRepos.Tests
 
             var provider = new AzureReposHostProvider(context, azDevOps, msAuth, authorityCache, userMgr);
 
-            var result = await provider.GetCredentialAsync(input);
+            var result = await provider.GetCredentialAsync(request);
             ICredential credential = result.Credential;
 
             Assert.NotNull(credential);
@@ -562,7 +562,7 @@ namespace Microsoft.AzureRepos.Tests
         [Fact]
         public async Task AzureReposProvider_GetCredentialAsync_ManagedIdentity_ReturnsManagedIdCredential()
         {
-            var input = new InputArguments(new Dictionary<string, string>
+            var request = new GitRequest(new Dictionary<string, string>
             {
                 ["protocol"] = "https",
                 ["host"] = "dev.azure.com",
@@ -593,7 +593,7 @@ namespace Microsoft.AzureRepos.Tests
 
             var provider = new AzureReposHostProvider(context, azDevOps, msAuthMock.Object, authorityCache, userMgr);
 
-            var result = await provider.GetCredentialAsync(input);
+            var result = await provider.GetCredentialAsync(request);
             ICredential credential = result.Credential;
 
             Assert.NotNull(credential);
@@ -608,7 +608,7 @@ namespace Microsoft.AzureRepos.Tests
         [Fact]
         public async Task AzureReposProvider_GetCredentialAsync_WorkloadFederation_Generic_ReturnsFederationOptions()
         {
-            var input = new InputArguments(new Dictionary<string, string>
+            var request = new GitRequest(new Dictionary<string, string>
             {
                 ["protocol"] = "https",
                 ["host"] = "dev.azure.com",
@@ -646,7 +646,7 @@ namespace Microsoft.AzureRepos.Tests
 
             var provider = new AzureReposHostProvider(context, azDevOps, msAuthMock.Object, authorityCache, userMgr);
 
-            GetCredentialResult result = await provider.GetCredentialAsync(input);
+            GitResponse result = await provider.GetCredentialAsync(request);
             ICredential credential = result.Credential;
 
             Assert.NotNull(credential);
@@ -667,7 +667,7 @@ namespace Microsoft.AzureRepos.Tests
         [Fact]
         public async Task AzureReposProvider_GetCredentialAsync_WorkloadFederation_GenericFileAssertion_ReadsFromFile()
         {
-            var input = new InputArguments(new Dictionary<string, string>
+            var request = new GitRequest(new Dictionary<string, string>
             {
                 ["protocol"] = "https",
                 ["host"] = "dev.azure.com",
@@ -708,7 +708,7 @@ namespace Microsoft.AzureRepos.Tests
 
             var provider = new AzureReposHostProvider(context, azDevOps, msAuthMock.Object, authorityCache, userMgr);
 
-            GetCredentialResult result = await provider.GetCredentialAsync(input);
+            GitResponse result = await provider.GetCredentialAsync(request);
             ICredential credential = result.Credential;
 
             Assert.NotNull(credential);
@@ -729,7 +729,7 @@ namespace Microsoft.AzureRepos.Tests
         [Fact]
         public async Task AzureReposProvider_GetCredentialAsync_WorkloadFederation_MI_ReturnsFederationOptions()
         {
-            var input = new InputArguments(new Dictionary<string, string>
+            var request = new GitRequest(new Dictionary<string, string>
             {
                 ["protocol"] = "https",
                 ["host"] = "dev.azure.com",
@@ -767,7 +767,7 @@ namespace Microsoft.AzureRepos.Tests
 
             var provider = new AzureReposHostProvider(context, azDevOps, msAuthMock.Object, authorityCache, userMgr);
 
-            GetCredentialResult result = await provider.GetCredentialAsync(input);
+            GitResponse result = await provider.GetCredentialAsync(request);
             ICredential credential = result.Credential;
 
             Assert.NotNull(credential);
@@ -788,7 +788,7 @@ namespace Microsoft.AzureRepos.Tests
         [Fact]
         public async Task AzureReposProvider_GetCredentialAsync_WorkloadFederation_GitHubActions_ReturnsFederationOptions()
         {
-            var input = new InputArguments(new Dictionary<string, string>
+            var request = new GitRequest(new Dictionary<string, string>
             {
                 ["protocol"] = "https",
                 ["host"] = "dev.azure.com",
@@ -828,7 +828,7 @@ namespace Microsoft.AzureRepos.Tests
 
             var provider = new AzureReposHostProvider(context, azDevOps, msAuthMock.Object, authorityCache, userMgr);
 
-            GetCredentialResult result = await provider.GetCredentialAsync(input);
+            GitResponse result = await provider.GetCredentialAsync(request);
             ICredential credential = result.Credential;
 
             Assert.NotNull(credential);
@@ -850,7 +850,7 @@ namespace Microsoft.AzureRepos.Tests
         [Fact]
         public async Task AzureReposProvider_GetCredentialAsync_ServicePrincipal_ReturnsSPCredential()
         {
-            var input = new InputArguments(new Dictionary<string, string>
+            var request = new GitRequest(new Dictionary<string, string>
             {
                 ["protocol"] = "https",
                 ["host"] = "dev.azure.com",
@@ -886,7 +886,7 @@ namespace Microsoft.AzureRepos.Tests
 
             var provider = new AzureReposHostProvider(context, azDevOps, msAuthMock.Object, authorityCache, userMgr);
 
-            var result = await provider.GetCredentialAsync(input);
+            var result = await provider.GetCredentialAsync(request);
             ICredential credential = result.Credential;
 
             Assert.NotNull(credential);

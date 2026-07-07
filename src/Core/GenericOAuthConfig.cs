@@ -7,14 +7,14 @@ namespace GitCredentialManager
 {
     public class GenericOAuthConfig
     {
-        public static bool TryGet(ITrace trace, ISettings settings, InputArguments input, out GenericOAuthConfig config)
+        public static bool TryGet(ITrace trace, ISettings settings, GitRequest request, out GenericOAuthConfig config)
         {
             config = new GenericOAuthConfig();
             Uri authzEndpointUri = null;
             Uri tokenEndpointUri = null;
-            var remoteUri = input.GetRemoteUri();
+            var remoteUri = request.GetRemoteUri();
 
-            if (input.WwwAuth.Any(x => x.Contains("Basic realm=\"Gitea\"", StringComparison.OrdinalIgnoreCase)))
+            if (request.WwwAuth.Any(x => x.Contains("Basic realm=\"Gitea\"", StringComparison.OrdinalIgnoreCase)))
             {
                 trace.WriteLine($"Using universal Gitea OAuth configuration");
                 // https://docs.gitea.com/next/development/oauth2-provider?_highlight=oauth#pre-configured-applications
