@@ -31,5 +31,17 @@ namespace GitCredentialManager.Commands
                 throw new Trace2InvalidOperationException(Context.Trace2, "Missing 'password' input argument");
             }
         }
+
+        public async Task SaveConfigurationAsync(string filePath)
+        {
+            var configService = new ConfigurationService(Context);
+            await configService.SaveConfigurationAsync(filePath);
+        }
+
+        public async Task LoadConfigurationAsync(string filePath)
+        {
+            var configService = new ConfigurationService(Context);
+            await configService.LoadConfigurationAsync(filePath);
+        }
     }
 }
