@@ -27,7 +27,7 @@ namespace GitCredentialManager.Interop.Windows
                 CaptionText = "Git Credential Manager", // TODO: make this a parameter?
                 Parent = _parentHwd,
                 MessageText = message,
-                Size = Marshal.SizeOf(typeof(CredUi.CredentialUiInfo))
+                Size = Marshal.SizeOf<CredUi.CredentialUiInfo>()
             };
 
             var packFlags = CredUi.CredentialPackFlags.None;
