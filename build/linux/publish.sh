@@ -99,25 +99,16 @@ verbose "aot:           $AOT"
 verbose "output dir:    $OUTDIR"
 verbose "symbol dir:    $SYMOUTDIR"
 
-# By default the application is published ahead-of-time (AOT) compiled, as
-# configured in the project. For a non-AOT build, just turn AOT off: the
-# project then enables trimming, which implies a self-contained publish, so
-# --self-contained does not need to be passed explicitly.
-AOT_ARGS=
-if [ "$AOT" != "true" ]; then
-    AOT_ARGS="-p:PublishAot=false"
-fi
-
 # Publish the application to the resolved output directory.
 info "Publishing application..."
-# shellcheck disable=SC2086 # AOT_ARGS is intentionally word-split (0 or 2 args).
 dotnet publish "$GCM_SRC" \
     -v:normal \
     --configuration="$CONFIGURATION" \
     --runtime="$RUNTIME" \
     --output "$OUTDIR" \
+    -p:PublishAot=$AOT \
     -p:VersionOverride="$VERSION" \
-    $AOT_ARGS || die "Failed to publish application"
+    || die "Failed to publish application"
 
 # Separate debug symbols (managed .pdb files and native .dbg files) out of the
 # shipping payload into the sibling symbol directory, so the published output
