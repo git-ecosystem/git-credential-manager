@@ -13,6 +13,14 @@ public interface IEntraAuthentication
     Task<IReadOnlyList<IEntraAccount>> GetUserAccountsAsync(CancellationToken ct = default);
 
     /// <summary>
+    /// Remove the given user account from the configured user token cache.
+    /// </summary>
+    /// <returns>
+    /// <see langword="true"/> if the account existed and was successfully removed, <see langword="false"/> otherwise.
+    /// </returns>
+    Task<bool> RemoveUserAccountAsync(IEntraAccount account);
+
+    /// <summary>
     /// Acquire an access token for a user principal.
     /// </summary>
     /// <param name="authority">Azure authority.</param>
