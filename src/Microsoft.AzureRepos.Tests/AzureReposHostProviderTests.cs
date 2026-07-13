@@ -580,7 +580,8 @@ namespace Microsoft.AzureRepos.Tests
             });
 
             const string accessToken = "MANAGED-IDENTITY-TOKEN";
-            const string managedIdentity = "MANAGED-IDENTITY";
+            const string managedIdentity = "22222222-2222-2222-2222-222222222222";
+            ManagedIdentity expectedIdentity = ManagedIdentity.Create(managedIdentity);
 
             var context = new TestCommandContext
             {
@@ -598,7 +599,7 @@ namespace Microsoft.AzureRepos.Tests
             var userMgr = Mock.Of<IAzureReposBindingManager>();
             var msAuthMock = new Mock<IEntraAuthentication>();
 
-            msAuthMock.Setup(x => x.GetTokenForManagedIdentityAsync(It.IsAny<string>(), It.IsAny<string>()))
+            msAuthMock.Setup(x => x.GetTokenForManagedIdentityAsync(It.IsAny<ManagedIdentity>(), It.IsAny<string>()))
                 .ReturnsAsync(new MockEntraAuthResult { AccessToken = accessToken });
 
             var provider = new AzureReposHostProvider(context, azDevOps, msAuthMock.Object, authorityCache, userMgr);
@@ -607,12 +608,42 @@ namespace Microsoft.AzureRepos.Tests
             ICredential credential = result.Credential;
 
             Assert.NotNull(credential);
-            Assert.Equal(managedIdentity, credential.Account);
+            Assert.Equal(expectedIdentity.Id, credential.Account);
             Assert.Equal(accessToken, credential.Password);
 
             msAuthMock.Verify(
-                x => x.GetTokenForManagedIdentityAsync(managedIdentity,
+                x => x.GetTokenForManagedIdentityAsync(
+                    It.Is<ManagedIdentity>(mi => mi.Id == expectedIdentity.Id),
                     AzureDevOpsConstants.AzureDevOpsResourceId), Times.Once);
+        }
+
+        [Fact]
+        public async Task AzureReposProvider_GetCredentialAsync_InvalidManagedIdentity_ThrowsException()
+        {
+            var request = new GitRequest(new Dictionary<string, string>
+            {
+                ["protocol"] = "https",
+                ["host"] = "dev.azure.com",
+                ["path"] = "org/proj/_git/repo"
+            });
+            var context = new TestCommandContext
+            {
+                Environment =
+                {
+                    Variables =
+                    {
+                        [AzureDevOpsConstants.EnvironmentVariables.ManagedIdentity] = "not-a-managed-identity"
+                    }
+                }
+            };
+            var provider = new AzureReposHostProvider(
+                context,
+                Mock.Of<IAzureDevOpsRestApi>(),
+                Mock.Of<IEntraAuthentication>(),
+                Mock.Of<IAzureDevOpsAuthorityCache>(),
+                Mock.Of<IAzureReposBindingManager>());
+
+            await Assert.ThrowsAsync<ArgumentException>(() => provider.GetCredentialAsync(request));
         }
 
         [Fact]

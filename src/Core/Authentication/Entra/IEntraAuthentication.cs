@@ -47,18 +47,7 @@ public interface IEntraAuthentication
     /// <param name="managedIdentity">Managed identity to use.</param>
     /// <param name="resource">Resource to obtain an access token for.</param>
     /// <returns>Authentication result including access token.</returns>
-    /// <remarks>
-    /// There are several formats for the <paramref name="managedIdentity"/> parameter:
-    /// <para/>
-    ///  - <c>"system"</c> - Use the system-assigned managed identity.
-    /// <para/>
-    ///  - <c>"{guid}"</c> - Use the user-assigned managed identity with client ID <c>{guid}</c>.
-    /// <para/>
-    ///  - <c>"id://{guid}"</c> - Use the user-assigned managed identity with client ID <c>{guid}</c>.
-    /// <para/>
-    ///  - <c>"resource://{guid}"</c> - Use the user-assigned managed identity with resource ID <c>{guid}</c>.
-    /// </remarks>
-    Task<IEntraAuthenticationResult> GetTokenForManagedIdentityAsync(string managedIdentity, string resource);
+    Task<IEntraAuthenticationResult> GetTokenForManagedIdentityAsync(ManagedIdentity managedIdentity, string resource);
 
     /// <summary>
     /// Acquire a token using workload federation.

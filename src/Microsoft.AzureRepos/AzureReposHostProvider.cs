@@ -77,12 +77,12 @@ namespace Microsoft.AzureRepos
 
         public async Task<GitResponse> GetCredentialAsync(GitRequest request)
         {
-            if (UseManagedIdentity(out string mid))
+            if (UseManagedIdentity(out ManagedIdentity mid))
             {
-                _context.Trace.WriteLine($"Getting Azure Access Token for managed identity {mid}...");
+                _context.Trace.WriteLine($"Getting Azure Access Token for managed identity {mid.Id}...");
                 var azureResult = await _msAuth.GetTokenForManagedIdentityAsync(mid, AzureDevOpsConstants.AzureDevOpsResourceId);
                 return new GitResponse(
-                    new GitCredential(mid, azureResult.AccessToken)
+                    new GitCredential(mid.Id, azureResult.AccessToken)
                 );
             }
 
@@ -609,14 +609,21 @@ namespace Microsoft.AzureRepos
             return true;
         }
 
-        private bool UseManagedIdentity(out string mid)
+        private bool UseManagedIdentity(out ManagedIdentity mid)
         {
-            return _context.Settings.TryGetSetting(
-                       AzureDevOpsConstants.EnvironmentVariables.ManagedIdentity,
-                       KnownGitCfg.Credential.SectionName,
-                       AzureDevOpsConstants.GitConfiguration.Credential.ManagedIdentity,
-                       out mid) &&
-                   !string.IsNullOrWhiteSpace(mid);
+            if (!_context.Settings.TryGetSetting(
+                    AzureDevOpsConstants.EnvironmentVariables.ManagedIdentity,
+                    KnownGitCfg.Credential.SectionName,
+                    AzureDevOpsConstants.GitConfiguration.Credential.ManagedIdentity,
+                    out string miStr) ||
+                string.IsNullOrWhiteSpace(miStr))
+            {
+                mid = null;
+                return false;
+            }
+
+            mid = ManagedIdentity.Create(miStr);
+            return true;
         }
 
         private bool UseWorkloadFederation(out WorkloadFederationOptions fedOpts)

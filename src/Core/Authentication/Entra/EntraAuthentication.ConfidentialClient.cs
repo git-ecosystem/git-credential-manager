@@ -29,13 +29,11 @@ namespace GitCredentialManager.Authentication.Entra
         }
 
         public async Task<IEntraAuthenticationResult> GetTokenForManagedIdentityAsync(
-            string managedIdentity, string resource)
+            ManagedIdentity managedIdentity, string resource)
         {
             var httpFactoryAdaptor = new MsalHttpClientFactoryAdaptor(Context.HttpClientFactory);
 
-            ManagedIdentityId mid = GetManagedIdentity(managedIdentity);
-
-            IManagedIdentityApplication app = ManagedIdentityApplicationBuilder.Create(mid)
+            IManagedIdentityApplication app = ManagedIdentityApplicationBuilder.Create(managedIdentity)
                 .WithHttpClientFactory(httpFactoryAdaptor)
                 .Build();
 
@@ -46,9 +44,9 @@ namespace GitCredentialManager.Authentication.Entra
             }
             catch (Exception ex)
             {
-                Context.Trace.WriteLine(mid == ManagedIdentityId.SystemAssigned
+                Context.Trace.WriteLine(managedIdentity == ManagedIdentity.System
                     ? "Failed to acquire token for system managed identity."
-                    : $"Failed to acquire token for user managed identity '{managedIdentity}'.");
+                    : $"Failed to acquire token for user managed identity '{managedIdentity.Id}'.");
                 Context.Trace.WriteException(ex);
                 throw;
             }
@@ -78,7 +76,8 @@ namespace GitCredentialManager.Authentication.Entra
 
                 case MicrosoftWorkloadFederationScenario.ManagedIdentity:
                     Context.Trace.WriteLine("Getting client assertion for managed identity workload federation scenario...");
-                    var miResult = await GetTokenForManagedIdentityAsync(fedOpts.ManagedIdentityId, fedOpts.Audience);
+                    var mi = ManagedIdentity.Create(fedOpts.ManagedIdentityId);
+                    var miResult = await GetTokenForManagedIdentityAsync(mi, fedOpts.Audience);
                     return miResult.AccessToken;
 
                 case MicrosoftWorkloadFederationScenario.GitHubActions:
@@ -181,50 +180,6 @@ namespace GitCredentialManager.Authentication.Entra
             await RegisterTokenCacheAsync(app.AppTokenCache, CreateAppTokenCacheProps, Context.Trace2);
 
             return app;
-        }
-
-        internal static ManagedIdentityId GetManagedIdentity(string str)
-        {
-            // An empty string or "system" means system-assigned managed identity
-            if (string.IsNullOrWhiteSpace(str) || str.Equals("system", StringComparison.OrdinalIgnoreCase))
-            {
-                return ManagedIdentityId.SystemAssigned;
-            }
-
-            //
-            // A GUID-looking value means a user-assigned managed identity specified by the client ID.
-            // If the "{value}" is the empty GUID then we use the system-assigned MI.
-            //
-            if (Guid.TryParse(str, out Guid guid))
-            {
-                return guid == Guid.Empty
-                    ? ManagedIdentityId.SystemAssigned
-                    : ManagedIdentityId.WithUserAssignedClientId(str);
-            }
-
-            //
-            // A value of the form "id://{value}" means a user-assigned managed identity specified by the client ID.
-            // If the "{value}" is the empty GUID then we use the system-assigned MI.
-            //
-            // If the value is "resource://{value}" then it is a user-assigned managed identity specified
-            // by the resource ID.
-            //
-            if (Uri.TryCreate(str, UriKind.Absolute, out Uri uri))
-            {
-                if (StringComparer.OrdinalIgnoreCase.Equals(uri.Scheme, "id"))
-                {
-                    return Guid.TryParse(uri.Host, out Guid g) && g == Guid.Empty
-                        ? ManagedIdentityId.SystemAssigned
-                        : ManagedIdentityId.WithUserAssignedClientId(uri.Host);
-                }
-
-                if (StringComparer.OrdinalIgnoreCase.Equals(uri.Scheme, "resource"))
-                {
-                    return ManagedIdentityId.WithUserAssignedResourceId(uri.Host);
-                }
-            }
-
-            throw new ArgumentException("Invalid managed identity value.", nameof(str));
         }
     }
 }
