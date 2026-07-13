@@ -7,10 +7,10 @@ using Xunit;
 
 namespace GitCredentialManager.Tests.Authentication
 {
-    public class MicrosoftAuthenticationTests
+    public class EntraAuthenticationTests
     {
         [Fact]
-        public async Task MicrosoftAuthentication_GetTokenForUserAsync_NoInteraction_ThrowsException()
+        public async Task EntraAuthentication_GetTokenForUserAsync_NoInteraction_ThrowsException()
         {
             const string authority = "https://login.microsoftonline.com/common";
             const string clientId = "C9E8FDA6-1D46-484C-917C-3DBD518F27C3";
@@ -23,7 +23,7 @@ namespace GitCredentialManager.Tests.Authentication
                 Settings = {IsInteractionAllowed = false},
             };
 
-            var msAuth = new MicrosoftAuthentication(context);
+            var msAuth = new EntraAuthentication(context);
 
             await Assert.ThrowsAsync<Trace2InvalidOperationException>(
                 () => msAuth.GetTokenForUserAsync(authority, clientId, redirectUri, scopes, userName, false));
@@ -40,9 +40,9 @@ namespace GitCredentialManager.Tests.Authentication
         [InlineData("id://00000000-0000-0000-0000-000000000000")]
         [InlineData("ID://00000000-0000-0000-0000-000000000000")]
         [InlineData("Id://00000000-0000-0000-0000-000000000000")]
-        public void MicrosoftAuthentication_GetManagedIdentity_ValidSystemId_ReturnsSystemId(string str)
+        public void EntraAuthentication_GetManagedIdentity_ValidSystemId_ReturnsSystemId(string str)
         {
-            ManagedIdentityId actual = MicrosoftAuthentication.GetManagedIdentity(str);
+            ManagedIdentityId actual = EntraAuthentication.GetManagedIdentity(str);
             Assert.Equal(ManagedIdentityId.SystemAssigned, actual);
         }
 
@@ -55,9 +55,9 @@ namespace GitCredentialManager.Tests.Authentication
         [InlineData("RESOURCE://8B49DCA0-1298-4A0D-AD6D-934E40230839")]
         [InlineData("rEsOuRcE://8B49DCA0-1298-4A0D-AD6D-934E40230839")]
         [InlineData("resource://00000000-0000-0000-0000-000000000000")]
-        public void MicrosoftAuthentication_GetManagedIdentity_ValidUserIdByClientId_ReturnsUserId(string str)
+        public void EntraAuthentication_GetManagedIdentity_ValidUserIdByClientId_ReturnsUserId(string str)
         {
-            ManagedIdentityId actual = MicrosoftAuthentication.GetManagedIdentity(str);
+            ManagedIdentityId actual = EntraAuthentication.GetManagedIdentity(str);
             Assert.NotNull(actual);
             Assert.NotEqual(ManagedIdentityId.SystemAssigned, actual);
         }
@@ -65,18 +65,18 @@ namespace GitCredentialManager.Tests.Authentication
         [Theory]
         [InlineData("unknown://8B49DCA0-1298-4A0D-AD6D-934E40230839")]
         [InlineData("this is a string")]
-        public void MicrosoftAuthentication_GetManagedIdentity_Invalid_ThrowsArgumentException(string str)
+        public void EntraAuthentication_GetManagedIdentity_Invalid_ThrowsArgumentException(string str)
         {
-            Assert.Throws<ArgumentException>(() => MicrosoftAuthentication.GetManagedIdentity(str));
+            Assert.Throws<ArgumentException>(() => EntraAuthentication.GetManagedIdentity(str));
         }
 
         [Fact]
-        public void MicrosoftAuthentication_GetFlowType_UnknownValue_WarnsWithConfiguredValue()
+        public void EntraAuthentication_GetFlowType_UnknownValue_WarnsWithConfiguredValue()
         {
             const string configuredValue = "unknown-flow";
             var context = new TestCommandContext();
             context.Environment.Variables[Constants.EnvironmentVariables.MsAuthFlow] = configuredValue;
-            var authentication = new MicrosoftAuthentication(context);
+            var authentication = new EntraAuthentication(context);
 
             MicrosoftAuthenticationFlowType result = authentication.GetFlowType();
 

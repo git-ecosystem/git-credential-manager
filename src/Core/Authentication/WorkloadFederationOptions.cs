@@ -20,7 +20,7 @@ public enum MicrosoftWorkloadFederationScenario
     GitHubActions,
 }
 
-public class MicrosoftWorkloadFederationOptions
+public class WorkloadFederationOptions
 {
     public const string DefaultAudience = Constants.DefaultWorkloadFederationAudience;
 

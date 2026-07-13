@@ -86,7 +86,7 @@ in order to gain cross-platform graphical user interface support. See
 ### Microsoft authentication
 
 For authentication using Microsoft Accounts or Azure Active Directory, things
-are a little different. The `MicrosoftAuthentication` component is present in
+are a little different. The `EntraAuthentication` component is present in
 the `Core` core assembly, rather than bundled with a
 specific host provider. This was done to allow any service that may wish to in
 the future integrate with Microsoft Accounts or Azure Active Directory can make

@@ -18,18 +18,18 @@ namespace Microsoft.AzureRepos
     {
         private readonly ICommandContext _context;
         private readonly IAzureDevOpsRestApi _azDevOps;
-        private readonly IMicrosoftAuthentication _msAuth;
+        private readonly IEntraAuthentication _msAuth;
         private readonly IAzureDevOpsAuthorityCache _authorityCache;
         private readonly IAzureReposBindingManager _bindingManager;
 
         public AzureReposHostProvider(ICommandContext context)
-            : this(context, new AzureDevOpsRestApi(context), new MicrosoftAuthentication(context),
+            : this(context, new AzureDevOpsRestApi(context), new EntraAuthentication(context),
                 new AzureDevOpsAuthorityCache(context), new AzureReposBindingManager(context))
         {
         }
 
         public AzureReposHostProvider(ICommandContext context, IAzureDevOpsRestApi azDevOps,
-            IMicrosoftAuthentication msAuth, IAzureDevOpsAuthorityCache authorityCache,
+            IEntraAuthentication msAuth, IAzureDevOpsAuthorityCache authorityCache,
             IAzureReposBindingManager bindingManager)
         {
             EnsureArgument.NotNull(context, nameof(context));
@@ -51,7 +51,7 @@ namespace Microsoft.AzureRepos
 
         public string Name => "Azure Repos";
 
-        public IEnumerable<string> SupportedAuthorityIds => MicrosoftAuthentication.AuthorityIds;
+        public IEnumerable<string> SupportedAuthorityIds => EntraAuthentication.AuthorityIds;
 
         public bool IsSupported(GitRequest request)
         {
@@ -86,7 +86,7 @@ namespace Microsoft.AzureRepos
                 );
             }
 
-            if (UseWorkloadFederation(out MicrosoftWorkloadFederationOptions fedOpts))
+            if (UseWorkloadFederation(out WorkloadFederationOptions fedOpts))
             {
                 _context.Trace.WriteLine($"Getting Azure Access Token using WIF (scenario: {fedOpts.Scenario})...");
                 var azureResult = await _msAuth.GetTokenUsingWorkloadFederationAsync(fedOpts, AzureDevOpsConstants.AzureDevOpsDefaultScopes);
@@ -258,7 +258,7 @@ namespace Microsoft.AzureRepos
 
             // Get an AAD access token for the Azure DevOps SPS
             _context.Trace.WriteLine("Getting Azure AD access token...");
-            IMicrosoftAuthenticationResult result = await _msAuth.GetTokenForUserAsync(
+            IEntraAuthenticationResult result = await _msAuth.GetTokenForUserAsync(
                 authAuthority,
                 GetClientId(),
                 GetRedirectUri(),
@@ -284,7 +284,7 @@ namespace Microsoft.AzureRepos
             return new GitCredential(result.AccountUpn, pat);
         }
 
-        private async Task<IMicrosoftAuthenticationResult> GetAzureAccessTokenAsync(GitRequest request)
+        private async Task<IEntraAuthenticationResult> GetAzureAccessTokenAsync(GitRequest request)
         {
             ThrowIfUnsafeRemote(request);
 
@@ -345,7 +345,7 @@ namespace Microsoft.AzureRepos
 
             // Get an AAD access token for the Azure DevOps SPS
             _context.Trace.WriteLine("Getting Azure AD access token...");
-            IMicrosoftAuthenticationResult result = await _msAuth.GetTokenForUserAsync(
+            IEntraAuthenticationResult result = await _msAuth.GetTokenForUserAsync(
                 authAuthority,
                 GetClientId(),
                 GetRedirectUri(),
@@ -606,7 +606,7 @@ namespace Microsoft.AzureRepos
                    !string.IsNullOrWhiteSpace(mid);
         }
 
-        private bool UseWorkloadFederation(out MicrosoftWorkloadFederationOptions fedOpts)
+        private bool UseWorkloadFederation(out WorkloadFederationOptions fedOpts)
         {
             if (!_context.Settings.TryGetSetting(
                     AzureDevOpsConstants.EnvironmentVariables.WorkloadFederation,
@@ -666,10 +666,10 @@ namespace Microsoft.AzureRepos
                     AzureDevOpsConstants.GitConfiguration.Credential.WorkloadFederationAudience,
                     out string audience) || string.IsNullOrWhiteSpace(audience))
             {
-                audience = MicrosoftWorkloadFederationOptions.DefaultAudience;
+                audience = WorkloadFederationOptions.DefaultAudience;
             }
 
-            fedOpts = new MicrosoftWorkloadFederationOptions
+            fedOpts = new WorkloadFederationOptions
             {
                 Scenario = scenario,
                 ClientId = clientId,

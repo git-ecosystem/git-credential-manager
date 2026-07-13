@@ -22,7 +22,7 @@ using Microsoft.Identity.Client.Broker;
 
 namespace GitCredentialManager.Authentication
 {
-    public interface IMicrosoftAuthentication
+    public interface IEntraAuthentication
     {
         /// <summary>
         /// Acquire an access token for a user principal.
@@ -34,7 +34,7 @@ namespace GitCredentialManager.Authentication
         /// <param name="userName">Optional user name for an existing account.</param>
         /// <param name="msaPt">Use MSA-Passthrough behavior when authenticating.</param>
         /// <returns>Authentication result.</returns>
-        Task<IMicrosoftAuthenticationResult> GetTokenForUserAsync(string authority, string clientId, Uri redirectUri,
+        Task<IEntraAuthenticationResult> GetTokenForUserAsync(string authority, string clientId, Uri redirectUri,
             string[] scopes, string userName, bool msaPt = false);
 
         /// <summary>
@@ -43,7 +43,7 @@ namespace GitCredentialManager.Authentication
         /// <param name="sp">Service principal identity.</param>
         /// <param name="scopes">Scopes to request.</param>
         /// <returns>Authentication result.</returns>
-        Task<IMicrosoftAuthenticationResult> GetTokenForServicePrincipalAsync(ServicePrincipalIdentity sp, string[] scopes);
+        Task<IEntraAuthenticationResult> GetTokenForServicePrincipalAsync(ServicePrincipalIdentity sp, string[] scopes);
 
         /// <summary>
         /// Acquire a token using the managed identity in the current environment.
@@ -62,7 +62,7 @@ namespace GitCredentialManager.Authentication
         /// <para/>
         ///  - <c>"resource://{guid}"</c> - Use the user-assigned managed identity with resource ID <c>{guid}</c>.
         /// </remarks>
-        Task<IMicrosoftAuthenticationResult> GetTokenForManagedIdentityAsync(string managedIdentity, string resource);
+        Task<IEntraAuthenticationResult> GetTokenForManagedIdentityAsync(string managedIdentity, string resource);
 
         /// <summary>
         /// Acquire a token using workload federation.
@@ -70,7 +70,7 @@ namespace GitCredentialManager.Authentication
         /// <param name="fedOpts">An object containing configuration workload federation.</param>
         /// <param name="scopes">Scopes to request.</param>
         /// <returns>Authentication result including access token.</returns>
-        Task<IMicrosoftAuthenticationResult> GetTokenUsingWorkloadFederationAsync(MicrosoftWorkloadFederationOptions fedOpts, string[] scopes);
+        Task<IEntraAuthenticationResult> GetTokenUsingWorkloadFederationAsync(WorkloadFederationOptions fedOpts, string[] scopes);
     }
 
     public class ServicePrincipalIdentity
@@ -107,7 +107,7 @@ namespace GitCredentialManager.Authentication
         public bool SendX5C { get; set; }
     }
 
-    public interface IMicrosoftAuthenticationResult
+    public interface IEntraAuthenticationResult
     {
         string AccessToken { get; }
         string AccountUpn { get; }
@@ -121,7 +121,7 @@ namespace GitCredentialManager.Authentication
         DeviceCode = 3
     }
 
-    public class MicrosoftAuthentication : AuthenticationBase, IMicrosoftAuthentication
+    public class EntraAuthentication : AuthenticationBase, IEntraAuthentication
     {
         public static readonly string[] AuthorityIds =
         {
@@ -130,12 +130,12 @@ namespace GitCredentialManager.Authentication
             "live", "liveconnect", "liveid",
         };
 
-        public MicrosoftAuthentication(ICommandContext context)
+        public EntraAuthentication(ICommandContext context)
             : base(context) { }
 
-        #region IMicrosoftAuthentication
+        #region IEntraAuthentication
 
-        public async Task<IMicrosoftAuthenticationResult> GetTokenForUserAsync(
+        public async Task<IEntraAuthenticationResult> GetTokenForUserAsync(
             string authority, string clientId, Uri redirectUri, string[] scopes, string userName, bool msaPt)
         {
             var uiCts = new CancellationTokenSource();
@@ -276,7 +276,7 @@ namespace GitCredentialManager.Authentication
             }
         }
 
-        public async Task<IMicrosoftAuthenticationResult> GetTokenForServicePrincipalAsync(ServicePrincipalIdentity sp, string[] scopes)
+        public async Task<IEntraAuthenticationResult> GetTokenForServicePrincipalAsync(ServicePrincipalIdentity sp, string[] scopes)
         {
             IConfidentialClientApplication app = await CreateConfidentialClientApplicationAsync(sp);
 
@@ -295,7 +295,7 @@ namespace GitCredentialManager.Authentication
             }
         }
 
-        public async Task<IMicrosoftAuthenticationResult> GetTokenForManagedIdentityAsync(
+        public async Task<IEntraAuthenticationResult> GetTokenForManagedIdentityAsync(
             string managedIdentity, string resource)
         {
             var httpFactoryAdaptor = new MsalHttpClientFactoryAdaptor(Context.HttpClientFactory);
@@ -321,7 +321,7 @@ namespace GitCredentialManager.Authentication
             }
         }
 
-        public async Task<IMicrosoftAuthenticationResult> GetTokenUsingWorkloadFederationAsync(MicrosoftWorkloadFederationOptions fedOpts, string[] scopes)
+        public async Task<IEntraAuthenticationResult> GetTokenUsingWorkloadFederationAsync(WorkloadFederationOptions fedOpts, string[] scopes)
         {
             IConfidentialClientApplication app = await CreateConfidentialClientApplicationAsync(fedOpts);
 
@@ -332,7 +332,7 @@ namespace GitCredentialManager.Authentication
             return new MsalResult(result);
         }
 
-        private async Task<string> GetClientAssertion(MicrosoftWorkloadFederationOptions fedOpts, AssertionRequestOptions _)
+        private async Task<string> GetClientAssertion(WorkloadFederationOptions fedOpts, AssertionRequestOptions _)
         {
             switch (fedOpts.Scenario)
             {
@@ -638,7 +638,7 @@ namespace GitCredentialManager.Authentication
         }
 
         private async Task<IConfidentialClientApplication> CreateConfidentialClientApplicationAsync(
-            MicrosoftWorkloadFederationOptions fedOpts)
+            WorkloadFederationOptions fedOpts)
         {
             var httpFactoryAdaptor = new MsalHttpClientFactoryAdaptor(Context.HttpClientFactory);
 
@@ -685,8 +685,8 @@ namespace GitCredentialManager.Authentication
             }
             catch (MsalCachePersistenceException ex)
             {
-                var message = "Cannot persist Microsoft Authentication data securely!";
-                Context.Console.WriteWarning("cannot persist Microsoft authentication token cache securely!");
+                var message = "Cannot persist Entra authentication data securely!";
+                Context.Console.WriteWarning("cannot persist Entra authentication token cache securely!");
                 Context.Trace.WriteLine(message);
                 Context.Trace.WriteException(ex);
                 Context.Trace2.WriteError(message);
@@ -997,7 +997,7 @@ namespace GitCredentialManager.Authentication
 
         #endregion
 
-        private class MsalResult : IMicrosoftAuthenticationResult
+        private class MsalResult : IEntraAuthenticationResult
         {
             private readonly AuthenticationResult _msalResult;
 

@@ -7,15 +7,15 @@ using Microsoft.Identity.Client.Extensions.Msal;
 
 namespace GitCredentialManager.Diagnostics
 {
-    public class MicrosoftAuthenticationDiagnostic : Diagnostic
+    public class EntraAuthenticationDiagnostic : Diagnostic
     {
-        public MicrosoftAuthenticationDiagnostic(ICommandContext context)
+        public EntraAuthenticationDiagnostic(ICommandContext context)
             : base("Microsoft authentication (AAD/MSA)", context)
         { }
 
         protected override async Task<bool> RunInternalAsync(StringBuilder log, IList<string> additionalFiles)
         {
-            var msAuth = new MicrosoftAuthentication(CommandContext);
+            var msAuth = new EntraAuthentication(CommandContext);
             log.AppendLine(msAuth.CanUseBroker() ? "Broker is enabled." : "Broker is not enabled.");
             log.AppendLine($"Flow type is: {msAuth.GetFlowType()}");
 
