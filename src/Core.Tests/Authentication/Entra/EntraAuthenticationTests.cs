@@ -36,19 +36,5 @@ namespace GitCredentialManager.Tests.Authentication.Entra
             await Assert.ThrowsAsync<InvalidOperationException>(
                 () => entraAuth.GetUserAccountsAsync());
         }
-
-        [Fact]
-        public void EntraAuthentication_GetFlowType_UnknownValue_WarnsWithConfiguredValue()
-        {
-            const string configuredValue = "unknown-flow";
-            var context = new TestCommandContext();
-            context.Environment.Variables[Constants.EnvironmentVariables.MsAuthFlow] = configuredValue;
-            var authentication = new EntraAuthentication(context);
-
-            MicrosoftAuthenticationFlowType result = authentication.GetFlowType();
-
-            Assert.Equal(MicrosoftAuthenticationFlowType.Auto, result);
-            Assert.Contains(context.Console.WrittenMessages, x => x.Contains(configuredValue));
-        }
     }
 }

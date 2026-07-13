@@ -17,7 +17,6 @@ namespace GitCredentialManager.Diagnostics
         {
             var msAuth = new EntraAuthentication(CommandContext);
             log.AppendLine(msAuth.CanUseBroker() ? "Broker is enabled." : "Broker is not enabled.");
-            log.AppendLine($"Flow type is: {msAuth.GetFlowType()}");
 
             log.Append("Gathering MSAL token cache data...");
             StorageCreationProperties cacheProps = msAuth.CreateUserTokenCacheProps(true);

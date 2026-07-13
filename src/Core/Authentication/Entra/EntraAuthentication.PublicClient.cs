@@ -34,18 +34,52 @@ namespace GitCredentialManager.Authentication.Entra
         public bool UseSharedCache { get; init; }
     }
 
-    public enum MicrosoftAuthenticationFlowType
-    {
-        Auto = 0,
-        EmbeddedWebView = 1,
-        SystemWebView = 2,
-        DeviceCode = 3
-    }
-
     public partial class EntraAuthentication
     {
         private readonly PublicClientConfig _publicClientConfig;
         private PublicClientApplicationBuilder _publicBuilder;
+
+        public async Task<InteractionMode> GetInteractionModeAsync(CancellationToken ct = default)
+        {
+            // Check for a stored user preference
+            if (TryGetModePreference(out InteractionMode mode))
+            {
+                return mode;
+            }
+
+            // Determine the set of available modes
+            IList<InteractionMode> available = GetAvailableModes();
+
+            // Show auth mode prompt
+            if (Context.Settings.IsGuiPromptsEnabled && Context.SessionManager.IsDesktopSession)
+            {
+                if (TryFindHelperCommand(out string command, out string args))
+                {
+                    var availableNames = available.Select(m => m.ToString().ToLowerInvariant());
+
+                    var sb = new StringBuilder(args);
+                    sb.Append("select-interaction-mode");
+                    sb.AppendFormat(" --available {0}", QuoteCmdArg(string.Join(',', availableNames)));
+
+                    IDictionary<string, string> result = await InvokeHelperAsync(command, sb.ToString());
+                    if (result.TryGetValue("interaction_mode", out string str) &&
+                        Enum.TryParse(str, ignoreCase: true, out InteractionMode choice))
+                    {
+                        return choice;
+                    }
+
+                    throw new Trace2Exception(Context.Trace2, "Missing or invalid interaction_mode in response");
+                }
+
+                // TODO: show prompt in-proc
+            }
+
+            // Show prompt in tty
+            var prompt = TerminalPrompts.CreateSelection<InteractionMode>()
+                .Title("Select an authentication flow")
+                .AddChoices(available.Select(m => (m.GetDisplayName(), m)).ToArray());
+            return await prompt.ShowAsync(Context.Console, ct);
+        }
 
         public async Task<IReadOnlyList<IEntraAccount>> GetUserAccountsAsync(CancellationToken ct = default)
         {
@@ -156,7 +190,8 @@ namespace GitCredentialManager.Authentication.Entra
         }
 
         public async Task<IEntraAuthenticationResult> GetTokenForUserAsync(
-            string authority, string clientId, Uri redirectUri, string[] scopes, IEntraAccount account, bool msaPt)
+            string authority, string clientId, Uri redirectUri, string[] scopes, IEntraAccount account, bool msaPt,
+            InteractionMode interactionMode = InteractionMode.Auto, CancellationToken ct = default)
         {
             var uiCts = new CancellationTokenSource();
 
@@ -189,29 +224,16 @@ namespace GitCredentialManager.Authentication.Entra
                 bool hasExistingUser = msalAccount is not null;
                 if (hasExistingUser)
                 {
-                    result = await GetAccessTokenSilentlyAsync(app, scopes, msalAccount, msaPt);
+                    result = await GetAccessTokenSilentlyAsync(app, scopes, msalAccount, msaPt, ct);
                 }
 
                 //
                 // If we failed to acquire an AT silently (either because we don't have an existing user, or the user's
                 // RT has expired) we need to prompt the user for credentials.
                 //
-                // If the user has expressed a preference in how they want to perform the interactive authentication
-                // flows then we respect that. Otherwise, depending on the current platform and session type we try to
-                // show the most appropriate authentication interface:
-                //
-                // On Windows 10+ & .NET Framework, MSAL supports the Web Account Manager (WAM) broker - we try to use
-                // that if possible in the first instance.
-                //
-                // On .NET Framework MSAL supports the WinForms based 'embedded' webview UI. This experience is less
-                // jarring that the system webview flow so try that option next.
-                //
-                // On other runtimes (e.g., .NET 6+) MSAL only supports the system webview flow (launch the user's
-                // browser), and the device-code flows. The system webview flow requires that the redirect URI is a
-                // loopback address, and that we are in an interactive session.
-                //
-                // The device code flow has no limitations other than a way to communicate to the user the code required
-                // to authenticate.
+                // If we're using the OS broker then delegate everything to that. Otherwise, ask for (or use a stored
+                // preference for) the interaction mode to use, and use that to select the most appropriate
+                // authentication interface for the current platform and session type.
                 //
                 if (result is null)
                 {
@@ -227,9 +249,9 @@ namespace GitCredentialManager.Authentication.Entra
                         // account then the user may become stuck in a loop of authentication failures.
                         if (!hasExistingUser && Context.Settings.UseMsAuthDefaultAccount != false)
                         {
-                            result = await GetAccessTokenSilentlyAsync(app, scopes, null, msaPt);
+                            result = await GetAccessTokenSilentlyAsync(app, scopes, null, msaPt, ct);
 
-                            if (result is null || !await UseDefaultAccountAsync(result.Account.Username))
+                            if (result is null || !await UseDefaultAccountAsync(result.Account.Username, ct))
                             {
                                 result = null;
                             }
@@ -242,55 +264,12 @@ namespace GitCredentialManager.Authentication.Entra
                                 .WithPrompt(Prompt.SelectAccount)
                                 // We must configure the system webview as a fallback
                                 .WithSystemWebViewOptions(GetSystemWebViewOptions())
-                                .ExecuteAsync();
+                                .ExecuteAsync(ct);
                         }
                     }
                     else
                     {
-                        // Check for a user flow preference if they've specified one
-                        MicrosoftAuthenticationFlowType flowType = GetFlowType();
-                        switch (flowType)
-                        {
-                            case MicrosoftAuthenticationFlowType.Auto:
-                                if (CanUseEmbeddedWebView())
-                                    goto case MicrosoftAuthenticationFlowType.EmbeddedWebView;
-
-                                if (CanUseSystemWebView(app, redirectUri))
-                                    goto case MicrosoftAuthenticationFlowType.SystemWebView;
-
-                                // Fall back to device code flow
-                                goto case MicrosoftAuthenticationFlowType.DeviceCode;
-
-                            case MicrosoftAuthenticationFlowType.EmbeddedWebView:
-                                Context.Trace.WriteLine("Performing interactive auth with embedded web view...");
-                                EnsureCanUseEmbeddedWebView();
-                                result = await app.AcquireTokenInteractive(scopes)
-                                    .WithPrompt(Prompt.SelectAccount)
-                                    .WithUseEmbeddedWebView(true)
-                                    .WithEmbeddedWebViewOptions(GetEmbeddedWebViewOptions())
-                                    .ExecuteAsync();
-                                break;
-
-                            case MicrosoftAuthenticationFlowType.SystemWebView:
-                                Context.Trace.WriteLine("Performing interactive auth with system web view...");
-                                EnsureCanUseSystemWebView(app, redirectUri);
-                                result = await app.AcquireTokenInteractive(scopes)
-                                    .WithPrompt(Prompt.SelectAccount)
-                                    .WithSystemWebViewOptions(GetSystemWebViewOptions())
-                                    .ExecuteAsync();
-                                break;
-
-                            case MicrosoftAuthenticationFlowType.DeviceCode:
-                                Context.Trace.WriteLine("Performing interactive auth with device code...");
-                                // We don't have a way to display a device code without a terminal at the moment
-                                // TODO: introduce a small GUI window to show a code if no TTY exists
-                                ThrowIfTerminalPromptsDisabled();
-                                result = await app.AcquireTokenWithDeviceCode(scopes, ShowDeviceCodeInTty).ExecuteAsync();
-                                break;
-
-                            default:
-                                goto case MicrosoftAuthenticationFlowType.Auto;
-                        }
+                        result = await GetTokenForUserInteractiveAsync(app, scopes, interactionMode, ct);
                     }
                 }
 
@@ -303,7 +282,61 @@ namespace GitCredentialManager.Authentication.Entra
             }
         }
 
-        private async Task<bool> UseDefaultAccountAsync(string userName)
+        private async Task<AuthenticationResult> GetTokenForUserInteractiveAsync(
+            IPublicClientApplication app, string[] scopes, InteractionMode interactionMode, CancellationToken ct)
+        {
+            // Check for a stored preference if we've not been given a specific mode from the caller
+            if (interactionMode == InteractionMode.Auto && TryGetModePreference(out InteractionMode mode))
+            {
+                Context.Trace.WriteLine($"Interaction mode overriden to '{mode}'.");
+                interactionMode = mode;
+            }
+
+            switch (interactionMode)
+            {
+                // Try to use the most appropriate interaction mode available
+                case InteractionMode.Auto:
+                    Context.Trace.WriteLine("Resolving interactive mode auto...");
+                    if (IsEmbeddedWebViewAvailable())
+                        goto case InteractionMode.EmbeddedWebView;
+
+                    if (IsSystemWebViewAvailable())
+                        goto case InteractionMode.SystemWebView;
+
+                    if (IsDeviceCodeAvailable())
+                        goto case InteractionMode.DeviceCode;
+
+                    throw new InvalidOperationException("No available interaction modes.");
+
+                case InteractionMode.EmbeddedWebView:
+                    Context.Trace.WriteLine("Performing interactive authentication via embedded webview...");
+                    return await app.AcquireTokenInteractive(scopes)
+                        .WithUseEmbeddedWebView(true)
+                        .WithEmbeddedWebViewOptions(GetEmbeddedWebViewOptions())
+                        .ExecuteAsync(ct);
+
+                case InteractionMode.SystemWebView:
+                    Context.Trace.WriteLine("Performing interactive authentication via system webview...");
+                    Context.Console.WriteInfo("opening browser to complete authentication...");
+                    return await app.AcquireTokenInteractive(scopes)
+                        .WithUseEmbeddedWebView(false)
+                        .WithSystemWebViewOptions(GetSystemWebViewOptions())
+                        .ExecuteAsync(ct);
+
+                case InteractionMode.DeviceCode:
+                    Context.Trace.WriteLine("Performing interactive authentication via device code...");
+                    // We don't have a way to display a device code without a terminal at the moment
+                    // TODO: introduce a small GUI window to show a code if no TTY exists
+                    ThrowIfTerminalPromptsDisabled();
+                    return await app.AcquireTokenWithDeviceCode(scopes, ShowDeviceCodeAsync)
+                        .ExecuteAsync(ct);
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(interactionMode), interactionMode, "Unexpected interaction mode.");
+            }
+        }
+
+        private async Task<bool> UseDefaultAccountAsync(string userName, CancellationToken ct)
         {
             ThrowIfUserInteractionDisabled();
 
@@ -321,10 +354,8 @@ namespace GitCredentialManager.Authentication.Entra
                     {
                         return str.ToBooleanyOrDefault(false);
                     }
-                    else
-                    {
-                        throw new Trace2Exception(Context.Trace2, "Missing use_default_account in response");
-                    }
+
+                    throw new Trace2Exception(Context.Trace2, "Missing use_default_account in response");
                 }
 
                 var viewModel = new DefaultAccountViewModel(Context.SessionManager)
@@ -333,57 +364,78 @@ namespace GitCredentialManager.Authentication.Entra
                 };
 
                 await AvaloniaUi.ShowViewAsync<DefaultAccountView>(
-                    viewModel, GetParentWindowHandle(), CancellationToken.None);
+                    viewModel, GetParentWindowHandle(), ct);
 
                 ThrowIfWindowCancelled(viewModel);
 
                 return viewModel.UseDefaultAccount;
             }
-            else
-            {
-                string question = $"Continue with current account ({userName})?";
-                var prompt = TerminalPrompts.CreateSelection<bool>()
-                    .Title(question)
-                    .AddChoices(("Yes", true), ("No, use another account", false));
 
-                return await prompt.ShowAsync(Context.Console);
-            }
+            var prompt = new ConfirmationPrompt($"Continue with current account ({userName})?");
+            return await prompt.ShowAsync(Context.Console, ct);
         }
 
-        internal MicrosoftAuthenticationFlowType GetFlowType()
+        private IList<InteractionMode> GetAvailableModes()
+        {
+            var list = new List<InteractionMode> { InteractionMode.Auto };
+            if (IsEmbeddedWebViewAvailable())
+            {
+                list.Add(InteractionMode.EmbeddedWebView);
+            }
+            if (IsSystemWebViewAvailable())
+            {
+                list.Add(InteractionMode.SystemWebView);
+            }
+            if (IsDeviceCodeAvailable())
+            {
+                list.Add(InteractionMode.DeviceCode);
+            }
+            return list;
+        }
+
+        private bool TryGetModePreference(out InteractionMode mode)
         {
             if (Context.Settings.TryGetSetting(
-                Constants.EnvironmentVariables.MsAuthFlow,
-                Constants.GitConfiguration.Credential.SectionName,
-                Constants.GitConfiguration.Credential.MsAuthFlow,
-                out string valueStr))
+                    Constants.EnvironmentVariables.MsAuthFlow,
+                    Constants.GitConfiguration.Credential.SectionName,
+                    Constants.GitConfiguration.Credential.MsAuthFlow,
+                    out string valueStr))
             {
-                Context.Trace.WriteLine($"Microsoft auth flow overriden to '{valueStr}'.");
+                Context.Trace.WriteLine($"Interaction mode overriden to '{valueStr}'.");
                 switch (valueStr.ToLowerInvariant())
                 {
                     case "auto":
-                        return MicrosoftAuthenticationFlowType.Auto;
+                        mode = InteractionMode.Auto;
+                        break;
                     case "embedded":
-                        return MicrosoftAuthenticationFlowType.EmbeddedWebView;
+                        mode = InteractionMode.EmbeddedWebView;
+                        break;
                     case "system":
-                        return MicrosoftAuthenticationFlowType.SystemWebView;
+                        mode = InteractionMode.SystemWebView;
+                        break;
+                    case "device":
+                        mode = InteractionMode.DeviceCode;
+                        break;
                     default:
-                        if (Enum.TryParse(valueStr, ignoreCase: true, out MicrosoftAuthenticationFlowType value))
-                            return value;
+                        if (!Enum.TryParse(valueStr, ignoreCase: true, out mode))
+                        {
+                            Context.Console.WriteWarning($"unknown interaction mode '{valueStr}'; using 'auto'");
+                            mode = InteractionMode.Auto;
+                        }
                         break;
                 }
-
-                Context.Console.WriteWarning($"unknown Microsoft Authentication flow type '{valueStr}'; using 'auto'");
+                return true;
             }
 
-            return MicrosoftAuthenticationFlowType.Auto;
+            mode = InteractionMode.Auto;
+            return false;
         }
 
         /// <summary>
         /// Obtain an access token without showing UI or prompts.
         /// </summary>
         private async Task<AuthenticationResult> GetAccessTokenSilentlyAsync(
-            IPublicClientApplication app, string[] scopes, IAccount account, bool msaPt)
+            IPublicClientApplication app, string[] scopes, IAccount account, bool msaPt, CancellationToken ct = default)
         {
             try
             {
@@ -393,7 +445,7 @@ namespace GitCredentialManager.Authentication.Entra
                         "Attempting to acquire token silently for current operating system account...");
 
                     return await app.AcquireTokenSilent(scopes, PublicClientApplication.OperatingSystemAccount)
-                        .ExecuteAsync();
+                        .ExecuteAsync(ct);
                 }
                 else
                 {
@@ -410,7 +462,7 @@ namespace GitCredentialManager.Authentication.Entra
                         atsBuilder = atsBuilder.WithTenantId(Constants.MsaTransferTenantId.ToString("D"));
                     }
 
-                    return await atsBuilder.ExecuteAsync();
+                    return await atsBuilder.ExecuteAsync(ct);
                 }
             }
             catch (MsalUiRequiredException)
@@ -498,7 +550,7 @@ namespace GitCredentialManager.Authentication.Entra
             return app;
         }
 
-        private static EmbeddedWebViewOptions GetEmbeddedWebViewOptions()
+        private EmbeddedWebViewOptions GetEmbeddedWebViewOptions()
         {
             return new EmbeddedWebViewOptions
             {
@@ -508,37 +560,28 @@ namespace GitCredentialManager.Authentication.Entra
 
         private SystemWebViewOptions GetSystemWebViewOptions()
         {
-            // TODO: add nicer HTML success and error pages
             return new SystemWebViewOptions
             {
-                OpenBrowserAsync = OpenBrowserFunc
+                OpenBrowserAsync = uri =>
+                {
+                    try
+                    {
+                        Context.SessionManager.OpenBrowser(uri);
+                        return Task.CompletedTask;
+                    }
+                    catch (Exception ex)
+                    {
+                        Context.Trace.WriteLine("Failed to open system web browser - using MSAL fallback");
+                        Context.Trace.WriteException(ex);
+                        return SystemWebViewOptions.OpenWithChromeEdgeBrowserAsync(uri);
+                    }
+                }
             };
-
-            // We have special handling for Linux and WSL to open the system browser
-            // so we need to use our own function here. Sorry MSAL!
-            Task OpenBrowserFunc(Uri uri)
-            {
-                try
-                {
-                    Context.SessionManager.OpenBrowser(uri);
-                }
-                catch (Exception ex)
-                {
-                    Context.Trace.WriteLine("Failed to open system web browser - using MSAL fallback");
-                    Context.Trace.WriteException(ex);
-
-                    // Fallback to MSAL's default browser opening logic, preferring Edge.
-                    return SystemWebViewOptions.OpenWithChromeEdgeBrowserAsync(uri);
-                }
-
-                return Task.CompletedTask;
-            }
         }
 
-        private Task ShowDeviceCodeInTty(DeviceCodeResult dcr)
+        private Task ShowDeviceCodeAsync(DeviceCodeResult dcr)
         {
             Context.Console.WriteLine(dcr.Message);
-
             return Task.CompletedTask;
         }
 
@@ -579,51 +622,13 @@ namespace GitCredentialManager.Authentication.Entra
             return defaultValue;
         }
 
-        private bool CanUseEmbeddedWebView()
-        {
+        private bool IsEmbeddedWebViewAvailable() =>
             // TODO: check for desktop session once embedded web view is added back
             // return Context.SessionManager.IsDesktopSession;
-            return false;
-        }
+            false;
 
-        private void EnsureCanUseEmbeddedWebView()
-        {
-            // TODO: check for desktop session once embedded web view is added back
-            // if (!Context.SessionManager.IsDesktopSession)
-            // {
-            //     throw new Trace2InvalidOperationException(Context.Trace2,
-            //         "Embedded web view is not available without a desktop session.");
-            // }
+        private bool IsSystemWebViewAvailable() => Context.SessionManager.IsWebBrowserAvailable;
 
-            throw new Trace2InvalidOperationException(Context.Trace2,
-                "Embedded web view is not available on .NET Core.");
-        }
-
-        private bool CanUseSystemWebView(IPublicClientApplication app, Uri redirectUri)
-        {
-            //
-            // MSAL requires the application redirect URI is a loopback address to use the System WebView
-            //
-            // Note: we do NOT check the MSAL 'IsSystemWebViewAvailable' property as it only
-            // looks for the presence of the DISPLAY environment variable on UNIX systems.
-            // This is insufficient as we instead handle launching the default browser ourselves.
-            //
-            return Context.SessionManager.IsWebBrowserAvailable && redirectUri.IsLoopback;
-        }
-
-        private void EnsureCanUseSystemWebView(IPublicClientApplication app, Uri redirectUri)
-        {
-            if (!Context.SessionManager.IsWebBrowserAvailable)
-            {
-                throw new Trace2InvalidOperationException(Context.Trace2,
-                    "System web view is not available without a way to start a browser.");
-            }
-
-            if (!redirectUri.IsLoopback)
-            {
-                throw new Trace2InvalidOperationException(Context.Trace2,
-                    "System web view is not available for this service configuration.");
-            }
-        }
+        private bool IsDeviceCodeAvailable() => Context.Settings.IsTerminalPromptsEnabled;
     }
 }
