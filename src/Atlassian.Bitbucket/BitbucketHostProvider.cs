@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Atlassian.Bitbucket.Cloud;
 using GitCredentialManager;
 using GitCredentialManager.Authentication.OAuth;
+using Spectre.Console;
 
 namespace Atlassian.Bitbucket
 {
@@ -318,7 +319,7 @@ namespace Atlassian.Bitbucket
                 _context.Trace.WriteException(ex);
                 _context.Trace2.WriteError(message, format);
 
-                _context.Terminal.WriteLine($"warning: {message}");
+                _context.Console.WriteWarning(message);
 
                 // Fall-back to offering all modes so the user is never blocked from authenticating by at least one mode
                 return AuthenticationModes.All;

@@ -59,9 +59,25 @@ namespace GitHub.Tests
             context.FileSystem.Files["/usr/local/bin/GitHub.UI"] = new byte[0];
             context.FileSystem.Files[@"C:\Program Files\Git Credential Manager Core\GitHub.UI.exe"] = new byte[0];
             var auth = new GitHubAuthentication(context);
-            context.Terminal.Prompts["option (enter for default)"] = "";
+            context.Console.PushSelection(0);
             var result = await auth.GetAuthenticationAsync(null, null, AuthenticationModes.All);
             Assert.Equal(AuthenticationModes.Device, result.AuthenticationMode);
+        }
+
+        [Fact]
+        public async Task GitHubAuthentication_GetAuthenticationAsync_Pat_DoesNotEchoToken()
+        {
+            const string token = "secret-token";
+            var context = new TestCommandContext();
+            context.Console.PushText(token);
+            var auth = new GitHubAuthentication(context);
+
+            AuthenticationPromptResult result = await auth.GetAuthenticationAsync(
+                new Uri("https://github.com"), "octocat", AuthenticationModes.Pat);
+
+            Assert.Equal(AuthenticationModes.Pat, result.AuthenticationMode);
+            Assert.Equal(token, result.Credential.Password);
+            Assert.DoesNotContain(token, context.Console.TtyConsole.Output);
         }
 
         [Fact]

@@ -348,5 +348,53 @@ namespace GitCredentialManager.Tests
             Assert.Equal(emptyHelper, actualValues[1]);
             Assert.Equal(afterHelper, actualValues[2]);
         }
+
+        [Fact]
+        public void Application_ContainsInterrupt_Direct_True()
+        {
+            Assert.True(Application.ContainsInterrupt(new InterruptedException()));
+        }
+
+        [Fact]
+        public void Application_ContainsInterrupt_WrappedInInner_True()
+        {
+            var ex = new System.InvalidOperationException("outer",
+                new System.Exception("mid", new InterruptedException()));
+            Assert.True(Application.ContainsInterrupt(ex));
+        }
+
+        [Fact]
+        public void Application_ContainsInterrupt_InsideAggregate_True()
+        {
+            var ex = new System.AggregateException(
+                new System.Exception("a"),
+                new InterruptedException());
+            Assert.True(Application.ContainsInterrupt(ex));
+        }
+
+        [Fact]
+        public void Application_ContainsInterrupt_NestedAggregate_True()
+        {
+            var ex = new System.AggregateException(
+                new System.AggregateException(new InterruptedException()));
+            Assert.True(Application.ContainsInterrupt(ex));
+        }
+
+        [Fact]
+        public void Application_ContainsInterrupt_NotPresent_False()
+        {
+            var ex = new System.InvalidOperationException("outer",
+                new System.Exception("inner"));
+            Assert.False(Application.ContainsInterrupt(ex));
+        }
+
+        [Fact]
+        public void Application_ContainsInterrupt_AggregateWithoutInterrupt_False()
+        {
+            var ex = new System.AggregateException(
+                new System.Exception("a"),
+                new System.InvalidOperationException("b"));
+            Assert.False(Application.ContainsInterrupt(ex));
+        }
     }
 }

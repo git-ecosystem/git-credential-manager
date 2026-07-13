@@ -4,9 +4,11 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using GitCredentialManager.Authentication.OAuth;
+using GitCredentialManager.Tty;
 using GitCredentialManager.UI;
 using GitCredentialManager.UI.ViewModels;
 using GitCredentialManager.UI.Views;
+using Spectre.Console;
 
 namespace GitCredentialManager.Authentication
 {
@@ -70,7 +72,7 @@ namespace GitCredentialManager.Authentication
                 return await GetAuthenticationModeViaUiAsync(resource, modes);
             }
 
-            return GetAuthenticationModeViaTty(resource, modes);
+            return await GetAuthenticationModeViaTtyAsync(resource, modes);
         }
 
         private async Task<OAuthAuthenticationModes> GetAuthenticationModeViaUiAsync(string resource, OAuthAuthenticationModes modes)
@@ -101,7 +103,7 @@ namespace GitCredentialManager.Authentication
             }
         }
 
-        private OAuthAuthenticationModes GetAuthenticationModeViaTty(string resource, OAuthAuthenticationModes modes)
+        private async Task<OAuthAuthenticationModes> GetAuthenticationModeViaTtyAsync(string resource, OAuthAuthenticationModes modes)
         {
             ThrowIfTerminalPromptsDisabled();
 
@@ -114,20 +116,17 @@ namespace GitCredentialManager.Authentication
                     return OAuthAuthenticationModes.DeviceCode;
 
                 default:
-                    var menuTitle = $"Select an authentication method for '{resource}'";
-                    var menu = new TerminalMenu(Context.Terminal, menuTitle);
+                    var promptTitle = $"Select an authentication method for '{resource}'";
+                    var prompt = TerminalPrompts.CreateSelection<OAuthAuthenticationModes>()
+                        .Title(promptTitle);
 
-                    TerminalMenuItem browserItem = null;
-                    TerminalMenuItem deviceItem = null;
+                    if ((modes & OAuthAuthenticationModes.Browser) != 0) prompt.AddChoice("Web browser", OAuthAuthenticationModes.Browser);
+                    if ((modes & OAuthAuthenticationModes.DeviceCode) != 0) prompt.AddChoice("Device code", OAuthAuthenticationModes.DeviceCode);
 
-                    if ((modes & OAuthAuthenticationModes.Browser) != 0) browserItem = menu.Add("Web browser");
-                    if ((modes & OAuthAuthenticationModes.DeviceCode) != 0) deviceItem = menu.Add("Device code");
+                    OAuthAuthenticationModes choice = await prompt.ShowAsync(Context.Console, CancellationToken.None);
 
-                    // Default to the 'first' choice in the menu
-                    TerminalMenuItem choice = menu.Show(0);
-
-                    if (choice == browserItem) goto case OAuthAuthenticationModes.Browser;
-                    if (choice == deviceItem) goto case OAuthAuthenticationModes.DeviceCode;
+                    if (choice == OAuthAuthenticationModes.Browser) goto case OAuthAuthenticationModes.Browser;
+                    if (choice == OAuthAuthenticationModes.DeviceCode) goto case OAuthAuthenticationModes.DeviceCode;
 
                     throw new Exception();
             }
@@ -269,7 +268,7 @@ namespace GitCredentialManager.Authentication
                 $"To complete authentication please visit {dcr.VerificationUri} and enter the following code:" +
                 Environment.NewLine +
                 dcr.UserCode;
-            Context.Terminal.WriteLine(deviceMessage);
+            Context.Console.WriteLine(deviceMessage);
 
             return await client.GetTokenByDeviceCodeAsync(dcr, CancellationToken.None);
         }

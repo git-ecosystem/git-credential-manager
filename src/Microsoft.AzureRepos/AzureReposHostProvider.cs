@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using GitCredentialManager;
 using GitCredentialManager.Authentication;
 using GitCredentialManager.Commands;
+using GitCredentialManager.Tty;
 using KnownGitCfg = GitCredentialManager.Constants.GitConfiguration;
 
 namespace Microsoft.AzureRepos
@@ -507,8 +508,8 @@ namespace Microsoft.AzureRepos
                         return false;
 
                     default:
-                        _context.Streams.Error.WriteLine(
-                            $"warning: unknown Azure Repos credential type '{valueStr}' - using PATs");
+                        _context.Console.WriteWarning(
+                            $"unknown Azure Repos credential type '{valueStr}' - using PATs");
                         return defaultValue;
                 }
             }
@@ -532,14 +533,14 @@ namespace Microsoft.AzureRepos
 
             if (split.Length < 1 || string.IsNullOrWhiteSpace(split[0]))
             {
-                _context.Streams.Error.WriteLine("error: unable to use configured service principal - missing tenant ID in configuration");
+                _context.Console.WriteError("unable to use configured service principal - missing tenant ID in configuration");
                 sp = null;
                 return false;
             }
 
             if (split.Length < 2 || string.IsNullOrWhiteSpace(split[1]))
             {
-                _context.Streams.Error.WriteLine("error: unable to use configured service principal - missing client ID in configuration");
+                _context.Console.WriteError("unable to use configured service principal - missing client ID in configuration");
                 sp = null;
                 return false;
             }
@@ -567,7 +568,7 @@ namespace Microsoft.AzureRepos
 
             if (hasCertThumbprint && hasClientSecret)
             {
-                _context.Streams.Error.WriteLine("warning: both service principal client secret and certificate thumbprint are configured - using certificate");
+                _context.Console.WriteWarning("both service principal client secret and certificate thumbprint are configured - using certificate");
             }
 
             if (hasCertThumbprint)
@@ -581,7 +582,7 @@ namespace Microsoft.AzureRepos
                 X509Certificate2 cert = X509Utils.GetCertificateByThumbprint(certThumbprint);
                 if (cert is null)
                 {
-                    _context.Streams.Error.WriteLine($"error: unable to find certificate with thumbprint '{certThumbprint}' for service principal");
+                    _context.Console.WriteError($"unable to find certificate with thumbprint '{certThumbprint}' for service principal");
                     return false;
                 }
 
@@ -653,7 +654,7 @@ namespace Microsoft.AzureRepos
 
             if (!hasClientId || !hasTenantId)
             {
-                _context.Streams.Error.WriteLine("error: both client ID and tenant ID are required for workload federation");
+                _context.Console.WriteError("both client ID and tenant ID are required for workload federation");
                 fedOpts = null;
                 return false;
             }
@@ -685,7 +686,7 @@ namespace Microsoft.AzureRepos
                             AzureDevOpsConstants.GitConfiguration.Credential.WorkloadFederationAssertion,
                             out string assertion) || string.IsNullOrWhiteSpace(assertion))
                     {
-                        _context.Streams.Error.WriteLine("error: assertion is required for the generic workload federation scenario");
+                        _context.Console.WriteError("assertion is required for the generic workload federation scenario");
                         fedOpts = null;
                         return false;
                     }
@@ -697,7 +698,7 @@ namespace Microsoft.AzureRepos
                         string filePath = assertionUri.LocalPath;
                         if (!_context.FileSystem.FileExists(filePath))
                         {
-                            _context.Streams.Error.WriteLine($"error: assertion file not found: {filePath}");
+                            _context.Console.WriteError($"assertion file not found: {filePath}");
                             fedOpts = null;
                             return false;
                         }
@@ -706,7 +707,7 @@ namespace Microsoft.AzureRepos
                         assertion = _context.FileSystem.ReadAllText(filePath).Trim();
                         if (string.IsNullOrWhiteSpace(assertion))
                         {
-                            _context.Streams.Error.WriteLine($"error: assertion file is empty: {filePath}");
+                            _context.Console.WriteError($"assertion file is empty: {filePath}");
                             fedOpts = null;
                             return false;
                         }
@@ -722,7 +723,7 @@ namespace Microsoft.AzureRepos
                             AzureDevOpsConstants.GitConfiguration.Credential.WorkloadFederationManagedIdentity,
                             out string managedIdentity) || string.IsNullOrWhiteSpace(managedIdentity))
                     {
-                        _context.Streams.Error.WriteLine("error: managed identity is required for the managed identity workload federation scenario");
+                        _context.Console.WriteError("managed identity is required for the managed identity workload federation scenario");
                         fedOpts = null;
                         return false;
                     }
@@ -735,8 +736,8 @@ namespace Microsoft.AzureRepos
                             Constants.EnvironmentVariables.GitHubActionsTokenRequestUrl, out string tokenRequestUrl)
                         || !Uri.TryCreate(tokenRequestUrl, UriKind.Absolute, out Uri tokenRequestUri))
                     {
-                        _context.Streams.Error.WriteLine(
-                            "error: unable to get valid token request URL from environment variable for the GitHub Actions workload federation scenario");
+                        _context.Console.WriteError(
+                            "unable to get valid token request URL from environment variable for the GitHub Actions workload federation scenario");
                         fedOpts = null;
                         return false;
                     }
@@ -745,8 +746,8 @@ namespace Microsoft.AzureRepos
                             Constants.EnvironmentVariables.GitHubActionsTokenRequestToken, out string tokenRequestToken)
                         || string.IsNullOrWhiteSpace(tokenRequestToken))
                     {
-                        _context.Streams.Error.WriteLine(
-                            "error: unable to get valid token request token from environment variable for the GitHub Actions workload federation scenario");
+                        _context.Console.WriteError(
+                            "unable to get valid token request token from environment variable for the GitHub Actions workload federation scenario");
                         fedOpts = null;
                         return false;
                     }
@@ -882,7 +883,7 @@ namespace Microsoft.AzureRepos
         private void ClearCacheCmd()
         {
             _authorityCache.Clear();
-            _context.Streams.Out.WriteLine("Authority cache cleared");
+            _context.Console.WriteLine("Authority cache cleared");
         }
 
         private class RemoteBinding
@@ -905,7 +906,7 @@ namespace Microsoft.AzureRepos
             {
                 if (!_context.Git.IsInsideRepository())
                 {
-                    _context.Streams.Error.WriteLine("warning: not inside a git repository (--show-remotes has no effect)");
+                    _context.Console.WriteWarning("not inside a git repository (--show-remotes has no effect)");
                 }
 
                 static bool IsAzureDevOpsHttpRemote(string url, out Uri uri)
@@ -947,7 +948,7 @@ namespace Microsoft.AzureRepos
             {
                 if (!isFiltered)
                 {
-                    _context.Streams.Out.WriteLine($"{orgName}:");
+                    _context.Console.WriteLine($"{orgName}:");
                 }
 
                 // Print organization bindings
@@ -955,7 +956,7 @@ namespace Microsoft.AzureRepos
                 {
                     if (binding.GlobalUserName != null)
                     {
-                        _context.Streams.Out.WriteLine($"{indent}(global) -> {binding.GlobalUserName}");
+                        _context.Console.WriteLine($"{indent}(global) -> {binding.GlobalUserName}");
                     }
 
                     if (binding.LocalUserName != null)
@@ -963,7 +964,7 @@ namespace Microsoft.AzureRepos
                         string value = string.IsNullOrEmpty(binding.LocalUserName)
                             ? "(no inherit)"
                             : binding.LocalUserName;
-                        _context.Streams.Out.WriteLine($"{indent}(local)  -> {value}");
+                        _context.Console.WriteLine($"{indent}(local)  -> {value}");
                     }
                 }
 
@@ -973,7 +974,7 @@ namespace Microsoft.AzureRepos
 
                 foreach (var remoteBinding in remoteBindingMap)
                 {
-                    _context.Streams.Out.WriteLine($"{indent}{remoteBinding.Key}:");
+                    _context.Console.WriteLine($"{indent}{remoteBinding.Key}:");
                     foreach (RemoteBinding binding in remoteBinding)
                     {
                         // User names in dev.azure.com URLs cannot always be used as *actual user names*
@@ -994,7 +995,7 @@ namespace Microsoft.AzureRepos
                             url = $"{binding.Uri.WithoutUserInfo()} ";
                         }
 
-                        _context.Streams.Out.WriteLine(binding.IsPush
+                        _context.Console.WriteLine(binding.IsPush
                             ? $"{indent}  {url}(push)  -> {userName}"
                             : $"{indent}  {url}(fetch) -> {userName}");
                     }
@@ -1006,7 +1007,7 @@ namespace Microsoft.AzureRepos
         {
             if (local && !_context.Git.IsInsideRepository())
             {
-                _context.Streams.Error.WriteLine("error: not inside a git repository (cannot use --local)");
+                _context.Console.WriteError("not inside a git repository (cannot use --local)");
                 return Task.FromResult(-1);
             }
 
@@ -1018,7 +1019,7 @@ namespace Microsoft.AzureRepos
         {
             if (local && !_context.Git.IsInsideRepository())
             {
-                _context.Streams.Error.WriteLine("error: not inside a git repository (cannot use --local)");
+                _context.Console.WriteError("not inside a git repository (cannot use --local)");
                 return Task.FromResult(-1);
             }
 

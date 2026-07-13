@@ -7,9 +7,11 @@ using System.Threading;
 using GitCredentialManager;
 using GitCredentialManager.Authentication;
 using GitCredentialManager.Authentication.OAuth;
+using GitCredentialManager.Tty;
 using GitCredentialManager.UI;
 using GitLab.UI.ViewModels;
 using GitLab.UI.Views;
+using Spectre.Console;
 
 namespace GitLab
 {
@@ -82,7 +84,7 @@ namespace GitLab
                 return await GetAuthenticationViaUiAsync(targetUri, userName, modes);
             }
 
-            return GetAuthenticationViaTty(targetUri, userName, modes);
+            return await GetAuthenticationViaTtyAsync(targetUri, userName, modes);
         }
 
         private async Task<AuthenticationPromptResult> GetAuthenticationViaUiAsync(
@@ -132,40 +134,40 @@ namespace GitLab
             }
         }
 
-        private AuthenticationPromptResult GetAuthenticationViaTty(Uri targetUri, string userName, AuthenticationModes modes)
+        private async Task<AuthenticationPromptResult> GetAuthenticationViaTtyAsync(Uri targetUri, string userName, AuthenticationModes modes)
         {
             ThrowIfTerminalPromptsDisabled();
 
             switch (modes)
             {
                 case AuthenticationModes.Basic:
-                    Context.Terminal.WriteLine("Enter GitLab credentials for '{0}'...", targetUri);
+                    Context.Console.WriteLine($"Enter GitLab credentials for '{targetUri}'...");
 
                     if (string.IsNullOrWhiteSpace(userName))
                     {
-                        userName = Context.Terminal.Prompt("Username");
+                        userName = await TerminalPrompts.CreateText("Username").ShowAsync(Context.Console);
                     }
                     else
                     {
-                        Context.Terminal.WriteLine("Username: {0}", userName);
+                        Context.Console.WriteLine($"Username: {userName}");
                     }
 
-                    string password = Context.Terminal.PromptSecret("Password");
+                    string password = await TerminalPrompts.CreateSecret("Password").ShowAsync(Context.Console);
                     return new AuthenticationPromptResult(AuthenticationModes.Basic, new GitCredential(userName, password));
 
                 case AuthenticationModes.Pat:
-                    Context.Terminal.WriteLine("Enter GitLab credentials for '{0}'...", targetUri);
+                    Context.Console.WriteLine($"Enter GitLab credentials for '{targetUri}'...");
 
                     if (string.IsNullOrWhiteSpace(userName))
                     {
-                        userName = Context.Terminal.Prompt("Username");
+                        userName = await TerminalPrompts.CreateText("Username").ShowAsync(Context.Console);
                     }
                     else
                     {
-                        Context.Terminal.WriteLine("Username: {0}", userName);
+                        Context.Console.WriteLine($"Username: {userName}");
                     }
 
-                    string token = Context.Terminal.PromptSecret("Personal access token");
+                    string token = await TerminalPrompts.CreateSecret("Personal access token").ShowAsync(Context.Console);
                     return new AuthenticationPromptResult(AuthenticationModes.Pat, new GitCredential(userName, token));
 
                 case AuthenticationModes.Browser:
@@ -176,23 +178,19 @@ namespace GitLab
                         @$"At least one {nameof(AuthenticationModes)} must be supplied");
 
                 default:
-                    var menuTitle = $"Select an authentication method for '{targetUri}'";
-                    var menu = new TerminalMenu(Context.Terminal, menuTitle);
+                    var promptTitle = $"Select an authentication method for '{targetUri}'";
+                    var prompt = TerminalPrompts.CreateSelection<AuthenticationModes>()
+                        .Title(promptTitle);
 
-                    TerminalMenuItem browserItem = null;
-                    TerminalMenuItem basicItem = null;
-                    TerminalMenuItem patItem = null;
+                    if ((modes & AuthenticationModes.Browser) != 0) prompt.AddChoice("Web browser", AuthenticationModes.Browser);
+                    if ((modes & AuthenticationModes.Pat) != 0) prompt.AddChoice("Personal access token", AuthenticationModes.Pat);
+                    if ((modes & AuthenticationModes.Basic) != 0) prompt.AddChoice("Username/password", AuthenticationModes.Basic);
 
-                    if ((modes & AuthenticationModes.Browser) != 0) browserItem = menu.Add("Web browser");
-                    if ((modes & AuthenticationModes.Pat) != 0) patItem = menu.Add("Personal access token");
-                    if ((modes & AuthenticationModes.Basic) != 0) basicItem = menu.Add("Username/password");
+                    AuthenticationModes choice = await prompt.ShowAsync(Context.Console);
 
-                    // Default to the 'first' choice in the menu
-                    TerminalMenuItem choice = menu.Show(0);
-
-                    if (choice == browserItem) goto case AuthenticationModes.Browser;
-                    if (choice == basicItem) goto case AuthenticationModes.Basic;
-                    if (choice == patItem) goto case AuthenticationModes.Pat;
+                    if (choice == AuthenticationModes.Browser) goto case AuthenticationModes.Browser;
+                    if (choice == AuthenticationModes.Basic) goto case AuthenticationModes.Basic;
+                    if (choice == AuthenticationModes.Pat) goto case AuthenticationModes.Pat;
 
                     throw new Exception();
             }
@@ -277,7 +275,7 @@ namespace GitLab
             var browser = new OAuth2SystemWebBrowser(Context.SessionManager, browserOptions);
 
             // Write message to the terminal (if any is attached) for some feedback that we're waiting for a web response
-            Context.Terminal.WriteLine("info: please complete authentication in your browser...");
+            Context.Console.WriteInfo("please complete authentication in your browser...");
 
             OAuth2AuthorizationCodeResult authCodeResult =
                 await oauthClient.GetAuthorizationCodeAsync(scopes, browser, CancellationToken.None);

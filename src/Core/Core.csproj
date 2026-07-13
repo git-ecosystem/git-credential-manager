@@ -13,6 +13,7 @@
     <PackageReference Include="Microsoft.Identity.Client" />
     <PackageReference Include="Microsoft.Identity.Client.Broker" />
     <PackageReference Include="Microsoft.Identity.Client.Extensions.Msal" />
+    <PackageReference Include="Spectre.Console" />
     <PackageReference Include="System.CommandLine" />
     <PackageReference Include="Avalonia" />
     <PackageReference Include="Avalonia.Desktop" />

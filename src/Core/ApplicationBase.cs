@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using GitCredentialManager.Tty;
 using GitCredentialManager.UI;
 
 namespace GitCredentialManager
@@ -28,7 +29,7 @@ namespace GitCredentialManager
             // Launch debugger
             if (Context.Settings.IsDebuggingEnabled)
             {
-                Context.Streams.Error.WriteLine("Waiting for debugger to be attached...");
+                Context.Streams.Error.WriteLine($"Waiting for debugger to be attached (pid={Environment.ProcessId})...");
                 WaitForDebuggerAttached();
 
                 // Now the debugger is attached, break!
@@ -59,12 +60,12 @@ namespace GitCredentialManager
                     }
                     catch (Exception ex)
                     {
-                        Context.Streams.Error.WriteLine($"warning: unable to trace to file '{traceValue}': {ex.Message}");
+                        Context.Console.WriteWarning($"unable to trace to file '{traceValue}': {ex.Message}");
                     }
                 }
                 else
                 {
-                    Context.Streams.Error.WriteLine($"warning: unknown value for {Constants.EnvironmentVariables.GcmTrace} '{traceValue}'");
+                    Context.Console.WriteWarning($"unknown value for {Constants.EnvironmentVariables.GcmTrace} '{traceValue}'");
                 }
             }
 

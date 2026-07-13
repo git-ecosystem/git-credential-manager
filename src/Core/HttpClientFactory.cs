@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
+using GitCredentialManager.Tty;
 
 namespace GitCredentialManager
 {
@@ -39,20 +40,20 @@ namespace GitCredentialManager
         private readonly ITrace _trace;
         private readonly ITrace2 _trace2;
         private readonly ISettings _settings;
-        private readonly IStandardStreams _streams;
+        private readonly IConsoleService _console;
 
-        public HttpClientFactory(IFileSystem fileSystem, ITrace trace, ITrace2 trace2, ISettings settings, IStandardStreams streams)
+        public HttpClientFactory(IFileSystem fileSystem, ITrace trace, ITrace2 trace2, ISettings settings, IConsoleService console)
         {
             EnsureArgument.NotNull(fileSystem, nameof(fileSystem));
             EnsureArgument.NotNull(trace, nameof(trace));
             EnsureArgument.NotNull(settings, nameof(settings));
-            EnsureArgument.NotNull(streams, nameof(streams));
+            EnsureArgument.NotNull(console, nameof(console));
 
             _fileSystem = fileSystem;
             _trace = trace;
             _trace2 = trace2;
             _settings = settings;
-            _streams = streams;
+            _console = console;
         }
 
         public HttpClient CreateClient()
@@ -94,10 +95,10 @@ namespace GitCredentialManager
             if (!_settings.IsCertificateVerificationEnabled)
             {
                 _trace.WriteLine("TLS certificate verification has been disabled.");
-                _streams.Error.WriteLine("warning: ----------------- SECURITY WARNING ----------------");
-                _streams.Error.WriteLine("warning: | TLS certificate verification has been disabled! |");
-                _streams.Error.WriteLine("warning: ---------------------------------------------------");
-                _streams.Error.WriteLine($"warning: HTTPS connections may not be secure. See {Constants.HelpUrls.GcmTlsVerification} for more information.");
+                _console.WriteWarning("----------------- SECURITY WARNING ----------------");
+                _console.WriteWarning("| TLS certificate verification has been disabled! |");
+                _console.WriteWarning("---------------------------------------------------");
+                _console.WriteWarning($"HTTPS connections may not be secure. See {Constants.HelpUrls.GcmTlsVerification} for more information.");
 
                 handler.ServerCertificateCustomValidationCallback = (req, cert, chain, errors) => true;
             }
@@ -233,7 +234,7 @@ namespace GitCredentialManager
                 if (proxyConfig.IsDeprecatedSource)
                 {
                     _trace.WriteLine("Using a deprecated proxy configuration.");
-                    _streams.Error.WriteLine($"warning: Using a deprecated proxy configuration. See {Constants.HelpUrls.GcmHttpProxyGuide} for more information.");
+                    _console.WriteWarning($"Using a deprecated proxy configuration. See {Constants.HelpUrls.GcmHttpProxyGuide} for more information.");
                 }
 
                 // If NO_PROXY is set to the value "*" then libcurl disables proxying. We should mirror this.

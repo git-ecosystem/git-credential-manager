@@ -9,6 +9,9 @@ namespace GitCredentialManager.Tests.Objects
         public string In { get; set; } = string.Empty;
         public StringBuilder Out { get; set; } = new StringBuilder();
         public StringBuilder Error { get; set; } = new StringBuilder();
+        public bool IsInputRedirected { get; set; } = true;
+        public bool IsOutputRedirected { get; set; } = true;
+        public bool IsErrorRedirected { get; set; } = true;
 
         #region IStandardStreams
 

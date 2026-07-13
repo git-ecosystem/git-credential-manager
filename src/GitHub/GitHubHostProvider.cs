@@ -7,6 +7,7 @@ using GitHub.Diagnostics;
 using GitCredentialManager;
 using GitCredentialManager.Authentication.OAuth;
 using GitCredentialManager.Diagnostics;
+using Spectre.Console;
 
 namespace GitHub
 {
@@ -461,7 +462,7 @@ namespace GitHub
                 _context.Trace.WriteException(ex);
                 _context.Trace2.WriteError(message, format);
 
-                _context.Terminal.WriteLine($"warning: {message}");
+                _context.Console.WriteWarning(message);
 
                 // Fall-back to offering all modes so the user is never blocked from authenticating by at least one mode
                 return AuthenticationModes.All;
