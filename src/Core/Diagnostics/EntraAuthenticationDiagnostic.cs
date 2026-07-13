@@ -15,10 +15,13 @@ namespace GitCredentialManager.Diagnostics
 
         protected override async Task<bool> RunInternalAsync(StringBuilder log, IList<string> additionalFiles)
         {
-            var msAuth = new EntraAuthentication(CommandContext);
+            var entraAuth = new EntraAuthentication(CommandContext, new PublicClientConfig
+            {
+                UseSharedCache = true,
+            });
 
             log.Append("Gathering MSAL token cache data...");
-            StorageCreationProperties cacheProps = msAuth.CreateUserTokenCacheProps(true);
+            StorageCreationProperties cacheProps = entraAuth.CreateUserTokenCacheProps(true);
             log.AppendLine(" OK");
             log.AppendLine($"CacheDirectory: {cacheProps.CacheDirectory}");
             log.AppendLine($"CacheFileName: {cacheProps.CacheFileName}");
