@@ -29,6 +29,15 @@ namespace GitCredentialManager.Tests.Authentication.Entra
                 () => msAuth.GetTokenForUserAsync(authority, clientId, redirectUri, scopes, userName, false));
         }
 
+        [Fact]
+        public async Task EntraAuthentication_GetUserAccountsAsync_NoPublicClientConfig_ThrowsException()
+        {
+            var entraAuth = new EntraAuthentication(new TestCommandContext());
+
+            await Assert.ThrowsAsync<InvalidOperationException>(
+                () => entraAuth.GetUserAccountsAsync());
+        }
+
         [Theory]
         [InlineData(null)]
         [InlineData("")]

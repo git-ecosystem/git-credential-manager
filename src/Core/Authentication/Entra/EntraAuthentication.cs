@@ -11,8 +11,11 @@ namespace GitCredentialManager.Authentication.Entra
             "live", "liveconnect", "liveid",
         };
 
-        public EntraAuthentication(ICommandContext context)
-            : base(context) { }
+        public EntraAuthentication(ICommandContext context, PublicClientConfig publicClientConfig = null)
+            : base(context)
+        {
+            _publicClientConfig = publicClientConfig;
+        }
 
         private class MsalResult : IEntraAuthenticationResult
         {

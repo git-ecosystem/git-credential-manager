@@ -9,6 +9,12 @@ namespace GitCredentialManager.Authentication.Entra
 {
     public partial class EntraAuthentication
     {
+        /// <summary>
+        /// Register the user token cache for public clients.
+        /// </summary>
+        private Task RegisterCacheAsync(IPublicClientApplication app) =>
+            RegisterTokenCacheAsync(app.UserTokenCache, CreateUserTokenCacheProps, Context.Trace2);
+
         private delegate StorageCreationProperties StoragePropertiesBuilder(bool useLinuxFallback);
 
         private async Task RegisterTokenCacheAsync(ITokenCache cache, StoragePropertiesBuilder propsBuilder, ITrace2 trace2)

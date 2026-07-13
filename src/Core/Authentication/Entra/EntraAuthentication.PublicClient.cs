@@ -16,6 +16,24 @@ using Spectre.Console;
 
 namespace GitCredentialManager.Authentication.Entra
 {
+    public record PublicClientConfig
+    {
+        /// <summary>
+        /// Application (client) ID of the Entra application registration.
+        /// </summary>
+        public string ClientId { get; init; }
+
+        /// <summary>
+        /// Use the shared Microsoft Developer Tools identity cache.
+        /// </summary>
+        /// <remarks>
+        /// If <see langword="true"/> then use the token cache shared by Microsoft
+        /// developer tools such as the Azure PowerShell CLI. Otherwise, use the
+        /// Git Credential Manager cache, used only by GCM.
+        /// </remarks>
+        public bool UseSharedCache { get; init; }
+    }
+
     public enum MicrosoftAuthenticationFlowType
     {
         Auto = 0,
@@ -26,6 +44,38 @@ namespace GitCredentialManager.Authentication.Entra
 
     public partial class EntraAuthentication
     {
+        private readonly PublicClientConfig _publicClientConfig;
+        private PublicClientApplicationBuilder _publicBuilder;
+
+        public async Task<IReadOnlyList<IEntraAccount>> GetUserAccountsAsync(CancellationToken ct = default)
+        {
+            IPublicClientApplication app = GetPublicAppBuilder().Build();
+            await RegisterCacheAsync(app);
+
+            IEnumerable<IAccount> accounts = await app.GetAccountsAsync();
+            return accounts.Select(EntraAccount.FromMsalAccount).ToList().AsReadOnly();
+        }
+
+        private PublicClientApplicationBuilder GetPublicAppBuilder()
+        {
+            if (_publicClientConfig is null)
+            {
+                throw new InvalidOperationException(
+                    "Public client configuration is required for user authentication.");
+            }
+
+            if (_publicBuilder is null)
+            {
+                Context.Trace.WriteLine("Creating public client application builder...");
+                _publicBuilder = PublicClientApplicationBuilder.Create(_publicClientConfig.ClientId)
+                    .WithHttpClientFactory(new MsalHttpClientFactoryAdaptor(Context.HttpClientFactory))
+                    .WithLegacyCacheCompatibility(false)
+                    .WithDefaultRedirectUri();
+            }
+
+            return _publicBuilder;
+        }
+
         public async Task<IEntraAuthenticationResult> GetTokenForUserAsync(
             string authority, string clientId, Uri redirectUri, string[] scopes, string userName, bool msaPt)
         {

@@ -1,10 +1,17 @@
 using System;
+using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace GitCredentialManager.Authentication.Entra;
 
 public interface IEntraAuthentication
 {
+    /// <summary>
+    /// Get the list of user accounts that have previously signed in to the application.
+    /// </summary>
+    Task<IReadOnlyList<IEntraAccount>> GetUserAccountsAsync(CancellationToken ct = default);
+
     /// <summary>
     /// Acquire an access token for a user principal.
     /// </summary>
