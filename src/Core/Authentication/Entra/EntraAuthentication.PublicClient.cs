@@ -1,11 +1,16 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using GitCredentialManager.Tty;
+using GitCredentialManager.UI;
+using GitCredentialManager.UI.ViewModels;
+using GitCredentialManager.UI.Views;
 using Microsoft.Identity.Client;
+using Microsoft.Identity.Client.Broker;
 using Spectre.Console;
 
 namespace GitCredentialManager.Authentication.Entra;
@@ -31,14 +36,59 @@ public record PublicClientConfig
     /// Git Credential Manager cache, used only by GCM.
     /// </remarks>
     public bool UseSharedCache { get; init; }
+
+    /// <summary>
+    /// Indicates the client app supports the Windows Broker.
+    /// </summary>
+    /// <remarks>
+    /// Only set this to <see langword="true"/> if the Entra application has the appropriate redirect URL:
+    /// <code>ms-appx-web://microsoft.aad.brokerplugin/{clientId}</code>
+    /// </remarks>
+    public bool SupportsWindowsBroker { get; init; }
+
+    /// <summary>
+    /// Indicates the client app supports the Mac Broker.
+    /// </summary>
+    /// <remarks>
+    /// Only set this to <see langword="true"/> if the Entra application has the appropriate redirect URL:
+    /// <code>msauth.com.msauth.unsignedapp://auth</code>
+    /// </remarks>
+    public bool SupportsMacBroker { get; init; }
+
+    /// <summary>
+    /// Indicates the client app supports the Linux Broker.
+    /// </summary>
+    /// <remarks>
+    /// Only set this to <see langword="true"/> if the Entra application has the appropriate redirect URL:
+    /// <code>https://login.microsoftonline.com/common/oauth2/nativeclient</code>
+    /// </remarks>
+    public bool SupportsLinuxBroker { get; init; }
 }
 
 public partial class EntraAuthentication
 {
+    private const string MacBrokerRedirectUrl = "msauth.com.msauth.unsignedapp://auth";
     private readonly PublicClientConfig _publicClientConfig;
 
     public async Task<InteractionMode> GetInteractionModeAsync(CancellationToken ct = default)
     {
+        // Check for broker first, because if broker will be used then we always defer to that
+        // so the interaction mode doesn't actually matter!
+        if (IsBrokerEnabled())
+        {
+            // Sadly in order to check if the broker is actually available we need to construct
+            // an MSAL public client application builder, even if we're not using it at all here.
+            // If the user has enabled the broker, but it is not available, there will be a small
+            // performance hit calling this API. If there are subsequent calls to other public
+            // client app APIs then we're just shifting the cost of the builder construction from
+            // those callsites to here, since the builder is reused for all public client APIs.
+            GetPublicAppBuilder(out bool useBroker);
+            if (useBroker)
+            {
+                return InteractionMode.Auto;
+            }
+        }
+
         // Check for a stored user preference
         if (TryGetModePreference(out InteractionMode mode))
         {
@@ -81,7 +131,7 @@ public partial class EntraAuthentication
 
     public async Task<IReadOnlyList<IEntraAccount>> GetUserAccountsAsync(CancellationToken ct = default)
     {
-        IPublicClientApplication app = GetPublicAppBuilder().Build();
+        IPublicClientApplication app = GetPublicAppBuilder(out _).Build();
         await RegisterCacheAsync(app);
 
         IEnumerable<IAccount> accounts = await app.GetAccountsAsync();
@@ -90,7 +140,7 @@ public partial class EntraAuthentication
 
     public async Task<bool> RemoveUserAccountAsync(IEntraAccount account)
     {
-        IPublicClientApplication app = GetPublicAppBuilder().Build();
+        IPublicClientApplication app = GetPublicAppBuilder(out _).Build();
         await RegisterCacheAsync(app);
 
         IAccount msalAccount = await ResolveAccountAsync(app, account);
@@ -109,14 +159,17 @@ public partial class EntraAuthentication
         IEntraAccount account = null, InteractionMode interactionMode = InteractionMode.Auto,
         CancellationToken ct = default)
     {
-        PublicClientApplicationBuilder builder = GetPublicAppBuilder();
+        PublicClientApplicationBuilder builder = GetPublicAppBuilder(out bool useBroker);
         if (!string.IsNullOrWhiteSpace(authority))
         {
             builder.WithAuthority(authority);
         }
 
+        // The Windows broker always requires a parent window
+        bool parentWindowRequired = useBroker && PlatformUtils.IsWindows();
+
         // Set up the parent window adapter to use for any interactive auth flows
-        MsalParentWindowAdapter parentWindow = MsalParentWindowAdapter.Create(GetParentWindowHandle());
+        using var parentWindow = MsalParentWindowAdapter.Create(GetParentWindowHandle(), parentWindowRequired);
         builder.WithParentActivityOrWindow(parentWindow.GetWindow);
 
         IPublicClientApplication app = builder.Build();
@@ -138,7 +191,15 @@ public partial class EntraAuthentication
 
         ThrowIfUserInteractionDisabled();
 
-        result = await GetTokenForUserInteractiveAsync(app, scopes, interactionMode, ct);
+        // Try interactive auth if we couldn't do so with a cached account
+        if (useBroker)
+        {
+            result = await GetTokenForUserBrokerAsync(app, scopes, msalAccount, ct);
+        }
+        else
+        {
+            result = await GetTokenForUserInteractiveAsync(app, scopes, interactionMode, ct);
+        }
 
         return AuthResult.FromMsalResult(result);
     }
@@ -152,8 +213,9 @@ public partial class EntraAuthentication
             return null;
         }
 
-        Context.Trace.WriteLine(
-            $"Attempting silent authentication using account '{msalAccount.HomeAccountId.Identifier}'");
+        Context.Trace.WriteLine(ReferenceEquals(msalAccount, PublicClientApplication.OperatingSystemAccount)
+            ? "Attempting silent authentication using default operating system account"
+            : $"Attempting silent authentication using account '{msalAccount.HomeAccountId.Identifier}'");
         try
         {
             return await app.AcquireTokenSilent(scopes, msalAccount)
@@ -165,6 +227,50 @@ public partial class EntraAuthentication
             Context.Trace.WriteLine("Silent authentication failed; interaction required!");
             return null;
         }
+    }
+
+    private async Task<AuthenticationResult> GetTokenForUserBrokerAsync(
+        IPublicClientApplication app, string[] scopes, IAccount msalAccount, CancellationToken ct)
+    {
+        // If we don't have a specific account, let's try using the default operating system account
+        // to silently authenticate first.
+        if (msalAccount is null && Context.Settings.UseMsAuthDefaultAccount != false)
+        {
+            Context.Trace.WriteLine("Checking if default OS account can authenticate silently...");
+            var result = await GetTokenForUserSilentAsync(app, scopes, PublicClientApplication.OperatingSystemAccount, ct);
+            if (result is not null)
+            {
+                // We require the user explicitly opt in to using the default OS account
+                if (Context.Settings.UseMsAuthDefaultAccount == true ||
+                    await UseDefaultAccountAsync(result.Account.Username, ct))
+                {
+                    Context.Trace.WriteLine("Using silently acquired token for default OS account.");
+                    return result;
+                }
+
+                Context.Trace.WriteLine("User opted not to use default OS account.");
+            }
+        }
+
+        Context.Trace.WriteLine("Using broker for interactive authentication...");
+
+        // On some platforms the broker requires the use of the main thread to display UI.
+        // If we are on some other thread, we need to dispatch the interactive auth call to the main thread.
+        bool isMainThreadRequired = PlatformUtils.IsMacOS();
+        if (isMainThreadRequired && !Dispatcher.MainThread.CheckAccess())
+        {
+            Context.Trace.WriteLine("Dispatching interactive broker authentication to main thread...");
+            Task<AuthenticationResult> mainThreadTask = await Dispatcher.MainThread.InvokeAsync(async _ =>
+                await app.AcquireTokenInteractive(scopes)
+                    .ExecuteAsync(ct)
+            );
+
+            return await mainThreadTask;
+        }
+
+        // Run the auth on the current thread
+        return await app.AcquireTokenInteractive(scopes)
+            .ExecuteAsync(ct);
     }
 
     private async Task<AuthenticationResult> GetTokenForUserInteractiveAsync(
@@ -216,6 +322,44 @@ public partial class EntraAuthentication
             default:
                 throw new ArgumentOutOfRangeException(nameof(interactionMode), interactionMode, "Unexpected interaction mode.");
         }
+    }
+
+    private async Task<bool> UseDefaultAccountAsync(string userName, CancellationToken ct)
+    {
+        ThrowIfUserInteractionDisabled();
+
+        if (Context.SessionManager.IsDesktopSession && Context.Settings.IsGuiPromptsEnabled)
+        {
+            if (TryFindHelperCommand(out string command, out string args))
+            {
+                var sb = new StringBuilder(args);
+                sb.Append("default-account");
+                sb.AppendFormat(" --username {0}", QuoteCmdArg(userName));
+
+                IDictionary<string, string> result = await InvokeHelperAsync(command, sb.ToString());
+
+                if (result.TryGetValue("use_default_account", out string str) && !string.IsNullOrWhiteSpace(str))
+                {
+                    return str.ToBooleanyOrDefault(false);
+                }
+
+                throw new Trace2Exception(Context.Trace2, "Missing use_default_account in response");
+            }
+
+            var viewModel = new DefaultAccountViewModel(Context.SessionManager)
+            {
+                UserName = userName
+            };
+
+            await AvaloniaUi.ShowViewAsync<DefaultAccountView>(viewModel, GetParentWindowHandle(), ct);
+
+            ThrowIfWindowCancelled(viewModel);
+
+            return viewModel.UseDefaultAccount;
+        }
+
+        var prompt = new ConfirmationPrompt($"Continue with current account ({userName})?");
+        return await prompt.ShowAsync(Context.Console, ct);
     }
 
     private async Task<IAccount> ResolveAccountAsync(IPublicClientApplication app, IEntraAccount account)
@@ -287,8 +431,13 @@ public partial class EntraAuthentication
     }
 
     private PublicClientApplicationBuilder _publicBuilder;
+    private bool _useBroker;
 
-    private PublicClientApplicationBuilder GetPublicAppBuilder()
+    /// <summary>
+    /// Gets the public client application builder.
+    /// </summary>
+    /// <param name="useBroker">True if the broker will be used for this applications build using this builder.</param>
+    private PublicClientApplicationBuilder GetPublicAppBuilder(out bool useBroker)
     {
         if (_publicClientConfig is null)
         {
@@ -299,14 +448,73 @@ public partial class EntraAuthentication
         if (_publicBuilder is null)
         {
             Context.Trace.WriteLine("Creating public client application builder...");
-            _publicBuilder = PublicClientApplicationBuilder.Create(_publicClientConfig.ClientId)
+            var builder = PublicClientApplicationBuilder.Create(_publicClientConfig.ClientId)
                 .WithHttpClientFactory(_httpFactory)
                 .WithTraceLogging(Context)
                 .WithLegacyCacheCompatibility(false)
                 .WithDefaultRedirectUri();
+
+            // Try and configure the broker if the user has opted in to using it,
+            // and it is available in the current environment
+            if (Context.SessionManager.IsDesktopSession && IsBrokerEnabled())
+            {
+                // In order to check if the broker is available you have to optimistically
+                // configure the builder to use the broker and then check.
+                builder.WithBroker(GetBrokerOptions());
+
+                _useBroker = builder.IsBrokerAvailable();
+                if (_useBroker)
+                {
+                    Context.Trace.WriteLine("Broker enabled and available.");
+
+                    // The macOS broker requires a specific redirect URL so the SSO
+                    // extension can communicate back to our bundle.
+                    // Technically this should be "msauth.{bundleID}://auth" but since
+                    // we don't ship as a bundled application we must use the special
+                    // "unsigned" bundle redirect URL.
+                    if (PlatformUtils.IsMacOS())
+                    {
+                        Context.Trace.WriteLine($"Setting redirect URL for Mac broker to '{MacBrokerRedirectUrl}'");
+                        builder.WithRedirectUri(MacBrokerRedirectUrl);
+                    }
+                }
+                else
+                {
+                    // If the broker was not available we must unconfigure it, or create a new builder.
+                    // Since creating a new builder is a lot of work, and there is no way to undo a
+                    // "WithBroker" call (it registers the 'runtime broker' internally which cannot be undone),
+                    // we just reconfigure it again but with advertised support for no supported operating
+                    // systems - this effectively disables the broker again.
+                    builder.WithBroker(new BrokerOptions(BrokerOptions.OperatingSystems.None));
+                }
+            }
+
+            _publicBuilder = builder;
         }
 
+        useBroker = _useBroker;
         return _publicBuilder;
+    }
+
+    private BrokerOptions GetBrokerOptions()
+    {
+        var oses = BrokerOptions.OperatingSystems.None;
+
+        if (_publicClientConfig.SupportsWindowsBroker)
+            oses |= BrokerOptions.OperatingSystems.Windows;
+
+        if (_publicClientConfig.SupportsMacBroker)
+            oses |= BrokerOptions.OperatingSystems.OSX;
+
+        if (_publicClientConfig.SupportsLinuxBroker)
+            oses |= BrokerOptions.OperatingSystems.Linux;
+
+        return new BrokerOptions(oses)
+        {
+            Title = "Git Credential Manager",
+            ListOperatingSystemAccounts = true,
+            MsaPassthrough = _publicClientConfig.IsMsaPassthroughEnabled
+        };
     }
 
     private EmbeddedWebViewOptions GetEmbeddedWebViewOptions()
@@ -397,14 +605,14 @@ public partial class EntraAuthentication
     /// <summary>
     /// Check if the user has opted-in to using the authentication broker.
     /// </summary>
-    public bool CanUseBroker()
+    /// <remarks>
+    /// This reflects the user preference for use of the broker, and may return true
+    /// even if the broker is not available on the current platform. Always check the
+    /// out parameter of <see cref="GetPublicAppBuilder(out bool)"/> to see if the
+    /// broker will be used for authentication.
+    /// </remarks>
+    private bool IsBrokerEnabled()
     {
-        // We only support the broker on Windows 10+ and in an interactive session
-        if (!PlatformUtils.IsWindowsBrokerSupported() || !Context.SessionManager.IsDesktopSession)
-        {
-            return false;
-        }
-
         // Default to using the OS broker only on DevBox for the time being
         bool defaultValue = PlatformUtils.IsDevBox();
 

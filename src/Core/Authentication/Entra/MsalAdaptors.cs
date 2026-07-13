@@ -1,6 +1,8 @@
 using System;
 using System.Net.Http;
+using System.Threading;
 using GitCredentialManager.Interop.Windows.Native;
+using GitCredentialManager.UI.Controls;
 using Microsoft.Identity.Client;
 
 namespace GitCredentialManager.Authentication.Entra;
@@ -23,18 +25,21 @@ internal class MsalHttpClientFactoryAdaptor : IMsalHttpClientFactory
         _instance ??= _factory.CreateClient();
 }
 
-internal class MsalParentWindowAdapter
+internal class MsalParentWindowAdapter : IDisposable
 {
     private readonly object _parentWindow;
+    private readonly bool _createIfMissing;
+    private readonly CancellationTokenSource _cts = new();
 
-    public static MsalParentWindowAdapter Create(object parentWindow)
+    public static MsalParentWindowAdapter Create(object parentWindow, bool createIfMissing = false)
     {
-        return new MsalParentWindowAdapter(parentWindow);
+        return new MsalParentWindowAdapter(parentWindow, createIfMissing);
     }
 
-    private MsalParentWindowAdapter(object parentWindow)
+    private MsalParentWindowAdapter(object parentWindow, bool createIfMissing = false)
     {
         _parentWindow = parentWindow;
+        _createIfMissing = createIfMissing;
     }
 
     public object GetWindow()
@@ -42,6 +47,12 @@ internal class MsalParentWindowAdapter
         if (_parentWindow is IntPtr p && p != IntPtr.Zero)
         {
             return _parentWindow;
+        }
+
+        // Create a stub window to use as a parent
+        if (_createIfMissing)
+        {
+            return ProgressWindow.ShowAndGetHandle(_cts.Token);
         }
 
         // On Windows we can try and get the console window parent handle if that exists
@@ -57,5 +68,11 @@ internal class MsalParentWindowAdapter
         }
 
         return null;
+    }
+
+    public void Dispose()
+    {
+        // Close and clean up any stub window we may have created
+        _cts.Cancel();
     }
 }

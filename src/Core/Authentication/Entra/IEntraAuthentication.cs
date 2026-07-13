@@ -11,8 +11,12 @@ public interface IEntraAuthentication
     /// </summary>
     /// <remarks>
     /// <para>
-    /// If the user has a stored preference, this value will be returned. Otherwise,
-    /// the user will be prompted to choose an interaction mode.
+    /// If the authentication broker is enabled, this method will always return
+    /// <see cref="InteractionMode.Auto"/> without any prompts.
+    /// </para>
+    /// <para>
+    /// If the broker is not enabled/available, and the user has a stored preference, this value
+    /// will be returned. Otherwise, the user will be prompted to choose an interaction mode.
     /// </para>
     /// <para>
     /// If the <see cref="InteractionMode.Auto"/> value is returned this means that the user

@@ -407,6 +407,10 @@ namespace Microsoft.AzureRepos
                 ClientId = GetClientId(),
                 IsMsaPassthroughEnabled = true,
                 UseSharedCache = true,
+                SupportsWindowsBroker = true,
+                // TODO: enable once our app registration has the appropriate redirect URLs
+                //SupportsMacBroker = true,
+                //SupportsLinuxBroker = true,
             };
         }
 

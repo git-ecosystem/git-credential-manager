@@ -10,13 +10,12 @@ namespace GitCredentialManager.Diagnostics
     public class EntraAuthenticationDiagnostic : Diagnostic
     {
         public EntraAuthenticationDiagnostic(ICommandContext context)
-            : base("Microsoft authentication (AAD/MSA)", context)
+            : base("Microsoft Entra authentication", context)
         { }
 
         protected override async Task<bool> RunInternalAsync(StringBuilder log, IList<string> additionalFiles)
         {
             var msAuth = new EntraAuthentication(CommandContext);
-            log.AppendLine(msAuth.CanUseBroker() ? "Broker is enabled." : "Broker is not enabled.");
 
             log.Append("Gathering MSAL token cache data...");
             StorageCreationProperties cacheProps = msAuth.CreateUserTokenCacheProps(true);
