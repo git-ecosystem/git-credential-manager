@@ -4,37 +4,37 @@ using GitCredentialManager.Authentication.Entra;
 using GitCredentialManager.Tests.Objects;
 using Xunit;
 
-namespace GitCredentialManager.Tests.Authentication.Entra
+namespace GitCredentialManager.Tests.Authentication.Entra;
+
+public class EntraAuthenticationTests
 {
-    public class EntraAuthenticationTests
+    [Fact]
+    public async Task GetTokenForUserAsync_NoInteraction_ThrowsException()
     {
-        [Fact]
-        public async Task EntraAuthentication_GetTokenForUserAsync_NoInteraction_ThrowsException()
+        const string authority = "https://login.microsoftonline.com/common";
+        const string clientId = "C9E8FDA6-1D46-484C-917C-3DBD518F27C3";
+        string[] scopes = ["user.read"];
+
+        var context = new TestCommandContext
         {
-            const string authority = "https://login.microsoftonline.com/common";
-            const string clientId = "C9E8FDA6-1D46-484C-917C-3DBD518F27C3";
-            Uri redirectUri = new Uri("https://localhost");
-            string[] scopes = {"user.read"};
-            const IEntraAccount account = null; // No account to ensure we do not use an existing token
-
-            var context = new TestCommandContext
-            {
-                Settings = {IsInteractionAllowed = false},
-            };
-
-            var msAuth = new EntraAuthentication(context);
-
-            await Assert.ThrowsAsync<Trace2InvalidOperationException>(
-                () => msAuth.GetTokenForUserAsync(authority, clientId, redirectUri, scopes, account, false));
-        }
-
-        [Fact]
-        public async Task EntraAuthentication_GetUserAccountsAsync_NoPublicClientConfig_ThrowsException()
+            Settings = { IsInteractionAllowed = false },
+        };
+        var config = new PublicClientConfig
         {
-            var entraAuth = new EntraAuthentication(new TestCommandContext());
+            ClientId = clientId,
+        };
+        var entraAuth = new EntraAuthentication(context, config);
 
-            await Assert.ThrowsAsync<InvalidOperationException>(
-                () => entraAuth.GetUserAccountsAsync());
-        }
+        await Assert.ThrowsAsync<Trace2InvalidOperationException>(
+            () => entraAuth.GetTokenForUserAsync(scopes, authority));
+    }
+
+    [Fact]
+    public async Task GetUserAccountsAsync_NoPublicClientConfig_ThrowsException()
+    {
+        var entraAuth = new EntraAuthentication(new TestCommandContext());
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => entraAuth.GetUserAccountsAsync());
     }
 }

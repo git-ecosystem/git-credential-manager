@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -39,18 +38,13 @@ public interface IEntraAuthentication
     /// <summary>
     /// Acquire an access token for a user principal.
     /// </summary>
-    /// <param name="authority">Azure authority.</param>
-    /// <param name="clientId">Client ID.</param>
-    /// <param name="redirectUri">Redirect URI for the client.</param>
-    /// <param name="scopes">Set of scopes to request.</param>
-    /// <param name="account">Optional existing account to use.</param>
-    /// <param name="msaPt">Use MSA-Passthrough behavior when authenticating.</param>
-    /// <param name="interactionMode">Interaction mode to use for interactive authentication.</param>
-    /// <param name="ct">Cancellation token.</param>
-    /// <returns>Authentication result.</returns>
-    Task<IEntraAuthenticationResult> GetTokenForUserAsync(string authority, string clientId, Uri redirectUri,
-        string[] scopes, IEntraAccount account, bool msaPt = false,
-        InteractionMode interactionMode = InteractionMode.Auto, CancellationToken ct = default);
+    Task<IEntraAuthenticationResult> GetTokenForUserAsync(
+        string[] scopes,
+        string authority = null,
+        IEntraAccount account = null,
+        InteractionMode interactionMode = InteractionMode.Auto,
+        CancellationToken ct = default
+    );
 
     /// <summary>
     /// Acquire an access token for a service principal.

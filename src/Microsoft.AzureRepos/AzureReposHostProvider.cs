@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using GitCredentialManager;
 using GitCredentialManager.Authentication.Entra;
 using GitCredentialManager.Commands;
-using GitCredentialManager.Tty;
 using KnownGitCfg = GitCredentialManager.Constants.GitConfiguration;
 
 namespace Microsoft.AzureRepos
@@ -18,31 +17,41 @@ namespace Microsoft.AzureRepos
     {
         private readonly ICommandContext _context;
         private readonly IAzureDevOpsRestApi _azDevOps;
-        private readonly IEntraAuthentication _msAuth;
         private readonly IAzureDevOpsAuthorityCache _authorityCache;
         private readonly IAzureReposBindingManager _bindingManager;
+        private readonly Lazy<IEntraAuthentication> _entraAuth;
 
         public AzureReposHostProvider(ICommandContext context)
-            : this(context, new AzureDevOpsRestApi(context), new EntraAuthentication(context),
+            : this(context, new AzureDevOpsRestApi(context),
                 new AzureDevOpsAuthorityCache(context), new AzureReposBindingManager(context))
         {
         }
 
         public AzureReposHostProvider(ICommandContext context, IAzureDevOpsRestApi azDevOps,
-            IEntraAuthentication msAuth, IAzureDevOpsAuthorityCache authorityCache,
+            IAzureDevOpsAuthorityCache authorityCache,
             IAzureReposBindingManager bindingManager)
         {
             EnsureArgument.NotNull(context, nameof(context));
             EnsureArgument.NotNull(azDevOps, nameof(azDevOps));
-            EnsureArgument.NotNull(msAuth, nameof(msAuth));
             EnsureArgument.NotNull(authorityCache, nameof(authorityCache));
             EnsureArgument.NotNull(bindingManager, nameof(bindingManager));
 
             _context = context;
             _azDevOps = azDevOps;
-            _msAuth = msAuth;
             _authorityCache = authorityCache;
             _bindingManager = bindingManager;
+            _entraAuth = new Lazy<IEntraAuthentication>(
+                () => new EntraAuthentication(_context, GetEntraConfig()));
+        }
+
+        public AzureReposHostProvider(ICommandContext context, IAzureDevOpsRestApi azDevOps,
+            IEntraAuthentication entraAuth, IAzureDevOpsAuthorityCache authorityCache,
+            IAzureReposBindingManager bindingManager)
+            : this(context, azDevOps, authorityCache, bindingManager)
+        {
+            EnsureArgument.NotNull(entraAuth, nameof(entraAuth));
+
+            _entraAuth = new Lazy<IEntraAuthentication>(() => entraAuth);
         }
 
         #region IHostProvider
@@ -79,28 +88,31 @@ namespace Microsoft.AzureRepos
         {
             if (UseManagedIdentity(out ManagedIdentity mid))
             {
-                _context.Trace.WriteLine($"Getting Azure Access Token for managed identity {mid.Id}...");
-                var azureResult = await _msAuth.GetTokenForManagedIdentityAsync(AzureDevOpsConstants.AzureDevOpsResourceId, mid);
+                _context.Trace.WriteLine($"Getting Entra access token for managed identity {mid}...");
+                var entraResult = await _entraAuth.Value.GetTokenForManagedIdentityAsync(
+                    AzureDevOpsConstants.AzureDevOpsResourceId, mid);
                 return new GitResponse(
-                    new GitCredential(mid.Id, azureResult.AccessToken)
+                    new GitCredential(mid.Id, entraResult.AccessToken)
                 );
             }
 
             if (UseWorkloadFederation(out WorkloadFederationOptions fedOpts))
             {
-                _context.Trace.WriteLine($"Getting Azure Access Token using WIF (scenario: {fedOpts.Scenario})...");
-                var azureResult = await _msAuth.GetTokenUsingWorkloadFederationAsync(AzureDevOpsConstants.AzureDevOpsDefaultScopes, fedOpts);
+                _context.Trace.WriteLine($"Getting Entra access token using WIF (scenario: {fedOpts.Scenario})...");
+                var entraResult = await _entraAuth.Value.GetTokenUsingWorkloadFederationAsync(
+                    AzureDevOpsConstants.AzureDevOpsDefaultScopes, fedOpts);
                 return new GitResponse(
-                    new GitCredential(fedOpts.ClientId, azureResult.AccessToken)
+                    new GitCredential(fedOpts.ClientId, entraResult.AccessToken)
                 );
             }
 
             if (UseServicePrincipal(out ServicePrincipalIdentity sp))
             {
-                _context.Trace.WriteLine($"Getting Azure Access Token for service principal {sp.TenantId}/{sp.Id}...");
-                var azureResult = await _msAuth.GetTokenForServicePrincipalAsync(AzureDevOpsConstants.AzureDevOpsDefaultScopes, sp);
+                _context.Trace.WriteLine($"Getting Entra access token for service principal {sp.TenantId}/{sp.Id}...");
+                var entraResult = await _entraAuth.Value.GetTokenForServicePrincipalAsync(
+                    AzureDevOpsConstants.AzureDevOpsDefaultScopes, sp);
                 return new GitResponse(
-                    new GitCredential(sp.Id, azureResult.AccessToken)
+                    new GitCredential(sp.Id, entraResult.AccessToken)
                 );
             }
 
@@ -132,10 +144,10 @@ namespace Microsoft.AzureRepos
             else
             {
                 // Include the username request here so that we may use it as an override
-                // for user account lookups when getting Azure Access Tokens.
-                var azureResult = await GetAzureAccessTokenAsync(request);
-                var azureCredential = new GitCredential(azureResult.Account.UserName, azureResult.AccessToken);
-                return new GitResponse(azureCredential);
+                // for user account lookups when getting Entra access tokens.
+                var entraResult = await GetEntraAccessTokenAsync(request);
+                var entraCredential = new GitCredential(entraResult.Account.UserName, entraResult.AccessToken);
+                return new GitResponse(entraCredential);
             }
         }
 
@@ -251,22 +263,18 @@ namespace Microsoft.AzureRepos
             Uri remoteUserUri = request.GetRemoteUri(includeUser: true);
             Uri orgUri = UriHelpers.CreateOrganizationUri(remoteUserUri, out _);
 
-            // Determine the MS authentication authority for this organization
-            _context.Trace.WriteLine("Determining Microsoft Authentication Authority...");
+            // Determine the Entra authentication authority for this organization
+            _context.Trace.WriteLine("Determining Entra authentication authority...");
             string authAuthority = await _azDevOps.GetAuthorityAsync(orgUri);
             _context.Trace.WriteLine($"Authority is '{authAuthority}'.");
 
-            // Get an AAD access token for the Azure DevOps SPS
-            _context.Trace.WriteLine("Getting Azure AD access token...");
-            IEntraAuthenticationResult result = await _msAuth.GetTokenForUserAsync(
-                authAuthority,
-                GetClientId(),
-                GetRedirectUri(),
+            // Get an Entra access token for the Azure DevOps SPS
+            _context.Trace.WriteLine("Getting Entra access token...");
+            IEntraAuthenticationResult result = await _entraAuth.Value.GetTokenForUserAsync(
                 AzureDevOpsConstants.AzureDevOpsDefaultScopes,
-                null,
-                msaPt: true);
+                authAuthority);
             _context.Trace.WriteLineSecrets(
-                $"Acquired Azure access token. Account='{result.Account.UserName}' Token='{{0}}'", new object[] {result.AccessToken});
+                $"Acquired Entra access token. Account='{result.Account.UserName}' Token='{{0}}'", new object[] {result.AccessToken});
 
             // Ask the Azure DevOps instance to create a new PAT
             var patScopes = new[]
@@ -284,7 +292,7 @@ namespace Microsoft.AzureRepos
             return new GitCredential(result.Account.UserName, pat);
         }
 
-        private async Task<IEntraAuthenticationResult> GetAzureAccessTokenAsync(GitRequest request)
+        private async Task<IEntraAuthenticationResult> GetEntraAccessTokenAsync(GitRequest request)
         {
             ThrowIfUnsafeRemote(request);
 
@@ -293,7 +301,7 @@ namespace Microsoft.AzureRepos
 
             Uri orgUri = UriHelpers.CreateOrganizationUri(remoteWithUserUri, out string orgName);
 
-            _context.Trace.WriteLine($"Determining Microsoft Authentication authority for Azure DevOps organization '{orgName}'...");
+            _context.Trace.WriteLine($"Determining Entra authority for Azure DevOps organization '{orgName}'...");
             if (TryGetAuthorityFromHeaders(request.WwwAuth, out string authAuthority))
             {
                 _context.Trace.WriteLine("Authority was found in WWW-Authenticate headers from Git request.");
@@ -349,7 +357,7 @@ namespace Microsoft.AzureRepos
             else
             {
                 _context.Trace.WriteLine($"Looking for cached Entra account matching username '{userName}'...");
-                IReadOnlyList<IEntraAccount> cached = await _msAuth.GetUserAccountsAsync();
+                IReadOnlyList<IEntraAccount> cached = await _entraAuth.Value.GetUserAccountsAsync();
                 account = cached.FirstOrDefault(a => icmp.Equals(a.UserName, userName));
                 _context.Trace.WriteLine(account is null
                     ? "No cached account found."
@@ -357,16 +365,13 @@ namespace Microsoft.AzureRepos
             }
 
             // Get an AAD access token for the Azure DevOps SPS
-            _context.Trace.WriteLine("Getting Azure AD access token...");
-            IEntraAuthenticationResult result = await _msAuth.GetTokenForUserAsync(
-                authAuthority,
-                GetClientId(),
-                GetRedirectUri(),
+            _context.Trace.WriteLine("Getting Entra access token...");
+            IEntraAuthenticationResult result = await _entraAuth.Value.GetTokenForUserAsync(
                 AzureDevOpsConstants.AzureDevOpsDefaultScopes,
-                account,
-                msaPt: true);
+                authAuthority,
+                account);
             _context.Trace.WriteLineSecrets(
-                $"Acquired Azure access token. Account='{result.Account.UserName}' Token='{{0}}'", new object[] {result.AccessToken});
+                $"Acquired Entra access token. Account='{result.Account.UserName}' Token='{{0}}'", new object[] {result.AccessToken});
 
             return result;
         }
@@ -395,6 +400,16 @@ namespace Microsoft.AzureRepos
             return false;
         }
 
+        private PublicClientConfig GetEntraConfig()
+        {
+            return new PublicClientConfig
+            {
+                ClientId = GetClientId(),
+                IsMsaPassthroughEnabled = true,
+                UseSharedCache = true,
+            };
+        }
+
         private string GetClientId()
         {
             // Check for developer override value
@@ -408,21 +423,6 @@ namespace Microsoft.AzureRepos
             }
 
             return AzureDevOpsConstants.AadClientId;
-        }
-
-        private Uri GetRedirectUri()
-        {
-            // Check for developer override value
-            if (_context.Settings.TryGetSetting(
-                    AzureDevOpsConstants.EnvironmentVariables.DevAadRedirectUri,
-                    Constants.GitConfiguration.Credential.SectionName, AzureDevOpsConstants.GitConfiguration.Credential.DevAadRedirectUri,
-                    out string redirectUriStr) &&
-                Uri.TryCreate(redirectUriStr, UriKind.Absolute, out Uri redirectUri))
-            {
-                return redirectUri;
-            }
-
-            return AzureDevOpsConstants.AadRedirectUri;
         }
 
         /// <remarks>

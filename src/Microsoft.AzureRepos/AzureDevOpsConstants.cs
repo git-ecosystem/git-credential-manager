@@ -15,9 +15,6 @@ namespace Microsoft.AzureRepos
         // We share this to be able to consume existing access tokens from the VS caches
         public const string AadClientId = "872cd9fa-d31f-45e0-9eab-6e460a02d1f1";
 
-        // Redirect URI specified by the Visual Studio application configuration
-        public static readonly Uri AadRedirectUri = new Uri("http://localhost");
-
         public const string VstsHostSuffix = ".visualstudio.com";
         public const string AzureDevOpsHost = "dev.azure.com";
 
@@ -38,7 +35,6 @@ namespace Microsoft.AzureRepos
         public static class EnvironmentVariables
         {
             public const string DevAadClientId = "GCM_DEV_AZREPOS_CLIENTID";
-            public const string DevAadRedirectUri = "GCM_DEV_AZREPOS_REDIRECTURI";
             public const string DevAadAuthorityBaseUri = "GCM_DEV_AZREPOS_AUTHORITYBASEURI";
             public const string CredentialType = "GCM_AZREPOS_CREDENTIALTYPE";
             public const string ServicePrincipalId = "GCM_AZREPOS_SERVICE_PRINCIPAL";
@@ -59,7 +55,6 @@ namespace Microsoft.AzureRepos
             public static class Credential
             {
                 public const string DevAadClientId = "azreposDevClientId";
-                public const string DevAadRedirectUri = "azreposDevRedirectUri";
                 public const string DevAadAuthorityBaseUri = "azreposDevAuthorityBaseUri";
                 public const string CredentialType = "azreposCredentialType";
                 public const string AzureAuthority = "azureAuthority";
