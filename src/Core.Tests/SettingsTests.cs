@@ -1457,5 +1457,51 @@ namespace GitCredentialManager.Tests
 
             Assert.Equal(expectedValue, actualValue);
         }
+
+        [Theory]
+        [InlineData("1", true)]
+        [InlineData("true", true)]
+        [InlineData("0", false)]
+        [InlineData("false", false)]
+        public void Settings_UseMsAuthDefaultAccount_EnvarSet_ReturnsValue(
+            string value, bool expected)
+        {
+            var envars = new TestEnvironment
+            {
+                Variables =
+                {
+                    [Constants.EnvironmentVariables.MsAuthUseDefaultAccount] = value
+                }
+            };
+            var settings = new Settings(envars, new TestGit());
+
+            Assert.Equal(expected, settings.UseMsAuthDefaultAccount);
+        }
+
+        [Theory]
+        [InlineData("1", true)]
+        [InlineData("true", true)]
+        [InlineData("0", false)]
+        [InlineData("false", false)]
+        public void Settings_UseMsAuthDefaultAccount_ConfigSet_ReturnsValue(
+            string value, bool expected)
+        {
+            const string section = Constants.GitConfiguration.Credential.SectionName;
+            const string property = Constants.GitConfiguration.Credential.MsAuthUseDefaultAccount;
+            var git = new TestGit();
+            git.Configuration.Global[$"{section}.{property}"] = [value];
+            var settings = new Settings(new TestEnvironment(), git);
+
+            Assert.Equal(expected, settings.UseMsAuthDefaultAccount);
+        }
+
+        [Fact]
+        public void Settings_UseMsAuthDefaultAccount_Unset_ReturnsPlatformDefault()
+        {
+            var settings = new Settings(new TestEnvironment(), new TestGit());
+            bool? expected = PlatformUtils.IsDevBox() ? true : null;
+
+            Assert.Equal(expected, settings.UseMsAuthDefaultAccount);
+        }
     }
 }

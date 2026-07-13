@@ -180,9 +180,13 @@ namespace GitCredentialManager
 
         /// <summary>
         /// Automatically use the default/current operating system account if no other account information is given
-        /// for Microsoft Authentication.
+        /// for Entra authentication.
         /// </summary>
-        bool UseMsAuthDefaultAccount { get; }
+        /// <value>
+        /// True if the default account should be used, false if it should not, and null if the user should
+        /// be asked first.
+        /// </value>
+        bool? UseMsAuthDefaultAccount { get; }
 
         /// <summary>
         /// True if software rendering should be used for graphical user interfaces, false otherwise.
@@ -832,14 +836,27 @@ namespace GitCredentialManager
                 ? credStore
                 : null;
 
-        public bool UseMsAuthDefaultAccount =>
-            TryGetSetting(
-                KnownEnvars.MsAuthUseDefaultAccount,
-                KnownGitCfg.Credential.SectionName,
-                KnownGitCfg.Credential.MsAuthUseDefaultAccount,
-                out string str)
-            ? str.IsTruthy()
-            : PlatformUtils.IsDevBox(); // default to true in DevBox environment
+        public bool? UseMsAuthDefaultAccount
+        {
+            get
+            {
+                if (TryGetSetting(
+                        KnownEnvars.MsAuthUseDefaultAccount,
+                        KnownGitCfg.Credential.SectionName,
+                        KnownGitCfg.Credential.MsAuthUseDefaultAccount,
+                        out string str))
+                {
+                    return str.ToBooleany();
+                }
+
+                if (PlatformUtils.IsDevBox())
+                {
+                    return true;
+                }
+
+                return null;
+            }
+        }
 
         #region IDisposable
 

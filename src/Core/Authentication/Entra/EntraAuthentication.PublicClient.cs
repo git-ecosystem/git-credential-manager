@@ -225,7 +225,7 @@ namespace GitCredentialManager.Authentication.Entra
                         // token 'silently' without knowing the user's UPN. Whilst this could be done truly silently,
                         // we still prompt the user to confirm this action because if the OS account is the incorrect
                         // account then the user may become stuck in a loop of authentication failures.
-                        if (!hasExistingUser && Context.Settings.UseMsAuthDefaultAccount)
+                        if (!hasExistingUser && Context.Settings.UseMsAuthDefaultAccount != false)
                         {
                             result = await GetAccessTokenSilentlyAsync(app, scopes, null, msaPt);
 
