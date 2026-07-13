@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
-using GitCredentialManager.Authentication;
+using GitCredentialManager.Authentication.Entra;
 using Microsoft.Identity.Client.Extensions.Msal;
 
 namespace GitCredentialManager.Diagnostics

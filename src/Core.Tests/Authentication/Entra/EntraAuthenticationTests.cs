@@ -1,11 +1,11 @@
 using System;
 using System.Threading.Tasks;
-using GitCredentialManager.Authentication;
+using GitCredentialManager.Authentication.Entra;
 using GitCredentialManager.Tests.Objects;
 using Microsoft.Identity.Client.AppConfig;
 using Xunit;
 
-namespace GitCredentialManager.Tests.Authentication
+namespace GitCredentialManager.Tests.Authentication.Entra
 {
     public class EntraAuthenticationTests
     {

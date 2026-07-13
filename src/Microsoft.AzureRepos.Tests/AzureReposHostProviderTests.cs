@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using GitCredentialManager;
-using GitCredentialManager.Authentication;
+using GitCredentialManager.Authentication.Entra;
 using GitCredentialManager.Tests;
 using GitCredentialManager.Tests.Objects;
 using Moq;

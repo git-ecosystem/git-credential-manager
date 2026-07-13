@@ -7,7 +7,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using GitCredentialManager;
-using GitCredentialManager.Authentication;
+using GitCredentialManager.Authentication.Entra;
 using GitCredentialManager.Commands;
 using GitCredentialManager.Tty;
 using KnownGitCfg = GitCredentialManager.Constants.GitConfiguration;

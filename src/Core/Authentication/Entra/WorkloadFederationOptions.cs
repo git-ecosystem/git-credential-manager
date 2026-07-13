@@ -1,6 +1,6 @@
 using System;
 
-namespace GitCredentialManager.Authentication;
+namespace GitCredentialManager.Authentication.Entra;
 
 public enum MicrosoftWorkloadFederationScenario
 {
