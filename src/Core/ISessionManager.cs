@@ -67,7 +67,7 @@ namespace GitCredentialManager
                 throw new ArgumentException("Can only open HTTP/HTTPS URIs", nameof(uri));
             }
 
-            OpenBrowserInternal(uri.ToString());
+            OpenBrowserInternal(uri.AbsoluteUri);
         }
 
         protected virtual void OpenBrowserInternal(string url)
