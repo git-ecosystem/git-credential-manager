@@ -589,7 +589,7 @@ namespace Microsoft.AzureRepos.Tests
             var msAuthMock = new Mock<IEntraAuthentication>();
 
             msAuthMock.Setup(x => x.GetTokenForManagedIdentityAsync(It.IsAny<string>(), It.IsAny<string>()))
-                .ReturnsAsync(new MockMsAuthResult { AccessToken = accessToken });
+                .ReturnsAsync(new MockEntraAuthResult { AccessToken = accessToken });
 
             var provider = new AzureReposHostProvider(context, azDevOps, msAuthMock.Object, authorityCache, userMgr);
 
@@ -642,7 +642,7 @@ namespace Microsoft.AzureRepos.Tests
 
             msAuthMock.Setup(x => x.GetTokenUsingWorkloadFederationAsync(
                     It.IsAny<WorkloadFederationOptions>(), It.IsAny<string[]>()))
-                .ReturnsAsync(new MockMsAuthResult { AccessToken = accessToken });
+                .ReturnsAsync(new MockEntraAuthResult { AccessToken = accessToken });
 
             var provider = new AzureReposHostProvider(context, azDevOps, msAuthMock.Object, authorityCache, userMgr);
 
@@ -704,7 +704,7 @@ namespace Microsoft.AzureRepos.Tests
 
             msAuthMock.Setup(x => x.GetTokenUsingWorkloadFederationAsync(
                     It.IsAny<WorkloadFederationOptions>(), It.IsAny<string[]>()))
-                .ReturnsAsync(new MockMsAuthResult { AccessToken = accessToken });
+                .ReturnsAsync(new MockEntraAuthResult { AccessToken = accessToken });
 
             var provider = new AzureReposHostProvider(context, azDevOps, msAuthMock.Object, authorityCache, userMgr);
 
@@ -763,7 +763,7 @@ namespace Microsoft.AzureRepos.Tests
 
             msAuthMock.Setup(x => x.GetTokenUsingWorkloadFederationAsync(
                     It.IsAny<WorkloadFederationOptions>(), It.IsAny<string[]>()))
-                .ReturnsAsync(new MockMsAuthResult { AccessToken = accessToken });
+                .ReturnsAsync(new MockEntraAuthResult { AccessToken = accessToken });
 
             var provider = new AzureReposHostProvider(context, azDevOps, msAuthMock.Object, authorityCache, userMgr);
 
@@ -824,7 +824,7 @@ namespace Microsoft.AzureRepos.Tests
 
             msAuthMock.Setup(x => x.GetTokenUsingWorkloadFederationAsync(
                     It.IsAny<WorkloadFederationOptions>(), It.IsAny<string[]>()))
-                .ReturnsAsync(new MockMsAuthResult { AccessToken = accessToken });
+                .ReturnsAsync(new MockEntraAuthResult { AccessToken = accessToken });
 
             var provider = new AzureReposHostProvider(context, azDevOps, msAuthMock.Object, authorityCache, userMgr);
 
@@ -882,7 +882,7 @@ namespace Microsoft.AzureRepos.Tests
 
             msAuthMock.Setup(x =>
                     x.GetTokenForServicePrincipalAsync(It.IsAny<ServicePrincipalIdentity>(), It.IsAny<string[]>()))
-                .ReturnsAsync(new MockMsAuthResult { AccessToken = accessToken });
+                .ReturnsAsync(new MockEntraAuthResult { AccessToken = accessToken });
 
             var provider = new AzureReposHostProvider(context, azDevOps, msAuthMock.Object, authorityCache, userMgr);
 
@@ -1069,18 +1069,17 @@ namespace Microsoft.AzureRepos.Tests
 
         private static IEntraAuthenticationResult CreateAuthResult(string upn, string token)
         {
-            return new MockMsAuthResult
+            return new MockEntraAuthResult
             {
-                AccountUpn = upn,
+                Account = new EntraAccount(homeAccountId: null, userName: upn),
                 AccessToken = token,
             };
         }
 
-        private class MockMsAuthResult : IEntraAuthenticationResult
+        private class MockEntraAuthResult : IEntraAuthenticationResult
         {
             public string AccessToken { get; set; }
-            public string AccountUpn { get; set; }
-            public string TokenSource { get; set; }
+            public IEntraAccount Account { get; set; }
         }
     }
 }

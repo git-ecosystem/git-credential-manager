@@ -17,17 +17,19 @@ namespace GitCredentialManager.Authentication.Entra
             _publicClientConfig = publicClientConfig;
         }
 
-        private class MsalResult : IEntraAuthenticationResult
+        private class AuthResult : IEntraAuthenticationResult
         {
-            private readonly AuthenticationResult _msalResult;
+            private AuthResult() { }
 
-            public MsalResult(AuthenticationResult msalResult)
-            {
-                _msalResult = msalResult;
-            }
+            public static IEntraAuthenticationResult FromMsalResult(AuthenticationResult result) =>
+                new AuthResult
+                {
+                    AccessToken = result.AccessToken,
+                    Account = result.Account is null ? null : EntraAccount.FromMsalAccount(result.Account)
+                };
 
-            public string AccessToken => _msalResult.AccessToken;
-            public string AccountUpn => _msalResult.Account?.Username;
+            public string AccessToken { get; private init; }
+            public IEntraAccount Account { get; private init; }
         }
     }
 }

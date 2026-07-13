@@ -208,7 +208,7 @@ namespace GitCredentialManager.Authentication.Entra
                     }
                 }
 
-                return new MsalResult(result);
+                return AuthResult.FromMsalResult(result);
             }
             finally
             {

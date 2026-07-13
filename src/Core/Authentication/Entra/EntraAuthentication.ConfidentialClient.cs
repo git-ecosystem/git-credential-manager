@@ -18,7 +18,7 @@ namespace GitCredentialManager.Authentication.Entra
                 Context.Trace.WriteLine($"Sending with X5C: '{sp.SendX5C}'.");
                 AuthenticationResult result = await app.AcquireTokenForClient(scopes).WithSendX5C(sp.SendX5C).ExecuteAsync();;
 
-                return new MsalResult(result);
+                return AuthResult.FromMsalResult(result);
             }
             catch (Exception ex)
             {
@@ -42,7 +42,7 @@ namespace GitCredentialManager.Authentication.Entra
             try
             {
                 AuthenticationResult result = await app.AcquireTokenForManagedIdentity(resource).ExecuteAsync();
-                return new MsalResult(result);
+                return AuthResult.FromMsalResult(result);
             }
             catch (Exception ex)
             {
@@ -62,7 +62,7 @@ namespace GitCredentialManager.Authentication.Entra
               .ExecuteAsync()
               .ConfigureAwait(false);
 
-            return new MsalResult(result);
+            return AuthResult.FromMsalResult(result);
         }
 
         private async Task<string> GetClientAssertion(WorkloadFederationOptions fedOpts, AssertionRequestOptions _)

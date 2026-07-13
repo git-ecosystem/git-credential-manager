@@ -134,7 +134,7 @@ namespace Microsoft.AzureRepos
                 // Include the username request here so that we may use it as an override
                 // for user account lookups when getting Azure Access Tokens.
                 var azureResult = await GetAzureAccessTokenAsync(request);
-                var azureCredential = new GitCredential(azureResult.AccountUpn, azureResult.AccessToken);
+                var azureCredential = new GitCredential(azureResult.Account.UserName, azureResult.AccessToken);
                 return new GitResponse(azureCredential);
             }
         }
@@ -266,7 +266,7 @@ namespace Microsoft.AzureRepos
                 null,
                 msaPt: true);
             _context.Trace.WriteLineSecrets(
-                $"Acquired Azure access token. Account='{result.AccountUpn}' Token='{{0}}'", new object[] {result.AccessToken});
+                $"Acquired Azure access token. Account='{result.Account.UserName}' Token='{{0}}'", new object[] {result.AccessToken});
 
             // Ask the Azure DevOps instance to create a new PAT
             var patScopes = new[]
@@ -281,7 +281,7 @@ namespace Microsoft.AzureRepos
                 patScopes);
             _context.Trace.WriteLineSecrets("PAT created. PAT='{0}'", new object[] {pat});
 
-            return new GitCredential(result.AccountUpn, pat);
+            return new GitCredential(result.Account.UserName, pat);
         }
 
         private async Task<IEntraAuthenticationResult> GetAzureAccessTokenAsync(GitRequest request)
@@ -353,7 +353,7 @@ namespace Microsoft.AzureRepos
                 userName,
                 msaPt: true);
             _context.Trace.WriteLineSecrets(
-                $"Acquired Azure access token. Account='{result.AccountUpn}' Token='{{0}}'", new object[] {result.AccessToken});
+                $"Acquired Azure access token. Account='{result.Account.UserName}' Token='{{0}}'", new object[] {result.AccessToken});
 
             return result;
         }

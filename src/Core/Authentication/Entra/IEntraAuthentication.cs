@@ -64,5 +64,5 @@ public interface IEntraAuthentication
 public interface IEntraAuthenticationResult
 {
     string AccessToken { get; }
-    string AccountUpn { get; }
+    IEntraAccount Account { get; }
 }
