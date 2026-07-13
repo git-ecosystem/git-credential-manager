@@ -341,7 +341,20 @@ namespace Microsoft.AzureRepos
                 userName = _bindingManager.GetUser(orgName);
             }
 
-            _context.Trace.WriteLine(string.IsNullOrWhiteSpace(userName) ? "No user found." : $"User is '{userName}'.");
+            IEntraAccount account = null;
+            if (string.IsNullOrWhiteSpace(userName))
+            {
+                _context.Trace.WriteLine("No user found.");
+            }
+            else
+            {
+                _context.Trace.WriteLine($"Looking for cached Entra account matching username '{userName}'...");
+                IReadOnlyList<IEntraAccount> cached = await _msAuth.GetUserAccountsAsync();
+                account = cached.FirstOrDefault(a => icmp.Equals(a.UserName, userName));
+                _context.Trace.WriteLine(account is null
+                    ? "No cached account found."
+                    : $"Found cached account '{account.HomeAccountId}'");
+            }
 
             // Get an AAD access token for the Azure DevOps SPS
             _context.Trace.WriteLine("Getting Azure AD access token...");
@@ -350,7 +363,7 @@ namespace Microsoft.AzureRepos
                 GetClientId(),
                 GetRedirectUri(),
                 AzureDevOpsConstants.AzureDevOpsDefaultScopes,
-                userName,
+                account,
                 msaPt: true);
             _context.Trace.WriteLineSecrets(
                 $"Acquired Azure access token. Account='{result.Account.UserName}' Token='{{0}}'", new object[] {result.AccessToken});

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using GitCredentialManager;
 using GitCredentialManager.Authentication.Entra;
@@ -158,6 +159,7 @@ namespace Microsoft.AzureRepos.Tests
             var expectedRedirectUri = AzureDevOpsConstants.AadRedirectUri;
             var expectedScopes = AzureDevOpsConstants.AzureDevOpsDefaultScopes;
             var accessToken = "ACCESS-TOKEN";
+            var expectedAccount = new EntraAccount("account-id", urlAccount);
             var authResult = CreateAuthResult(urlAccount, accessToken);
 
             var context = new TestCommandContext();
@@ -170,7 +172,9 @@ namespace Microsoft.AzureRepos.Tests
             azDevOpsMock.Setup(x => x.GetAuthorityAsync(expectedOrgUri)).ReturnsAsync(authorityUrl);
 
             var msAuthMock = new Mock<IEntraAuthentication>(MockBehavior.Strict);
-            msAuthMock.Setup(x => x.GetTokenForUserAsync(authorityUrl, expectedClientId, expectedRedirectUri, expectedScopes, urlAccount, true))
+            msAuthMock.Setup(x => x.GetUserAccountsAsync(CancellationToken.None))
+                .ReturnsAsync(new IEntraAccount[] { expectedAccount });
+            msAuthMock.Setup(x => x.GetTokenForUserAsync(authorityUrl, expectedClientId, expectedRedirectUri, expectedScopes, expectedAccount, true))
                       .ReturnsAsync(authResult);
 
             var authorityCacheMock = new Mock<IAzureDevOpsAuthorityCache>(MockBehavior.Strict);
@@ -208,6 +212,7 @@ namespace Microsoft.AzureRepos.Tests
             var expectedRedirectUri = AzureDevOpsConstants.AadRedirectUri;
             var expectedScopes = AzureDevOpsConstants.AzureDevOpsDefaultScopes;
             var accessToken = "ACCESS-TOKEN";
+            var expectedAccount = new EntraAccount("account-id", urlAccount);
             var authResult = CreateAuthResult(urlAccount, accessToken);
 
             var context = new TestCommandContext();
@@ -220,7 +225,9 @@ namespace Microsoft.AzureRepos.Tests
             azDevOpsMock.Setup(x => x.GetAuthorityAsync(expectedOrgUri)).ReturnsAsync(authorityUrl);
 
             var msAuthMock = new Mock<IEntraAuthentication>(MockBehavior.Strict);
-            msAuthMock.Setup(x => x.GetTokenForUserAsync(authorityUrl, expectedClientId, expectedRedirectUri, expectedScopes, urlAccount, true))
+            msAuthMock.Setup(x => x.GetUserAccountsAsync(CancellationToken.None))
+                .ReturnsAsync(new IEntraAccount[] { expectedAccount });
+            msAuthMock.Setup(x => x.GetTokenForUserAsync(authorityUrl, expectedClientId, expectedRedirectUri, expectedScopes, expectedAccount, true))
                       .ReturnsAsync(authResult);
 
             var authorityCacheMock = new Mock<IAzureDevOpsAuthorityCache>(MockBehavior.Strict);
@@ -353,6 +360,7 @@ namespace Microsoft.AzureRepos.Tests
             var expectedScopes = AzureDevOpsConstants.AzureDevOpsDefaultScopes;
             var accessToken = "ACCESS-TOKEN";
             var account = "john.doe";
+            var expectedAccount = new EntraAccount("account-id", account);
             var authResult = CreateAuthResult(account, accessToken);
 
             var context = new TestCommandContext();
@@ -364,7 +372,9 @@ namespace Microsoft.AzureRepos.Tests
             var azDevOpsMock = new Mock<IAzureDevOpsRestApi>(MockBehavior.Strict);
 
             var msAuthMock = new Mock<IEntraAuthentication>(MockBehavior.Strict);
-            msAuthMock.Setup(x => x.GetTokenForUserAsync(authorityUrl, expectedClientId, expectedRedirectUri, expectedScopes, account, true))
+            msAuthMock.Setup(x => x.GetUserAccountsAsync(CancellationToken.None))
+                .ReturnsAsync(new IEntraAccount[] { expectedAccount });
+            msAuthMock.Setup(x => x.GetTokenForUserAsync(authorityUrl, expectedClientId, expectedRedirectUri, expectedScopes, expectedAccount, true))
                       .ReturnsAsync(authResult);
 
             var authorityCacheMock = new Mock<IAzureDevOpsAuthorityCache>(MockBehavior.Strict);

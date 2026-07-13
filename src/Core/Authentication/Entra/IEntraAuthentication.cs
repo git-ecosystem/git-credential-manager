@@ -27,11 +27,11 @@ public interface IEntraAuthentication
     /// <param name="clientId">Client ID.</param>
     /// <param name="redirectUri">Redirect URI for the client.</param>
     /// <param name="scopes">Set of scopes to request.</param>
-    /// <param name="userName">Optional user name for an existing account.</param>
+    /// <param name="account">Optional existing account to use.</param>
     /// <param name="msaPt">Use MSA-Passthrough behavior when authenticating.</param>
     /// <returns>Authentication result.</returns>
     Task<IEntraAuthenticationResult> GetTokenForUserAsync(string authority, string clientId, Uri redirectUri,
-        string[] scopes, string userName, bool msaPt = false);
+        string[] scopes, IEntraAccount account, bool msaPt = false);
 
     /// <summary>
     /// Acquire an access token for the given service principal with the specified scopes.

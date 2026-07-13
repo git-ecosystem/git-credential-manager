@@ -156,7 +156,7 @@ namespace GitCredentialManager.Authentication.Entra
         }
 
         public async Task<IEntraAuthenticationResult> GetTokenForUserAsync(
-            string authority, string clientId, Uri redirectUri, string[] scopes, string userName, bool msaPt)
+            string authority, string clientId, Uri redirectUri, string[] scopes, IEntraAccount account, bool msaPt)
         {
             var uiCts = new CancellationTokenSource();
 
@@ -176,13 +176,20 @@ namespace GitCredentialManager.Authentication.Entra
                 // Create the public client application for authentication
                 IPublicClientApplication app = await CreatePublicClientApplicationAsync(authority, clientId, redirectUri, useBroker, msaPt, uiCts);
 
+                // If we've been given an account, try to resolve it to one in the cache
+                IAccount msalAccount = null;
+                if (account is not null)
+                {
+                    msalAccount = await ResolveAccountAsync(app, account);
+                }
+
                 AuthenticationResult result = null;
 
                 // Try silent authentication first if we know about an existing user
-                bool hasExistingUser = !string.IsNullOrWhiteSpace(userName);
+                bool hasExistingUser = msalAccount is not null;
                 if (hasExistingUser)
                 {
-                    result = await GetAccessTokenSilentlyAsync(app, scopes, userName, msaPt);
+                    result = await GetAccessTokenSilentlyAsync(app, scopes, msalAccount, msaPt);
                 }
 
                 //
@@ -376,11 +383,11 @@ namespace GitCredentialManager.Authentication.Entra
         /// Obtain an access token without showing UI or prompts.
         /// </summary>
         private async Task<AuthenticationResult> GetAccessTokenSilentlyAsync(
-            IPublicClientApplication app, string[] scopes, string userName, bool msaPt)
+            IPublicClientApplication app, string[] scopes, IAccount account, bool msaPt)
         {
             try
             {
-                if (userName is null)
+                if (account is null)
                 {
                     Context.Trace.WriteLine(
                         "Attempting to acquire token silently for current operating system account...");
@@ -390,17 +397,7 @@ namespace GitCredentialManager.Authentication.Entra
                 }
                 else
                 {
-                    Context.Trace.WriteLine($"Attempting to acquire token silently for user '{userName}'...");
-
-                    // Enumerate all accounts and find the one matching the user name
-                    IEnumerable<IAccount> accounts = await app.GetAccountsAsync();
-                    IAccount account = accounts.FirstOrDefault(x =>
-                        StringComparer.OrdinalIgnoreCase.Equals(x.Username, userName));
-                    if (account is null)
-                    {
-                        Context.Trace.WriteLine($"No cached account found for user '{userName}'...");
-                        return null;
-                    }
+                    Context.Trace.WriteLine($"Attempting to acquire token silently for account '{account.HomeAccountId?.Identifier}'...");
 
                     var atsBuilder = app.AcquireTokenSilent(scopes, account);
 
