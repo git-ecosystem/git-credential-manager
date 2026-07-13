@@ -80,7 +80,7 @@ namespace Microsoft.AzureRepos
             if (UseManagedIdentity(out ManagedIdentity mid))
             {
                 _context.Trace.WriteLine($"Getting Azure Access Token for managed identity {mid.Id}...");
-                var azureResult = await _msAuth.GetTokenForManagedIdentityAsync(mid, AzureDevOpsConstants.AzureDevOpsResourceId);
+                var azureResult = await _msAuth.GetTokenForManagedIdentityAsync(AzureDevOpsConstants.AzureDevOpsResourceId, mid);
                 return new GitResponse(
                     new GitCredential(mid.Id, azureResult.AccessToken)
                 );
@@ -89,7 +89,7 @@ namespace Microsoft.AzureRepos
             if (UseWorkloadFederation(out WorkloadFederationOptions fedOpts))
             {
                 _context.Trace.WriteLine($"Getting Azure Access Token using WIF (scenario: {fedOpts.Scenario})...");
-                var azureResult = await _msAuth.GetTokenUsingWorkloadFederationAsync(fedOpts, AzureDevOpsConstants.AzureDevOpsDefaultScopes);
+                var azureResult = await _msAuth.GetTokenUsingWorkloadFederationAsync(AzureDevOpsConstants.AzureDevOpsDefaultScopes, fedOpts);
                 return new GitResponse(
                     new GitCredential(fedOpts.ClientId, azureResult.AccessToken)
                 );
@@ -98,7 +98,7 @@ namespace Microsoft.AzureRepos
             if (UseServicePrincipal(out ServicePrincipalIdentity sp))
             {
                 _context.Trace.WriteLine($"Getting Azure Access Token for service principal {sp.TenantId}/{sp.Id}...");
-                var azureResult = await _msAuth.GetTokenForServicePrincipalAsync(sp, AzureDevOpsConstants.AzureDevOpsDefaultScopes);
+                var azureResult = await _msAuth.GetTokenForServicePrincipalAsync(AzureDevOpsConstants.AzureDevOpsDefaultScopes, sp);
                 return new GitResponse(
                     new GitCredential(sp.Id, azureResult.AccessToken)
                 );
@@ -638,21 +638,21 @@ namespace Microsoft.AzureRepos
                 return false;
             }
 
-            MicrosoftWorkloadFederationScenario scenario;
+            WorkloadFederationScenario scenario;
             switch (wifStr.ToLowerInvariant())
             {
                 case "generic":
-                    scenario = MicrosoftWorkloadFederationScenario.Generic;
+                    scenario = WorkloadFederationScenario.Generic;
                     break;
 
                 case "mi":
                 case "managedidentity":
-                    scenario = MicrosoftWorkloadFederationScenario.ManagedIdentity;
+                    scenario = WorkloadFederationScenario.ManagedIdentity;
                     break;
 
                 case "github":
                 case "githubactions":
-                    scenario = MicrosoftWorkloadFederationScenario.GitHubActions;
+                    scenario = WorkloadFederationScenario.GitHubActions;
                     break;
 
                 default: // Unknown scenario value
@@ -699,7 +699,7 @@ namespace Microsoft.AzureRepos
 
             switch (scenario)
             {
-                case MicrosoftWorkloadFederationScenario.Generic:
+                case WorkloadFederationScenario.Generic:
                     if (!_context.Settings.TryGetSetting(
                             AzureDevOpsConstants.EnvironmentVariables.WorkloadFederationAssertion,
                             Constants.GitConfiguration.Credential.SectionName,
@@ -736,7 +736,7 @@ namespace Microsoft.AzureRepos
                     fedOpts.GenericClientAssertion = assertion;
                     break;
 
-                case MicrosoftWorkloadFederationScenario.ManagedIdentity:
+                case WorkloadFederationScenario.ManagedIdentity:
                     if (!_context.Settings.TryGetSetting(
                             AzureDevOpsConstants.EnvironmentVariables.WorkloadFederationManagedIdentity,
                             Constants.GitConfiguration.Credential.SectionName,
@@ -751,7 +751,7 @@ namespace Microsoft.AzureRepos
                     fedOpts.ManagedIdentityId = managedIdentity;
                     break;
 
-                case MicrosoftWorkloadFederationScenario.GitHubActions:
+                case WorkloadFederationScenario.GitHubActions:
                     if (!_context.Environment.Variables.TryGetValue(
                             Constants.EnvironmentVariables.GitHubActionsTokenRequestUrl, out string tokenRequestUrl)
                         || !Uri.TryCreate(tokenRequestUrl, UriKind.Absolute, out Uri tokenRequestUri))

@@ -599,7 +599,7 @@ namespace Microsoft.AzureRepos.Tests
             var userMgr = Mock.Of<IAzureReposBindingManager>();
             var msAuthMock = new Mock<IEntraAuthentication>();
 
-            msAuthMock.Setup(x => x.GetTokenForManagedIdentityAsync(It.IsAny<ManagedIdentity>(), It.IsAny<string>()))
+            msAuthMock.Setup(x => x.GetTokenForManagedIdentityAsync(It.IsAny<string>(), It.IsAny<ManagedIdentity>()))
                 .ReturnsAsync(new MockEntraAuthResult { AccessToken = accessToken });
 
             var provider = new AzureReposHostProvider(context, azDevOps, msAuthMock.Object, authorityCache, userMgr);
@@ -613,8 +613,8 @@ namespace Microsoft.AzureRepos.Tests
 
             msAuthMock.Verify(
                 x => x.GetTokenForManagedIdentityAsync(
-                    It.Is<ManagedIdentity>(mi => mi.Id == expectedIdentity.Id),
-                    AzureDevOpsConstants.AzureDevOpsResourceId), Times.Once);
+                    AzureDevOpsConstants.AzureDevOpsResourceId,
+                    It.Is<ManagedIdentity>(mi => mi.Id == expectedIdentity.Id)), Times.Once);
         }
 
         [Fact]
@@ -682,7 +682,7 @@ namespace Microsoft.AzureRepos.Tests
             var msAuthMock = new Mock<IEntraAuthentication>();
 
             msAuthMock.Setup(x => x.GetTokenUsingWorkloadFederationAsync(
-                    It.IsAny<WorkloadFederationOptions>(), It.IsAny<string[]>()))
+                    It.IsAny<string[]>(), It.IsAny<WorkloadFederationOptions>()))
                 .ReturnsAsync(new MockEntraAuthResult { AccessToken = accessToken });
 
             var provider = new AzureReposHostProvider(context, azDevOps, msAuthMock.Object, authorityCache, userMgr);
@@ -696,13 +696,13 @@ namespace Microsoft.AzureRepos.Tests
 
             msAuthMock.Verify(
                 x => x.GetTokenUsingWorkloadFederationAsync(
+                    AzureDevOpsConstants.AzureDevOpsDefaultScopes,
                     It.Is<WorkloadFederationOptions>(
-                        fed => fed.Scenario == MicrosoftWorkloadFederationScenario.Generic &&
+                        fed => fed.Scenario == WorkloadFederationScenario.Generic &&
                               fed.TenantId == tenantId &&
                               fed.ClientId == clientId &&
                               fed.Audience == WorkloadFederationOptions.DefaultAudience &&
-                              fed.GenericClientAssertion == assertion),
-                    AzureDevOpsConstants.AzureDevOpsDefaultScopes), Times.Once);
+                              fed.GenericClientAssertion == assertion)), Times.Once);
         }
 
         [Fact]
@@ -744,7 +744,7 @@ namespace Microsoft.AzureRepos.Tests
             var msAuthMock = new Mock<IEntraAuthentication>();
 
             msAuthMock.Setup(x => x.GetTokenUsingWorkloadFederationAsync(
-                    It.IsAny<WorkloadFederationOptions>(), It.IsAny<string[]>()))
+                    It.IsAny<string[]>(), It.IsAny<WorkloadFederationOptions>()))
                 .ReturnsAsync(new MockEntraAuthResult { AccessToken = accessToken });
 
             var provider = new AzureReposHostProvider(context, azDevOps, msAuthMock.Object, authorityCache, userMgr);
@@ -758,13 +758,13 @@ namespace Microsoft.AzureRepos.Tests
 
             msAuthMock.Verify(
                 x => x.GetTokenUsingWorkloadFederationAsync(
+                    AzureDevOpsConstants.AzureDevOpsDefaultScopes,
                     It.Is<WorkloadFederationOptions>(
-                        fed => fed.Scenario == MicrosoftWorkloadFederationScenario.Generic &&
+                        fed => fed.Scenario == WorkloadFederationScenario.Generic &&
                               fed.TenantId == tenantId &&
                               fed.ClientId == clientId &&
                               fed.Audience == WorkloadFederationOptions.DefaultAudience &&
-                              fed.GenericClientAssertion == assertion),
-                    AzureDevOpsConstants.AzureDevOpsDefaultScopes), Times.Once);
+                              fed.GenericClientAssertion == assertion)), Times.Once);
         }
 
         [Fact]
@@ -803,7 +803,7 @@ namespace Microsoft.AzureRepos.Tests
             var msAuthMock = new Mock<IEntraAuthentication>();
 
             msAuthMock.Setup(x => x.GetTokenUsingWorkloadFederationAsync(
-                    It.IsAny<WorkloadFederationOptions>(), It.IsAny<string[]>()))
+                    It.IsAny<string[]>(), It.IsAny<WorkloadFederationOptions>()))
                 .ReturnsAsync(new MockEntraAuthResult { AccessToken = accessToken });
 
             var provider = new AzureReposHostProvider(context, azDevOps, msAuthMock.Object, authorityCache, userMgr);
@@ -817,13 +817,13 @@ namespace Microsoft.AzureRepos.Tests
 
             msAuthMock.Verify(
                 x => x.GetTokenUsingWorkloadFederationAsync(
+                    AzureDevOpsConstants.AzureDevOpsDefaultScopes,
                     It.Is<WorkloadFederationOptions>(
-                        fed => fed.Scenario == MicrosoftWorkloadFederationScenario.ManagedIdentity &&
+                        fed => fed.Scenario == WorkloadFederationScenario.ManagedIdentity &&
                               fed.TenantId == tenantId &&
                               fed.ClientId == clientId &&
                               fed.Audience == WorkloadFederationOptions.DefaultAudience &&
-                              fed.ManagedIdentityId == managedIdentity),
-                    AzureDevOpsConstants.AzureDevOpsDefaultScopes), Times.Once);
+                              fed.ManagedIdentityId == managedIdentity)), Times.Once);
         }
 
         [Fact]
@@ -864,7 +864,7 @@ namespace Microsoft.AzureRepos.Tests
             var msAuthMock = new Mock<IEntraAuthentication>();
 
             msAuthMock.Setup(x => x.GetTokenUsingWorkloadFederationAsync(
-                    It.IsAny<WorkloadFederationOptions>(), It.IsAny<string[]>()))
+                    It.IsAny<string[]>(), It.IsAny<WorkloadFederationOptions>()))
                 .ReturnsAsync(new MockEntraAuthResult { AccessToken = accessToken });
 
             var provider = new AzureReposHostProvider(context, azDevOps, msAuthMock.Object, authorityCache, userMgr);
@@ -878,14 +878,14 @@ namespace Microsoft.AzureRepos.Tests
 
             msAuthMock.Verify(
                 x => x.GetTokenUsingWorkloadFederationAsync(
+                    AzureDevOpsConstants.AzureDevOpsDefaultScopes,
                     It.Is<WorkloadFederationOptions>(
-                        fed => fed.Scenario == MicrosoftWorkloadFederationScenario.GitHubActions &&
+                        fed => fed.Scenario == WorkloadFederationScenario.GitHubActions &&
                               fed.TenantId == tenantId &&
                               fed.ClientId == clientId &&
                               fed.GitHubTokenRequestUrl == new Uri(ghRequestUrl) &&
                               fed.GitHubTokenRequestToken == ghRequestToken &&
-                              fed.Audience == WorkloadFederationOptions.DefaultAudience),
-                    AzureDevOpsConstants.AzureDevOpsDefaultScopes), Times.Once);
+                              fed.Audience == WorkloadFederationOptions.DefaultAudience)), Times.Once);
         }
 
         [Fact]
@@ -922,7 +922,7 @@ namespace Microsoft.AzureRepos.Tests
             var msAuthMock = new Mock<IEntraAuthentication>();
 
             msAuthMock.Setup(x =>
-                    x.GetTokenForServicePrincipalAsync(It.IsAny<ServicePrincipalIdentity>(), It.IsAny<string[]>()))
+                    x.GetTokenForServicePrincipalAsync(It.IsAny<string[]>(), It.IsAny<ServicePrincipalIdentity>()))
                 .ReturnsAsync(new MockEntraAuthResult { AccessToken = accessToken });
 
             var provider = new AzureReposHostProvider(context, azDevOps, msAuthMock.Object, authorityCache, userMgr);
@@ -935,8 +935,8 @@ namespace Microsoft.AzureRepos.Tests
             Assert.Equal(accessToken, credential.Password);
 
             msAuthMock.Verify(x => x.GetTokenForServicePrincipalAsync(
-                It.Is<ServicePrincipalIdentity>(sp => sp.TenantId == tenantId && sp.Id == clientId),
-                It.Is<string[]>(scopes => scopes.Length == 1 && scopes[0] == AzureDevOpsConstants.AzureDevOpsDefaultScopes[0])),
+                It.Is<string[]>(scopes => scopes.Length == 1 && scopes[0] == AzureDevOpsConstants.AzureDevOpsDefaultScopes[0]),
+                It.Is<ServicePrincipalIdentity>(sp => sp.TenantId == tenantId && sp.Id == clientId)),
                 Times.Once);
         }
 

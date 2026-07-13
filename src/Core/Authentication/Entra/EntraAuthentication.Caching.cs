@@ -13,17 +13,23 @@ namespace GitCredentialManager.Authentication.Entra
         /// Register the user token cache for public clients.
         /// </summary>
         private Task RegisterCacheAsync(IPublicClientApplication app) =>
-            RegisterTokenCacheAsync(app.UserTokenCache, CreateUserTokenCacheProps, Context.Trace2);
+            RegisterCacheAsync(app.UserTokenCache, CreateUserTokenCacheProps);
+
+        /// <summary>
+        /// Register the app token cache for confidential clients.
+        /// </summary>
+        private Task RegisterCacheAsync(IConfidentialClientApplication app) =>
+            RegisterCacheAsync(app.AppTokenCache, CreateAppTokenCacheProps);
 
         private delegate StorageCreationProperties StoragePropertiesBuilder(bool useLinuxFallback);
 
-        private async Task RegisterTokenCacheAsync(ITokenCache cache, StoragePropertiesBuilder propsBuilder, ITrace2 trace2)
+        private async Task RegisterCacheAsync(ITokenCache cache, StoragePropertiesBuilder propsBuilder)
         {
             Context.Trace.WriteLine("Configuring MSAL token cache...");
 
             if (!PlatformUtils.IsWindows() && !PlatformUtils.IsPosix())
             {
-                string osType = PlatformUtils.GetPlatformInformation(trace2).OperatingSystemType;
+                string osType = PlatformUtils.GetPlatformInformation(Context.Trace2).OperatingSystemType;
                 Context.Trace.WriteLine($"Token cache integration is not supported on {osType}.");
                 return;
             }

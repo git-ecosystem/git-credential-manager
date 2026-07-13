@@ -34,28 +34,31 @@ public interface IEntraAuthentication
         string[] scopes, IEntraAccount account, bool msaPt = false);
 
     /// <summary>
-    /// Acquire an access token for the given service principal with the specified scopes.
+    /// Acquire an access token for a service principal.
     /// </summary>
-    /// <param name="sp">Service principal identity.</param>
-    /// <param name="scopes">Scopes to request.</param>
-    /// <returns>Authentication result.</returns>
-    Task<IEntraAuthenticationResult> GetTokenForServicePrincipalAsync(ServicePrincipalIdentity sp, string[] scopes);
+    Task<IEntraAuthenticationResult> GetTokenForServicePrincipalAsync(
+        string[] scopes,
+        ServicePrincipalIdentity sp,
+        CancellationToken ct = default
+    );
 
     /// <summary>
-    /// Acquire a token using the managed identity in the current environment.
+    /// Acquire an access token for a managed identity.
     /// </summary>
-    /// <param name="managedIdentity">Managed identity to use.</param>
-    /// <param name="resource">Resource to obtain an access token for.</param>
-    /// <returns>Authentication result including access token.</returns>
-    Task<IEntraAuthenticationResult> GetTokenForManagedIdentityAsync(ManagedIdentity managedIdentity, string resource);
+    Task<IEntraAuthenticationResult> GetTokenForManagedIdentityAsync(
+        string resource,
+        ManagedIdentity mi,
+        CancellationToken ct = default
+    );
 
     /// <summary>
-    /// Acquire a token using workload federation.
+    /// Acquire an access token using workload federation.
     /// </summary>
-    /// <param name="fedOpts">An object containing configuration workload federation.</param>
-    /// <param name="scopes">Scopes to request.</param>
-    /// <returns>Authentication result including access token.</returns>
-    Task<IEntraAuthenticationResult> GetTokenUsingWorkloadFederationAsync(WorkloadFederationOptions fedOpts, string[] scopes);
+    Task<IEntraAuthenticationResult> GetTokenUsingWorkloadFederationAsync(
+        string[] scopes,
+        WorkloadFederationOptions fedOpts,
+        CancellationToken ct = default
+    );
 }
 
 public interface IEntraAuthenticationResult

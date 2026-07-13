@@ -4,6 +4,8 @@ namespace GitCredentialManager.Authentication.Entra
 {
     public partial class EntraAuthentication : AuthenticationBase, IEntraAuthentication
     {
+        private readonly IMsalHttpClientFactory _httpFactory;
+
         public static readonly string[] AuthorityIds =
         {
             "msa",  "microsoft",   "microsoftaccount",
@@ -15,6 +17,7 @@ namespace GitCredentialManager.Authentication.Entra
             : base(context)
         {
             _publicClientConfig = publicClientConfig;
+            _httpFactory = new MsalHttpClientFactoryAdaptor(context.HttpClientFactory);
         }
 
         private class AuthResult : IEntraAuthenticationResult

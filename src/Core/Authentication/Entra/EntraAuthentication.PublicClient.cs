@@ -493,7 +493,7 @@ namespace GitCredentialManager.Authentication.Entra
             IPublicClientApplication app = appBuilder.Build();
 
             // Register the user token cache
-            await RegisterTokenCacheAsync(app.UserTokenCache, CreateUserTokenCacheProps, Context.Trace2);
+            await RegisterCacheAsync(app);
 
             return app;
         }
