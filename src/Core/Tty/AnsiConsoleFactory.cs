@@ -93,6 +93,10 @@ public static class AnsiConsoleFactory
                 Ansi = AnsiSupport.No,
                 ColorSystem = ColorSystemSupport.NoColors,
                 Interactive = InteractionSupport.No,
+                Enrichment =
+                {
+                    UseDefaultEnrichers = false // do not enrich headless for CI/CD pipelines
+                }
             }
         );
 
