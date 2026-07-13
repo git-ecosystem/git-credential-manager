@@ -65,15 +65,6 @@ foreach ($dir in @($OutDir, $SymOutDir)) {
 }
 New-Item -ItemType Directory -Path $OutDir, $SymOutDir -Force | Out-Null
 
-# By default the application is published ahead-of-time (AOT) compiled, as
-# configured in the project. For a non-AOT build, just turn AOT off: the
-# project then enables trimming, which implies a self-contained publish, so
-# --self-contained does not need to be passed explicitly.
-$aotArgs = @()
-if (-not $Aot) {
-    $aotArgs = @('-p:PublishAot=false')
-}
-
 # Publish the application to the resolved output directory.
 Write-Information "Publishing application..."
 dotnet publish "$GcmSrc" `
@@ -81,8 +72,8 @@ dotnet publish "$GcmSrc" `
     --configuration $Configuration `
     --runtime $Runtime `
     --output $OutDir `
-    -p:VersionOverride=$Version `
-    @aotArgs
+    -p:PublishAot=$Aot `
+    -p:VersionOverride=$Version
 if ($LASTEXITCODE -ne 0) {
     Write-Error "Failed to publish application (dotnet publish exited $LASTEXITCODE)"
 }
