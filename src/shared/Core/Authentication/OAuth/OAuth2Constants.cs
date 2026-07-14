@@ -14,6 +14,10 @@ namespace GitCredentialManager.Authentication.OAuth
             public const string StateParameter = "state";
             public const string AuthorizationCodeResponseType = "code";
             public const string ResponseTypeParameter = "response_type";
+            public const string ResponseModeParameter = "response_mode";
+            public const string QueryResponseMode = "query";
+            public const string FragmentResponseMode = "fragment";
+            public const string FormPostResponseMode = "form_post";
             public const string PkceChallengeParameter = "code_challenge";
             public const string PkceChallengeMethodParameter = "code_challenge_method";
             public const string PkceChallengeMethodPlain = "plain";

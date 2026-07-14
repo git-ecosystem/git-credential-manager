@@ -14,9 +14,9 @@
     <PackageVersion Include="Avalonia.Win32" Version="11.1.3" />
 
     <!-- Microsoft Identity -->
-    <PackageVersion Include="Microsoft.Identity.Client" Version="4.65.0" />
-    <PackageVersion Include="Microsoft.Identity.Client.Broker" Version="4.65.0" />
-    <PackageVersion Include="Microsoft.Identity.Client.Extensions.Msal" Version="4.65.0" />
+    <PackageVersion Include="Microsoft.Identity.Client" Version="4.84.2" />
+    <PackageVersion Include="Microsoft.Identity.Client.Broker" Version="4.84.2" />
+    <PackageVersion Include="Microsoft.Identity.Client.Extensions.Msal" Version="4.84.2" />
 
     <!-- MSBuild -->
     <PackageVersion Include="Microsoft.Build.Framework" Version="16.0.461" />

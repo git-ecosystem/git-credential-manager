@@ -17,7 +17,15 @@ namespace GitCredentialManager.Diagnostics
         {
             var msAuth = new MicrosoftAuthentication(CommandContext);
             log.AppendLine(msAuth.CanUseBroker() ? "Broker is enabled." : "Broker is not enabled.");
-            log.AppendLine($"Flow type is: {msAuth.GetFlowType()}");
+
+            if (CommandContext.Settings.TryGetSetting(
+                    Constants.EnvironmentVariables.MsAuthFlow,
+                    Constants.GitConfiguration.Credential.SectionName,
+                    Constants.GitConfiguration.Credential.MsAuthFlow,
+                    out string flowStr))
+            {
+                log.AppendLine($"Flow type override is: {flowStr}");
+            }
 
             log.Append("Gathering MSAL token cache data...");
             StorageCreationProperties cacheProps = msAuth.CreateUserTokenCacheProps(true);

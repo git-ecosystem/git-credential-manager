@@ -134,6 +134,15 @@ extends:
                     artifactName: '${{ dim.runtime }}'
               steps:
                 - checkout: self
+                - task: CopyFiles@2
+                  displayName: 'Use Central Feed Services (CFS)'
+                  inputs:
+                    SourceFolder: '$(Build.SourcesDirectory)\.azure-pipelines'
+                    Contents: 'nuget.config'
+                    TargetFolder: '$(Build.SourcesDirectory)'
+                    Overwrite: true
+                - task: NuGetAuthenticate@1
+                  displayName: 'Authenticate to NuGet feeds'
                 - task: PowerShell@2
                   displayName: 'Read version file'
                   inputs:
@@ -295,6 +304,15 @@ extends:
                     artifactName: '${{ dim.runtime }}'
               steps:
                 - checkout: self
+                - task: CopyFiles@2
+                  displayName: 'Use Central Feed Services (CFS)'
+                  inputs:
+                    SourceFolder: '$(Build.SourcesDirectory)/.azure-pipelines'
+                    Contents: 'nuget.config'
+                    TargetFolder: '$(Build.SourcesDirectory)'
+                    Overwrite: true
+                - task: NuGetAuthenticate@1
+                  displayName: 'Authenticate to NuGet feeds'
                 - task: Bash@3
                   displayName: 'Read version file'
                   inputs:
@@ -570,6 +588,15 @@ extends:
                     artifactName: '${{ dim.runtime }}'
               steps:
                 - checkout: self
+                - task: CopyFiles@2
+                  displayName: 'Use Central Feed Services (CFS)'
+                  inputs:
+                    SourceFolder: '$(Build.SourcesDirectory)/.azure-pipelines'
+                    Contents: 'nuget.config'
+                    TargetFolder: '$(Build.SourcesDirectory)'
+                    Overwrite: true
+                - task: NuGetAuthenticate@1
+                  displayName: 'Authenticate to NuGet feeds'
                 - task: Bash@3
                   displayName: 'Read version file'
                   inputs:
@@ -673,6 +700,15 @@ extends:
                   artifactName: 'dotnet-tool'
             steps:
               - checkout: self
+              - task: CopyFiles@2
+                displayName: 'Use Central Feed Services (CFS)'
+                inputs:
+                  SourceFolder: '$(Build.SourcesDirectory)\.azure-pipelines'
+                  Contents: 'nuget.config'
+                  TargetFolder: '$(Build.SourcesDirectory)'
+                  Overwrite: true
+              - task: NuGetAuthenticate@1
+                displayName: 'Authenticate to NuGet feeds'
               - task: PowerShell@2
                 displayName: 'Read version file'
                 inputs:
