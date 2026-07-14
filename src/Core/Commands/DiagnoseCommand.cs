@@ -29,7 +29,7 @@ namespace GitCredentialManager.Commands
                 new NetworkingDiagnostic(context),
                 new GitDiagnostic(context),
                 new CredentialStoreDiagnostic(context),
-                new MicrosoftAuthenticationDiagnostic(context)
+                new EntraAuthenticationDiagnostic(context)
             };
 
             var output = new Option<string>(new[] { "--output", "-o" }, "Output directory for diagnostic logs.");

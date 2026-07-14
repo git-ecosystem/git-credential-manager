@@ -51,7 +51,7 @@ namespace GitCredentialManager.Tests.Objects
 
         public int AutoDetectProviderTimeout { get; set; } = Constants.DefaultAutoDetectProviderTimeoutMs;
 
-        public bool UseMsAuthDefaultAccount { get; set; }
+        public bool? UseMsAuthDefaultAccount { get; set; }
 
         public bool AllowUnsafeRemotes { get; set; } = false;
 
@@ -187,7 +187,7 @@ namespace GitCredentialManager.Tests.Objects
 
         int ISettings.AutoDetectProviderTimeout => AutoDetectProviderTimeout;
 
-        bool ISettings.UseMsAuthDefaultAccount => UseMsAuthDefaultAccount;
+        bool? ISettings.UseMsAuthDefaultAccount => UseMsAuthDefaultAccount;
 
         bool ISettings.UseSoftwareRendering => false;
 

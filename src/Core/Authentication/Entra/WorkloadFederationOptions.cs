@@ -1,8 +1,8 @@
 using System;
 
-namespace GitCredentialManager.Authentication;
+namespace GitCredentialManager.Authentication.Entra;
 
-public enum MicrosoftWorkloadFederationScenario
+public enum WorkloadFederationScenario
 {
     /// <summary>
     /// Federate via pre-computed client assertion.
@@ -20,7 +20,7 @@ public enum MicrosoftWorkloadFederationScenario
     GitHubActions,
 }
 
-public class MicrosoftWorkloadFederationOptions
+public class WorkloadFederationOptions
 {
     public const string DefaultAudience = Constants.DefaultWorkloadFederationAudience;
 
@@ -29,7 +29,7 @@ public class MicrosoftWorkloadFederationOptions
     /// <summary>
     /// The workload federation scenario to use.
     /// </summary>
-    public MicrosoftWorkloadFederationScenario Scenario { get; set; }
+    public WorkloadFederationScenario Scenario { get; set; }
 
     /// <summary>
     /// Tenant ID of the identity to request an access token for.
@@ -54,24 +54,24 @@ public class MicrosoftWorkloadFederationOptions
     /// <summary>
     /// Generic assertion.
     /// </summary>
-    /// <remarks>Used with the <see cref="MicrosoftWorkloadFederationScenario.Generic"/> federation scenario.</remarks>
+    /// <remarks>Used with the <see cref="WorkloadFederationScenario.Generic"/> federation scenario.</remarks>
     public string GenericClientAssertion { get; set; }
 
     /// <summary>
     /// The managed identity to request a federated token for, to exchange for an access token.
     /// </summary>
-    /// <remarks>Used with the <see cref="MicrosoftWorkloadFederationScenario.ManagedIdentity"/> federation scenario.</remarks>
+    /// <remarks>Used with the <see cref="WorkloadFederationScenario.ManagedIdentity"/> federation scenario.</remarks>
     public string ManagedIdentityId { get; set; }
 
     /// <summary>
     /// GitHub Actions OIDC token request URI.
     /// </summary>
-    /// <remarks>Used with the <see cref="MicrosoftWorkloadFederationScenario.GitHubActions"/> federation scenario.</remarks>
+    /// <remarks>Used with the <see cref="WorkloadFederationScenario.GitHubActions"/> federation scenario.</remarks>
     public Uri GitHubTokenRequestUrl { get; set; }
 
     /// <summary>
     /// GitHub Actions OIDC token request token.
     /// </summary>
-    /// <remarks>Used with the <see cref="MicrosoftWorkloadFederationScenario.GitHubActions"/> federation scenario.</remarks>
+    /// <remarks>Used with the <see cref="WorkloadFederationScenario.GitHubActions"/> federation scenario.</remarks>
     public string GitHubTokenRequestToken { get; set; }
 }

@@ -83,14 +83,14 @@ We hope to be able to migrate the WPF/Windows only helpers to [Avalonia][avaloni
 in order to gain cross-platform graphical user interface support. See
 [GCM issue 136][issue-136] for up-to-date progress on this effort.
 
-### Microsoft authentication
+### Microsoft Entra authentication
 
-For authentication using Microsoft Accounts or Azure Active Directory, things
-are a little different. The `MicrosoftAuthentication` component is present in
-the `Core` core assembly, rather than bundled with a
-specific host provider. This was done to allow any service that may wish to in
-the future integrate with Microsoft Accounts or Azure Active Directory can make
-use of this reusable authentication component.
+For authentication using Microsoft accounts or Microsoft Entra ID, things are
+a little different. The `EntraAuthentication` component is present in the
+`Core` assembly rather than bundled with a specific host provider. This allows
+services to share account selection, interactive flows, token caching, and
+workload identity support while supplying their own Entra application
+configuration.
 
 ## Asynchronous programming
 

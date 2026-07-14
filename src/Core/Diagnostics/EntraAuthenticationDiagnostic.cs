@@ -2,25 +2,26 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
-using GitCredentialManager.Authentication;
+using GitCredentialManager.Authentication.Entra;
 using Microsoft.Identity.Client.Extensions.Msal;
 
 namespace GitCredentialManager.Diagnostics
 {
-    public class MicrosoftAuthenticationDiagnostic : Diagnostic
+    public class EntraAuthenticationDiagnostic : Diagnostic
     {
-        public MicrosoftAuthenticationDiagnostic(ICommandContext context)
-            : base("Microsoft authentication (AAD/MSA)", context)
+        public EntraAuthenticationDiagnostic(ICommandContext context)
+            : base("Microsoft Entra authentication", context)
         { }
 
         protected override async Task<bool> RunInternalAsync(StringBuilder log, IList<string> additionalFiles)
         {
-            var msAuth = new MicrosoftAuthentication(CommandContext);
-            log.AppendLine(msAuth.CanUseBroker() ? "Broker is enabled." : "Broker is not enabled.");
-            log.AppendLine($"Flow type is: {msAuth.GetFlowType()}");
+            var entraAuth = new EntraAuthentication(CommandContext, new PublicClientConfig
+            {
+                UseSharedCache = true,
+            });
 
             log.Append("Gathering MSAL token cache data...");
-            StorageCreationProperties cacheProps = msAuth.CreateUserTokenCacheProps(true);
+            StorageCreationProperties cacheProps = entraAuth.CreateUserTokenCacheProps(true);
             log.AppendLine(" OK");
             log.AppendLine($"CacheDirectory: {cacheProps.CacheDirectory}");
             log.AppendLine($"CacheFileName: {cacheProps.CacheFileName}");
