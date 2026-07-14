@@ -458,34 +458,48 @@ public partial class EntraAuthentication
             // and it is available in the current environment
             if (Context.SessionManager.IsDesktopSession && IsBrokerEnabled())
             {
-                // In order to check if the broker is available you have to optimistically
-                // configure the builder to use the broker and then check.
-                builder.WithBroker(GetBrokerOptions());
-
-                _useBroker = builder.IsBrokerAvailable();
-                if (_useBroker)
+                // Check that the app config supports the broker on this platform
+                if (_publicClientConfig.SupportsWindowsBroker && PlatformUtils.IsWindows() ||
+                    _publicClientConfig.SupportsMacBroker && PlatformUtils.IsMacOS() ||
+                    _publicClientConfig.SupportsLinuxBroker && PlatformUtils.IsLinux())
                 {
-                    Context.Trace.WriteLine("Broker enabled and available.");
+                    Context.Trace.WriteLine("Broker is supported by the app and enabled by the user.");
 
-                    // The macOS broker requires a specific redirect URL so the SSO
-                    // extension can communicate back to our bundle.
-                    // Technically this should be "msauth.{bundleID}://auth" but since
-                    // we don't ship as a bundled application we must use the special
-                    // "unsigned" bundle redirect URL.
-                    if (PlatformUtils.IsMacOS())
+                    // In order to check if the broker is available you have to optimistically
+                    // configure the builder to use the broker and then check.
+                    builder.WithBroker(GetBrokerOptions());
+
+                    _useBroker = builder.IsBrokerAvailable();
+                    if (_useBroker)
                     {
-                        Context.Trace.WriteLine($"Setting redirect URL for Mac broker to '{MacBrokerRedirectUrl}'");
-                        builder.WithRedirectUri(MacBrokerRedirectUrl);
+                        Context.Trace.WriteLine("Broker authentication is available.");
+
+                        // The macOS broker requires a specific redirect URL so the SSO
+                        // extension can communicate back to our bundle.
+                        // Technically this should be "msauth.{bundleID}://auth" but since
+                        // we don't ship as a bundled application we must use the special
+                        // "unsigned" bundle redirect URL.
+                        if (PlatformUtils.IsMacOS())
+                        {
+                            Context.Trace.WriteLine($"Setting redirect URL for Mac broker to '{MacBrokerRedirectUrl}'");
+                            builder.WithRedirectUri(MacBrokerRedirectUrl);
+                        }
+                    }
+                    else
+                    {
+                        Context.Trace.WriteLine("Broker authentication is not available.");
+
+                        // If the broker was not available we must unconfigure it, or create a new builder.
+                        // Since creating a new builder is a lot of work, and there is no way to undo a
+                        // "WithBroker" call (it registers the 'runtime broker' internally which cannot be undone),
+                        // we just reconfigure it again but with advertised support for no supported operating
+                        // systems - this effectively disables the broker again.
+                        builder.WithBroker(new BrokerOptions(BrokerOptions.OperatingSystems.None));
                     }
                 }
                 else
                 {
-                    // If the broker was not available we must unconfigure it, or create a new builder.
-                    // Since creating a new builder is a lot of work, and there is no way to undo a
-                    // "WithBroker" call (it registers the 'runtime broker' internally which cannot be undone),
-                    // we just reconfigure it again but with advertised support for no supported operating
-                    // systems - this effectively disables the broker again.
-                    builder.WithBroker(new BrokerOptions(BrokerOptions.OperatingSystems.None));
+                    Context.Trace.WriteLine("Broker is not supported by the app on this platform.");
                 }
             }
 
