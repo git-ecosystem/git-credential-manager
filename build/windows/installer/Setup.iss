@@ -1,10 +1,10 @@
-; This script requires Inno Setup Compiler 6.0.0 or later to compile
+; This script requires Inno Setup Compiler 7.0.0 or later to compile
 ; The Inno Setup Compiler (and IDE) can be found at http://www.jrsoftware.org/isinfo.php
 ; General documentation on how to use InnoSetup scripts: http://www.jrsoftware.org/ishelp/index.php
 
 ; Ensure minimum Inno Setup tooling version
-#if VER < EncodeVer(6,0,0)
-  #error Update your Inno Setup version (6.0.0 or newer)
+#if VER < EncodeVer(7,0,0)
+  #error Update your Inno Setup version (7.0.0 or newer)
 #endif
 
 #ifndef PayloadDir
@@ -70,6 +70,12 @@ AppUpdatesURL={#GcmUrl}
 AppContact={#GcmUrl}
 AppCopyright={#GcmCopyright}
 AppReadmeFile={#GcmReadme}
+; We prefer to use the x64 installer for x64 and ARM64 systems
+#if RuntimeIdentifier=="win-x86"
+SetupArchitecture=x86
+#else
+SetupArchitecture=x64
+#endif
 ; Windows ARM64 supports installing and running x64 binaries, but not vice versa.
 #if RuntimeIdentifier=="win-x64"
   ArchitecturesAllowed=x64compatible
