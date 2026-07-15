@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -36,6 +38,34 @@ namespace GitCredentialManager.Authentication.OAuth
 
     public class OAuth2SystemWebBrowser : IOAuth2WebBrowser
     {
+        // Served during the fragment response flow. The authorization parameters live in the
+        // URI fragment, which user agents do not transmit to the server, so we reissue them as
+        // a form POST to the redirect URI - keeping them out of the URL (and thus out of
+        // browser history and server logs) and letting the listener read them from the body.
+        private const string FragmentFormPostHtml = @"<!DOCTYPE html><html><head>
+<meta name=""color-scheme"" content=""light dark""><title>Authenticating...</title></head>
+<body><form id=""gcm-fragment-form"" method=""POST""></form><script>
+(function () {
+  var hash = window.location.hash;
+  if (!hash || hash.length < 2) { return; }
+  var data = hash.charAt(0) === '#' ? hash.substring(1) : hash;
+  var form = document.getElementById('gcm-fragment-form');
+  form.action = window.location.pathname;
+  data.split('&').forEach(function (pair) {
+    if (!pair) { return; }
+    var eq = pair.indexOf('=');
+    var name = eq < 0 ? pair : pair.substring(0, eq);
+    var value = eq < 0 ? '' : pair.substring(eq + 1);
+    var input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = decodeURIComponent(name.replace(/\+/g, ' '));
+    input.value = decodeURIComponent(value.replace(/\+/g, ' '));
+    form.appendChild(input);
+  });
+  form.submit();
+})();
+</script></body></html>";
+
         private readonly ISessionManager _sessionManager;
         private readonly OAuth2WebBrowserOptions _options;
 
@@ -65,26 +95,28 @@ namespace GitCredentialManager.Authentication.OAuth
             return uri;
         }
 
-        public async Task<Uri> GetAuthenticationCodeAsync(Uri authorizationUri, Uri redirectUri, CancellationToken ct)
+        public async Task<IDictionary<string, string>> GetAuthenticationResponseAsync(
+            Uri authorizationUri, Uri redirectUri, OAuth2ResponseMode responseMode, CancellationToken ct)
         {
             if (!redirectUri.IsLoopback)
             {
                 throw new ArgumentException("Only localhost is supported as a redirect URI.", nameof(redirectUri));
             }
 
-            Task<Uri> interceptTask = InterceptRequestsAsync(redirectUri, ct);
+            Task<IDictionary<string, string>> interceptTask = InterceptRequestsAsync(redirectUri, responseMode, ct);
 
             _sessionManager.OpenBrowser(authorizationUri);
 
             return await interceptTask;
         }
 
-        private async Task<Uri> InterceptRequestsAsync(Uri listenUri, CancellationToken ct)
+        private async Task<IDictionary<string, string>> InterceptRequestsAsync(
+            Uri listenUri, OAuth2ResponseMode responseMode, CancellationToken ct)
         {
             // Create a TaskCompletionSource which completes when we're asked to cancel.
-            // We can then await the this task together with other tasks that don't take a
+            // We can then await this task together with other tasks that don't take a
             // CancellationToken and exit the method quickly when cancelled.
-            var tcs = new TaskCompletionSource<Uri>();
+            var tcs = new TaskCompletionSource<IDictionary<string, string>>();
             ct.Register(() => tcs.SetCanceled());
 
             // Prefixes must end with a '/'
@@ -99,25 +131,40 @@ namespace GitCredentialManager.Authentication.OAuth
 
             try
             {
-                Task<HttpListenerContext> contextTask = listener.GetContextAsync();
-                Task<Uri> cancelTask = tcs.Task;
-
-                Task completedTask = await Task.WhenAny(contextTask, tcs.Task);
-
-                // Check if we 'completed' the context task or the cancellation task
-                if (completedTask == cancelTask)
+                while (true)
                 {
-                    // We were cancelled!
-                    return await cancelTask;
+                    Task<HttpListenerContext> contextTask = listener.GetContextAsync();
+                    Task<IDictionary<string, string>> cancelTask = tcs.Task;
+
+                    Task completedTask = await Task.WhenAny(contextTask, cancelTask);
+
+                    // Check if we 'completed' the context task or the cancellation task
+                    if (completedTask == cancelTask)
+                    {
+                        // We were cancelled!
+                        return await cancelTask;
+                    }
+
+                    // We intercepted a request!
+                    HttpListenerContext context = await contextTask;
+
+                    IDictionary<string, string> parameters = await GetResponseParametersAsync(context.Request);
+
+                    // In fragment mode the authorization parameters are in the URI fragment, which
+                    // user agents do not send to the server. The first leg is therefore a parameterless
+                    // GET; reply with a script that reissues the parameters as a form POST so we can
+                    // read them from the body on the next iteration.
+                    if (responseMode == OAuth2ResponseMode.Fragment && parameters.Count == 0)
+                    {
+                        await context.Response.WriteResponseAsync(FragmentFormPostHtml);
+                        context.Response.Close();
+                        continue;
+                    }
+
+                    await WriteFinalResponseAsync(context.Response, parameters);
+
+                    return parameters;
                 }
-
-                // We intercepted a request!
-                HttpListenerContext context = await contextTask;
-
-                await HandleInterceptedRequestAsync(context.Request, context.Response);
-
-                // Return the final intercepted URI
-                return context.Request.Url;
             }
             finally
             {
@@ -126,14 +173,41 @@ namespace GitCredentialManager.Authentication.OAuth
             }
         }
 
-        private async Task HandleInterceptedRequestAsync(HttpListenerRequest request, HttpListenerResponse response)
+        private static async Task<IDictionary<string, string>> GetResponseParametersAsync(HttpListenerRequest request)
         {
-            IDictionary<string, string> queryParams = request.QueryString.ToDictionary(StringComparer.OrdinalIgnoreCase);
+            // Form post responses - and the form POST used to forward fragment responses - carry
+            // the authorization parameters in the urlencoded request body.
+            if (StringComparer.OrdinalIgnoreCase.Equals(request.HttpMethod, Constants.Http.MethodPost) &&
+                IsFormUrlEncoded(request.ContentType))
+            {
+                using var reader = new StreamReader(request.InputStream, request.ContentEncoding ?? Encoding.UTF8);
+                string body = await reader.ReadToEndAsync();
+                return UriExtensions.ParseQueryString(body);
+            }
 
+            // Query responses carry the parameters in the request query string.
+            return request.QueryString.ToDictionary(StringComparer.OrdinalIgnoreCase);
+        }
+
+        internal static bool IsFormUrlEncoded(string contentType)
+        {
+            if (string.IsNullOrEmpty(contentType))
+            {
+                return false;
+            }
+
+            // Compare only the media type, ignoring any parameters such as "; charset=utf-8".
+            // The media type is everything up to the first ';'.
+            string mediaType = contentType.Split(';')[0].Trim();
+            return StringComparer.OrdinalIgnoreCase.Equals(mediaType, Constants.Http.MimeTypeFormUrlEncoded);
+        }
+
+        private async Task WriteFinalResponseAsync(HttpListenerResponse response, IDictionary<string, string> parameters)
+        {
             // If we have an error value then the request failed and we should reply with a page containing the error information
-            bool hasError = queryParams.TryGetValue(OAuth2Constants.AuthorizationGrantResponse.ErrorCodeParameter, out string errorCode);
-            queryParams.TryGetValue(OAuth2Constants.AuthorizationGrantResponse.ErrorDescriptionParameter, out string errorDescription);
-            queryParams.TryGetValue(OAuth2Constants.AuthorizationGrantResponse.ErrorUriParameter, out string errorUri);
+            bool hasError = parameters.TryGetValue(OAuth2Constants.AuthorizationGrantResponse.ErrorCodeParameter, out string errorCode);
+            parameters.TryGetValue(OAuth2Constants.AuthorizationGrantResponse.ErrorDescriptionParameter, out string errorDescription);
+            parameters.TryGetValue(OAuth2Constants.AuthorizationGrantResponse.ErrorUriParameter, out string errorUri);
             if (hasError)
             {
                 string FormatError(string format)

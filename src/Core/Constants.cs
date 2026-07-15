@@ -156,6 +156,7 @@ namespace GitCredentialManager
             public const string OAuthDeviceEndpoint      = "GCM_OAUTH_DEVICE_ENDPOINT";
             public const string OAuthClientAuthHeader    = "GCM_OAUTH_USE_CLIENT_AUTH_HEADER";
             public const string OAuthDefaultUserName     = "GCM_OAUTH_DEFAULT_USERNAME";
+            public const string OAuthResponseMode        = "GCM_OAUTH_RESPONSE_MODE";
             public const string GcmDevUseLegacyUiHelpers = "GCM_DEV_USELEGACYUIHELPERS";
             public const string GcmGuiSoftwareRendering  = "GCM_GUI_SOFTWARE_RENDERING";
             public const string GcmAllowUnsafeRemotes    = "GCM_ALLOW_UNSAFE_REMOTES";
@@ -172,6 +173,10 @@ namespace GitCredentialManager
             public const string WwwAuthenticateNtlmScheme      = "NTLM";
 
             public const string MimeTypeJson = "application/json";
+            public const string MimeTypeFormUrlEncoded = "application/x-www-form-urlencoded";
+
+            public const string MethodGet = "GET";
+            public const string MethodPost = "POST";
         }
 
         public static class GitConfiguration
@@ -218,6 +223,7 @@ namespace GitCredentialManager
                 public const string OAuthDeviceEndpoint      = "oauthDeviceEndpoint";
                 public const string OAuthClientAuthHeader    = "oauthUseClientAuthHeader";
                 public const string OAuthDefaultUserName     = "oauthDefaultUserName";
+                public const string OAuthResponseMode        = "oauthResponseMode";
             }
 
             public static class Http

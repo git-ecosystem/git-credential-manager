@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,12 +21,13 @@ namespace GitCredentialManager.Tests.Objects
             return uri;
         }
 
-        public async Task<Uri> GetAuthenticationCodeAsync(Uri authorizationUri, Uri redirectUri, CancellationToken ct)
+        public async Task<IDictionary<string, string>> GetAuthenticationResponseAsync(
+            Uri authorizationUri, Uri redirectUri, OAuth2ResponseMode responseMode, CancellationToken ct)
         {
             using (var response = await _httpClient.SendAsync(HttpMethod.Get, authorizationUri))
             {
                 response.EnsureSuccessStatusCode();
-                return response.Headers.Location;
+                return response.Headers.Location.GetQueryParameters();
             }
         }
     }

@@ -42,6 +42,7 @@ following values in your Git configuration:
 - Client Secret (optional)
 - Redirect URL (optional, defaults to `http://127.0.0.1`)
 - Scopes (optional)
+- Response Mode (optional, defaults to `query`)
 - OAuth Endpoints
   - Authorization Endpoint
   - Token Endpoint
@@ -62,6 +63,7 @@ git config --global credential.<HOST>.oauthAuthorizeEndpoint <AuthEndpoint>
 git config --global credential.<HOST>.oauthTokenEndpoint <TokenEndpoint>
 git config --global credential.<HOST>.oauthScopes <Scopes>
 git config --global credential.<HOST>.oauthDeviceEndpoint <DeviceEndpoint>
+git config --global credential.<HOST>.oauthResponseMode <ResponseMode>
 ```
 
 **Example commands:**
@@ -83,12 +85,34 @@ git config --global credential.<HOST>.oauthDeviceEndpoint <DeviceEndpoint>
     oauthScopes = "code:write profile:read"
     oauthDefaultUserName = "OAUTH"
     oauthUseClientAuthHeader = false
+    oauthResponseMode = "query"
 ```
 
 ### Additional configuration
 
 Depending on the specific implementation of OAuth with your Git host you may
 also need to specify additional behavior.
+
+#### Response mode
+
+The response mode controls how the authorization server returns the response to
+the loopback redirect URI once the user has authenticated. GCM supports the
+following values:
+
+- `query` (default) - parameters are returned in the redirect URI query string.
+- `fragment` - parameters are returned in the redirect URI fragment.
+- `form_post` - parameters are returned as an auto-submitting HTML form that is
+  POSTed to the redirect URI, as described by the
+  [OAuth 2.0 Form Post Response Mode][form-post-spec] specification.
+
+Most hosts use the default `query` mode. Only set this if your host requires a
+specific response mode:
+
+```shell
+git config --global credential.<HOST>.oauthResponseMode <query|fragment|form_post>
+```
+
+[form-post-spec]: https://openid.net/specs/oauth-v2-form-post-response-mode-1_0.html
 
 #### Token user name
 

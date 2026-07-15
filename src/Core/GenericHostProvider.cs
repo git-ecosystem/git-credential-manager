@@ -276,7 +276,8 @@ namespace GitCredentialManager
                 trace2,
                 config.RedirectUri,
                 config.ClientSecret,
-                config.UseAuthHeader);
+                config.UseAuthHeader,
+                config.ResponseMode);
 
             //
             // Prepend "refresh_token" to the hostname to get a (hopefully) unique service name that
