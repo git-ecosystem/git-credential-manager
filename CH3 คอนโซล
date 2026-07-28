@@ -1,0 +1,25 @@
+pubads_impl.js:19 [GPT] Using deprecated googletag.encryptedSignalProviders. Please use googletag.secureSignalProviders instead.
+https://goo.gle/gpt-message#155
+YZ.log @ pubads_impl.js:19
+pubads_impl.js:19 [GPT] PubAdsService.enableSingleRequest is deprecated, use googletag.setConfig({singleRequest: ...}) instead.
+https://goo.gle/gpt-message#170
+YZ.log @ pubads_impl.js:19
+live.js:1 An error occurred while retrieving token.  FirebaseError: Messaging: The notification permission was not granted and blocked instead. (messaging/permission-blocked).
+    at e.<anonymous> (live.js:1:2534102)
+    at live.js:1:3063203
+    at Object.next (live.js:1:3063308)
+    at a (live.js:1:3062046)
+live.js:1 skip response params without pubmatic: /11682287/Web_Ch3Plus_Live/Preroll
+live.js:1 getVastXML pubmatic url_dfp result: https://pubads.g.doubleclick.net/gampad/ads?sz=640x360|640x480&ciu_szs=970x250,970x90,728x90,320x50,300x250,336x280,300x100&iu=/11682287/Web_Ch3Plus_Live/Preroll&impl=s&gdfp_req=1&env=vp&output=vast&unviewed_position_start=1&url=https://ch3plus.com&description_url=https%3A%2F%2Fch3plus.com%2Flive&adsafe=high&hl=th&correlator=1785198426
+live.js:1 skip response params without pubmatic: /11682287/Web_Ch3Plus_Live/Preroll
+live.js:1 getVastXML pubmatic url_dfp result: https://pubads.g.doubleclick.net/gampad/ads?sz=640x360|640x480&ciu_szs=970x250,970x90,728x90,320x50,300x250,336x280,300x100&iu=/11682287/Web_Ch3Plus_Live/Preroll&impl=s&gdfp_req=1&env=vp&output=vast&unviewed_position_start=1&url=https://ch3plus.com&description_url=https%3A%2F%2Fch3plus.com%2Flive&adsafe=high&hl=th&correlator=1785198426
+byteark-player.min.js:2 [BytearkPlayer] Cannot load bytearkAds plugin.
+(ไม่ระบุชื่อ) @ byteark-player.min.js:2
+byteark-player.min.js:2 [BytearkAds] pluginController: Missing Google IMA SDK in script tag.
+warn @ byteark-player.min.js:2
+live.js:1 willFetchNewScheduleAt 59575000 1785198426000 Wed Jul 29 2026 00:00:01 GMT+0700 (เวลาอินโดจีน)
+live.js:1 willFetchNewScheduleAt 59575000 1785198426000 Wed Jul 29 2026 00:00:01 GMT+0700 (เวลาอินโดจีน)
+live.js:1 willFetchNewScheduleAt 59575000 1785198426000 Wed Jul 29 2026 00:00:01 GMT+0700 (เวลาอินโดจีน)
+nlsSDK600.bundle.min.js:6 PLSUB init called 17851984281237463
+byteark-player.min.js:2 [BytearkAds] pluginController: Missing Google IMA SDK in script tag.
+warn @ byteark-player.min.js:2
