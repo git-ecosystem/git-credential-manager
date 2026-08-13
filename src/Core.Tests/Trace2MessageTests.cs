@@ -84,4 +84,36 @@ public class Trace2MessageTests
 
         Assert.Equal(expected, actual);
     }
+
+    [Fact]
+    public void Thread_Events_ToJson_Create_Expected_Json()
+    {
+        var startMessage = new ThreadStartMessage
+        {
+            Sid = "123",
+            Thread = "AppMain",
+            Time = new DateTimeOffset(),
+            File = "foo.cs",
+            Line = 1,
+            Depth = 1
+        };
+        var exitMessage = new ThreadExitMessage
+        {
+            Sid = "123",
+            Thread = "AppMain",
+            Time = new DateTimeOffset(),
+            File = "foo.cs",
+            Line = 2,
+            Depth = 1,
+            RelativeTime = 0.05
+        };
+
+        Assert.Equal(
+            "{\"event\":\"thread_start\",\"sid\":\"123\",\"thread\":\"AppMain\",\"time\":\"0001-01-01T00:00:00+00:00\",\"file\":\"foo.cs\",\"line\":1,\"depth\":1}",
+            startMessage.ToJson());
+        Assert.Equal(
+            "{\"event\":\"thread_exit\",\"sid\":\"123\",\"thread\":\"AppMain\",\"time\":\"0001-01-01T00:00:00+00:00\",\"file\":\"foo.cs\",\"line\":2,\"depth\":1,\"t_rel\":0.05}",
+            exitMessage.ToJson());
+    }
+
 }

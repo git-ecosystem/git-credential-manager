@@ -28,6 +28,10 @@ public enum Trace2Event
     RegionEnter,
     [JsonStringEnumMemberName("region_leave")]
     RegionLeave,
+    [JsonStringEnumMemberName("thread_start")]
+    ThreadStart,
+    [JsonStringEnumMemberName("thread_exit")]
+    ThreadExit,
 }
 
 [JsonSerializable(typeof(VersionMessage))]
@@ -35,6 +39,8 @@ public enum Trace2Event
 [JsonSerializable(typeof(ExitMessage))]
 [JsonSerializable(typeof(ChildStartMessage))]
 [JsonSerializable(typeof(ChildExitMessage))]
+[JsonSerializable(typeof(ThreadStartMessage))]
+[JsonSerializable(typeof(ThreadExitMessage))]
 [JsonSerializable(typeof(ErrorMessage))]
 [JsonSerializable(typeof(RegionEnterMessage))]
 [JsonSerializable(typeof(RegionLeaveMessage))]
@@ -366,6 +372,29 @@ public class ChildExitMessage() : Trace2Message(Trace2Event.ChildExit)
         sb.Append($" pid:{Pid} code:{Code} elapsed:{RelativeTime}");
         return sb.ToString();
     }
+}
+
+public class ThreadStartMessage() : Trace2Message(Trace2Event.ThreadStart)
+{
+    protected override JsonTypeInfo GetJsonTypeInfo() => Trace2JsonContext.Default.ThreadStartMessage;
+
+    protected override string GetEventMessage(Trace2FormatTarget formatTarget) => Thread;
+}
+
+public class ThreadExitMessage() : Trace2Message(Trace2Event.ThreadExit)
+{
+    [JsonPropertyName("t_rel")]
+    [JsonPropertyOrder(8)]
+    public double RelativeTime { get; set; }
+
+    protected override JsonTypeInfo GetJsonTypeInfo() => Trace2JsonContext.Default.ThreadExitMessage;
+
+    private protected override PerformanceFormatFields GetPerformanceFields() => new()
+    {
+        RelativeTime = RelativeTime
+    };
+
+    protected override string GetEventMessage(Trace2FormatTarget formatTarget) => $"elapsed:{RelativeTime}";
 }
 
 public class ErrorMessage() : Trace2Message(Trace2Event.Error)
