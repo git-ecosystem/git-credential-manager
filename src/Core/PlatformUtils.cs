@@ -429,9 +429,9 @@ namespace GitCredentialManager
                         RedirectStandardOutput = true
                     };
 
-                    using (var uname = new ChildProcess(psi))
+                    using (var uname = new ChildProcess(psi, Trace2ProcessClass.Other))
                     {
-                        uname.Start(Trace2ProcessClass.Other);
+                        uname.Start();
                         uname.Process.WaitForExit();
 
                         if (uname.ExitCode == 0)

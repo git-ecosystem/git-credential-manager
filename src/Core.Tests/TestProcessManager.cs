@@ -4,7 +4,8 @@ namespace GitCredentialManager.Tests;
 
 public class TestProcessManager : IProcessManager
 {
-    public ChildProcess CreateProcess(string path, string args, bool useShellExecute, string workingDirectory)
+    public ChildProcess CreateProcess(string path, string args, bool useShellExecute, string workingDirectory,
+        Trace2ProcessClass @class)
     {
         var psi = new ProcessStartInfo(path, args)
         {
@@ -15,11 +16,11 @@ public class TestProcessManager : IProcessManager
             WorkingDirectory = workingDirectory ?? string.Empty
         };
 
-        return CreateProcess(psi);
+        return CreateProcess(psi, @class);
     }
 
-    public ChildProcess CreateProcess(ProcessStartInfo psi)
+    public ChildProcess CreateProcess(ProcessStartInfo psi, Trace2ProcessClass @class)
     {
-        return new ChildProcess(psi);
+        return new ChildProcess(psi, @class);
     }
 }

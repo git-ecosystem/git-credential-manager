@@ -39,9 +39,9 @@ namespace GitCredentialManager
 
             PrepareEnvironment(psi);
 
-            using (var gpg = _processManager.CreateProcess(psi))
+            using (var gpg = _processManager.CreateProcess(psi, Trace2ProcessClass.Other))
             {
-                if (!gpg.Start(Trace2ProcessClass.Other))
+                if (!gpg.Start())
                 {
                     throw new Exception("Failed to start gpg.");
                 }
@@ -73,9 +73,9 @@ namespace GitCredentialManager
 
             PrepareEnvironment(psi);
 
-            using (var gpg = _processManager.CreateProcess(psi))
+            using (var gpg = _processManager.CreateProcess(psi, Trace2ProcessClass.Other))
             {
-                if (!gpg.Start(Trace2ProcessClass.Other))
+                if (!gpg.Start())
                 {
                     throw new Exception("Failed to start gpg.");
                 }

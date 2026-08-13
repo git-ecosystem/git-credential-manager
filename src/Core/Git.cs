@@ -214,7 +214,8 @@ namespace GitCredentialManager
 
         public ChildProcess CreateProcess(string args)
         {
-            return _processManager.CreateProcess(_gitPath, args, false, _workingDirectory);
+            return _processManager.CreateProcess(
+                _gitPath, args, false, _workingDirectory, Trace2ProcessClass.Git);
         }
 
         // This code was originally copied from
@@ -234,7 +235,7 @@ namespace GitCredentialManager
                 UseShellExecute = false
             };
 
-            var process = _processManager.CreateProcess(procStartInfo);
+            var process = _processManager.CreateProcess(procStartInfo, Trace2ProcessClass.Git);
             if (!process.Start())
             {
                 var format = "Failed to start Git helper '{0}'";

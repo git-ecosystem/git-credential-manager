@@ -27,7 +27,7 @@ namespace GitCredentialManager.Tests
 
             psi.RedirectStandardOutput = true;
 
-            using (var which = new ChildProcess(psi))
+            using (var which = new ChildProcess(psi, Trace2ProcessClass.None))
             {
                 which.Start();
                 which.WaitForExit();

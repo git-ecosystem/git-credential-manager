@@ -77,8 +77,6 @@ public static class Trace2
     private static int _depth;
 
     private static bool _initialized;
-    // Increment with each new child process that is tracked
-    private static int _childProcCounter;
 
     public static void Initialize(
         string[] args,
@@ -159,8 +157,8 @@ public static class Trace2
         DisposeWriters();
     }
 
-    public static void WriteChildStart(
-        DateTimeOffset startTime,
+    internal static DateTimeOffset WriteChildStart(
+        int childId,
         Trace2ProcessClass processClass,
         bool useShell,
         string appName,
@@ -168,13 +166,15 @@ public static class Trace2
         [System.Runtime.CompilerServices.CallerFilePath] string filePath = "",
         [System.Runtime.CompilerServices.CallerLineNumber] int lineNumber = 0)
     {
+        var startTime = DateTimeOffset.UtcNow;
+
         // Some child processes are started before TRACE2 can be initialized.
         // Since certain dependencies are not available until initialization,
         // we must immediately return if this method is invoked prior to
         // initialization.
         if (!_initialized)
         {
-            return;
+            return startTime;
         }
 
         // Always add name of the application the process is executing
@@ -197,32 +197,36 @@ public static class Trace2
             Thread = BuildThreadName(),
             File = Path.GetFileName(filePath),
             Line = lineNumber,
-            Id = ++_childProcCounter,
+            Id = childId,
             Classification = processClass,
             UseShell = useShell,
             Argv = procArgs,
             ElapsedTime = (DateTimeOffset.UtcNow - _applicationStartTime).TotalSeconds,
             Depth = _depth,
         });
+        return startTime;
     }
 
-    public static void WriteChildExit(
+    internal static void WriteChildExit(
+        int childId,
         DateTimeOffset startTime,
         int pid,
         int code,
         [System.Runtime.CompilerServices.CallerFilePath] string filePath = "",
         [System.Runtime.CompilerServices.CallerLineNumber] int lineNumber = 0) =>
-        WriteChildExit(DateTimeOffset.UtcNow - startTime, pid, code, filePath, lineNumber);
+        WriteChildExit(childId, DateTimeOffset.UtcNow - startTime, pid, code, filePath, lineNumber);
 
-    public static void WriteChildExit(
+    internal static void WriteChildExit(
+        int childId,
         TimeSpan relativeTime,
         int pid,
         int code,
         [System.Runtime.CompilerServices.CallerFilePath] string filePath = "",
         [System.Runtime.CompilerServices.CallerLineNumber] int lineNumber = 0) =>
-        WriteChildExit(relativeTime.TotalSeconds, pid, code, filePath, lineNumber);
+        WriteChildExit(childId, relativeTime.TotalSeconds, pid, code, filePath, lineNumber);
 
-    public static void WriteChildExit(
+    internal static void WriteChildExit(
+        int childId,
         double relativeTime,
         int pid,
         int code,
@@ -246,7 +250,7 @@ public static class Trace2
             Thread = BuildThreadName(),
             File = Path.GetFileName(filePath),
             Line = lineNumber,
-            Id = _childProcCounter,
+            Id = childId,
             Pid = pid,
             Code = code,
             ElapsedTime = (DateTimeOffset.UtcNow - _applicationStartTime).TotalSeconds,
