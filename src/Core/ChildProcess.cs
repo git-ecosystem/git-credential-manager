@@ -1,14 +1,11 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Threading.Tasks;
 
 namespace GitCredentialManager;
 
 public class ChildProcess : DisposableObject
 {
-    private readonly ITrace2 _trace2;
-
     private DateTimeOffset _startTime;
     private DateTimeOffset _exitTime => Process.ExitTime;
     private ProcessStartInfo _startInfo => Process.StartInfo;
@@ -22,32 +19,26 @@ public class ChildProcess : DisposableObject
     public StreamReader StandardError => Process.StandardError;
     public int ExitCode => Process.ExitCode;
 
-    public static ChildProcess Start(ITrace2 trace2, ProcessStartInfo startInfo, Trace2ProcessClass processClass)
+    public static ChildProcess Start(ProcessStartInfo startInfo, Trace2ProcessClass @class = Trace2ProcessClass.None)
     {
-        var childProc = new ChildProcess(trace2, startInfo);
-        childProc.Start(processClass);
+        var childProc = new ChildProcess(startInfo);
+        childProc.Start(@class);
         return childProc;
     }
 
-    public ChildProcess(ITrace2 trace2, ProcessStartInfo startInfo)
+    public ChildProcess(ProcessStartInfo startInfo)
     {
-        _trace2 = trace2;
         Process = new Process() { StartInfo = startInfo };
         Process.Exited += ProcessOnExited;
     }
 
-    public bool Start(Trace2ProcessClass processClass)
+    public bool Start(Trace2ProcessClass @class = Trace2ProcessClass.None)
     {
         ThrowIfDisposed();
-        // Record the time just before the process starts, since:
-        // (1) There is no event related to Start as there is with Exit.
-        // (2) Using Process.StartTime causes a race condition that leads
-        // to an exception if the process finishes executing before the
-        // variable is passed to Trace2.
         _startTime = DateTimeOffset.UtcNow;
-        _trace2.WriteChildStart(
+        Trace2.WriteChildStart(
             _startTime,
-            processClass,
+            @class,
             _startInfo.UseShellExecute,
             _startInfo.FileName,
             _startInfo.Arguments);
@@ -70,7 +61,7 @@ public class ChildProcess : DisposableObject
         if (sender is Process)
         {
             double elapsedTime = (_exitTime - _startTime).TotalSeconds;
-            _trace2.WriteChildExit(
+            Trace2.WriteChildExit(
                 elapsedTime,
                 _id,
                 Process.ExitCode);

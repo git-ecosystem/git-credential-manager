@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using GitCredentialManager.Tests.Objects;
-using Moq;
 
 namespace GitCredentialManager.Tests;
 
@@ -24,6 +20,6 @@ public class TestProcessManager : IProcessManager
 
     public ChildProcess CreateProcess(ProcessStartInfo psi)
     {
-        return new ChildProcess(new NullTrace2(), psi);
+        return new ChildProcess(psi);
     }
 }

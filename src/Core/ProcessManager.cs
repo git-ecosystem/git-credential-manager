@@ -27,15 +27,6 @@ public interface IProcessManager
 
 public class ProcessManager : IProcessManager
 {
-    protected readonly ITrace2 Trace2;
-
-    public ProcessManager(ITrace2 trace2)
-    {
-        EnsureArgument.NotNull(trace2, nameof(trace2));
-
-        Trace2 = trace2;
-    }
-
     public virtual ChildProcess CreateProcess(string path, string args, bool useShellExecute, string workingDirectory)
     {
         var psi = new ProcessStartInfo(path, args)
@@ -52,6 +43,6 @@ public class ProcessManager : IProcessManager
 
     public virtual ChildProcess CreateProcess(ProcessStartInfo psi)
     {
-        return new ChildProcess(Trace2, psi);
+        return new ChildProcess(psi);
     }
 }

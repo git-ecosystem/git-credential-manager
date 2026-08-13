@@ -101,7 +101,7 @@ namespace GitCredentialManager.Tests
             string expectedFileName = WslUtils.GetWslPath();
             string expectedArgs = $"--distribution {distribution} --exec {command}";
 
-            ChildProcess process = WslUtils.CreateWslProcess(distribution, command, Mock.Of<ITrace2>());
+            ChildProcess process = WslUtils.CreateWslProcess(distribution, command);
 
             Assert.NotNull(process);
             Assert.Equal(expectedArgs, process.StartInfo.Arguments);
@@ -122,7 +122,7 @@ namespace GitCredentialManager.Tests
             string expectedFileName = WslUtils.GetWslPath();
             string expectedArgs = $"--distribution {distribution} --exec {command}";
 
-            ChildProcess process = WslUtils.CreateWslProcess(distribution, command, Mock.Of<ITrace2>(), expectedWorkingDirectory);
+            ChildProcess process = WslUtils.CreateWslProcess(distribution, command, expectedWorkingDirectory);
 
             Assert.NotNull(process);
             Assert.Equal(expectedArgs, process.StartInfo.Arguments);

@@ -38,11 +38,10 @@ namespace GitCredentialManager
     {
         private readonly IFileSystem _fileSystem;
         private readonly ITrace _trace;
-        private readonly ITrace2 _trace2;
         private readonly ISettings _settings;
         private readonly IConsoleService _console;
 
-        public HttpClientFactory(IFileSystem fileSystem, ITrace trace, ITrace2 trace2, ISettings settings, IConsoleService console)
+        public HttpClientFactory(IFileSystem fileSystem, ITrace trace, ISettings settings, IConsoleService console)
         {
             EnsureArgument.NotNull(fileSystem, nameof(fileSystem));
             EnsureArgument.NotNull(trace, nameof(trace));
@@ -51,7 +50,6 @@ namespace GitCredentialManager
 
             _fileSystem = fileSystem;
             _trace = trace;
-            _trace2 = trace2;
             _settings = settings;
             _console = console;
         }
@@ -209,7 +207,7 @@ namespace GitCredentialManager
             var client = new HttpClient(handler);
 
             // Add default headers
-            client.DefaultRequestHeaders.UserAgent.ParseAdd(Constants.GetHttpUserAgent(_trace2));
+            client.DefaultRequestHeaders.UserAgent.ParseAdd(Constants.GetHttpUserAgent());
             client.DefaultRequestHeaders.CacheControl = new CacheControlHeaderValue
             {
                 NoCache = true
@@ -295,7 +293,7 @@ namespace GitCredentialManager
                             "Failed to convert proxy bypass hosts to regular expressions; ignoring bypass list";
                         _trace.WriteLine(message);
                         _trace.WriteException(ex);
-                        _trace2.WriteError(message);
+                        Trace2.WriteError(message);
                         dict["bypass"] = "<< failed to convert >>";
                     }
                 }

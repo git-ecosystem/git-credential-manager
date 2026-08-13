@@ -5,7 +5,7 @@ namespace GitCredentialManager.Interop.Windows;
 [SupportedOSPlatform("windows")]
 public class WindowsProcessManager : ProcessManager
 {
-    public WindowsProcessManager(ITrace2 trace2) : base(trace2)
+    public WindowsProcessManager()
     {
         PlatformUtils.EnsureWindows();
     }
@@ -16,7 +16,7 @@ public class WindowsProcessManager : ProcessManager
         if (!useShellExecute && WslUtils.IsWslPath(path))
         {
             string wslPath = WslUtils.ConvertToDistroPath(path, out string distro);
-            return WslUtils.CreateWslProcess(distro, $"{wslPath} {args}", Trace2, workingDirectory);
+            return WslUtils.CreateWslProcess(distro, $"{wslPath} {args}", workingDirectory);
         }
 
         return base.CreateProcess(path, args, useShellExecute, workingDirectory);

@@ -14,10 +14,10 @@ namespace GitCredentialManager
         /// Get information about the current platform (OS and CLR details).
         /// </summary>
         /// <returns>Platform information.</returns>
-        public static PlatformInformation GetPlatformInformation(ITrace2 trace2)
+        public static PlatformInformation GetPlatformInformation()
         {
             string osType = GetOSType();
-            string osVersion = GetOSVersion(trace2);
+            string osVersion = GetOSVersion();
             string cpuArch = GetCpuArchitecture();
             string clrVersion = RuntimeInformation.FrameworkDescription;
 
@@ -353,7 +353,7 @@ namespace GitCredentialManager
 
         private static string _linuxDistroVersion;
 
-        private static string GetOSVersion(ITrace2 trace2)
+        private static string GetOSVersion()
         {
             //
             // Since .NET 5 we can use Environment.OSVersion because it was updated to
@@ -429,7 +429,7 @@ namespace GitCredentialManager
                         RedirectStandardOutput = true
                     };
 
-                    using (var uname = new ChildProcess(trace2, psi))
+                    using (var uname = new ChildProcess(psi))
                     {
                         uname.Start(Trace2ProcessClass.Other);
                         uname.Process.WaitForExit();
