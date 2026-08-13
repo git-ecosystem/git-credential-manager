@@ -24,13 +24,17 @@ namespace GitCredentialManager.Commands
 
         protected IConfigurationService ConfigurationService { get; }
 
-        internal Task ExecuteAsync(bool system)
+        internal async Task ExecuteAsync(bool system)
         {
             var target = system
                 ? ConfigurationTarget.System
                 : ConfigurationTarget.User;
 
-            return ExecuteInternalAsync(target);
+            using var _ = Trace2.StartRegion("cfg_cmd", "run");
+            Trace2.WriteData("cfg_cmd", "name", Name);
+            Trace2.WriteData("cfg_cmd", "target", target.ToString());
+
+            await ExecuteInternalAsync(target);
         }
 
         protected abstract Task ExecuteInternalAsync(ConfigurationTarget target);

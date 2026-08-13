@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using GitCredentialManager.Tty;
 
 namespace GitCredentialManager.Commands
 {
@@ -21,7 +20,10 @@ namespace GitCredentialManager.Commands
             GitResponse response;
             try
             {
-                response = await provider.GetCredentialAsync(request);
+                using (Trace2.StartRegion("git_cmd_get", "provider_get"))
+                {
+                    response = await provider.GetCredentialAsync(request);
+                }
             }
             catch (Exception ex) when (ex is OperationCanceledException || ex is InterruptedException)
             {

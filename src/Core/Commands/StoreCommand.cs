@@ -14,9 +14,10 @@ namespace GitCredentialManager.Commands
             IsHidden = true;
         }
 
-        protected override Task ExecuteInternalAsync(GitRequest request, IHostProvider provider)
+        protected override async Task ExecuteInternalAsync(GitRequest request, IHostProvider provider)
         {
-            return provider.StoreCredentialAsync(request);
+            using var _ = Trace2.StartRegion("git_cmd_store", "provider_store");
+            await provider.StoreCredentialAsync(request);
         }
 
         protected override void EnsureMinimumRequest(GitRequest request)

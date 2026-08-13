@@ -46,13 +46,16 @@ namespace GitCredentialManager
             using (var context = new CommandContext())
             using (var app = new Application(context))
             {
-                // Register all supported host providers at the normal priority.
-                // The generic provider should never win against a more specific one, so register it with low priority.
-                app.RegisterProvider(new AzureReposHostProvider(context), HostProviderPriority.Normal);
-                app.RegisterProvider(new BitbucketHostProvider(context), HostProviderPriority.Normal);
-                app.RegisterProvider(new GitHubHostProvider(context), HostProviderPriority.Normal);
-                app.RegisterProvider(new GitLabHostProvider(context), HostProviderPriority.Normal);
-                app.RegisterProvider(new GenericHostProvider(context), HostProviderPriority.Low);
+                using (Trace2.StartRegion("main", "provider_reg"))
+                {
+                    // Register all supported host providers at the normal priority.
+                    // The generic provider should never win against a more specific one, so register it with low priority.
+                    app.RegisterProvider(new AzureReposHostProvider(context), HostProviderPriority.Normal);
+                    app.RegisterProvider(new BitbucketHostProvider(context), HostProviderPriority.Normal);
+                    app.RegisterProvider(new GitHubHostProvider(context), HostProviderPriority.Normal);
+                    app.RegisterProvider(new GitLabHostProvider(context), HostProviderPriority.Normal);
+                    app.RegisterProvider(new GenericHostProvider(context), HostProviderPriority.Low);
+                }
 
                 _exitCode = app.RunAsync(args)
                     .ConfigureAwait(false)
