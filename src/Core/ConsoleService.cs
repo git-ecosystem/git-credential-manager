@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using GitCredentialManager.Tty;
@@ -36,32 +37,32 @@ public interface IConsoleService
 
 public class ConsoleService : IConsoleService
 {
-    private readonly IAnsiConsole _ttyConsole;
-    private readonly IAnsiConsole _stderrConsole;
+    private readonly Lazy<IAnsiConsole> _ttyConsole;
+    private readonly Lazy<IAnsiConsole> _stderrConsole;
 
     public ConsoleService(IStandardStreams streams)
-        : this(AnsiConsoleFactory.CreateForTty(), AnsiConsoleFactory.CreateForWriter(streams.Error, streams.IsErrorRedirected))
+        : this(AnsiConsoleFactory.CreateForTty, () => AnsiConsoleFactory.CreateForWriter(streams.Error, streams.IsErrorRedirected))
     { }
 
-    public ConsoleService(IAnsiConsole ttyConsole, IAnsiConsole stderrConsole)
+    public ConsoleService(Func<IAnsiConsole> ttyConsoleFunc, Func<IAnsiConsole> stderrConsoleFunc)
     {
-        _ttyConsole = ttyConsole;
-        _stderrConsole = stderrConsole;
+        _ttyConsole = new Lazy<IAnsiConsole>(ttyConsoleFunc);
+        _stderrConsole = new Lazy<IAnsiConsole>(stderrConsoleFunc);
     }
 
-    public void WriteInfo(string message) => _stderrConsole.MarkupLine($"[blue]info:[/] {Markup.Escape(message)}");
+    public void WriteInfo(string message) => _stderrConsole.Value.MarkupLine($"[blue]info:[/] {Markup.Escape(message)}");
 
-    public void WriteWarning(string message) => _stderrConsole.MarkupLine($"[yellow]warning:[/] {Markup.Escape(message)}");
+    public void WriteWarning(string message) => _stderrConsole.Value.MarkupLine($"[yellow]warning:[/] {Markup.Escape(message)}");
 
-    public void WriteError(string message) => _stderrConsole.MarkupLine($"[red]error:[/] {Markup.Escape(message)}");
+    public void WriteError(string message) => _stderrConsole.Value.MarkupLine($"[red]error:[/] {Markup.Escape(message)}");
 
-    public void WriteFatal(string message) => _stderrConsole.MarkupLine($"[red]fatal:[/] {Markup.Escape(message)}");
+    public void WriteFatal(string message) => _stderrConsole.Value.MarkupLine($"[red]fatal:[/] {Markup.Escape(message)}");
 
-    public void WriteLine(string message) => _stderrConsole.WriteLine(message);
+    public void WriteLine(string message) => _stderrConsole.Value.WriteLine(message);
 
     public T ShowPrompt<T>(IPrompt<T> prompt) =>
-        prompt.Show(_ttyConsole);
+        prompt.Show(_ttyConsole.Value);
 
     public Task<T> ShowPromptAsync<T>(IPrompt<T> prompt, CancellationToken ct = default) =>
-        prompt.ShowAsync(_ttyConsole, ct);
+        prompt.ShowAsync(_ttyConsole.Value, ct);
 }

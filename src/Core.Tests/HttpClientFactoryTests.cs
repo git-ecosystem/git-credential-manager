@@ -11,7 +11,7 @@ namespace GitCredentialManager.Tests
 {
     public class HttpClientFactoryTests
     {
-        private static readonly IConsoleService TestConsole = new ConsoleService(AnsiConsoleFactory.CreateHeadless(), AnsiConsoleFactory.CreateHeadless());
+        private static readonly IConsoleService TestConsole = new ConsoleService(AnsiConsoleFactory.CreateHeadless, AnsiConsoleFactory.CreateHeadless);
         
         [Fact]
         public void HttpClientFactory_GetClient_SetsDefaultHeaders()
