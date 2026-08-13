@@ -44,24 +44,28 @@ namespace GitCredentialManager
 
         public IList<string> GetAccounts(string service)
         {
+            using var _  = Trace2.StartRegion("cred_store", "get_accounts");
             EnsureBackingStore();
             return _backingStore.GetAccounts(service);
         }
 
         public ICredential Get(string service, string account)
         {
+            using var _  = Trace2.StartRegion("cred_store", "get");
             EnsureBackingStore();
             return _backingStore.Get(service, account);
         }
 
         public void AddOrUpdate(string service, string account, string secret)
         {
+            using var _  = Trace2.StartRegion("cred_store", "add");
             EnsureBackingStore();
             _backingStore.AddOrUpdate(service, account, secret);
         }
 
         public bool Remove(string service, string account)
         {
+            using var _  = Trace2.StartRegion("cred_store", "remove");
             EnsureBackingStore();
             return _backingStore.Remove(service, account);
         }
@@ -75,11 +79,17 @@ namespace GitCredentialManager
                 return;
             }
 
-            string ns = _context.Settings.CredentialNamespace;
-            string credStoreName = _context.Settings.CredentialBackingStore?.ToLowerInvariant()
-                                ?? GetDefaultStore();
+            using var _ = Trace2.StartRegion("cred_store", "init");
 
-            switch (credStoreName)
+            string ns = _context.Settings.CredentialNamespace;
+            string credStoreName = _context.Settings.CredentialBackingStore?.ToLowerInvariant();
+            string defaultStore = GetDefaultStore();
+
+            Trace2.WriteData("cred_store", "store/configured", credStoreName);
+            Trace2.WriteData("cred_store", "store/default", defaultStore);
+            Trace2.WriteData("cred_store", "store/namespace", ns);
+
+            switch (credStoreName ?? defaultStore)
             {
                 case StoreNames.WindowsCredentialManager:
                     ValidateWindowsCredentialManager();

@@ -89,6 +89,8 @@ namespace GitCredentialManager
     {
         public CommandContext()
         {
+            using var _ = Trace2.StartRegion("cmd_ctx", "create");
+
             ApplicationPath = GetEntryApplicationPath();
             InstallationDirectory = GetInstallationDirectory();
 
@@ -152,6 +154,8 @@ namespace GitCredentialManager
 
         private static string GetGitPath(IEnvironment environment, IFileSystem fileSystem, ITrace trace)
         {
+            using var _ = Trace2.StartRegion("cmd_ctx", "find_git");
+
             const string unixGitName = "git";
             const string winGitName = "git.exe";
 
