@@ -5,6 +5,7 @@ using System.Globalization;
 using System.IO;
 using System.IO.Pipes;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -56,8 +57,8 @@ public static class Trace2
     /// </remarks>
     public static void Initialize(
         string[] args,
-        [System.Runtime.CompilerServices.CallerFilePath] string filePath = "",
-        [System.Runtime.CompilerServices.CallerLineNumber] int lineNumber = 0)
+        [CallerFilePath] string filePath = "",
+        [CallerLineNumber] int lineNumber = 0)
     {
         if (_initialized)
         {
@@ -170,8 +171,8 @@ public static class Trace2
     /// </remarks>
     public static void Stop(
         int exitCode,
-        [System.Runtime.CompilerServices.CallerFilePath] string filePath = "",
-        [System.Runtime.CompilerServices.CallerLineNumber] int lineNumber = 0)
+        [CallerFilePath] string filePath = "",
+        [CallerLineNumber] int lineNumber = 0)
     {
         if (!_initialized) return;
 
@@ -203,8 +204,8 @@ public static class Trace2
         bool useShell,
         string appName,
         string argv,
-        [System.Runtime.CompilerServices.CallerFilePath] string filePath = "",
-        [System.Runtime.CompilerServices.CallerLineNumber] int lineNumber = 0)
+        [CallerFilePath] string filePath = "",
+        [CallerLineNumber] int lineNumber = 0)
     {
         var startTime = DateTimeOffset.UtcNow;
 
@@ -256,8 +257,8 @@ public static class Trace2
         DateTimeOffset startTime,
         int pid,
         int code,
-        [System.Runtime.CompilerServices.CallerFilePath] string filePath = "",
-        [System.Runtime.CompilerServices.CallerLineNumber] int lineNumber = 0) =>
+        [CallerFilePath] string filePath = "",
+        [CallerLineNumber] int lineNumber = 0) =>
         WriteChildExit(childId, DateTimeOffset.UtcNow - startTime, pid, code, filePath, lineNumber);
 
     /// <summary>
@@ -276,8 +277,8 @@ public static class Trace2
         TimeSpan relativeTime,
         int pid,
         int code,
-        [System.Runtime.CompilerServices.CallerFilePath] string filePath = "",
-        [System.Runtime.CompilerServices.CallerLineNumber] int lineNumber = 0) =>
+        [CallerFilePath] string filePath = "",
+        [CallerLineNumber] int lineNumber = 0) =>
         WriteChildExit(childId, relativeTime.TotalSeconds, pid, code, filePath, lineNumber);
 
     /// <summary>
@@ -298,8 +299,8 @@ public static class Trace2
         double relativeTime,
         int pid,
         int code,
-        [System.Runtime.CompilerServices.CallerFilePath] string filePath = "",
-        [System.Runtime.CompilerServices.CallerLineNumber] int lineNumber = 0)
+        [CallerFilePath] string filePath = "",
+        [CallerLineNumber] int lineNumber = 0)
     {
         if (!_initialized) return;
 
@@ -332,8 +333,8 @@ public static class Trace2
     public static void WriteError(
         string errorMessage,
         string parameterizedMessage = null,
-        [System.Runtime.CompilerServices.CallerFilePath] string filePath = "",
-        [System.Runtime.CompilerServices.CallerLineNumber] int lineNumber = 0)
+        [CallerFilePath] string filePath = "",
+        [CallerLineNumber] int lineNumber = 0)
     {
         if (!_initialized) return;
 
@@ -352,8 +353,8 @@ public static class Trace2
 
     internal static void WriteError(
         Exception exception,
-        [System.Runtime.CompilerServices.CallerFilePath] string filePath = "",
-        [System.Runtime.CompilerServices.CallerLineNumber] int lineNumber = 0)
+        [CallerFilePath] string filePath = "",
+        [CallerLineNumber] int lineNumber = 0)
     {
         EnsureArgument.NotNull(exception, nameof(exception));
 
@@ -404,8 +405,8 @@ public static class Trace2
     /// </remarks>
     public static IDisposable StartThread(
         string name,
-        [System.Runtime.CompilerServices.CallerFilePath] string filePath = "",
-        [System.Runtime.CompilerServices.CallerLineNumber] int lineNumber = 0)
+        [CallerFilePath] string filePath = "",
+        [CallerLineNumber] int lineNumber = 0)
     {
         if (!_initialized)
             return NoOpDisposable.Instance;
@@ -497,8 +498,8 @@ public static class Trace2
         string category,
         string label,
         string message = "",
-        [System.Runtime.CompilerServices.CallerFilePath] string filePath = "",
-        [System.Runtime.CompilerServices.CallerLineNumber] int lineNumber = 0)
+        [CallerFilePath] string filePath = "",
+        [CallerLineNumber] int lineNumber = 0)
     {
         if (!_initialized)
             return NoOpDisposable.Instance;
