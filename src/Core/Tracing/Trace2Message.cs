@@ -32,6 +32,8 @@ public enum Trace2Event
     ThreadStart,
     [JsonStringEnumMemberName("thread_exit")]
     ThreadExit,
+    [JsonStringEnumMemberName("cmd_name")]
+    CommandName,
 }
 
 [JsonSerializable(typeof(VersionMessage))]
@@ -44,6 +46,7 @@ public enum Trace2Event
 [JsonSerializable(typeof(ErrorMessage))]
 [JsonSerializable(typeof(RegionEnterMessage))]
 [JsonSerializable(typeof(RegionLeaveMessage))]
+[JsonSerializable(typeof(CommandNameMessage))]
 [JsonSourceGenerationOptions(
     UseStringEnumConverter = true,
     PropertyNamingPolicy = JsonKnownNamingPolicy.SnakeCaseLower,
@@ -372,6 +375,25 @@ public class ChildExitMessage() : Trace2Message(Trace2Event.ChildExit)
         sb.Append($" pid:{Pid} code:{Code} elapsed:{RelativeTime}");
         return sb.ToString();
     }
+}
+
+public class CommandNameMessage() : Trace2Message(Trace2Event.CommandName)
+{
+    [JsonPropertyName("name")]
+    [JsonPropertyOrder(8)]
+    public string Name { get; set; }
+
+    [JsonPropertyName("hierarchy")]
+    [JsonPropertyOrder(9)]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string Hierarchy { get; set; }
+
+    protected override JsonTypeInfo GetJsonTypeInfo() => Trace2JsonContext.Default.CommandNameMessage;
+
+    protected override string GetEventMessage(Trace2FormatTarget formatTarget) =>
+        string.IsNullOrEmpty(Hierarchy)
+            ? Name
+            : $"{Name} ({Hierarchy})";
 }
 
 public class ThreadStartMessage() : Trace2Message(Trace2Event.ThreadStart)

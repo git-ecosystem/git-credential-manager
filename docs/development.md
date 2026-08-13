@@ -261,6 +261,7 @@ method
 0. `exit`: contains current executable's exit code
 0. `child_start`: describes a child process that is about to be spawned
 0. `child_exit`: describes a child process at exit
+0. `cmd_name`: identifies the canonical command and inherited command hierarchy
 0. `region_enter`: describes a region (e.g. a timer for a section of code that
 is interesting) on entry
 0. `region_leave`: describes a region on leaving

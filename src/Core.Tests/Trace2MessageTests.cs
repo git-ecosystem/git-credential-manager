@@ -116,4 +116,24 @@ public class Trace2MessageTests
             exitMessage.ToJson());
     }
 
+    [Fact]
+    public void CommandName_Event_ToJson_Creates_Expected_Json()
+    {
+        var message = new CommandNameMessage
+        {
+            Sid = "123",
+            Thread = "main",
+            Time = new DateTimeOffset(),
+            File = "foo.cs",
+            Line = 1,
+            Depth = 1,
+            Name = "get",
+            Hierarchy = "git/get"
+        };
+
+        const string expected = "{\"event\":\"cmd_name\",\"sid\":\"123\",\"thread\":\"main\",\"time\":\"0001-01-01T00:00:00+00:00\",\"file\":\"foo.cs\",\"line\":1,\"depth\":1,\"name\":\"get\",\"hierarchy\":\"git/get\"}";
+
+        Assert.Equal(expected, message.ToJson());
+    }
+
 }

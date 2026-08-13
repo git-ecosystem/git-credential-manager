@@ -29,6 +29,7 @@ internal class Trace2Settings
 public static class Trace2
 {
     internal const string SidEnvar = "GIT_TRACE2_PARENT_SID";
+    internal const string ParentNameEnvar = "GIT_TRACE2_PARENT_NAME";
     private const string MainThreadName = "main";
 
     private static readonly Lock WritersLock = new();
@@ -178,6 +179,45 @@ public static class Trace2
 
         WriteExit(exitCode, filePath, lineNumber);
         DisposeWriters();
+    }
+
+    /// <summary>
+    /// Writes the canonical name of the command being run.
+    /// </summary>
+    /// <param name="name">The canonical command name.</param>
+    /// <param name="filePath">The source file writing the event.</param>
+    /// <param name="lineNumber">The source line writing the event.</param>
+    /// <remarks>
+    /// The command hierarchy is inherited from the parent process and extended
+    /// for child processes through <c>GIT_TRACE2_PARENT_NAME</c>.
+    /// </remarks>
+    public static void WriteCommandName(
+        string name,
+        [CallerFilePath] string filePath = "",
+        [CallerLineNumber] int lineNumber = 0)
+    {
+        if (!_initialized) return;
+
+        EnsureArgument.NotNullOrWhiteSpace(name, nameof(name));
+
+        string parentName = Environment.GetEnvironmentVariable(ParentNameEnvar);
+        string hierarchy = string.IsNullOrEmpty(parentName)
+            ? name
+            : $"{parentName}/{name}";
+
+        Environment.SetEnvironmentVariable(ParentNameEnvar, hierarchy);
+
+        WriteMessage(new CommandNameMessage
+        {
+            Sid = _sid,
+            Time = DateTimeOffset.UtcNow,
+            Thread = GetCurrentContext().ThreadName,
+            File = Path.GetFileName(filePath),
+            Line = lineNumber,
+            Name = name,
+            Hierarchy = hierarchy,
+            Depth = _depth
+        });
     }
 
     /// <summary>
