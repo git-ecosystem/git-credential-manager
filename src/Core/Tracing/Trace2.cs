@@ -197,7 +197,7 @@ public interface ITrace2 : IDisposable
     /// <param name="message">Message associated with entering region.</param>
     /// <param name="filePath">Path of the file this method is called from.</param>
     /// <param name="lineNumber">Line number of file this method is called from.</param>
-    Region CreateRegion(
+    Region StartRegion(
         string category,
         string label,
         string message = "",
@@ -409,7 +409,7 @@ public class Trace2 : DisposableObject, ITrace2
         });
     }
 
-    public Region CreateRegion(
+    public Region StartRegion(
         string category,
         string label,
         string message,

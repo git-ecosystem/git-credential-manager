@@ -200,7 +200,7 @@ namespace GitCredentialManager.Authentication.OAuth
         public async Task<OAuth2DeviceCodeResult> GetDeviceCodeAsync(IEnumerable<string> scopes, CancellationToken ct)
         {
             var label = "get device code";
-            using IDisposable region = _trace2.CreateRegion(OAuth2Constants.Trace2Category, label);
+            using IDisposable region = _trace2.StartRegion(OAuth2Constants.Trace2Category, label);
 
             if (_endpoints.DeviceAuthorizationEndpoint is null)
             {
@@ -238,7 +238,7 @@ namespace GitCredentialManager.Authentication.OAuth
         public async Task<OAuth2TokenResult> GetTokenByAuthorizationCodeAsync(OAuth2AuthorizationCodeResult authorizationCodeResult, CancellationToken ct)
         {
             var label = "get token by auth code";
-            using IDisposable region = _trace2.CreateRegion(OAuth2Constants.Trace2Category, label);
+            using IDisposable region = _trace2.StartRegion(OAuth2Constants.Trace2Category, label);
 
             var formData = new Dictionary<string, string>
             {
@@ -277,7 +277,7 @@ namespace GitCredentialManager.Authentication.OAuth
         public async Task<OAuth2TokenResult> GetTokenByRefreshTokenAsync(string refreshToken, CancellationToken ct)
         {
             var label = "get token by refresh token";
-            using IDisposable region = _trace2.CreateRegion(OAuth2Constants.Trace2Category, label);
+            using IDisposable region = _trace2.StartRegion(OAuth2Constants.Trace2Category, label);
 
             var formData = new Dictionary<string, string>
             {

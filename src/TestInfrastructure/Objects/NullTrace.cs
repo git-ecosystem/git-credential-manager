@@ -84,7 +84,7 @@ namespace GitCredentialManager.Tests.Objects
             string filePath = "",
             int lineNumber = 0) { }
 
-        public Region CreateRegion(
+        public Region StartRegion(
             string category,
             string label,
             string message = "",
