@@ -72,6 +72,8 @@ namespace Atlassian.Bitbucket
 
         public async Task<CredentialsPromptResult> GetCredentialsAsync(Uri targetUri, string userName, AuthenticationModes modes)
         {
+            using var _ = Trace2.StartRegion("bitbucket", "get_creds");
+
             ThrowIfUserInteractionDisabled();
 
             // If we don't have a desktop session/GUI then we cannot offer OAuth since the only
@@ -250,6 +252,8 @@ namespace Atlassian.Bitbucket
 
         public async Task<OAuth2TokenResult> CreateOAuthCredentialsAsync(GitRequest request)
         {
+            using var _ = Trace2.StartRegion("bitbucket", "oauth_browser");
+
             ThrowIfUserInteractionDisabled();
 
             var browserOptions = new OAuth2WebBrowserOptions
@@ -267,6 +271,8 @@ namespace Atlassian.Bitbucket
 
         public async Task<OAuth2TokenResult> RefreshOAuthCredentialsAsync(GitRequest request, string refreshToken)
         {
+            using var _ = Trace2.StartRegion("bitbucket", "oauth_refresh");
+
             var client = _oauth2ClientRegistry.Get(request);
             return await client.GetTokenByRefreshTokenAsync(refreshToken, CancellationToken.None);
         }

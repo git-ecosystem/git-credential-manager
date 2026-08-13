@@ -105,6 +105,8 @@ namespace GitCredentialManager.Authentication.OAuth
         public async Task<OAuth2AuthorizationCodeResult> GetAuthorizationCodeAsync(IEnumerable<string> scopes,
             IOAuth2WebBrowser browser, IDictionary<string, string> extraQueryParams, CancellationToken ct)
         {
+            using IDisposable region = Trace2.StartRegion(OAuth2Constants.Trace2Category, "get_authcode");
+
             string state = CodeGenerator.CreateNonce();
             string codeVerifier = CodeGenerator.CreatePkceCodeVerifier();
             string codeChallenge = CodeGenerator.CreatePkceCodeChallenge(OAuth2PkceChallengeMethod.Sha256, codeVerifier);
@@ -167,8 +169,11 @@ namespace GitCredentialManager.Authentication.OAuth
 
             // Open the browser at the request URI to start the authorization code grant flow, and
             // intercept the response parameters delivered to the redirect URI.
-            IDictionary<string, string> responseParams =
-                await browser.GetAuthenticationResponseAsync(authorizationUri, redirectUri, _responseMode, ct);
+            IDictionary<string, string> responseParams;
+            using (Trace2.StartRegion(OAuth2Constants.Trace2Category, "browser"))
+            {
+                responseParams = await browser.GetAuthenticationResponseAsync(authorizationUri, redirectUri, _responseMode, ct);
+            }
 
             // Check for errors serious enough we should terminate the flow, such as if the state value returned does
             // not match the one we passed. This indicates a badly implemented Authorization Server, or worse, some
@@ -196,8 +201,7 @@ namespace GitCredentialManager.Authentication.OAuth
 
         public async Task<OAuth2DeviceCodeResult> GetDeviceCodeAsync(IEnumerable<string> scopes, CancellationToken ct)
         {
-            var label = "get device code";
-            using IDisposable region = Trace2.StartRegion(OAuth2Constants.Trace2Category, label);
+            using IDisposable region = Trace2.StartRegion(OAuth2Constants.Trace2Category, "get_devicecode");
 
             if (_endpoints.DeviceAuthorizationEndpoint is null)
             {
@@ -234,8 +238,7 @@ namespace GitCredentialManager.Authentication.OAuth
 
         public async Task<OAuth2TokenResult> GetTokenByAuthorizationCodeAsync(OAuth2AuthorizationCodeResult authorizationCodeResult, CancellationToken ct)
         {
-            var label = "get token by auth code";
-            using IDisposable region = Trace2.StartRegion(OAuth2Constants.Trace2Category, label);
+            using IDisposable region = Trace2.StartRegion(OAuth2Constants.Trace2Category, "token_by_authcode");
 
             var formData = new Dictionary<string, string>
             {
@@ -273,8 +276,7 @@ namespace GitCredentialManager.Authentication.OAuth
 
         public async Task<OAuth2TokenResult> GetTokenByRefreshTokenAsync(string refreshToken, CancellationToken ct)
         {
-            var label = "get token by refresh token";
-            using IDisposable region = Trace2.StartRegion(OAuth2Constants.Trace2Category, label);
+            using IDisposable region = Trace2.StartRegion(OAuth2Constants.Trace2Category, "token_by_refresh");
 
             var formData = new Dictionary<string, string>
             {
@@ -306,6 +308,8 @@ namespace GitCredentialManager.Authentication.OAuth
 
         public async Task<OAuth2TokenResult> GetTokenByDeviceCodeAsync(OAuth2DeviceCodeResult deviceCodeResult, CancellationToken ct)
         {
+            using IDisposable region = Trace2.StartRegion(OAuth2Constants.Trace2Category, "token_by_devicecode");
+
             var formData = new Dictionary<string, string>
             {
                 [OAuth2Constants.DeviceAuthorization.GrantTypeParameter] = OAuth2Constants.DeviceAuthorization.DeviceCodeGrantType,

@@ -72,6 +72,7 @@ namespace GitHub
 
         public async Task<string> SelectAccountAsync(Uri targetUri, IEnumerable<string> accounts)
         {
+            using var _ = Trace2.StartRegion("github", "select_account");
             ThrowIfUserInteractionDisabled();
 
             if (Context.Settings.IsGuiPromptsEnabled && Context.SessionManager.IsDesktopSession)
@@ -135,11 +136,16 @@ namespace GitHub
 
         public async Task<AuthenticationPromptResult> GetAuthenticationAsync(Uri targetUri, string userName, AuthenticationModes modes)
         {
+            using var _ = Trace2.StartRegion("github", "get_auth");
+            Trace2.WriteData("github", "modes/initial", modes.ToString());
+
             // If we cannot start a browser then don't offer the option
             if (!Context.SessionManager.IsWebBrowserAvailable)
             {
                 modes = modes & ~AuthenticationModes.Browser;
             }
+
+            Trace2.WriteData("github", "modes/available", modes.ToString());
 
             // We need at least one mode!
             if (modes == AuthenticationModes.None)
@@ -348,6 +354,8 @@ namespace GitHub
 
         public async Task<string> GetTwoFactorCodeAsync(Uri targetUri, bool isSms)
         {
+            using var _ = Trace2.StartRegion("github", "get_tfa");
+
             ThrowIfUserInteractionDisabled();
 
             if (Context.Settings.IsGuiPromptsEnabled && Context.SessionManager.IsDesktopSession)
@@ -408,6 +416,8 @@ namespace GitHub
 
         public async Task<OAuth2TokenResult> GetOAuthTokenViaBrowserAsync(Uri targetUri, IEnumerable<string> scopes, string loginHint)
         {
+            using var _ = Trace2.StartRegion("github", "oauth_browser");
+
             ThrowIfUserInteractionDisabled();
 
             var oauthClient = new GitHubOAuth2Client(HttpClient, Context.Settings, targetUri);
@@ -447,6 +457,8 @@ namespace GitHub
 
         public async Task<OAuth2TokenResult> GetOAuthTokenViaDeviceCodeAsync(Uri targetUri, IEnumerable<string> scopes)
         {
+            using var _ = Trace2.StartRegion("github", "oauth_device_code");
+
             ThrowIfUserInteractionDisabled();
 
             var oauthClient = new GitHubOAuth2Client(HttpClient, Context.Settings, targetUri);
