@@ -248,7 +248,7 @@ namespace Microsoft.AzureRepos
             if (!_context.Settings.AllowUnsafeRemotes &&
                 StringComparer.OrdinalIgnoreCase.Equals(request.Protocol, "http"))
             {
-                throw new Trace2Exception(_context.Trace2,
+                throw new Trace2Exception(
                     "Unencrypted HTTP is not recommended for Azure Repos. " +
                     "Ensure the repository remote URL is using HTTPS " +
                     $"or see {Constants.HelpUrls.GcmUnsafeRemotes} about how to allow unsafe remotes.");

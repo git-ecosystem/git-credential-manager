@@ -30,7 +30,7 @@ namespace GitHub.UI.Commands
 
             if (!viewModel.WindowResult)
             {
-                throw new Trace2Exception(Context.Trace2, "User cancelled dialog.");
+                throw new Trace2Exception("User cancelled dialog.");
             }
 
             WriteResult(new Dictionary<string, string>

@@ -99,7 +99,7 @@ namespace GitLab
             if (!Context.Settings.AllowUnsafeRemotes &&
                 StringComparer.OrdinalIgnoreCase.Equals(request.Protocol, "http"))
             {
-                throw new Trace2Exception(Context.Trace2,
+                throw new Trace2Exception(
                     "Unencrypted HTTP is not recommended for GitLab. " +
                     "Ensure the repository remote URL is using HTTPS " +
                     $"or see {Constants.HelpUrls.GcmUnsafeRemotes} about how to allow unsafe remotes.");

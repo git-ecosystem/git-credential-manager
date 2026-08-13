@@ -106,7 +106,7 @@ namespace GitCredentialManager
             }
 
             // Trace the current version, OS, runtime, and program arguments
-            PlatformInformation info = PlatformUtils.GetPlatformInformation(Context.Trace2);
+            PlatformInformation info = PlatformUtils.GetPlatformInformation();
             Context.Trace.WriteLine($"Version: {Constants.GcmVersion}");
             Context.Trace.WriteLine($"Runtime: {info.ClrVersion}");
             Context.Trace.WriteLine($"Platform: {info.OperatingSystemType} ({info.CpuArchitecture})");

@@ -159,7 +159,7 @@ namespace GitCredentialManager
                     default:
                         var message = "Failed to get current Git repository";
                         _trace.WriteLine($"{message} (exit={git.ExitCode})");
-                        throw CreateGitException(git, message, _trace2);
+                        throw CreateGitException(git, message);
                 }
             }
         }
@@ -186,7 +186,7 @@ namespace GitCredentialManager
                     default:
                         var message = "Failed to enumerate Git remotes";
                         _trace.WriteLine($"{message} (exit={git.ExitCode})");
-                        throw CreateGitException(git, message, _trace2);
+                        throw CreateGitException(git, message);
                 }
 
                 string[] lines = data.Split('\n');
@@ -239,7 +239,7 @@ namespace GitCredentialManager
             {
                 var format = "Failed to start Git helper '{0}'";
                 var message = string.Format(format, args);
-                throw new Trace2Exception(_trace2, message, format);
+                throw new Trace2Exception(message, format);
             }
 
             if (!(standardInput is null))
@@ -268,16 +268,13 @@ namespace GitCredentialManager
             return resultDict;
         }
 
-        public static GitException CreateGitException(ChildProcess git, string message, ITrace2 trace2 = null)
+        public static GitException CreateGitException(ChildProcess git, string message)
         {
             var gitMessage = git.StartInfo.RedirectStandardError
                 ? git.StandardError.ReadToEnd()
                 : null;
 
-            if (trace2 != null)
-                throw new Trace2GitException(trace2, message, git.ExitCode, gitMessage);
-
-            throw new GitException(message, gitMessage, git.ExitCode);
+            throw new Trace2GitException(message, git.ExitCode, gitMessage);
         }
     }
 

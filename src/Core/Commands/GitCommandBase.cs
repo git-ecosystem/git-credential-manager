@@ -57,23 +57,23 @@ namespace GitCredentialManager.Commands
         {
             if (request.Protocol is null)
             {
-                throw new Trace2InvalidOperationException(Context.Trace2, "Missing 'protocol' request argument");
+                throw new Trace2InvalidOperationException("Missing 'protocol' request argument");
             }
 
             if (string.IsNullOrWhiteSpace(request.Protocol))
             {
-                throw new Trace2InvalidOperationException(Context.Trace2,
+                throw new Trace2InvalidOperationException(
                     "Invalid 'protocol' request argument (cannot be empty)");
             }
 
             if (request.Host is null)
             {
-                throw new Trace2InvalidOperationException(Context.Trace2, "Missing 'host' request argument");
+                throw new Trace2InvalidOperationException("Missing 'host' request argument");
             }
 
             if (string.IsNullOrWhiteSpace(request.Host))
             {
-                throw new Trace2InvalidOperationException(Context.Trace2,
+                throw new Trace2InvalidOperationException(
                     "Invalid 'host' request argument (cannot be empty)");
             }
         }

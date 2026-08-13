@@ -116,7 +116,7 @@ public partial class EntraAuthentication
                     return choice;
                 }
 
-                throw new Trace2Exception(Context.Trace2, "Missing or invalid interaction_mode in response");
+                throw new Trace2Exception("Missing or invalid interaction_mode in response");
             }
 
             // TODO: show prompt in-proc
@@ -343,7 +343,7 @@ public partial class EntraAuthentication
                     return str.ToBooleanyOrDefault(false);
                 }
 
-                throw new Trace2Exception(Context.Trace2, "Missing use_default_account in response");
+                throw new Trace2Exception("Missing use_default_account in response");
             }
 
             var viewModel = new DefaultAccountViewModel(Context.SessionManager)

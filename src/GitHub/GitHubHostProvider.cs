@@ -290,7 +290,7 @@ namespace GitHub
             if (!_context.Settings.AllowUnsafeRemotes &&
                 StringComparer.OrdinalIgnoreCase.Equals(remoteUri.Scheme, "http"))
             {
-                throw new Trace2Exception(_context.Trace2,
+                throw new Trace2Exception(
                     "Unencrypted HTTP is not recommended for GitHub. " +
                     "Ensure the repository remote URL is using HTTPS " +
                     $"or see {Constants.HelpUrls.GcmUnsafeRemotes} about how to allow unsafe remotes.");
@@ -396,7 +396,7 @@ namespace GitHub
 
             var format = "Interactive logon for '{0}' failed.";
             var message = string.Format(format, targetUri);
-            throw new Trace2Exception(_context.Trace2, message, format);
+            throw new Trace2Exception(message, format);
         }
 
         internal async Task<AuthenticationModes> GetSupportedAuthenticationModesAsync(Uri targetUri)
@@ -460,7 +460,7 @@ namespace GitHub
 
                 _context.Trace.WriteLine(message);
                 _context.Trace.WriteException(ex);
-                _context.Trace2.WriteError(message, format);
+                Trace2.WriteError(message, format);
 
                 _context.Console.WriteWarning(message);
 

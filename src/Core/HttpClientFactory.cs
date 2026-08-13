@@ -112,7 +112,7 @@ namespace GitCredentialManager
                 {
                     var format = "Custom certificate bundle not found at path: {0}";
                     var message = string.Format(format, certBundlePath);
-                    throw new Trace2FileNotFoundException(_trace2, message, format, certBundlePath);
+                    throw new Trace2FileNotFoundException(message, format, certBundlePath);
                 }
 
                 Func<X509Certificate2, X509Chain, SslPolicyErrors, bool> validationCallback = (cert, chain, errors) =>

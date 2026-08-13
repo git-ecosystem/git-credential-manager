@@ -216,7 +216,7 @@ namespace GitLab
 
             if (!resultDict.TryGetValue("mode", out string responseMode))
             {
-                throw new Trace2Exception(Context.Trace2, "Missing 'mode' in response");
+                throw new Trace2Exception("Missing 'mode' in response");
             }
 
             switch (responseMode.ToLowerInvariant())
@@ -224,7 +224,7 @@ namespace GitLab
                 case "pat":
                     if (!resultDict.TryGetValue("pat", out string pat))
                     {
-                        throw new Trace2Exception(Context.Trace2, "Missing 'pat' in response");
+                        throw new Trace2Exception("Missing 'pat' in response");
                     }
 
                     if (!resultDict.TryGetValue("username", out string patUserName))
@@ -241,19 +241,19 @@ namespace GitLab
                 case "basic":
                     if (!resultDict.TryGetValue("username", out userName))
                     {
-                        throw new Trace2Exception(Context.Trace2, "Missing 'username' in response");
+                        throw new Trace2Exception("Missing 'username' in response");
                     }
 
                     if (!resultDict.TryGetValue("password", out string password))
                     {
-                        throw new Trace2Exception(Context.Trace2, "Missing 'password' in response");
+                        throw new Trace2Exception("Missing 'password' in response");
                     }
 
                     return new AuthenticationPromptResult(
                         AuthenticationModes.Basic, new GitCredential(userName, password));
 
                 default:
-                    throw new Trace2Exception(Context.Trace2,
+                    throw new Trace2Exception(
                         $"Unknown mode value in response '{responseMode}'");
             }
         }
@@ -267,7 +267,7 @@ namespace GitLab
             // We require a desktop session to launch the user's default web browser
             if (!Context.SessionManager.IsDesktopSession)
             {
-                throw new Trace2InvalidOperationException(Context.Trace2,
+                throw new Trace2InvalidOperationException(
                     "Browser authentication requires a desktop session");
             }
 

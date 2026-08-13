@@ -234,12 +234,12 @@ namespace Atlassian.Bitbucket
             {
                 if (!output.TryGetValue("username", out userName))
                 {
-                    throw new Trace2Exception(Context.Trace2, "Missing username in response");
+                    throw new Trace2Exception("Missing username in response");
                 }
 
                 if (!output.TryGetValue("password", out string password))
                 {
-                    throw new Trace2Exception(Context.Trace2, "Missing password in response");
+                    throw new Trace2Exception("Missing password in response");
                 }
 
                 return new CredentialsPromptResult(

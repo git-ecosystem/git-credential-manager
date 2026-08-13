@@ -231,7 +231,7 @@ namespace GitCredentialManager
                 }
                 else
                 {
-                    string osType = PlatformUtils.GetPlatformInformation(_context.Trace2).OperatingSystemType;
+                    string osType = PlatformUtils.GetPlatformInformation().OperatingSystemType;
                     _context.Trace.WriteLine($"Skipping check for Windows Integrated Authentication on {osType}.");
                 }
             }
@@ -354,7 +354,7 @@ namespace GitCredentialManager
                     break;
 
                 default:
-                    throw new Trace2Exception(_context.Trace2, "No authentication mode selected!");
+                    throw new Trace2Exception("No authentication mode selected!");
             }
 
             // Store the refresh token if we have one

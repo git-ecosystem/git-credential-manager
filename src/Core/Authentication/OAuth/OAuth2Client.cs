@@ -175,19 +175,19 @@ namespace GitCredentialManager.Authentication.OAuth
             // form of failed MITM or replay attack.
             if (!responseParams.TryGetValue(OAuth2Constants.AuthorizationGrantResponse.StateParameter, out string replyState))
             {
-                throw new Trace2OAuth2Exception(_trace2,
+                throw new Trace2OAuth2Exception(
                     $"Missing '{OAuth2Constants.AuthorizationGrantResponse.StateParameter}' in response.");
             }
             if (!StringComparer.Ordinal.Equals(state, replyState))
             {
-                throw new Trace2OAuth2Exception(_trace2,
+                throw new Trace2OAuth2Exception(
                     $"Invalid '{OAuth2Constants.AuthorizationGrantResponse.StateParameter}' in response; does not match the request.");
             }
 
             // We expect to have the auth code in the response otherwise terminate the flow (we failed authentication for some reason)
             if (!responseParams.TryGetValue(OAuth2Constants.AuthorizationGrantResponse.AuthorizationCodeParameter, out string authCode))
             {
-                throw new Trace2OAuth2Exception(_trace2,
+                throw new Trace2OAuth2Exception(
                     $"Missing '{OAuth2Constants.AuthorizationGrantResponse.AuthorizationCodeParameter}' in response.");
             }
 
@@ -201,7 +201,7 @@ namespace GitCredentialManager.Authentication.OAuth
 
             if (_endpoints.DeviceAuthorizationEndpoint is null)
             {
-                throw new Trace2InvalidOperationException(_trace2,
+                throw new Trace2InvalidOperationException(
                     "No device authorization endpoint has been configured for this client.");
             }
 
@@ -416,7 +416,7 @@ namespace GitCredentialManager.Authentication.OAuth
 
             var format = "Unknown OAuth error: {0}";
             var message = string.Format(format, json);
-            return new Trace2OAuth2Exception(_trace2, message, format);
+            return new Trace2OAuth2Exception(message, format);
         }
 
         protected static bool TryDeserializeJson<T>(string json, JsonTypeInfo<T> typeInfo, out T obj)

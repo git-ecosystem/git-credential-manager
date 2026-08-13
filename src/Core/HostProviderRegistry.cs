@@ -152,7 +152,7 @@ namespace GitCredentialManager
             var uri = request.GetRemoteUri();
             if (uri is null)
             {
-                throw new Trace2Exception(_context.Trace2, "Unable to detect host provider without a remote URL");
+                throw new Trace2Exception("Unable to detect host provider without a remote URL");
             }
 
             // We can only probe HTTP(S) URLs - for SMTP, IMAP, etc we cannot do network probing
@@ -244,7 +244,7 @@ namespace GitCredentialManager
                     var message = "Failed to set host provider!";
                     _context.Trace.WriteLine(message);
                     _context.Trace.WriteException(ex);
-                    _context.Trace2.WriteError(message);
+                    Trace2.WriteError(message);
 
                     _context.Console.WriteWarning("failed to remember result of host provider detection!");
                     _context.Console.WriteWarning($"try setting this manually: `git config --global {keyName} {match.Id}`");
