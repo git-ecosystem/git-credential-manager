@@ -68,8 +68,7 @@ namespace Atlassian.Bitbucket.Tests.Cloud
         [Fact]
         public async Task BitbucketOAuth2Client_GetDeviceCodeAsync()
         {
-            var trace2 = new NullTrace2();
-            var client = new Bitbucket.Cloud.BitbucketOAuth2Client(httpClient.Object, settings.Object, trace2);
+            var client = new Bitbucket.Cloud.BitbucketOAuth2Client(httpClient.Object, settings.Object);
             await Assert.ThrowsAsync<Trace2InvalidOperationException>(async () => await client.GetDeviceCodeAsync(scopes, ct));
         }
 
@@ -80,8 +79,7 @@ namespace Atlassian.Bitbucket.Tests.Cloud
         [InlineData("https", "example.com/", "john", "https://example.com/refresh_token")]
         public void BitbucketOAuth2Client_GetRefreshTokenServiceName(string protocol, string host, string username, string expectedResult)
         {
-            var trace2 = new NullTrace2();
-            var client = new Bitbucket.Cloud.BitbucketOAuth2Client(httpClient.Object, settings.Object, trace2);
+            var client = new Bitbucket.Cloud.BitbucketOAuth2Client(httpClient.Object, settings.Object);
             var request = new GitRequest(new Dictionary<string, string>
             {
                 ["protocol"] = protocol,
@@ -102,8 +100,7 @@ namespace Atlassian.Bitbucket.Tests.Cloud
 
         private Bitbucket.Cloud.BitbucketOAuth2Client GetBitbucketOAuth2Client()
         {
-            var trace2 = new NullTrace2();
-            var client = new Bitbucket.Cloud.BitbucketOAuth2Client(httpClient.Object, settings.Object, trace2);
+            var client = new Bitbucket.Cloud.BitbucketOAuth2Client(httpClient.Object, settings.Object);
             client.CodeGenerator = codeGenerator.Object;
             return client;
         }

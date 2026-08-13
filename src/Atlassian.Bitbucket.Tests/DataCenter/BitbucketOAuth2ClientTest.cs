@@ -77,8 +77,7 @@ namespace Atlassian.Bitbucket.Tests.DataCenter
 
         private Bitbucket.DataCenter.BitbucketOAuth2Client GetBitbucketOAuth2Client()
         {
-            var trace2 = new NullTrace2();
-            var client = new Bitbucket.DataCenter.BitbucketOAuth2Client(httpClient.Object, settings.Object, trace2);
+            var client = new Bitbucket.DataCenter.BitbucketOAuth2Client(httpClient.Object, settings.Object);
             client.CodeGenerator = codeGenerator.Object;
             return client;
         }
