@@ -16,7 +16,7 @@ public class Trace2MessageTests
     [InlineData(100000.31608, "100000.316080")]
     public void BuildTimeSpan_Match_Returns_Expected_String(double input, string expected)
     {
-        var actual = Trace2Message.BuildTimeSpan(input);
+        var actual = PerformanceFormatFields.GetTimeSpan(input);
         Assert.Equal(expected, actual);
     }
 
@@ -25,7 +25,7 @@ public class Trace2MessageTests
     {
         var input = 1;
         var expected = " r1  ";
-        var actual = Trace2Message.BuildRepoSpan(input);
+        var actual = PerformanceFormatFields.GetRepoSpan(input);
         Assert.Equal(expected, actual);
     }
 
@@ -36,16 +36,15 @@ public class Trace2MessageTests
     [InlineData("foobarbazfoo",      " foobarbazfo ")]
     public void BuildCategorySpan_Match_Returns_Expected_String(string input, string expected)
     {
-        var actual = Trace2Message.BuildCategorySpan(input);
+        var actual = PerformanceFormatFields.GetCategorySpan(input);
         Assert.Equal(expected, actual);
     }
 
     [Fact]
     public void Event_Message_Without_Snake_Case_ToJson_Creates_Expected_Json()
     {
-        var errorMessage = new ErrorMessage()
+        var errorMessage = new ErrorMessage
         {
-            Event = Trace2Event.Error,
             Sid = "123",
             Thread = "main",
             Time = new DateTimeOffset(),
@@ -65,9 +64,8 @@ public class Trace2MessageTests
     [Fact]
     public void Event_Message_With_Snake_Case_ToJson_Creates_Expected_Json()
     {
-        var childStartMessage = new ChildStartMessage()
+        var childStartMessage = new ChildStartMessage
         {
-            Event = Trace2Event.ChildStart,
             Sid = "123",
             Thread = "main",
             Time = new DateTimeOffset(),
@@ -75,7 +73,7 @@ public class Trace2MessageTests
             Line = 1,
             Depth = 1,
             Id = 1,
-            Classification = Trace2ProcessClass.UIHelper,
+            Classification = Trace2ProcessClass.UiHelper,
             UseShell = false,
             Argv = new List<string>() { "bar", "baz" },
             ElapsedTime = 0.05

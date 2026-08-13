@@ -3,17 +3,6 @@ using System.Text;
 
 namespace GitCredentialManager;
 
-/// <summary>
-/// The different format targets supported in the TRACE2 tracing
-/// system.
-/// </summary>
-public enum Trace2FormatTarget
-{
-    Event,
-    Normal,
-    Performance
-}
-
 public interface ITrace2Writer : IDisposable
 {
     bool Failed { get; }
@@ -21,7 +10,7 @@ public interface ITrace2Writer : IDisposable
     void Write(Trace2Message message);
 }
 
-public class Trace2Writer : DisposableObject, ITrace2Writer
+public abstract class Trace2Writer : DisposableObject, ITrace2Writer
 {
     private readonly Trace2FormatTarget _formatTarget;
 
@@ -58,6 +47,5 @@ public class Trace2Writer : DisposableObject, ITrace2Writer
         return sb.ToString();
     }
 
-    public virtual void Write(Trace2Message message)
-    { }
+    public abstract void Write(Trace2Message message);
 }

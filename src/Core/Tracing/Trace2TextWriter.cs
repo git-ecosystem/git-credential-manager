@@ -1,24 +1,15 @@
-using System;
 using System.IO;
 
 namespace GitCredentialManager;
 
-public class Trace2StreamWriter : Trace2Writer
+public class Trace2TextWriter(Trace2FormatTarget formatTarget, TextWriter writer) : Trace2Writer(formatTarget)
 {
-    private readonly TextWriter _writer;
-
-    public Trace2StreamWriter(Trace2FormatTarget formatTarget, TextWriter writer)
-        : base(formatTarget)
-    {
-        _writer = writer;
-    }
-
     public override void Write(Trace2Message message)
     {
         try
         {
-            _writer.Write(Format(message));
-            _writer.Flush();
+            writer.Write(Format(message));
+            writer.Flush();
         }
         catch
         {
@@ -28,7 +19,7 @@ public class Trace2StreamWriter : Trace2Writer
 
     protected override void ReleaseManagedResources()
     {
-        _writer.Dispose();
+        writer.Dispose();
         base.ReleaseManagedResources();
     }
 }

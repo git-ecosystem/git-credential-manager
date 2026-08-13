@@ -46,7 +46,7 @@ namespace GitCredentialManager.Authentication
             // authentication helper's messages.
             Context.Trace.Flush();
 
-            var process = ChildProcess.Start(Context.Trace2, procStartInfo, Trace2ProcessClass.UIHelper);
+            var process = ChildProcess.Start(Context.Trace2, procStartInfo, Trace2ProcessClass.UiHelper);
             if (process is null)
             {
                 var format = "Failed to start helper process: {0} {1}";

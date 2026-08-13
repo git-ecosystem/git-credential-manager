@@ -1,51 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Pipes;
 using System.Text;
-using System.Text.Json.Serialization;
 using System.Threading;
 
 namespace GitCredentialManager;
-
-/// <summary>
-/// The different event types tracked in the TRACE2 tracing
-/// system.
-/// </summary>
-public enum Trace2Event
-{
-    [JsonStringEnumMemberName("version")]
-    Version = 0,
-    [JsonStringEnumMemberName("start")]
-    Start = 1,
-    [JsonStringEnumMemberName("exit")]
-    Exit = 2,
-    [JsonStringEnumMemberName("child_start")]
-    ChildStart = 3,
-    [JsonStringEnumMemberName("child_exit")]
-    ChildExit = 4,
-    [JsonStringEnumMemberName("error")]
-    Error = 5,
-    [JsonStringEnumMemberName("region_enter")]
-    RegionEnter = 6,
-    [JsonStringEnumMemberName("region_leave")]
-    RegionLeave = 7,
-}
-
-/// <summary>
-/// Classifications of processes invoked by GCM.
-/// </summary>
-public enum Trace2ProcessClass
-{
-    [JsonStringEnumMemberName("none")]
-    None = 0,
-    [JsonStringEnumMemberName("ui_helper")]
-    UIHelper = 1,
-    [JsonStringEnumMemberName("git")]
-    Git = 2,
-    [JsonStringEnumMemberName("other")]
-    Other = 3
-}
 
 /// <summary>
 /// Stores various TRACE2 format targets user has enabled.
@@ -55,18 +14,6 @@ public class Trace2Settings
 {
     public IDictionary<Trace2FormatTarget, string> FormatTargetsAndValues { get; set; } =
         new Dictionary<Trace2FormatTarget, string>();
-}
-
-/// <summary>
-/// Specifies a "text span" (i.e. space between two pipes) for the performance format target.
-/// </summary>
-public class PerformanceFormatSpan
-{
-    public int Size { get; set; }
-
-    public int BeginPadding { get; set; }
-
-    public int EndPadding { get; set; }
 }
 
 /// <summary>
@@ -517,16 +464,11 @@ public class Trace2 : DisposableObject, ITrace2
         {
             if (TryGetPipeName(formatTarget.Value, out string name)) // Write to named pipe/socket
             {
-                AddWriter(new Trace2CollectorWriter(formatTarget.Key, (
-                        () => new NamedPipeClientStream(".", name,
-                            PipeDirection.Out,
-                            PipeOptions.Asynchronous)
-                    )
-                ));
+                AddWriter(new Trace2PipeWriter(formatTarget.Key, name));
             }
             else if (formatTarget.Value.IsTruthy()) // Write to stderr
             {
-                AddWriter(new Trace2StreamWriter(formatTarget.Key, _commandContext.Streams.Error));
+                AddWriter(new Trace2TextWriter(formatTarget.Key, _commandContext.Streams.Error));
             }
             else if (Path.IsPathRooted(formatTarget.Value)) // Write to file
             {

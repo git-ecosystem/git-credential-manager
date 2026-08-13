@@ -3,8 +3,32 @@ using System.Collections.Generic;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
 
 namespace GitCredentialManager;
+
+/// <summary>
+/// The different event types tracked in the Trace2 tracing system.
+/// </summary>
+public enum Trace2Event
+{
+    [JsonStringEnumMemberName("version")]
+    Version,
+    [JsonStringEnumMemberName("start")]
+    Start,
+    [JsonStringEnumMemberName("exit")]
+    Exit,
+    [JsonStringEnumMemberName("child_start")]
+    ChildStart,
+    [JsonStringEnumMemberName("child_exit")]
+    ChildExit,
+    [JsonStringEnumMemberName("error")]
+    Error,
+    [JsonStringEnumMemberName("region_enter")]
+    RegionEnter,
+    [JsonStringEnumMemberName("region_leave")]
+    RegionLeave,
+}
 
 [JsonSerializable(typeof(VersionMessage))]
 [JsonSerializable(typeof(StartMessage))]
@@ -21,16 +45,102 @@ namespace GitCredentialManager;
 )]
 public partial class Trace2JsonContext : JsonSerializerContext;
 
-public abstract class Trace2Message
+internal class PerformanceFormatFields
+{
+    public static readonly PerformanceFormatFields Empty = new();
+
+    private const string EmptySpans = "|     |           |           |             ";
+    private const string EmptyRepo = "     ";
+    private const string EmptyTime = "           ";
+    private const string EmptyCategory = "             ";
+
+    public int? Repo { get; init; }
+    public double? ElapsedTime { get; init; }
+    public double? RelativeTime { get; init; }
+    public string Category { get; init; }
+
+    public override string ToString()
+    {
+        if (ReferenceEquals(this, Empty))
+        {
+            return EmptySpans;
+        }
+
+        var sb = new StringBuilder("|");
+        sb.Append(Repo is not null ? GetRepoSpan(Repo.Value) : EmptyRepo);
+
+        sb.Append('|');
+        sb.Append(ElapsedTime is not null ? GetTimeSpan(ElapsedTime.Value) : EmptyTime);
+
+        sb.Append('|');
+        sb.Append(RelativeTime is not null ? GetTimeSpan(RelativeTime.Value) : EmptyTime);
+
+        sb.Append('|');
+        sb.Append(Category is not null ? GetCategorySpan(Category) : EmptyCategory);
+
+        return sb.ToString();
+    }
+
+    internal static string GetRepoSpan(int repo) =>
+        GetSpan($"r{repo}", 1, 2, 5);
+
+    internal static string GetTimeSpan(double time) =>
+        GetSpan(time.ToString("F6"), 2, 1, 11);
+
+    internal static string GetCategorySpan(string category) =>
+        GetSpan(category, 1, 1, 13);
+
+    private static string GetSpan(string data, int beginPadding, int endPadding, int size)
+    {
+        data ??= string.Empty;
+        var paddingTotal = beginPadding + endPadding;
+        var dataLimit = size - paddingTotal;
+        var sizeDifference = dataLimit - data.Length;
+
+        if (sizeDifference <= 0)
+        {
+            if (double.TryParse(data, out _))
+            {
+                // Remove all padding for values that take up the entire span
+                if (Math.Abs(sizeDifference) >= paddingTotal)
+                {
+                    beginPadding = 0;
+                    endPadding = 0;
+                }
+                else
+                {
+                    // Decrease BeginPadding for large time values that don't occupy entire span
+                    beginPadding += sizeDifference;
+                }
+            }
+            else
+            {
+                // Truncate value
+                data = data.Substring(0, dataLimit);
+            }
+        }
+
+        if (data.Length < dataLimit)
+        {
+            // Increase end padding for short values
+            endPadding += sizeDifference;
+        }
+
+        var beginPaddingStr = new string(' ', beginPadding);
+        var endPaddingStr = new string(' ', endPadding);
+
+        return $"{beginPaddingStr}{data}{endPaddingStr}";
+    }
+}
+
+public abstract class Trace2Message(Trace2Event @event)
 {
     private const int SourceColumnMaxWidth = 23;
     private const string NormalPerfTimeFormat = "HH:mm:ss.ffffff";
 
-    protected const string EmptyPerformanceSpan =  "|     |           |           |             ";
-
     [JsonPropertyName("event")]
     [JsonPropertyOrder(1)]
-    public Trace2Event Event { get; set; }
+    public Trace2Event Event { get; set; } = @event;
 
     [JsonPropertyName("sid")]
     [JsonPropertyOrder(2)]
@@ -56,34 +166,31 @@ public abstract class Trace2Message
     [JsonPropertyOrder(7)]
     public int Depth { get; set; }
 
-    public abstract string ToJson();
+    public string ToJson() => JsonSerializer.Serialize(this, GetJsonTypeInfo());
 
-    public abstract string ToNormalString();
-
-    public abstract string ToPerformanceString();
-
-    protected abstract string BuildPerformanceSpan();
-
-    protected string BuildNormalString()
+    public string ToNormalString()
     {
         string message = GetEventMessage(Trace2FormatTarget.Normal);
 
         // The normal format uses local time rather than UTC time.
         string time = Time.ToLocalTime().ToString(NormalPerfTimeFormat);
         string source = GetSource();
+        string eventName = Event.ToString().ToSnakeCase();
 
         // Git's TRACE2 normal format is:
         // [<time> SP <filename>:<line> SP+] <event-name> [[SP] <event-message>] LF
-        return $"{time} {source,-33} {Event.ToString().ToSnakeCase()} {message}";
+        return $"{time} {source,-33} {eventName} {message}";
     }
 
-    protected string BuildPerformanceString()
+    public string ToPerformanceString()
     {
         string message = GetEventMessage(Trace2FormatTarget.Performance);
 
         // The performance format uses local time rather than UTC time.
-        var time = Time.ToLocalTime().ToString(NormalPerfTimeFormat);
-        var source = GetSource();
+        string time = Time.ToLocalTime().ToString(NormalPerfTimeFormat);
+        string source = GetSource();
+        string eventName = Event.ToString().ToSnakeCase();
+        PerformanceFormatFields fields = GetPerformanceFields();
 
         // Git's TRACE2 performance format is:
         // [<time> SP <filename>:<line> SP+
@@ -96,10 +203,14 @@ public abstract class Trace2Message
         //     BAR SP [<category>] SP+
         //     BAR SP DOTS* <perf-event-message>
         //     LF
-        return $"{time} {source,-29}| d{Depth} | {Thread,-24} | {Event.ToString().ToSnakeCase(),-12} {BuildPerformanceSpan()} | {message}";
+        return $"{time} {source,-29}| d{Depth} | {Thread,-24} | {eventName,-12} {fields} | {message}";
     }
 
+    private protected virtual PerformanceFormatFields GetPerformanceFields() => PerformanceFormatFields.Empty;
+
     protected abstract string GetEventMessage(Trace2FormatTarget formatTarget);
+
+    protected abstract JsonTypeInfo GetJsonTypeInfo();
 
     private string GetSource()
     {
@@ -112,87 +223,9 @@ public abstract class Trace2Message
 
         return source;
     }
-
-    internal static string BuildTimeSpan(double time)
-    {
-        var timeString = time.ToString("F6");
-        var component = new PerformanceFormatSpan()
-        {
-            Size = 11,
-            BeginPadding = 2,
-            EndPadding = 1
-        };
-
-        return BuildSpan(component, timeString);
-    }
-
-    internal static string BuildCategorySpan(string category)
-    {
-        var component = new PerformanceFormatSpan()
-        {
-            Size = 13,
-            BeginPadding = 1,
-            EndPadding = 1
-        };
-
-        return BuildSpan(component, category);
-    }
-
-    internal static string BuildRepoSpan(int repo)
-    {
-        var component = new PerformanceFormatSpan()
-        {
-            Size = 5,
-            BeginPadding = 1,
-            EndPadding = 2
-        };
-
-        return BuildSpan(component, $"r{repo}");
-    }
-
-    private static string BuildSpan(PerformanceFormatSpan component, string data)
-    {
-        var paddingTotal = component.BeginPadding + component.EndPadding;
-        var dataLimit = component.Size - paddingTotal;
-        var sizeDifference = dataLimit - data.Length;
-
-        if (sizeDifference <= 0)
-        {
-            if (double.TryParse(data, out _))
-            {
-                // Remove all padding for values that take up the entire span
-                if (Math.Abs(sizeDifference) >= paddingTotal)
-                {
-                    component.BeginPadding = 0;
-                    component.EndPadding = 0;
-                }
-                else
-                {
-                    // Decrease BeginPadding for large time values that don't occupy entire span
-                    component.BeginPadding += sizeDifference;
-                }
-            }
-            else
-            {
-                // Truncate value
-                data = data.Substring(0, dataLimit);
-            }
-        }
-
-        if (data.Length < dataLimit)
-        {
-            // Increase end padding for short values
-            component.EndPadding += sizeDifference;
-        }
-
-        var beginPadding = new string(' ', component.BeginPadding);
-        var endPadding = new string(' ', component.EndPadding);
-
-        return $"{beginPadding}{data}{endPadding}";
-    }
 }
 
-public class VersionMessage : Trace2Message
+public class VersionMessage() : Trace2Message(Trace2Event.Version)
 {
     [JsonPropertyName("evt")]
     [JsonPropertyOrder(8)]
@@ -202,33 +235,12 @@ public class VersionMessage : Trace2Message
     [JsonPropertyOrder(9)]
     public string Exe { get; set; }
 
-    public override string ToJson()
-    {
-        return JsonSerializer.Serialize(this, Trace2JsonContext.Default.VersionMessage);
-    }
+    protected override JsonTypeInfo GetJsonTypeInfo() => Trace2JsonContext.Default.VersionMessage;
 
-    public override string ToNormalString()
-    {
-        return BuildNormalString();
-    }
-
-    public override string ToPerformanceString()
-    {
-        return BuildPerformanceString();
-    }
-
-    protected override string BuildPerformanceSpan()
-    {
-        return EmptyPerformanceSpan;
-    }
-
-    protected override string GetEventMessage(Trace2FormatTarget formatTarget)
-    {
-        return Exe.ToLower();
-    }
+    protected override string GetEventMessage(Trace2FormatTarget formatTarget) => Exe.ToLowerInvariant();
 }
 
-public class StartMessage : Trace2Message
+public class StartMessage() : Trace2Message(Trace2Event.Start)
 {
     [JsonPropertyName("t_abs")]
     [JsonPropertyOrder(8)]
@@ -238,33 +250,17 @@ public class StartMessage : Trace2Message
     [JsonPropertyOrder(9)]
     public List<string> Argv { get; set; }
 
-    public override string ToJson()
-    {
-        return JsonSerializer.Serialize(this, Trace2JsonContext.Default.StartMessage);
-    }
+    protected override JsonTypeInfo GetJsonTypeInfo() => Trace2JsonContext.Default.StartMessage;
 
-    public override string ToNormalString()
+    private protected override PerformanceFormatFields GetPerformanceFields() => new()
     {
-        return BuildNormalString();
-    }
+        ElapsedTime = ElapsedTime
+    };
 
-    public override string ToPerformanceString()
-    {
-        return BuildPerformanceString();
-    }
-
-    protected override string BuildPerformanceSpan()
-    {
-        return $"|     |{BuildTimeSpan(ElapsedTime)}|           |             ";
-    }
-
-    protected override string GetEventMessage(Trace2FormatTarget formatTarget)
-    {
-        return string.Join(" ", Argv);
-    }
+    protected override string GetEventMessage(Trace2FormatTarget formatTarget) => string.Join(" ", Argv);
 }
 
-public class ExitMessage : Trace2Message
+public class ExitMessage() : Trace2Message(Trace2Event.Exit)
 {
     [JsonPropertyName("t_abs")]
     [JsonPropertyOrder(8)]
@@ -274,33 +270,17 @@ public class ExitMessage : Trace2Message
     [JsonPropertyOrder(9)]
     public int Code { get; set; }
 
-    public override string ToJson()
-    {
-        return JsonSerializer.Serialize(this, Trace2JsonContext.Default.ExitMessage);
-    }
+    protected override JsonTypeInfo GetJsonTypeInfo() => Trace2JsonContext.Default.ExitMessage;
 
-    public override string ToNormalString()
+    private protected override PerformanceFormatFields GetPerformanceFields() => new()
     {
-        return BuildNormalString();
-    }
+        ElapsedTime = ElapsedTime
+    };
 
-    public override string ToPerformanceString()
-    {
-        return BuildPerformanceString();
-    }
-
-    protected override string BuildPerformanceSpan()
-    {
-        return $"|     |{BuildTimeSpan(ElapsedTime)}|           |             ";
-    }
-
-    protected override string GetEventMessage(Trace2FormatTarget formatTarget)
-    {
-        return $"elapsed:{ElapsedTime} code:{Code}";
-    }
+    protected override string GetEventMessage(Trace2FormatTarget formatTarget) => $"elapsed:{ElapsedTime} code:{Code}";
 }
 
-public class ChildStartMessage : Trace2Message
+public class ChildStartMessage() : Trace2Message(Trace2Event.ChildStart)
 {
     [JsonPropertyName("t_abs")]
     [JsonPropertyOrder(8)]
@@ -322,25 +302,12 @@ public class ChildStartMessage : Trace2Message
     [JsonPropertyOrder(12)]
     public bool UseShell { get; set; }
 
-    public override string ToJson()
-    {
-        return JsonSerializer.Serialize(this, Trace2JsonContext.Default.ChildStartMessage);
-    }
+    protected override JsonTypeInfo GetJsonTypeInfo() => Trace2JsonContext.Default.ChildStartMessage;
 
-    public override string ToNormalString()
+    private protected override PerformanceFormatFields GetPerformanceFields() => new()
     {
-        return BuildNormalString();
-    }
-
-    public override string ToPerformanceString()
-    {
-        return BuildPerformanceString();
-    }
-
-    protected override string BuildPerformanceSpan()
-    {
-        return $"|     |{BuildTimeSpan(ElapsedTime)}|           |             ";
-    }
+        ElapsedTime = ElapsedTime
+    };
 
     protected override string GetEventMessage(Trace2FormatTarget formatTarget)
     {
@@ -357,7 +324,7 @@ public class ChildStartMessage : Trace2Message
     }
 }
 
-public class ChildExitMessage : Trace2Message
+public class ChildExitMessage() : Trace2Message(Trace2Event.ChildExit)
 {
     [JsonPropertyName("t_abs")]
     [JsonPropertyOrder(8)]
@@ -379,25 +346,13 @@ public class ChildExitMessage : Trace2Message
     [JsonPropertyOrder(12)]
     public int Code { get; set; }
 
-    public override string ToJson()
-    {
-        return JsonSerializer.Serialize(this, Trace2JsonContext.Default.ChildExitMessage);
-    }
+    protected override JsonTypeInfo GetJsonTypeInfo() => Trace2JsonContext.Default.ChildExitMessage;
 
-    public override string ToNormalString()
+    private protected override PerformanceFormatFields GetPerformanceFields() => new()
     {
-        return BuildNormalString();
-    }
-
-    public override string ToPerformanceString()
-    {
-        return BuildPerformanceString();
-    }
-
-    protected override string BuildPerformanceSpan()
-    {
-        return $"|     |{BuildTimeSpan(ElapsedTime)}|{BuildTimeSpan(RelativeTime)}|             ";
-    }
+        ElapsedTime = ElapsedTime,
+        RelativeTime = RelativeTime
+    };
 
     protected override string GetEventMessage(Trace2FormatTarget formatTarget)
     {
@@ -413,7 +368,7 @@ public class ChildExitMessage : Trace2Message
     }
 }
 
-public class ErrorMessage : Trace2Message
+public class ErrorMessage() : Trace2Message(Trace2Event.Error)
 {
     [JsonPropertyName("msg")]
     [JsonPropertyOrder(8)]
@@ -423,33 +378,12 @@ public class ErrorMessage : Trace2Message
     [JsonPropertyOrder(9)]
     public string ParameterizedMessage { get; set; }
 
-    public override string ToJson()
-    {
-        return JsonSerializer.Serialize(this, Trace2JsonContext.Default.ErrorMessage);
-    }
+    protected override JsonTypeInfo GetJsonTypeInfo() => Trace2JsonContext.Default.ErrorMessage;
 
-    public override string ToNormalString()
-    {
-        return BuildNormalString();
-    }
-
-    public override string ToPerformanceString()
-    {
-        return BuildPerformanceString();
-    }
-
-    protected override string BuildPerformanceSpan()
-    {
-        return EmptyPerformanceSpan;
-    }
-
-    protected override string GetEventMessage(Trace2FormatTarget formatTarget)
-    {
-        return Message;
-    }
+    protected override string GetEventMessage(Trace2FormatTarget formatTarget) => Message;
 }
 
-public abstract class RegionMessage : Trace2Message
+public abstract class RegionMessage(Trace2Event @event) : Trace2Message(@event)
 {
     [JsonPropertyName("t_abs")]
     [JsonPropertyOrder(8)]
@@ -461,7 +395,6 @@ public abstract class RegionMessage : Trace2Message
     // See https://git-scm.com/docs/api-trace2#Documentation/technical/api-trace2.txt-codeltrepo-idgtcode for details.
     public int Repo { get; set; } = 1;
 
-    // TODO: Remove default value if support for nested regions is implemented.
     [JsonPropertyName("nesting")]
     [JsonPropertyOrder(10)]
     public int Nesting { get; set; } = 1;
@@ -477,63 +410,35 @@ public abstract class RegionMessage : Trace2Message
     [JsonPropertyName("msg")]
     [JsonPropertyOrder(13)]
     public string Message { get; set; }
+
+    protected override string GetEventMessage(Trace2FormatTarget formatTarget) => Message;
 }
 
-public class RegionEnterMessage : RegionMessage
+public class RegionEnterMessage() : RegionMessage(Trace2Event.RegionEnter)
 {
-    public override string ToJson()
-    {
-        return JsonSerializer.Serialize(this, Trace2JsonContext.Default.RegionEnterMessage);
-    }
+    protected override JsonTypeInfo GetJsonTypeInfo() => Trace2JsonContext.Default.RegionEnterMessage;
 
-    public override string ToNormalString()
+    private protected override PerformanceFormatFields GetPerformanceFields() => new()
     {
-        return BuildNormalString();
-    }
-
-    public override string ToPerformanceString()
-    {
-        return BuildPerformanceString();
-    }
-
-    protected override string BuildPerformanceSpan()
-    {
-        return $"|{BuildRepoSpan(Repo)}|{BuildTimeSpan(ElapsedTime)}|           |{BuildCategorySpan(Category)}";
-    }
-
-    protected override string GetEventMessage(Trace2FormatTarget formatTarget)
-    {
-        return Message;
-    }
+        Repo = Repo,
+        ElapsedTime = ElapsedTime,
+        Category = Category
+    };
 }
 
-public class RegionLeaveMessage : RegionMessage
+public class RegionLeaveMessage() : RegionMessage(Trace2Event.RegionLeave)
 {
+    [JsonPropertyName("t_rel")]
     [JsonPropertyOrder(14)]
     public double RelativeTime { get; set; }
 
-    public override string ToJson()
-    {
-        return JsonSerializer.Serialize(this, Trace2JsonContext.Default.RegionLeaveMessage);
-    }
+    protected override JsonTypeInfo GetJsonTypeInfo() => Trace2JsonContext.Default.RegionLeaveMessage;
 
-    public override string ToNormalString()
+    private protected override PerformanceFormatFields GetPerformanceFields() => new()
     {
-        return BuildNormalString();
-    }
-
-    public override string ToPerformanceString()
-    {
-        return BuildPerformanceString();
-    }
-
-    protected override string BuildPerformanceSpan()
-    {
-        return $"|{BuildRepoSpan(Repo)}|{BuildTimeSpan(ElapsedTime)}|{BuildTimeSpan(RelativeTime)}|{BuildCategorySpan(Category)}";
-    }
-
-    protected override string GetEventMessage(Trace2FormatTarget formatTarget)
-    {
-        return Message;
-    }
+        Repo = Repo,
+        ElapsedTime = ElapsedTime,
+        RelativeTime = RelativeTime,
+        Category = Category
+    };
 }
