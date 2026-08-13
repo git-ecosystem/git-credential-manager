@@ -55,17 +55,6 @@ namespace GitCredentialManager.Tests.Objects
 
         public bool AllowUnsafeRemotes { get; set; } = false;
 
-        public Trace2Settings GetTrace2Settings()
-        {
-            return new Trace2Settings()
-            {
-                FormatTargetsAndValues = new Dictionary<Trace2FormatTarget, string>()
-                {
-                    { Trace2FormatTarget.Event, "foo" }
-                }
-            };
-        }
-
         #region ISettings
 
         public bool TryGetSetting(string envarName, string section, string property, out string value)

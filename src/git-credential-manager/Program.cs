@@ -5,7 +5,6 @@ using Avalonia;
 using GitHub;
 using GitLab;
 using Microsoft.AzureRepos;
-using GitCredentialManager.Authentication;
 using GitCredentialManager.UI;
 
 namespace GitCredentialManager
@@ -16,6 +15,8 @@ namespace GitCredentialManager
 
         public static void Main(string[] args)
         {
+            Trace2.Initialize(args);
+
             // Create the dispatcher on the main thread. This is required
             // for some platform UI services such as macOS that mandates
             // all controls are created/accessed on the initial thread
@@ -34,6 +35,7 @@ namespace GitCredentialManager
             Dispatcher.MainThread.Run();
 
             // Dispatcher was shutdown
+            Trace2.Stop(_exitCode);
             Environment.Exit(_exitCode);
         }
 
@@ -41,20 +43,9 @@ namespace GitCredentialManager
         {
             string[] args = (string[])o;
 
-            var startTime = DateTimeOffset.UtcNow;
-            // Set the session id (sid) and start time for the GCM process, to be
-            // used when TRACE2 tracing is enabled.
-            ProcessManager.CreateSid();
-
             using (var context = new CommandContext())
             using (var app = new Application(context))
             {
-                // Initialize TRACE2 system
-                context.Trace2.Initialize(startTime);
-
-                // Write the start and version events
-                context.Trace2.Start(context.ApplicationPath, args);
-
                 // Register all supported host providers at the normal priority.
                 // The generic provider should never win against a more specific one, so register it with low priority.
                 app.RegisterProvider(new AzureReposHostProvider(context), HostProviderPriority.Normal);
@@ -68,7 +59,6 @@ namespace GitCredentialManager
                     .GetAwaiter()
                     .GetResult();
 
-                context.Trace2.Stop(_exitCode);
                 Dispatcher.MainThread.Shutdown();
             }
         }
