@@ -52,11 +52,6 @@ namespace GitCredentialManager
         ITrace Trace { get; }
 
         /// <summary>
-        /// Application TRACE2 tracing system.
-        /// </summary>
-        ITrace2 Trace2 { get; }
-
-        /// <summary>
         /// File system abstraction (exists mainly for testing).
         /// </summary>
         IFileSystem FileSystem { get; }
@@ -99,7 +94,6 @@ namespace GitCredentialManager
 
             Streams = new StandardStreams();
             Trace   = new Trace();
-            Trace2  = new Trace2(this);
             Console = new ConsoleService(Streams);
 
             if (PlatformUtils.IsWindows())
@@ -206,8 +200,6 @@ namespace GitCredentialManager
         public ISessionManager SessionManager { get; }
 
         public ITrace Trace { get; }
-
-        public ITrace2 Trace2 { get; }
 
         public IFileSystem FileSystem { get; }
 
