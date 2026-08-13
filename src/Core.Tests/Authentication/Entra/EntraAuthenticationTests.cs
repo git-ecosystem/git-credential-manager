@@ -25,7 +25,7 @@ public class EntraAuthenticationTests
         };
         var entraAuth = new EntraAuthentication(context, config);
 
-        await Assert.ThrowsAsync<Trace2InvalidOperationException>(
+        await Assert.ThrowsAsync<InvalidOperationException>(
             () => entraAuth.GetTokenForUserAsync(scopes, authority));
     }
 

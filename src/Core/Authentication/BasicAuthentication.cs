@@ -112,12 +112,12 @@ namespace GitCredentialManager.Authentication
 
             if (!resultDict.TryGetValue("username", out userName))
             {
-                throw new Trace2Exception("Missing 'username' in response");
+                throw new Exception("Missing 'username' in response");
             }
 
             if (!resultDict.TryGetValue("password", out string password))
             {
-                throw new Trace2Exception("Missing 'password' in response");
+                throw new Exception("Missing 'password' in response");
             }
 
             return new GitCredential(userName, password);

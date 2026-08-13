@@ -69,7 +69,7 @@ namespace Atlassian.Bitbucket.Tests.Cloud
         public async Task BitbucketOAuth2Client_GetDeviceCodeAsync()
         {
             var client = new Bitbucket.Cloud.BitbucketOAuth2Client(httpClient.Object, settings.Object);
-            await Assert.ThrowsAsync<Trace2InvalidOperationException>(async () => await client.GetDeviceCodeAsync(scopes, ct));
+            await Assert.ThrowsAsync<InvalidOperationException>(async () => await client.GetDeviceCodeAsync(scopes, ct));
         }
 
         [Theory]

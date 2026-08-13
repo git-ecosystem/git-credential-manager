@@ -54,6 +54,8 @@ namespace GitCredentialManager.UI
 
         private bool WriteException(Exception ex)
         {
+            Trace2.WriteError(ex);
+
             Context.Streams.Out.WriteDictionary(new Dictionary<string, string>
             {
                 ["error"] = ex.Message

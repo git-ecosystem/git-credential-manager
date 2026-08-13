@@ -123,7 +123,7 @@ namespace GitCredentialManager.Interop.Windows.Native
                 default:
                     // The Win32Exception constructor will automatically get the human-readable
                     // message for the error code.
-                    throw new Trace2InteropException(defaultErrorMessage, new Win32Exception(error));
+                    throw new InteropException(defaultErrorMessage, new Win32Exception(error));
             }
         }
     }

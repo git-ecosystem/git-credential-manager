@@ -1,3 +1,4 @@
+using System;
 using System.CommandLine;
 using System.Threading;
 using System.Threading.Tasks;
@@ -36,7 +37,7 @@ namespace GitCredentialManager.UI.Commands
 
             if (!viewModel.WindowResult)
             {
-                throw new Trace2Exception("User cancelled dialog.");
+                throw new Exception("User cancelled dialog.");
             }
 
             return 0;

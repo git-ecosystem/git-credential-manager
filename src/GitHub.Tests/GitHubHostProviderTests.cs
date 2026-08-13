@@ -341,7 +341,7 @@ namespace GitHub.Tests
 
             var provider = new GitHubHostProvider(context, ghApi, ghAuth);
 
-            await Assert.ThrowsAsync<Trace2Exception>(() => provider.GenerateCredentialAsync(remoteUri, null));
+            await Assert.ThrowsAsync<Exception>(() => provider.GenerateCredentialAsync(remoteUri, null));
         }
 
         [Fact]

@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Threading;
+using GitCredentialManager.Interop;
 
 namespace GitCredentialManager;
 
@@ -280,6 +282,40 @@ public static class Trace2
             ParameterizedMessage = parameterizedMessage ?? errorMessage,
             Depth = _depth
         });
+    }
+
+    internal static void WriteError(
+        Exception exception,
+        [System.Runtime.CompilerServices.CallerFilePath] string filePath = "",
+        [System.Runtime.CompilerServices.CallerLineNumber] int lineNumber = 0)
+    {
+        EnsureArgument.NotNull(exception, nameof(exception));
+
+        switch (exception)
+        {
+            case GitException gitException:
+            {
+                string format =
+                    $"message: '{gitException.Message}' error code: '{gitException.ExitCode}' git message: '{{0}}'";
+                string message = string.Format(format, gitException.GitErrorMessage);
+                WriteError(message, format, filePath, lineNumber);
+                break;
+            }
+            case InteropException interopException:
+            {
+                const string format = "message: {0} error code: {1}";
+                string message = string.Format(
+                    CultureInfo.InvariantCulture,
+                    format,
+                    interopException.Message,
+                    interopException.ErrorCode);
+                WriteError(message, format, filePath, lineNumber);
+                break;
+            }
+            default:
+                WriteError(exception.Message, filePath: filePath, lineNumber: lineNumber);
+                break;
+        }
     }
 
     public static IDisposable StartRegion(
