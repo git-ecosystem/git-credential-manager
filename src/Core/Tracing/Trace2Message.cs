@@ -32,6 +32,10 @@ public enum Trace2Event
     ThreadStart,
     [JsonStringEnumMemberName("thread_exit")]
     ThreadExit,
+    [JsonStringEnumMemberName("data")]
+    Data,
+    [JsonStringEnumMemberName("data_json")]
+    DataJson,
     [JsonStringEnumMemberName("cmd_name")]
     CommandName,
 }
@@ -46,7 +50,9 @@ public enum Trace2Event
 [JsonSerializable(typeof(ErrorMessage))]
 [JsonSerializable(typeof(RegionEnterMessage))]
 [JsonSerializable(typeof(RegionLeaveMessage))]
+[JsonSerializable(typeof(DataMessage))]
 [JsonSerializable(typeof(CommandNameMessage))]
+[JsonSerializable(typeof(DataJsonMessage))]
 [JsonSourceGenerationOptions(
     UseStringEnumConverter = true,
     PropertyNamingPolicy = JsonKnownNamingPolicy.SnakeCaseLower,
@@ -492,4 +498,90 @@ public class RegionLeaveMessage() : RegionMessage(Trace2Event.RegionLeave)
         RelativeTime = RelativeTime,
         Category = Category
     };
+}
+
+public class DataMessage() : Trace2Message(Trace2Event.Data)
+{
+    [JsonPropertyName("t_abs")]
+    [JsonPropertyOrder(8)]
+    public double ElapsedTime { get; set; }
+
+    [JsonPropertyName("t_rel")]
+    [JsonPropertyOrder(9)]
+    public double RelativeTime { get; set; }
+
+    [JsonPropertyName("repo")]
+    [JsonPropertyOrder(10)]
+    public int Repo { get; set; } = 1;
+
+    [JsonPropertyName("nesting")]
+    [JsonPropertyOrder(11)]
+    public int Nesting { get; set; }
+
+    [JsonPropertyName("category")]
+    [JsonPropertyOrder(12)]
+    public string Category { get; set; }
+
+    [JsonPropertyName("key")]
+    [JsonPropertyOrder(13)]
+    public string Key { get; set; }
+
+    [JsonPropertyName("value")]
+    [JsonPropertyOrder(14)]
+    public string Value { get; set; }
+
+    protected override JsonTypeInfo GetJsonTypeInfo() => Trace2JsonContext.Default.DataMessage;
+
+    private protected override PerformanceFormatFields GetPerformanceFields() => new()
+    {
+        Repo = Repo,
+        ElapsedTime = ElapsedTime,
+        RelativeTime = RelativeTime,
+        Category = Category
+    };
+
+    protected override string GetEventMessage(Trace2FormatTarget formatTarget) => $"{Key}:{Value}";
+}
+
+public class DataJsonMessage() : Trace2Message(Trace2Event.DataJson)
+{
+    [JsonPropertyName("t_abs")]
+    [JsonPropertyOrder(8)]
+    public double ElapsedTime { get; set; }
+
+    [JsonPropertyName("t_rel")]
+    [JsonPropertyOrder(9)]
+    public double RelativeTime { get; set; }
+
+    [JsonPropertyName("repo")]
+    [JsonPropertyOrder(10)]
+    public int Repo { get; set; } = 1;
+
+    [JsonPropertyName("nesting")]
+    [JsonPropertyOrder(11)]
+    public int Nesting { get; set; }
+
+    [JsonPropertyName("category")]
+    [JsonPropertyOrder(12)]
+    public string Category { get; set; }
+
+    [JsonPropertyName("key")]
+    [JsonPropertyOrder(13)]
+    public string Key { get; set; }
+
+    [JsonPropertyName("value")]
+    [JsonPropertyOrder(14)]
+    public JsonElement Value { get; set; }
+
+    protected override JsonTypeInfo GetJsonTypeInfo() => Trace2JsonContext.Default.DataJsonMessage;
+
+    private protected override PerformanceFormatFields GetPerformanceFields() => new()
+    {
+        Repo = Repo,
+        ElapsedTime = ElapsedTime,
+        RelativeTime = RelativeTime,
+        Category = Category
+    };
+
+    protected override string GetEventMessage(Trace2FormatTarget formatTarget) => $"{Key}:{Value.GetRawText()}";
 }

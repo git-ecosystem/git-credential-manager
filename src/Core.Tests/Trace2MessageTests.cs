@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using GitCredentialManager;
 using Xunit;
 
@@ -117,6 +118,31 @@ public class Trace2MessageTests
     }
 
     [Fact]
+    public void Data_Event_ToJson_Creates_Expected_Json()
+    {
+        var message = new DataMessage
+        {
+            Sid = "123",
+            Thread = "main",
+            Time = new DateTimeOffset(),
+            File = "foo.cs",
+            Line = 1,
+            Depth = 1,
+            ElapsedTime = 0.05,
+            RelativeTime = 0.01,
+            Repo = 1,
+            Nesting = 2,
+            Category = "index",
+            Key = "read/cache_nr",
+            Value = "3552"
+        };
+
+        const string expected = "{\"event\":\"data\",\"sid\":\"123\",\"thread\":\"main\",\"time\":\"0001-01-01T00:00:00+00:00\",\"file\":\"foo.cs\",\"line\":1,\"depth\":1,\"t_abs\":0.05,\"t_rel\":0.01,\"repo\":1,\"nesting\":2,\"category\":\"index\",\"key\":\"read/cache_nr\",\"value\":\"3552\"}";
+
+        Assert.Equal(expected, message.ToJson());
+    }
+
+    [Fact]
     public void CommandName_Event_ToJson_Creates_Expected_Json()
     {
         var message = new CommandNameMessage
@@ -136,4 +162,31 @@ public class Trace2MessageTests
         Assert.Equal(expected, message.ToJson());
     }
 
+    [Fact]
+    public void DataJson_Event_ToJson_Creates_Expected_Json()
+    {
+        using JsonDocument document = JsonDocument.Parse(
+            "{\"count\":2,\"items\":[\"one\",\"two\"]}");
+
+        var message = new DataJsonMessage
+        {
+            Sid = "123",
+            Thread = "main",
+            Time = new DateTimeOffset(),
+            File = "foo.cs",
+            Line = 1,
+            Depth = 1,
+            ElapsedTime = 0.05,
+            RelativeTime = 0.01,
+            Repo = 1,
+            Nesting = 2,
+            Category = "index",
+            Key = "read/statistics",
+            Value = document.RootElement
+        };
+
+        const string expected = "{\"event\":\"data_json\",\"sid\":\"123\",\"thread\":\"main\",\"time\":\"0001-01-01T00:00:00+00:00\",\"file\":\"foo.cs\",\"line\":1,\"depth\":1,\"t_abs\":0.05,\"t_rel\":0.01,\"repo\":1,\"nesting\":2,\"category\":\"index\",\"key\":\"read/statistics\",\"value\":{\"count\":2,\"items\":[\"one\",\"two\"]}}";
+
+        Assert.Equal(expected, message.ToJson());
+    }
 }

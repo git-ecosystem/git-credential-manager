@@ -8,6 +8,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using GitCredentialManager.Interop;
 
@@ -546,6 +547,118 @@ public static class Trace2
 
         Trace2ExecutionContext context = GetCurrentContext();
         return new RegionScope(context, category, label, filePath, lineNumber, message);
+    }
+
+    /// <summary>
+    /// Writes a thread- and region-local Trace2 data event.
+    /// </summary>
+    /// <param name="category">The broad category of the data.</param>
+    /// <param name="key">The name of the data value.</param>
+    /// <param name="value">The data value.</param>
+    /// <param name="filePath">The source file writing the event.</param>
+    /// <param name="lineNumber">The source line writing the event.</param>
+    public static void WriteData(
+        string category,
+        string key,
+        string value,
+        [CallerFilePath] string filePath = "",
+        [CallerLineNumber] int lineNumber = 0)
+    {
+        if (!_initialized) return;
+
+        EnsureArgument.NotNullOrWhiteSpace(category, nameof(category));
+        EnsureArgument.NotNullOrWhiteSpace(key, nameof(key));
+
+        value ??= string.Empty;
+
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        Trace2ExecutionContext context = GetCurrentContext();
+        DateTimeOffset relativeStart = context.RegionStartTime.Value ?? context.StartTime;
+
+        WriteMessage(new DataMessage
+        {
+            Sid = _sid,
+            Time = now,
+            Thread = context.ThreadName,
+            File = Path.GetFileName(filePath),
+            Line = lineNumber,
+            ElapsedTime = (now - _applicationStartTime).TotalSeconds,
+            RelativeTime = (now - relativeStart).TotalSeconds,
+            Nesting = context.RegionNesting.Value + 1,
+            Category = category,
+            Key = key,
+            Value = value,
+            Depth = _depth
+        });
+    }
+
+    /// <summary>
+    /// Writes a thread- and region-local integer Trace2 data event.
+    /// </summary>
+    /// <param name="category">The broad category of the data.</param>
+    /// <param name="key">The name of the data value.</param>
+    /// <param name="value">The data value.</param>
+    /// <param name="filePath">The source file writing the event.</param>
+    /// <param name="lineNumber">The source line writing the event.</param>
+    public static void WriteData(
+        string category,
+        string key,
+        long value,
+        [CallerFilePath] string filePath = "",
+        [CallerLineNumber] int lineNumber = 0)
+    {
+        WriteData(
+            category,
+            key,
+            value.ToString(CultureInfo.InvariantCulture),
+            filePath,
+            lineNumber);
+    }
+
+    /// <summary>
+    /// Writes a thread- and region-local Trace2 structured data event.
+    /// </summary>
+    /// <param name="category">The broad category of the data.</param>
+    /// <param name="key">The name of the data value.</param>
+    /// <param name="value">The structured JSON value.</param>
+    /// <param name="filePath">The source file writing the event.</param>
+    /// <param name="lineNumber">The source line writing the event.</param>
+    public static void WriteData(
+        string category,
+        string key,
+        JsonElement value,
+        [CallerFilePath] string filePath = "",
+        [CallerLineNumber] int lineNumber = 0)
+    {
+        if (!_initialized) return;
+
+        EnsureArgument.NotNullOrWhiteSpace(category, nameof(category));
+        EnsureArgument.NotNullOrWhiteSpace(key, nameof(key));
+
+        if (value.ValueKind == JsonValueKind.Undefined)
+        {
+            throw new ArgumentException("JSON value must be defined.", nameof(value));
+        }
+
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        Trace2ExecutionContext context = GetCurrentContext();
+        DateTimeOffset relativeStart = context.RegionStartTime.Value ?? context.StartTime;
+
+        WriteMessage(new DataJsonMessage
+        {
+            Sid = _sid,
+            Time = now,
+            Thread = context.ThreadName,
+            File = Path.GetFileName(filePath),
+            Line = lineNumber,
+            ElapsedTime = (now - _applicationStartTime).TotalSeconds,
+            RelativeTime = (now - relativeStart).TotalSeconds,
+            Nesting = context.RegionNesting.Value + 1,
+            Category = category,
+            Key = key,
+            Value = value,
+            Depth = _depth
+        });
     }
 
     private static DateTimeOffset WriteRegionEnter(
