@@ -5,6 +5,7 @@ using Avalonia;
 using GitHub;
 using GitLab;
 using Microsoft.AzureRepos;
+using Microsoft.ManagedApps;
 using GitCredentialManager.Authentication;
 using GitCredentialManager.UI;
 
@@ -61,6 +62,7 @@ namespace GitCredentialManager
                 app.RegisterProvider(new BitbucketHostProvider(context), HostProviderPriority.Normal);
                 app.RegisterProvider(new GitHubHostProvider(context), HostProviderPriority.Normal);
                 app.RegisterProvider(new GitLabHostProvider(context), HostProviderPriority.Normal);
+                app.RegisterProvider(new ManagedAppsHostProvider(context), HostProviderPriority.Normal);
                 app.RegisterProvider(new GenericHostProvider(context), HostProviderPriority.Low);
 
                 _exitCode = app.RunAsync(args)
