@@ -105,13 +105,9 @@ namespace GitCredentialManager
                         git.WaitForExit();
 
                         Match match = Regex.Match(data, @"^git version (?'value'.*)");
-                        if (match.Success)
+                        if (!match.Success || !GitVersion.TryParse(match.Groups["value"].Value, out _version))
                         {
-                            _version = new GitVersion(match.Groups["value"].Value);
-                        }
-                        else
-                        {
-                            _version = new GitVersion();
+                            _version = GitVersion.Zero;
                         }
                     }
                 }

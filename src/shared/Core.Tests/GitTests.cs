@@ -197,8 +197,7 @@ namespace GitCredentialManager.Tests
             var git = new GitProcess(trace, trace2, processManager, gitPath, Path.GetTempPath());
             GitVersion version = git.Version;
 
-            Assert.NotEqual(new GitVersion(), version);
-
+            Assert.NotEqual(GitVersion.Zero, version);
         }
 
         #region Test Helpers
