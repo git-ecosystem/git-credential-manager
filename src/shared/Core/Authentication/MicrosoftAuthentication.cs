@@ -123,6 +123,10 @@ namespace GitCredentialManager.Authentication
 
     public class MicrosoftAuthentication : AuthenticationBase, IMicrosoftAuthentication
     {
+        private const string GcmMacKeychainServiceName = "GitCredentialManager.MSAL";
+        private const string GcmMacKeychainUserAccountName = "UserCache";
+        private const string GcmMacKeychainAppAccountName = "AppCache";
+
         public static readonly string[] AuthorityIds =
         {
             "msa",  "microsoft",   "microsoftaccount",
@@ -719,8 +723,8 @@ namespace GitCredentialManager.Authentication
                 return;
             }
 
-            // We use the MSAL extension library to provide us consistent cache file access semantics (synchronisation, etc)
-            // as other GCM processes, and other Microsoft developer tools such as the Azure PowerShell CLI.
+            // We use the MSAL extension library to provide consistent cache file access semantics (synchronisation, etc)
+            // between GCM processes. On Windows and Linux this cache is also shared with other Microsoft developer tools.
             MsalCacheHelper helper = null;
             try
             {
@@ -771,32 +775,45 @@ namespace GitCredentialManager.Authentication
 
         /// <summary>
         /// Create the properties for the user token cache. This is used by public client applications only.
-        /// This cache is shared between GCM processes, and also other Microsoft developer tools such as the Azure
-        /// PowerShell CLI.
+        /// This cache is shared between GCM processes. On Windows and Linux it is also shared with other Microsoft
+        /// developer tools such as the Azure PowerShell CLI.
         /// </summary>
         /// <param name="useLinuxFallback"></param>
         /// <returns></returns>
         internal StorageCreationProperties CreateUserTokenCacheProps(bool useLinuxFallback)
         {
-            const string cacheFileName = "msal.cache";
+            string cacheFileName;
             string cacheDirectory;
-            if (PlatformUtils.IsWindows())
+            StorageCreationPropertiesBuilder builder;
+
+            if (PlatformUtils.IsMacOS())
             {
-                // The shared MSAL cache is located at "%LocalAppData%\.IdentityService\msal.cache" on Windows.
-                cacheDirectory = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                    ".IdentityService"
-                );
+                // Keep the macOS cache isolated from other Microsoft developer tools. Those tools can recreate the
+                // shared Keychain item and discard GCM's access control entry, causing repeated password prompts.
+                cacheFileName = "user.cache";
+                cacheDirectory = Path.Combine(Context.FileSystem.UserDataDirectoryPath, "msal");
+                builder = new StorageCreationPropertiesBuilder(cacheFileName, cacheDirectory)
+                    .WithMacKeyChain(GcmMacKeychainServiceName, GcmMacKeychainUserAccountName);
             }
             else
             {
-                // The shared MSAL cache metadata is located at "~/.local/.IdentityService/msal.cache" on UNIX.
-                cacheDirectory = Path.Combine(Context.FileSystem.UserHomePath, ".local", ".IdentityService");
-            }
+                cacheFileName = "msal.cache";
+                if (PlatformUtils.IsWindows())
+                {
+                    // The shared MSAL cache is located at "%LocalAppData%\.IdentityService\msal.cache" on Windows.
+                    cacheDirectory = Path.Combine(
+                        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                        ".IdentityService"
+                    );
+                }
+                else
+                {
+                    // The shared MSAL cache metadata is located at "~/.local/.IdentityService/msal.cache" on Linux.
+                    cacheDirectory = Path.Combine(Context.FileSystem.UserHomePath, ".local", ".IdentityService");
+                }
 
-            // The keychain is used on macOS with the following service & account names
-            var builder = new StorageCreationPropertiesBuilder(cacheFileName, cacheDirectory)
-                .WithMacKeyChain("Microsoft.Developer.IdentityService", "MSALCache");
+                builder = new StorageCreationPropertiesBuilder(cacheFileName, cacheDirectory);
+            }
 
             if (useLinuxFallback)
             {
@@ -872,7 +889,7 @@ namespace GitCredentialManager.Authentication
 
             // The keychain is used on macOS with the following service & account names
             var builder = new StorageCreationPropertiesBuilder(cacheFileName, cacheDirectory)
-                .WithMacKeyChain("GitCredentialManager.MSAL", "AppCache");
+                .WithMacKeyChain(GcmMacKeychainServiceName, GcmMacKeychainAppAccountName);
 
             if (useLinuxFallback)
             {

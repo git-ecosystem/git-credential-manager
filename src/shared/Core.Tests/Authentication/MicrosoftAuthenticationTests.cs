@@ -1,8 +1,10 @@
 using System;
+using System.IO;
 using System.Threading.Tasks;
 using GitCredentialManager.Authentication;
 using GitCredentialManager.Tests.Objects;
 using Microsoft.Identity.Client.AppConfig;
+using Microsoft.Identity.Client.Extensions.Msal;
 using Xunit;
 
 namespace GitCredentialManager.Tests.Authentication
@@ -27,6 +29,51 @@ namespace GitCredentialManager.Tests.Authentication
 
             await Assert.ThrowsAsync<Trace2InvalidOperationException>(
                 () => msAuth.GetTokenForUserAsync(authority, clientId, redirectUri, scopes, userName, false));
+        }
+
+        [MacOSFact]
+        public void MicrosoftAuthentication_CreateUserTokenCacheProps_OnMacOS_UsesGcmKeychain()
+        {
+            var context = new TestCommandContext();
+            var msAuth = new MicrosoftAuthentication(context);
+
+            StorageCreationProperties actual = msAuth.CreateUserTokenCacheProps(useLinuxFallback: false);
+
+            Assert.Equal("user.cache", actual.CacheFileName);
+            Assert.Equal(Path.Combine(context.FileSystem.UserDataDirectoryPath, "msal"), actual.CacheDirectory);
+            Assert.Equal("GitCredentialManager.MSAL", actual.MacKeyChainServiceName);
+            Assert.Equal("UserCache", actual.MacKeyChainAccountName);
+        }
+
+        [WindowsFact]
+        public void MicrosoftAuthentication_CreateUserTokenCacheProps_OnWindows_UsesSharedCache()
+        {
+            var context = new TestCommandContext();
+            var msAuth = new MicrosoftAuthentication(context);
+
+            StorageCreationProperties actual = msAuth.CreateUserTokenCacheProps(useLinuxFallback: false);
+
+            Assert.Equal("msal.cache", actual.CacheFileName);
+            Assert.Equal(
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), ".IdentityService"),
+                actual.CacheDirectory);
+        }
+
+        [LinuxFact]
+        public void MicrosoftAuthentication_CreateUserTokenCacheProps_OnLinux_UsesSharedCache()
+        {
+            var context = new TestCommandContext();
+            var msAuth = new MicrosoftAuthentication(context);
+
+            StorageCreationProperties actual = msAuth.CreateUserTokenCacheProps(useLinuxFallback: false);
+
+            Assert.Equal("msal.cache", actual.CacheFileName);
+            Assert.Equal(
+                Path.Combine(context.FileSystem.UserHomePath, ".local", ".IdentityService"),
+                actual.CacheDirectory);
+            Assert.Equal("msal.cache", actual.KeyringSchemaName);
+            Assert.Equal("default", actual.KeyringCollection);
+            Assert.Equal("MSALCache", actual.KeyringSecretLabel);
         }
 
         [Theory]
