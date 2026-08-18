@@ -20,6 +20,8 @@ namespace Microsoft.AzureRepos
         private readonly IMicrosoftAuthentication _msAuth;
         private readonly IAzureDevOpsAuthorityCache _authorityCache;
         private readonly IAzureReposBindingManager _bindingManager;
+        // Set to true if PAT creation was blocked by org policy this invocation, forcing OAuth fallback.
+        private bool _forcedOAuth;
 
         public AzureReposHostProvider(ICommandContext context)
             : this(context, new AzureDevOpsRestApi(context), new MicrosoftAuthentication(context),
@@ -118,20 +120,28 @@ namespace Microsoft.AzureRepos
 
                     // No existing credential was found, create a new one
                     _context.Trace.WriteLine("Creating new credential...");
-                    credential = await GeneratePersonalAccessTokenAsync(input);
-                    _context.Trace.WriteLine("Credential created.");
+                    try
+                    {
+                        credential = await GeneratePersonalAccessTokenAsync(input);
+                        _context.Trace.WriteLine("Credential created.");
+                        return new GetCredentialResult(credential);
+                    }
+                    catch (Exception ex) when (IsPatPolicyViolation(ex))
+                    {
+                        HandlePatPolicyViolation();
+                        // Fall through to OAuth path below
+                    }
                 }
                 else
                 {
                     _context.Trace.WriteLine("Existing credential found.");
+                    return new GetCredentialResult(credential);
                 }
-
-                return new GetCredentialResult(credential);
             }
-            else
+
+            // Include the username request here so that we may use it as an override
+            // for user account lookups when getting Azure Access Tokens.
             {
-                // Include the username request here so that we may use it as an override
-                // for user account lookups when getting Azure Access Tokens.
                 var azureResult = await GetAzureAccessTokenAsync(input);
                 var azureCredential = new GitCredential(azureResult.AccountUpn, azureResult.AccessToken);
                 return new GetCredentialResult(azureCredential);
@@ -485,8 +495,26 @@ namespace Microsoft.AzureRepos
         /// Check if Azure DevOps Personal Access Tokens should be used or not.
         /// </summary>
         /// <returns>True if Personal Access Tokens should be used, false otherwise.</returns>
+        private static bool IsPatPolicyViolation(Exception ex) =>
+            ex.Message.Contains("DisablePatCreationPolicyViolation", StringComparison.OrdinalIgnoreCase);
+
+        private void HandlePatPolicyViolation()
+        {
+            _context.Trace.WriteLine("PAT creation blocked by org policy, falling back to OAuth for this request.");
+            _context.Streams.Error.WriteLine(
+                "warning: PAT creation is disabled by your Azure DevOps organization policy.");
+            _context.Streams.Error.WriteLine(
+                "hint: To permanently use OAuth, run:");
+            _context.Streams.Error.WriteLine(
+                $"hint:   git config --global credential.{AzureDevOpsConstants.GitConfiguration.Credential.CredentialType} {AzureDevOpsConstants.OAuthCredentialType}");
+
+            _forcedOAuth = true;
+        }
+
         private bool UsePersonalAccessTokens()
         {
+            if (_forcedOAuth) return false;
+
             // Default to using PATs except on DevBox where we prefer OAuth tokens
             bool defaultValue = !PlatformUtils.IsDevBox();
 
