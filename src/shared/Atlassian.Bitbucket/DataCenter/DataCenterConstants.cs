@@ -30,6 +30,7 @@ namespace Atlassian.Bitbucket.DataCenter
             public const string OAuthClientId = "GCM_BITBUCKET_DATACENTER_CLIENTID";
             public const string OAuthClientSecret = "GCM_BITBUCKET_DATACENTER_CLIENTSECRET";
             public const string OAuthRedirectUri = "GCM_BITBUCKET_DATACENTER_OAUTH_REDIRECTURI";
+            public const string HttpPath = "GCM_BITBUCKET_DATACENTER_HTTP_PATH";
         }
 
         public static class GitConfiguration
@@ -39,6 +40,7 @@ namespace Atlassian.Bitbucket.DataCenter
                 public const string OAuthClientId = "bitbucketDataCenterOAuthClientId";
                 public const string OAuthClientSecret = "bitbucketDataCenterOAuthClientSecret";
                 public const string OAuthRedirectUri = "bitbucketDataCenterOauthRedirectUri";
+                public const string HttpPath = "bitbucketDataCenterHttpPath";
             }
         }
     }
