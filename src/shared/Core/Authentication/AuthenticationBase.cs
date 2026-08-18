@@ -90,6 +90,11 @@ namespace GitCredentialManager.Authentication
         {
             if (!Context.Settings.IsInteractionAllowed)
             {
+                if (Context.Settings.SilentExit)
+                {
+                    Environment.Exit(0);
+                }
+
                 string envName = Constants.EnvironmentVariables.GcmInteractive;
                 string cfgName = string.Format("{0}.{1}",
                     Constants.GitConfiguration.Credential.SectionName,
@@ -104,6 +109,11 @@ namespace GitCredentialManager.Authentication
         {
             if (!Context.Settings.IsGuiPromptsEnabled)
             {
+                if (Context.Settings.SilentExit)
+                {
+                    Environment.Exit(0);
+                }
+
                 Context.Trace.WriteLine($"{Constants.EnvironmentVariables.GitTerminalPrompts} is 0; GUI prompts have been disabled.");
                 throw new Trace2InvalidOperationException(Context.Trace2, "Cannot show prompt because GUI prompts have been disabled.");
             }
@@ -113,6 +123,11 @@ namespace GitCredentialManager.Authentication
         {
             if (!Context.Settings.IsTerminalPromptsEnabled)
             {
+                if (Context.Settings.SilentExit)
+                {
+                    Environment.Exit(0);
+                }
+
                 Context.Trace.WriteLine($"{Constants.EnvironmentVariables.GitTerminalPrompts} is 0; terminal prompts have been disabled.");
                 throw new Trace2InvalidOperationException(Context.Trace2, "Cannot prompt because terminal prompts have been disabled.");
             }
@@ -122,6 +137,11 @@ namespace GitCredentialManager.Authentication
         {
             if (!viewModel.WindowResult)
             {
+                if (Context.Settings.SilentExit)
+                {
+                    Environment.Exit(0);
+                }
+
                 throw new Exception("User cancelled dialog.");
             }
         }
