@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 using GitCredentialManager.Interop.Linux;
 using GitCredentialManager.Interop.MacOS;
 using GitCredentialManager.Interop.Posix;
@@ -47,6 +48,46 @@ namespace GitCredentialManager
         {
             EnsureBackingStore();
             return _backingStore.Remove(service, account);
+        }
+
+        public async Task SaveCredentialsAsync(string filePath)
+        {
+            EnsureBackingStore();
+            var credentials = new Dictionary<string, Dictionary<string, string>>();
+
+            foreach (var service in _backingStore.GetAccounts(null))
+            {
+                var accounts = _backingStore.GetAccounts(service);
+                var serviceCredentials = new Dictionary<string, string>();
+
+                foreach (var account in accounts)
+                {
+                    var credential = _backingStore.Get(service, account);
+                    serviceCredentials[account] = credential.Password;
+                }
+
+                credentials[service] = serviceCredentials;
+            }
+
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            var json = JsonSerializer.Serialize(credentials, options);
+
+            await File.WriteAllTextAsync(filePath, json);
+        }
+
+        public async Task LoadCredentialsAsync(string filePath)
+        {
+            EnsureBackingStore();
+            var json = await File.ReadAllTextAsync(filePath);
+            var credentials = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, string>>>(json);
+
+            foreach (var service in credentials)
+            {
+                foreach (var account in service.Value)
+                {
+                    _backingStore.AddOrUpdate(service.Key, account.Key, account.Value);
+                }
+            }
         }
 
         #endregion
