@@ -86,9 +86,9 @@ public class GitHubAuthChallengeTests
     [InlineData("", false)]
     [InlineData(" ", false)]
     [InlineData("alice", true)]
-    [InlineData("alice_contoso", false)]
-    [InlineData("alice_CONTOSO", false)]
-    [InlineData("alice_contoso_alt", false)]
+    [InlineData("alice_contoso", true)]
+    [InlineData("alice_CONTOSO", true)]
+    [InlineData("alice_contoso_alt", true)]
     [InlineData("pj_nitin", true)]
     [InlineData("up_the_irons", true)]
     public void GitHubAuthChallenge_IsDomainMember_NoHint(string userName, bool expected)

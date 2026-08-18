@@ -73,10 +73,15 @@ public class GitHubAuthChallenge : IEquatable<GitHubAuthChallenge>
             return false;
         }
 
+        if (string.IsNullOrWhiteSpace(Domain))
+        {
+            return true;
+        }
+
         int delim = userName.LastIndexOf('_');
         if (delim < 0)
         {
-            return string.IsNullOrWhiteSpace(Domain);
+            return false;
         }
 
         // Check for users that contain underscores but are not EMU logins
