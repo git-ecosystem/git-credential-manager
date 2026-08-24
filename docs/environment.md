@@ -947,6 +947,33 @@ export GCM_AZREPOS_USE_MSFT_CACHE="false"
 
 ---
 
+### GCM_AZREPOS_USE_LEGACY_CLIENTID
+
+Use the legacy Visual Studio Entra application when authenticating to Azure
+Repos with Microsoft identity OAuth tokens. Set this value to `true` to restore
+the application identity used by earlier versions of GCM.
+
+The legacy application does not support broker authentication on macOS or
+Linux.
+
+Defaults to `false`.
+
+#### Windows
+
+```batch
+SET GCM_AZREPOS_USE_LEGACY_CLIENTID=true
+```
+
+#### macOS/Linux
+
+```bash
+export GCM_AZREPOS_USE_LEGACY_CLIENTID="true"
+```
+
+**Also see: [credential.azreposUseLegacyClientId][legacy-client-id]**
+
+---
+
 ### GCM_AZREPOS_CREDENTIALTYPE
 
 Specify the type of credential the Azure Repos host provider should return.
@@ -1379,6 +1406,7 @@ Defaults to disabled.
 [credential-autodetecttimeout]: configuration.md#credentialautodetecttimeout
 [credential-azrepos-credential-type]: configuration.md#credentialazreposcredentialtype
 [shared-cache]: configuration.md#credentialazreposusemicrosoftsharedcache
+[legacy-client-id]: configuration.md#credentialazreposuselegacyclientid
 [credential-azrepos-managedidentity]: configuration.md#credentialazreposmanagedidentity
 [credential-azrepos-wif]: configuration.md#credentialazreposworkloadfederation
 [credential-azrepos-wif-clientid]: configuration.md#credentialazreposworkloadfederationclientid

@@ -402,15 +402,21 @@ namespace Microsoft.AzureRepos
 
         private PublicClientConfig GetEntraConfig()
         {
+            (string clientId, bool isLegacy) = GetClientAppInfo();
+
+            _context.Trace.WriteLine(isLegacy
+                ? $"Using legacy Entra client ID '{clientId}'"
+                : $"Using new Entra client ID '{clientId}'");
+
             return new PublicClientConfig
             {
-                ClientId = GetClientId(),
+                ClientId = clientId,
                 IsMsaPassthroughEnabled = true,
                 UseSharedCache = GetUseSharedCache(),
                 SupportsWindowsBroker = true,
-                // TODO: enable once our app registration has the appropriate redirect URLs
-                //SupportsMacBroker = true,
-                //SupportsLinuxBroker = true,
+                // Only the new client ID supports broker on Mac and Linux
+                SupportsMacBroker = !isLegacy,
+                SupportsLinuxBroker = !isLegacy,
             };
         }
 
@@ -430,19 +436,19 @@ namespace Microsoft.AzureRepos
             return defaultValue;
         }
 
-        private string GetClientId()
+        private (string clientId, bool isLegacy) GetClientAppInfo()
         {
-            // Check for developer override value
+            // Check for override to use the legacy client ID
             if (_context.Settings.TryGetSetting(
-                    AzureDevOpsConstants.EnvironmentVariables.DevAadClientId,
+                    AzureDevOpsConstants.EnvironmentVariables.UseLegacyClientId,
                     Constants.GitConfiguration.Credential.SectionName,
-                    AzureDevOpsConstants.GitConfiguration.Credential.DevAadClientId,
-                    out string clientId))
+                    AzureDevOpsConstants.GitConfiguration.Credential.UseLegacyClientId,
+                    out string str) && str.IsTruthy())
             {
-                return clientId;
+                return (AzureDevOpsConstants.LegacyClientId, true);
             }
 
-            return AzureDevOpsConstants.AadClientId;
+            return (AzureDevOpsConstants.ClientId, false);
         }
 
         /// <remarks>
