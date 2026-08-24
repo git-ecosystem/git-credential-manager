@@ -953,6 +953,10 @@ Use the legacy Visual Studio Entra application when authenticating to Azure
 Repos with Microsoft identity OAuth tokens. Set this value to `true` to restore
 the application identity used by earlier versions of GCM.
 
+This is an explicit compatibility option; GCM does not switch to the legacy
+application automatically. For a one-command retry without changing the
+environment, use [credential.azreposUseLegacyClientId][legacy-client-id].
+
 The legacy application does not support broker authentication on macOS or
 Linux.
 
