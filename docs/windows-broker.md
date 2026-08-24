@@ -5,8 +5,8 @@ Git Credential Manager (GCM) knows how to integrate with the
 uses WAM to store credentials for Azure DevOps. Authentication requests are said
 to be "brokered" to the operating system. Currently, GCM will share
 authentication state with a few other Microsoft developer tools like Visual
-Studio and the Azure CLI, meaning fewer authentication prompts. Enabling WAM
-integration may also be required with certain
+Studio, meaning fewer authentication prompts.
+Enabling WAM integration may also be required with certain
 [Conditional Access policies][azure-conditional-access], which enterprises use
 to help protect their assets, including source code.
 

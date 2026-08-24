@@ -17,7 +17,38 @@ namespace Microsoft.AzureRepos.Tests
             $"{Constants.GitConfiguration.Credential.SectionName}.{Constants.GitConfiguration.Credential.Helper}";
         private static readonly string AzDevUseHttpPathKey =
             $"{Constants.GitConfiguration.Credential.SectionName}.https://dev.azure.com.{Constants.GitConfiguration.Credential.UseHttpPath}";
+        private static readonly string AzDevUseSharedCacheKey =
+            $"{Constants.GitConfiguration.Credential.SectionName}.{AzureDevOpsConstants.GitConfiguration.Credential.UseSharedCache}";
         private static readonly string OrgName = "org";
+
+        [Fact]
+        public void AzureReposProvider_GetUseSharedCache_NoConfiguration_ReturnsTrue()
+        {
+            var provider = new AzureReposHostProvider(new TestCommandContext());
+
+            Assert.True(provider.GetUseSharedCache());
+        }
+
+        [Fact]
+        public void AzureReposProvider_GetUseSharedCache_GitConfigFalse_ReturnsFalse()
+        {
+            var context = new TestCommandContext();
+            context.Git.Configuration.Global[AzDevUseSharedCacheKey] = new List<string> {"false"};
+            var provider = new AzureReposHostProvider(context);
+
+            Assert.False(provider.GetUseSharedCache());
+        }
+
+        [Fact]
+        public void AzureReposProvider_GetUseSharedCache_EnvironmentOverridesGitConfig()
+        {
+            var context = new TestCommandContext();
+            context.Git.Configuration.Global[AzDevUseSharedCacheKey] = new List<string> {"false"};
+            context.Environment.Variables[AzureDevOpsConstants.EnvironmentVariables.UseSharedCache] = "true";
+            var provider = new AzureReposHostProvider(context);
+
+            Assert.True(provider.GetUseSharedCache());
+        }
 
         [Fact]
         public void AzureReposProvider_IsSupported_AzureHost_UnencryptedHttp_ReturnsTrue()

@@ -32,7 +32,7 @@ public record PublicClientConfig
     /// </summary>
     /// <remarks>
     /// If <see langword="true"/> then use the token cache shared by Microsoft
-    /// developer tools such as the Azure PowerShell CLI. Otherwise, use the
+    /// developer tools such as Visual Studio. Otherwise, use the
     /// Git Credential Manager cache, used only by GCM.
     /// </remarks>
     public bool UseSharedCache { get; init; }
