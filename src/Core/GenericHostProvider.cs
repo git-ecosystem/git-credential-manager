@@ -75,17 +75,25 @@ namespace GitCredentialManager
             if (credential == null)
             {
                 _context.Trace.WriteLine("No existing credentials found.");
-
-                // No existing credential was found, create a new one
-                _context.Trace.WriteLine("Creating new credential...");
-                return await GenerateCredentialAsync(request);
+            }
+            else if (Token.TryCreate(credential.Password, out var token))
+            {
+                _context.Trace.WriteLine($"Existing token found (type={token.Type}).");
+                if (!token.IsExpired) {
+                    // TODO: create credential data for token type and value
+                    return new GitResponse(credential);
+                }
+                _context.Trace.WriteLine("Credential token is expired.");
             }
             else
             {
                 _context.Trace.WriteLine("Existing credential found.");
+                return new GitResponse(credential);
             }
 
-            return new GitResponse(credential);
+            // No valid credential was found, create a new one
+            _context.Trace.WriteLine("Creating new credential...");
+            return await GenerateCredentialAsync(request);
         }
 
         public Task StoreCredentialAsync(GitRequest request)
