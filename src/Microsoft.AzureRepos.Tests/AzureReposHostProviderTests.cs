@@ -6,6 +6,7 @@ using GitCredentialManager;
 using GitCredentialManager.Authentication.Entra;
 using GitCredentialManager.Tests;
 using GitCredentialManager.Tests.Objects;
+using Microsoft.Identity.Client;
 using Moq;
 using Xunit;
 
@@ -473,6 +474,161 @@ namespace Microsoft.AzureRepos.Tests
             Assert.NotNull(credential);
             Assert.Equal(account, credential.Account);
             Assert.Equal(accessToken, credential.Password);
+        }
+
+        [Theory]
+        [InlineData(false, false, MsalError.InvalidClient, true)]
+        [InlineData(true, false, MsalError.InvalidClient, true)]
+        [InlineData(false, false, MsalError.UnauthorizedClient, true)]
+        [InlineData(true, false, MsalError.UnauthorizedClient, true)]
+        [InlineData(false, true, MsalError.InvalidClient, false)]
+        [InlineData(true, true, MsalError.InvalidClient, false)]
+        [InlineData(false, true, MsalError.UnauthorizedClient, false)]
+        [InlineData(true, true, MsalError.UnauthorizedClient, false)]
+        [InlineData(false, false, MsalError.AuthenticationCanceledError, false)]
+        [InlineData(true, false, MsalError.AuthenticationCanceledError, false)]
+        [InlineData(false, false, MsalError.AccessDenied, false)]
+        [InlineData(true, false, MsalError.AccessDenied, false)]
+        [InlineData(false, false, "authorization_declined", false)]
+        [InlineData(true, false, "authorization_declined", false)]
+        [InlineData(false, false, MsalError.InvalidRequest, false)]
+        [InlineData(true, false, MsalError.InvalidRequest, false)]
+        [InlineData(false, false, MsalError.InvalidGrantError, false)]
+        [InlineData(true, false, MsalError.InvalidGrantError, false)]
+        [InlineData(false, false, MsalError.InteractionRequired, false)]
+        [InlineData(true, false, MsalError.InteractionRequired, false)]
+        [InlineData(false, false, "invalid_scope", false)]
+        [InlineData(true, false, "invalid_scope", false)]
+        [InlineData(false, false, "temporarily_unavailable", false)]
+        [InlineData(true, false, "temporarily_unavailable", false)]
+        [InlineData(false, false, "test_error", false)]
+        [InlineData(true, false, "test_error", false)]
+        public async Task AzureReposProvider_GetCredentialAsync_MsalServiceFailure_WarnsOnlyForClientConfiguration(
+            bool usePat, bool useLegacyClient, string errorCode, bool expectWarning)
+        {
+            var exception = new MsalServiceException(errorCode, "Test failure");
+
+            await AssertUserCredentialFailureAsync(usePat, useLegacyClient, exception, expectWarning);
+        }
+
+        [Theory]
+        [InlineData(false, MsalError.InvalidClient)]
+        [InlineData(true, MsalError.InvalidClient)]
+        [InlineData(false, MsalError.UnauthorizedClient)]
+        [InlineData(true, MsalError.UnauthorizedClient)]
+        [InlineData(false, MsalError.AuthenticationCanceledError)]
+        [InlineData(true, MsalError.AuthenticationCanceledError)]
+        [InlineData(false, MsalError.RedirectUriValidationFailed)]
+        [InlineData(true, MsalError.RedirectUriValidationFailed)]
+        [InlineData(false, MsalError.CodeExpired)]
+        [InlineData(true, MsalError.CodeExpired)]
+        public async Task AzureReposProvider_GetCredentialAsync_MsalClientFailure_DoesNotWarn(
+            bool usePat, string errorCode)
+        {
+            var exception = new MsalClientException(errorCode, "Test failure");
+
+            await AssertUserCredentialFailureAsync(usePat, false, exception, false);
+        }
+
+        [Theory]
+        [InlineData(false, MsalError.InvalidClient)]
+        [InlineData(true, MsalError.InvalidClient)]
+        [InlineData(false, MsalError.UnauthorizedClient)]
+        [InlineData(true, MsalError.UnauthorizedClient)]
+        public async Task AzureReposProvider_GetCredentialAsync_MsalBaseFailure_DoesNotWarn(
+            bool usePat, string errorCode)
+        {
+            var exception = new MsalException(errorCode, "Test failure");
+
+            await AssertUserCredentialFailureAsync(usePat, false, exception, false);
+        }
+
+        [Theory]
+        [InlineData(false, MsalError.InvalidClient)]
+        [InlineData(true, MsalError.InvalidClient)]
+        [InlineData(false, MsalError.UnauthorizedClient)]
+        [InlineData(true, MsalError.UnauthorizedClient)]
+        public async Task AzureReposProvider_GetCredentialAsync_MsalUiRequiredFailure_DoesNotWarn(
+            bool usePat, string errorCode)
+        {
+            var exception = new MsalUiRequiredException(errorCode, "Test failure");
+
+            await AssertUserCredentialFailureAsync(usePat, false, exception, false);
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task AzureReposProvider_GetCredentialAsync_MsalPolicyFailure_DoesNotWarn(bool usePat)
+        {
+            var exception = new IntuneAppProtectionPolicyRequiredException(
+                MsalError.UnauthorizedClient, "Test failure");
+
+            await AssertUserCredentialFailureAsync(usePat, false, exception, false);
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task AzureReposProvider_GetCredentialAsync_MsalThrottledFailure_DoesNotWarn(bool usePat)
+        {
+            var exception = new MsalThrottledServiceException(
+                new MsalServiceException(MsalError.InvalidClient, "Test failure"));
+
+            await AssertUserCredentialFailureAsync(usePat, false, exception, false);
+        }
+
+        [Theory]
+        [InlineData(false, 408)]
+        [InlineData(true, 408)]
+        [InlineData(false, 429)]
+        [InlineData(true, 429)]
+        [InlineData(false, 500)]
+        [InlineData(true, 500)]
+        public async Task AzureReposProvider_GetCredentialAsync_MsalRetryableFailure_DoesNotWarn(
+            bool usePat, int statusCode)
+        {
+            var exception = new MsalServiceException(MsalError.InvalidClient, "Test failure", statusCode);
+
+            await AssertUserCredentialFailureAsync(usePat, false, exception, false);
+        }
+
+        [Theory]
+        [InlineData(false, null, true)]
+        [InlineData(true, null, true)]
+        [InlineData(false, "", true)]
+        [InlineData(true, "", true)]
+        [InlineData(false, " \t\r\n", true)]
+        [InlineData(true, " \t\r\n", true)]
+        [InlineData(false, "CLAIMS", false)]
+        [InlineData(true, "CLAIMS", false)]
+        public async Task AzureReposProvider_GetCredentialAsync_MsalClaimsFailure_WarnsOnlyWithoutClaims(
+            bool usePat, string claims, bool expectWarning)
+        {
+            var exception = new MsalServiceException(
+                MsalError.InvalidClient, "Test failure", 400, claims, null);
+
+            await AssertUserCredentialFailureAsync(usePat, false, exception, expectWarning);
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task AzureReposProvider_GetCredentialAsync_UserCancellation_DoesNotWarn(bool usePat)
+        {
+            var exception = new OperationCanceledException("Test failure");
+
+            await AssertUserCredentialFailureAsync(usePat, false, exception, false);
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task AzureReposProvider_GetCredentialAsync_NonMsalFailure_DoesNotWarn(bool usePat)
+        {
+            var exception = new InvalidOperationException("Test failure");
+
+            await AssertUserCredentialFailureAsync(usePat, false, exception, false);
         }
 
         [Fact]
@@ -1156,6 +1312,83 @@ namespace Microsoft.AzureRepos.Tests
 
             Assert.Equal(expectedResult, actualResult);
             Assert.Equal(expectedAuthority, actualAuthority);
+        }
+
+        private static async Task AssertUserCredentialFailureAsync(
+            bool usePat, bool useLegacyClient, Exception failure, bool expectWarning)
+        {
+            var request = new GitRequest(new Dictionary<string, string>
+            {
+                ["protocol"] = "https",
+                ["host"] = "dev.azure.com",
+                ["path"] = "org/proj/_git/repo"
+            });
+
+            var expectedOrgUri = new Uri("https://dev.azure.com/org");
+            var authorityUrl = "https://login.microsoftonline.com/common";
+            var clientIds = new List<string>();
+
+            var context = new TestCommandContext();
+            context.Environment.Variables[AzureDevOpsConstants.EnvironmentVariables.CredentialType] =
+                usePat ? AzureDevOpsConstants.PatCredentialType : AzureDevOpsConstants.OAuthCredentialType;
+            if (useLegacyClient)
+            {
+                context.Environment.Variables[AzureDevOpsConstants.EnvironmentVariables.UseLegacyClientId] = "true";
+            }
+
+            var azDevOpsMock = new Mock<IAzureDevOpsRestApi>(MockBehavior.Strict);
+            if (usePat)
+            {
+                azDevOpsMock.Setup(x => x.GetAuthorityAsync(expectedOrgUri)).ReturnsAsync(authorityUrl);
+            }
+
+            var entraAuthMock = new Mock<IEntraAuthentication>(MockBehavior.Strict);
+            entraAuthMock.Setup(x => x.GetTokenForUserAsync(
+                    AzureDevOpsConstants.AzureDevOpsDefaultScopes, authorityUrl, null,
+                    InteractionMode.Auto, CancellationToken.None))
+                .ThrowsAsync(failure);
+
+            IEntraAuthentication EntraAuthFactory(PublicClientConfig config)
+            {
+                clientIds.Add(config.ClientId);
+                entraAuthMock.SetupGet(x => x.PublicClientConfig).Returns(config);
+                return entraAuthMock.Object;
+            }
+
+            var authorityCacheMock = new Mock<IAzureDevOpsAuthorityCache>(MockBehavior.Strict);
+            authorityCacheMock.Setup(x => x.GetAuthority(OrgName)).Returns(authorityUrl);
+
+            var userMgrMock = new Mock<IAzureReposBindingManager>(MockBehavior.Strict);
+            userMgrMock.Setup(x => x.GetBinding(OrgName)).Returns((AzureReposBinding)null);
+
+            var provider = new AzureReposHostProvider(context, azDevOpsMock.Object, EntraAuthFactory,
+                authorityCacheMock.Object, userMgrMock.Object);
+
+            Exception exception = await Record.ExceptionAsync(() => provider.GetCredentialAsync(request));
+
+            Assert.Same(failure, exception);
+            Assert.Equal(
+                new[] { useLegacyClient ? AzureDevOpsConstants.LegacyClientId : AzureDevOpsConstants.ClientId },
+                clientIds);
+            entraAuthMock.Verify(x => x.GetTokenForUserAsync(
+                    AzureDevOpsConstants.AzureDevOpsDefaultScopes, authorityUrl, null,
+                    InteractionMode.Auto, CancellationToken.None),
+                Times.Once);
+
+            if (expectWarning)
+            {
+                Assert.Equal(new[]
+                {
+                    "Authentication using the new GCM Entra application failed. " +
+                    "To retry this command with the legacy Entra application, " +
+                    "set 'credential.azreposUseLegacyClientId' to 'true' in Git configuration.",
+                    $"If that succeeds, please report the original failure at {Constants.HelpUrls.GcmNewIssue}"
+                }, context.Console.WrittenMessages);
+            }
+            else
+            {
+                Assert.Empty(context.Console.WrittenMessages);
+            }
         }
 
         private static IEntraAuthenticationResult CreateAuthResult(string upn, string token)
