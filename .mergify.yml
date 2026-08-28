@@ -1,0 +1,3 @@
+merge_queue:
+  reset_on_external_merge: always
+  max_parallel_checks: 3
