@@ -920,6 +920,33 @@ export GCM_MSAUTH_USEDEFAULTACCOUNT="false"
 
 ---
 
+### GCM_AZREPOS_USE_MSFT_CACHE
+
+Use the token cache shared by Microsoft developer tools when authenticating to
+Azure Repos with Microsoft identity OAuth tokens. This allows GCM to reuse
+authentication performed by tools such as Visual Studio and Azure CLI, and
+allows those tools to reuse authentication performed by GCM.
+
+Set this value to `false` to use a GCM-specific token cache instead.
+
+Defaults to `true`.
+
+#### Windows
+
+```batch
+SET GCM_AZREPOS_USE_MSFT_CACHE=false
+```
+
+#### macOS/Linux
+
+```bash
+export GCM_AZREPOS_USE_MSFT_CACHE="false"
+```
+
+**Also see: [credential.azreposUseMicrosoftSharedCache][shared-cache]**
+
+---
+
 ### GCM_AZREPOS_CREDENTIALTYPE
 
 Specify the type of credential the Azure Repos host provider should return.
@@ -1351,6 +1378,7 @@ Defaults to disabled.
 [credential-authority]: configuration.md#credentialauthority-deprecated
 [credential-autodetecttimeout]: configuration.md#credentialautodetecttimeout
 [credential-azrepos-credential-type]: configuration.md#credentialazreposcredentialtype
+[shared-cache]: configuration.md#credentialazreposusemicrosoftsharedcache
 [credential-azrepos-managedidentity]: configuration.md#credentialazreposmanagedidentity
 [credential-azrepos-wif]: configuration.md#credentialazreposworkloadfederation
 [credential-azrepos-wif-clientid]: configuration.md#credentialazreposworkloadfederationclientid

@@ -406,12 +406,28 @@ namespace Microsoft.AzureRepos
             {
                 ClientId = GetClientId(),
                 IsMsaPassthroughEnabled = true,
-                UseSharedCache = true,
+                UseSharedCache = GetUseSharedCache(),
                 SupportsWindowsBroker = true,
                 // TODO: enable once our app registration has the appropriate redirect URLs
                 //SupportsMacBroker = true,
                 //SupportsLinuxBroker = true,
             };
+        }
+
+        internal bool GetUseSharedCache()
+        {
+            const bool defaultValue = true; // prefer using the shared Microsoft dev cache
+
+            if (_context.Settings.TryGetSetting(
+                    AzureDevOpsConstants.EnvironmentVariables.UseSharedCache,
+                    Constants.GitConfiguration.Credential.SectionName,
+                    AzureDevOpsConstants.GitConfiguration.Credential.UseSharedCache,
+                    out string str))
+            {
+                return str.ToBooleanyOrDefault(defaultValue);
+            }
+
+            return defaultValue;
         }
 
         private string GetClientId()

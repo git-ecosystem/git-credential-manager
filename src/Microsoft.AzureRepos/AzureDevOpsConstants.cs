@@ -36,6 +36,7 @@ namespace Microsoft.AzureRepos
         {
             public const string DevAadClientId = "GCM_DEV_AZREPOS_CLIENTID";
             public const string DevAadAuthorityBaseUri = "GCM_DEV_AZREPOS_AUTHORITYBASEURI";
+            public const string UseSharedCache = "GCM_AZREPOS_USE_MSFT_CACHE";
             public const string CredentialType = "GCM_AZREPOS_CREDENTIALTYPE";
             public const string ServicePrincipalId = "GCM_AZREPOS_SERVICE_PRINCIPAL";
             public const string ServicePrincipalSecret = "GCM_AZREPOS_SP_SECRET";
@@ -56,6 +57,7 @@ namespace Microsoft.AzureRepos
             {
                 public const string DevAadClientId = "azreposDevClientId";
                 public const string DevAadAuthorityBaseUri = "azreposDevAuthorityBaseUri";
+                public const string UseSharedCache = "azreposUseMicrosoftSharedCache";
                 public const string CredentialType = "azreposCredentialType";
                 public const string AzureAuthority = "azureAuthority";
                 public const string ServicePrincipal = "azreposServicePrincipal";

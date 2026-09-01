@@ -827,6 +827,27 @@ Credential: "git:https://bob@github.com/example/myrepo" (user = bob)
 
 ---
 
+### credential.azreposUseMicrosoftSharedCache
+
+Use the token cache shared by Microsoft developer tools when authenticating to
+Azure Repos with Microsoft identity OAuth tokens. This allows GCM to reuse
+authentication performed by tools such as Visual Studio and Azure CLI, and
+allows those tools to reuse authentication performed by GCM.
+
+Set this value to `false` to use a GCM-specific token cache instead.
+
+Defaults to `true`.
+
+#### Example
+
+```shell
+git config --global credential.azreposUseMicrosoftSharedCache false
+```
+
+**Also see: [GCM_AZREPOS_USE_MSFT_CACHE][gcm-azrepos-shared-cache]**
+
+---
+
 ### credential.azreposCredentialType
 
 Specify the type of credential the Azure Repos host provider should return.
@@ -1179,6 +1200,7 @@ Defaults to disabled.
 [gcm-authority]: environment.md#GCM_AUTHORITY-deprecated
 [gcm-autodetect-timeout]: environment.md#GCM_AUTODETECT_TIMEOUT
 [gcm-azrepos-credentialtype]: environment.md#GCM_AZREPOS_CREDENTIALTYPE
+[gcm-azrepos-shared-cache]: environment.md#GCM_AZREPOS_USE_MSFT_CACHE
 [gcm-azrepos-credentialmanagedidentity]: environment.md#GCM_AZREPOS_MANAGEDIDENTITY
 [gcm-azrepos-wif]: environment.md#GCM_AZREPOS_WIF
 [gcm-azrepos-wif-clientid]: environment.md#GCM_AZREPOS_WIF_CLIENTID

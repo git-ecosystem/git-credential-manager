@@ -42,6 +42,11 @@ including the Visual Studio IDE and Azure CLI. This means that as long as you're
 using Git or one of these tools with the same account, you'll never need to
 re-authenticate due to expired tokens!
 
+GCM uses the shared Microsoft developer tooling token cache by default. To keep
+Azure Repos OAuth tokens in a GCM-specific cache instead, set
+[`credential.azreposUseMicrosoftSharedCache`][credential-azrepos-shared-cache]
+or [`GCM_AZREPOS_USE_MSFT_CACHE`][gcm-azrepos-shared-cache] to `false`.
+
 #### User accounts
 
 In versions of Git Credential Manager that support Microsoft identity OAuth
@@ -220,6 +225,8 @@ fabrikam:
 
 [azure-devops-pats]: https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate?view=azure-devops&tabs=preview-page
 [credential-azreposCredentialType]: configuration.md#credentialazreposcredentialtype
+[credential-azrepos-shared-cache]: configuration.md#credentialazreposusemicrosoftsharedcache
 [gcm-azrepos-credential-type]: environment.md#GCM_AZREPOS_CREDENTIALTYPE
+[gcm-azrepos-shared-cache]: environment.md#GCM_AZREPOS_USE_MSFT_CACHE
 [azure-devops-api]: https://docs.microsoft.com/en-gb/rest/api/azure/devops/tokens/pats
 [rfc3986-s321]: https://www.rfc-editor.org/rfc/rfc3986#section-3.2.1

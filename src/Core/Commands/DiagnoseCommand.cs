@@ -114,15 +114,7 @@ namespace GitCredentialManager.Commands
                 DiagnosticResult result = await diagnostic.RunAsync();
                 fullLog.WriteLine("Success: {0}", result.IsSuccess);
 
-                if (result.Exception is null)
-                {
-                    fullLog.WriteLine("Exception: None");
-                }
-                else
-                {
-                    fullLog.WriteLine("Exception:");
-                    fullLog.WriteLine(result.Exception.ToString());
-                }
+                WriteException(fullLog, result.Exception);
 
                 fullLog.WriteLine("Log:");
                 fullLog.WriteLine(result.DiagnosticLog);
@@ -193,6 +185,29 @@ namespace GitCredentialManager.Commands
 
             fullLog.Close();
             return numFailed;
+        }
+
+        private void WriteException(StreamWriter log, Exception exception)
+        {
+            if (exception is null)
+            {
+                log.WriteLine("Exception: None");
+                return;
+            }
+
+            if (exception is AggregateException aex)
+            {
+                log.WriteLine("Exception: AggregateException");
+                log.WriteLine("InnerExceptions (flattened):");
+                foreach (var inner in aex.Flatten().InnerExceptions)
+                {
+                    log.WriteLine(inner.ToString());
+                }
+            }
+            else
+            {
+                log.WriteLine("Exception: {0}", exception);
+            }
         }
 
         private static class ConsoleEx
