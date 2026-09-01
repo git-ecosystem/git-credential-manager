@@ -326,11 +326,13 @@ namespace GitCredentialManager
         private static readonly GitVersion ConfigListTypeMinVersion = new GitVersion(2, 54, 0);
         private static readonly GitVersion ConfigListTypeMinVfsBase = new GitVersion(2, 53, 0);
         private static readonly GitVersion ConfigListTypeMinVfsSuffix = new GitVersion(0, 1);
+        private static readonly GitVersion ConfigListRawMinVersion = new GitVersion(2, 26, 0);
 
         private readonly ITrace _trace;
         private readonly GitProcess _git;
         private readonly Dictionary<GitConfigurationType, ConfigCache> _cache;
-        private readonly bool _useCache;
+        private readonly bool _useConfigTypeCache;
+        private readonly bool _useConfigRawCache;
 
         internal GitProcessConfiguration(ITrace trace, GitProcess git) : this(trace, git, useCache: true)
         {
@@ -349,11 +351,23 @@ namespace GitCredentialManager
             if (useCache && !SupportsConfigListType(git))
             {
                 trace.WriteLine($"Git version {git.Version.OriginalString} does not support 'git config list --type'; config cache disabled");
-                useCache = false;
+                _useConfigTypeCache = false;
+            }
+            else
+            {
+                _useConfigTypeCache = useCache;
             }
 
-            _useCache = useCache;
-            _cache = useCache ? new Dictionary<GitConfigurationType, ConfigCache>() : null;
+            if (useCache && !SupportsConfigListRaw(git))
+            {
+                trace.WriteLine($"Git version {git.Version.OriginalString} does not support 'git config list --type'; config cache disabled");
+                _useConfigRawCache = false;
+            }
+            else
+            {
+                _useConfigRawCache = useCache;
+            }
+            _cache = _useConfigTypeCache || _useConfigRawCache ? new Dictionary<GitConfigurationType, ConfigCache>() : null;
         }
 
         private static bool SupportsConfigListType(GitProcess git)
@@ -381,10 +395,20 @@ namespace GitCredentialManager
             return false;
         }
 
+        private static bool SupportsConfigListRaw(GitProcess git)
+        {
+            return git.Version >= ConfigListRawMinVersion;
+        }
+
+        private bool UseConfigCache(GitConfigurationType type)
+        {
+            return type != GitConfigurationType.Raw ? _useConfigTypeCache : _useConfigRawCache;
+        }
+
         private void EnsureCacheLoaded(GitConfigurationType type)
         {
             ConfigCache cache;
-            if (!_useCache || (_cache.TryGetValue(type, out cache) && cache.IsLoaded))
+            if (!UseConfigCache(type) || (_cache.TryGetValue(type, out cache) && cache.IsLoaded))
             {
                 return;
             }
@@ -400,7 +424,7 @@ namespace GitCredentialManager
             switch (type)
             {
             case GitConfigurationType.Raw:
-                typeArg = "--no-type";
+                typeArg = "";
                 break;
 
             case GitConfigurationType.Path:
@@ -437,7 +461,7 @@ namespace GitCredentialManager
 
         private void InvalidateCache()
         {
-            if (_useCache)
+            if (_useConfigTypeCache ||_useConfigRawCache)
             {
                 foreach (ConfigCache cache in _cache.Values)
                 {
@@ -448,7 +472,7 @@ namespace GitCredentialManager
 
         public void Enumerate(GitConfigurationLevel level, GitConfigurationEnumerationCallback cb)
         {
-            if (_useCache)
+            if (_useConfigRawCache)
             {
                 EnsureCacheLoaded(GitConfigurationType.Raw);
 
@@ -530,7 +554,7 @@ namespace GitCredentialManager
 
         public bool TryGet(GitConfigurationLevel level, GitConfigurationType type, string name, out string value)
         {
-            if (_useCache)
+            if (UseConfigCache(type))
             {
                 EnsureCacheLoaded(type);
 
@@ -647,7 +671,7 @@ namespace GitCredentialManager
 
         public IEnumerable<string> GetAll(GitConfigurationLevel level, GitConfigurationType type, string name)
         {
-            if (_useCache)
+            if (UseConfigCache(type))
             {
                 EnsureCacheLoaded(type);
 
