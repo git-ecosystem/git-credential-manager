@@ -139,8 +139,16 @@ namespace Atlassian.Bitbucket
             // Check for presence of refresh_token entry in credential store
             Uri remoteUri = request.GetRemoteUri();
             var refreshTokenService = GetRefreshTokenServiceName(remoteUri);
-
-            _context.Trace.WriteLine("Checking for refresh token...");
+            
+            _context.Trace.WriteLine($"Checking for refresh token stored against user: '{request.UserName}'...");
+            // request.UserName can either be be null or the registered Bitbucket username of the user attempting the
+            // git operation.
+            // * In the case of null the CredentialStore.Get will find the *first* refresh token stored for Bitbucket in
+            // the credential store - The storing of the refresh token is stored against the resolved Bitbucket username
+            // as part of the access token validation flow (calls 2.0/user)
+            // * When request.UserName is set the refresh token must exist under the provided username in the credential
+            // store.
+            // If a refresh token is unable to be found a full OAuth authorization flow is initiated.
             ICredential refreshToken = SupportsOAuth(authModes)
                 ? _context.CredentialStore.Get(refreshTokenService, request.UserName)
                 : null;
@@ -203,51 +211,39 @@ namespace Atlassian.Bitbucket
 
         private async Task<ICredential> GetOAuthCredentialsViaRefreshFlow(GitRequest request, ICredential refreshToken)
         {
-            Uri remoteUri = request.GetRemoteUri();
-
-            var refreshTokenService = GetRefreshTokenServiceName(remoteUri);
             _context.Trace.WriteLine("Refreshing OAuth credentials using refresh token...");
-
             OAuth2TokenResult refreshResult = await _bitbucketAuth.RefreshOAuthCredentialsAsync(request, refreshToken.Password);
-
-            // Resolve the username
-            _context.Trace.WriteLine("Resolving username for refreshed OAuth credential...");
-            string refreshUserName = await ResolveOAuthUserNameAsync(request, refreshResult.AccessToken);
-            _context.Trace.WriteLine($"Username for refreshed OAuth credential is '{refreshUserName}'");
-
-            // Store the refreshed RT
-            _context.Trace.WriteLine("Storing new refresh token...");
-            _context.CredentialStore.AddOrUpdate(refreshTokenService, remoteUri.GetUserName(), refreshResult.RefreshToken);
-
-            // Return new access token
-            return new GitCredential(refreshUserName, refreshResult.AccessToken);
+            return await ResolveCredsAndStoreRefreshToken(request, refreshResult);
         }
 
         private async Task<ICredential> GetOAuthCredentialsViaInteractiveBrowserFlow(GitRequest request)
         {
-            Uri remoteUri = request.GetRemoteUri();
-
-            var refreshTokenService = GetRefreshTokenServiceName(remoteUri);
-
             // We failed to use the refresh token either because it didn't exist, or because the refresh token is no
             // longer valid. Either way we must now try authenticating using OAuth interactively.
 
             // Start OAuth authentication flow
             _context.Trace.WriteLine("Starting OAuth authentication flow...");
             OAuth2TokenResult oauthResult = await _bitbucketAuth.CreateOAuthCredentialsAsync(request);
+            return await ResolveCredsAndStoreRefreshToken(request, oauthResult);
+        }
 
-            // Resolve the username
+        private async Task<ICredential> ResolveCredsAndStoreRefreshToken(GitRequest request, OAuth2TokenResult tokenSet)
+        {
+            Uri remoteUri = request.GetRemoteUri();
+
+            var refreshTokenService = GetRefreshTokenServiceName(remoteUri);
+            // Resolve the username to authenticate the git call
             _context.Trace.WriteLine("Resolving username for OAuth credential...");
-            string newUserName = await ResolveOAuthUserNameAsync(request, oauthResult.AccessToken);
-            _context.Trace.WriteLine($"Username for OAuth credential is '{newUserName}'");
+            string bitbucketUsername = await ResolveOAuthUserNameAsync(request, tokenSet.AccessToken);
+            _context.Trace.WriteLine($"Username for OAuth credential is '{bitbucketUsername}'");
 
-            // Store the new RT
-            _context.Trace.WriteLine("Storing new refresh token...");
-            _context.CredentialStore.AddOrUpdate(refreshTokenService, newUserName, oauthResult.RefreshToken);
+            // Store the new refresh token in the credential store against the resolved Bitbucket username
+            _context.Trace.WriteLine($"Storing new refresh token against user: '{bitbucketUsername}'...");
+            _context.CredentialStore.AddOrUpdate(refreshTokenService, bitbucketUsername, tokenSet.RefreshToken);    
             _context.Trace.WriteLine("Refresh token was successfully stored.");
 
             // Return the new AT as the credential
-            return new GitCredential(newUserName, oauthResult.AccessToken);
+            return new GitCredential(bitbucketUsername, tokenSet.AccessToken);
         }
 
         private static bool SupportsOAuth(AuthenticationModes authModes)
