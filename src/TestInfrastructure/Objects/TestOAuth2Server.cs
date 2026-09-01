@@ -1,4 +1,5 @@
 using System;
+using System.Buffers.Text;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -421,11 +422,10 @@ namespace GitCredentialManager.Tests.Objects
                     case OAuth2PkceChallengeMethod.Sha256:
                         using (var sha256 = SHA256.Create())
                         {
-                            string challenge = Base64UrlConvert.Encode(
+                            string challenge = Base64Url.EncodeToString(
                                 sha256.ComputeHash(
                                     Encoding.ASCII.GetBytes(codeVerifier)
-                                ),
-                                false
+                                )
                             );
 
                             if (challenge != grant.CodeChallenge)

@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Buffers.Text;
 using System.Security.Cryptography;
 using System.Text;
 using GitCredentialManager.Authentication.OAuth;
@@ -78,7 +79,7 @@ namespace GitCredentialManager.Tests.Authentication
                 hashedBytes = sha256.ComputeHash(verifierAsciiBytes);
             }
 
-            var expectedChallenge = Base64UrlConvert.Encode(hashedBytes, false);
+            var expectedChallenge = Base64Url.EncodeToString(hashedBytes);
             var actualChallenge = generator.CreatePkceCodeChallenge(OAuth2PkceChallengeMethod.Sha256, verifier);
 
             Assert.Equal(expectedChallenge, actualChallenge);
