@@ -14,8 +14,7 @@ namespace Atlassian.Bitbucket
             OAuth2ServerEndpoints endpoints,
             string clientId,
             Uri redirectUri,
-            string clientSecret,
-            ITrace2 trace2) : base(httpClient, endpoints, clientId, trace2, redirectUri, clientSecret, false)
+            string clientSecret) : base(httpClient, endpoints, clientId, redirectUri, clientSecret, false)
         {
         }
 

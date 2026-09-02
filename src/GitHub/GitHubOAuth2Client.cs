@@ -7,9 +7,9 @@ namespace GitHub
 {
     public class GitHubOAuth2Client : OAuth2Client
     {
-        public GitHubOAuth2Client(HttpClient httpClient, ISettings settings, Uri baseUri, ITrace2 trace2)
+        public GitHubOAuth2Client(HttpClient httpClient, ISettings settings, Uri baseUri)
             : base(httpClient, CreateEndpoints(baseUri),
-                GetClientId(settings), trace2, GetRedirectUri(settings, baseUri), GetClientSecret(settings)) { }
+                GetClientId(settings), GetRedirectUri(settings, baseUri), GetClientSecret(settings)) { }
 
         private static OAuth2ServerEndpoints CreateEndpoints(Uri uri)
         {

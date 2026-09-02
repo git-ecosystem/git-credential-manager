@@ -45,6 +45,8 @@ namespace GitCredentialManager.Commands
 
         private async Task<int> ExecuteAsync(string output)
         {
+            using var _ = Trace2.StartRegion("diag_cmd", "run");
+
             // Don't use IStandardStreams for writing output in this command as we
             // cannot trust any component on the ICommandContext is working correctly.
             Console.WriteLine($"Running diagnostics...{Environment.NewLine}");

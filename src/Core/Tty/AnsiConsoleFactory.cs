@@ -36,6 +36,7 @@ public static class AnsiConsoleFactory
     /// </remarks>
     public static IAnsiConsole CreateForTty()
     {
+        using var _ = Trace2.StartRegion("ansi_console", "create_tty");
         IAnsiConsoleOutput output = TryCreatePlatformOutput();
         if (output is null)
         {
@@ -69,6 +70,7 @@ public static class AnsiConsoleFactory
     /// </remarks>
     public static IAnsiConsole CreateForWriter(TextWriter writer, bool isRedirected)
     {
+        using var _ = Trace2.StartRegion("ansi_console", "create_writer");
         return AnsiConsole.Create(
             new AnsiConsoleSettings
             {
@@ -86,6 +88,7 @@ public static class AnsiConsoleFactory
     /// </summary>
     internal static IAnsiConsole CreateHeadless()
     {
+        using var _ = Trace2.StartRegion("ansi_console", "create_headless");
         IAnsiConsole inner = AnsiConsole.Create(
             new AnsiConsoleSettings
             {

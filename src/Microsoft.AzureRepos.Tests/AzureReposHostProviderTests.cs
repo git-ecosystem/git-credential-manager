@@ -137,7 +137,7 @@ namespace Microsoft.AzureRepos.Tests
 
             var provider = new AzureReposHostProvider(context, azDevOps, entraAuth, authorityCache, userMgr);
 
-            await Assert.ThrowsAsync<Trace2Exception>(() => provider.GetCredentialAsync(request));
+            await Assert.ThrowsAsync<Exception>(() => provider.GetCredentialAsync(request));
         }
 
         [Fact]

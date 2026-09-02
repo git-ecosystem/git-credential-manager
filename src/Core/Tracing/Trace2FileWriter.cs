@@ -3,20 +3,13 @@ using System;
 
 namespace GitCredentialManager;
 
-public class Trace2FileWriter : Trace2Writer
+public class Trace2FileWriter(Trace2FormatTarget formatTarget, string path) : Trace2Writer(formatTarget)
 {
-    private readonly string _path;
-
-    public Trace2FileWriter(Trace2FormatTarget formatTarget, string path) : base(formatTarget)
-    {
-        _path = path;
-    }
-
     public override void Write(Trace2Message message)
     {
         try
         {
-            File.AppendAllText(_path, Format(message));
+            File.AppendAllText(path, Format(message));
         }
         catch (DirectoryNotFoundException)
         {

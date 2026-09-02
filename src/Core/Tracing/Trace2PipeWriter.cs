@@ -1,10 +1,7 @@
-using System;
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.IO.Pipes;
 using System.Text;
 using System.Threading;
-using KnownGitCfg = GitCredentialManager.Constants.GitConfiguration;
 
 namespace GitCredentialManager
 {
@@ -12,24 +9,23 @@ namespace GitCredentialManager
     /// Accepts string messages from multiple threads and dispatches them over a named pipe from a
     /// background thread.
     /// </summary>
-    public class Trace2CollectorWriter : Trace2Writer
+    public class Trace2PipeWriter : Trace2Writer
     {
         private const int DefaultMaxQueueSize = 256;
 
-        private readonly Func<NamedPipeClientStream> _createPipeFunc;
+        private readonly string _pipeName;
         private readonly BlockingCollection<string> _queue;
 
         private Thread _writerThread;
         private NamedPipeClientStream _pipeClient;
 
-        public Trace2CollectorWriter(Trace2FormatTarget formatTarget,
-            Func<NamedPipeClientStream> createPipeFunc,
-            int maxQueueSize = DefaultMaxQueueSize) : base(formatTarget)
+        public Trace2PipeWriter(Trace2FormatTarget formatTarget, string pipeName, int maxQueueSize = DefaultMaxQueueSize)
+            : base(formatTarget)
         {
-            EnsureArgument.NotNull(createPipeFunc, nameof(createPipeFunc));
+            EnsureArgument.NotNullOrWhiteSpace(pipeName, nameof(pipeName));
             EnsureArgument.Positive(maxQueueSize, nameof(maxQueueSize));
 
-            _createPipeFunc = createPipeFunc;
+            _pipeName = pipeName;
             _queue = new BlockingCollection<string>(new ConcurrentQueue<string>(), boundedCapacity: maxQueueSize);
 
             Start();
@@ -58,13 +54,19 @@ namespace GitCredentialManager
             {
                 _writerThread = new Thread(BackgroundWriterThreadProc)
                 {
-                    Name = nameof(Trace2CollectorWriter),
+                    Name = nameof(Trace2PipeWriter),
                     IsBackground = true
                 };
 
                 _writerThread.Start();
-                // Create a new pipe stream instance using the provided factory
-                _pipeClient = _createPipeFunc();
+
+                // Create a new pipe stream instance
+                _pipeClient = new NamedPipeClientStream(
+                    ".",
+                    _pipeName,
+                    PipeDirection.Out,
+                    PipeOptions.Asynchronous
+                );
 
                 // Specify an instantaneous timeout because we don't want to hold up the
                 // background thread loop if the pipe is not available.
@@ -97,7 +99,7 @@ namespace GitCredentialManager
             // or the queue has been marked as completed _and_ is empty (returns false).
             while (_queue.TryTake(out string message, Timeout.Infinite))
             {
-                if (message != null)
+                if (message is not null)
                 {
                     WriteMessage(message);
                 }
@@ -109,7 +111,7 @@ namespace GitCredentialManager
             try
             {
                 // We should signal the end of each message with a line-feed (LF) character.
-                if (!message.EndsWith("\n"))
+                if (!message.EndsWith('\n'))
                 {
                     message += '\n';
                 }

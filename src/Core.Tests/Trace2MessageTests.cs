@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using GitCredentialManager;
 using Xunit;
 
@@ -16,7 +17,7 @@ public class Trace2MessageTests
     [InlineData(100000.31608, "100000.316080")]
     public void BuildTimeSpan_Match_Returns_Expected_String(double input, string expected)
     {
-        var actual = Trace2Message.BuildTimeSpan(input);
+        var actual = PerformanceFormatFields.GetTimeSpan(input);
         Assert.Equal(expected, actual);
     }
 
@@ -25,7 +26,7 @@ public class Trace2MessageTests
     {
         var input = 1;
         var expected = " r1  ";
-        var actual = Trace2Message.BuildRepoSpan(input);
+        var actual = PerformanceFormatFields.GetRepoSpan(input);
         Assert.Equal(expected, actual);
     }
 
@@ -36,16 +37,15 @@ public class Trace2MessageTests
     [InlineData("foobarbazfoo",      " foobarbazfo ")]
     public void BuildCategorySpan_Match_Returns_Expected_String(string input, string expected)
     {
-        var actual = Trace2Message.BuildCategorySpan(input);
+        var actual = PerformanceFormatFields.GetCategorySpan(input);
         Assert.Equal(expected, actual);
     }
 
     [Fact]
     public void Event_Message_Without_Snake_Case_ToJson_Creates_Expected_Json()
     {
-        var errorMessage = new ErrorMessage()
+        var errorMessage = new ErrorMessage
         {
-            Event = Trace2Event.Error,
             Sid = "123",
             Thread = "main",
             Time = new DateTimeOffset(),
@@ -65,9 +65,8 @@ public class Trace2MessageTests
     [Fact]
     public void Event_Message_With_Snake_Case_ToJson_Creates_Expected_Json()
     {
-        var childStartMessage = new ChildStartMessage()
+        var childStartMessage = new ChildStartMessage
         {
-            Event = Trace2Event.ChildStart,
             Sid = "123",
             Thread = "main",
             Time = new DateTimeOffset(),
@@ -75,7 +74,7 @@ public class Trace2MessageTests
             Line = 1,
             Depth = 1,
             Id = 1,
-            Classification = Trace2ProcessClass.UIHelper,
+            Classification = Trace2ProcessClass.UiHelper,
             UseShell = false,
             Argv = new List<string>() { "bar", "baz" },
             ElapsedTime = 0.05
@@ -85,5 +84,109 @@ public class Trace2MessageTests
         var actual = childStartMessage.ToJson();
 
         Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void Thread_Events_ToJson_Create_Expected_Json()
+    {
+        var startMessage = new ThreadStartMessage
+        {
+            Sid = "123",
+            Thread = "AppMain",
+            Time = new DateTimeOffset(),
+            File = "foo.cs",
+            Line = 1,
+            Depth = 1
+        };
+        var exitMessage = new ThreadExitMessage
+        {
+            Sid = "123",
+            Thread = "AppMain",
+            Time = new DateTimeOffset(),
+            File = "foo.cs",
+            Line = 2,
+            Depth = 1,
+            RelativeTime = 0.05
+        };
+
+        Assert.Equal(
+            "{\"event\":\"thread_start\",\"sid\":\"123\",\"thread\":\"AppMain\",\"time\":\"0001-01-01T00:00:00+00:00\",\"file\":\"foo.cs\",\"line\":1,\"depth\":1}",
+            startMessage.ToJson());
+        Assert.Equal(
+            "{\"event\":\"thread_exit\",\"sid\":\"123\",\"thread\":\"AppMain\",\"time\":\"0001-01-01T00:00:00+00:00\",\"file\":\"foo.cs\",\"line\":2,\"depth\":1,\"t_rel\":0.05}",
+            exitMessage.ToJson());
+    }
+
+    [Fact]
+    public void Data_Event_ToJson_Creates_Expected_Json()
+    {
+        var message = new DataMessage
+        {
+            Sid = "123",
+            Thread = "main",
+            Time = new DateTimeOffset(),
+            File = "foo.cs",
+            Line = 1,
+            Depth = 1,
+            ElapsedTime = 0.05,
+            RelativeTime = 0.01,
+            Repo = 1,
+            Nesting = 2,
+            Category = "index",
+            Key = "read/cache_nr",
+            Value = "3552"
+        };
+
+        const string expected = "{\"event\":\"data\",\"sid\":\"123\",\"thread\":\"main\",\"time\":\"0001-01-01T00:00:00+00:00\",\"file\":\"foo.cs\",\"line\":1,\"depth\":1,\"t_abs\":0.05,\"t_rel\":0.01,\"repo\":1,\"nesting\":2,\"category\":\"index\",\"key\":\"read/cache_nr\",\"value\":\"3552\"}";
+
+        Assert.Equal(expected, message.ToJson());
+    }
+
+    [Fact]
+    public void CommandName_Event_ToJson_Creates_Expected_Json()
+    {
+        var message = new CommandNameMessage
+        {
+            Sid = "123",
+            Thread = "main",
+            Time = new DateTimeOffset(),
+            File = "foo.cs",
+            Line = 1,
+            Depth = 1,
+            Name = "get",
+            Hierarchy = "git/get"
+        };
+
+        const string expected = "{\"event\":\"cmd_name\",\"sid\":\"123\",\"thread\":\"main\",\"time\":\"0001-01-01T00:00:00+00:00\",\"file\":\"foo.cs\",\"line\":1,\"depth\":1,\"name\":\"get\",\"hierarchy\":\"git/get\"}";
+
+        Assert.Equal(expected, message.ToJson());
+    }
+
+    [Fact]
+    public void DataJson_Event_ToJson_Creates_Expected_Json()
+    {
+        using JsonDocument document = JsonDocument.Parse(
+            "{\"count\":2,\"items\":[\"one\",\"two\"]}");
+
+        var message = new DataJsonMessage
+        {
+            Sid = "123",
+            Thread = "main",
+            Time = new DateTimeOffset(),
+            File = "foo.cs",
+            Line = 1,
+            Depth = 1,
+            ElapsedTime = 0.05,
+            RelativeTime = 0.01,
+            Repo = 1,
+            Nesting = 2,
+            Category = "index",
+            Key = "read/statistics",
+            Value = document.RootElement
+        };
+
+        const string expected = "{\"event\":\"data_json\",\"sid\":\"123\",\"thread\":\"main\",\"time\":\"0001-01-01T00:00:00+00:00\",\"file\":\"foo.cs\",\"line\":1,\"depth\":1,\"t_abs\":0.05,\"t_rel\":0.01,\"repo\":1,\"nesting\":2,\"category\":\"index\",\"key\":\"read/statistics\",\"value\":{\"count\":2,\"items\":[\"one\",\"two\"]}}";
+
+        Assert.Equal(expected, message.ToJson());
     }
 }

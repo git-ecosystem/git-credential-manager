@@ -10,8 +10,6 @@ using System.Threading.Tasks;
 using GitCredentialManager.Commands;
 using GitCredentialManager.Diagnostics;
 using GitCredentialManager.Interop;
-using GitCredentialManager.Tty;
-using Spectre.Console;
 
 namespace GitCredentialManager
 {
@@ -68,57 +66,71 @@ namespace GitCredentialManager
 
         protected override async Task<int> RunInternalAsync(string[] args)
         {
-            var rootCommand = new RootCommand();
-            var diagnoseCommand = new DiagnoseCommand(Context);
-
-            // Add common options
-            var noGuiOption = new Option<bool>("--no-ui", "Do not use graphical user interface prompts");
-            rootCommand.AddGlobalOption(noGuiOption);
-
-            void NoGuiOptionHandler(InvocationContext context)
+            Parser parser;
+            using (Trace2.StartRegion("main", "cmd_setup"))
             {
-                if (context.ParseResult.HasOption(noGuiOption))
+                var rootCommand = new RootCommand();
+                var diagnoseCommand = new DiagnoseCommand(Context);
+
+                // Add common options
+                var noGuiOption = new Option<bool>("--no-ui", "Do not use graphical user interface prompts");
+                rootCommand.AddGlobalOption(noGuiOption);
+
+                void NoGuiOptionHandler(InvocationContext context)
                 {
-                    Context.Settings.IsGuiPromptsEnabled = false;
+                    if (context.ParseResult.HasOption(noGuiOption))
+                    {
+                        Context.Settings.IsGuiPromptsEnabled = false;
+                    }
                 }
+
+                void Trace2CommandNameHandler(InvocationContext context)
+                {
+                    Command command = context.ParseResult.CommandResult.Command;
+                    if (!ReferenceEquals(command, rootCommand))
+                    {
+                        Trace2.WriteCommandName(command.Name);
+                    }
+                }
+
+                // Add standard commands
+                rootCommand.AddCommand(new GetCommand(Context, _providerRegistry));
+                rootCommand.AddCommand(new StoreCommand(Context, _providerRegistry));
+                rootCommand.AddCommand(new EraseCommand(Context, _providerRegistry));
+                rootCommand.AddCommand(new CapabilityCommand(Context));
+                rootCommand.AddCommand(new ConfigureCommand(Context, _configurationService));
+                rootCommand.AddCommand(new UnconfigureCommand(Context, _configurationService));
+                rootCommand.AddCommand(diagnoseCommand);
+
+                // Add any custom provider commands
+                foreach (ProviderCommand providerCommand in _providerCommands)
+                {
+                    rootCommand.AddCommand(providerCommand);
+                }
+
+                // Add any custom provider diagnostic tests
+                foreach (IDiagnostic providerDiagnostic in _diagnostics)
+                {
+                    diagnoseCommand.AddDiagnostic(providerDiagnostic);
+                }
+
+                // Trace the current version, OS, runtime, and program arguments
+                PlatformInformation info = PlatformUtils.GetPlatformInformation();
+                Context.Trace.WriteLine($"Version: {Constants.GcmVersion}");
+                Context.Trace.WriteLine($"Runtime: {info.ClrVersion}");
+                Context.Trace.WriteLine($"Platform: {info.OperatingSystemType} ({info.CpuArchitecture})");
+                Context.Trace.WriteLine($"OSVersion: {info.OperatingSystemVersion}");
+                Context.Trace.WriteLine($"AppPath: {Context.ApplicationPath}");
+                Context.Trace.WriteLine($"InstallDir: {Context.InstallationDirectory}");
+                Context.Trace.WriteLine($"Arguments: {string.Join(" ", args)}");
+
+                parser = new CommandLineBuilder(rootCommand)
+                    .UseDefaults()
+                    .UseExceptionHandler(OnException)
+                    .AddMiddleware(NoGuiOptionHandler)
+                    .AddMiddleware(Trace2CommandNameHandler)
+                    .Build();
             }
-
-            // Add standard commands
-            rootCommand.AddCommand(new GetCommand(Context, _providerRegistry));
-            rootCommand.AddCommand(new StoreCommand(Context, _providerRegistry));
-            rootCommand.AddCommand(new EraseCommand(Context, _providerRegistry));
-            rootCommand.AddCommand(new CapabilityCommand(Context));
-            rootCommand.AddCommand(new ConfigureCommand(Context, _configurationService));
-            rootCommand.AddCommand(new UnconfigureCommand(Context, _configurationService));
-            rootCommand.AddCommand(diagnoseCommand);
-
-            // Add any custom provider commands
-            foreach (ProviderCommand providerCommand in _providerCommands)
-            {
-                rootCommand.AddCommand(providerCommand);
-            }
-
-            // Add any custom provider diagnostic tests
-            foreach (IDiagnostic providerDiagnostic in _diagnostics)
-            {
-                diagnoseCommand.AddDiagnostic(providerDiagnostic);
-            }
-
-            // Trace the current version, OS, runtime, and program arguments
-            PlatformInformation info = PlatformUtils.GetPlatformInformation(Context.Trace2);
-            Context.Trace.WriteLine($"Version: {Constants.GcmVersion}");
-            Context.Trace.WriteLine($"Runtime: {info.ClrVersion}");
-            Context.Trace.WriteLine($"Platform: {info.OperatingSystemType} ({info.CpuArchitecture})");
-            Context.Trace.WriteLine($"OSVersion: {info.OperatingSystemVersion}");
-            Context.Trace.WriteLine($"AppPath: {Context.ApplicationPath}");
-            Context.Trace.WriteLine($"InstallDir: {Context.InstallationDirectory}");
-            Context.Trace.WriteLine($"Arguments: {string.Join(" ", args)}");
-
-            var parser = new CommandLineBuilder(rootCommand)
-                .UseDefaults()
-                .UseExceptionHandler(OnException)
-                .AddMiddleware(NoGuiOptionHandler)
-                .Build();
 
             return await parser.InvokeAsync(args);
         }
@@ -183,6 +195,8 @@ namespace GitCredentialManager
 
         private bool WriteException(Exception ex)
         {
+            Trace2.WriteError(ex);
+
             // Try and use a nicer format for some well-known exception types
             switch (ex)
             {

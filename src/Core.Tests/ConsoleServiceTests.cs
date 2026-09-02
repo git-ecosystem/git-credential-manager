@@ -13,8 +13,8 @@ public class ConsoleServiceTests
     {
         var err = new StringWriter();
         var console = new ConsoleService(
-            AnsiConsoleFactory.CreateHeadless(),
-            AnsiConsoleFactory.CreateForWriter(err, isRedirected: true));
+            AnsiConsoleFactory.CreateHeadless,
+            () => AnsiConsoleFactory.CreateForWriter(err, isRedirected: true));
 
         console.WriteInfo("info-[marker]");
         console.WriteWarning("warn-[marker]");
@@ -38,8 +38,8 @@ public class ConsoleServiceTests
         using var sw = new StreamWriter(ms, new UTF8Encoding(false)) { AutoFlush = true, NewLine = "\n" };
 
         var console = new ConsoleService(
-            AnsiConsoleFactory.CreateHeadless(),
-            AnsiConsoleFactory.CreateForWriter(sw, isRedirected: true));
+            AnsiConsoleFactory.CreateHeadless,
+            () => AnsiConsoleFactory.CreateForWriter(sw, isRedirected: true));
 
         console.WriteFatal("fatal-marker");
         sw.Flush();

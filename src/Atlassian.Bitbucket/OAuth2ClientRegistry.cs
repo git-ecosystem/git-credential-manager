@@ -38,9 +38,9 @@ namespace Atlassian.Bitbucket
         private HttpClient HttpClient => _httpClient ??= _context.HttpClientFactory.CreateClient();
 
         private Cloud.BitbucketOAuth2Client CloudClient =>
-            _cloudClient ??= new Cloud.BitbucketOAuth2Client(HttpClient, _context.Settings, _context.Trace2);
+            _cloudClient ??= new Cloud.BitbucketOAuth2Client(HttpClient, _context.Settings);
 
         private DataCenter.BitbucketOAuth2Client DataCenterClient =>
-            _dataCenterClient ??= new DataCenter.BitbucketOAuth2Client(HttpClient, _context.Settings, _context.Trace2);
+            _dataCenterClient ??= new DataCenter.BitbucketOAuth2Client(HttpClient, _context.Settings);
     }
 }

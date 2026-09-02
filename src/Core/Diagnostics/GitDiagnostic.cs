@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -32,7 +31,7 @@ namespace GitCredentialManager.Diagnostics
 
             log.Append("Listing all Git configuration...");
             ChildProcess configProc = CommandContext.Git.CreateProcess("config --list --show-origin");
-            configProc.Start(Trace2ProcessClass.Git);
+            configProc.Start();
             // To avoid deadlocks, always read the output stream first and then wait
             // TODO: don't read in all the data at once; stream it
             string gitConfig = configProc.StandardOutput.ReadToEnd().TrimEnd();

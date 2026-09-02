@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.Threading;
@@ -30,7 +31,7 @@ namespace GitHub.UI.Commands
 
             if (!viewModel.WindowResult)
             {
-                throw new Trace2Exception(Context.Trace2, "User cancelled dialog.");
+                throw new Exception("User cancelled dialog.");
             }
 
             WriteResult(new Dictionary<string, string>

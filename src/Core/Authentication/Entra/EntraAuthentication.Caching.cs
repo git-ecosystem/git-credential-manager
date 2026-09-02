@@ -29,7 +29,7 @@ public partial class EntraAuthentication
 
         if (!PlatformUtils.IsWindows() && !PlatformUtils.IsPosix())
         {
-            string osType = PlatformUtils.GetPlatformInformation(Context.Trace2).OperatingSystemType;
+            string osType = PlatformUtils.GetPlatformInformation().OperatingSystemType;
             Context.Trace.WriteLine($"Token cache integration is not supported on {osType}.");
             return;
         }
@@ -51,7 +51,7 @@ public partial class EntraAuthentication
             Context.Console.WriteWarning("cannot persist Entra authentication token cache securely!");
             Context.Trace.WriteLine(message);
             Context.Trace.WriteException(ex);
-            Context.Trace2.WriteError(message);
+            Trace2.WriteError(message);
 
             if (PlatformUtils.IsMacOS())
             {

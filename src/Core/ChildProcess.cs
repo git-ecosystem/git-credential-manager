@@ -1,56 +1,56 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Threading.Tasks;
+using System.Threading;
 
 namespace GitCredentialManager;
 
 public class ChildProcess : DisposableObject
 {
-    private readonly ITrace2 _trace2;
+    // Increment with each new child process that is tracked
+    private static int _nextTrace2Id;
 
+    // The child process ID for Trace2 for this instance
+    private readonly int _trace2Id;
+    private readonly Trace2ProcessClass _processClass;
     private DateTimeOffset _startTime;
-    private DateTimeOffset _exitTime => Process.ExitTime;
-    private ProcessStartInfo _startInfo => Process.StartInfo;
-
-    private int _id => Process.Id;
 
     public ProcessStartInfo StartInfo => Process.StartInfo;
     public Process Process { get; }
+    public int Id => Process.Id;
     public StreamWriter StandardInput => Process.StandardInput;
     public StreamReader StandardOutput => Process.StandardOutput;
     public StreamReader StandardError => Process.StandardError;
     public int ExitCode => Process.ExitCode;
 
-    public static ChildProcess Start(ITrace2 trace2, ProcessStartInfo startInfo, Trace2ProcessClass processClass)
+    public static ChildProcess Start(ProcessStartInfo startInfo, Trace2ProcessClass @class = Trace2ProcessClass.None)
     {
-        var childProc = new ChildProcess(trace2, startInfo);
-        childProc.Start(processClass);
+        var childProc = new ChildProcess(startInfo, @class);
+        childProc.Start();
         return childProc;
     }
 
-    public ChildProcess(ITrace2 trace2, ProcessStartInfo startInfo)
+    public ChildProcess(ProcessStartInfo startInfo, Trace2ProcessClass @class = Trace2ProcessClass.None)
     {
-        _trace2 = trace2;
-        Process = new Process() { StartInfo = startInfo };
+        _trace2Id = Interlocked.Increment(ref _nextTrace2Id);
+        _processClass = @class;
+        Process = new Process
+        {
+            StartInfo = startInfo,
+            EnableRaisingEvents = true
+        };
         Process.Exited += ProcessOnExited;
     }
 
-    public bool Start(Trace2ProcessClass processClass)
+    public bool Start()
     {
         ThrowIfDisposed();
-        // Record the time just before the process starts, since:
-        // (1) There is no event related to Start as there is with Exit.
-        // (2) Using Process.StartTime causes a race condition that leads
-        // to an exception if the process finishes executing before the
-        // variable is passed to Trace2.
-        _startTime = DateTimeOffset.UtcNow;
-        _trace2.WriteChildStart(
-            _startTime,
-            processClass,
-            _startInfo.UseShellExecute,
-            _startInfo.FileName,
-            _startInfo.Arguments);
+        _startTime = Trace2.WriteChildStart(
+            _trace2Id,
+            _processClass,
+            Process.StartInfo.UseShellExecute,
+            Process.StartInfo.FileName,
+            Process.StartInfo.Arguments);
         return Process.Start();
     }
 
@@ -62,18 +62,24 @@ public class ChildProcess : DisposableObject
     {
         Process.Exited -= ProcessOnExited;
         Process.Dispose();
-        base.ReleaseUnmanagedResources();
+        base.ReleaseManagedResources();
     }
 
     private void ProcessOnExited(object sender, EventArgs e)
     {
-        if (sender is Process)
+        if (sender is Process p)
         {
-            double elapsedTime = (_exitTime - _startTime).TotalSeconds;
-            _trace2.WriteChildExit(
-                elapsedTime,
-                _id,
-                Process.ExitCode);
+            // This event may have been triggered a while after the process
+            // actually exited, so we should read the exit time from the
+            // process object, and not compute the current timestamp inproc.
+            // Note that we continue to use the start time computed and stored
+            // inproc and *not* the start time recorded by the process object.
+            // This is because if the process has already exited and cleaned up
+            // by the operating system by the time we try and read the start time
+            // we get an error!
+            var exitTime = p.ExitTime.ToUniversalTime();
+            var relativeTime = exitTime - _startTime;
+            Trace2.WriteChildExit(_trace2Id, relativeTime, p.Id, p.ExitCode);
         }
     }
 }

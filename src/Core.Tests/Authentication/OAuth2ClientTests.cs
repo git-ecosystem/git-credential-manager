@@ -36,8 +36,7 @@ namespace GitCredentialManager.Tests.Authentication
 
             IOAuth2WebBrowser browser = new TestOAuth2WebBrowser(httpHandler);
 
-            var trace2 = new NullTrace2();
-            OAuth2Client client = CreateClient(httpHandler, endpoints, trace2);
+            OAuth2Client client = CreateClient(httpHandler, endpoints);
 
             OAuth2AuthorizationCodeResult result = await client.GetAuthorizationCodeAsync(expectedScopes, browser, null, CancellationToken.None);
 
@@ -81,12 +80,10 @@ namespace GitCredentialManager.Tests.Authentication
 
             var redirectUri = new Uri(expectedRedirectUrl);
 
-            var trace2 = new NullTrace2();
             OAuth2Client client =  new OAuth2Client(
                 new HttpClient(httpHandler),
                 endpoints,
                 TestClientId,
-                trace2,
                 redirectUri,
                 TestClientSecret);
 
@@ -131,8 +128,7 @@ namespace GitCredentialManager.Tests.Authentication
 
             IOAuth2WebBrowser browser = new TestOAuth2WebBrowser(httpHandler);
 
-            var trace2 = new NullTrace2();
-            OAuth2Client client = CreateClient(httpHandler, endpoints, trace2);
+            OAuth2Client client = CreateClient(httpHandler, endpoints);
 
             OAuth2AuthorizationCodeResult result = await client.GetAuthorizationCodeAsync(expectedScopes, browser, extraParams, CancellationToken.None);
 
@@ -167,8 +163,7 @@ namespace GitCredentialManager.Tests.Authentication
 
             IOAuth2WebBrowser browser = new TestOAuth2WebBrowser(httpHandler);
 
-            var trace2 = new NullTrace2();
-            OAuth2Client client = CreateClient(httpHandler, endpoints, trace2);
+            OAuth2Client client = CreateClient(httpHandler, endpoints);
 
             await Assert.ThrowsAsync<ArgumentException>(() =>
                 client.GetAuthorizationCodeAsync(expectedScopes, browser, extraParams, CancellationToken.None));
@@ -207,9 +202,8 @@ namespace GitCredentialManager.Tests.Authentication
 
             IOAuth2WebBrowser browser = new TestOAuth2WebBrowser(httpHandler);
 
-            var trace2 = new NullTrace2();
             OAuth2Client client = new OAuth2Client(
-                new HttpClient(httpHandler), endpoints, TestClientId, trace2,
+                new HttpClient(httpHandler), endpoints, TestClientId,
                 TestRedirectUri, TestClientSecret, responseMode: responseMode);
 
             OAuth2AuthorizationCodeResult result = await client.GetAuthorizationCodeAsync(
@@ -246,9 +240,8 @@ namespace GitCredentialManager.Tests.Authentication
 
             IOAuth2WebBrowser browser = new TestOAuth2WebBrowser(httpHandler);
 
-            var trace2 = new NullTrace2();
             OAuth2Client client = new OAuth2Client(
-                new HttpClient(httpHandler), endpoints, TestClientId, trace2,
+                new HttpClient(httpHandler), endpoints, TestClientId,
                 TestRedirectUri, TestClientSecret, responseMode: OAuth2ResponseMode.Default);
 
             OAuth2AuthorizationCodeResult result = await client.GetAuthorizationCodeAsync(
@@ -278,8 +271,7 @@ namespace GitCredentialManager.Tests.Authentication
             server.TokenGenerator.UserCodes.Add(expectedUserCode);
             server.TokenGenerator.DeviceCodes.Add(expectedDeviceCode);
 
-            var trace2 = new NullTrace2();
-            OAuth2Client client = CreateClient(httpHandler, endpoints, trace2);
+            OAuth2Client client = CreateClient(httpHandler, endpoints);
 
             OAuth2DeviceCodeResult result = await client.GetDeviceCodeAsync(expectedScopes, CancellationToken.None);
 
@@ -310,8 +302,7 @@ namespace GitCredentialManager.Tests.Authentication
             server.TokenGenerator.AccessTokens.Add(expectedAccessToken);
             server.TokenGenerator.RefreshTokens.Add(expectedRefreshToken);
 
-            var trace2 = new NullTrace2();
-            OAuth2Client client = CreateClient(httpHandler, endpoints, trace2);
+            OAuth2Client client = CreateClient(httpHandler, endpoints);
 
             var authCodeResult = new OAuth2AuthorizationCodeResult(authCode, TestRedirectUri);
             OAuth2TokenResult result = await client.GetTokenByAuthorizationCodeAsync(authCodeResult, CancellationToken.None);
@@ -348,8 +339,7 @@ namespace GitCredentialManager.Tests.Authentication
             server.TokenGenerator.AccessTokens.Add(expectedAccessToken);
             server.TokenGenerator.RefreshTokens.Add(expectedRefreshToken);
 
-            var trace2 = new NullTrace2();
-            OAuth2Client client = CreateClient(httpHandler, endpoints, trace2);
+            OAuth2Client client = CreateClient(httpHandler, endpoints);
 
             OAuth2TokenResult result = await client.GetTokenByRefreshTokenAsync(oldRefreshToken, CancellationToken.None);
 
@@ -387,8 +377,7 @@ namespace GitCredentialManager.Tests.Authentication
             server.TokenGenerator.AccessTokens.Add(expectedAccessToken);
             server.TokenGenerator.RefreshTokens.Add(expectedRefreshToken);
 
-            var trace2 = new NullTrace2();
-            OAuth2Client client = CreateClient(httpHandler, endpoints, trace2);
+            OAuth2Client client = CreateClient(httpHandler, endpoints);
 
             var deviceCodeResult = new OAuth2DeviceCodeResult(expectedDeviceCode, expectedUserCode, null, null);
 
@@ -433,8 +422,7 @@ namespace GitCredentialManager.Tests.Authentication
 
             IOAuth2WebBrowser browser = new TestOAuth2WebBrowser(httpHandler);
 
-            var trace2 = new NullTrace2();
-            OAuth2Client client = CreateClient(httpHandler, endpoints, trace2);
+            OAuth2Client client = CreateClient(httpHandler, endpoints);
 
             OAuth2AuthorizationCodeResult authCodeResult = await client.GetAuthorizationCodeAsync(
                 expectedScopes, browser, null, CancellationToken.None);
@@ -483,8 +471,7 @@ namespace GitCredentialManager.Tests.Authentication
             server.TokenGenerator.AccessTokens.Add(expectedAccessToken1);
             server.TokenGenerator.RefreshTokens.Add(expectedRefreshToken1);
 
-            var trace2 = new NullTrace2();
-            OAuth2Client client = CreateClient(httpHandler, endpoints, trace2);
+            OAuth2Client client = CreateClient(httpHandler, endpoints);
 
             OAuth2DeviceCodeResult deviceResult = await client.GetDeviceCodeAsync(expectedScopes, CancellationToken.None);
 
@@ -517,9 +504,9 @@ namespace GitCredentialManager.Tests.Authentication
             RedirectUris = new[] {TestRedirectUri}
         };
 
-        private static OAuth2Client CreateClient(HttpMessageHandler httpHandler, OAuth2ServerEndpoints endpoints, ITrace2 trace2, IOAuth2CodeGenerator generator = null)
+        private static OAuth2Client CreateClient(HttpMessageHandler httpHandler, OAuth2ServerEndpoints endpoints, IOAuth2CodeGenerator generator = null)
         {
-            return new OAuth2Client(new HttpClient(httpHandler), endpoints, TestClientId, trace2, TestRedirectUri, TestClientSecret)
+            return new OAuth2Client(new HttpClient(httpHandler), endpoints, TestClientId, TestRedirectUri, TestClientSecret)
             {
                 CodeGenerator = generator
             };

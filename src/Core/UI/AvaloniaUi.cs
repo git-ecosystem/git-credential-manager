@@ -59,33 +59,39 @@ namespace GitCredentialManager.UI
 
                 var appInitialized = new ManualResetEventSlim();
 
-                // Fire and forget the Avalonia app main loop over to our dispatcher (running on the main/entry thread).
-                // This action only returns on our dispatcher shutdown.
-                Dispatcher.MainThread.Post(appCancelToken =>
+                // Keep the trace region to outside the dispatcher's lambda so we can attribute the
+                // UI init cost to the caller's thread, rather than the main thread.
+                using (Trace2.StartRegion("ui", "avn_init"))
                 {
-                    var appBuilder = AppBuilder.Configure<AvaloniaApp>();
-
-                    // Set custom rendering options and modes if required
-                    if (PlatformUtils.IsWindows() && _win32SoftwareRendering)
+                    // Fire and forget the Avalonia app main loop over to our dispatcher (running on the main/entry thread).
+                    // This action only returns on our dispatcher shutdown.
+                    Dispatcher.MainThread.Post(appCancelToken =>
                     {
-                        appBuilder.With(new Win32PlatformOptions
-                            { RenderingMode = new[] { Win32RenderingMode.Software } });
-                    }
+                        var appBuilder = AppBuilder.Configure<AvaloniaApp>();
 
-                    appBuilder
-                        .UsePlatformDetect()
-                        .LogToTrace()
-                        .SetupWithoutStarting();
+                        // Set custom rendering options and modes if required
+                        if (PlatformUtils.IsWindows() && _win32SoftwareRendering)
+                        {
+                            Trace2.WriteData("ui", "win32/software_rendering", "true");
+                            appBuilder.With(new Win32PlatformOptions
+                                { RenderingMode = new[] { Win32RenderingMode.Software } });
+                        }
 
-                    appInitialized.Set();
+                        appBuilder
+                            .UsePlatformDetect()
+                            .LogToTrace()
+                            .SetupWithoutStarting();
 
-                    // Run the application loop (only exit when the dispatcher is shutting down)
-                    AvnDispatcher.UIThread.MainLoop(appCancelToken);
-                });
+                        appInitialized.Set();
 
-                // Wait for the action posted above to be dequeued from the dispatcher's job queue
-                // and for the Avalonia framework (and their dispatcher) to be initialized.
-                appInitialized.Wait();
+                        // Run the application loop (only exit when the dispatcher is shutting down)
+                        AvnDispatcher.UIThread.MainLoop(appCancelToken);
+                    });
+
+                    // Wait for the action posted above to be dequeued from the dispatcher's job queue
+                    // and for the Avalonia framework (and their dispatcher) to be initialized.
+                    appInitialized.Wait();
+                }
             }
 
             // Post the window action to the Avalonia dispatcher (which should be running)
@@ -97,6 +103,8 @@ namespace GitCredentialManager.UI
 
         private static Task ShowWindowInternal(Func<Window> windowFunc, object dataContext, IntPtr parentHandle, CancellationToken ct)
         {
+            var region = Trace2.StartRegion("ui", "show_window");
+
             var tcs = new TaskCompletionSource<object>();
             Window window = windowFunc();
             window.DataContext = dataContext;
@@ -111,6 +119,7 @@ namespace GitCredentialManager.UI
             // have a window handle/ID we must manually parent the window.
             if (parentHandle != IntPtr.Zero)
             {
+                Trace2.WriteData("ui", "parent", $"0x{parentHandle:x}");
                 SetParentExternal(window, parentHandle);
             }
 
@@ -127,7 +136,7 @@ namespace GitCredentialManager.UI
                 window.Topmost = false;
             }
 
-            return tcs.Task;
+            return tcs.Task.ContinueWith(_ => region.Dispose());
         }
 
         private static void SetParentExternal(Window window, IntPtr parentHandle)

@@ -198,11 +198,6 @@ namespace GitCredentialManager
         /// </summary>
         bool AllowUnsafeRemotes { get; }
 
-        /// <summary>
-        /// Get TRACE2 settings.
-        /// </summary>
-        /// <returns>TRACE2 settings object.</returns>
-        Trace2Settings GetTrace2Settings();
     }
 
     public class ProxyConfiguration
@@ -594,31 +589,6 @@ namespace GitCredentialManager
                 KnownGitCfg.Credential.SectionName,
                 KnownGitCfg.Credential.AllowUnsafeRemotes,
                 out string str) && str.ToBooleanyOrDefault(false);
-
-        public Trace2Settings GetTrace2Settings()
-        {
-            var settings = new Trace2Settings();
-
-            if (TryGetSetting(Constants.EnvironmentVariables.GitTrace2Event, KnownGitCfg.Trace2.SectionName,
-                    Constants.GitConfiguration.Trace2.EventTarget, out string value))
-            {
-                settings.FormatTargetsAndValues.Add(Trace2FormatTarget.Event, value);
-            }
-
-            if (TryGetSetting(Constants.EnvironmentVariables.GitTrace2Normal, KnownGitCfg.Trace2.SectionName,
-                    Constants.GitConfiguration.Trace2.NormalTarget, out value))
-            {
-                settings.FormatTargetsAndValues.Add(Trace2FormatTarget.Normal, value);
-            }
-
-            if (TryGetSetting(Constants.EnvironmentVariables.GitTrace2Performance, KnownGitCfg.Trace2.SectionName,
-                    Constants.GitConfiguration.Trace2.PerformanceTarget, out value))
-            {
-                settings.FormatTargetsAndValues.Add(Trace2FormatTarget.Performance, value);
-            }
-
-            return settings;
-        }
 
         public bool IsSecretTracingEnabled =>
             TryGetSetting(KnownEnvars.GcmTraceSecrets,

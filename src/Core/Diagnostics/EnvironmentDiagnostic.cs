@@ -15,7 +15,7 @@ namespace GitCredentialManager.Diagnostics
 
         protected override Task<bool> RunInternalAsync(StringBuilder log, IList<string> additionalFiles)
         {
-            PlatformInformation platformInfo = PlatformUtils.GetPlatformInformation(CommandContext.Trace2);
+            PlatformInformation platformInfo = PlatformUtils.GetPlatformInformation();
             log.AppendLine($"OSType: {platformInfo.OperatingSystemType}");
             log.AppendLine($"OSVersion: {platformInfo.OperatingSystemVersion}");
 

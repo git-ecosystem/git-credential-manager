@@ -14,9 +14,10 @@ namespace GitCredentialManager.Commands
             IsHidden = true;
         }
 
-        protected override Task ExecuteInternalAsync(GitRequest request, IHostProvider provider)
+        protected override async Task ExecuteInternalAsync(GitRequest request, IHostProvider provider)
         {
-            return provider.StoreCredentialAsync(request);
+            using var _ = Trace2.StartRegion("git_cmd_store", "provider_store");
+            await provider.StoreCredentialAsync(request);
         }
 
         protected override void EnsureMinimumRequest(GitRequest request)
@@ -26,12 +27,12 @@ namespace GitCredentialManager.Commands
             // An empty string username/password are valid inputs, so only check for `null` (not provided)
             if (request.UserName is null)
             {
-                throw new Trace2InvalidOperationException(Context.Trace2, "Missing 'username' request argument");
+                throw new InvalidOperationException("Missing 'username' request argument");
             }
 
             if (request.Password is null)
             {
-                throw new Trace2InvalidOperationException(Context.Trace2, "Missing 'password' request argument");
+                throw new InvalidOperationException("Missing 'password' request argument");
             }
         }
     }

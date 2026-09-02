@@ -13,9 +13,10 @@ namespace GitCredentialManager.Commands
             IsHidden = true;
         }
 
-        protected override Task ExecuteInternalAsync(GitRequest request, IHostProvider provider)
+        protected override async Task ExecuteInternalAsync(GitRequest request, IHostProvider provider)
         {
-            return provider.EraseCredentialAsync(request);
+            using var _ = Trace2.StartRegion("git_cmd_erase", "provider_erase");
+            await provider.EraseCredentialAsync(request);
         }
     }
 }
