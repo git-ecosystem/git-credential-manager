@@ -181,6 +181,17 @@ namespace GitCredentialManager.Tests.Interop.Posix
                 collection.Remove(service, userName);
             }
         }
+        
+        [PosixFact]
+        public void GpgPassCredentialStore_MaxCredentialSize_ReturnsNull()
+        {
+            var fs = new TestFileSystem();
+            var gpg = new TestGpg(fs);
+            string storeRoot = InitializePasswordStore(fs, gpg);
+
+            ICredentialStore credentialStore = new GpgPassCredentialStore(fs, gpg, storeRoot, TestNamespace);
+            Assert.False(credentialStore.MaxCredentialSize.HasValue);
+        }
 
         private static string InitializePasswordStore(TestFileSystem fs, TestGpg gpg)
         {

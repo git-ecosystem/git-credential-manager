@@ -368,5 +368,14 @@ namespace GitCredentialManager.Tests.Interop.Windows
 
             Assert.Equal(expected, actual);
         }
+        
+        
+        [WindowsFact]
+        public void WindowsCredentialManager_MaxCredentialSize_Returns_1280()
+        {
+            ICredentialStore credentialStore = new WindowsCredentialManager(TestNamespace);
+            Assert.True(credentialStore.MaxCredentialSize.HasValue);
+            Assert.Equal(1_280, credentialStore.MaxCredentialSize.Value);
+        }
     }
 }

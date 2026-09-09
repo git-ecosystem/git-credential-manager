@@ -33,6 +33,14 @@ namespace GitCredentialManager
                 return _backingStore.Name;
             }
         }
+        public int? MaxCredentialSize
+        {
+            get
+            {
+                EnsureBackingStore();
+                return _backingStore.MaxCredentialSize;
+            }
+        }
 
         public IList<string> GetAccounts(string service)
         {

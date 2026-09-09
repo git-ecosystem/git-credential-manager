@@ -25,6 +25,10 @@ namespace GitCredentialManager.Interop.Windows
         }
 
         public string Name => "Windows Credential Manager";
+        
+        // The underlying Windows Credential Manager is only able to 2,560 bytes per secret. This is 1280 characters in
+        // Unicode encoding.
+        public int? MaxCredentialSize => 1_280;
 
         public IList<string> GetAccounts(string service)
         {

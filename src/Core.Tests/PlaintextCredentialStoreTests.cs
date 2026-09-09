@@ -84,5 +84,13 @@ namespace GitCredentialManager.Tests
             bool result = collection.Remove(service, account: null);
             Assert.False(result);
         }
+        
+        [Fact]
+        public void PlaintextCredentialStore_MaxCredentialSize_ReturnsNull()
+        {
+            var fs = new TestFileSystem();
+            ICredentialStore credentialStore = new PlaintextCredentialStore(fs, StoreRoot, TestNamespace);
+            Assert.False(credentialStore.MaxCredentialSize.HasValue);
+        }
     }
 }

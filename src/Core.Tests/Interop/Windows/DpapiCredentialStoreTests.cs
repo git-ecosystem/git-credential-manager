@@ -109,5 +109,13 @@ namespace GitCredentialManager.Tests.Interop.Windows
             bool result = store.Remove(service, account: null);
             Assert.False(result);
         }
+        
+        [WindowsFact]
+        public void DpapiCredentialStore_MaxCredentialSize_ReturnsNull()
+        {
+            var fs = new TestFileSystem();
+            ICredentialStore credentialStore = new DpapiCredentialStore(fs, TestStoreRoot, TestNamespace);
+            Assert.False(credentialStore.MaxCredentialSize.HasValue);
+        }
     }
 }
