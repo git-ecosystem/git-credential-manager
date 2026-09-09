@@ -1,4 +1,5 @@
 using System;
+using System.Buffers.Text;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -35,9 +36,6 @@ namespace GitCredentialManager.Authentication.OAuth
 
     public class OAuth2CryptographicCodeGenerator : IOAuth2CodeGenerator
     {
-        // Do not include padding of the base64url string to avoid percent-encoding when passed in a URI
-        private const bool PkceIncludeBase64UrlPadding = false;
-
         public string CreateNonce()
         {
             return Guid.NewGuid().ToString("N");
@@ -72,7 +70,7 @@ namespace GitCredentialManager.Authentication.OAuth
             var rng = RandomNumberGenerator.Create();
             rng.GetBytes(buf);
 
-            return Base64UrlConvert.Encode(buf, PkceIncludeBase64UrlPadding);
+            return Base64Url.EncodeToString(buf);
         }
 
         public string CreatePkceCodeChallenge(OAuth2PkceChallengeMethod challengeMethod, string codeVerifier)
@@ -89,11 +87,10 @@ namespace GitCredentialManager.Authentication.OAuth
                     //
                     using (var sha256 = SHA256.Create())
                     {
-                        return Base64UrlConvert.Encode(
+                        return Base64Url.EncodeToString(
                             sha256.ComputeHash(
                                 Encoding.ASCII.GetBytes(codeVerifier)
-                            ),
-                            PkceIncludeBase64UrlPadding
+                            )
                         );
                     }
 
