@@ -13,25 +13,22 @@ namespace GitCredentialManager.Diagnostics
             : base("Environment", commandContext)
         { }
 
-        protected override Task<bool> RunInternalAsync(StringBuilder log, IList<string> additionalFiles)
+        protected override Task RunInternalAsync(IDiagnosticReporter reporter)
         {
-            PlatformInformation platformInfo = PlatformUtils.GetPlatformInformation(CommandContext.Trace2);
-            log.AppendLine($"OSType: {platformInfo.OperatingSystemType}");
-            log.AppendLine($"OSVersion: {platformInfo.OperatingSystemVersion}");
+            PlatformInformation platformInfo = PlatformUtils.GetPlatformInformation(Context.Trace2);
+            reporter.ReportInfo($"OSType: {platformInfo.OperatingSystemType}");
+            reporter.ReportInfo($"OSVersion: {platformInfo.OperatingSystemVersion}");
 
-            log.Append("Reading environment variables...");
+            reporter.ReportProgress("Reading environment variables");
             IDictionary envars = Environment.GetEnvironmentVariables();
-            log.AppendLine(" OK");
 
-            log.AppendLine(" Variables:");
+            reporter.ReportInfo("Variables:");
             foreach (DictionaryEntry envar in envars)
             {
-                log.AppendFormat("{0}={1}", envar.Key, envar.Value);
-                log.AppendLine();
+                reporter.ReportInfo($"{envar.Key}={envar.Value}");
             }
-            log.AppendLine();
 
-            return Task.FromResult(true);
+            return Task.CompletedTask;
         }
     }
 }

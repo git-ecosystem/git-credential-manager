@@ -19,30 +19,27 @@ namespace GitCredentialManager.Diagnostics
             : base("Networking", commandContext)
         { }
 
-        protected override async Task<bool> RunInternalAsync(StringBuilder log, IList<string> additionalFiles)
+        protected override async Task RunInternalAsync(IDiagnosticReporter reporter)
         {
-            log.AppendLine("Checking networking and HTTP stack...");
-            log.Append("Creating HTTP client...");
-            using var httpClient = CommandContext.HttpClientFactory.CreateClient();
-            log.AppendLine(" OK");
+            reporter.ReportProgress("Checking networking and HTTP stack");
+            reporter.ReportProgress("Creating HTTP client");
+            using var httpClient = Context.HttpClientFactory.CreateClient();
 
             bool hasNetwork = NetworkInterface.GetIsNetworkAvailable();
-            log.AppendLine($"IsNetworkAvailable: {hasNetwork}");
+            reporter.ReportInfo($"IsNetworkAvailable: {hasNetwork}");
 
-            await SendHttpRequestAsync(log, httpClient);
+            await SendHttpRequestAsync(reporter, httpClient);
 
-            log.Append($"Sending HEAD request to {TestHttpsUri}...");
+            reporter.ReportProgress($"Sending HEAD request to {TestHttpsUri}");
             using var httpsResponse = await httpClient.HeadAsync(TestHttpsUri);
-            log.AppendLine(" OK");
 
-            log.Append("Acquiring free TCP port...");
+            reporter.ReportProgress("Acquiring free TCP port");
             var tcpListener = new TcpListener(IPAddress.Loopback, 0);
             int tcpPort;
             try
             {
                 tcpListener.Start();
                 tcpPort = ((IPEndPoint) tcpListener.LocalEndpoint).Port;
-                log.AppendLine(" OK");
             }
             finally
             {
@@ -51,67 +48,62 @@ namespace GitCredentialManager.Diagnostics
 
             if (tcpPort <= 0)
             {
-                log.AppendLine("Failed to acquire local TCP port - cannot test local HTTP loopback connections!");
-                return false;
+                reporter.ReportError("Failed to acquire local TCP port - cannot test local HTTP loopback connections!");
+                return;
             }
 
-            log.AppendLine("Testing local HTTP loopback connections...");
+            reporter.ReportInfo($"Got port {tcpPort}");
+            reporter.ReportProgress("Testing local HTTP loopback connections...");
 
             const string responseContent = "Hello, GCM!";
             byte[] responseData = Encoding.UTF8.GetBytes(responseContent);
 
             var localAddress = $"http://localhost:{tcpPort}/";
-            log.Append($"Creating new HTTP listener for {localAddress}...");
+            reporter.ReportProgress($"Creating new HTTP listener for {localAddress}");
             var httpListener = new HttpListener {Prefixes = {localAddress}};
             httpListener.Start();
-            log.AppendLine(" OK");
 
             Task<HttpListenerContext> listenContextTask = httpListener.GetContextAsync();
             Task<HttpResponseMessage> localResponseTask = httpClient.GetAsync(localAddress);
 
-            log.Append("Waiting for loopback connection...");
+            reporter.ReportProgress("Waiting for loopback connection");
             HttpListenerContext listenContext = await listenContextTask;
-            log.AppendLine(" OK");
 
-            log.Append("Writing response...");
+            reporter.ReportProgress("Writing response");
             listenContext.Response.ContentLength64 = responseData.Length;
             listenContext.Response.OutputStream.Write(responseData, 0, responseData.Length);
             listenContext.Response.Close();
-            log.AppendLine(" OK");
 
-            log.Append("Waiting for response data...");
+            reporter.ReportProgress("Waiting for response data");
             using HttpResponseMessage localResponse = await localResponseTask;
             byte[] actualResponseData = await localResponse.Content.ReadAsByteArrayAsync();
             string actualResponseContent = Encoding.UTF8.GetString(actualResponseData);
-            log.AppendLine(" OK");
 
             if (!StringComparer.Ordinal.Equals(responseContent, actualResponseContent))
             {
-                log.AppendLine("Loopback connection data did not match!");
-                log.AppendLine($"Expected: {responseContent}");
-                log.AppendLine($"Actual: {actualResponseContent}");
-                return false;
+                reporter.ReportError("Loopback connection data did not match!");
+                reporter.ReportError($"Expected: {responseContent}");
+                reporter.ReportError($"Actual: {actualResponseContent}");
+                return;
             }
 
-            log.AppendLine("Loopback connection data OK");
-
-            return true;
+            reporter.ReportInfo("Loopback connection data OK");
         }
 
-        internal /* For testing purposes */ async Task SendHttpRequestAsync(StringBuilder log, HttpClient httpClient)
+        internal /* For testing purposes */ async Task SendHttpRequestAsync(
+            IDiagnosticReporter reporter, HttpClient httpClient)
         {
             foreach (var uri in new List<string> { TestHttpUri, TestHttpUriFallback })
             {
                 try
                 {
-                    log.Append($"Sending HEAD request to {uri}...");
+                    reporter.ReportProgress($"Sending HEAD request to {uri}");
                     using var httpResponse = await httpClient.HeadAsync(uri);
-                    log.AppendLine(" OK");
                     break;
                 }
                 catch (HttpRequestException)
                 {
-                    log.AppendLine(" warning: HEAD request failed");
+                    reporter.ReportWarning("HEAD request failed");
                 }
             }
         }

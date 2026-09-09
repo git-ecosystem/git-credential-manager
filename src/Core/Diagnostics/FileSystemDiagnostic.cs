@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace GitCredentialManager.Diagnostics
@@ -12,42 +10,39 @@ namespace GitCredentialManager.Diagnostics
             : base("File system", commandContext)
         {  }
 
-        protected override Task<bool> RunInternalAsync(StringBuilder log, IList<string> additionalFiles)
+        protected override Task RunInternalAsync(IDiagnosticReporter reporter)
         {
             string tempDir = Path.GetTempPath();
-            log.AppendLine($"Temporary directory is '{tempDir}'...");
+            reporter.ReportInfo($"Temporary directory is '{tempDir}'");
 
-            log.AppendLine("Checking basic file I/O...");
+            reporter.ReportProgress("Checking basic file I/O");
             const string testContent = "Hello, GCM!";
 
             string fileName = Guid.NewGuid().ToString("N").Substring(8);
             string path = Path.Combine(tempDir, fileName);
-            log.Append($"Writing to temporary file '{path}'...");
+            reporter.ReportProgress($"Writing to temporary file '{path}'");
             File.WriteAllText(path, testContent);
-            log.AppendLine(" OK");
 
-            log.Append($"Reading from temporary file '{path}'...");
+            reporter.ReportProgress($"Reading from temporary file '{path}'");
             string actualContent = File.ReadAllText(path);
-            log.AppendLine(" OK");
 
             if (!StringComparer.Ordinal.Equals(testContent, actualContent))
             {
-                log.AppendLine("File data did not match!");
-                log.AppendLine($"Expected: {testContent}");
-                log.AppendLine($"Actual: {actualContent}");
-                return Task.FromResult(false);
+                reporter.ReportError("File data did not match!");
+                reporter.ReportError($"Expected: {testContent}");
+                reporter.ReportError($"Actual: {actualContent}");
+                return Task.CompletedTask;
             }
 
-            log.Append($"Deleting temporary file '{path}'...");
+            reporter.ReportProgress($"Deleting temporary file '{path}'");
             File.Delete(path);
-            log.AppendLine(" OK");
 
-            log.AppendLine("Testing IFileSystem instance...");
-            log.AppendLine($"UserHomePath: {CommandContext.FileSystem.UserHomePath}");
-            log.AppendLine($"UserDataDirectoryPath: {CommandContext.FileSystem.UserDataDirectoryPath}");
-            log.AppendLine($"GetCurrentDirectory(): {CommandContext.FileSystem.GetCurrentDirectory()}");
+            reporter.ReportProgress("Testing IFileSystem instance");
+            reporter.ReportInfo($"UserHomePath: {Context.FileSystem.UserHomePath}");
+            reporter.ReportInfo($"UserDataDirectoryPath: {Context.FileSystem.UserDataDirectoryPath}");
+            reporter.ReportInfo($"GetCurrentDirectory(): {Context.FileSystem.GetCurrentDirectory()}");
 
-            return Task.FromResult(true);
+            return Task.CompletedTask;
         }
     }
 }

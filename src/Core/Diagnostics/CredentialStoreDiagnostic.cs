@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace GitCredentialManager.Diagnostics
@@ -11,9 +9,9 @@ namespace GitCredentialManager.Diagnostics
             : base("Credential storage", commandContext)
         { }
 
-        protected override Task<bool> RunInternalAsync(StringBuilder log, IList<string> additionalFiles)
+        protected override Task RunInternalAsync(IDiagnosticReporter reporter)
         {
-            log.AppendLine($"Credential store is: {CommandContext.CredentialStore.Name}");
+            reporter.ReportInfo($"Credential store is: {Context.CredentialStore.Name}");
 
             // Create a service that is guaranteed to be unique
             string service = $"https://example.com/{Guid.NewGuid():N}";
@@ -22,45 +20,40 @@ namespace GitCredentialManager.Diagnostics
 
             try
             {
-                log.Append("Writing test credential...");
-                CommandContext.CredentialStore.AddOrUpdate(service, account, password);
-                log.AppendLine(" OK");
+                reporter.ReportProgress("Writing test credential...");
+                Context.CredentialStore.AddOrUpdate(service, account, password);
 
-                log.Append("Reading test credential...");
-                ICredential outCredential = CommandContext.CredentialStore.Get(service, account);
+                reporter.ReportProgress("Reading test credential...");
+                ICredential outCredential = Context.CredentialStore.Get(service, account);
                 if (outCredential is null)
                 {
-                    log.AppendLine(" Failed");
-                    log.AppendLine("Test credential object is null!");
-                    return Task.FromResult(false);
+                    reporter.ReportError("Test credential object is null!");
+                    return Task.CompletedTask;
                 }
-
-                log.AppendLine(" OK");
 
                 if (!StringComparer.Ordinal.Equals(account, outCredential.Account))
                 {
-                    log.Append("Test credential account did not match!");
-                    log.AppendLine($"Expected: {account}");
-                    log.AppendLine($"Actual: {outCredential.Account}");
-                    return Task.FromResult(false);
+                    reporter.ReportError("Test credential account did not match!");
+                    reporter.ReportError($"Expected: {account}");
+                    reporter.ReportError($"Actual: {outCredential.Account}");
+                    return Task.CompletedTask;
                 }
 
                 if (!StringComparer.Ordinal.Equals(password, outCredential.Password))
                 {
-                    log.Append("Test credential password did not match!");
-                    log.AppendLine($"Expected: {password}");
-                    log.AppendLine($"Actual: {outCredential.Password}");
-                    return Task.FromResult(false);
+                    reporter.ReportError("Test credential password did not match!");
+                    reporter.ReportError($"Expected: {password}");
+                    reporter.ReportError($"Actual: {outCredential.Password}");
+                    return Task.CompletedTask;
                 }
             }
             finally
             {
-                log.Append("Deleting test credential...");
-                CommandContext.CredentialStore.Remove(service, account);
-                log.AppendLine(" OK");
+                reporter.ReportProgress("Deleting test credential");
+                Context.CredentialStore.Remove(service, account);
             }
 
-            return Task.FromResult(true);
+            return Task.CompletedTask;
         }
     }
 }

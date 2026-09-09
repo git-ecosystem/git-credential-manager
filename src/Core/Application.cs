@@ -70,6 +70,7 @@ namespace GitCredentialManager
         {
             var rootCommand = new RootCommand();
             var diagnoseCommand = new DiagnoseCommand(Context);
+            diagnoseCommand.AddStandardDiagnostics();
 
             // Add common options
             var noGuiOption = new Option<bool>("--no-ui", "Do not use graphical user interface prompts");

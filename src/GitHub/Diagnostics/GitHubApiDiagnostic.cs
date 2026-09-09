@@ -1,7 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.CommandLine;
-using System.Text;
 using System.Threading.Tasks;
 using GitCredentialManager;
 using GitCredentialManager.Diagnostics;
@@ -18,16 +15,13 @@ namespace GitHub.Diagnostics
             _api = api;
         }
 
-        protected override async Task<bool> RunInternalAsync(StringBuilder log, IList<string> additionalFiles)
+        protected override async Task RunInternalAsync(IDiagnosticReporter reporter)
         {
             var targetUri = new Uri("https://github.com");
-            log.AppendLine($"Using '{targetUri}' as API target.");
+            reporter.ReportInfo($"Using '{targetUri}' as API target.");
 
-            log.Append("Querying '/meta' endpoint...");
+            reporter.ReportProgress("Querying '/meta' endpoint");
             GitHubMetaInfo metaInfo = await _api.GetMetaInfoAsync(targetUri);
-            log.AppendLine(" OK");
-
-            return true;
         }
     }
 }

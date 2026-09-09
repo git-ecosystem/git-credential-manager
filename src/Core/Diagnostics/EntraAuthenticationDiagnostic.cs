@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using GitCredentialManager.Authentication.Entra;
 using Microsoft.Identity.Client.Extensions.Msal;
@@ -13,50 +11,44 @@ namespace GitCredentialManager.Diagnostics
             : base("Microsoft Entra authentication", context)
         { }
 
-        protected override async Task<bool> RunInternalAsync(StringBuilder log, IList<string> additionalFiles)
+        protected override async Task RunInternalAsync(IDiagnosticReporter reporter)
         {
-            var entraAuth = new EntraAuthentication(CommandContext, new PublicClientConfig
+            var entraAuth = new EntraAuthentication(Context, new PublicClientConfig
             {
                 UseSharedCache = true,
             });
 
-            log.Append("Gathering MSAL token cache data...");
+            reporter.ReportProgress("Gathering MSAL token cache data");
             StorageCreationProperties cacheProps = entraAuth.CreateUserTokenCacheProps(true);
-            log.AppendLine(" OK");
-            log.AppendLine($"CacheDirectory: {cacheProps.CacheDirectory}");
-            log.AppendLine($"CacheFileName: {cacheProps.CacheFileName}");
-            log.AppendLine($"CacheFilePath: {cacheProps.CacheFilePath}");
+            reporter.ReportInfo($"CacheDirectory: {cacheProps.CacheDirectory}");
+            reporter.ReportInfo($"CacheFileName: {cacheProps.CacheFileName}");
+            reporter.ReportInfo($"CacheFilePath: {cacheProps.CacheFilePath}");
 
             if (PlatformUtils.IsMacOS())
             {
-                log.AppendLine($"MacKeyChainAccountName: {cacheProps.MacKeyChainAccountName}");
-                log.AppendLine($"MacKeyChainServiceName: {cacheProps.MacKeyChainServiceName}");
+                reporter.ReportInfo($"MacKeyChainAccountName: {cacheProps.MacKeyChainAccountName}");
+                reporter.ReportInfo($"MacKeyChainServiceName: {cacheProps.MacKeyChainServiceName}");
             }
             else if (PlatformUtils.IsLinux())
             {
-                log.AppendLine($"KeyringCollection: {cacheProps.KeyringCollection}");
-                log.AppendLine($"KeyringSchemaName: {cacheProps.KeyringSchemaName}");
-                log.AppendLine($"KeyringSecretLabel: {cacheProps.KeyringSecretLabel}");
-                log.AppendLine($"KeyringAttribute1: ({cacheProps.KeyringAttribute1.Key},{cacheProps.KeyringAttribute1.Value})");
-                log.AppendLine($"KeyringAttribute2: ({cacheProps.KeyringAttribute2.Key},{cacheProps.KeyringAttribute2.Value})");
+                reporter.ReportInfo($"KeyringCollection: {cacheProps.KeyringCollection}");
+                reporter.ReportInfo($"KeyringSchemaName: {cacheProps.KeyringSchemaName}");
+                reporter.ReportInfo($"KeyringSecretLabel: {cacheProps.KeyringSecretLabel}");
+                reporter.ReportInfo($"KeyringAttribute1: ({cacheProps.KeyringAttribute1.Key},{cacheProps.KeyringAttribute1.Value})");
+                reporter.ReportInfo($"KeyringAttribute2: ({cacheProps.KeyringAttribute2.Key},{cacheProps.KeyringAttribute2.Value})");
             }
 
-            log.Append("Creating cache helper...");
+            reporter.ReportProgress("Creating cache helper");
             var cacheHelper = await MsalCacheHelper.CreateAsync(cacheProps);
-            log.AppendLine(" OK");
             try
             {
-                log.Append("Verifying MSAL token cache persistence...");
+                reporter.ReportProgress("Verifying MSAL token cache persistence");
                 cacheHelper.VerifyPersistence();
-                log.AppendLine(" OK");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                log.AppendLine(" Failed");
-                throw;
+                reporter.ReportError("Failed cache persistence test", ex);
             }
-
-            return true;
         }
     }
 }
