@@ -7,7 +7,6 @@ using Atlassian.Bitbucket.Cloud;
 using GitCredentialManager;
 using GitCredentialManager.Authentication.OAuth;
 using System.Text.RegularExpressions;
-using GitCredentialManager.Interop.Windows;
 
 namespace Atlassian.Bitbucket
 {
@@ -533,7 +532,7 @@ namespace Atlassian.Bitbucket
                     // Build the chunk identifier using the username stored in the chunk descriptor we looked up.
                     var chunkAccount = GetChunkAccount(credentialAccount, index);
                     var chunk = _context.CredentialStore.Get(chunkedService, chunkAccount);
-                    if(chunk == null){
+                    if (chunk == null){
                         _context.Trace.WriteLine($"Chunk {index} was unexpectedly null");
                         return null;
                     }

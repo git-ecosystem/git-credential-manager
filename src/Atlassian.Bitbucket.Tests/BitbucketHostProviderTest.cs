@@ -38,7 +38,6 @@ namespace Atlassian.Bitbucket.Tests
 
         private const string BITBUCKET_DOT_ORG_HOST = "bitbucket.org";
         private const string DC_SERVER_HOST = "example.com";
-        
         private Mock<IBitbucketAuthentication> bitbucketAuthentication = new Mock<IBitbucketAuthentication>(MockBehavior.Strict);
         private Mock<IBitbucketRestApi> bitbucketApi = new Mock<IBitbucketRestApi>(MockBehavior.Strict);
 
