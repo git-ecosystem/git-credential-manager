@@ -7,7 +7,6 @@ using Moq;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -24,15 +23,16 @@ namespace Atlassian.Bitbucket.Tests
         private const string MOCK_ROTATED_REFRESH_TOKEN = "rt-01189998819991197253";
         
         private const string MOCK_CHUNKED_ACCESS_TOKEN_DESCRIPTOR = "chunks=3";
-        private const string MOCK_CHUNKED_ACCESS_TOKEN_1 = "at-123";
-        private const string MOCK_CHUNKED_ACCESS_TOKEN_2 = "456";
-        private const string MOCK_CHUNKED_ACCESS_TOKEN_3 = "789";
+        private const string MOCK_CHUNKED_ACCESS_TOKEN_1 = "at-12";
+        private const string MOCK_CHUNKED_ACCESS_TOKEN_2 = "45678";
+        private const string MOCK_CHUNKED_ACCESS_TOKEN_3 = "9";
         private const string COMBINED_CHUNKED_ACCESS_TOKEN =
             MOCK_CHUNKED_ACCESS_TOKEN_1 + MOCK_CHUNKED_ACCESS_TOKEN_2 + MOCK_CHUNKED_ACCESS_TOKEN_3;
-        
+
+        private const int MOCK_MAX_CREDENTIAL_SIZE = 5;
         private const string MOCK_CHUNKED_REFRESH_TOKEN_DESCRIPTOR = "chunks=2";
-        private const string MOCK_CHUNKED_REFRESH_TOKEN_1 = "rt-98765";
-        private const string MOCK_CHUNKED_REFRESH_TOKEN_2 = "4321";
+        private const string MOCK_CHUNKED_REFRESH_TOKEN_1 = "rt-98";
+        private const string MOCK_CHUNKED_REFRESH_TOKEN_2 = "76543";
         private const string COMBINED_CHUNKED_REFRESH_TOKEN =
             MOCK_CHUNKED_REFRESH_TOKEN_1 + MOCK_CHUNKED_REFRESH_TOKEN_2;
 
@@ -83,17 +83,6 @@ namespace Atlassian.Bitbucket.Tests
 
             var provider = new BitbucketHostProvider(new TestCommandContext());
             Assert.Equal(expected, provider.IsSupported(request));
-        }
-
-        [Theory]
-        [InlineData(null, false)]
-        [InlineData(1, true)]
-        [InlineData(100, true)]
-        public void CredentialStore_SupportsChunking(int? maxCredentialSize, bool supportsChunking)
-        {
-            var context = new TestCommandContext();
-            context.CredentialStore.MaxCredentialSize = maxCredentialSize;
-            Assert.Equal(supportsChunking, context.CredentialStore.SupportsChunking());
         }
         
         [Fact]
@@ -254,7 +243,7 @@ namespace Atlassian.Bitbucket.Tests
 
             var context = new TestCommandContext();
             // Credential store doesn't support chunking
-            context.CredentialStore.MaxCredentialSize = null;
+            context.CredentialStore.MaxCredentialSize = 0;
 
             if (DC_SERVER_HOST.Equals(host))
             {
@@ -507,19 +496,14 @@ namespace Atlassian.Bitbucket.Tests
         
         [Theory]
         // DC/Server does not currently support OAuth
-        [InlineData("https", BITBUCKET_DOT_ORG_HOST, "jsquire", MOCK_EXPIRED_ACCESS_TOKEN, MOCK_REFRESH_TOKEN, MOCK_ACCESS_TOKEN)]
+        [InlineData("https", BITBUCKET_DOT_ORG_HOST, "jsquire", MOCK_EXPIRED_ACCESS_TOKEN, MOCK_REFRESH_TOKEN, MOCK_ACCESS_TOKEN, COMBINED_CHUNKED_REFRESH_TOKEN, MOCK_MAX_CREDENTIAL_SIZE)]
         public async Task BitbucketHostProvider_GetCredentialAsync_ExpiredAT_OAuth_Refresh_StoresChunkedRT(
-            string protocol, string host, string username, string expiredAccessToken, string refreshToken, string accessToken)
+            string protocol, string host, string username, string expiredAccessToken, string refreshToken, string accessToken, string rotatedRefreshToken, int maxCredentialSize)
         {
-            var rotatedRt = BuildRandomStringOfLength(299);
-            string rtChunk1 = rotatedRt.Substring(0, 100);
-            string rtChunk2 = rotatedRt.Substring(100, 100);
-            string rtChunk3 = rotatedRt.Substring(200, 99);
-            
             var request = MockInput(protocol, host, username);
 
             var context = new TestCommandContext();
-            context.CredentialStore.MaxCredentialSize = 100;
+            context.CredentialStore.MaxCredentialSize = maxCredentialSize;
 
             // AT exists but has expired, but RT is still valid
             MockStoredAccount(context, request, expiredAccessToken);
@@ -528,7 +512,7 @@ namespace Atlassian.Bitbucket.Tests
             MockRemoteAccessTokenExpired(request, expiredAccessToken);
             MockRemoteAccessTokenValid(username, accessToken);
             // After refreshing we're given back a wide rotated refresh token which would need chunking on supported credentialStores
-            MockRemoteRefreshTokenValid(request, refreshToken, accessToken, rotatedRt);
+            MockRemoteRefreshTokenValid(request, refreshToken, accessToken, rotatedRefreshToken);
 
             var provider = new BitbucketHostProvider(context, bitbucketAuthentication.Object, MockRestApiRegistry(request, bitbucketApi).Object);
 
@@ -542,26 +526,23 @@ namespace Atlassian.Bitbucket.Tests
             VerifyOAuthRefreshRan(request, refreshToken);
             VerifyInteractiveAuthNeverRan();
             // Stored RT as chunked
-            VerifyOAuthTokenStored(context, GetRefreshTokenServiceNameForRequest(request), username, "chunks=3");
+            VerifyOAuthTokenStored(context, GetRefreshTokenServiceNameForRequest(request), username, MOCK_CHUNKED_REFRESH_TOKEN_DESCRIPTOR);
             var chunkRtServiceName = GetRefreshTokenChunkServiceName(request);
-            VerifyOAuthTokenStored(context, chunkRtServiceName, $"{username}_0", rtChunk1);
-            VerifyOAuthTokenStored(context, chunkRtServiceName, $"{username}_1", rtChunk2);
-            VerifyOAuthTokenStored(context, chunkRtServiceName, $"{username}_2", rtChunk3);
+            VerifyOAuthTokenStored(context, chunkRtServiceName, $"{username}_0", MOCK_CHUNKED_REFRESH_TOKEN_1);
+            VerifyOAuthTokenStored(context, chunkRtServiceName, $"{username}_1", MOCK_CHUNKED_REFRESH_TOKEN_2);
         }
         
         [Theory]
         // DC/Server does not currently support OAuth
-        [InlineData("https", BITBUCKET_DOT_ORG_HOST, "jsquire", MOCK_EXPIRED_ACCESS_TOKEN, MOCK_REFRESH_TOKEN, MOCK_ACCESS_TOKEN)]
+        [InlineData("https", BITBUCKET_DOT_ORG_HOST, "jsquire", MOCK_EXPIRED_ACCESS_TOKEN, MOCK_REFRESH_TOKEN, MOCK_ACCESS_TOKEN, COMBINED_CHUNKED_REFRESH_TOKEN)]
         public async Task BitbucketHostProvider_GetCredentialAsync_ExpiredAT_OAuth_Refresh_DoesNotChunkLargeRTForUnsupportedCredentialStore(
-            string protocol, string host, string username, string expiredAccessToken, string refreshToken, string accessToken)
+            string protocol, string host, string username, string expiredAccessToken, string refreshToken, string accessToken,  string rotatedRefreshToken)
         {
-            var rotatedRt = BuildRandomStringOfLength(2500);
-            
             var request = MockInput(protocol, host, username);
 
             var context = new TestCommandContext();
             // Credential store doesn't support chunking
-            context.CredentialStore.MaxCredentialSize = null;
+            context.CredentialStore.MaxCredentialSize = 0;
 
             // AT exists but has expired, but RT is still valid
             MockStoredAccount(context, request, expiredAccessToken);
@@ -569,7 +550,7 @@ namespace Atlassian.Bitbucket.Tests
             
             MockRemoteAccessTokenExpired(request, expiredAccessToken);
             MockRemoteAccessTokenValid(username, accessToken);
-            MockRemoteRefreshTokenValid(request, refreshToken, accessToken, rotatedRt);
+            MockRemoteRefreshTokenValid(request, refreshToken, accessToken, rotatedRefreshToken);
 
             var provider = new BitbucketHostProvider(context, bitbucketAuthentication.Object, MockRestApiRegistry(request, bitbucketApi).Object);
 
@@ -583,7 +564,7 @@ namespace Atlassian.Bitbucket.Tests
             VerifyOAuthRefreshRan(request, refreshToken);
             VerifyInteractiveAuthNeverRan();
             // Stored RT without chunking
-            VerifyOAuthTokenStored(context, GetRefreshTokenServiceNameForRequest(request), username, rotatedRt);
+            VerifyOAuthTokenStored(context, GetRefreshTokenServiceNameForRequest(request), username, rotatedRefreshToken);
         }
         
         [Theory]
@@ -761,15 +742,10 @@ namespace Atlassian.Bitbucket.Tests
         }
         
         [Theory]
-        [InlineData("https", BITBUCKET_DOT_ORG_HOST,  "jsquire",100)]
-        public async Task BitbucketHostProvider_StoreCredentialAsync_SplitsIntoChunksForSupportedCredentialStores(string protocol, string host, string username, int credentialWidth)
+        [InlineData("https", BITBUCKET_DOT_ORG_HOST,  "jsquire",COMBINED_CHUNKED_ACCESS_TOKEN, MOCK_MAX_CREDENTIAL_SIZE)]
+        public async Task BitbucketHostProvider_StoreCredentialAsync_SplitsIntoChunksForSupportedCredentialStores(string protocol, string host, string username, string password, int credentialWidth)
         {
-            string longToken = BuildRandomStringOfLength(250);
-            string chunk1 = longToken.Substring(0, credentialWidth);
-            string chunk2 = longToken.Substring(credentialWidth, credentialWidth);
-            string chunk3 = longToken.Substring(200, 50);
-
-            var request = MockInput(protocol, host, username, longToken);
+            var request = MockInput(protocol, host, username, password);
             var context = new TestCommandContext();
             context.CredentialStore.MaxCredentialSize = credentialWidth;
             
@@ -782,25 +758,22 @@ namespace Atlassian.Bitbucket.Tests
             // The chunk descriptor and 3 chunks
             Assert.Equal(4, context.CredentialStore.Count);
             var serviceName = GetAccessTokenServiceName(request);
-            VerifyOAuthTokenStored(context, serviceName, username, "chunks=3");
+            VerifyOAuthTokenStored(context, serviceName, username, MOCK_CHUNKED_ACCESS_TOKEN_DESCRIPTOR);
             var chunkServiceName = GetAccessTokenChunkServiceName(request);
-            VerifyOAuthTokenStored(context, chunkServiceName, $"{username}_0", chunk1);
-            VerifyOAuthTokenStored(context, chunkServiceName, $"{username}_1", chunk2);
-            VerifyOAuthTokenStored(context, chunkServiceName, $"{username}_2", chunk3);
+            VerifyOAuthTokenStored(context, chunkServiceName, $"{username}_0", MOCK_CHUNKED_ACCESS_TOKEN_1);
+            VerifyOAuthTokenStored(context, chunkServiceName, $"{username}_1", MOCK_CHUNKED_ACCESS_TOKEN_2);
+            VerifyOAuthTokenStored(context, chunkServiceName, $"{username}_2", MOCK_CHUNKED_ACCESS_TOKEN_3);
         }
         
         [Theory]
-        [InlineData("https", BITBUCKET_DOT_ORG_HOST,  "jsquire")]
-        public async Task BitbucketHostProvider_StoreCredentialAsync_DoesNotChunk(string protocol, string host, string username)
+        [InlineData("https", BITBUCKET_DOT_ORG_HOST,"jsquire", COMBINED_CHUNKED_ACCESS_TOKEN)]
+        public async Task BitbucketHostProvider_StoreCredentialAsync_DoesNotChunk(string protocol, string host,string username, string password) 
         {
-            // The width is deliberately wider than the known maximum that some credential managers support.
-            string almostTooLongToken = BuildRandomStringOfLength(5000);
-
-            var request = MockInput(protocol, host, username, almostTooLongToken);
+            var request = MockInput(protocol, host, username, password);
 
             var context = new TestCommandContext();
             // Credential store doesn't support chunking
-            context.CredentialStore.MaxCredentialSize = null;
+            context.CredentialStore.MaxCredentialSize = 0;
 
             var provider = new BitbucketHostProvider(context, bitbucketAuthentication.Object, MockRestApiRegistry(request, bitbucketApi).Object);
 
@@ -809,7 +782,27 @@ namespace Atlassian.Bitbucket.Tests
             await provider.StoreCredentialAsync(request);
             Assert.Equal(1, context.CredentialStore.Count);
             var serviceName = GetAccessTokenServiceName(request);
-            VerifyOAuthTokenStored(context, serviceName, username, almostTooLongToken);
+            VerifyOAuthTokenStored(context, serviceName, username, password);
+        }
+        
+        [Theory]
+        [InlineData("https", BITBUCKET_DOT_ORG_HOST,"jsquire", COMBINED_CHUNKED_ACCESS_TOKEN)]
+        public async Task BitbucketHostProvider_StoreCredentialAsync_DoesNotChunkForSecretsSmallerThanMaximumCredentialSize(string protocol, string host,string username, string password) 
+        {
+            var request = MockInput(protocol, host, username, password);
+
+            var context = new TestCommandContext();
+            // Set the length to the exact size of the password we're trying to store. We can fully fit this secret and thus won't chunk
+            context.CredentialStore.MaxCredentialSize = password.Length;
+
+            var provider = new BitbucketHostProvider(context, bitbucketAuthentication.Object, MockRestApiRegistry(request, bitbucketApi).Object);
+
+            Assert.Equal(0, context.CredentialStore.Count);
+
+            await provider.StoreCredentialAsync(request);
+            Assert.Equal(1, context.CredentialStore.Count);
+            var serviceName = GetAccessTokenServiceName(request);
+            VerifyOAuthTokenStored(context, serviceName, username, password);
         }
         
 
@@ -1015,19 +1008,6 @@ namespace Atlassian.Bitbucket.Tests
             restApiRegistry.Setup(rar => rar.Get(request)).Returns(bitbucketApi.Object);
 
             return restApiRegistry;
-        }
-
-        private static String BuildRandomStringOfLength(int length)
-        {
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-
-            StringBuilder sb = new StringBuilder(length);
-
-            for (int i = 0; i < length; i++)
-            {
-                sb.Append(chars[Random.Shared.Next(chars.Length)]);
-            }
-            return sb.ToString();
         }
 
         #endregion

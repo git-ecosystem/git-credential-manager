@@ -111,11 +111,11 @@ namespace GitCredentialManager.Tests.Interop.Windows
         }
         
         [WindowsFact]
-        public void DpapiCredentialStore_MaxCredentialSize_ReturnsNull()
+        public void DpapiCredentialStore_MaxCredentialSize_ReturnsZero()
         {
             var fs = new TestFileSystem();
             ICredentialStore credentialStore = new DpapiCredentialStore(fs, TestStoreRoot, TestNamespace);
-            Assert.False(credentialStore.MaxCredentialSize.HasValue);
+            Assert.Equal(0, credentialStore.MaxCredentialSize);
         }
     }
 }

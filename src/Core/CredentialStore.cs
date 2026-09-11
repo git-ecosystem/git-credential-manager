@@ -33,7 +33,7 @@ namespace GitCredentialManager
                 return _backingStore.Name;
             }
         }
-        public int? MaxCredentialSize
+        public int MaxCredentialSize
         {
             get
             {

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using Atlassian.Bitbucket.Cloud;
 using GitCredentialManager;
@@ -10,13 +11,16 @@ using System.Text.RegularExpressions;
 
 namespace Atlassian.Bitbucket
 {
-    public class BitbucketHostProvider : IHostProvider
+    public partial class BitbucketHostProvider : IHostProvider
     {
         private readonly ICommandContext _context;
         private readonly IBitbucketAuthentication _bitbucketAuth;
         private readonly IRegistry<IBitbucketRestApi> _restApiRegistry;
-        private const string ChunkRegex = @"^chunks=(?'count'\d+)$";
-
+        
+        private const string ChunkRegexPattern = @"^chunks=(?'count'\d+)$";
+        [GeneratedRegex(ChunkRegexPattern)]
+        private static partial Regex ChunkRegex();
+        
         public BitbucketHostProvider(ICommandContext context)
             : this(context, new BitbucketAuthentication(context), new BitbucketRestApiRegistry(context)) { }
 
@@ -449,17 +453,15 @@ namespace Atlassian.Bitbucket
 
         private void AddOrUpdateCredential(string service, string account, string secret)
         {
-            var chunkConfig = _context.CredentialStore.MaxCredentialSize;
-            
-            if (chunkConfig.HasValue && secret?.Length > chunkConfig.Value)
+            if (SecretRequiresChunking(secret, out var chunkSize))
             {
                 var chunks = secret
-                    .Chunk(chunkConfig.Value)
+                    .Chunk((int)chunkSize)
                     .Select(x => new string(x)).ToList();
                 var chunkCount = chunks.Count;
                 _context.Trace.WriteLine(
-                    $"Storing credential of length {secret.Length} in {chunkCount} chunks for service: {service} and " +
-                    $"account: {account}"
+                    $"Storing credential of length {secret.Length} in {chunkCount} chunks of size {chunkSize} for " +
+                    $"service: {service} and account: {account}"
                 );
                 // We're storing the chunks in a separate service (nested under the provided service). This ensures that
                 // retrieving credentials for the provided service cannot trip up on the chunks when looking up with a
@@ -490,20 +492,32 @@ namespace Atlassian.Bitbucket
             }
         }
 
-        private int? GetChunkCount(ICredential credential)
+        private bool SecretRequiresDechunking(String secret, out int chunkCount)
         {
-            if (_context.CredentialStore.SupportsChunking() && credential.Password is not null)
+            var chunkSize = _context.CredentialStore.MaxCredentialSize;
+            // If the credentialStore has a valid configured chunk size, we have to support reading a chunked secret.
+            if (chunkSize > 0 && secret is not null)
             {
-                var isChunked = Regex.Match(credential.Password, ChunkRegex);
+                var isChunked = ChunkRegex().Match(secret);
                 if (isChunked.Success)
                 {
-                    return int.Parse(isChunked.Groups["count"].Value);
+                    chunkCount = int.Parse(isChunked.Groups["count"].Value);
+                    return true;
                 }
             }
             // If the credentialStore does not support chunking, or the secret wasn't a chunk descriptor, we are
             // returning null to indicate we shouldn't read using the chunking implementation
-            return null;
+            chunkCount = 0;
+            return false;
         }
+        
+        private bool SecretRequiresChunking(string secret, out int chunkSize)
+        {
+            // If a secret is bigger than the credentialStore's valid configured chunk size - we have to chunk it.
+            chunkSize = _context.CredentialStore.MaxCredentialSize;
+            return chunkSize > 0 && secret?.Length > chunkSize;
+        }
+        
         
         private ICredential GetCredential(string service, string account)
         {   
@@ -512,11 +526,9 @@ namespace Atlassian.Bitbucket
             {
                 return null;
             }
-
-            var optionalChunkCount = GetChunkCount(credential);
-            if (optionalChunkCount.HasValue)
+            
+            if (SecretRequiresDechunking(credential.Password, out var chunkCount))
             {
-                var chunkCount = optionalChunkCount.Value;
                 // We will be using the Account stored in the located credential to build the chunk identifiers and
                 // return the stitched together final Credential.
                 var credentialAccount = credential.Account;
@@ -525,7 +537,7 @@ namespace Atlassian.Bitbucket
                     $" stored against account: {credentialAccount}"
                 );
                 
-                var chunkedPassword = "";
+                var chunkedPasswordBuilder = new StringBuilder();
                 var chunkedService = GetChunkServiceName(service);
                 for (var index = 0; index < chunkCount; index++)
                 {  
@@ -540,10 +552,10 @@ namespace Atlassian.Bitbucket
                         $"Found chunk for service: {chunkedService} and account: {chunkAccount}: {{0}}", 
                         new object[] { chunk.Password }
                     );
-                    chunkedPassword += chunk.Password;
+                    chunkedPasswordBuilder.Append(chunk.Password);
                 }
                 // We've stitched together all the chunks into a singular secret - return it with the original account.
-                return new GitCredential(credentialAccount, chunkedPassword);
+                return new GitCredential(credentialAccount, chunkedPasswordBuilder.ToString());
             }
             _context.Trace.WriteLine(
                 $"Found non-chunked credential for service: {service} and account: {account} stored against " +
@@ -588,13 +600,6 @@ namespace Atlassian.Bitbucket
         {
             _restApiRegistry.Dispose();
             _bitbucketAuth.Dispose();
-        }
-    }
-    static class CredentialStoreExtensions
-    {
-        public static bool SupportsChunking(this ICredentialStore store)
-        {
-            return store.MaxCredentialSize.HasValue;
         }
     }
 }
