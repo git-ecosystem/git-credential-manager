@@ -75,5 +75,12 @@ namespace GitCredentialManager.Tests.Interop.MacOS
             bool result = keychain.Remove(service, account: null);
             Assert.False(result);
         }
+        
+        [MacOSFact]
+        public void MacOSKeychain_MaxCredentialSize_ReturnsZero()
+        {
+            ICredentialStore credentialStore = new MacOSKeychain(TestNamespace);
+            Assert.Equal(0, credentialStore.MaxCredentialSize);
+        }
     }
 }

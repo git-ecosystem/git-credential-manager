@@ -11,7 +11,18 @@ namespace GitCredentialManager
         /// Get the name of the credential store.
         /// </summary>
         string Name { get; }
-
+        
+        /// <summary>
+        /// Gets the maximum width of a secret that can be stored by this CredentialStore. When set allows credentials
+        /// to be stored in chunks of at most the size configured.
+        /// 
+        /// A value of LTE 0 (default of 0) indicates there is no limits set by the CredentialStore
+        /// </summary>
+        /// <remarks>
+        /// The size represented here is the number of characters (<see langword="char"/>) of the string.
+        /// </remarks>
+        int MaxCredentialSize => 0;
+        
         /// <summary>
         /// Get all accounts from the store for the given service.
         /// </summary>

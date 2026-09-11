@@ -60,5 +60,12 @@ namespace GitCredentialManager.Tests.Interop.Linux
             bool result = collection.Remove(service, account: null);
             Assert.False(result);
         }
+        
+        [LinuxFact(Skip = "Cannot run headless")]
+        public void SecretServiceCollection_MaxCredentialSize_ReturnsZero()
+        {
+            ICredentialStore credentialStore = new SecretServiceCollection(TestNamespace);
+            Assert.Equal(0, credentialStore.MaxCredentialSize);
+        }
     }
 }

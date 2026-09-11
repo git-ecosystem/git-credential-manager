@@ -2,20 +2,25 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using Atlassian.Bitbucket.Cloud;
 using GitCredentialManager;
 using GitCredentialManager.Authentication.OAuth;
-using Spectre.Console;
+using System.Text.RegularExpressions;
 
 namespace Atlassian.Bitbucket
 {
-    public class BitbucketHostProvider : IHostProvider
+    public partial class BitbucketHostProvider : IHostProvider
     {
         private readonly ICommandContext _context;
         private readonly IBitbucketAuthentication _bitbucketAuth;
         private readonly IRegistry<IBitbucketRestApi> _restApiRegistry;
-
+        
+        private const string ChunkRegexPattern = @"^chunks=(?'count'\d+)$";
+        [GeneratedRegex(ChunkRegexPattern)]
+        private static partial Regex ChunkRegex();
+        
         public BitbucketHostProvider(ICommandContext context)
             : this(context, new BitbucketAuthentication(context), new BitbucketRestApiRegistry(context)) { }
 
@@ -112,8 +117,7 @@ namespace Atlassian.Bitbucket
             Uri remoteUri = request.GetRemoteUri();
             string credentialService = GetServiceName(remoteUri);
             _context.Trace.WriteLine($"Look for existing credentials under {credentialService} ...");
-
-            ICredential credentials = _context.CredentialStore.Get(credentialService, request.UserName);
+            ICredential credentials = GetCredential(credentialService, request.UserName);
 
             if (credentials == null)
             {
@@ -150,7 +154,7 @@ namespace Atlassian.Bitbucket
             // store.
             // If a refresh token is unable to be found a full OAuth authorization flow is initiated.
             ICredential refreshToken = SupportsOAuth(authModes)
-                ? _context.CredentialStore.Get(refreshTokenService, request.UserName)
+                ? GetCredential(refreshTokenService, request.UserName)
                 : null;
 
             if (refreshToken is null)
@@ -239,7 +243,7 @@ namespace Atlassian.Bitbucket
 
             // Store the new refresh token in the credential store against the resolved Bitbucket username
             _context.Trace.WriteLine($"Storing new refresh token against user: '{bitbucketUsername}'...");
-            _context.CredentialStore.AddOrUpdate(refreshTokenService, bitbucketUsername, tokenSet.RefreshToken);    
+            AddOrUpdateCredential(refreshTokenService, bitbucketUsername, tokenSet.RefreshToken);
             _context.Trace.WriteLine("Refresh token was successfully stored.");
 
             // Return the new AT as the credential
@@ -331,9 +335,8 @@ namespace Atlassian.Bitbucket
             string service = GetServiceName(remoteUri);
 
             _context.Trace.WriteLine("Storing credential...");
-            _context.CredentialStore.AddOrUpdate(service, request.UserName, request.Password);
+            AddOrUpdateCredential(service, request.UserName, request.Password);
             _context.Trace.WriteLine("Credential was successfully stored.");
-
             return Task.CompletedTask;
         }
 
@@ -448,7 +451,134 @@ namespace Atlassian.Bitbucket
             return true;
         }
 
-        private static string GetServiceName(Uri remoteUri)
+        private void AddOrUpdateCredential(string service, string account, string secret)
+        {
+            if (SecretRequiresChunking(secret, out var chunkSize))
+            {
+                var chunks = secret
+                    .Chunk((int)chunkSize)
+                    .Select(x => new string(x)).ToList();
+                var chunkCount = chunks.Count;
+                _context.Trace.WriteLine(
+                    $"Storing credential of length {secret.Length} in {chunkCount} chunks of size {chunkSize} for " +
+                    $"service: {service} and account: {account}"
+                );
+                // We're storing the chunks in a separate service (nested under the provided service). This ensures that
+                // retrieving credentials for the provided service cannot trip up on the chunks when looking up with a
+                // null account.
+                var chunkService = GetChunkServiceName(service);
+                foreach (var (secretChunk, index) in chunks.Select((value, i) => (value, i)))
+                {
+                    var chunkAccount = GetChunkAccount(account, index);
+                    _context.Trace.WriteLineSecrets(
+                        $"Storing chunk for service: {chunkService} and account: {chunkAccount}: {{0}}",
+                        new object[] { secretChunk });
+                    _context.CredentialStore.AddOrUpdate(chunkService, chunkAccount, secretChunk);
+                }
+                // When using the chunking implementation we store a chunk descriptor against the account in the usual
+                // service. This allows us to identify (on get) that we've stored chunks, and the number of chunks to
+                // query.
+                _context.CredentialStore.AddOrUpdate(service, account, GetChunkSecret(chunkCount));
+            }
+            else
+            {
+                _context.Trace.WriteLine(
+                    $"Storing credential of length {(secret ?? "").Length} for service: {service} and " +
+                    $"account: {account}"
+                );
+                // In the case we only have a single chunk (which will be the case on all credential managers except
+                // `wincredman`) we can store the secret as the old code used to.
+                _context.CredentialStore.AddOrUpdate(service, account, secret);
+            }
+        }
+
+        private bool SecretRequiresDechunking(String secret, out int chunkCount)
+        {
+            var chunkSize = _context.CredentialStore.MaxCredentialSize;
+            // If the credentialStore has a valid configured chunk size, we have to support reading a chunked secret.
+            if (chunkSize > 0 && secret is not null)
+            {
+                var isChunked = ChunkRegex().Match(secret);
+                if (isChunked.Success)
+                {
+                    chunkCount = int.Parse(isChunked.Groups["count"].Value);
+                    return true;
+                }
+            }
+            // If the credentialStore does not support chunking, or the secret wasn't a chunk descriptor, we are
+            // returning null to indicate we shouldn't read using the chunking implementation
+            chunkCount = 0;
+            return false;
+        }
+        
+        private bool SecretRequiresChunking(string secret, out int chunkSize)
+        {
+            // If a secret is bigger than the credentialStore's valid configured chunk size - we have to chunk it.
+            chunkSize = _context.CredentialStore.MaxCredentialSize;
+            return chunkSize > 0 && secret?.Length > chunkSize;
+        }
+        
+        
+        private ICredential GetCredential(string service, string account)
+        {   
+            var credential = _context.CredentialStore.Get(service, account);
+            if (credential is null)
+            {
+                return null;
+            }
+            
+            if (SecretRequiresDechunking(credential.Password, out var chunkCount))
+            {
+                // We will be using the Account stored in the located credential to build the chunk identifiers and
+                // return the stitched together final Credential.
+                var credentialAccount = credential.Account;
+                _context.Trace.WriteLine(
+                    $"Found chunked credential (chunks={chunkCount}) for service: {service} and account: {account} " +
+                    $" stored against account: {credentialAccount}"
+                );
+                
+                var chunkedPasswordBuilder = new StringBuilder();
+                var chunkedService = GetChunkServiceName(service);
+                for (var index = 0; index < chunkCount; index++)
+                {  
+                    // Build the chunk identifier using the username stored in the chunk descriptor we looked up.
+                    var chunkAccount = GetChunkAccount(credentialAccount, index);
+                    var chunk = _context.CredentialStore.Get(chunkedService, chunkAccount);
+                    if (chunk == null){
+                        _context.Trace.WriteLine($"Chunk {index} was unexpectedly null");
+                        return null;
+                    }
+                    _context.Trace.WriteLineSecrets(
+                        $"Found chunk for service: {chunkedService} and account: {chunkAccount}: {{0}}", 
+                        new object[] { chunk.Password }
+                    );
+                    chunkedPasswordBuilder.Append(chunk.Password);
+                }
+                // We've stitched together all the chunks into a singular secret - return it with the original account.
+                return new GitCredential(credentialAccount, chunkedPasswordBuilder.ToString());
+            }
+            _context.Trace.WriteLine(
+                $"Found non-chunked credential for service: {service} and account: {account} stored against " +
+                $"account: {credential.Account}"
+            );
+            return credential;
+        }
+         
+        internal /* for testing */ static  string GetChunkAccount(string account, int chunkIndex)
+        {
+            return $"{account}_{chunkIndex}";
+        }
+        internal /* for testing */ static  string GetChunkSecret(int chunkCount)
+        {
+            return $"chunks={chunkCount}";
+        }
+        
+        internal /* for testing */ static  string GetChunkServiceName(string service)
+        {
+            return $"{service}/chunks";
+        }
+        
+        internal /* for testing */ static string GetServiceName(Uri remoteUri)
         {
             return remoteUri.WithoutUserInfo().AbsoluteUri.TrimEnd('/');
         }

@@ -15,6 +15,8 @@ namespace GitCredentialManager.Tests.Objects
         #region ICredentialStore
 
         public string Name => "Test Credential Store";
+        
+        public int MaxCredentialSize { get; set; }
 
         public IList<string> GetAccounts(string service)
         {
