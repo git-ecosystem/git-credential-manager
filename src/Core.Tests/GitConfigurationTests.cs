@@ -656,5 +656,37 @@ namespace GitCredentialManager.Tests
             // Value should be canonicalized path, not raw "~/example"
             Assert.NotEqual("~/example", value);
         }
+
+        [Fact]
+        public void GitConfiguration_ScopedConfig_ProcessesIncludes()
+        {
+            const string configKey = "test.value";
+            const string configTrigger = "remote.*.url:http://localhost/**";
+            const string configValue = "foo123";
+            string repoPath = CreateRepository(out string workDirPath);
+
+            ExecGit(repoPath, workDirPath, $"config --file {workDirPath}/git.config.glob {configKey} {configValue}").AssertSuccess();
+            ExecGit(repoPath, workDirPath, $"config --global includeif.hasconfig:{configTrigger}.path {workDirPath}/git.config.glob").AssertSuccess();
+
+            ExecGit(repoPath, workDirPath, $"config --file {workDirPath}/git.config.loc {configKey} {configValue}").AssertSuccess();
+            ExecGit(repoPath, workDirPath, $"config --local include.path {workDirPath}/git.config.loc").AssertSuccess();
+
+            ExecGit(repoPath, workDirPath, $"config --local remote.test.url http://localhost/my/repo").AssertSuccess();
+
+            string gitPath = GetGitPath();
+            var trace = new NullTrace();
+            var trace2 = new NullTrace2();
+            var processManager = new TestProcessManager();
+
+            var git = new GitProcess(trace, trace2, processManager, gitPath, repoPath);
+            IGitConfiguration config = git.GetConfiguration();
+
+            // value of included file set in scopes
+            foreach (var scope in new GitConfigurationLevel[] { GitConfigurationLevel.Global, GitConfigurationLevel.Local })
+            {
+                Assert.True(config.TryGet(scope, GitConfigurationType.Raw, configKey, out string value));
+                Assert.Equal(configValue, value);
+            }
+        }
     }
 }
