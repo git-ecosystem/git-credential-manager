@@ -103,7 +103,7 @@ public partial class EntraAuthentication
         // If we are using the shared Microsoft Developer cache there are a different set of
         // file paths, names, and keychain/keyring attributes to use.
         // The shared cache is used by other Microsoft developer tools such as the Azure PowerShell CLI.
-        if (_publicClientConfig.UseSharedCache)
+        if (PublicClientConfig.UseSharedCache)
         {
             Context.Trace.WriteLine("Using shared Microsoft Developer MSAL cache");
 

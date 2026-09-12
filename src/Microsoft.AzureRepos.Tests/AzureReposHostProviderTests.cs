@@ -6,6 +6,7 @@ using GitCredentialManager;
 using GitCredentialManager.Authentication.Entra;
 using GitCredentialManager.Tests;
 using GitCredentialManager.Tests.Objects;
+using Microsoft.Identity.Client;
 using Moq;
 using Xunit;
 
@@ -442,6 +443,133 @@ namespace Microsoft.AzureRepos.Tests
             Assert.NotNull(credential);
             Assert.Equal(account, credential.Account);
             Assert.Equal(accessToken, credential.Password);
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task AzureReposProvider_GetCredentialAsync_MsalFailure_RetriesWithLegacyClient(bool usePat)
+        {
+            var request = new GitRequest(new Dictionary<string, string>
+            {
+                ["protocol"] = "https",
+                ["host"] = "dev.azure.com",
+                ["path"] = "org/proj/_git/repo"
+            });
+
+            var expectedOrgUri = new Uri("https://dev.azure.com/org");
+            var authorityUrl = "https://login.microsoftonline.com/common";
+            var accessToken = "ACCESS-TOKEN";
+            var personalAccessToken = "PERSONAL-ACCESS-TOKEN";
+            var account = "john.doe";
+            var authResult = CreateAuthResult(account, accessToken);
+            var msalException = new MsalException("test_error", "Test failure");
+            var clientIds = new List<string>();
+
+            var context = new TestCommandContext();
+            if (!usePat)
+            {
+                context.Environment.Variables[AzureDevOpsConstants.EnvironmentVariables.CredentialType] =
+                    AzureDevOpsConstants.OAuthCredentialType;
+            }
+
+            var azDevOpsMock = new Mock<IAzureDevOpsRestApi>(MockBehavior.Strict);
+            if (usePat)
+            {
+                azDevOpsMock.Setup(x => x.GetAuthorityAsync(expectedOrgUri)).ReturnsAsync(authorityUrl);
+                azDevOpsMock.Setup(x => x.CreatePersonalAccessTokenAsync(
+                        expectedOrgUri, accessToken, It.IsAny<IEnumerable<string>>()))
+                    .ReturnsAsync(personalAccessToken);
+            }
+
+            var newEntraAuthMock = new Mock<IEntraAuthentication>(MockBehavior.Strict);
+            newEntraAuthMock.SetupGet(x => x.PublicClientConfig)
+                .Returns(new PublicClientConfig { ClientId = AzureDevOpsConstants.ClientId });
+            newEntraAuthMock.Setup(x => x.GetTokenForUserAsync(
+                    AzureDevOpsConstants.AzureDevOpsDefaultScopes, authorityUrl, null,
+                    InteractionMode.Auto, CancellationToken.None))
+                .ThrowsAsync(msalException);
+
+            var legacyEntraAuthMock = new Mock<IEntraAuthentication>(MockBehavior.Strict);
+            legacyEntraAuthMock.SetupGet(x => x.PublicClientConfig)
+                .Returns(new PublicClientConfig { ClientId = AzureDevOpsConstants.LegacyClientId });
+            legacyEntraAuthMock.Setup(x => x.GetTokenForUserAsync(
+                    AzureDevOpsConstants.AzureDevOpsDefaultScopes, authorityUrl, null,
+                    InteractionMode.Auto, CancellationToken.None))
+                .ReturnsAsync(authResult);
+
+            IEntraAuthentication EntraAuthFactory(PublicClientConfig config)
+            {
+                clientIds.Add(config.ClientId);
+                return config.ClientId == AzureDevOpsConstants.LegacyClientId
+                    ? legacyEntraAuthMock.Object
+                    : newEntraAuthMock.Object;
+            }
+
+            var authorityCacheMock = new Mock<IAzureDevOpsAuthorityCache>(MockBehavior.Strict);
+            authorityCacheMock.Setup(x => x.GetAuthority(OrgName)).Returns(authorityUrl);
+
+            var userMgrMock = new Mock<IAzureReposBindingManager>(MockBehavior.Strict);
+            userMgrMock.Setup(x => x.GetBinding(OrgName)).Returns((AzureReposBinding)null);
+
+            var provider = new AzureReposHostProvider(context, azDevOpsMock.Object, EntraAuthFactory,
+                authorityCacheMock.Object, userMgrMock.Object);
+
+            GitResponse result = await provider.GetCredentialAsync(request);
+
+            Assert.Equal(account, result.Credential.Account);
+            Assert.Equal(usePat ? personalAccessToken : accessToken, result.Credential.Password);
+            Assert.Equal(
+                new[] { AzureDevOpsConstants.ClientId, AzureDevOpsConstants.LegacyClientId },
+                clientIds);
+        }
+
+        [Fact]
+        public async Task AzureReposProvider_GetCredentialAsync_LegacyClientMsalFailure_DoesNotRetry()
+        {
+            var request = new GitRequest(new Dictionary<string, string>
+            {
+                ["protocol"] = "https",
+                ["host"] = "dev.azure.com",
+                ["path"] = "org/proj/_git/repo"
+            });
+
+            var authorityUrl = "https://login.microsoftonline.com/common";
+            var msalException = new MsalException("test_error", "Test failure");
+            var clientIds = new List<string>();
+
+            var context = new TestCommandContext();
+            context.Environment.Variables[AzureDevOpsConstants.EnvironmentVariables.CredentialType] =
+                AzureDevOpsConstants.OAuthCredentialType;
+            context.Environment.Variables[AzureDevOpsConstants.EnvironmentVariables.UseLegacyClientId] = "true";
+
+            var entraAuthMock = new Mock<IEntraAuthentication>(MockBehavior.Strict);
+            entraAuthMock.Setup(x => x.GetTokenForUserAsync(
+                    AzureDevOpsConstants.AzureDevOpsDefaultScopes, authorityUrl, null,
+                    InteractionMode.Auto, CancellationToken.None))
+                .ThrowsAsync(msalException);
+
+            IEntraAuthentication EntraAuthFactory(PublicClientConfig config)
+            {
+                clientIds.Add(config.ClientId);
+                entraAuthMock.SetupGet(x => x.PublicClientConfig).Returns(config);
+                return entraAuthMock.Object;
+            }
+
+            var authorityCacheMock = new Mock<IAzureDevOpsAuthorityCache>(MockBehavior.Strict);
+            authorityCacheMock.Setup(x => x.GetAuthority(OrgName)).Returns(authorityUrl);
+
+            var userMgrMock = new Mock<IAzureReposBindingManager>(MockBehavior.Strict);
+            userMgrMock.Setup(x => x.GetBinding(OrgName)).Returns((AzureReposBinding)null);
+
+            var provider = new AzureReposHostProvider(context, Mock.Of<IAzureDevOpsRestApi>(),
+                EntraAuthFactory, authorityCacheMock.Object, userMgrMock.Object);
+
+            MsalException exception = await Assert.ThrowsAsync<MsalException>(
+                () => provider.GetCredentialAsync(request));
+
+            Assert.Same(msalException, exception);
+            Assert.Equal(new[] { AzureDevOpsConstants.LegacyClientId }, clientIds);
         }
 
         [Fact]

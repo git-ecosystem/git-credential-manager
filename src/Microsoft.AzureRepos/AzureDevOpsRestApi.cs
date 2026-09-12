@@ -31,7 +31,7 @@ namespace Microsoft.AzureRepos
         {
             EnsureArgument.AbsoluteUri(organizationUri, nameof(organizationUri));
 
-            Uri authorityBase = GetAuthorityBaseUri();
+            Uri authorityBase = new(AzureDevOpsConstants.AadAuthorityBaseUrl);
             var commonAuthority = new Uri(authorityBase, "common");
 
             // We should be using "/common" or "/consumer" as the authority for MSA but since
@@ -86,21 +86,6 @@ namespace Microsoft.AzureRepos
             // Use the common authority if we can't determine a specific one
             _context.Trace.WriteLine($"Unable to determine AAD/MSA tenant - falling back to common authority");
             return commonAuthority.ToString();
-        }
-
-        private Uri GetAuthorityBaseUri()
-        {
-            // Check for developer override value
-            if (_context.Settings.TryGetSetting(
-                    AzureDevOpsConstants.EnvironmentVariables.DevAadAuthorityBaseUri,
-                    Constants.GitConfiguration.Credential.SectionName, AzureDevOpsConstants.GitConfiguration.Credential.DevAadAuthorityBaseUri,
-                    out string redirectUriStr) &&
-                Uri.TryCreate(redirectUriStr, UriKind.Absolute, out Uri authorityBase))
-            {
-                return authorityBase;
-            }
-
-            return new Uri(AzureDevOpsConstants.AadAuthorityBaseUrl);
         }
 
         public async Task<string> CreatePersonalAccessTokenAsync(Uri organizationUri, string accessToken, IEnumerable<string> scopes)

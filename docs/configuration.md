@@ -827,6 +827,27 @@ Credential: "git:https://bob@github.com/example/myrepo" (user = bob)
 
 ---
 
+### credential.azreposUseLegacyClientId
+
+Use the legacy Visual Studio Entra application when authenticating to Azure
+Repos with Microsoft identity OAuth tokens. Set this value to `true` to restore
+the application identity used by earlier versions of GCM.
+
+The legacy application does not support broker authentication on macOS or
+Linux.
+
+Defaults to `false`.
+
+#### Example
+
+```shell
+git config --global credential.azreposUseLegacyClientId true
+```
+
+**Also see: [GCM_AZREPOS_USE_LEGACY_CLIENTID][gcm-azrepos-legacy-client-id]**
+
+---
+
 ### credential.azreposCredentialType
 
 Specify the type of credential the Azure Repos host provider should return.
@@ -1179,6 +1200,7 @@ Defaults to disabled.
 [gcm-authority]: environment.md#GCM_AUTHORITY-deprecated
 [gcm-autodetect-timeout]: environment.md#GCM_AUTODETECT_TIMEOUT
 [gcm-azrepos-credentialtype]: environment.md#GCM_AZREPOS_CREDENTIALTYPE
+[gcm-azrepos-legacy-client-id]: environment.md#GCM_AZREPOS_USE_LEGACY_CLIENTID
 [gcm-azrepos-credentialmanagedidentity]: environment.md#GCM_AZREPOS_MANAGEDIDENTITY
 [gcm-azrepos-wif]: environment.md#GCM_AZREPOS_WIF
 [gcm-azrepos-wif-clientid]: environment.md#GCM_AZREPOS_WIF_CLIENTID

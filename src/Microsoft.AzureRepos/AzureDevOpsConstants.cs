@@ -1,5 +1,3 @@
-using System;
-
 namespace Microsoft.AzureRepos
 {
     internal static class AzureDevOpsConstants
@@ -11,9 +9,11 @@ namespace Microsoft.AzureRepos
         public const string AzureDevOpsResourceId = "499b84ac-1321-427f-aa17-267ca6975798";
         public static readonly string[] AzureDevOpsDefaultScopes = {$"{AzureDevOpsResourceId}/.default"};
 
+        // The GCM first party application client ID
+        public const string ClientId = "d735b71b-9eee-4a4f-ad23-421660877ba6";
+
         // Visual Studio's client ID
-        // We share this to be able to consume existing access tokens from the VS caches
-        public const string AadClientId = "872cd9fa-d31f-45e0-9eab-6e460a02d1f1";
+        public const string LegacyClientId = "872cd9fa-d31f-45e0-9eab-6e460a02d1f1";
 
         public const string VstsHostSuffix = ".visualstudio.com";
         public const string AzureDevOpsHost = "dev.azure.com";
@@ -34,8 +34,7 @@ namespace Microsoft.AzureRepos
 
         public static class EnvironmentVariables
         {
-            public const string DevAadClientId = "GCM_DEV_AZREPOS_CLIENTID";
-            public const string DevAadAuthorityBaseUri = "GCM_DEV_AZREPOS_AUTHORITYBASEURI";
+            public const string UseLegacyClientId = "GCM_AZREPOS_USE_LEGACY_CLIENTID";
             public const string CredentialType = "GCM_AZREPOS_CREDENTIALTYPE";
             public const string ServicePrincipalId = "GCM_AZREPOS_SERVICE_PRINCIPAL";
             public const string ServicePrincipalSecret = "GCM_AZREPOS_SP_SECRET";
@@ -54,8 +53,7 @@ namespace Microsoft.AzureRepos
         {
             public static class Credential
             {
-                public const string DevAadClientId = "azreposDevClientId";
-                public const string DevAadAuthorityBaseUri = "azreposDevAuthorityBaseUri";
+                public const string UseLegacyClientId = "azreposUseLegacyClientId";
                 public const string CredentialType = "azreposCredentialType";
                 public const string AzureAuthority = "azureAuthority";
                 public const string ServicePrincipal = "azreposServicePrincipal";

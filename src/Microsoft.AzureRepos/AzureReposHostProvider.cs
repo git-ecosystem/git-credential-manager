@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using GitCredentialManager;
 using GitCredentialManager.Authentication.Entra;
 using GitCredentialManager.Commands;
+using Microsoft.Identity.Client;
 using KnownGitCfg = GitCredentialManager.Constants.GitConfiguration;
 
 namespace Microsoft.AzureRepos
@@ -19,39 +20,45 @@ namespace Microsoft.AzureRepos
         private readonly IAzureDevOpsRestApi _azDevOps;
         private readonly IAzureDevOpsAuthorityCache _authorityCache;
         private readonly IAzureReposBindingManager _bindingManager;
-        private readonly Lazy<IEntraAuthentication> _entraAuth;
+        private readonly Func<PublicClientConfig, IEntraAuthentication> _entraAuthFactory;
 
-        public AzureReposHostProvider(ICommandContext context)
-            : this(context, new AzureDevOpsRestApi(context),
+        private Lazy<IEntraAuthentication> _entraAuth;
+
+        private void ResetEntraAuth(bool forceLegacyClientId = false)
+        {
+            _entraAuth = new Lazy<IEntraAuthentication>(() => _entraAuthFactory(GetEntraConfig(forceLegacyClientId)));
+        }
+
+        public AzureReposHostProvider(ICommandContext context) :
+            this(context, new AzureDevOpsRestApi(context), config => new EntraAuthentication(context, config),
                 new AzureDevOpsAuthorityCache(context), new AzureReposBindingManager(context))
         {
         }
 
-        public AzureReposHostProvider(ICommandContext context, IAzureDevOpsRestApi azDevOps,
-            IAzureDevOpsAuthorityCache authorityCache,
+        internal AzureReposHostProvider(ICommandContext context, IAzureDevOpsRestApi azDevOps,
+            IEntraAuthentication entraAuth, IAzureDevOpsAuthorityCache authorityCache,
             IAzureReposBindingManager bindingManager)
+            : this(context, azDevOps, _ => entraAuth, authorityCache, bindingManager)
+        {
+            EnsureArgument.NotNull(entraAuth, nameof(entraAuth));
+        }
+
+        internal AzureReposHostProvider(ICommandContext context, IAzureDevOpsRestApi azDevOps,
+            Func<PublicClientConfig, IEntraAuthentication> entraAuthFactory,
+            IAzureDevOpsAuthorityCache authorityCache, IAzureReposBindingManager bindingManager)
         {
             EnsureArgument.NotNull(context, nameof(context));
             EnsureArgument.NotNull(azDevOps, nameof(azDevOps));
             EnsureArgument.NotNull(authorityCache, nameof(authorityCache));
             EnsureArgument.NotNull(bindingManager, nameof(bindingManager));
+            EnsureArgument.NotNull(entraAuthFactory, nameof(entraAuthFactory));
 
             _context = context;
             _azDevOps = azDevOps;
             _authorityCache = authorityCache;
             _bindingManager = bindingManager;
-            _entraAuth = new Lazy<IEntraAuthentication>(
-                () => new EntraAuthentication(_context, GetEntraConfig()));
-        }
-
-        public AzureReposHostProvider(ICommandContext context, IAzureDevOpsRestApi azDevOps,
-            IEntraAuthentication entraAuth, IAzureDevOpsAuthorityCache authorityCache,
-            IAzureReposBindingManager bindingManager)
-            : this(context, azDevOps, authorityCache, bindingManager)
-        {
-            EnsureArgument.NotNull(entraAuth, nameof(entraAuth));
-
-            _entraAuth = new Lazy<IEntraAuthentication>(() => entraAuth);
+            _entraAuthFactory = entraAuthFactory;
+            ResetEntraAuth();
         }
 
         #region IHostProvider
@@ -116,6 +123,30 @@ namespace Microsoft.AzureRepos
                 );
             }
 
+            try
+            {
+                return await GetUserCredentialAsync(request);
+            }
+            // If we are using the new client ID, and we get an MSAL exception, let's retry using the
+            // legacy client ID and log a warning; asking the user to report the problem.
+            catch (MsalException msalEx) when (msalEx.ErrorCode != MsalError.AuthenticationCanceledError &&
+                                               _entraAuth.Value.PublicClientConfig.ClientId !=
+                                               AzureDevOpsConstants.LegacyClientId)
+            {
+                _context.Console.WriteError($"Failed to acquire Entra access token: {msalEx.Message}");
+                _context.Console.WriteInfo($"Please report this failure at {Constants.HelpUrls.GcmNewIssue}");
+                _context.Console.WriteInfo("Trying again with the legacy Entra client app...");
+
+                // Recreate the lazy entra auth component forcing the legacy client ID
+                ResetEntraAuth(forceLegacyClientId: true);
+
+                // Try again!
+                return await GetUserCredentialAsync(request);
+            }
+        }
+
+        private async Task<GitResponse> GetUserCredentialAsync(GitRequest request)
+        {
             if (UsePersonalAccessTokens())
             {
                 Uri remoteWithUserUri = request.GetRemoteUri(includeUser: true);
@@ -141,14 +172,12 @@ namespace Microsoft.AzureRepos
 
                 return new GitResponse(credential);
             }
-            else
-            {
-                // Include the username request here so that we may use it as an override
-                // for user account lookups when getting Entra access tokens.
-                var entraResult = await GetEntraAccessTokenAsync(request);
-                var entraCredential = new GitCredential(entraResult.Account.UserName, entraResult.AccessToken);
-                return new GitResponse(entraCredential);
-            }
+
+            // Include the username request here so that we may use it as an override
+            // for user account lookups when getting Entra access tokens.
+            var entraResult = await GetEntraAccessTokenAsync(request);
+            var entraCredential = new GitCredential(entraResult.Account.UserName, entraResult.AccessToken);
+            return new GitResponse(entraCredential);
         }
 
         public Task StoreCredentialAsync(GitRequest request)
@@ -400,33 +429,39 @@ namespace Microsoft.AzureRepos
             return false;
         }
 
-        private PublicClientConfig GetEntraConfig()
+        private PublicClientConfig GetEntraConfig(bool forceLegacyClientId)
         {
+            (string clientId, bool isLegacy) = GetClientAppInfo(forceLegacyClientId);
+
+            _context.Trace.WriteLine(isLegacy
+                ? $"Using legacy Entra client ID '{clientId}'"
+                : $"Using new Entra client ID '{clientId}'");
+
             return new PublicClientConfig
             {
-                ClientId = GetClientId(),
+                ClientId = clientId,
                 IsMsaPassthroughEnabled = true,
                 UseSharedCache = true,
                 SupportsWindowsBroker = true,
-                // TODO: enable once our app registration has the appropriate redirect URLs
-                //SupportsMacBroker = true,
-                //SupportsLinuxBroker = true,
+                // Only the new client ID supports broker on Mac and Linux
+                SupportsMacBroker = !isLegacy,
+                SupportsLinuxBroker = !isLegacy,
             };
         }
 
-        private string GetClientId()
+        private (string clientId, bool isLegacy) GetClientAppInfo(bool forceLegacyClientId)
         {
-            // Check for developer override value
-            if (_context.Settings.TryGetSetting(
-                    AzureDevOpsConstants.EnvironmentVariables.DevAadClientId,
+            // Check for override to use the legacy client ID
+            if (forceLegacyClientId || _context.Settings.TryGetSetting(
+                    AzureDevOpsConstants.EnvironmentVariables.UseLegacyClientId,
                     Constants.GitConfiguration.Credential.SectionName,
-                    AzureDevOpsConstants.GitConfiguration.Credential.DevAadClientId,
-                    out string clientId))
+                    AzureDevOpsConstants.GitConfiguration.Credential.UseLegacyClientId,
+                    out string str) && str.IsTruthy())
             {
-                return clientId;
+                return (AzureDevOpsConstants.LegacyClientId, true);
             }
 
-            return AzureDevOpsConstants.AadClientId;
+            return (AzureDevOpsConstants.ClientId, false);
         }
 
         /// <remarks>
