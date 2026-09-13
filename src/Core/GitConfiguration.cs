@@ -487,7 +487,7 @@ namespace GitCredentialManager
 
             // Fall back to original implementation
             string levelArg = GetLevelFilterArg(level);
-            using (ChildProcess git = _git.CreateProcess($"config --null {levelArg} --list"))
+            using (ChildProcess git = _git.CreateProcess($"config --null {levelArg} --includes --list"))
             {
                 git.Start(Trace2ProcessClass.Git);
                 // To avoid deadlocks, always read the output stream first and then wait
@@ -569,7 +569,7 @@ namespace GitCredentialManager
             // Fall back to individual git config command if cache not available
             string levelArg = GetLevelFilterArg(level);
             string typeArg = GetCanonicalizeTypeArg(type);
-            using (ChildProcess git = _git.CreateProcess($"config --null {levelArg} {typeArg} {QuoteCmdArg(name)}"))
+            using (ChildProcess git = _git.CreateProcess($"config --null {levelArg} --includes {typeArg} {QuoteCmdArg(name)}"))
             {
                 git.Start(Trace2ProcessClass.Git);
                 // To avoid deadlocks, always read the output stream first and then wait
@@ -691,7 +691,7 @@ namespace GitCredentialManager
             string levelArg = GetLevelFilterArg(level);
             string typeArg = GetCanonicalizeTypeArg(type);
 
-            var gitArgs = $"config --null {levelArg} {typeArg} --get-all {QuoteCmdArg(name)}";
+            var gitArgs = $"config --null {levelArg} --includes {typeArg} --get-all {QuoteCmdArg(name)}";
 
             using (ChildProcess git = _git.CreateProcess(gitArgs))
             {
@@ -729,7 +729,7 @@ namespace GitCredentialManager
             string levelArg = GetLevelFilterArg(level);
             string typeArg = GetCanonicalizeTypeArg(type);
 
-            var gitArgs = $"config --null {levelArg} {typeArg} --get-regex {QuoteCmdArg(nameRegex)}";
+            var gitArgs = $"config --null {levelArg} --includes {typeArg} --get-regex {QuoteCmdArg(nameRegex)}";
             if (valueRegex != null)
             {
                 gitArgs += $" {QuoteCmdArg(valueRegex)}";
