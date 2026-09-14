@@ -880,14 +880,12 @@ git -c credential.azreposUseLegacyClientId=true fetch
 
 Specify the type of credential the Azure Repos host provider should return.
 
-Defaults to the value `pat`. In certain cloud hosted environments when using a
-work or school account, such as [Microsoft DevBox][devbox], the default value is
-`oauth`.
+Defaults to the value `oauth`.
 
 Value|Description
 -|-
 `pat`|Azure DevOps personal access tokens
-`oauth`|Microsoft identity OAuth tokens (AAD or MSA tokens)
+`oauth`|Microsoft identity OAuth tokens (Entra ID or MSA tokens)
 
 Here is more information about [Azure Access tokens][azure-tokens].
 

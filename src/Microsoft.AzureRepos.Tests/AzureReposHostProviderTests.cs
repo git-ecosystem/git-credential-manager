@@ -51,6 +51,46 @@ namespace Microsoft.AzureRepos.Tests
             Assert.True(provider.GetUseSharedCache());
         }
 
+        [Theory]
+        [InlineData(null, null, false)]
+        [InlineData(null, "oauth", false)]
+        [InlineData(null, "OAUTH", false)]
+        [InlineData(null, "pat", true)]
+        [InlineData(null, "PAT", true)]
+        [InlineData(null, "invalid", false)]
+        [InlineData(null, "", false)]
+        [InlineData(null, " ", false)]
+        [InlineData("oauth", null, false)]
+        [InlineData("OAUTH", null, false)]
+        [InlineData("pat", null, true)]
+        [InlineData("PAT", null, true)]
+        [InlineData("invalid", null, false)]
+        [InlineData("", null, false)]
+        [InlineData(" ", null, false)]
+        [InlineData("pat", "oauth", true)]
+        [InlineData("oauth", "pat", false)]
+        [InlineData("invalid", "pat", false)]
+        [InlineData("", "pat", false)]
+        public void AzureReposProvider_UsePersonalAccessTokens(
+            string environmentValue, string gitConfigValue, bool expected)
+        {
+            var context = new TestCommandContext();
+            if (gitConfigValue is not null)
+            {
+                string key =
+                    $"{Constants.GitConfiguration.Credential.SectionName}.{AzureDevOpsConstants.GitConfiguration.Credential.CredentialType}";
+                context.Git.Configuration.Global[key] = new List<string> {gitConfigValue};
+            }
+            if (environmentValue is not null)
+            {
+                context.Environment.Variables[AzureDevOpsConstants.EnvironmentVariables.CredentialType] =
+                    environmentValue;
+            }
+            var provider = new AzureReposHostProvider(context);
+
+            Assert.Equal(expected, provider.UsePersonalAccessTokens());
+        }
+
         [Fact]
         public void AzureReposProvider_IsSupported_AzureHost_UnencryptedHttp_ReturnsTrue()
         {
@@ -650,6 +690,8 @@ namespace Microsoft.AzureRepos.Tests
             var authResult = CreateAuthResult(account, accessToken);
 
             var context = new TestCommandContext();
+            context.Environment.Variables[AzureDevOpsConstants.EnvironmentVariables.CredentialType] =
+                AzureDevOpsConstants.PatCredentialType;
 
             var azDevOpsMock = new Mock<IAzureDevOpsRestApi>(MockBehavior.Strict);
             azDevOpsMock.Setup(x => x.GetAuthorityAsync(expectedOrgUri)).ReturnsAsync(authorityUrl);
@@ -696,6 +738,8 @@ namespace Microsoft.AzureRepos.Tests
             var authResult = CreateAuthResult(account, accessToken);
 
             var context = new TestCommandContext();
+            context.Environment.Variables[AzureDevOpsConstants.EnvironmentVariables.CredentialType] =
+                AzureDevOpsConstants.PatCredentialType;
 
             var azDevOpsMock = new Mock<IAzureDevOpsRestApi>(MockBehavior.Strict);
             azDevOpsMock.Setup(x => x.GetAuthorityAsync(expectedOrgUri)).ReturnsAsync(authorityUrl);
@@ -738,6 +782,8 @@ namespace Microsoft.AzureRepos.Tests
             const string account = "john.doe";
 
             var context = new TestCommandContext();
+            context.Environment.Variables[AzureDevOpsConstants.EnvironmentVariables.CredentialType] =
+                AzureDevOpsConstants.PatCredentialType;
 
             context.CredentialStore.Add(service, account, personalAccessToken);
 
