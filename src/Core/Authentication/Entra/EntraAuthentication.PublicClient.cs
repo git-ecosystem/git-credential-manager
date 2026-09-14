@@ -455,7 +455,7 @@ public partial class EntraAuthentication
                 .WithLegacyCacheCompatibility(false)
                 .WithDefaultRedirectUri();
 
-            // Try and configure the broker if the user has opted in to using it,
+            // Try and configure the broker if it is enabled in user preferences,
             // and it is available in the current environment
             if (Context.SessionManager.IsDesktopSession && IsBrokerEnabled())
             {
@@ -618,7 +618,7 @@ public partial class EntraAuthentication
     }
 
     /// <summary>
-    /// Check if the user has opted-in to using the authentication broker.
+    /// Check if the authentication broker is enabled in user preferences.
     /// </summary>
     /// <remarks>
     /// This reflects the user preference for use of the broker, and may return true
@@ -626,10 +626,10 @@ public partial class EntraAuthentication
     /// out parameter of <see cref="GetPublicAppBuilder(out bool)"/> to see if the
     /// broker will be used for authentication.
     /// </remarks>
-    private bool IsBrokerEnabled()
+    internal bool IsBrokerEnabled()
     {
-        // Default to using the OS broker only on DevBox for the time being
-        bool defaultValue = PlatformUtils.IsDevBox();
+        // Default to using the OS broker
+        const bool defaultValue = true;
 
         if (Context.Settings.TryGetSetting(Constants.EnvironmentVariables.MsAuthUseBroker,
                 Constants.GitConfiguration.Credential.SectionName,
