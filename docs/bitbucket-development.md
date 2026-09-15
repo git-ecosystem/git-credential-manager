@@ -147,7 +147,7 @@ require configuration in the form:
 
 [additional-info]:https://confluence.atlassian.com/display/BITBUCKET/App+passwords
 [atlas-run-standalone]: https://developer.atlassian.com/server/framework/atlassian-sdk/atlas-run-standalone/
-[bitbucket]: https://bitbucket.org
+[bitbucket]: https://bitbucket.org/product
 [2fa-impl]: https://confluence.atlassian.com/bitbucket/two-step-verification-777023203.html
 [oauth-impl]: https://confluence.atlassian.com/bitbucket/oauth-on-bitbucket-cloud-238027431.html
 [atlassian-sdk]: https://developer.atlassian.com/server/framework/atlassian-sdk/
