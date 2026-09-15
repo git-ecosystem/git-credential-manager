@@ -145,14 +145,8 @@ namespace GitCredentialManager
 
             Uri uri = request.GetRemoteUri();
 
-            // Determine if the host supports Windows Integration Authentication (WIA) or OAuth
-            if (!StringComparer.OrdinalIgnoreCase.Equals(uri.Scheme, "http") &&
-                !StringComparer.OrdinalIgnoreCase.Equals(uri.Scheme, "https"))
-            {
-                // Cannot check WIA or OAuth support for non-HTTP based protocols
-            }
             // Check for an OAuth configuration for this remote
-            else if (GenericOAuthConfig.TryGet(_context.Trace, _context.Settings, request, out GenericOAuthConfig oauthConfig))
+            if (GenericOAuthConfig.TryGet(_context.Trace, _context.Settings, request, out GenericOAuthConfig oauthConfig))
             {
                 _context.Trace.WriteLine($"Found generic OAuth configuration for '{uri}':");
                 _context.Trace.WriteLine($"\tAuthzEndpoint   = {oauthConfig.Endpoints.AuthorizationEndpoint}");
@@ -169,75 +163,84 @@ namespace GitCredentialManager
                     await GetOAuthAccessToken(uri, request.UserName, oauthConfig)
                 );
             }
-            // Try detecting WIA for this remote, if permitted
-            else if (IsWindowsAuthAllowed)
-            {
-                if (PlatformUtils.IsWindows())
-                {
-                    _context.Trace.WriteLine($"Checking host '{uri.AbsoluteUri}' for Windows Integrated Authentication...");
-                    var supportedWiaTypes = await _winAuth.GetAuthenticationTypesAsync(uri);
-                    bool isWiaSupported = supportedWiaTypes != WindowsAuthenticationTypes.None;
 
-                    if (!isWiaSupported)
+            // Try detecting WIA for this remote, if permitted and possible (http(s) required for probing WIA)
+            if (StringComparer.OrdinalIgnoreCase.Equals(uri.Scheme, "http") ||
+                StringComparer.OrdinalIgnoreCase.Equals(uri.Scheme, "https"))
+            {
+                if (IsWindowsAuthAllowed)
+                {
+                    if (PlatformUtils.IsWindows())
                     {
-                        _context.Trace.WriteLine("Host does not support WIA.");
+                        _context.Trace.WriteLine($"Checking host '{uri.AbsoluteUri}' for Windows Integrated Authentication...");
+                        var supportedWiaTypes = await _winAuth.GetAuthenticationTypesAsync(uri);
+                        bool isWiaSupported = supportedWiaTypes != WindowsAuthenticationTypes.None;
+
+                        if (!isWiaSupported)
+                        {
+                            _context.Trace.WriteLine("Host does not support WIA.");
+                        }
+                        else
+                        {
+                            _context.Trace.WriteLine("Host supports WIA.");
+
+                            var additionalProps = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+                            // Has Git suppressed its own built-in NTLM authentication support?
+                            if (request.TryGetArgument(Constants.CredentialProtocol.NtlmKey, out string ntlmArg) &&
+                                StringComparer.OrdinalIgnoreCase.Equals(Constants.CredentialProtocol.NtlmSuppressed, ntlmArg))
+                            {
+                                _context.Trace.WriteLine("NTLM support has been suppressed by Git - showing warning.");
+
+                                // Show a warning that NTLM authentication will not work without Git's built-in support
+                                // and ask the user what they want to do about it.
+                                NtlmSupport ntlmSupport = await _winAuth.AskEnableNtlmAsync(uri);
+                                switch (ntlmSupport)
+                                {
+                                    case NtlmSupport.Once:
+                                        _context.Trace.WriteLine("Enabling NTLM support just once.");
+                                        additionalProps[Constants.CredentialProtocol.NtlmKey] =
+                                            Constants.CredentialProtocol.NtlmAllow;
+                                        break;
+
+                                    case NtlmSupport.Always:
+                                        _context.Trace.WriteLine($"Enabling NTLM support for {uri}.");
+                                        additionalProps[Constants.CredentialProtocol.NtlmKey] =
+                                            Constants.CredentialProtocol.NtlmAllow;
+                                        EnableNtlmSupport(uri);
+                                        break;
+
+                                    default:
+                                        _context.Trace.WriteLine("User declined to enable NTLM support. Showing basic auth prompt.");
+                                        return new GitResponse(
+                                            await _basicAuth.GetCredentialsAsync(uri.AbsoluteUri, null)
+                                        );
+                                }
+                            }
+
+                            // WIA is signaled to Git using an empty username/password
+                            _context.Trace.WriteLine("Returning empty username/password to trigger current user auth with WIA.");
+                            ICredential creds = new GitCredential(string.Empty, string.Empty);
+                            return new GitResponse(creds)
+                            {
+                                AdditionalProperties = additionalProps
+                            };
+                        }
                     }
                     else
                     {
-                        _context.Trace.WriteLine("Host supports WIA.");
-
-                        var additionalProps = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-
-                        // Has Git suppressed its own built-in NTLM authentication support?
-                        if (request.TryGetArgument(Constants.CredentialProtocol.NtlmKey, out string ntlmArg) &&
-                            StringComparer.OrdinalIgnoreCase.Equals(Constants.CredentialProtocol.NtlmSuppressed, ntlmArg))
-                        {
-                            _context.Trace.WriteLine("NTLM support has been suppressed by Git - showing warning.");
-
-                            // Show a warning that NTLM authentication will not work without Git's built-in support
-                            // and ask the user what they want to do about it.
-                            NtlmSupport ntlmSupport = await _winAuth.AskEnableNtlmAsync(uri);
-                            switch (ntlmSupport)
-                            {
-                                case NtlmSupport.Once:
-                                    _context.Trace.WriteLine("Enabling NTLM support just once.");
-                                    additionalProps[Constants.CredentialProtocol.NtlmKey] =
-                                        Constants.CredentialProtocol.NtlmAllow;
-                                    break;
-
-                                case NtlmSupport.Always:
-                                    _context.Trace.WriteLine($"Enabling NTLM support for {uri}.");
-                                    additionalProps[Constants.CredentialProtocol.NtlmKey] =
-                                        Constants.CredentialProtocol.NtlmAllow;
-                                    EnableNtlmSupport(uri);
-                                    break;
-
-                                default:
-                                    _context.Trace.WriteLine("User declined to enable NTLM support. Showing basic auth prompt.");
-                                    return new GitResponse(
-                                        await _basicAuth.GetCredentialsAsync(uri.AbsoluteUri, null)
-                                    );
-                            }
-                        }
-
-                        // WIA is signaled to Git using an empty username/password
-                        _context.Trace.WriteLine("Returning empty username/password to trigger current user auth with WIA.");
-                        ICredential creds = new GitCredential(string.Empty, string.Empty);
-                        return new GitResponse(creds)
-                        {
-                            AdditionalProperties = additionalProps
-                        };
+                        string osType = PlatformUtils.GetPlatformInformation().OperatingSystemType;
+                        _context.Trace.WriteLine($"Skipping check for Windows Integrated Authentication on {osType}.");
                     }
                 }
                 else
                 {
-                    string osType = PlatformUtils.GetPlatformInformation().OperatingSystemType;
-                    _context.Trace.WriteLine($"Skipping check for Windows Integrated Authentication on {osType}.");
+                    _context.Trace.WriteLine("Windows Integrated Authentication detection has been disabled.");
                 }
             }
             else
             {
-                _context.Trace.WriteLine("Windows Integrated Authentication detection has been disabled.");
+                _context.Trace.WriteLine("Skipping check for Windows Integrated Authentication on non-HTTP(S) remotes.");
             }
 
             // Use basic authentication
