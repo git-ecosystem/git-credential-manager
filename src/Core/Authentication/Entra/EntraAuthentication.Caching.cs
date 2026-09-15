@@ -35,7 +35,7 @@ public partial class EntraAuthentication
         }
 
         // We use the MSAL extension library to provide us consistent cache file access semantics (synchronisation, etc)
-        // as other GCM processes, and other Microsoft developer tools such as the Azure PowerShell CLI.
+        // as other GCM processes, and other Microsoft developer tools such as Visual Studio.
         MsalCacheHelper helper = null;
         try
         {
@@ -86,8 +86,8 @@ public partial class EntraAuthentication
 
     /// <summary>
     /// Create the properties for the user token cache. This is used by public client applications only.
-    /// This cache is shared between GCM processes, and also other Microsoft developer tools such as the Azure
-    /// PowerShell CLI if the shared cache is enabled.
+    /// This cache is shared between GCM processes, and also other Microsoft developer tools such as
+    /// Visual Studio if the shared cache is enabled.
     /// </summary>
     internal StorageCreationProperties CreateUserTokenCacheProps(bool useLinuxFallback)
     {
@@ -102,7 +102,7 @@ public partial class EntraAuthentication
 
         // If we are using the shared Microsoft Developer cache there are a different set of
         // file paths, names, and keychain/keyring attributes to use.
-        // The shared cache is used by other Microsoft developer tools such as the Azure PowerShell CLI.
+        // The shared cache is used by other Microsoft developer tools such as Visual Studio.
         if (_publicClientConfig.UseSharedCache)
         {
             Context.Trace.WriteLine("Using shared Microsoft Developer MSAL cache");

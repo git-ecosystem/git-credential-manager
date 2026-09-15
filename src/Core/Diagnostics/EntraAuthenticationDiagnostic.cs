@@ -13,12 +13,21 @@ namespace GitCredentialManager.Diagnostics
 
         protected override async Task RunInternalAsync(IDiagnosticReporter reporter)
         {
+            await RunDiagnosticAsync(reporter, useSharedCache: false);
+            await RunDiagnosticAsync(reporter, useSharedCache: true);
+        }
+
+        private async Task RunDiagnosticAsync(IDiagnosticReporter reporter, bool useSharedCache)
+        {
             var entraAuth = new EntraAuthentication(Context, new PublicClientConfig
             {
-                UseSharedCache = true,
+                UseSharedCache = useSharedCache,
             });
 
-            reporter.ReportProgress("Gathering MSAL token cache data");
+            reporter.ReportProgress(useSharedCache
+                ? "Checking shared Microsoft developer tool MSAL token cache"
+                : "Checking Git Credential Manager MSAL token cache");
+
             StorageCreationProperties cacheProps = entraAuth.CreateUserTokenCacheProps(true);
             reporter.ReportInfo($"CacheDirectory: {cacheProps.CacheDirectory}");
             reporter.ReportInfo($"CacheFileName: {cacheProps.CacheFileName}");
@@ -47,7 +56,7 @@ namespace GitCredentialManager.Diagnostics
             }
             catch (Exception ex)
             {
-                reporter.ReportError("Failed cache persistence test", ex);
+                reporter.ReportWarning($"Failed cache persistence test: {ex.Message}");
             }
         }
     }
