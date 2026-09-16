@@ -71,7 +71,7 @@ namespace GitCredentialManager.UI
         /// <param name="work">Work to be run.</param>
         public Task InvokeAsync(Action<CancellationToken> work)
         {
-            var tcs = new TaskCompletionSource<object>();
+            var tcs = new TaskCompletionSource<object>(TaskCreationOptions.RunContinuationsAsynchronously);
             _queue.AddJob(new DispatcherJob<object>(ct => { work(ct); return null; }, tcs));
             return tcs.Task;
         }
@@ -79,7 +79,7 @@ namespace GitCredentialManager.UI
         /// <inheritdoc cref="InvokeAsync(Action{CancellationToken})"/>
         public Task<TResult> InvokeAsync<TResult>(Func<CancellationToken, TResult> work)
         {
-            var tcs = new TaskCompletionSource<TResult>();
+            var tcs = new TaskCompletionSource<TResult>(TaskCreationOptions.RunContinuationsAsynchronously);
             _queue.AddJob(new DispatcherJob<TResult>(work, tcs));
             return tcs.Task;
         }
