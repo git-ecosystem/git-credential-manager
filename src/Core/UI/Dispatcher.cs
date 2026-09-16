@@ -241,9 +241,9 @@ namespace GitCredentialManager.UI
                         case State.Started:
                             throw new InvalidOperationException("Dispatcher has already started.");
                         case State.Stopping:
-                            throw new InvalidOperationException("Dispatcher is shutting down.");
                         case State.Stopped:
-                            throw new InvalidOperationException("Dispatcher has shut down.");
+                            // Shut down before we got here, so there is nothing left to run.
+                            return;
                     }
 
                     _state = State.Started;
@@ -261,13 +261,15 @@ namespace GitCredentialManager.UI
                 {
                     switch (_state)
                     {
-                        case State.NotStarted:
-                            throw new InvalidOperationException("Dispatcher is not running.");
                         case State.Stopping:
                             throw new InvalidOperationException("Dispatcher is already shutting down.");
                         case State.Stopped:
                             throw new InvalidOperationException("Dispatcher has already shut down.");
                     }
+
+                    // Shutting down before Run() has been reached is legitimate: the
+                    // application thread can finish before the main thread gets there.
+                    // Run() sees this and returns without starting anything.
                     _state = State.Stopping;
                     _cts.Cancel();
                     Monitor.Pulse(_queue);
