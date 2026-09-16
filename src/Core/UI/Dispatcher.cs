@@ -71,14 +71,14 @@ namespace GitCredentialManager.UI
         /// <param name="work">Work to be run.</param>
         public Task InvokeAsync(Action<CancellationToken> work)
         {
-            var tcs = new TaskCompletionSource<object>();
+            var tcs = new TaskCompletionSource<object>(TaskCreationOptions.RunContinuationsAsynchronously);
             _queue.AddJob(new DispatcherJob(work, tcs));
             return tcs.Task;
         }
 
         public Task<TResult> InvokeAsync<TResult>(Func<CancellationToken, TResult> work)
         {
-            var tcs = new TaskCompletionSource<TResult>();
+            var tcs = new TaskCompletionSource<TResult>(TaskCreationOptions.RunContinuationsAsynchronously);
             _queue.AddJob(new DispatcherJob<TResult>(work, tcs));
             return tcs.Task;
         }
