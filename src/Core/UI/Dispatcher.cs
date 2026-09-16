@@ -84,6 +84,26 @@ namespace GitCredentialManager.UI
             return tcs.Task;
         }
 
+        /// <summary>
+        /// Execute asynchronous work on the thread associated with this dispatcher.
+        /// </summary>
+        /// <param name="work">Work to be run.</param>
+        /// <returns>A task that completes when the work completes, not when it first yields.</returns>
+        public Task InvokeAsync(Func<CancellationToken, Task> work)
+        {
+            var tcs = new TaskCompletionSource<Task>(TaskCreationOptions.RunContinuationsAsynchronously);
+            _queue.AddJob(new DispatcherJob<Task>(work, tcs));
+            return tcs.Task.Unwrap();
+        }
+
+        /// <inheritdoc cref="InvokeAsync(Func{CancellationToken, Task})"/>
+        public Task<TResult> InvokeAsync<TResult>(Func<CancellationToken, Task<TResult>> work)
+        {
+            var tcs = new TaskCompletionSource<Task<TResult>>(TaskCreationOptions.RunContinuationsAsynchronously);
+            _queue.AddJob(new DispatcherJob<Task<TResult>>(work, tcs));
+            return tcs.Task.Unwrap();
+        }
+
         private interface IDispatcherJob
         {
             void Execute(CancellationToken ct);
