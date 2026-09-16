@@ -255,10 +255,18 @@ public partial class EntraAuthentication
 
         Context.Trace.WriteLine("Using broker for interactive authentication...");
 
-        // On some platforms the broker requires the use of the main thread to display UI.
-        // If we are on some other thread, we need to dispatch the interactive auth call to the main thread.
-        bool isMainThreadRequired = PlatformUtils.IsMacOS();
-        if (isMainThreadRequired && !Dispatcher.MainThread.CheckAccess())
+        // The macOS broker requires a running NSApplication. MSAL decides once per process
+        // whether it has one and caches the answer: with NSApplication running it delegates
+        // threading to the broker, but without it MSAL demands that interactive calls run on
+        // managed thread 1 and then seizes that thread with its own polling loop - which
+        // cannot coexist with our main loop.
+        //
+        // Running this on the dispatcher avoids that entirely: it owns the entry thread and
+        // has started the main loop, and therefore NSApplication, by the time our work runs.
+        // Note that only interactive calls decide the mode, so the silent attempts above must
+        // stay off the dispatcher, or they would pay to start Avalonia for nothing.
+        // Verified against MSAL 4.85.2; re-check DesktopOsHelper.IsMacConsoleApp on upgrade.
+        if (PlatformUtils.IsMacOS() && !Dispatcher.MainThread.CheckAccess())
         {
             Context.Trace.WriteLine("Dispatching interactive broker authentication to main thread...");
             return await Dispatcher.MainThread.InvokeAsync(
@@ -267,7 +275,7 @@ public partial class EntraAuthentication
             );
         }
 
-        // Run the auth on the current thread
+        // Already on the main thread, or on a platform whose broker does not care
         return await app.AcquireTokenInteractive(scopes)
             .ExecuteAsync(ct);
     }
