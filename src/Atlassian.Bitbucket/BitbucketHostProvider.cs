@@ -91,7 +91,7 @@ namespace Atlassian.Bitbucket
                 StringComparer.OrdinalIgnoreCase.Equals(request.Protocol, "http") &&
                 BitbucketHelper.IsBitbucketOrg(request))
             {
-                throw new Trace2Exception(_context.Trace2,
+                throw new Exception(
                     "Unencrypted HTTP is not recommended for Bitbucket.org. " +
                     "Ensure the repository remote URL is using HTTPS " +
                     $"or see {Constants.HelpUrls.GcmUnsafeRemotes} about how to allow unsafe remotes.");
@@ -170,7 +170,7 @@ namespace Atlassian.Bitbucket
                 {
                     var message = "User cancelled credential prompt";
                     _context.Trace.WriteLine(message);
-                    throw new Trace2Exception(_context.Trace2, message);
+                    throw new Exception(message);
                 }
 
                 switch (result.AuthenticationMode)
@@ -203,7 +203,7 @@ namespace Atlassian.Bitbucket
                     var message = "Failed to refresh existing OAuth credential using refresh token";
                     _context.Trace.WriteLine(message);
                     _context.Trace.WriteException(ex);
-                    _context.Trace2.WriteError(message);
+                    Trace2.WriteError(message);
 
                     // We failed to refresh the AT using the RT; log the refresh failure and fall through to restart
                     // the OAuth authentication flow
@@ -317,7 +317,7 @@ namespace Atlassian.Bitbucket
 
                 _context.Trace.WriteLine(message);
                 _context.Trace.WriteException(ex);
-                _context.Trace2.WriteError(message, format);
+                Trace2.WriteError(message, format);
 
                 _context.Console.WriteWarning(message);
 
@@ -373,7 +373,7 @@ namespace Atlassian.Bitbucket
                 return result.Response.UserName;
             }
 
-            throw new Trace2Exception(_context.Trace2,
+            throw new Exception(
                 $"Failed to resolve username. HTTP: {result.StatusCode}");
         }
 
@@ -385,7 +385,7 @@ namespace Atlassian.Bitbucket
                 return result.Response.UserName;
             }
 
-            throw new Trace2Exception(_context.Trace2,
+            throw new Exception(
                 $"Failed to resolve username. HTTP: {result.StatusCode}");
         }
 
@@ -426,7 +426,7 @@ namespace Atlassian.Bitbucket
                     var message = "Failed to validate existing credentials using OAuth";
                     _context.Trace.WriteLine(message);
                     _context.Trace.WriteException(ex);
-                    _context.Trace2.WriteError(message);
+                    Trace2.WriteError(message);
                 }
             }
 
@@ -443,7 +443,7 @@ namespace Atlassian.Bitbucket
                     var message = "Failed to validate existing credentials using Basic Auth";
                     _context.Trace.WriteLine(message);
                     _context.Trace.WriteException(ex);
-                    _context.Trace2.WriteError(message);
+                    Trace2.WriteError(message);
                     return false;
                 }
             }

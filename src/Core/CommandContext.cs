@@ -52,11 +52,6 @@ namespace GitCredentialManager
         ITrace Trace { get; }
 
         /// <summary>
-        /// Application TRACE2 tracing system.
-        /// </summary>
-        ITrace2 Trace2 { get; }
-
-        /// <summary>
         /// File system abstraction (exists mainly for testing).
         /// </summary>
         IFileSystem FileSystem { get; }
@@ -94,12 +89,13 @@ namespace GitCredentialManager
     {
         public CommandContext()
         {
+            using var _ = Trace2.StartRegion("cmd_ctx", "create");
+
             ApplicationPath = GetEntryApplicationPath();
             InstallationDirectory = GetInstallationDirectory();
 
             Streams = new StandardStreams();
             Trace   = new Trace();
-            Trace2  = new Trace2(this);
             Console = new ConsoleService(Streams);
 
             if (PlatformUtils.IsWindows())
@@ -107,11 +103,10 @@ namespace GitCredentialManager
                 FileSystem        = new WindowsFileSystem();
                 Environment       = new WindowsEnvironment(FileSystem);
                 SessionManager    = new WindowsSessionManager(Trace, Environment, FileSystem);
-                ProcessManager    = new WindowsProcessManager(Trace2);
+                ProcessManager    = new WindowsProcessManager();
                 string gitPath    = GetGitPath(Environment, FileSystem, Trace);
                 Git               = new GitProcess(
                                             Trace,
-                                            Trace2,
                                             ProcessManager,
                                             gitPath,
                                             FileSystem.GetCurrentDirectory()
@@ -123,11 +118,10 @@ namespace GitCredentialManager
                 FileSystem        = new MacOSFileSystem();
                 Environment       = new MacOSEnvironment(FileSystem);
                 SessionManager    = new MacOSSessionManager(Trace, Environment, FileSystem);
-                ProcessManager    = new ProcessManager(Trace2);
+                ProcessManager    = new ProcessManager();
                 string gitPath    = GetGitPath(Environment, FileSystem, Trace);
                 Git               = new GitProcess(
                                             Trace,
-                                            Trace2,
                                             ProcessManager,
                                             gitPath,
                                             FileSystem.GetCurrentDirectory()
@@ -139,11 +133,10 @@ namespace GitCredentialManager
                 FileSystem        = new LinuxFileSystem();
                 Environment       = new PosixEnvironment(FileSystem);
                 SessionManager    = new LinuxSessionManager(Trace, Environment, FileSystem);
-                ProcessManager    = new ProcessManager(Trace2);
+                ProcessManager    = new ProcessManager();
                 string gitPath    = GetGitPath(Environment, FileSystem, Trace);
                 Git               = new GitProcess(
                                             Trace,
-                                            Trace2,
                                             ProcessManager,
                                             gitPath,
                                             FileSystem.GetCurrentDirectory()
@@ -155,12 +148,14 @@ namespace GitCredentialManager
                 throw new PlatformNotSupportedException();
             }
 
-            HttpClientFactory = new HttpClientFactory(FileSystem, Trace, Trace2, Settings, Console);
+            HttpClientFactory = new HttpClientFactory(FileSystem, Trace, Settings, Console);
             CredentialStore   = new CredentialStore(this);
         }
 
         private static string GetGitPath(IEnvironment environment, IFileSystem fileSystem, ITrace trace)
         {
+            using var _ = Trace2.StartRegion("cmd_ctx", "find_git");
+
             const string unixGitName = "git";
             const string winGitName = "git.exe";
 
@@ -206,8 +201,6 @@ namespace GitCredentialManager
         public ISessionManager SessionManager { get; }
 
         public ITrace Trace { get; }
-
-        public ITrace2 Trace2 { get; }
 
         public IFileSystem FileSystem { get; }
 

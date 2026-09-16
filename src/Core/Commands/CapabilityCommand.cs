@@ -48,6 +48,9 @@ public class CapabilityCommand : Command
 
     internal void Execute()
     {
+        using var _ = Trace2.StartRegion("git_cmd", "run");
+        Trace2.WriteData("git_cmd", "name", "capability");
+
         _context.Trace.WriteLine("Start 'capability' command...");
 
         _context.Streams.Out.WriteLine($"version {ProtocolVersion}");

@@ -109,13 +109,13 @@ namespace GitCredentialManager
         /// </summary>
         /// <param name="distribution">WSL distribution name.</param>
         /// <param name="command">Command to execute.</param>
-        /// <param name="trace2">The applications TRACE2 tracer.</param>
         /// <param name="workingDirectory">Optional working directory.</param>
-        /// <returns><see cref="Process"/> object ready to start.</returns>
+        /// <param name="class">Process class for tracing purposes.</param>
+        /// <returns><see cref="ChildProcess"/> object ready to start.</returns>
         public static ChildProcess CreateWslProcess(string distribution,
             string command,
-            ITrace2 trace2,
-            string workingDirectory = null)
+            string workingDirectory = null,
+            Trace2ProcessClass @class = Trace2ProcessClass.None)
         {
             var args = new StringBuilder();
             args.AppendFormat("--distribution {0} ", distribution);
@@ -132,7 +132,7 @@ namespace GitCredentialManager
                 WorkingDirectory = workingDirectory ?? string.Empty
             };
 
-            return new ChildProcess(trace2, psi);
+            return new ChildProcess(psi, @class);
         }
 
         /// <summary>

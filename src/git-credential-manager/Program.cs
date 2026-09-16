@@ -5,7 +5,6 @@ using Avalonia;
 using GitHub;
 using GitLab;
 using Microsoft.AzureRepos;
-using GitCredentialManager.Authentication;
 using GitCredentialManager.UI;
 
 namespace GitCredentialManager
@@ -16,6 +15,8 @@ namespace GitCredentialManager
 
         public static void Main(string[] args)
         {
+            Trace2.Initialize(args);
+
             // Create the dispatcher on the main thread. This is required
             // for some platform UI services such as macOS that mandates
             // all controls are created/accessed on the initial thread
@@ -34,6 +35,7 @@ namespace GitCredentialManager
             Dispatcher.MainThread.Run();
 
             // Dispatcher was shutdown
+            Trace2.Stop(_exitCode);
             Environment.Exit(_exitCode);
         }
 
@@ -41,36 +43,32 @@ namespace GitCredentialManager
         {
             string[] args = (string[])o;
 
-            var startTime = DateTimeOffset.UtcNow;
-            // Set the session id (sid) and start time for the GCM process, to be
-            // used when TRACE2 tracing is enabled.
-            ProcessManager.CreateSid();
-
+            // Do NOT start a Trace2 thread scope for the 'AppMain' thread so that all traces are attributed
+            // to the 'main' thread. We do not gain anything accurately attributing things to this secondary
+            // thread that actually runs the majority of the application.
+            // The existence of this AppMain-thread is only to provide Avalonia UI with the actual initial
+            // thread #1 that some platforms require (namely macOS) for interacting with UI components.
             using (var context = new CommandContext())
             using (var app = new Application(context))
             {
-                // Initialize TRACE2 system
-                context.Trace2.Initialize(startTime);
-
-                // Write the start and version events
-                context.Trace2.Start(context.ApplicationPath, args);
-
-                // Register all supported host providers at the normal priority.
-                // The generic provider should never win against a more specific one, so register it with low priority.
-                app.RegisterProvider(new AzureReposHostProvider(context), HostProviderPriority.Normal);
-                app.RegisterProvider(new BitbucketHostProvider(context), HostProviderPriority.Normal);
-                app.RegisterProvider(new GitHubHostProvider(context), HostProviderPriority.Normal);
-                app.RegisterProvider(new GitLabHostProvider(context), HostProviderPriority.Normal);
-                app.RegisterProvider(new GenericHostProvider(context), HostProviderPriority.Low);
+                using (Trace2.StartRegion("main", "provider_reg"))
+                {
+                    // Register all supported host providers at the normal priority.
+                    // The generic provider should never win against a more specific one, so register it with low priority.
+                    app.RegisterProvider(new AzureReposHostProvider(context), HostProviderPriority.Normal);
+                    app.RegisterProvider(new BitbucketHostProvider(context), HostProviderPriority.Normal);
+                    app.RegisterProvider(new GitHubHostProvider(context), HostProviderPriority.Normal);
+                    app.RegisterProvider(new GitLabHostProvider(context), HostProviderPriority.Normal);
+                    app.RegisterProvider(new GenericHostProvider(context), HostProviderPriority.Low);
+                }
 
                 _exitCode = app.RunAsync(args)
                     .ConfigureAwait(false)
                     .GetAwaiter()
                     .GetResult();
-
-                context.Trace2.Stop(_exitCode);
-                Dispatcher.MainThread.Shutdown();
             }
+
+            Dispatcher.MainThread.Shutdown();
         }
 
         // Required for Avalonia designer

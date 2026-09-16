@@ -1,8 +1,5 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Net.Mime;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace GitCredentialManager.Diagnostics
@@ -15,7 +12,7 @@ namespace GitCredentialManager.Diagnostics
 
         protected override Task RunInternalAsync(IDiagnosticReporter reporter)
         {
-            PlatformInformation platformInfo = PlatformUtils.GetPlatformInformation(Context.Trace2);
+            PlatformInformation platformInfo = PlatformUtils.GetPlatformInformation();
             reporter.ReportInfo($"OSType: {platformInfo.OperatingSystemType}");
             reporter.ReportInfo($"OSVersion: {platformInfo.OperatingSystemVersion}");
 

@@ -261,9 +261,12 @@ method
 0. `exit`: contains current executable's exit code
 0. `child_start`: describes a child process that is about to be spawned
 0. `child_exit`: describes a child process at exit
+0. `cmd_name`: identifies the canonical command and inherited command hierarchy
 0. `region_enter`: describes a region (e.g. a timer for a section of code that
 is interesting) on entry
 0. `region_leave`: describes a region on leaving
+0. `data`: records a thread- and region-local key/value pair
+0. `data_json`: records a thread- and region-local structured JSON value
 
 You can read more about each of these format targets in the [corresponding
 section][trace2-events] of Git's Trace2 API documentation.

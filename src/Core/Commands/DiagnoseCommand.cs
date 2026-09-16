@@ -53,6 +53,8 @@ namespace GitCredentialManager.Commands
 
         private async Task<int> ExecuteAsync(string output, bool strict)
         {
+            using var _ = Trace2.StartRegion("diag_cmd", "run");
+
             // Don't use IStandardStreams or IConsoleService for writing output in this command
             // as we cannot trust any component on the ICommandContext is working correctly.
             // Using the default AnsiConsole directly should be safe.

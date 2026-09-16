@@ -314,9 +314,9 @@ namespace GitCredentialManager
         /// Get the HTTP user-agent for Git Credential Manager.
         /// </summary>
         /// <returns>User-agent string for HTTP requests.</returns>
-        public static string GetHttpUserAgent(ITrace2 trace2)
+        public static string GetHttpUserAgent()
         {
-            PlatformInformation info = PlatformUtils.GetPlatformInformation(trace2);
+            PlatformInformation info = PlatformUtils.GetPlatformInformation();
             string osType     = info.OperatingSystemType;
             string cpuArch    = info.CpuArchitecture;
             string clrVersion = info.ClrVersion;

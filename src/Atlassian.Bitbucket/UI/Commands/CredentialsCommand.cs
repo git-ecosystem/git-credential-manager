@@ -44,7 +44,7 @@ namespace Atlassian.Bitbucket.UI.Commands
 
             if (!viewModel.WindowResult || viewModel.SelectedMode == AuthenticationModes.None)
             {
-                throw new Trace2Exception(Context.Trace2, "User cancelled dialog.");
+                throw new Exception("User cancelled dialog.");
             }
 
             switch (viewModel.SelectedMode)

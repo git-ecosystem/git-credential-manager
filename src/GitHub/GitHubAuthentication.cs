@@ -72,6 +72,7 @@ namespace GitHub
 
         public async Task<string> SelectAccountAsync(Uri targetUri, IEnumerable<string> accounts)
         {
+            using var _ = Trace2.StartRegion("github", "select_account");
             ThrowIfUserInteractionDisabled();
 
             if (Context.Settings.IsGuiPromptsEnabled && Context.SessionManager.IsDesktopSession)
@@ -135,11 +136,16 @@ namespace GitHub
 
         public async Task<AuthenticationPromptResult> GetAuthenticationAsync(Uri targetUri, string userName, AuthenticationModes modes)
         {
+            using var _ = Trace2.StartRegion("github", "get_auth");
+            Trace2.WriteData("github", "modes/initial", modes.ToString());
+
             // If we cannot start a browser then don't offer the option
             if (!Context.SessionManager.IsWebBrowserAvailable)
             {
                 modes = modes & ~AuthenticationModes.Browser;
             }
+
+            Trace2.WriteData("github", "modes/available", modes.ToString());
 
             // We need at least one mode!
             if (modes == AuthenticationModes.None)
@@ -306,7 +312,7 @@ namespace GitHub
 
             if (!resultDict.TryGetValue("mode", out string responseMode))
             {
-                throw new Trace2Exception(Context.Trace2, "Missing 'mode' in response");
+                throw new Exception("Missing 'mode' in response");
             }
 
             switch (responseMode.ToLowerInvariant())
@@ -314,7 +320,7 @@ namespace GitHub
                 case "pat":
                     if (!resultDict.TryGetValue("pat", out string pat))
                     {
-                        throw new Trace2Exception(Context.Trace2, "Missing 'pat' in response");
+                        throw new Exception("Missing 'pat' in response");
                     }
 
                     return new AuthenticationPromptResult(
@@ -329,25 +335,27 @@ namespace GitHub
                 case "basic":
                     if (!resultDict.TryGetValue("username", out userName))
                     {
-                        throw new Trace2Exception(Context.Trace2, "Missing 'username' in response");
+                        throw new Exception("Missing 'username' in response");
                     }
 
                     if (!resultDict.TryGetValue("password", out string password))
                     {
-                        throw new Trace2Exception(Context.Trace2, "Missing 'password' in response");
+                        throw new Exception("Missing 'password' in response");
                     }
 
                     return new AuthenticationPromptResult(
                         AuthenticationModes.Basic, new GitCredential(userName, password));
 
                 default:
-                    throw new Trace2Exception(Context.Trace2,
+                    throw new Exception(
                         $"Unknown mode value in response '{responseMode}'");
             }
         }
 
         public async Task<string> GetTwoFactorCodeAsync(Uri targetUri, bool isSms)
         {
+            using var _ = Trace2.StartRegion("github", "get_tfa");
+
             ThrowIfUserInteractionDisabled();
 
             if (Context.Settings.IsGuiPromptsEnabled && Context.SessionManager.IsDesktopSession)
@@ -400,7 +408,7 @@ namespace GitHub
 
             if (!resultDict.TryGetValue("code", out string authCode))
             {
-                throw new Trace2Exception(Context.Trace2, "Missing 'code' in response");
+                throw new Exception("Missing 'code' in response");
             }
 
             return authCode;
@@ -408,14 +416,16 @@ namespace GitHub
 
         public async Task<OAuth2TokenResult> GetOAuthTokenViaBrowserAsync(Uri targetUri, IEnumerable<string> scopes, string loginHint)
         {
+            using var _ = Trace2.StartRegion("github", "oauth_browser");
+
             ThrowIfUserInteractionDisabled();
 
-            var oauthClient = new GitHubOAuth2Client(HttpClient, Context.Settings, targetUri, Context.Trace2);
+            var oauthClient = new GitHubOAuth2Client(HttpClient, Context.Settings, targetUri);
 
             // Can we launch the user's default web browser?
             if (!Context.SessionManager.IsWebBrowserAvailable)
             {
-                throw new Trace2InvalidOperationException(Context.Trace2,
+                throw new InvalidOperationException(
                     "Browser authentication requires a desktop session");
             }
 
@@ -447,9 +457,11 @@ namespace GitHub
 
         public async Task<OAuth2TokenResult> GetOAuthTokenViaDeviceCodeAsync(Uri targetUri, IEnumerable<string> scopes)
         {
+            using var _ = Trace2.StartRegion("github", "oauth_device_code");
+
             ThrowIfUserInteractionDisabled();
 
-            var oauthClient = new GitHubOAuth2Client(HttpClient, Context.Settings, targetUri, Context.Trace2);
+            var oauthClient = new GitHubOAuth2Client(HttpClient, Context.Settings, targetUri);
             OAuth2DeviceCodeResult dcr = await oauthClient.GetDeviceCodeAsync(scopes, CancellationToken.None);
 
             // If we have a desktop session show the device code in a dialog
@@ -481,7 +493,7 @@ namespace GitHub
                 }
                 catch (OperationCanceledException)
                 {
-                    throw new Trace2InvalidOperationException(Context.Trace2,
+                    throw new InvalidOperationException(
                         "User canceled device code authentication");
                 }
 

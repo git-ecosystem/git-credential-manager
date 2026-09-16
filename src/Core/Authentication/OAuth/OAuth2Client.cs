@@ -71,7 +71,6 @@ namespace GitCredentialManager.Authentication.OAuth
         private readonly OAuth2ServerEndpoints _endpoints;
         private readonly Uri _redirectUri;
         private readonly string _clientId;
-        private readonly ITrace2 _trace2;
         private readonly string _clientSecret;
         private readonly bool _addAuthHeader;
         private readonly OAuth2ResponseMode _responseMode;
@@ -81,7 +80,6 @@ namespace GitCredentialManager.Authentication.OAuth
         public OAuth2Client(HttpClient httpClient,
             OAuth2ServerEndpoints endpoints,
             string clientId,
-            ITrace2 trace2,
             Uri redirectUri = null,
             string clientSecret = null,
             bool addAuthHeader = true,
@@ -90,7 +88,6 @@ namespace GitCredentialManager.Authentication.OAuth
             _httpClient = httpClient;
             _endpoints = endpoints;
             _clientId = clientId;
-            _trace2 = trace2;
             _redirectUri = redirectUri;
             _clientSecret = clientSecret;
             _addAuthHeader = addAuthHeader;
@@ -108,6 +105,8 @@ namespace GitCredentialManager.Authentication.OAuth
         public async Task<OAuth2AuthorizationCodeResult> GetAuthorizationCodeAsync(IEnumerable<string> scopes,
             IOAuth2WebBrowser browser, IDictionary<string, string> extraQueryParams, CancellationToken ct)
         {
+            using IDisposable region = Trace2.StartRegion(OAuth2Constants.Trace2Category, "get_authcode");
+
             string state = CodeGenerator.CreateNonce();
             string codeVerifier = CodeGenerator.CreatePkceCodeVerifier();
             string codeChallenge = CodeGenerator.CreatePkceCodeChallenge(OAuth2PkceChallengeMethod.Sha256, codeVerifier);
@@ -170,27 +169,30 @@ namespace GitCredentialManager.Authentication.OAuth
 
             // Open the browser at the request URI to start the authorization code grant flow, and
             // intercept the response parameters delivered to the redirect URI.
-            IDictionary<string, string> responseParams =
-                await browser.GetAuthenticationResponseAsync(authorizationUri, redirectUri, _responseMode, ct);
+            IDictionary<string, string> responseParams;
+            using (Trace2.StartRegion(OAuth2Constants.Trace2Category, "browser"))
+            {
+                responseParams = await browser.GetAuthenticationResponseAsync(authorizationUri, redirectUri, _responseMode, ct);
+            }
 
             // Check for errors serious enough we should terminate the flow, such as if the state value returned does
             // not match the one we passed. This indicates a badly implemented Authorization Server, or worse, some
             // form of failed MITM or replay attack.
             if (!responseParams.TryGetValue(OAuth2Constants.AuthorizationGrantResponse.StateParameter, out string replyState))
             {
-                throw new Trace2OAuth2Exception(_trace2,
+                throw new OAuth2Exception(
                     $"Missing '{OAuth2Constants.AuthorizationGrantResponse.StateParameter}' in response.");
             }
             if (!StringComparer.Ordinal.Equals(state, replyState))
             {
-                throw new Trace2OAuth2Exception(_trace2,
+                throw new OAuth2Exception(
                     $"Invalid '{OAuth2Constants.AuthorizationGrantResponse.StateParameter}' in response; does not match the request.");
             }
 
             // We expect to have the auth code in the response otherwise terminate the flow (we failed authentication for some reason)
             if (!responseParams.TryGetValue(OAuth2Constants.AuthorizationGrantResponse.AuthorizationCodeParameter, out string authCode))
             {
-                throw new Trace2OAuth2Exception(_trace2,
+                throw new OAuth2Exception(
                     $"Missing '{OAuth2Constants.AuthorizationGrantResponse.AuthorizationCodeParameter}' in response.");
             }
 
@@ -199,12 +201,11 @@ namespace GitCredentialManager.Authentication.OAuth
 
         public async Task<OAuth2DeviceCodeResult> GetDeviceCodeAsync(IEnumerable<string> scopes, CancellationToken ct)
         {
-            var label = "get device code";
-            using IDisposable region = _trace2.CreateRegion(OAuth2Constants.Trace2Category, label);
+            using IDisposable region = Trace2.StartRegion(OAuth2Constants.Trace2Category, "get_devicecode");
 
             if (_endpoints.DeviceAuthorizationEndpoint is null)
             {
-                throw new Trace2InvalidOperationException(_trace2,
+                throw new InvalidOperationException(
                     "No device authorization endpoint has been configured for this client.");
             }
 
@@ -237,8 +238,7 @@ namespace GitCredentialManager.Authentication.OAuth
 
         public async Task<OAuth2TokenResult> GetTokenByAuthorizationCodeAsync(OAuth2AuthorizationCodeResult authorizationCodeResult, CancellationToken ct)
         {
-            var label = "get token by auth code";
-            using IDisposable region = _trace2.CreateRegion(OAuth2Constants.Trace2Category, label);
+            using IDisposable region = Trace2.StartRegion(OAuth2Constants.Trace2Category, "token_by_authcode");
 
             var formData = new Dictionary<string, string>
             {
@@ -276,8 +276,7 @@ namespace GitCredentialManager.Authentication.OAuth
 
         public async Task<OAuth2TokenResult> GetTokenByRefreshTokenAsync(string refreshToken, CancellationToken ct)
         {
-            var label = "get token by refresh token";
-            using IDisposable region = _trace2.CreateRegion(OAuth2Constants.Trace2Category, label);
+            using IDisposable region = Trace2.StartRegion(OAuth2Constants.Trace2Category, "token_by_refresh");
 
             var formData = new Dictionary<string, string>
             {
@@ -309,6 +308,8 @@ namespace GitCredentialManager.Authentication.OAuth
 
         public async Task<OAuth2TokenResult> GetTokenByDeviceCodeAsync(OAuth2DeviceCodeResult deviceCodeResult, CancellationToken ct)
         {
+            using IDisposable region = Trace2.StartRegion(OAuth2Constants.Trace2Category, "token_by_devicecode");
+
             var formData = new Dictionary<string, string>
             {
                 [OAuth2Constants.DeviceAuthorization.GrantTypeParameter] = OAuth2Constants.DeviceAuthorization.DeviceCodeGrantType,
@@ -413,13 +414,12 @@ namespace GitCredentialManager.Authentication.OAuth
         {
             if (TryCreateExceptionFromResponse(json, out OAuth2Exception exception))
             {
-                _trace2.WriteError(exception.Message);
                 return exception;
             }
 
             var format = "Unknown OAuth error: {0}";
             var message = string.Format(format, json);
-            return new Trace2OAuth2Exception(_trace2, message, format);
+            return new OAuth2Exception(message);
         }
 
         protected static bool TryDeserializeJson<T>(string json, JsonTypeInfo<T> typeInfo, out T obj)

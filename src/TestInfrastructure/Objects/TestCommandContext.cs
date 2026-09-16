@@ -17,7 +17,6 @@ namespace GitCredentialManager.Tests.Objects
             Console = new TestConsoleService();
             SessionManager = new TestSessionManager();
             Trace = new NullTrace();
-            Trace2 = new NullTrace2();
             FileSystem = new TestFileSystem();
             CredentialStore = new TestCredentialStore();
             HttpClientFactory = new TestHttpClientFactory();
@@ -34,7 +33,6 @@ namespace GitCredentialManager.Tests.Objects
         public TestConsoleService Console { get; set; }
         public TestSessionManager SessionManager { get; set; }
         public ITrace Trace { get; set; }
-        public ITrace2 Trace2 { get; set; }
         public TestFileSystem FileSystem { get; set; }
         public TestCredentialStore CredentialStore { get; set; }
         public TestHttpClientFactory HttpClientFactory { get; set; }

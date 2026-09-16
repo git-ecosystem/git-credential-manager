@@ -71,20 +71,17 @@ namespace GitCredentialManager
     public class GitProcess : IGit
     {
         private readonly ITrace _trace;
-        private readonly ITrace2 _trace2;
         private readonly IProcessManager _processManager;
         private readonly string _gitPath;
         private readonly string _workingDirectory;
 
-        public GitProcess(ITrace trace, ITrace2 trace2, IProcessManager processManager, string gitPath, string workingDirectory = null)
+        public GitProcess(ITrace trace, IProcessManager processManager, string gitPath, string workingDirectory = null)
         {
             EnsureArgument.NotNull(trace, nameof(trace));
-            EnsureArgument.NotNull(trace2, nameof(trace2));
             EnsureArgument.NotNull(processManager, nameof(processManager));
             EnsureArgument.NotNullOrWhiteSpace(gitPath, nameof(gitPath));
 
             _trace = trace;
-            _trace2 = trace2;
             _processManager = processManager;
             _gitPath = gitPath;
             _workingDirectory = workingDirectory;
@@ -97,23 +94,18 @@ namespace GitCredentialManager
             {
                 if (_version is null)
                 {
+                    string data;
                     using (var git = CreateProcess("version"))
                     {
-                        git.Start(Trace2ProcessClass.Git);
+                        git.Start();
 
-                        string data = git.StandardOutput.ReadToEnd();
+                        data = git.StandardOutput.ReadToEnd();
                         git.WaitForExit();
-
-                        Match match = Regex.Match(data, @"^git version (?'value'.*)");
-                        if (match.Success)
-                        {
-                            _version = new GitVersion(match.Groups["value"].Value);
-                        }
-                        else
-                        {
-                            _version = new GitVersion();
-                        }
                     }
+                    Match match = Regex.Match(data, @"^git version (?'value'.*)");
+                    _version = match.Success
+                        ? new GitVersion(match.Groups["value"].Value)
+                        : new GitVersion();
                 }
 
                 return _version;
@@ -145,7 +137,7 @@ namespace GitCredentialManager
                     git.StartInfo.RedirectStandardError = true;
                 }
 
-                git.Start(Trace2ProcessClass.Git);
+                git.Start();
 
                 // Drain and throw away stderr asynchronously to avoid a deadlock
                 // if the child process fills the stderr pipe buffer.
@@ -167,7 +159,7 @@ namespace GitCredentialManager
                     default:
                         var message = "Failed to get current Git repository";
                         _trace.WriteLine($"{message} (exit={git.ExitCode})");
-                        throw CreateGitException(git, message, _trace2);
+                        throw CreateGitException(git, message);
                 }
             }
         }
@@ -178,7 +170,7 @@ namespace GitCredentialManager
             {
                 // Redirect stderr so we can check for 'not a git repository' errors
                 git.StartInfo.RedirectStandardError = true;
-                git.Start(Trace2ProcessClass.Git);
+                git.Start();
                 // To avoid deadlocks, always read the output stream first and then wait
                 // TODO: don't read in all the data at once; stream it
                 string data = git.StandardOutput.ReadToEnd();
@@ -194,7 +186,7 @@ namespace GitCredentialManager
                     default:
                         var message = "Failed to enumerate Git remotes";
                         _trace.WriteLine($"{message} (exit={git.ExitCode})");
-                        throw CreateGitException(git, message, _trace2);
+                        throw CreateGitException(git, message);
                 }
 
                 string[] lines = data.Split('\n');
@@ -222,7 +214,8 @@ namespace GitCredentialManager
 
         public ChildProcess CreateProcess(string args)
         {
-            return _processManager.CreateProcess(_gitPath, args, false, _workingDirectory);
+            return _processManager.CreateProcess(
+                _gitPath, args, false, _workingDirectory, Trace2ProcessClass.Git);
         }
 
         // This code was originally copied from
@@ -242,12 +235,12 @@ namespace GitCredentialManager
                 UseShellExecute = false
             };
 
-            var process = _processManager.CreateProcess(procStartInfo);
-            if (!process.Start(Trace2ProcessClass.Git))
+            var process = _processManager.CreateProcess(procStartInfo, Trace2ProcessClass.Git);
+            if (!process.Start())
             {
                 var format = "Failed to start Git helper '{0}'";
                 var message = string.Format(format, args);
-                throw new Trace2Exception(_trace2, message, format);
+                throw new Exception(message);
             }
 
             if (!(standardInput is null))
@@ -276,14 +269,11 @@ namespace GitCredentialManager
             return resultDict;
         }
 
-        public static GitException CreateGitException(ChildProcess git, string message, ITrace2 trace2 = null)
+        public static GitException CreateGitException(ChildProcess git, string message)
         {
             var gitMessage = git.StartInfo.RedirectStandardError
                 ? git.StandardError.ReadToEnd()
                 : null;
-
-            if (trace2 != null)
-                throw new Trace2GitException(trace2, message, git.ExitCode, gitMessage);
 
             throw new GitException(message, gitMessage, git.ExitCode);
         }

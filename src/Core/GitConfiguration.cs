@@ -333,7 +333,8 @@ namespace GitCredentialManager
         private readonly bool _useConfigTypeCache;
         private readonly bool _useConfigRawCache;
 
-        internal GitProcessConfiguration(ITrace trace, GitProcess git) : this(trace, git, useCache: true)
+        internal GitProcessConfiguration(ITrace trace, GitProcess git)
+            : this(trace, git, useCache: true)
         {
         }
 
@@ -412,6 +413,9 @@ namespace GitCredentialManager
                 return;
             }
 
+            using IDisposable region = Trace2.StartRegion("git_config", "load_cache");
+            Trace2.WriteData("git_config", "type", type.ToString().ToLowerInvariant());
+
             if (cache == null)
             {
                 cache = new ConfigCache();
@@ -441,7 +445,7 @@ namespace GitCredentialManager
             string argList = (_git.Version >= ConfigListSubcommandMinVersion) ? "list" : "--list";
             using (ChildProcess git = _git.CreateProcess($"config {argList} --show-scope -z {typeArg}"))
             {
-                git.Start(Trace2ProcessClass.Git);
+                git.Start();
                 // To avoid deadlocks, always read the output stream first and then wait
                 string data = git.StandardOutput.ReadToEnd();
                 git.WaitForExit();
@@ -472,6 +476,9 @@ namespace GitCredentialManager
 
         public void Enumerate(GitConfigurationLevel level, GitConfigurationEnumerationCallback cb)
         {
+            using IDisposable region = Trace2.StartRegion("git_config", "enumerate");
+            Trace2.WriteData("git_config", "scope", level.ToString().ToLowerInvariant());
+
             if (_useConfigRawCache)
             {
                 EnsureCacheLoaded(GitConfigurationType.Raw);
@@ -489,7 +496,7 @@ namespace GitCredentialManager
             string levelArg = GetLevelFilterArg(level);
             using (ChildProcess git = _git.CreateProcess($"config --null {levelArg} --includes --list"))
             {
-                git.Start(Trace2ProcessClass.Git);
+                git.Start();
                 // To avoid deadlocks, always read the output stream first and then wait
                 // TODO: don't read in all the data at once; stream it
                 string data = git.StandardOutput.ReadToEnd();
@@ -567,11 +574,14 @@ namespace GitCredentialManager
             }
 
             // Fall back to individual git config command if cache not available
+            using var _ = Trace2.StartRegion("git_config", "get");
+            Trace2.WriteData("git_config", "scope", level.ToString().ToLowerInvariant());
+            Trace2.WriteData("git_config", "type", type.ToString().ToLowerInvariant());
             string levelArg = GetLevelFilterArg(level);
             string typeArg = GetCanonicalizeTypeArg(type);
             using (ChildProcess git = _git.CreateProcess($"config --null {levelArg} --includes {typeArg} {QuoteCmdArg(name)}"))
             {
-                git.Start(Trace2ProcessClass.Git);
+                git.Start();
                 // To avoid deadlocks, always read the output stream first and then wait
                 // TODO: don't read in all the data at once; stream it
                 string data = git.StandardOutput.ReadToEnd();
@@ -604,12 +614,15 @@ namespace GitCredentialManager
 
         public void Set(GitConfigurationLevel level, string name, string value)
         {
+            using IDisposable region = Trace2.StartRegion("git_config", "set");
+            Trace2.WriteData("git_config", "scope", level.ToString().ToLowerInvariant());
+
             EnsureSpecificLevel(level);
 
             string levelArg = GetLevelFilterArg(level);
             using (ChildProcess git = _git.CreateProcess($"config {levelArg} {QuoteCmdArg(name)} {QuoteCmdArg(value)}"))
             {
-                git.Start(Trace2ProcessClass.Git);
+                git.Start();
                 git.WaitForExit();
 
                 switch (git.ExitCode)
@@ -626,12 +639,15 @@ namespace GitCredentialManager
 
         public void Add(GitConfigurationLevel level, string name, string value)
         {
+            using IDisposable region = Trace2.StartRegion("git_config", "add");
+            Trace2.WriteData("git_config", "scope", level.ToString().ToLowerInvariant());
+
             EnsureSpecificLevel(level);
 
             string levelArg = GetLevelFilterArg(level);
             using (ChildProcess git = _git.CreateProcess($"config {levelArg} --add {QuoteCmdArg(name)} {QuoteCmdArg(value)}"))
             {
-                git.Start(Trace2ProcessClass.Git);
+                git.Start();
                 git.WaitForExit();
 
                 switch (git.ExitCode)
@@ -648,12 +664,15 @@ namespace GitCredentialManager
 
         public void Unset(GitConfigurationLevel level, string name)
         {
+            using IDisposable region = Trace2.StartRegion("git_config", "unset");
+            Trace2.WriteData("git_config", "scope", level.ToString().ToLowerInvariant());
+
             EnsureSpecificLevel(level);
 
             string levelArg = GetLevelFilterArg(level);
             using (ChildProcess git = _git.CreateProcess($"config {levelArg} --unset {QuoteCmdArg(name)}"))
             {
-                git.Start(Trace2ProcessClass.Git);
+                git.Start();
                 git.WaitForExit();
 
                 switch (git.ExitCode)
@@ -671,6 +690,10 @@ namespace GitCredentialManager
 
         public IEnumerable<string> GetAll(GitConfigurationLevel level, GitConfigurationType type, string name)
         {
+            using IDisposable region = Trace2.StartRegion("git_config", "get_all");
+            Trace2.WriteData("git_config", "scope", level.ToString().ToLowerInvariant());
+            Trace2.WriteData("git_config", "type", type.ToString().ToLowerInvariant());
+
             if (UseConfigCache(type))
             {
                 EnsureCacheLoaded(type);
@@ -695,7 +718,7 @@ namespace GitCredentialManager
 
             using (ChildProcess git = _git.CreateProcess(gitArgs))
             {
-                git.Start(Trace2ProcessClass.Git);
+                git.Start();
                 // To avoid deadlocks, always read the output stream first and then wait
                 // TODO: don't read in all the data at once; stream it
                 string data = git.StandardOutput.ReadToEnd();
@@ -726,6 +749,10 @@ namespace GitCredentialManager
 
         public IEnumerable<string> GetRegex(GitConfigurationLevel level, GitConfigurationType type, string nameRegex, string valueRegex)
         {
+            using IDisposable region = Trace2.StartRegion("git_config", "get_regex");
+            Trace2.WriteData("git_config", "scope", level.ToString().ToLowerInvariant());
+            Trace2.WriteData("git_config", "type", type.ToString().ToLowerInvariant());
+
             string levelArg = GetLevelFilterArg(level);
             string typeArg = GetCanonicalizeTypeArg(type);
 
@@ -737,7 +764,7 @@ namespace GitCredentialManager
 
             using (ChildProcess git = _git.CreateProcess(gitArgs))
             {
-                git.Start(Trace2ProcessClass.Git);
+                git.Start();
                 // To avoid deadlocks, always read the output stream first and then wait
                 // TODO: don't read in all the data at once; stream it
                 string data = git.StandardOutput.ReadToEnd();
@@ -768,6 +795,8 @@ namespace GitCredentialManager
 
         public void ReplaceAll(GitConfigurationLevel level, string name, string valueRegex, string value)
         {
+            using IDisposable region = Trace2.StartRegion("git_config", "replace_all");
+
             EnsureSpecificLevel(level);
 
             string levelArg = GetLevelFilterArg(level);
@@ -779,7 +808,7 @@ namespace GitCredentialManager
 
             using (ChildProcess git = _git.CreateProcess(gitArgs))
             {
-                git.Start(Trace2ProcessClass.Git);
+                git.Start();
                 git.WaitForExit();
 
                 switch (git.ExitCode)
@@ -796,6 +825,8 @@ namespace GitCredentialManager
 
         public void UnsetAll(GitConfigurationLevel level, string name, string valueRegex)
         {
+            using IDisposable region = Trace2.StartRegion("git_config", "unset_all");
+
             EnsureSpecificLevel(level);
 
             string levelArg = GetLevelFilterArg(level);
@@ -807,7 +838,7 @@ namespace GitCredentialManager
 
             using (ChildProcess git = _git.CreateProcess(gitArgs))
             {
-                git.Start(Trace2ProcessClass.Git);
+                git.Start();
                 git.WaitForExit();
 
                 switch (git.ExitCode)
