@@ -65,54 +65,155 @@ namespace GitCredentialManager.UI
         }
 
         /// <summary>
-        /// Execute work to be run on the thread associated with this dispatcher and wait
-        /// synchronously until the work is complete.
+        /// Execute synchronous work on the thread associated with this dispatcher and
+        /// return a task that completes when the work is done.
         /// </summary>
         /// <param name="work">Work to be run.</param>
         public Task InvokeAsync(Action<CancellationToken> work)
         {
-            var tcs = new TaskCompletionSource<object>(TaskCreationOptions.RunContinuationsAsynchronously);
-            _queue.AddJob(new DispatcherJob<object>(ct => { work(ct); return null; }, tcs));
-            return tcs.Task;
+            var job = new DispatcherJob<object>(ct => { work(ct); return null; });
+            _queue.AddJob(job);
+            return job.Completion;
         }
 
         /// <inheritdoc cref="InvokeAsync(Action{CancellationToken})"/>
         public Task<TResult> InvokeAsync<TResult>(Func<CancellationToken, TResult> work)
         {
-            var tcs = new TaskCompletionSource<TResult>(TaskCreationOptions.RunContinuationsAsynchronously);
-            _queue.AddJob(new DispatcherJob<TResult>(work, tcs));
-            return tcs.Task;
+            var job = new DispatcherJob<TResult>(work);
+            _queue.AddJob(job);
+            return job.Completion;
+        }
+
+        /// <summary>
+        /// Execute asynchronous work on the thread associated with this dispatcher.
+        /// </summary>
+        /// <param name="work">Work to be run.</param>
+        /// <returns>A task that completes when the work completes, not when it first yields.</returns>
+        public Task InvokeAsync(Func<CancellationToken, Task> work)
+        {
+            var job = new AsyncDispatcherJob(work);
+            _queue.AddJob(job);
+            return job.Completion;
+        }
+
+        /// <inheritdoc cref="InvokeAsync(Func{CancellationToken, Task})"/>
+        public Task<TResult> InvokeAsync<TResult>(Func<CancellationToken, Task<TResult>> work)
+        {
+            var job = new AsyncDispatcherJob<TResult>(work);
+            _queue.AddJob(job);
+            return job.Completion;
         }
 
         private interface IDispatcherJob
         {
+            Task Completion { get; }
+
             void Execute(CancellationToken ct);
+
+            void Fail(Exception ex);
         }
 
-        private class DispatcherJob<TResult> : IDispatcherJob
+        private abstract class DispatcherJob : IDispatcherJob
         {
-            private readonly Func<CancellationToken, TResult> _work;
-            private readonly TaskCompletionSource<TResult> _tcs;
-
-            public DispatcherJob(Func<CancellationToken, TResult> work, TaskCompletionSource<TResult> tcs)
-            {
-                _work = work;
-                _tcs = tcs;
-            }
+            public abstract Task Completion { get; }
 
             public void Execute(CancellationToken ct)
             {
                 try
                 {
-                    TResult result = _work(ct);
-                    _tcs?.TrySetResult(result);
+                    ExecuteCore(ct);
                 }
-                catch (Exception ex) when (_tcs is not null)
+                catch (Exception ex)
                 {
                     // Marshal the failure back to the caller rather than letting it escape
                     // on to whichever loop is currently pumping the dispatcher thread.
-                    _tcs.TrySetException(ex);
+                    Fail(ex);
                 }
+            }
+
+            public abstract void Fail(Exception ex);
+
+            protected abstract void ExecuteCore(CancellationToken ct);
+        }
+
+        private sealed class DispatcherJob<TResult> : DispatcherJob
+        {
+            private readonly Func<CancellationToken, TResult> _work;
+            private readonly TaskCompletionSource<TResult> _tcs =
+                new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            public override Task<TResult> Completion => _tcs.Task;
+
+            public DispatcherJob(Func<CancellationToken, TResult> work)
+            {
+                _work = work;
+            }
+
+            protected override void ExecuteCore(CancellationToken ct) => _tcs.TrySetResult(_work(ct));
+
+            public override void Fail(Exception ex) => _tcs.TrySetException(ex);
+        }
+
+        private sealed class AsyncDispatcherJob : DispatcherJob
+        {
+            private readonly Func<CancellationToken, Task> _work;
+            private readonly TaskCompletionSource _tcs =
+                new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            public override Task Completion => _tcs.Task;
+
+            public AsyncDispatcherJob(Func<CancellationToken, Task> work)
+            {
+                _work = work;
+            }
+
+            protected override void ExecuteCore(CancellationToken ct) => _ = CompleteAsync(_work(ct));
+
+            public override void Fail(Exception ex) => _tcs.TrySetException(ex);
+
+            private async Task CompleteAsync(Task task)
+            {
+                if (task is null)
+                {
+                    // Preserve Unwrap's treatment of a missing inner task.
+                    _tcs.TrySetCanceled();
+                    return;
+                }
+
+                // Observe completion without throwing, then forward the original outcome intact.
+                await task.ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
+                _tcs.TrySetFromTask(task);
+            }
+        }
+
+        private sealed class AsyncDispatcherJob<TResult> : DispatcherJob
+        {
+            private readonly Func<CancellationToken, Task<TResult>> _work;
+            private readonly TaskCompletionSource<TResult> _tcs =
+                new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            public override Task<TResult> Completion => _tcs.Task;
+
+            public AsyncDispatcherJob(Func<CancellationToken, Task<TResult>> work)
+            {
+                _work = work;
+            }
+
+            protected override void ExecuteCore(CancellationToken ct) => _ = CompleteAsync(_work(ct));
+
+            public override void Fail(Exception ex) => _tcs.TrySetException(ex);
+
+            private async Task CompleteAsync(Task<TResult> task)
+            {
+                if (task is null)
+                {
+                    _tcs.TrySetCanceled();
+                    return;
+                }
+
+                // SuppressThrowing is only supported by the non-generic Task awaiter.
+                await ((Task)task).ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
+                _tcs.TrySetFromTask(task);
             }
         }
 

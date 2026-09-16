@@ -261,12 +261,10 @@ public partial class EntraAuthentication
         if (isMainThreadRequired && !Dispatcher.MainThread.CheckAccess())
         {
             Context.Trace.WriteLine("Dispatching interactive broker authentication to main thread...");
-            Task<AuthenticationResult> mainThreadTask = await Dispatcher.MainThread.InvokeAsync(async _ =>
-                await app.AcquireTokenInteractive(scopes)
+            return await Dispatcher.MainThread.InvokeAsync(
+                async _ => await app.AcquireTokenInteractive(scopes)
                     .ExecuteAsync(ct)
             );
-
-            return await mainThreadTask;
         }
 
         // Run the auth on the current thread
