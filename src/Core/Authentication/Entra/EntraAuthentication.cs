@@ -21,7 +21,7 @@ public partial class EntraAuthentication : AuthenticationBase, IEntraAuthenticat
     public EntraAuthentication(ICommandContext context, PublicClientConfig publicClientConfig = null)
         : base(context)
     {
-        _publicClientConfig = publicClientConfig;
+        PublicClientConfig = publicClientConfig;
         _httpFactory = new MsalHttpClientFactoryAdaptor(context.HttpClientFactory);
     }
 

@@ -7,6 +7,12 @@ namespace GitCredentialManager.Authentication.Entra;
 public interface IEntraAuthentication
 {
     /// <summary>
+    /// The public client configuration used for authentication.
+    /// </summary>
+    /// <remarks>If this property is null then public client APIs cannot be called.</remarks>
+    PublicClientConfig PublicClientConfig { get; }
+
+    /// <summary>
     /// Ask the user which interaction mode they would like to use for authentication.
     /// </summary>
     /// <remarks>

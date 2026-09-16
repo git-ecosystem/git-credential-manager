@@ -68,7 +68,8 @@ public record PublicClientConfig
 public partial class EntraAuthentication
 {
     private const string MacBrokerRedirectUrl = "msauth.com.msauth.unsignedapp://auth";
-    private readonly PublicClientConfig _publicClientConfig;
+
+    public PublicClientConfig PublicClientConfig { get; }
 
     public async Task<InteractionMode> GetInteractionModeAsync(CancellationToken ct = default)
     {
@@ -219,7 +220,7 @@ public partial class EntraAuthentication
         try
         {
             return await app.AcquireTokenSilent(scopes, msalAccount)
-                .WithMsaPassthroughTransfer(_publicClientConfig.IsMsaPassthroughEnabled, msalAccount)
+                .WithMsaPassthroughTransfer(PublicClientConfig.IsMsaPassthroughEnabled, msalAccount)
                 .ExecuteAsync(ct);
         }
         catch (MsalUiRequiredException)
@@ -439,7 +440,7 @@ public partial class EntraAuthentication
     /// <param name="useBroker">True if the broker will be used for this applications build using this builder.</param>
     private PublicClientApplicationBuilder GetPublicAppBuilder(out bool useBroker)
     {
-        if (_publicClientConfig is null)
+        if (PublicClientConfig is null)
         {
             throw new InvalidOperationException(
                 "Public client configuration is required for user authentication.");
@@ -448,7 +449,7 @@ public partial class EntraAuthentication
         if (_publicBuilder is null)
         {
             Context.Trace.WriteLine("Creating public client application builder...");
-            var builder = PublicClientApplicationBuilder.Create(_publicClientConfig.ClientId)
+            var builder = PublicClientApplicationBuilder.Create(PublicClientConfig.ClientId)
                 .WithHttpClientFactory(_httpFactory)
                 .WithTraceLogging(Context)
                 .WithLegacyCacheCompatibility(false)
@@ -459,9 +460,9 @@ public partial class EntraAuthentication
             if (Context.SessionManager.IsDesktopSession && IsBrokerEnabled())
             {
                 // Check that the app config supports the broker on this platform
-                if (_publicClientConfig.SupportsWindowsBroker && PlatformUtils.IsWindows() ||
-                    _publicClientConfig.SupportsMacBroker && PlatformUtils.IsMacOS() ||
-                    _publicClientConfig.SupportsLinuxBroker && PlatformUtils.IsLinux())
+                if (PublicClientConfig.SupportsWindowsBroker && PlatformUtils.IsWindows() ||
+                    PublicClientConfig.SupportsMacBroker && PlatformUtils.IsMacOS() ||
+                    PublicClientConfig.SupportsLinuxBroker && PlatformUtils.IsLinux())
                 {
                     Context.Trace.WriteLine("Broker is supported by the app and enabled by the user.");
 
@@ -514,20 +515,20 @@ public partial class EntraAuthentication
     {
         var oses = BrokerOptions.OperatingSystems.None;
 
-        if (_publicClientConfig.SupportsWindowsBroker)
+        if (PublicClientConfig.SupportsWindowsBroker)
             oses |= BrokerOptions.OperatingSystems.Windows;
 
-        if (_publicClientConfig.SupportsMacBroker)
+        if (PublicClientConfig.SupportsMacBroker)
             oses |= BrokerOptions.OperatingSystems.OSX;
 
-        if (_publicClientConfig.SupportsLinuxBroker)
+        if (PublicClientConfig.SupportsLinuxBroker)
             oses |= BrokerOptions.OperatingSystems.Linux;
 
         return new BrokerOptions(oses)
         {
             Title = "Git Credential Manager",
             ListOperatingSystemAccounts = true,
-            MsaPassthrough = _publicClientConfig.IsMsaPassthroughEnabled
+            MsaPassthrough = PublicClientConfig.IsMsaPassthroughEnabled
         };
     }
 

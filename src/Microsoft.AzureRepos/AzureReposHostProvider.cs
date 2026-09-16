@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using GitCredentialManager;
 using GitCredentialManager.Authentication.Entra;
 using GitCredentialManager.Commands;
+using Microsoft.Identity.Client;
 using KnownGitCfg = GitCredentialManager.Constants.GitConfiguration;
 
 namespace Microsoft.AzureRepos
@@ -21,37 +22,35 @@ namespace Microsoft.AzureRepos
         private readonly IAzureReposBindingManager _bindingManager;
         private readonly Lazy<IEntraAuthentication> _entraAuth;
 
-        public AzureReposHostProvider(ICommandContext context)
-            : this(context, new AzureDevOpsRestApi(context),
+        public AzureReposHostProvider(ICommandContext context) :
+            this(context, new AzureDevOpsRestApi(context), config => new EntraAuthentication(context, config),
                 new AzureDevOpsAuthorityCache(context), new AzureReposBindingManager(context))
         {
         }
 
-        public AzureReposHostProvider(ICommandContext context, IAzureDevOpsRestApi azDevOps,
-            IAzureDevOpsAuthorityCache authorityCache,
+        internal AzureReposHostProvider(ICommandContext context, IAzureDevOpsRestApi azDevOps,
+            IEntraAuthentication entraAuth, IAzureDevOpsAuthorityCache authorityCache,
             IAzureReposBindingManager bindingManager)
+            : this(context, azDevOps, _ => entraAuth, authorityCache, bindingManager)
+        {
+            EnsureArgument.NotNull(entraAuth, nameof(entraAuth));
+        }
+
+        internal AzureReposHostProvider(ICommandContext context, IAzureDevOpsRestApi azDevOps,
+            Func<PublicClientConfig, IEntraAuthentication> entraAuthFactory,
+            IAzureDevOpsAuthorityCache authorityCache, IAzureReposBindingManager bindingManager)
         {
             EnsureArgument.NotNull(context, nameof(context));
             EnsureArgument.NotNull(azDevOps, nameof(azDevOps));
             EnsureArgument.NotNull(authorityCache, nameof(authorityCache));
             EnsureArgument.NotNull(bindingManager, nameof(bindingManager));
+            EnsureArgument.NotNull(entraAuthFactory, nameof(entraAuthFactory));
 
             _context = context;
             _azDevOps = azDevOps;
             _authorityCache = authorityCache;
             _bindingManager = bindingManager;
-            _entraAuth = new Lazy<IEntraAuthentication>(
-                () => new EntraAuthentication(_context, GetEntraConfig()));
-        }
-
-        public AzureReposHostProvider(ICommandContext context, IAzureDevOpsRestApi azDevOps,
-            IEntraAuthentication entraAuth, IAzureDevOpsAuthorityCache authorityCache,
-            IAzureReposBindingManager bindingManager)
-            : this(context, azDevOps, authorityCache, bindingManager)
-        {
-            EnsureArgument.NotNull(entraAuth, nameof(entraAuth));
-
-            _entraAuth = new Lazy<IEntraAuthentication>(() => entraAuth);
+            _entraAuth = new Lazy<IEntraAuthentication>(() => entraAuthFactory(GetEntraConfig()));
         }
 
         #region IHostProvider
@@ -116,6 +115,49 @@ namespace Microsoft.AzureRepos
                 );
             }
 
+            try
+            {
+                return await GetUserCredentialAsync(request);
+            }
+            catch (MsalException msalEx) when (IsClientConfigException(msalEx) &&
+                                               _entraAuth.Value.PublicClientConfig.ClientId ==
+                                               AzureDevOpsConstants.ClientId)
+            {
+                string legacyClientSetting =
+                    $"{KnownGitCfg.Credential.SectionName}.{AzureDevOpsConstants.GitConfiguration.Credential.UseLegacyClientId}";
+                _context.Console.WriteWarning(
+                    "Authentication using the new GCM Entra application failed. " +
+                    "To retry this command with the legacy Entra application, " +
+                    $"set '{legacyClientSetting}' to 'true' in Git configuration.");
+                _context.Console.WriteInfo(
+                    $"If that succeeds, please report the original failure at {Constants.HelpUrls.GcmNewIssue}");
+
+                throw;
+            }
+        }
+
+        private static bool IsClientConfigException(MsalException ex)
+        {
+            // Not a client configuration error!
+            if (ex is MsalUiRequiredException or MsalThrottledServiceException or
+                IntuneAppProtectionPolicyRequiredException)
+            {
+                return false;
+            }
+
+            if (ex is MsalServiceException svcEx)
+            {
+                // Not retryable and no additionally required claims means this is likely a client configuration issue
+                // (e.g. invalid client ID, missing or invalid redirect URI, etc.)
+                return svcEx.ErrorCode is MsalError.InvalidClient or MsalError.UnauthorizedClient &&
+                       !svcEx.IsRetryable && string.IsNullOrWhiteSpace(svcEx.Claims);
+            }
+
+            return false;
+        }
+
+        private async Task<GitResponse> GetUserCredentialAsync(GitRequest request)
+        {
             if (UsePersonalAccessTokens())
             {
                 Uri remoteWithUserUri = request.GetRemoteUri(includeUser: true);
@@ -141,14 +183,12 @@ namespace Microsoft.AzureRepos
 
                 return new GitResponse(credential);
             }
-            else
-            {
-                // Include the username request here so that we may use it as an override
-                // for user account lookups when getting Entra access tokens.
-                var entraResult = await GetEntraAccessTokenAsync(request);
-                var entraCredential = new GitCredential(entraResult.Account.UserName, entraResult.AccessToken);
-                return new GitResponse(entraCredential);
-            }
+
+            // Include the username request here so that we may use it as an override
+            // for user account lookups when getting Entra access tokens.
+            var entraResult = await GetEntraAccessTokenAsync(request);
+            var entraCredential = new GitCredential(entraResult.Account.UserName, entraResult.AccessToken);
+            return new GitResponse(entraCredential);
         }
 
         public Task StoreCredentialAsync(GitRequest request)
@@ -402,15 +442,21 @@ namespace Microsoft.AzureRepos
 
         private PublicClientConfig GetEntraConfig()
         {
+            (string clientId, bool isLegacy) = GetClientAppInfo();
+
+            _context.Trace.WriteLine(isLegacy
+                ? $"Using legacy Entra client ID '{clientId}'"
+                : $"Using new Entra client ID '{clientId}'");
+
             return new PublicClientConfig
             {
-                ClientId = GetClientId(),
+                ClientId = clientId,
                 IsMsaPassthroughEnabled = true,
                 UseSharedCache = GetUseSharedCache(),
                 SupportsWindowsBroker = true,
-                // TODO: enable once our app registration has the appropriate redirect URLs
-                //SupportsMacBroker = true,
-                //SupportsLinuxBroker = true,
+                // Only the new client ID supports broker on Mac and Linux
+                SupportsMacBroker = !isLegacy,
+                SupportsLinuxBroker = !isLegacy,
             };
         }
 
@@ -430,19 +476,19 @@ namespace Microsoft.AzureRepos
             return defaultValue;
         }
 
-        private string GetClientId()
+        private (string clientId, bool isLegacy) GetClientAppInfo()
         {
-            // Check for developer override value
+            // Check for override to use the legacy client ID
             if (_context.Settings.TryGetSetting(
-                    AzureDevOpsConstants.EnvironmentVariables.DevAadClientId,
+                    AzureDevOpsConstants.EnvironmentVariables.UseLegacyClientId,
                     Constants.GitConfiguration.Credential.SectionName,
-                    AzureDevOpsConstants.GitConfiguration.Credential.DevAadClientId,
-                    out string clientId))
+                    AzureDevOpsConstants.GitConfiguration.Credential.UseLegacyClientId,
+                    out string str) && str.IsTruthy())
             {
-                return clientId;
+                return (AzureDevOpsConstants.LegacyClientId, true);
             }
 
-            return AzureDevOpsConstants.AadClientId;
+            return (AzureDevOpsConstants.ClientId, false);
         }
 
         /// <remarks>
