@@ -4,6 +4,8 @@ namespace GitCredentialManager.Authentication.Entra;
 
 public partial class EntraAuthentication : AuthenticationBase, IEntraAuthentication
 {
+    private const string Trace2Category = "entra";
+
     private readonly IMsalHttpClientFactory _httpFactory;
 
     public static readonly string[] AuthorityIds =

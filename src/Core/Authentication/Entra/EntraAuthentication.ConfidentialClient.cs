@@ -12,6 +12,8 @@ public partial class EntraAuthentication
     public async Task<IEntraAuthenticationResult> GetTokenForServicePrincipalAsync(
         string[] scopes, ServicePrincipalIdentity sp, CancellationToken ct = default)
     {
+        using var _ = Trace2.StartRegion(Trace2Category, "token_service_principal");
+
         Context.Trace.WriteLine($"Creating confidential client for service principal '{sp.Id}' in tenant '{sp.TenantId}'...");
         var builder = ConfidentialClientApplicationBuilder.Create(sp.Id)
             .WithTenantId(sp.TenantId)
@@ -20,11 +22,13 @@ public partial class EntraAuthentication
 
         if (sp.Certificate is not null)
         {
+            Trace2.WriteData(Trace2Category, "credential/type", "certificate");
             Context.Trace.WriteLine($"Using service principal certificate: {sp.Certificate.Thumbprint}");
             builder.WithCertificate(sp.Certificate);
         }
         else if (!string.IsNullOrWhiteSpace(sp.ClientSecret))
         {
+            Trace2.WriteData(Trace2Category, "credential/type", "secret");
             Context.Trace.WriteLineSecrets("Using service principal secret: {0}", [sp.ClientSecret]);
             builder.WithClientSecret(sp.ClientSecret);
         }
@@ -33,6 +37,7 @@ public partial class EntraAuthentication
             throw new ArgumentException($"Service principal '{sp.Id}' must have either a certificate or client secret.", nameof(sp));
         }
 
+        Trace2.WriteData(Trace2Category, "send_x5c", sp.SendX5C ? "true" : "false");
         Context.Trace.WriteLine($"SendX5C is '{sp.SendX5C}'");
 
         IConfidentialClientApplication app = builder.Build();
@@ -49,6 +54,12 @@ public partial class EntraAuthentication
     public async Task<IEntraAuthenticationResult> GetTokenForManagedIdentityAsync(
         string resource, ManagedIdentity mi, CancellationToken ct = default)
     {
+        using var _ = Trace2.StartRegion(Trace2Category, "token_managed_identity");
+
+        // Record whether the identity is system- or user-assigned, but not the
+        // client or resource ID itself, which identifies a specific identity.
+        Trace2.WriteData(Trace2Category, "mi/kind", mi.Id.Split("://")[0]);
+
         Context.Trace.WriteLine($"Creating confidential client for managed identity '{mi.Id}'...");
         var builder = ManagedIdentityApplicationBuilder.Create(mi)
             .WithHttpClientFactory(_httpFactory)
@@ -66,6 +77,9 @@ public partial class EntraAuthentication
     public async Task<IEntraAuthenticationResult> GetTokenUsingWorkloadFederationAsync(
         string[] scopes, WorkloadFederationOptions fedOpts, CancellationToken ct = default)
     {
+        using var _ = Trace2.StartRegion(Trace2Category, "token_workload_federation");
+        Trace2.WriteData(Trace2Category, "scenario", fedOpts.Scenario.ToString().ToLowerInvariant());
+
         Context.Trace.WriteLine(
             $"Creating confidential client for federation with client ID '{fedOpts.ClientId}' and tenant ID '{fedOpts.TenantId}'...");
         Context.Trace.WriteLine($"Federation scenario: {fedOpts.Scenario}");
@@ -115,6 +129,8 @@ public partial class EntraAuthentication
 
     private async Task<string> GetGitHubOidcToken(Uri requestUri, string audience, string requestToken)
     {
+        using var _ = Trace2.StartRegion(Trace2Category, "github_oidc");
+
         using HttpClient http = Context.HttpClientFactory.CreateClient();
 
         UriBuilder ub = new UriBuilder(requestUri);
