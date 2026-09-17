@@ -367,7 +367,7 @@ namespace Microsoft.AzureRepos
 
             //
             // If the remote URI is a classic "*.visualstudio.com" host name and we have a user specified from the
-            // remote then take that as the current AAD/MSA user in the first instance.
+            // remote then take that as the current Entra/MSA user in the first instance.
             //
             // For "dev.azure.com" host names we only use the user info part of the remote when this doesn't
             // match the Azure DevOps organization name. Our friends in Azure DevOps decided "borrow" the username
@@ -404,7 +404,7 @@ namespace Microsoft.AzureRepos
                     : $"Found cached account '{account.HomeAccountId}'");
             }
 
-            // Get an AAD access token for the Azure DevOps SPS
+            // Get an Entra access token for the Azure DevOps SPS
             _context.Trace.WriteLine("Getting Entra access token...");
             IEntraAuthenticationResult result = await _entraAuth.Value.GetTokenForUserAsync(
                 AzureDevOpsConstants.AzureDevOpsDefaultScopes,
@@ -565,10 +565,10 @@ namespace Microsoft.AzureRepos
         /// Check if Azure DevOps Personal Access Tokens should be used or not.
         /// </summary>
         /// <returns>True if Personal Access Tokens should be used, false otherwise.</returns>
-        private bool UsePersonalAccessTokens()
+        internal bool UsePersonalAccessTokens()
         {
-            // Default to using PATs except on DevBox where we prefer OAuth tokens
-            bool defaultValue = !PlatformUtils.IsDevBox();
+            // Default to using OAuth tokens
+            const bool defaultValue = false;
 
             if (_context.Settings.TryGetSetting(
                 AzureDevOpsConstants.EnvironmentVariables.CredentialType,
@@ -588,7 +588,7 @@ namespace Microsoft.AzureRepos
 
                     default:
                         _context.Console.WriteWarning(
-                            $"unknown Azure Repos credential type '{valueStr}' - using PATs");
+                            $"unknown Azure Repos credential type '{valueStr}' - using OAuth");
                         return defaultValue;
                 }
             }

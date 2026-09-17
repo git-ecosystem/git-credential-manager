@@ -27,8 +27,8 @@ resulted in a new authentication prompt.
 ### Microsoft identity OAuth tokens
 
 "Microsoft identity OAuth token" is the generic term for OAuth-based access
-tokens issued by Azure Active Directory for either Work and School Accounts
-(AAD tokens) or Personal Accounts (Microsoft Account/MSA tokens).
+tokens issued by Entra ID for either Work and School Accounts
+(Entra ID/AAD tokens) or Personal Accounts (Microsoft Account/MSA tokens).
 
 Azure DevOps supports Git authentication using Microsoft identity OAuth tokens
 as well as PATs. Microsoft identity OAuth tokens created by Git Credential
