@@ -236,25 +236,37 @@ namespace GitCredentialManager.UI
                     {
                         case State.Started:
                             throw new InvalidOperationException("Dispatcher has already started.");
-                        case State.Stopping:
                         case State.Stopped:
+                            throw new InvalidOperationException("Dispatcher has shut down.");
+                        case State.Stopping:
                             // Shut down before we got here, so there is nothing left to run.
+                            _state = State.Stopped;
                             return;
                     }
 
                     _state = State.Started;
                 }
 
-                // Park cheaply until the main thread is actually needed. An invocation that
-                // never shows UI and never talks to the macOS broker must not pay to start
-                // the main loop.
-                if (!WaitForWork())
+                try
                 {
-                    // We were shut down before any work arrived.
-                    return;
-                }
+                    // Park cheaply until the main thread is actually needed. An invocation
+                    // that never shows UI and never talks to the macOS broker must not pay
+                    // to start the main loop.
+                    if (!WaitForWork())
+                    {
+                        // We were shut down before any work arrived.
+                        return;
+                    }
 
-                RunMainLoop();
+                    RunMainLoop();
+                }
+                finally
+                {
+                    lock (_queue)
+                    {
+                        _state = State.Stopped;
+                    }
+                }
             }
 
             public void Shutdown()
