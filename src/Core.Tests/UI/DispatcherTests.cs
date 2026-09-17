@@ -145,6 +145,35 @@ public class DispatcherTests
     }
 
     [Fact]
+    public async Task Dispatcher_InvokeAsync_RunsWorkInThePostingCallersExecutionContext()
+    {
+        var mainLoop = new FakeMainLoop();
+        var initialized = new ManualResetEventSlim();
+
+        Thread thread = StartDispatcherThread(mainLoop, initialized);
+        Assert.True(initialized.Wait(Timeout));
+        Dispatcher dispatcher = Dispatcher.MainThread;
+
+        // Set the value only once the dispatcher thread exists so that it cannot have
+        // inherited it; the value can now only reach a job by flowing from the call that
+        // posted it.
+        var state = new AsyncLocal<string>();
+        state.Value = "caller";
+
+        // The first job is posted while the main loop is still starting, and the second
+        // once it is already running: two different paths through AddJob.
+        string cold = null;
+        await dispatcher.InvokeAsync(_ => { cold = state.Value; }).WaitAsync(Timeout);
+        Assert.Equal("caller", cold);
+
+        string warm = await dispatcher.InvokeAsync(_ => state.Value).WaitAsync(Timeout);
+        Assert.Equal("caller", warm);
+
+        dispatcher.Shutdown();
+        Assert.True(thread.Join(Timeout));
+    }
+
+    [Fact]
     public async Task Dispatcher_InvokeAsync_FirstJob_BlocksUntilMainLoopIsInitialized()
     {
         using var mayInitialize = new ManualResetEventSlim();

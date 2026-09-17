@@ -30,6 +30,10 @@ namespace GitCredentialManager.UI
         // The thread that owns this dispatcher; work posted to the dispatcher must run on this thread.
         private readonly Thread _thread;
 
+        // Work run by this dispatcher is reported against this context rather than
+        // against whoever posted it, since this is the thread it executes on.
+        private readonly Trace2Context _traceContext;
+
         public static Dispatcher MainThread { get; private set; }
 
         /// <summary>
@@ -39,12 +43,13 @@ namespace GitCredentialManager.UI
 
         internal static void Initialize(IMainLoop mainLoop)
         {
-            MainThread = new Dispatcher(Thread.CurrentThread, mainLoop);
+            MainThread = new Dispatcher(Thread.CurrentThread, Trace2.GetCurrentContext(), mainLoop);
         }
 
-        private Dispatcher(Thread thread, IMainLoop mainLoop)
+        private Dispatcher(Thread thread, Trace2Context traceContext, IMainLoop mainLoop)
         {
             _thread = thread;
+            _traceContext = traceContext;
             _queue = new DispatcherJobQueue(this, mainLoop);
         }
 
@@ -113,7 +118,8 @@ namespace GitCredentialManager.UI
         public Task InvokeAsync(Action<CancellationToken> work)
         {
             var tcs = new TaskCompletionSource<object>(TaskCreationOptions.RunContinuationsAsynchronously);
-            _queue.AddJob(new DispatcherJob<object>(ct => { work(ct); return null; }, tcs));
+            _queue.AddJob(new DispatcherJob<object>(
+                ct => { work(ct); return null; }, tcs, ExecutionContext.Capture(), _traceContext));
             return tcs.Task;
         }
 
@@ -121,7 +127,7 @@ namespace GitCredentialManager.UI
         public Task<TResult> InvokeAsync<TResult>(Func<CancellationToken, TResult> work)
         {
             var tcs = new TaskCompletionSource<TResult>(TaskCreationOptions.RunContinuationsAsynchronously);
-            _queue.AddJob(new DispatcherJob<TResult>(work, tcs));
+            _queue.AddJob(new DispatcherJob<TResult>(work, tcs, ExecutionContext.Capture(), _traceContext));
             return tcs.Task;
         }
 
@@ -138,7 +144,7 @@ namespace GitCredentialManager.UI
         public Task InvokeAsync(Func<CancellationToken, Task> work)
         {
             var tcs = new TaskCompletionSource<Task>(TaskCreationOptions.RunContinuationsAsynchronously);
-            _queue.AddJob(new DispatcherJob<Task>(work, tcs));
+            _queue.AddJob(new DispatcherJob<Task>(work, tcs, ExecutionContext.Capture(), _traceContext));
             return tcs.Task.Unwrap();
         }
 
@@ -146,7 +152,7 @@ namespace GitCredentialManager.UI
         public Task<TResult> InvokeAsync<TResult>(Func<CancellationToken, Task<TResult>> work)
         {
             var tcs = new TaskCompletionSource<Task<TResult>>(TaskCreationOptions.RunContinuationsAsynchronously);
-            _queue.AddJob(new DispatcherJob<Task<TResult>>(work, tcs));
+            _queue.AddJob(new DispatcherJob<Task<TResult>>(work, tcs, ExecutionContext.Capture(), _traceContext));
             return tcs.Task.Unwrap();
         }
 
@@ -161,18 +167,27 @@ namespace GitCredentialManager.UI
         {
             private readonly Func<CancellationToken, TResult> _work;
             private readonly TaskCompletionSource<TResult> _tcs;
+            private readonly ExecutionContext _callerContext;
+            private readonly Trace2Context _traceContext;
 
-            public DispatcherJob(Func<CancellationToken, TResult> work, TaskCompletionSource<TResult> tcs)
+            public DispatcherJob(
+                Func<CancellationToken, TResult> work,
+                TaskCompletionSource<TResult> tcs,
+                ExecutionContext callerContext,
+                Trace2Context traceContext)
             {
                 _work = work;
                 _tcs = tcs;
+                _callerContext = callerContext;
+                _traceContext = traceContext;
             }
 
             public void Execute(CancellationToken ct)
             {
                 try
                 {
-                    TResult result = _work(ct);
+                    TResult result = default;
+                    RunWork(() => result = _work(ct));
                     _tcs?.TrySetResult(result);
                 }
                 catch (Exception ex) when (_tcs is not null)
@@ -184,6 +199,53 @@ namespace GitCredentialManager.UI
             }
 
             public void Fail(Exception ex) => _tcs?.TrySetException(ex);
+
+            /// <summary>
+            /// Run the work as the caller that posted it, but reported as the thread that
+            /// is running it.
+            /// </summary>
+            private void RunWork(Action work)
+            {
+                // Work must observe the ambient state of whoever posted it, so the caller's
+                // execution context is restored around it; anything flowed by AsyncLocal<T>,
+                // such as System.Diagnostics.Activity.Current, would otherwise be lost
+                // crossing to the dispatcher thread.
+                //
+                // Trace2 is the exception. It reports which thread work ran on, and this work
+                // runs on the dispatcher thread, so its context is applied on top - and must
+                // be applied inside the restored context, since restoring replaces the whole
+                // AsyncLocal<T> map and would shadow a switch made outside it.
+
+                // Nothing to restore if the caller suppressed flow.
+                if (_callerContext is null)
+                {
+                    RunAs(work);
+                    return;
+                }
+
+                ExecutionContext.Run(_callerContext, state => RunAs((Action)state), work);
+            }
+
+            private void RunAs(Action work)
+            {
+                Trace2Context previous = Trace2.GetCurrentContext();
+                Trace2.SetCurrentContext(_traceContext);
+                try
+                {
+                    if (!ReferenceEquals(previous, _traceContext))
+                    {
+                        // Switching context loses which logical thread asked for the work,
+                        // so record it before we run.
+                        Trace2.WriteData("dispatcher", "caller", previous?.ThreadName ?? string.Empty);
+                    }
+
+                    work();
+                }
+                finally
+                {
+                    Trace2.SetCurrentContext(previous);
+                }
+            }
         }
 
         private class DispatcherJobQueue
