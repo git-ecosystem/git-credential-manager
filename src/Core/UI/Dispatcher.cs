@@ -102,8 +102,17 @@ namespace GitCredentialManager.UI
 
             public void Execute(CancellationToken ct)
             {
-                TResult result = _work(ct);
-                _tcs?.SetResult(result);
+                try
+                {
+                    TResult result = _work(ct);
+                    _tcs?.TrySetResult(result);
+                }
+                catch (Exception ex) when (_tcs is not null)
+                {
+                    // Marshal the failure back to the caller rather than letting it escape
+                    // on to whichever loop is currently pumping the dispatcher thread.
+                    _tcs.TrySetException(ex);
+                }
             }
         }
 
