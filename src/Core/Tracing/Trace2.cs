@@ -35,12 +35,12 @@ public static class Trace2
 
     private static readonly Lock WritersLock = new();
     private static readonly List<ITrace2Writer> Writers = new();
-    private static readonly AsyncLocal<Trace2ExecutionContext> ThreadContext = new();
+    private static readonly AsyncLocal<Trace2Context> ThreadContext = new();
 
     private static bool _initialized;
     private static DateTimeOffset _applicationStartTime;
     private static Trace2Settings _settings;
-    private static Trace2ExecutionContext _mainContext;
+    private static Trace2Context _mainContext;
     private static string _sid;
     private static int _depth;
 
@@ -78,7 +78,7 @@ public static class Trace2
         InitializeWriters();
 
         // The main thread context is ambiently created with the process and Trace2 init
-        _mainContext = new Trace2ExecutionContext(MainThreadName, _applicationStartTime);
+        _mainContext = new Trace2Context(MainThreadName, _applicationStartTime);
         ThreadContext.Value = _mainContext;
 
         _initialized = true;
@@ -122,28 +122,56 @@ public static class Trace2
         return count;
     }
 
-    private static void SetContext(Trace2ExecutionContext context)
+    /// <summary>
+    /// Sets the Trace2 context of the current logical thread.
+    /// </summary>
+    /// <param name="context">The context to attribute subsequent events to.</param>
+    /// <remarks>
+    /// <para>
+    /// Use this together with <see cref="GetCurrentContext"/> to attribute work to a logical
+    /// thread other than the one that scheduled it, such as work handed to another thread
+    /// to run on its behalf. The context is stored in an <see cref="AsyncLocal{T}"/>, so
+    /// the change is scoped to the current execution context and is undone when that
+    /// context is left. Callers that need it undone sooner must restore the previous
+    /// context themselves.
+    /// </para>
+    /// <para>
+    /// Prefer <see cref="StartThread"/> when the work is a genuinely new logical thread
+    /// rather than a continuation of an existing one.
+    /// </para>
+    /// <para>
+    /// The call is ignored when Trace2 has not been initialized, or when
+    /// <paramref name="context"/> is null, so that a context captured before
+    /// initialization can be restored without a null check.
+    /// </para>
+    /// </remarks>
+    public static void SetCurrentContext(Trace2Context context)
     {
+        if (!_initialized || context is null) return;
+
         ThreadContext.Value = context;
     }
 
-    private static Trace2ExecutionContext GetCurrentContext()
+    /// <summary>
+    /// Gets the Trace2 context of the current logical thread.
+    /// </summary>
+    /// <returns>
+    /// The current context, or null if Trace2 has not been initialized.
+    /// </returns>
+    /// <remarks>
+    /// The returned handle is opaque; pass it to <see cref="SetCurrentContext"/> to attribute
+    /// events elsewhere to this logical thread.
+    /// </remarks>
+    public static Trace2Context GetCurrentContext()
     {
-        Trace2ExecutionContext context = ThreadContext.Value;
-        Debug.Assert(context is not null, "Trace2 event emitted without an execution context.");
+        Trace2Context context = ThreadContext.Value;
+        Debug.Assert(context is not null || !_initialized,
+            "Trace2 event emitted without an execution context.");
         // Fall back to the main thread context if we are missing one.
         // This can happen when ExecutionContext flow is suppressed, an unsafe
         // ThreadPool API is used, or work runs on a manually created thread without
         // creating a new Trace2 thread scope.
         return context ?? _mainContext;
-    }
-
-    public static IDisposable UseMainContext()
-    {
-        if (!_initialized)
-            return NoOpDisposable.Instance;
-
-        return new ContextScope(_mainContext);
     }
 
     private static void Start(string appPath,
@@ -545,7 +573,7 @@ public static class Trace2
         if (!_initialized)
             return NoOpDisposable.Instance;
 
-        Trace2ExecutionContext context = GetCurrentContext();
+        Trace2Context context = GetCurrentContext();
         return new RegionScope(context, category, label, filePath, lineNumber, message);
     }
 
@@ -572,7 +600,7 @@ public static class Trace2
         value ??= string.Empty;
 
         DateTimeOffset now = DateTimeOffset.UtcNow;
-        Trace2ExecutionContext context = GetCurrentContext();
+        Trace2Context context = GetCurrentContext();
         DateTimeOffset relativeStart = context.RegionStartTime.Value ?? context.StartTime;
 
         WriteMessage(new DataMessage
@@ -641,7 +669,7 @@ public static class Trace2
         }
 
         DateTimeOffset now = DateTimeOffset.UtcNow;
-        Trace2ExecutionContext context = GetCurrentContext();
+        Trace2Context context = GetCurrentContext();
         DateTimeOffset relativeStart = context.RegionStartTime.Value ?? context.StartTime;
 
         WriteMessage(new DataJsonMessage
@@ -1026,44 +1054,12 @@ public static class Trace2
         public void Dispose(){}
     }
 
-    private class Trace2ExecutionContext(
-        string threadName,
-        DateTimeOffset? startTime = null)
-    {
-        public AsyncLocal<int> RegionNesting { get; } = new();
-        public AsyncLocal<DateTimeOffset?> RegionStartTime { get; } = new();
-        public DateTimeOffset StartTime { get; } = startTime ?? DateTimeOffset.UtcNow;
-        public string ThreadName { get; } = threadName;
-    }
-
-    private class ContextScope : DisposableObject
-    {
-        private readonly Trace2ExecutionContext _context;
-        private readonly Trace2ExecutionContext _previousContext;
-
-        public ContextScope(Trace2ExecutionContext context)
-        {
-            _context = context;
-            _previousContext = Trace2.GetCurrentContext();
-            Trace2.SetContext(_context);
-        }
-
-        protected override void ReleaseManagedResources()
-        {
-            Debug.Assert(
-                ReferenceEquals(Trace2.GetCurrentContext(), _context),
-                "Trace2 contexts must be disposed in LIFO order.");
-
-            Trace2.SetContext(_previousContext);
-        }
-    }
-
     private class ThreadScope : DisposableObject
     {
         private readonly string _filePath;
         private readonly int _lineNumber;
-        private readonly Trace2ExecutionContext _context;
-        private readonly Trace2ExecutionContext _prevContext;
+        private readonly Trace2Context _context;
+        private readonly Trace2Context _prevContext;
         private readonly DateTimeOffset _startTime;
 
         public ThreadScope(string threadName, string filePath, int lineNumber)
@@ -1072,8 +1068,8 @@ public static class Trace2
             _filePath = filePath;
             _lineNumber = lineNumber;
 
-            _context = new Trace2ExecutionContext(threadName);
-            Trace2.SetContext(_context);
+            _context = new Trace2Context(threadName);
+            Trace2.SetCurrentContext(_context);
 
             _startTime = Trace2.WriteThreadStart(_context.ThreadName, _filePath, _lineNumber);
         }
@@ -1090,14 +1086,14 @@ public static class Trace2
                     ReferenceEquals(Trace2.GetCurrentContext(), _context),
                     "Trace2 threads must be disposed in LIFO order.");
 
-                Trace2.SetContext(_prevContext);
+                Trace2.SetCurrentContext(_prevContext);
             }
         }
     }
 
     private class RegionScope : DisposableObject
     {
-        private readonly Trace2ExecutionContext _context;
+        private readonly Trace2Context _context;
         private readonly string _category;
         private readonly string _label;
         private readonly string _filePath;
@@ -1108,7 +1104,7 @@ public static class Trace2
         private readonly DateTimeOffset _startTime;
 
         internal RegionScope(
-            Trace2ExecutionContext context,
+            Trace2Context context,
             string category,
             string label,
             string filePath,
@@ -1164,4 +1160,25 @@ public static class Trace2
             }
         }
     }
+}
+
+/// <summary>
+/// An opaque handle to the Trace2 context of a logical thread.
+/// </summary>
+/// <remarks>
+/// Capture one with <see cref="Trace2.GetCurrentContext"/> and apply it with
+/// <see cref="Trace2.SetCurrentContext"/>.
+/// </remarks>
+public sealed class Trace2Context
+{
+    internal Trace2Context(string threadName, DateTimeOffset? startTime = null)
+    {
+        ThreadName = threadName;
+        StartTime = startTime ?? DateTimeOffset.UtcNow;
+    }
+
+    internal AsyncLocal<int> RegionNesting { get; } = new();
+    internal AsyncLocal<DateTimeOffset?> RegionStartTime { get; } = new();
+    internal DateTimeOffset StartTime { get; }
+    internal string ThreadName { get; }
 }
