@@ -25,11 +25,14 @@ public partial class EntraAuthentication
 
     private async Task RegisterCacheAsync(ITokenCache cache, StoragePropertiesBuilder propsBuilder)
     {
+        using var _ = Trace2.StartRegion(Trace2Category, "cache_init");
+
         Context.Trace.WriteLine("Configuring MSAL token cache...");
 
         if (!PlatformUtils.IsWindows() && !PlatformUtils.IsPosix())
         {
             string osType = PlatformUtils.GetPlatformInformation().OperatingSystemType;
+            Trace2.WriteData(Trace2Category, "result", "unsupported");
             Context.Trace.WriteLine($"Token cache integration is not supported on {osType}.");
             return;
         }
@@ -37,6 +40,7 @@ public partial class EntraAuthentication
         // We use the MSAL extension library to provide us consistent cache file access semantics (synchronisation, etc)
         // as other GCM processes, and other Microsoft developer tools such as Visual Studio.
         MsalCacheHelper helper = null;
+        string cacheResult = "ok";
         try
         {
             StorageCreationProperties storageProps = propsBuilder(useLinuxFallback: false);
@@ -67,6 +71,7 @@ public partial class EntraAuthentication
                 // On Linux the SecretService/keyring might not be available so we must fall-back to a plaintext file.
                 Context.Console.WriteWarning("using plain-text fallback token cache");
                 Context.Trace.WriteLine("Using fall-back plaintext token cache on Linux.");
+                cacheResult = "linux_fallback";
                 StorageCreationProperties storageProps = propsBuilder(useLinuxFallback: true);
                 helper = await MsalCacheHelper.CreateAsync(storageProps);
             }
@@ -74,12 +79,14 @@ public partial class EntraAuthentication
 
         if (helper is null)
         {
+            Trace2.WriteData(Trace2Category, "result", "failed");
             Context.Console.WriteError("failed to set up token cache!");
             Context.Trace.WriteLine("Failed to integrate with token cache!");
         }
         else
         {
             helper.RegisterCache(cache);
+            Trace2.WriteData(Trace2Category, "result", cacheResult);
             Context.Trace.WriteLine("Token cache configured.");
         }
     }
@@ -105,6 +112,7 @@ public partial class EntraAuthentication
         // The shared cache is used by other Microsoft developer tools such as Visual Studio.
         if (PublicClientConfig.UseSharedCache)
         {
+            Trace2.WriteData(Trace2Category, "cache/type", "msdevtools");
             Context.Trace.WriteLine("Using shared Microsoft Developer MSAL cache");
 
             if (PlatformUtils.IsWindows())
@@ -126,6 +134,10 @@ public partial class EntraAuthentication
 
             linuxAttr1 = new("MsalClientID", "Microsoft.Developer.IdentityService");
             linuxAttr2 = new("Microsoft.Developer.IdentityService", "1.0.0.0");
+        }
+        else
+        {
+            Trace2.WriteData(Trace2Category, "cache/type", "gcm");
         }
 
         var builder = new StorageCreationPropertiesBuilder(cacheFileName, cacheDirectory)

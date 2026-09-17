@@ -73,6 +73,8 @@ public partial class EntraAuthentication
 
     public async Task<InteractionMode> GetInteractionModeAsync(CancellationToken ct = default)
     {
+        using var _ = Trace2.StartRegion(Trace2Category, "get_interaction_mode");
+
         // Check for broker first, because if broker will be used then we always defer to that
         // so the interaction mode doesn't actually matter!
         if (IsBrokerEnabled())
@@ -86,6 +88,7 @@ public partial class EntraAuthentication
             GetPublicAppBuilder(out bool useBroker);
             if (useBroker)
             {
+                Trace2.WriteData(Trace2Category, "mode/source", "broker");
                 return InteractionMode.Auto;
             }
         }
@@ -93,18 +96,21 @@ public partial class EntraAuthentication
         // Check for a stored user preference
         if (TryGetModePreference(out InteractionMode mode))
         {
+            Trace2.WriteData(Trace2Category, "mode/source", "preference");
+            Trace2.WriteData(Trace2Category, "mode/selected", GetModeName(mode));
             return mode;
         }
 
         // Determine the set of available modes
         IList<InteractionMode> available = GetAvailableModes();
+        Trace2.WriteData(Trace2Category, "mode/available", string.Join(",", available.Select(GetModeName)));
 
         // Show auth mode prompt
         if (Context.Settings.IsGuiPromptsEnabled && Context.SessionManager.IsDesktopSession)
         {
             if (TryFindHelperCommand(out string command, out string args))
             {
-                var availableNames = available.Select(m => m.ToString().ToLowerInvariant());
+                var availableNames = available.Select(GetModeName);
 
                 var sb = new StringBuilder(args);
                 sb.Append("select-interaction-mode");
@@ -114,6 +120,8 @@ public partial class EntraAuthentication
                 if (result.TryGetValue("interaction_mode", out string str) &&
                     Enum.TryParse(str, ignoreCase: true, out InteractionMode choice))
                 {
+                    Trace2.WriteData(Trace2Category, "mode/source", "helper");
+                    Trace2.WriteData(Trace2Category, "mode/selected", GetModeName(choice));
                     return choice;
                 }
 
@@ -127,32 +135,46 @@ public partial class EntraAuthentication
         var prompt = TerminalPrompts.CreateSelection<InteractionMode>()
             .Title("Select an authentication flow")
             .AddChoices(available, m => m.GetDisplayName());
-        return await prompt.ShowAsync(Context.Console, ct);
+        InteractionMode selected = await prompt.ShowAsync(Context.Console, ct);
+
+        Trace2.WriteData(Trace2Category, "mode/source", "terminal");
+        Trace2.WriteData(Trace2Category, "mode/selected", GetModeName(selected));
+        return selected;
     }
 
     public async Task<IReadOnlyList<IEntraAccount>> GetUserAccountsAsync(CancellationToken ct = default)
     {
+        using IDisposable region = Trace2.StartRegion(Trace2Category, "get_accounts");
+
         IPublicClientApplication app = GetPublicAppBuilder(out _).Build();
         await RegisterCacheAsync(app);
 
         IEnumerable<IAccount> accounts = await app.GetAccountsAsync();
-        return accounts.Select(EntraAccount.FromMsalAccount).ToList().AsReadOnly();
+        var result = accounts.Select(EntraAccount.FromMsalAccount).ToList().AsReadOnly();
+
+        Trace2.WriteData(Trace2Category, "cached/count", result.Count);
+        return result;
     }
 
     public async Task<bool> RemoveUserAccountAsync(IEntraAccount account)
     {
+        using IDisposable region = Trace2.StartRegion(Trace2Category, "remove_account");
+
         IPublicClientApplication app = GetPublicAppBuilder(out _).Build();
         await RegisterCacheAsync(app);
 
         IAccount msalAccount = await ResolveAccountAsync(app, account);
         if (msalAccount is null)
         {
+            Trace2.WriteData(Trace2Category, "was_removed", "false");
             return false;
         }
 
         Context.Trace.WriteLine(
             $"Removing account '{msalAccount.HomeAccountId.Identifier}' ({msalAccount.Username}) from the cache...");
         await app.RemoveAsync(msalAccount);
+
+        Trace2.WriteData(Trace2Category, "was_removed", "true");
         return true;
     }
 
@@ -160,9 +182,12 @@ public partial class EntraAuthentication
         IEntraAccount account = null, InteractionMode interactionMode = InteractionMode.Auto,
         CancellationToken ct = default)
     {
+        using var _ = Trace2.StartRegion(Trace2Category, "get_token_user");
+
         PublicClientApplicationBuilder builder = GetPublicAppBuilder(out bool useBroker);
         if (!string.IsNullOrWhiteSpace(authority))
         {
+            Trace2.WriteData(Trace2Category, "app/authority", authority);
             builder.WithAuthority(authority);
         }
 
@@ -187,6 +212,7 @@ public partial class EntraAuthentication
         AuthenticationResult result = await GetTokenForUserSilentAsync(app, scopes, msalAccount, ct);
         if (result is not null)
         {
+            Trace2.WriteData(Trace2Category, "flow", "silent");
             return AuthResult.FromMsalResult(result);
         }
 
@@ -195,10 +221,12 @@ public partial class EntraAuthentication
         // Try interactive auth if we couldn't do so with a cached account
         if (useBroker)
         {
+            Trace2.WriteData(Trace2Category, "flow", "broker");
             result = await GetTokenForUserBrokerAsync(app, scopes, msalAccount, ct);
         }
         else
         {
+            Trace2.WriteData(Trace2Category, "flow", "interactive");
             result = await GetTokenForUserInteractiveAsync(app, scopes, interactionMode, ct);
         }
 
@@ -214,7 +242,12 @@ public partial class EntraAuthentication
             return null;
         }
 
-        Context.Trace.WriteLine(ReferenceEquals(msalAccount, PublicClientApplication.OperatingSystemAccount)
+        using var _ = Trace2.StartRegion(Trace2Category, "token_silent");
+
+        bool isOsAccount = ReferenceEquals(msalAccount, PublicClientApplication.OperatingSystemAccount);
+        Trace2.WriteData(Trace2Category, "account/kind", isOsAccount ? "os_default" : "cached");
+
+        Context.Trace.WriteLine(isOsAccount
             ? "Attempting silent authentication using default operating system account"
             : $"Attempting silent authentication using account '{msalAccount.HomeAccountId.Identifier}'");
         try
@@ -225,6 +258,7 @@ public partial class EntraAuthentication
         }
         catch (MsalUiRequiredException)
         {
+            Trace2.WriteData(Trace2Category, "result", "ui_required");
             Context.Trace.WriteLine("Silent authentication failed; interaction required!");
             return null;
         }
@@ -233,6 +267,8 @@ public partial class EntraAuthentication
     private async Task<AuthenticationResult> GetTokenForUserBrokerAsync(
         IPublicClientApplication app, string[] scopes, IAccount msalAccount, CancellationToken ct)
     {
+        using var _ = Trace2.StartRegion(Trace2Category, "token_broker");
+
         // If we don't have a specific account, let's try using the default operating system account
         // to silently authenticate first.
         if (msalAccount is null && Context.Settings.UseMsAuthDefaultAccount != false)
@@ -245,10 +281,12 @@ public partial class EntraAuthentication
                 if (Context.Settings.UseMsAuthDefaultAccount == true ||
                     await UseDefaultAccountAsync(result.Account.Username, ct))
                 {
+                    Trace2.WriteData(Trace2Category, "os_account", "used");
                     Context.Trace.WriteLine("Using silently acquired token for default OS account.");
                     return result;
                 }
 
+                Trace2.WriteData(Trace2Category, "os_account", "declined");
                 Context.Trace.WriteLine("User opted not to use default OS account.");
             }
         }
@@ -266,29 +304,38 @@ public partial class EntraAuthentication
         // Note that only interactive calls decide the mode, so the silent attempts above must
         // stay off the dispatcher, or they would pay to start Avalonia for nothing.
         // Verified against MSAL 4.85.2; re-check DesktopOsHelper.IsMacConsoleApp on upgrade.
-        if (PlatformUtils.IsMacOS() && !Dispatcher.MainThread.CheckAccess())
+        using (Trace2.StartRegion(Trace2Category,"broker_interactive"))
         {
-            Context.Trace.WriteLine("Dispatching interactive broker authentication to main thread...");
-            return await Dispatcher.MainThread.InvokeAsync(
-                async _ => await app.AcquireTokenInteractive(scopes)
-                    .ExecuteAsync(ct)
-            );
-        }
+            if (PlatformUtils.IsMacOS() && !Dispatcher.MainThread.CheckAccess())
+            {
+                Trace2.WriteData(Trace2Category, "ui_dispatch", "true");
+                Context.Trace.WriteLine("Dispatching interactive broker authentication to main thread...");
+                return await Dispatcher.MainThread.InvokeAsync(
+                    async _ => await app.AcquireTokenInteractive(scopes)
+                        .ExecuteAsync(ct)
+                );
+            }
 
-        // Already on the main thread, or on a platform whose broker does not care
-        return await app.AcquireTokenInteractive(scopes)
-            .ExecuteAsync(ct);
+            Trace2.WriteData(Trace2Category, "ui_dispatch", "false");
+            // Already on the main thread, or on a platform whose broker does not care
+            return await app.AcquireTokenInteractive(scopes)
+                .ExecuteAsync(ct);
+        }
     }
 
     private async Task<AuthenticationResult> GetTokenForUserInteractiveAsync(
         IPublicClientApplication app, string[] scopes, InteractionMode interactionMode, CancellationToken ct)
     {
+        using var _ = Trace2.StartRegion(Trace2Category, "token_interactive");
+
         // Check for a stored preference if we've not been given a specific mode from the caller
         if (interactionMode == InteractionMode.Auto && TryGetModePreference(out InteractionMode mode))
         {
             Context.Trace.WriteLine($"Interaction mode overriden to '{mode}'.");
             interactionMode = mode;
         }
+
+        Trace2.WriteData(Trace2Category, "mode/requested", GetModeName(interactionMode));
 
         switch (interactionMode)
         {
@@ -307,6 +354,7 @@ public partial class EntraAuthentication
                 throw new InvalidOperationException("No available interaction modes.");
 
             case InteractionMode.EmbeddedWebView:
+                Trace2.WriteData(Trace2Category, "mode/resolved", GetModeName(InteractionMode.EmbeddedWebView));
                 Context.Trace.WriteLine("Performing interactive authentication via embedded webview...");
                 return await app.AcquireTokenInteractive(scopes)
                     .WithUseEmbeddedWebView(true)
@@ -314,6 +362,7 @@ public partial class EntraAuthentication
                     .ExecuteAsync(ct);
 
             case InteractionMode.SystemWebView:
+                Trace2.WriteData(Trace2Category, "mode/resolved", GetModeName(InteractionMode.SystemWebView));
                 Context.Trace.WriteLine("Performing interactive authentication via system webview...");
                 Context.Console.WriteInfo("opening browser to complete authentication...");
                 return await app.AcquireTokenInteractive(scopes)
@@ -322,6 +371,7 @@ public partial class EntraAuthentication
                     .ExecuteAsync(ct);
 
             case InteractionMode.DeviceCode:
+                Trace2.WriteData(Trace2Category, "mode/resolved", GetModeName(InteractionMode.DeviceCode));
                 Context.Trace.WriteLine("Performing interactive authentication via device code...");
                 return await app.AcquireTokenWithDeviceCode(scopes, ShowDeviceCodeAsync)
                     .ExecuteAsync(ct);
@@ -334,6 +384,7 @@ public partial class EntraAuthentication
     private async Task<bool> UseDefaultAccountAsync(string userName, CancellationToken ct)
     {
         ThrowIfUserInteractionDisabled();
+        using var _ = Trace2.StartRegion(Trace2Category, "use_default_account");
 
         if (Context.SessionManager.IsDesktopSession && Context.Settings.IsGuiPromptsEnabled)
         {
@@ -371,9 +422,12 @@ public partial class EntraAuthentication
 
     private async Task<IAccount> ResolveAccountAsync(IPublicClientApplication app, IEntraAccount account)
     {
+        using var _ = Trace2.StartRegion(Trace2Category, "resolve_account");
+
         // If we have been handed a wrapped MSAL account there is no need to search the cache again
         if (account is EntraAccount { MsalAccount: not null } wrapped)
         {
+            Trace2.WriteData(Trace2Category, "match/kind", "wrapped");
             Context.Trace.WriteLine($"Account '{account.HomeAccountId}' ({account.UserName}) is already from cache.");
             return wrapped.MsalAccount;
         }
@@ -381,8 +435,10 @@ public partial class EntraAuthentication
         // Pull all account from the cache and search for the closest match, first by HomeAccountId, and then by UPN.
         Context.Trace.WriteLine("Getting all cached accounts...");
         IReadOnlyList<IAccount> accounts = (await app.GetAccountsAsync()).ToList();
+        Trace2.WriteData(Trace2Category, "accounts/cached_count", accounts.Count);
         if (accounts.Count == 0)
         {
+            Trace2.WriteData(Trace2Category, "match/kind", "none");
             Context.Trace.WriteLine("No cached accounts available.");
             return null;
         }
@@ -402,6 +458,7 @@ public partial class EntraAuthentication
                     $"for HomeAccountId '{account.HomeAccountId}'; using HomeAccountId.");
             }
 
+            Trace2.WriteData(Trace2Category, "match/kind", byId is null ? "none" : "id");
             Context.Trace.WriteLine($"Matched account by ID '{byId?.HomeAccountId}' ({byId?.Username}).)");
             return byId;
         }
@@ -422,11 +479,13 @@ public partial class EntraAuthentication
             IAccount byName = matchedByName.FirstOrDefault();
             if (byName is not null)
             {
+                Trace2.WriteData(Trace2Category, "match/kind", "upn");
                 Context.Trace.WriteLine($"Matched account by UPN '{byName.HomeAccountId}' ({byName.Username}).)");
                 return byName;
             }
         }
 
+        Trace2.WriteData(Trace2Category, "match/kind", "none");
         Context.Trace.WriteLine("No cached account found.");
         return null;
     }
@@ -455,6 +514,7 @@ public partial class EntraAuthentication
         if (_publicBuilder is null)
         {
             Context.Trace.WriteLine("Creating public client application builder...");
+            Trace2.WriteData(Trace2Category, "app/client_id", PublicClientConfig.ClientId);
             var builder = PublicClientApplicationBuilder.Create(PublicClientConfig.ClientId)
                 .WithHttpClientFactory(_httpFactory)
                 .WithTraceLogging(Context)
@@ -463,6 +523,7 @@ public partial class EntraAuthentication
 
             // Try and configure the broker if the user has opted in to using it,
             // and it is available in the current environment
+            string brokerStatus = "disabled";
             if (Context.SessionManager.IsDesktopSession && IsBrokerEnabled())
             {
                 // Check that the app config supports the broker on this platform
@@ -477,6 +538,7 @@ public partial class EntraAuthentication
                     builder.WithBroker(GetBrokerOptions());
 
                     _useBroker = builder.IsBrokerAvailable();
+                    brokerStatus = _useBroker ? "in_use" : "unavailable";
                     if (_useBroker)
                     {
                         Context.Trace.WriteLine("Broker authentication is available.");
@@ -488,6 +550,7 @@ public partial class EntraAuthentication
                         // "unsigned" bundle redirect URL.
                         if (PlatformUtils.IsMacOS())
                         {
+                            Trace2.WriteData(Trace2Category, "app/redirect_url", MacBrokerRedirectUrl);
                             Context.Trace.WriteLine($"Setting redirect URL for Mac broker to '{MacBrokerRedirectUrl}'");
                             builder.WithRedirectUri(MacBrokerRedirectUrl);
                         }
@@ -506,9 +569,14 @@ public partial class EntraAuthentication
                 }
                 else
                 {
+                    brokerStatus = "unsupported";
                     Context.Trace.WriteLine("Broker is not supported by the app on this platform.");
                 }
             }
+
+            // Records why the broker is or is not in play, which is the first thing
+            // to establish when diagnosing an unexpected authentication flow.
+            Trace2.WriteData(Trace2Category, "broker/status", brokerStatus);
 
             _publicBuilder = builder;
         }
@@ -566,6 +634,8 @@ public partial class EntraAuthentication
             }
         };
     }
+
+    private static string GetModeName(InteractionMode mode) => mode.ToString().ToLowerInvariant();
 
     private IList<InteractionMode> GetAvailableModes()
     {
