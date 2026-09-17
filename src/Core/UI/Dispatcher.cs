@@ -72,10 +72,11 @@ namespace GitCredentialManager.UI
         public Task InvokeAsync(Action<CancellationToken> work)
         {
             var tcs = new TaskCompletionSource<object>();
-            _queue.AddJob(new DispatcherJob(work, tcs));
+            _queue.AddJob(new DispatcherJob<object>(ct => { work(ct); return null; }, tcs));
             return tcs.Task;
         }
 
+        /// <inheritdoc cref="InvokeAsync(Action{CancellationToken})"/>
         public Task<TResult> InvokeAsync<TResult>(Func<CancellationToken, TResult> work)
         {
             var tcs = new TaskCompletionSource<TResult>();
@@ -86,24 +87,6 @@ namespace GitCredentialManager.UI
         private interface IDispatcherJob
         {
             void Execute(CancellationToken ct);
-        }
-
-        private class DispatcherJob : IDispatcherJob
-        {
-            private readonly Action<CancellationToken> _work;
-            private readonly TaskCompletionSource<object> _tcs;
-
-            public DispatcherJob(Action<CancellationToken> work, TaskCompletionSource<object> tcs)
-            {
-                _work = work;
-                _tcs = tcs;
-            }
-
-            public void Execute(CancellationToken ct)
-            {
-                _work(ct);
-                _tcs?.SetResult(null);
-            }
         }
 
         private class DispatcherJob<TResult> : IDispatcherJob
