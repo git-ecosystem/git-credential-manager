@@ -159,18 +159,30 @@ namespace GitCredentialManager.UI
                     {
                         case State.Started:
                             throw new InvalidOperationException("Dispatcher has already started.");
-                        case State.Stopping:
                         case State.Stopped:
+                            throw new InvalidOperationException("Dispatcher has shut down.");
+                        case State.Stopping:
                             // Shut down before we got here, so there is nothing left to run.
+                            _state = State.Stopped;
                             return;
                     }
 
                     _state = State.Started;
                 }
 
-                while (TryTake(out IDispatcherJob job))
+                try
                 {
-                    job.Execute(_cts.Token);
+                    while (TryTake(out IDispatcherJob job))
+                    {
+                        job.Execute(_cts.Token);
+                    }
+                }
+                finally
+                {
+                    lock (_queue)
+                    {
+                        _state = State.Stopped;
+                    }
                 }
             }
 

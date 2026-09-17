@@ -39,6 +39,36 @@ public class DispatcherTests
         Assert.True(thread.Join(Timeout));
     }
 
+    [Fact]
+    public void Dispatcher_Run_AfterRunHasReturned_Throws()
+    {
+        var initialized = new ManualResetEventSlim();
+        Exception secondRun = null;
+
+        // Run must be called from the dispatcher thread, so the second call has to be
+        // made there too rather than from the test thread.
+        var thread = new Thread(() =>
+        {
+            Dispatcher.Initialize();
+            initialized.Set();
+            Dispatcher.MainThread.Run();
+            secondRun = Record.Exception(() => Dispatcher.MainThread.Run());
+        })
+        {
+            IsBackground = true,
+            Name = nameof(Dispatcher_Run_AfterRunHasReturned_Throws),
+        };
+        thread.Start();
+
+        Assert.True(initialized.Wait(Timeout));
+        Dispatcher.MainThread.Shutdown();
+        Assert.True(thread.Join(Timeout));
+
+        // Running again once the thread has been released is a programming error, and is
+        // distinct from the tolerated race where shutdown beats Run to the dispatcher.
+        Assert.IsType<InvalidOperationException>(secondRun);
+    }
+
     private static Thread StartDispatcherThread(ManualResetEventSlim initialized, Action beforeRun = null)
     {
         // The dispatcher binds to the thread that initializes it and must be run from
