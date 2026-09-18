@@ -3,7 +3,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Threading;
 using GitCredentialManager.Interop.Windows.Native;
 using GitCredentialManager.UI.Controls;
 using GitCredentialManager.UI.ViewModels;
@@ -13,9 +12,6 @@ namespace GitCredentialManager.UI
 {
     public static class AvaloniaUi
     {
-        private static bool _isAppStarted;
-        private static bool _win32SoftwareRendering;
-
         /// <summary>
         /// Configure the Avalonia application.
         /// </summary>
@@ -25,12 +21,7 @@ namespace GitCredentialManager.UI
         /// </remarks>
         public static void Initialize(bool win32SoftwareRendering)
         {
-            if (_isAppStarted)
-            {
-                throw new InvalidOperationException("Setup must be called before the Avalonia application is started.");
-            }
-
-            _win32SoftwareRendering = win32SoftwareRendering;
+            AvaloniaMainLoop.Configure(win32SoftwareRendering);
         }
 
         public static Task ShowViewAsync(Func<Control> viewFunc, WindowViewModel viewModel, IntPtr parentHandle, CancellationToken ct) =>
@@ -53,51 +44,11 @@ namespace GitCredentialManager.UI
 
         public static Task ShowWindowAsync(Func<Window> windowFunc, object dataContext, IntPtr parentHandle, CancellationToken ct)
         {
-            if (!_isAppStarted)
-            {
-                _isAppStarted = true;
-
-                var appInitialized = new ManualResetEventSlim();
-
-                // Keep the trace region to outside the dispatcher's lambda so we can attribute the
-                // UI init cost to the caller's thread, rather than the main thread.
-                using (Trace2.StartRegion("ui", "avn_init"))
-                {
-                    // Fire and forget the Avalonia app main loop over to our dispatcher (running on the main/entry thread).
-                    // This action only returns on our dispatcher shutdown.
-                    Dispatcher.MainThread.Post(appCancelToken =>
-                    {
-                        var appBuilder = AppBuilder.Configure<AvaloniaApp>();
-
-                        // Set custom rendering options and modes if required
-                        if (PlatformUtils.IsWindows() && _win32SoftwareRendering)
-                        {
-                            Trace2.WriteData("ui", "win32/software_rendering", "true");
-                            appBuilder.With(new Win32PlatformOptions
-                                { RenderingMode = new[] { Win32RenderingMode.Software } });
-                        }
-
-                        appBuilder
-                            .UsePlatformDetect()
-                            .LogToTrace()
-                            .SetupWithoutStarting();
-
-                        appInitialized.Set();
-
-                        // Run the application loop (only exit when the dispatcher is shutting down)
-                        AvnDispatcher.UIThread.MainLoop(appCancelToken);
-                    });
-
-                    // Wait for the action posted above to be dequeued from the dispatcher's job queue
-                    // and for the Avalonia framework (and their dispatcher) to be initialized.
-                    appInitialized.Wait();
-                }
-            }
-
-            // Post the window action to the Avalonia dispatcher (which should be running)
-            return AvnDispatcher.UIThread.InvokeAsync(
-                () => ShowWindowInternal(windowFunc, dataContext, parentHandle, ct),
-                DispatcherPriority.Send
+            // The dispatcher owns the main thread and starts the Avalonia application
+            // just-in-time, so by the time this job runs we are on the Avalonia UI thread
+            // with its main loop already pumping.
+            return Dispatcher.MainThread.InvokeAsync(
+                _ => ShowWindowInternal(windowFunc, dataContext, parentHandle, ct)
             );
         }
 

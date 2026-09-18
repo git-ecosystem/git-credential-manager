@@ -43,11 +43,10 @@ namespace GitCredentialManager
         {
             string[] args = (string[])o;
 
-            // Do NOT start a Trace2 thread scope for the 'AppMain' thread so that all traces are attributed
-            // to the 'main' thread. We do not gain anything accurately attributing things to this secondary
-            // thread that actually runs the majority of the application.
-            // The existence of this AppMain-thread is only to provide Avalonia UI with the actual initial
-            // thread #1 that some platforms require (namely macOS) for interacting with UI components.
+            // Give this thread its own Trace2 context. The main thread now emits its own
+            // events, since it starts and runs the platform main loop, so without this
+            // both would report as "main" and be impossible to tell apart.
+            using (Trace2.StartThread(nameof(AppMain)))
             using (var context = new CommandContext())
             using (var app = new Application(context))
             {
