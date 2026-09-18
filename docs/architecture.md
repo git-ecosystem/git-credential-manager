@@ -98,6 +98,11 @@ GCM makes use of the `async`/`await` model of .NET and C# in almost all
 parts of the codebase where appropriate as usually requests end up going to the
 network at some point.
 
+Work that must run on the process entry thread - creating UI controls, or
+using the macOS identity broker - is marshalled there by the main thread
+dispatcher. See the [main thread dispatcher][gcm-dispatcher] documentation for
+how that works and the rules for posting to it.
+
 ## Command execution
 
 ```text
@@ -282,5 +287,6 @@ to the trace object in most places of GCM.
 [credential-provider]: configuration.md#credentialprovider
 [issue-113]: https://github.com/git-ecosystem/git-credential-manager/issues/113
 [issue-136]: https://github.com/git-ecosystem/git-credential-manager/issues/136
+[gcm-dispatcher]: dispatcher.md
 [gcm-provider]: environment.md#GCM_PROVIDER
 [msal]: https://github.com/AzureAD/microsoft-authentication-library-for-dotnet
