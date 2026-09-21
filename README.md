@@ -37,8 +37,8 @@ how to set up SSH: [Azure DevOps][azure-devops-ssh], [GitHub][github-ssh],
 Feature|Windows|macOS|Linux
 -|:-:|:-:|:-:
 Installer/uninstaller|&#10003;|&#10003;|&#10003;
-Secure platform credential storage [(see more)][gcm-credstores]|&#10003;|&#10003;|&#10003;
-Entra authentication with broker support|[opt-in][gcm-windows-broker]|&#10007;|&#10007;
+Secure platform [credential storage][gcm-credstores]|&#10003;|&#10003;|&#10003;
+Entra authentication with [broker support][gcm-broker]|&#10003;|&#10003;|&#10003;
 Azure DevOps authentication|&#10003;|&#10003;|&#10003;
 GitHub & GHES authentication|&#10003;|&#10003;|&#10003;
 Bitbucket Cloud & DC authentication|&#10003;|&#10003;|&#10003;
@@ -172,7 +172,7 @@ When using GitHub logos, please be sure to follow the
 [gcm-license]: LICENSE
 [gcm-usage]: docs/usage.md
 [gcm-wsl]: docs/wsl.md
-[gcm-windows-broker]: docs/windows-broker.md
+[gcm-broker]: docs/msauth-broker.md
 [git-tools-credential-storage]: https://git-scm.com/book/en/v2/Git-Tools-Credential-Storage
 [github]: https://github.com
 [github-ssh]: https://help.github.com/en/articles/connecting-to-github-with-ssh
