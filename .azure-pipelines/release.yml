@@ -609,7 +609,7 @@ extends:
                 inputs:
                   targetType: inline
                   script: |
-                    echo "##vso[task.setvariable variable=value;isOutput=true;isReadOnly=true]$(cat ./VERSION | sed -E 's/.[0-9]+$//')"
+                    echo "##vso[task.setvariable variable=value;isOutput=true;isReadOnly=true]$(cat ./VERSION)"
 
           - job: github
             displayName: 'Publish GitHub release'
