@@ -659,7 +659,7 @@ extends:
                   repositoryName: git-ecosystem/git-credential-manager
                   tag: 'v$(version)'
                   tagSource: userSpecifiedTag
-                  target: release
+                  target: $(Build.SourceVersion)
                   title: 'GCM $(version)'
                   isDraft: true
                   addChangeLog: false
