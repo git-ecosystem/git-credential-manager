@@ -34,7 +34,7 @@ You can still use Git with SSH - see the specific documentation for your host on
 how to set up SSH: [Azure DevOps][azure-devops-ssh], [GitHub][github-ssh],
 [Bitbucket][bitbucket-ssh]
 
-Feature|Windows|macOS|Linux
+Feature|Windows|macOS|Linux¹
 -|:-:|:-:|:-:
 Installer/uninstaller|&#10003;|&#10003;|&#10003;
 Secure platform [credential storage][gcm-credstores]|&#10003;|&#10003;|&#10003;
@@ -47,10 +47,20 @@ Windows Integrated Authentication (NTLM/Kerberos)|&#10003;|_N/A_|_N/A_
 Generic OAuth authentication|&#10003;|&#10003;|&#10003;
 Basic HTTP authentication|&#10003;|&#10003;|&#10003;
 Network proxies|&#10003;|&#10003;|&#10003;
-`amd64` support|&#10003;|&#10003;|&#10003;
-`x86` support|&#10003;|_N/A_|&#10007;
-`arm64` support|best effort|&#10003;|&#10003;
-`armhf` support|_N/A_|_N/A_|&#10003;
+x64 _(x86_64 / AMD64)_ support|&#10003;|&#10003;²|&#10003;
+x86 _(i686)_ support|&#10003;³|_N/A_|&#10007;
+ARM64 _(aarch64)_ support|&#10003;|&#10003;|&#10003;
+ARM32 _(armhf)_ support|_N/A_|_N/A_|&#10003;³
+
+1. Linux support is limited to the
+   [distributions officially supported by .NET][dotnet-os-support].
+
+2. Mac support on Intel-based (x64) devices is best effort.
+   Apple announced that macOS 28 will [drop support][apple-intel-support] for
+   Intel-based applications.
+
+3. No official builds produced, but local builds should be possible.
+   Support is best effort.
 
 ## Supported Environments
 
@@ -183,3 +193,4 @@ When using GitHub logos, please be sure to follow the
 [roadmap]: https://github.com/git-ecosystem/git-credential-manager/milestones?direction=desc&sort=due_date&state=open
 [roadmap-announcement]: https://github.com/git-ecosystem/git-credential-manager/discussions/1203
 [workflow-status]: https://github.com/git-ecosystem/git-credential-manager/actions/workflows/continuous-integration.yml
+[apple-intel-support]: https://support.apple.com/en-us/102527
