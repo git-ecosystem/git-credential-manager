@@ -15,21 +15,22 @@ namespace GitCredentialManager
         /// Password.
         /// </summary>
         string Password { get; }
+
+        /// <summary>
+        /// Credential can have a limited lifetime.
+        /// </summary>
+        bool IsEphemeral => false;
     }
 
     /// <summary>
     /// Represents a credential (username/password pair) that Git can use to authenticate to a remote repository.
     /// </summary>
-    public class GitCredential : ICredential
+    public class GitCredential(string userName, string password, bool isEphemeral = false) : ICredential
     {
-        public GitCredential(string userName, string password)
-        {
-            Account = userName;
-            Password = password;
-        }
+        public string Account { get; } = userName;
 
-        public string Account { get; }
+        public string Password { get; } = password;
 
-        public string Password { get; }
+        public bool IsEphemeral { get; } = isEphemeral;
     }
 }

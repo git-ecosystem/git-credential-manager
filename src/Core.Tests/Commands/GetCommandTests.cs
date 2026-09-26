@@ -353,6 +353,7 @@ namespace GitCredentialManager.Tests.Commands
             Assert.Contains("password=hunter2", actualOutput);
             Assert.DoesNotContain("authtype=token", actualOutput);
             Assert.DoesNotContain("credential=hunter2", actualOutput);
+            Assert.DoesNotContain("ephemeral=1", actualOutput);
         }
 
         [Fact]
@@ -380,6 +381,7 @@ namespace GitCredentialManager.Tests.Commands
             Assert.DoesNotContain("password=hunter2", actualOutput);
             Assert.Contains("authtype=token", actualOutput);
             Assert.Contains("credential=hunter2", actualOutput);
+            Assert.Contains("ephemeral=1", actualOutput);
         }
 
         #region Helpers

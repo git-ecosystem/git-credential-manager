@@ -114,6 +114,11 @@ namespace GitCredentialManager.Commands
                 stdout.WriteLine($"{Constants.CredentialProtocol.PasswordKey}={credential.Password}");
                 Context.Trace.WriteLineSecrets("\t" + Constants.CredentialProtocol.PasswordKey + "={0}", [ credential.Password ]);
             }
+            if (authTypeCapNegotiated && credential.IsEphemeral)
+            {
+                stdout.WriteLine($"{Constants.CredentialProtocol.EphemeralKey}=1");
+                Context.Trace.WriteLine($"\t{Constants.CredentialProtocol.EphemeralKey}=1");
+            }
 
             //
             // Custom additional properties
