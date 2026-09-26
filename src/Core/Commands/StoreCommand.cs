@@ -24,6 +24,16 @@ namespace GitCredentialManager.Commands
         {
             base.EnsureMinimumRequest(request);
 
+            // When "authtype" is set, Git uses "credential" field for the secret
+            if (request.AuthType is not null)
+            {
+                if (request.Credential is null)
+                {
+                    throw new InvalidOperationException("Missing 'credential' request argument");
+                }
+                return;
+            }
+
             // An empty string username/password are valid inputs, so only check for `null` (not provided)
             if (request.UserName is null)
             {

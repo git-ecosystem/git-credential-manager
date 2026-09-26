@@ -59,6 +59,7 @@ namespace GitCredentialManager.Commands
             // Negotiate capabilities by intersecting what Git advertised with what GCM supports.
             // Capability-gated output fields may only be emitted for capabilities in this set.
             GitCapabilities negotiated = request.Capabilities & Constants.SupportedCapabilities;
+            bool authTypeCapNegotiated = (negotiated & GitCapabilities.AuthType) != 0;
             bool stateCapNegotiated = (negotiated & GitCapabilities.State) != 0;
 
             Context.Trace.WriteLine($"Git capability: {request.Capabilities}");
@@ -98,10 +99,26 @@ namespace GitCredentialManager.Commands
             //
             // Credential
             //
-            stdout.WriteLine($"username={credential.Account}");
-            Context.Trace.WriteLine($"\tusername={credential.Account}");
-            stdout.WriteLine($"password={credential.Password}");
-            Context.Trace.WriteLineSecrets("\tpassword={0}", new object[] { credential.Password });
+            var authtype = response.AuthType;
+            if (authTypeCapNegotiated && authtype is not null)
+            {
+                stdout.WriteLine($"{Constants.CredentialProtocol.AuthTypeKey}={authtype}");
+                Context.Trace.WriteLine($"\t{Constants.CredentialProtocol.AuthTypeKey}={authtype}");
+                stdout.WriteLine($"{Constants.CredentialProtocol.CredentialKey}={credential.Password}");
+                Context.Trace.WriteLineSecrets("\t" + Constants.CredentialProtocol.CredentialKey + "={0}", [credential.Password]);
+            }
+            else
+            {
+                stdout.WriteLine($"{Constants.CredentialProtocol.UserNameKey}={credential.Account}");
+                Context.Trace.WriteLine($"\t{Constants.CredentialProtocol.UserNameKey}={credential.Account}");
+                stdout.WriteLine($"{Constants.CredentialProtocol.PasswordKey}={credential.Password}");
+                Context.Trace.WriteLineSecrets("\t" + Constants.CredentialProtocol.PasswordKey + "={0}", [ credential.Password ]);
+            }
+            if (authTypeCapNegotiated && credential.IsEphemeral)
+            {
+                stdout.WriteLine($"{Constants.CredentialProtocol.EphemeralKey}=1");
+                Context.Trace.WriteLine($"\t{Constants.CredentialProtocol.EphemeralKey}=1");
+            }
 
             //
             // Custom additional properties

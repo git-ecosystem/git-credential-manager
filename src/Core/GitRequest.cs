@@ -47,8 +47,13 @@ namespace GitCredentialManager
         public string Protocol => GetArgumentOrDefault("protocol");
         public string Host     => GetArgumentOrDefault("host");
         public string Path     => GetArgumentOrDefault("path");
-        public string UserName => GetArgumentOrDefault("username");
-        public string Password => GetArgumentOrDefault("password");
+
+        public string AuthType   => GetArgumentOrDefault(Constants.CredentialProtocol.AuthTypeKey);
+        public string Credential => GetArgumentOrDefault(Constants.CredentialProtocol.CredentialKey);
+        public string UserName   => GetArgumentOrDefault(Constants.CredentialProtocol.UserNameKey);
+        public string Password   => GetArgumentOrDefault(Constants.CredentialProtocol.PasswordKey);
+        public bool IsEphemeral  => IsTruthy(GetArgumentOrDefault(Constants.CredentialProtocol.EphemeralKey));
+
         public IList<string> WwwAuth => GetMultiArgumentOrDefault("wwwauth");
 
         /// <summary>
@@ -235,6 +240,28 @@ namespace GitCredentialManager
             }
 
             return new ReadOnlyDictionary<string, string>(result);
+        }
+
+        public static bool IsTruthy(string value)
+        {
+            if (String.IsNullOrEmpty(value))
+            {
+                return false;
+            }
+            if (value.Equals("true", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+            if (value.Equals("false", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+            try
+            {
+                return 0 != Int32.Parse(value);
+            }
+            catch { }
+            return false;
         }
     }
 }
