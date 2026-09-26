@@ -36,7 +36,7 @@ namespace GitCredentialManager
         /// <summary>
         /// The set of Git credential protocol capabilities supported by Git Credential Manager.
         /// </summary>
-        public const GitCapabilities SupportedCapabilities = GitCapabilities.State;
+        public const GitCapabilities SupportedCapabilities = GitCapabilities.State | GitCapabilities.AuthType;
 
         public static class CredentialProtocol
         {
@@ -56,6 +56,29 @@ namespace GitCredentialManager
             /// <c>state</c> capability).
             /// </summary>
             public const string ContinueKey = "continue";
+
+            /// <summary>
+            /// The Git credential protocol attribute name carrying alternative
+            /// HTTP Authorization scheme type.
+            /// (string, gated by the <c>authtype</c> capability).
+            /// </summary>
+            public const string AuthTypeKey = "authtype";
+
+            /// <summary>
+            /// The Git credential protocol attribute name carrying raw credential data.
+            /// (string, gated by the <c>authtype</c> capability).
+            /// </summary>
+            public const string CredentialKey = "credential";
+
+            /// <summary>
+            /// The Git credential protocol attribute name for password.
+            /// </summary>
+            public const string PasswordKey = "password";
+
+            /// <summary>
+            /// The Git credential protocol attribute name for username.
+            /// </summary>
+            public const string UserNameKey = "username";
 
             /// <summary>
             /// Prefix that Git Credential Manager reserves on every <c>state[]</c> entry

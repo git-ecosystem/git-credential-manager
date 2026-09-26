@@ -47,8 +47,12 @@ namespace GitCredentialManager
         public string Protocol => GetArgumentOrDefault("protocol");
         public string Host     => GetArgumentOrDefault("host");
         public string Path     => GetArgumentOrDefault("path");
-        public string UserName => GetArgumentOrDefault("username");
-        public string Password => GetArgumentOrDefault("password");
+
+        public string AuthType   => GetArgumentOrDefault(Constants.CredentialProtocol.AuthTypeKey);
+        public string Credential => GetArgumentOrDefault(Constants.CredentialProtocol.CredentialKey);
+        public string UserName   => GetArgumentOrDefault(Constants.CredentialProtocol.UserNameKey);
+        public string Password   => GetArgumentOrDefault(Constants.CredentialProtocol.PasswordKey);
+
         public IList<string> WwwAuth => GetMultiArgumentOrDefault("wwwauth");
 
         /// <summary>
