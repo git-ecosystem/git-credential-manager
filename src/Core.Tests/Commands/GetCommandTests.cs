@@ -122,7 +122,7 @@ namespace GitCredentialManager.Tests.Commands
             string actualOutput = context.Streams.Out.ToString().Replace("\r\n", "\n");
 
             Assert.Contains("capability[]=state\n", actualOutput);
-            Assert.DoesNotContain("capability[]=authtype", actualOutput);
+            Assert.Contains("capability[]=authtype\n", actualOutput);
         }
 
         [Fact]
@@ -326,6 +326,60 @@ namespace GitCredentialManager.Tests.Commands
                 "continue=1 must follow scalar fields");
             Assert.True(posState > posContinue,
                 "state[] must follow continue=1");
+        }
+
+        [Fact]
+        public async Task GetCommand_ExecuteAsync_CapabilityAuthType_MissingRevertsToPlainPassword()
+        {
+            ICredential testCredential = new GitCredential("alice", "hunter2", isEphemeral: true);
+            var response = GitResponse.Ok(testCredential, authtype: "token");
+
+            var stdin = "protocol=https\nhost=example.com\n\n";
+
+            var providerMock = new Mock<IHostProvider>();
+            providerMock.Setup(x => x.GetCredentialAsync(It.IsAny<GitRequest>()))
+                        .ReturnsAsync(response);
+            var providerRegistry = new TestHostProviderRegistry { Provider = providerMock.Object };
+            var context = new TestCommandContext { Streams = { In = stdin } };
+
+            var command = new GetCommand(context, providerRegistry);
+
+            await command.ExecuteAsync();
+
+            string[] actualOutput = context.Streams.Out.ToString().Replace("\r\n", "\n").Split('\n');
+
+            // Emits regular Credential without 'state[]=authtype' support.
+            Assert.Contains("username=alice", actualOutput);
+            Assert.Contains("password=hunter2", actualOutput);
+            Assert.DoesNotContain("authtype=token", actualOutput);
+            Assert.DoesNotContain("credential=hunter2", actualOutput);
+        }
+
+        [Fact]
+        public async Task GetCommand_ExecuteAsync_CapabilityAuthType_UsesAuthTypeFeatures()
+        {
+            ICredential testCredential = new GitCredential("alice", "hunter2", isEphemeral: true);
+            var response = GitResponse.Ok(testCredential, authtype: "token");
+
+            var stdin = "protocol=https\nhost=example.com\ncapability[]=authtype\n\n";
+
+            var providerMock = new Mock<IHostProvider>();
+            providerMock.Setup(x => x.GetCredentialAsync(It.IsAny<GitRequest>()))
+                        .ReturnsAsync(response);
+            var providerRegistry = new TestHostProviderRegistry { Provider = providerMock.Object };
+            var context = new TestCommandContext { Streams = { In = stdin } };
+
+            var command = new GetCommand(context, providerRegistry);
+
+            await command.ExecuteAsync();
+
+            string[] actualOutput = context.Streams.Out.ToString().Replace("\r\n", "\n").Split('\n');
+
+            // Ephemeral credential with 'authtype' and 'credential' value
+            Assert.DoesNotContain("username=alice", actualOutput);
+            Assert.DoesNotContain("password=hunter2", actualOutput);
+            Assert.Contains("authtype=token", actualOutput);
+            Assert.Contains("credential=hunter2", actualOutput);
         }
 
         #region Helpers

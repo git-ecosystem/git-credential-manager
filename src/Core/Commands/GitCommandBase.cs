@@ -51,7 +51,7 @@ namespace GitCredentialManager.Commands
 
             // Determine the host provider
             Context.Trace.WriteLine("Detecting host provider for request:");
-            Context.Trace.WriteDictionarySecrets(inputDict, new []{ "password" }, StringComparer.OrdinalIgnoreCase);
+            Context.Trace.WriteDictionarySecrets(inputDict, [ "password", "credential" ], StringComparer.OrdinalIgnoreCase);
             IHostProvider provider;
             using (Trace2.StartRegion("git_cmd", "resolve_provider"))
             {
