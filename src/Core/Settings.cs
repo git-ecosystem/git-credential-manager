@@ -819,11 +819,6 @@ namespace GitCredentialManager
                     return str.ToBooleany();
                 }
 
-                if (PlatformUtils.IsDevBox())
-                {
-                    return true;
-                }
-
                 return null;
             }
         }
