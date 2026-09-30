@@ -43,7 +43,7 @@ public class GitResponse
     private readonly Dictionary<string, string> _state = new(StringComparer.Ordinal);
     private ReadOnlyDictionary<string, string> _stateView;
 
-    private GitResponse(ICredential credential, string authType = null, bool isContinue = false, bool isCancelled = false, bool isYielded = false)
+    private GitResponse(ICredential credential, bool isEphemeral = false, string authType = null, bool isContinue = false, bool isCancelled = false, bool isYielded = false)
     {
         // At most one of Continue, Cancel, Yield may be set (Ok is "none of them").
         if ((isContinue && isCancelled) ||
@@ -71,7 +71,9 @@ public class GitResponse
         }
 
         Credential = credential;
+        IsCredentialEphemeral = isEphemeral;
         AuthType = authType;
+
         IsContinue = isContinue;
         IsCancelled = isCancelled;
         IsYielded = isYielded;
@@ -89,8 +91,8 @@ public class GitResponse
     /// <summary>
     /// Construct a successful response carrying the given credential.
     /// </summary>
-    public static GitResponse Ok(ICredential credential, string authtype = null) =>
-        new(credential, authType: authtype);
+    public static GitResponse Ok(ICredential credential, bool isEphemeral = false, string authtype = null) =>
+        new(credential, isEphemeral: isEphemeral, authType: authtype);
 
     /// <summary>
     /// Construct a successful response carrying the given credential and
@@ -102,8 +104,8 @@ public class GitResponse
     /// multistage HTTP authentication (NTLM/Kerberos) and any flow where the
     /// helper wants to be invoked again after the next server response.
     /// </remarks>
-    public static GitResponse Continue(ICredential credential, string authType = null) =>
-        new (credential, authType: authType, isContinue: true);
+    public static GitResponse Continue(ICredential credential, bool isEphemeral = false, string authType = null) =>
+        new (credential, isEphemeral: isEphemeral, authType: authType, isContinue: true);
 
     /// <summary>
     /// Construct a cancellation response: the provider declined to produce a
@@ -140,6 +142,11 @@ public class GitResponse
     /// when <see cref="IsCancelled"/> or <see cref="IsYielded"/> is <see langword="true"/>.
     /// </summary>
     public ICredential Credential { get; }
+
+    /// <summary>
+    /// The credential is ephemeral (or generated) and not to be stored on success.
+    /// </summary>
+    public bool IsCredentialEphemeral { get; }
 
     /// <summary>
     /// The special Autorization type for the supplied credential.

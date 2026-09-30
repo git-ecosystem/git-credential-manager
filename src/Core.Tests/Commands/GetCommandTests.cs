@@ -332,7 +332,7 @@ namespace GitCredentialManager.Tests.Commands
         public async Task GetCommand_ExecuteAsync_CapabilityAuthType_MissingRevertsToPlainPassword()
         {
             ICredential testCredential = new GitCredential("alice", "hunter2");
-            var response = GitResponse.Ok(testCredential, authtype: "token");
+            var response = GitResponse.Ok(testCredential, isEphemeral: true, authtype: "token");
 
             var stdin = "protocol=https\nhost=example.com\n\n";
 
@@ -353,13 +353,14 @@ namespace GitCredentialManager.Tests.Commands
             Assert.Contains("password=hunter2", actualOutput);
             Assert.DoesNotContain("authtype=token", actualOutput);
             Assert.DoesNotContain("credential=hunter2", actualOutput);
+            Assert.DoesNotContain("ephemeral=1", actualOutput);
         }
 
         [Fact]
         public async Task GetCommand_ExecuteAsync_CapabilityAuthType_UsesAuthTypeFeatures()
         {
             ICredential testCredential = new GitCredential("alice", "hunter2");
-            var response = GitResponse.Ok(testCredential, authtype: "token");
+            var response = GitResponse.Ok(testCredential, isEphemeral: true, authtype: "token");
 
             var stdin = "protocol=https\nhost=example.com\ncapability[]=authtype\n\n";
 
@@ -380,6 +381,7 @@ namespace GitCredentialManager.Tests.Commands
             Assert.DoesNotContain("password=hunter2", actualOutput);
             Assert.Contains("authtype=token", actualOutput);
             Assert.Contains("credential=hunter2", actualOutput);
+            Assert.Contains("ephemeral=1", actualOutput);
         }
 
         #region Helpers

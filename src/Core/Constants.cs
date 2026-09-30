@@ -71,6 +71,13 @@ namespace GitCredentialManager
             public const string CredentialKey = "credential";
 
             /// <summary>
+            /// The Git credential protocol attribute name carrying setting
+            /// for ephemeral credential type.
+            /// (string, gated by the <c>authtype</c> capability).
+            /// </summary>
+            public const string EphemeralKey = "ephemeral";
+
+            /// <summary>
             /// The Git credential protocol attribute name for password.
             /// </summary>
             public const string PasswordKey = "password";

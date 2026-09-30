@@ -52,6 +52,7 @@ namespace GitCredentialManager
         public string Credential => GetArgumentOrDefault(Constants.CredentialProtocol.CredentialKey);
         public string UserName   => GetArgumentOrDefault(Constants.CredentialProtocol.UserNameKey);
         public string Password   => GetArgumentOrDefault(Constants.CredentialProtocol.PasswordKey);
+        public bool IsEphemeral  => StringExtensions.IsTruthy(GetArgumentOrDefault(Constants.CredentialProtocol.EphemeralKey));
 
         public IList<string> WwwAuth => GetMultiArgumentOrDefault("wwwauth");
 
