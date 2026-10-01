@@ -21,19 +21,45 @@ Start by installing the [latest Git for Windows ⬇️][latest-git-for-windows]
 _Inside your WSL installation_, run the following command to set GCM as the Git
 credential helper:
 
+> [!IMPORTANT]
+> The exact location of git-credential-manager.exe may be different in your
+> installation of Git for Windows depending on the version you have installed.
+> Please check and confirm the actual installation path before proceeding.
+
+### Git for Windows (x64 / x86_64 / "64-bit")
+
+The latest versions of Git for Windows for x64 (v2.56.0 and later) use the
+`ucrt64` toolchain and installation path:
+
+```shell
+git config --global credential.helper "/mnt/c/Program\ Files/Git/ucrt64/bin/git-credential-manager.exe"
+```
+
+Older versions of Git for Windows for x64 (v2.55.x and earlier) use the
+`mingw64` toolchain and installation path:
+
 ```shell
 git config --global credential.helper "/mnt/c/Program\ Files/Git/mingw64/bin/git-credential-manager.exe"
 ```
 
-> **Note:** the location of git-credential-manager.exe may be different in your
-installation of Git for Windows.
+### Git for Windows (ARM64)
 
-If you intend to use Azure DevOps you must _also_ set the following Git
-configuration _inside of your WSL installation_.
+All known versions of Git for Windows for ARM64 use the `clangarm64` toolchain
+and installation path:
 
 ```shell
-git config --global credential.https://dev.azure.com.useHttpPath true
+git config --global credential.helper "/mnt/c/Program\ Files/Git/clangarm64/bin/git-credential-manager.exe"
 ```
+
+## Azure DevOps Additional Configuration
+
+> [!IMPORTANT]
+> If you intend to use Azure DevOps you must _also_ set the following Git
+> configuration _inside of your WSL installation_.
+>
+> ```shell
+> git config --global credential.https://dev.azure.com.useHttpPath true
+> ```
 
 ## Configuring WSL without Git for Windows
 
