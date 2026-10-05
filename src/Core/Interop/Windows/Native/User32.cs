@@ -36,6 +36,9 @@ namespace GitCredentialManager.Interop.Windows.Native
         [DllImport(LibraryName, SetLastError = true)]
         public static extern bool GetClientRect(IntPtr hwnd, out RECT lpRect);
 
+        [DllImport(LibraryName)]
+        public static extern bool IsWindowVisible(IntPtr hwnd);
+
         /// <summary>
         /// Retrieves the handle to the ancestor of the specified window.
         /// </summary>

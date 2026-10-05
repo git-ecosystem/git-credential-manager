@@ -31,15 +31,30 @@ internal class MsalParentWindowAdapter : IDisposable
     private readonly bool _createIfMissing;
     private readonly CancellationTokenSource _cts = new();
 
+    private readonly Func<IntPtr> _getConsoleParentWindow;
+    private readonly Func<IntPtr, bool> _isWindowVisible;
+    private readonly Func<CancellationToken, IntPtr> _createWindow;
+
     public static MsalParentWindowAdapter Create(object parentWindow, bool createIfMissing = false)
     {
-        return new MsalParentWindowAdapter(parentWindow, createIfMissing);
+        return new MsalParentWindowAdapter(parentWindow, createIfMissing,
+            GetConsoleParentWindow, User32.IsWindowVisible, ProgressWindow.ShowAndGetHandle);
     }
 
-    private MsalParentWindowAdapter(object parentWindow, bool createIfMissing = false)
+    internal MsalParentWindowAdapter(object parentWindow, bool createIfMissing,
+        Func<IntPtr> getConsoleParentWindow, Func<IntPtr, bool> isWindowVisible,
+        Func<CancellationToken, IntPtr> createWindow)
     {
+        EnsureArgument.NotNull(getConsoleParentWindow, nameof(getConsoleParentWindow));
+        EnsureArgument.NotNull(isWindowVisible, nameof(isWindowVisible));
+        EnsureArgument.NotNull(createWindow, nameof(createWindow));
+
         _parentWindow = parentWindow;
         _createIfMissing = createIfMissing;
+
+        _getConsoleParentWindow = getConsoleParentWindow;
+        _isWindowVisible = isWindowVisible;
+        _createWindow = createWindow;
     }
 
     public object GetWindow()
@@ -49,25 +64,38 @@ internal class MsalParentWindowAdapter : IDisposable
             return _parentWindow;
         }
 
+        // See if we can use the console window as a parent.
+        // We only consider the window if it is valid and visible.
+        IntPtr consoleParent = _getConsoleParentWindow();
+        if (consoleParent != IntPtr.Zero && _isWindowVisible(consoleParent))
+        {
+            return consoleParent;
+        }
+
         // Create a stub window to use as a parent
         if (_createIfMissing)
         {
-            return ProgressWindow.ShowAndGetHandle(_cts.Token);
-        }
-
-        // On Windows we can try and get the console window parent handle if that exists
-        if (PlatformUtils.IsWindows())
-        {
-            IntPtr consoleHandle = Kernel32.GetConsoleWindow();
-            IntPtr parentHandle = User32.GetAncestor(consoleHandle, GetAncestorFlags.GetRootOwner);
-
-            if (parentHandle != IntPtr.Zero)
-            {
-                return parentHandle;
-            }
+            return _createWindow(_cts.Token);
         }
 
         return null;
+    }
+
+    private static IntPtr GetConsoleParentWindow()
+    {
+        // On Windows we can try and get the console window parent handle if that exists
+        if (!PlatformUtils.IsWindows())
+        {
+            return IntPtr.Zero;
+        }
+
+        IntPtr consoleHandle = Kernel32.GetConsoleWindow();
+
+        // When the parent is using ConPTY (pseudo-terminals) the console
+        // window may be a fake/stub (as is the case with Windows Terminal).
+        // This means we need to walk up the ancestor chain to get the actual
+        // root owner (typically the terminal emulator's window).
+        return User32.GetAncestor(consoleHandle, GetAncestorFlags.GetRootOwner);
     }
 
     public void Dispose()
