@@ -16,9 +16,17 @@ namespace GitCredentialManager.UI
 
         protected IntPtr GetParentHandle()
         {
+            // Check if the user has specified a parent window ID
             if (int.TryParse(Context.Settings.ParentWindowId, out int id))
             {
                 return new IntPtr(id);
+            }
+
+            // Check if we can use the console window as a parent
+            IntPtr consoleParent = PlatformUtils.GetConsoleParentWindow();
+            if (consoleParent != IntPtr.Zero)
+            {
+                return consoleParent;
             }
 
             return IntPtr.Zero;
