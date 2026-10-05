@@ -64,18 +64,18 @@ internal class MsalParentWindowAdapter : IDisposable
             return _parentWindow;
         }
 
-        // Create a stub window to use as a parent
-        if (_createIfMissing)
-        {
-            return _createWindow(_cts.Token);
-        }
-
         // See if we can use the console window as a parent.
         // We only consider the window if it is valid and visible.
         IntPtr consoleParent = _getConsoleParentWindow();
         if (consoleParent != IntPtr.Zero && _isWindowVisible(consoleParent))
         {
             return consoleParent;
+        }
+
+        // Create a stub window to use as a parent
+        if (_createIfMissing)
+        {
+            return _createWindow(_cts.Token);
         }
 
         return null;
