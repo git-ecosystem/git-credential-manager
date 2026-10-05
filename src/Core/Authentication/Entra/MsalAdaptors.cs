@@ -31,15 +31,30 @@ internal class MsalParentWindowAdapter : IDisposable
     private readonly bool _createIfMissing;
     private readonly CancellationTokenSource _cts = new();
 
+    private readonly Func<IntPtr> _getConsoleParentWindow;
+    private readonly Func<IntPtr, bool> _isWindowVisible;
+    private readonly Func<CancellationToken, IntPtr> _createWindow;
+
     public static MsalParentWindowAdapter Create(object parentWindow, bool createIfMissing = false)
     {
-        return new MsalParentWindowAdapter(parentWindow, createIfMissing);
+        return new MsalParentWindowAdapter(parentWindow, createIfMissing,
+            GetConsoleParentWindow, User32.IsWindowVisible, ProgressWindow.ShowAndGetHandle);
     }
 
-    private MsalParentWindowAdapter(object parentWindow, bool createIfMissing = false)
+    internal MsalParentWindowAdapter(object parentWindow, bool createIfMissing,
+        Func<IntPtr> getConsoleParentWindow, Func<IntPtr, bool> isWindowVisible,
+        Func<CancellationToken, IntPtr> createWindow)
     {
+        EnsureArgument.NotNull(getConsoleParentWindow, nameof(getConsoleParentWindow));
+        EnsureArgument.NotNull(isWindowVisible, nameof(isWindowVisible));
+        EnsureArgument.NotNull(createWindow, nameof(createWindow));
+
         _parentWindow = parentWindow;
         _createIfMissing = createIfMissing;
+
+        _getConsoleParentWindow = getConsoleParentWindow;
+        _isWindowVisible = isWindowVisible;
+        _createWindow = createWindow;
     }
 
     public object GetWindow()
@@ -52,13 +67,13 @@ internal class MsalParentWindowAdapter : IDisposable
         // Create a stub window to use as a parent
         if (_createIfMissing)
         {
-            return ProgressWindow.ShowAndGetHandle(_cts.Token);
+            return _createWindow(_cts.Token);
         }
 
         // See if we can use the console window as a parent.
         // We only consider the window if it is valid and visible.
-        IntPtr consoleParent = GetConsoleParentWindow();
-        if (consoleParent != IntPtr.Zero && User32.IsWindowVisible(consoleParent))
+        IntPtr consoleParent = _getConsoleParentWindow();
+        if (consoleParent != IntPtr.Zero && _isWindowVisible(consoleParent))
         {
             return consoleParent;
         }
