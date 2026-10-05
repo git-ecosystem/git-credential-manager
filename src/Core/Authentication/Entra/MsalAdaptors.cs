@@ -55,28 +55,32 @@ internal class MsalParentWindowAdapter : IDisposable
             return ProgressWindow.ShowAndGetHandle(_cts.Token);
         }
 
-        // On Windows we can try and get the console window parent handle if that exists
-        if (PlatformUtils.IsWindows())
+        // See if we can use the console window as a parent.
+        // We only consider the window if it is valid and visible.
+        IntPtr consoleParent = GetConsoleParentWindow();
+        if (consoleParent != IntPtr.Zero && User32.IsWindowVisible(consoleParent))
         {
-            IntPtr consoleHandle = Kernel32.GetConsoleWindow();
-
-            // When the parent is using ConPTY (pseudo-terminals) the console
-            // window may be a fake/stub (as is the case with Windows Terminal).
-            // This means we need to walk up the ancestor chain to get the actual
-            // root owner (typically the terminal emulator's window).
-            IntPtr parentHandle = User32.GetAncestor(consoleHandle, GetAncestorFlags.GetRootOwner);
-
-            // Only use the parent handle if it is valid and visible!
-            // Note that minimised windows are still 'visibile', and to filter
-            // those out we'd need to call IsIconic(HWND), but we're happy to
-            // parent to a minimised parent window and be minimised ourself.
-            if (parentHandle != IntPtr.Zero && User32.IsWindowVisible(parentHandle))
-            {
-                return parentHandle;
-            }
+            return consoleParent;
         }
 
         return null;
+    }
+
+    private static IntPtr GetConsoleParentWindow()
+    {
+        // On Windows we can try and get the console window parent handle if that exists
+        if (!PlatformUtils.IsWindows())
+        {
+            return IntPtr.Zero;
+        }
+
+        IntPtr consoleHandle = Kernel32.GetConsoleWindow();
+
+        // When the parent is using ConPTY (pseudo-terminals) the console
+        // window may be a fake/stub (as is the case with Windows Terminal).
+        // This means we need to walk up the ancestor chain to get the actual
+        // root owner (typically the terminal emulator's window).
+        return User32.GetAncestor(consoleHandle, GetAncestorFlags.GetRootOwner);
     }
 
     public void Dispose()
