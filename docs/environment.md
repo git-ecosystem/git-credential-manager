@@ -177,6 +177,12 @@ Defaults to enabled.
 
 Specify the parent window handle (`HWND`) for modal dialogs on Windows.
 
+When this variable is unset, GCM tries to parent authentication dialogs to the
+console's visible root-owner window. Hidden or invalid windows are ignored.
+
+Explicitly setting a handle using this variable takes precedence and it is not
+checked for visibility.
+
 > [!NOTE]
 > This is intended for use by application developers who are calling Git and/or
 > GCM from their application and wish to correctly parent authentication dialogs
