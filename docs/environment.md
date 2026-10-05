@@ -173,6 +173,40 @@ Defaults to enabled.
 
 ---
 
+### GCM_MODAL_PARENTHWND
+
+Specify the parent window handle (`HWND`) for modal dialogs on Windows.
+
+> [!NOTE]
+> This is intended for use by application developers who are calling Git and/or
+> GCM from their application and wish to correctly parent authentication dialogs
+> to an existing window.
+>
+> Do **not** set this manually.
+
+#### Example
+
+##### Windows
+
+```csharp
+public static int Example(IntPtr myWindowHandle)
+{
+    using var process = new Process();
+    process.StartInfo = new ProcessStartInfo("git.exe", "pull")
+    {
+        Environment =
+        {
+            ["GCM_MODAL_PARENTHWND"] = myWindowHandle.ToString("d")
+        }
+    };
+    process.Start();
+    process.WaitForExit();
+    return process.ExitCode;
+}
+```
+
+---
+
 ### GCM_PROVIDER
 
 Define the host provider to use when authenticating.
