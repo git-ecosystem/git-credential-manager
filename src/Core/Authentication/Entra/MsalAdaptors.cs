@@ -59,9 +59,18 @@ internal class MsalParentWindowAdapter : IDisposable
         if (PlatformUtils.IsWindows())
         {
             IntPtr consoleHandle = Kernel32.GetConsoleWindow();
+
+            // When the parent is using ConPTY (pseudo-terminals) the console
+            // window may be a fake/stub (as is the case with Windows Terminal).
+            // This means we need to walk up the ancestor chain to get the actual
+            // root owner (typically the terminal emulator's window).
             IntPtr parentHandle = User32.GetAncestor(consoleHandle, GetAncestorFlags.GetRootOwner);
 
-            if (parentHandle != IntPtr.Zero)
+            // Only use the parent handle if it is valid and visible!
+            // Note that minimised windows are still 'visibile', and to filter
+            // those out we'd need to call IsIconic(HWND), but we're happy to
+            // parent to a minimised parent window and be minimised ourself.
+            if (parentHandle != IntPtr.Zero && User32.IsWindowVisible(parentHandle))
             {
                 return parentHandle;
             }
