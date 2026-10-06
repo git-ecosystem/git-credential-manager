@@ -38,6 +38,14 @@ public enum GitCapabilities
     /// flag that signals a non-final authentication step is expected.
     /// </remarks>
     State = 1 << 0,
+
+    /// <summary>
+    /// The <c>authtype</c>, <c>credential</c>, and <c>ephemeral</c> attributes are understood.
+    /// </summary>
+    /// <remarks>
+    /// Provides alternative formats for HTTP Authorization header.
+    /// </remarks>
+    AuthType = 1 << 1,
 }
 
 /// <summary>
@@ -66,7 +74,8 @@ public static class GitCapabilitiesUtils
         // handling is implemented.
         return name.ToLowerInvariant() switch
         {
-            "state" => GitCapabilities.State,
+            Constants.CredentialProtocol.StateKey => GitCapabilities.State,
+            Constants.CredentialProtocol.AuthTypeKey => GitCapabilities.AuthType,
             _ => GitCapabilities.None,
         };
     }
@@ -89,7 +98,8 @@ public static class GitCapabilitiesUtils
         // protocol name distinct from its .NET enum name).
         return capability switch
         {
-            GitCapabilities.State => "state",
+            GitCapabilities.State => Constants.CredentialProtocol.StateKey,
+            GitCapabilities.AuthType => Constants.CredentialProtocol.AuthTypeKey,
             GitCapabilities.None => throw new ArgumentException(
                 "Cannot render the None capability to a protocol name.",
                 nameof(capability)),

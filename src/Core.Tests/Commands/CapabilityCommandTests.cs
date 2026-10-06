@@ -22,7 +22,7 @@ public class CapabilityCommandTests
         Assert.StartsWith("version 0\n", actualOutput);
 
         // GCM advertises the state capability.
-        Assert.Equal("version 0\ncapability state\n", actualOutput);
+        Assert.Equal("version 0\ncapability state\ncapability authtype\n", actualOutput);
     }
 
     [Fact]

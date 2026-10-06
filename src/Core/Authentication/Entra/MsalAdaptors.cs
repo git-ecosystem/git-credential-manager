@@ -1,7 +1,6 @@
 using System;
 using System.Net.Http;
 using System.Threading;
-using GitCredentialManager.Interop.Windows.Native;
 using GitCredentialManager.UI.Controls;
 using Microsoft.Identity.Client;
 
@@ -31,40 +30,35 @@ internal class MsalParentWindowAdapter : IDisposable
     private readonly bool _createIfMissing;
     private readonly CancellationTokenSource _cts = new();
 
+    private readonly Func<CancellationToken, IntPtr> _createWindow;
+
     public static MsalParentWindowAdapter Create(object parentWindow, bool createIfMissing = false)
     {
-        return new MsalParentWindowAdapter(parentWindow, createIfMissing);
+        return new MsalParentWindowAdapter(parentWindow, createIfMissing, ProgressWindow.ShowAndGetHandle);
     }
 
-    private MsalParentWindowAdapter(object parentWindow, bool createIfMissing = false)
+    internal MsalParentWindowAdapter(object parentWindow, bool createIfMissing,
+        Func<CancellationToken, IntPtr> createWindow)
     {
+        EnsureArgument.NotNull(createWindow, nameof(createWindow));
+
         _parentWindow = parentWindow;
         _createIfMissing = createIfMissing;
+        _createWindow = createWindow;
     }
 
     public object GetWindow()
     {
+        // Try to use the parent window we were given (if any)
         if (_parentWindow is IntPtr p && p != IntPtr.Zero)
         {
             return _parentWindow;
         }
 
-        // Create a stub window to use as a parent
+        // Create a stub window to use as a parent instead (if the caller requires it)
         if (_createIfMissing)
         {
-            return ProgressWindow.ShowAndGetHandle(_cts.Token);
-        }
-
-        // On Windows we can try and get the console window parent handle if that exists
-        if (PlatformUtils.IsWindows())
-        {
-            IntPtr consoleHandle = Kernel32.GetConsoleWindow();
-            IntPtr parentHandle = User32.GetAncestor(consoleHandle, GetAncestorFlags.GetRootOwner);
-
-            if (parentHandle != IntPtr.Zero)
-            {
-                return parentHandle;
-            }
+            return _createWindow(_cts.Token);
         }
 
         return null;

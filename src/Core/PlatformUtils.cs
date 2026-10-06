@@ -5,6 +5,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using GitCredentialManager.Interop.Posix.Native;
+using GitCredentialManager.Interop.Windows.Native;
 
 namespace GitCredentialManager
 {
@@ -209,6 +210,36 @@ namespace GitCredentialManager
             }
 
             return false;
+        }
+
+        public static IntPtr GetConsoleParentWindow()
+        {
+            // On Windows we can try and get the console window parent handle if that exists
+            if (!IsWindows())
+            {
+                return IntPtr.Zero;
+            }
+
+            IntPtr consoleHandle = Kernel32.GetConsoleWindow();
+
+            // When the parent is using ConPTY (pseudo-terminals) the console
+            // window may be a fake/stub (as is the case with Windows Terminal).
+            // This means we need to walk up the ancestor chain to get the actual
+            // root owner (typically the terminal emulator's window).
+            IntPtr parent = User32.GetAncestor(consoleHandle, GetAncestorFlags.GetRootOwner);
+
+            // On Windows the parent window may be hidden (not visible) if the console is
+            // running in a background process (like a service).
+            // We do not consider a hidden window as a valid parent. We do however consider
+            // a minimised window as a valid parent (and the user is able to restore it and
+            // see our child window too).
+            if (User32.IsWindowVisible(parent))
+            {
+                return parent;
+            }
+
+            // No visible console window available!
+            return IntPtr.Zero;
         }
 
         #region Platform Entry Path Utils

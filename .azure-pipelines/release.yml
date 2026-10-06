@@ -31,13 +31,6 @@ parameters:
   - name: windows_matrix
     type: object
     default:
-      - id: windows_x86
-        jobName: 'Windows (x86)'
-        runtime: win-x86
-        pool: GitClientPME-1ESHostedPool-intel-pc
-        poolArch: amd64
-        image: win-x86_64-ado1es
-        os: windows
       - id: windows_x64
         jobName: 'Windows (x64)'
         runtime: win-x64
@@ -609,7 +602,7 @@ extends:
                 inputs:
                   targetType: inline
                   script: |
-                    echo "##vso[task.setvariable variable=value;isOutput=true;isReadOnly=true]$(cat ./VERSION | sed -E 's/.[0-9]+$//')"
+                    echo "##vso[task.setvariable variable=value;isOutput=true;isReadOnly=true]$(cat ./VERSION)"
 
           - job: github
             displayName: 'Publish GitHub release'
@@ -626,9 +619,6 @@ extends:
               isProduction: true
               inputs:
                 # Installers and packages
-                - input: pipelineArtifact
-                  artifactName: 'win-x86'
-                  targetPath: $(Pipeline.Workspace)/assets/win-x86
                 - input: pipelineArtifact
                   artifactName: 'win-x64'
                   targetPath: $(Pipeline.Workspace)/assets/win-x64
@@ -664,8 +654,6 @@ extends:
                   isDraft: true
                   addChangeLog: false
                   assets: |
-                    $(Pipeline.Workspace)/assets/win-x86/*.exe
-                    $(Pipeline.Workspace)/assets/win-x86/*.zip
                     $(Pipeline.Workspace)/assets/win-x64/*.exe
                     $(Pipeline.Workspace)/assets/win-x64/*.zip
                     $(Pipeline.Workspace)/assets/win-arm64/*.exe
