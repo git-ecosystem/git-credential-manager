@@ -274,8 +274,11 @@ extends:
               displayName: ${{ dim.jobName }}
               pool:
                 name: ${{ dim.pool }}
-                image: ${{ dim.image }}
                 os: ${{ dim.os }}
+                ${{ if ne(dim.imageOverride, '') }}:
+                  demands: ImageOverride -equals ${{ dim.imageOverride }}
+                ${{ else }}:
+                  image: ${{ dim.image }}
               templateContext:
                 outputs:
                   - output: pipelineArtifact
