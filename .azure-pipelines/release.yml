@@ -52,14 +52,16 @@ parameters:
       - id: macos_x64
         jobName: 'macOS (x64)'
         runtime: osx-x64
-        pool: 'Azure Pipelines'
-        image: macOS-latest
+        pool: AcesShared
+        # Use the image override to issue a demand as this is a self-hosted pool
+        imageOverride: ACES_VM_SharedPool_GoldenGate
         os: macos
       - id: macos_arm64
         jobName: 'macOS (ARM64)'
         runtime: osx-arm64
-        pool: 'Azure Pipelines'
-        image: macOS-latest
+        pool: AcesShared
+        # Use the image override to issue a demand as this is a self-hosted pool
+        imageOverride: ACES_VM_SharedPool_GoldenGate
         os: macos
 
   - name: linux_matrix
