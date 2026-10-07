@@ -576,6 +576,23 @@ extends:
                   targetType: filePath
                   filePath: './build/dntool/pack.sh'
                   arguments: --configuration release
+              # ESRP-sign the NuGet package itself
+              - ${{ if eq(parameters.esrp, true) }}:
+                - template: .azure-pipelines/esrp/sign.yml@self
+                  parameters:
+                    displayName: 'Sign payload'
+                    folderPath: '$(Build.SourcesDirectory)/out/package/release'
+                    pattern: '**/*.nupkg'
+                    inlineOperation: |
+                      [
+                        {
+                          "KeyCode": "CP-401405",
+                          "OperationCode": "NuGetSign",
+                          "ToolName": "sign",
+                          "ToolVersion": "1.0",
+                          "Parameters": {}
+                        }
+                      ]
               - task: Bash@3
                 displayName: 'Collect artifacts for publishing'
                 inputs:
