@@ -19,16 +19,15 @@ you agree to abide by its terms.
 ## Submitting a pull request
 
 1. [Fork][fork] and clone the repository
-1. Configure and install the dependencies: `dotnet restore`
-1. Make sure the tests pass on your machine: `dotnet test`
+1. Follow [development setup][development] and restore dependencies:
+   `dotnet restore`
+1. Make sure the full solution test suite passes on your machine:
+   `dotnet test git-credential-manager.slnx`
 1. Create a new branch: `git switch -c my-branch-name`
-1. Make your change, add tests, and make sure the tests still pass
-1. For UI updates, test your changes by executing a `dotnet run` in applicable
-   UI-related project directories:
-    - `Atlassian.Bitbucket.UI.Avalonia`
-    - `GitHub.UI.Avalonia`
-    - `Atlassian.Bitbucket.UI.Windows`
-    - `GitHub.UI.Windows`
+1. Make your change, add tests, and make sure all tests pass
+1. For UI updates, exercise the relevant flow through the main executable:
+   `dotnet run --project src/git-credential-manager -- get`.
+   See [debugging instructions][debugging] for stdin and startup arguments.
 1. Organize your changes into one or more [logical, descriptive commits][commits].
 1. Push to your fork and [submit a pull request][pr]
 1. Pat your self on the back and wait for your pull request to be reviewed and
@@ -40,22 +39,56 @@ request being accepted:
 - Match existing code style.
 - Write tests.
 - Keep your change as focused as possible. If there are multiple changes you
-   would like to make that are not dependent upon each other, consider
-   submitting them as separate pull requests.
+  would like to make that are not dependent upon each other, consider
+  submitting them as separate pull requests.
+
+Run the full solution test suite for every code change. Targeted tests are useful
+while iterating, but do not replace the full run. Platform-specific tests skip
+on other operating systems; CI covers the Windows, macOS, and Linux matrix.
+See [testing][testing] for test infrastructure and coverage instructions.
+
+## Commits
+
+Make each commit one logical change. Include the tests and documentation for a
+behaviour change in the same commit; keep unrelated refactors and formatting
+separate.
+
+Use `area: short imperative summary` for the subject, with a concrete area,
+lowercase text after the colon, no trailing period, and at most 72 characters.
+Explain why the change is needed in the body, wrapping prose at about 72
+characters.
+
+Credit meaningful AI assistance with `Assisted-by: <human-readable model name>`.
+We don't require the `Signed-off-by` trailer (`git commit -s`) on commits, but
+it is recommended.
+
+Please watch [this very helpful video][commits-video] that outlines the commit
+message conventions and best practices for open source projects.
+
+## Development resources
+
+The [developer documentation index][developer-docs] links to build, debugging,
+architecture, threading, and provider guidance.
 
 ## Resources
 
 - [How to Contribute to Open Source][how-to-contribute]
 - [Using Pull Requests][prs]
 - [GitHub Help][github-help]
+- [Writing Commits For You, Your Friends, And Your Future Self][commits-video]
 
 [code-of-conduct]: CODE_OF_CONDUCT.md
-[commits]: https://www.youtube.com/watch?v=4qLtKx9S9a8
+[commits]: #commits
+[commits-video]: https://www.youtube.com/watch?v=4qLtKx9S9a8
 [contribute-under-repo-license]: https://help.github.com/articles/github-terms-of-service/#6-contributions-under-repository-license
 [fork]: https://github.com/git-ecosystem/git-credential-manager/fork
 [github-help]: https://help.github.com
 [how-to-contribute]: https://opensource.guide/how-to-contribute/
 [issue]: https://github.com/git-ecosystem/git-credential-manager/issues/new/choose
 [license]: LICENSE
+[debugging]: docs/development.md#debugging
+[developer-docs]: docs/README.md#developer-documentation
+[development]: docs/development.md
 [pr]: https://github.com/git-ecosystem/git-credential-manager/compare
 [prs]: https://help.github.com/articles/about-pull-requests/
+[testing]: docs/development.md#testing
