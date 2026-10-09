@@ -6,13 +6,48 @@ Start by cloning this repository:
 git clone https://github.com/git-ecosystem/git-credential-manager
 ```
 
-You also need the latest version of the .NET SDK which can be downloaded and
-installed from the [.NET website][dotnet-web].
+Install a .NET SDK compatible with [`global.json`][global-json] from the
+[.NET website][dotnet-web]. The product typically targets the latest LTS release
+of .NET. Build defaults and dependency versions are maintained in
+[`Directory.Build.props`][build-props] and
+[`Directory.Packages.props`][packages-props].
 
 ## Building
 
 The `git-credential-manager.slnx` solution can be opened and built in Visual
 Studio, Visual Studio Code, or JetBrains Rider.
+
+For an ordinary development build, run these commands from the repository root:
+
+```shell
+dotnet restore
+dotnet build git-credential-manager.slnx
+```
+
+Managed binaries are written to `out/bin/<project>/<configuration>/`, for
+example `out/bin/git-credential-manager/debug/git-credential-manager.dll`.
+Intermediate files are under `out/obj/`. These paths use the SDK's artifacts
+output layout, not per-project `bin` and `obj` directories.
+
+### Distribution prerequisites
+
+An ordinary build is not a distribution publish. The platform distribution
+scripts publish Native AOT binaries by default and require native build tools
+in addition to the .NET SDK:
+
+- **Windows:** Visual Studio's Desktop development with C++ workload and
+  PowerShell 7 (`pwsh`). The distribution project restores its Inno Setup
+  compiler through NuGet.
+- **macOS:** Xcode Command Line Tools. For Native AOT builds, also read the
+  Homebrew SDK warning below.
+- **Linux:** a C/C++ compiler toolchain and development libraries required by
+  .NET, including Clang and zlib development headers on Ubuntu. ARM32
+  cross-compilation also needs the ARMHF toolchain used in CI.
+
+See the [.NET Native AOT prerequisites][native-aot] and the
+[CI workflow][ci-workflow] for platform details. Build a platform's distribution
+on that platform: its distribution project skips packaging on other operating
+systems.
 
 Each platform's distributables (installers, packages, and archives) are produced
 by building the matching project under `build/`, as shown below. These commands
@@ -23,7 +58,7 @@ mirror what CI runs.
 To build the macOS distribution from the command line, run:
 
 ```shell
-dotnet build build/macos --configuration=Debug --runtime=osx-arm64
+dotnet build build/macos --configuration=debug --runtime=osx-arm64
 ```
 
 Use `osx-x64` or `osx-arm64` for the `--runtime`, or omit it to build for the
@@ -78,7 +113,7 @@ The flat binaries can also be found in
 To build the Windows distribution from the command line, run:
 
 ```powershell
-dotnet build build\windows --configuration=Debug --runtime=win-x64
+dotnet build build\windows --configuration=debug --runtime=win-x64
 ```
 
 Use `win-x64`, `win-x86`, or `win-arm64` for the `--runtime`, or omit it to
@@ -96,7 +131,7 @@ The flat binaries can also be found in
 To build the Linux distribution from the command line, run:
 
 ```shell
-dotnet build build/linux --configuration=Debug --runtime=linux-x64
+dotnet build build/linux --configuration=debug --runtime=linux-x64
 ```
 
 Use `linux-x64`, `linux-arm64`, or `linux-arm` for the `--runtime`, or omit it
@@ -261,6 +296,9 @@ method
 0. `exit`: contains current executable's exit code
 0. `child_start`: describes a child process that is about to be spawned
 0. `child_exit`: describes a child process at exit
+0. `thread_start`: identifies a thread starting a separate Trace2 context
+0. `thread_exit`: records that thread's completion and elapsed time
+0. `error`: records an error encountered by the application
 0. `cmd_name`: identifies the canonical command and inherited command hierarchy
 0. `region_enter`: describes a region (e.g. a timer for a section of code that
 is interesting) on entry
@@ -274,13 +312,37 @@ section][trace2-events] of Git's Trace2 API documentation.
 Want to see more events? Consider contributing! We'd :love: to see your
 awesome work in support of building out this API.
 
+## Testing
+
+Run the full solution test suite from the repository root:
+
+```shell
+dotnet test git-credential-manager.slnx
+```
+
+For faster iteration, you can run a project or filter specific tests:
+
+```shell
+dotnet test src/Core.Tests/Core.Tests.csproj --filter FullyQualifiedName~WslUtilsTests
+```
+
+These focused runs do not replace the full suite required by the
+[contributing guide][contributing]. Tests use xUnit, Moq, and mocks of commonly
+used types can be found in [`src/TestInfrastructure`][test-infrastructure].
+Prefer these mocks to live network, credential-store, or Git-configuration
+changes.
+
+The [platform-specific attributes][platform-attributes] skip tests on other
+operating systems. A passing local run does not exercise all platform code;
+CI runs the suite across Windows, macOS, and Linux.
+
 ### Code coverage metrics
 
 If you want code coverage metrics these can be generated either from the command
 line:
 
 ```shell
-dotnet test --collect:"XPlat Code Coverage" --settings=./.code-coverage/coverlet.settings.xml
+dotnet test git-credential-manager.slnx --collect:"XPlat Code Coverage" --settings=.code-coverage/coverlet.settings.xml
 ```
 
 Or via the VSCode Terminal/Run Task:
@@ -289,28 +351,27 @@ Or via the VSCode Terminal/Run Task:
 test with coverage
 ```
 
-HTML reports can be generated using ReportGenerator, this should be installed
-during the build process, from the command line:
+ReportGenerator is restored with the test projects. The current package version
+is declared in `Directory.Packages.props`; the examples below use that version
+and the default NuGet package cache. Adjust the path if either changes.
 
 ```shell
 dotnet ~/.nuget/packages/reportgenerator/*/*/net10.0/ReportGenerator.dll -reports:./**/TestResults/**/coverage.cobertura.xml -targetdir:./out/code-coverage
 ```
 
-or
+..or in PowerShell on Windows:
 
-```shell
+```powershell
 dotnet {$env:USERPROFILE}/.nuget/packages/reportgenerator/*/*/net10.0/ReportGenerator.dll -reports:./**/TestResults/**/coverage.cobertura.xml -targetdir:./out/code-coverage
 ```
 
-Or via VSCode Terminal/Run Task:
+..or via VSCode Terminal/Run Task:
 
 ```console
+# Unix
 report coverage - nix
-```
 
-or
-
-```console
+# Windows
 report coverage - win
 ```
 
@@ -322,18 +383,40 @@ the [documentation on GitHub][markdownlint]. The configuration used for
 markdownlint is in [.markdownlint.jsonc][markdownlint-config].
 
 Documents are checked for link validity using [lychee][lychee]. Lychee can be
-installed in a variety of ways depending on your platform, see the [docs on GitHub][lychee-docs].
+installed in a variety of ways depending on your platform, see the
+[docs on GitHub][lychee-docs].
 Some URLs are ignored by lychee, per the [lycheeignore][lycheeignore].
 
+With the tools installed, run from the repository root:
+
+```shell
+markdownlint-cli2 "**/*.md" "!.github/ISSUE_TEMPLATE"
+lychee --no-progress .
+```
+
+You can pass only changed Markdown files while iterating.
+`lychee --offline --include-fragments <files>` checks local paths and anchors
+without requesting external links. CI checks external links too; see the
+[documentation workflow][lint-workflow].
+
+[build-props]: ../Directory.Build.props
+[ci-workflow]: ../.github/workflows/continuous-integration.yml
+[contributing]: ../CONTRIBUTING.md
 [dotnet-runtime-120440]: https://github.com/dotnet/runtime/issues/120440
 [dotnet-web]: https://dotnet.microsoft.com/
 [custom-helpers]: https://git-scm.com/docs/gitcredentials#_custom_helpers
 [ioformat]: https://git-scm.com/docs/git-credential#IOFMT
+[global-json]: ../global.json
+[lint-workflow]: ../.github/workflows/lint-docs.yml
 [lychee]: https://lychee.cli.rs/
 [lychee-docs]: https://github.com/lycheeverse/lychee
 [lycheeignore]: ../.lycheeignore
 [markdownlint]: https://github.com/DavidAnson/markdownlint-cli2
 [markdownlint-config]: ../.markdownlint.jsonc
+[native-aot]: https://learn.microsoft.com/en-us/dotnet/core/deploying/native-aot/
+[packages-props]: ../Directory.Packages.props
+[platform-attributes]: ../src/TestInfrastructure/PlatformAttributes.cs
+[test-infrastructure]: ../src/TestInfrastructure
 [trace2]: https://git-scm.com/docs/api-trace2
 [trace2-events]: https://git-scm.com/docs/api-trace2#_event_specific_keyvalue_pairs
 [trace2-targets]: https://git-scm.com/docs/api-trace2#_trace2_targets
