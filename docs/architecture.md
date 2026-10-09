@@ -2,86 +2,67 @@
 
 ## Overview
 
-```text
-+------------------------------------------------------------------------------+
-|                                                                              |
-|                           Git-Credential-Manager                             |
-|                                                                              |
-+-+-------------+--------------+-----+---------------------+-----------------+-+
-  |             |              |     |                     |                 |
-  |             |              |     |             Windows |         Windows |
-  |             |              |     |                     |                 |
-  | +-----------v-----------+  |     |    +----------------v---------------+ |
-  | |                       |  |     |    |                                | |
-  | |        GitHub         <-------------+        GitHub.UI.Windows       | |
-  | |                       |  |     |    |                                | |
-  | +-+---------------------+  |     |    +-+------------------------------+ |
-  |   |                        |     |      |                                |
-  |   |  +---------------------v-+   |      | +------------------------------v-+
-  |   |  |                       |   |      | |                                |
-  |   |  |  Atlassian.Bitbucket  <------------+ Atlassian.Bitbucket.UI.Windows |
-  |   |  |                       |   |      | |                                |
-  |   |  +-+---------------------+   |      | +---------------+----------------+
-  |   |    |                         |      |                 |
-  |   |    |  +----------------------v-+    |                 |
-  |   |    |  |                        |    |                 |
-  |   |    |  |  Microsoft.AzureRepos  |    |                 |
-  |   |    |  |                        |    |                 |
-  |   |    |  +-----------+------------+    |                 |
-  |   |    |              |                 |                 |
-+-v---v----v--------------v------------+  +-v-----------------v----------------+
-|                                      |  |                                    |
-|                 Core                 <--+               Core.UI              |
-|                                      |  |                                    |
-+--------------------------------------+  +------------------------------------+
+```mermaid
+flowchart TD
+  App["git-credential-manager"] --> GitHub
+  App --> Bitbucket["Atlassian.Bitbucket"]
+  App --> AzureRepos["Microsoft.AzureRepos"]
+  App --> GitLab
+  App --> Core
+  GitHub --> Core
+  Bitbucket --> Core
+  AzureRepos --> Core
+  GitLab --> Core
 ```
 
 Git Credential Manager (GCM) is built to be Git host and platform/OS
-agnostic. Most of the shared logic (command execution, the abstract platform
-subsystems, etc) can be found in the `Core` class
-library (C#). The library targets .NET Standard as well as .NET Framework.
+agnostic. Shared commands, the Git credential protocol, settings, credential
+storage, authentication, console services, and platform abstractions live in
+[`src/Core`][core-project]. The product projects target the latest .NET LTS;
+they do not target .NET Standard or .NET Framework. The current project graph
+is declared in [`git-credential-manager.slnx`][solution].
 
-> **Note**
->
-> The reason for also targeting .NET Framework directly is that the
-> `Microsoft.Identity.Client` ([MSAL.NET][msal])
-> library requires a .NET Framework target to be able to show the embedded web
-> browser auth pop-up on Windows platforms.
->
-> There are extension points that now exist in MSAL.NET meaning we can plug-in
-> our own browser pop-up handling code on .NET meaning both Windows and
-> Mac. We haven't yet gotten around to exploring this.
->
-> See [GCM issue 113][issue-113] for more information.
+The entry point is [`src/git-credential-manager/Program.cs`][core-program].
+It initializes the main-thread dispatcher, starts an `AppMain` thread, registers
+the host providers, and runs the `Application` object from `Core`. This project
+emits the `git-credential-manager(.exe)` executable.
 
-The entry-point for GCM can be found in the `Git-Credential-Manager`
-project, a console application that targets both .NET and .NET Framework.
-This project emits the `git-credential-manager(.exe)` executable, and
-contains very little code - registration of all supported host providers and
-running the `Application` object found in `Core`.
-
-Providers have their own projects/assemblies that take dependencies on the
-`Core` core assembly, and are dependents of the main
-entry point application `Git-Credential-Manager`. Code in these binaries is
-expected to run on all supported platforms and typically (see MSAL.NET note
-above) does not include any graphical user interface; they use terminal prompts
-only.
-
-Where a provider needs some platform-specific interaction or graphical user
-interface, the recommended model is to have a separate 'helper' executable that
-the shared, core binaries shell out to. Currently the Bitbucket and GitHub
-providers each have a WPF (Windows only) helper executable that shows
-authentication prompts and messages.
-
-The `Core.UI` project is a WPF (Windows only) assembly
-that contains common WPF components and styles that are shared between provider
-helpers on Windows.
+GitHub, Bitbucket, Azure Repos, and GitLab have their own projects, each
+referencing `Core`. The executable references all four. `GenericHostProvider`
+lives in `Core` and provides the fallback for other hosts.
 
 ### Cross-platform UI
 
-We hope to be able to migrate the WPF/Windows only helpers to [Avalonia][avalonia]
-in order to gain cross-platform graphical user interface support. See
-[GCM issue 136][issue-136] for up-to-date progress on this effort.
+Graphical prompts use [Avalonia][avalonia] **in process**. Shared controls,
+views, view models, and the application main loop live under `src/Core/UI`;
+provider-specific UI lives in the corresponding provider project.
+
+The main loop starts lazily, when work is first posted to GCM's dispatcher.
+Returning a stored credential does not require starting the UI framework.
+See the [main thread dispatcher][gcm-dispatcher] documentation before changing
+UI initialization, main-thread work, or shutdown.
+
+Authentication components also retain support for configured out-of-process UI
+helpers. These are optional overrides, not a requirement for new providers or
+separate UI projects built by this solution. See the
+[host provider specification][host-provider-helpers].
+
+### Build and deployment
+
+Shared build properties and artifact paths are declared in
+[`Directory.Build.props`][build-props]. Package versions are managed centrally
+in [`Directory.Packages.props`][packages-props].
+
+An ordinary solution build produces managed binaries under `out/bin/`.
+Platform distribution projects under `build/windows`, `build/macos`, and
+`build/linux` publish Native AOT binaries by default. Their publish scripts also
+support a trimmed, self-contained non-AOT build. The .NET tool distribution is
+different: it publishes portable, framework-dependent IL without AOT or trimming.
+See [development and debugging][gcm-development] for commands and prerequisites.
+
+Publishing constraints matter when adding dependencies, reflection, or
+serialization. Existing JSON serializers use source-generated contexts so
+their metadata is available to the Native AOT and trimming toolchains.
 
 ### Microsoft Entra authentication
 
@@ -105,80 +86,59 @@ how that works and the rules for posting to it.
 
 ## Command execution
 
-```text
-                             +---------------+
-                             |               |
-                             |      Git      |
-                             |               |
-                             +---+-------^---+
-                                 |       |
-                             +---v---+---+---+
-                             | stdin | stdout|
-                             +---+---+---^---+
-                                 |       |
-                            (2)  |       |  (7)
-                          Select |       | Serialize
-                         Command |       | Result
-                                 |       |
-                     (3)         |       |
-                    Select       |       |
-+---------------+  Provider  +---v-------+---+
-| Host Provider |            |               |
-|   Registry    <------------+    Command    |
-|               |            |               |
-+-------^-------+            +----+------^---+
-        |                         |      |
-        |                   (4)   |      |   (6)
-        |                Execute  |      |  Return
-        |              Operation  |      |  Result
-        |    (1)                  |      |
-        |  Register          +----v------+---+
-        |                    |               |
-        +--------------------+ Host Provider |
-                             |               |
-                             +-------^-------+
-                                     |
-                   (5) Use services  |
-                                     |
-                             +-------v-------+
-                             |    Command    |
-                             |    Context    |
-                             +---------------+
+```mermaid
+flowchart TB
+    git["Git"] -.- io("stdin/stdout")
+    io -- select command (2) --> cmd["Command"]
+    cmd -- serialize result (7) --> io
+    cmd <-. select provider (3) .-> registry["Host Provider Registry"]
+    cmd -- execute operation (4) --> provider["Host Provider"]
+    provider -- return result (6) --> cmd
+    provider <-. use services (5) .-> ctx["Command Context"]
+    provider -- register (1) --> registry
 ```
 
-Git Credential Manager maintains a set of known commands including
-`Get|Store|EraseCommand`, as well as commands for install and help/usage.
+`Application` uses `System.CommandLine` to register the main command called by
+Git: `get`, `store`, `erase`, `capability`, along with help/version options,
+GCM setup, and provider-specific commands.
 
-GCM also maintains a set of known, registered host providers that implement
-the `IHostProvider` interface. Providers register themselves by adding an
+GCM maintains a set of known, registered host providers that implement the
+`IHostProvider` interface. Providers register themselves by adding an
 instance of the provider to the `Application` object via the `RegisterProvider`
-method in [`Core.Program`][core-program].
+method in [`Program`][core-program].
 The `GenericHostProvider` is registered last so that it can handle all other
-HTTP-based remotes as a catch-all, and provide basic username/password auth and
-detect the presence of Windows Integrated Authentication (Kerberos, NTLM,
-Negotiate) support (1).
+supported remotes as a low-priority catch-all. It supports basic authentication,
+[generic OAuth][generic-oauth], and detection of Windows Integrated
+Authentication (Kerberos, NTLM, Negotiate) support (1).
 
 For each invocation of GCM, the first argument on the command-line is
 matched against the known commands and if there is a successful match, the input
 from Git (over standard input) is deserialized and the command is executed (2).
 
-The `Get|Store|EraseCommand`s consult the host provider registry for the most
-appropriate host provider. The default registry implementation select the a host
-provider by asking each registered provider in turn if they understand the
-request. The provider selection can be overridden by the user via the
+The `get|store|erase` commands parse stdin into a `GitRequest` and scope
+settings to its remote URI. They consult the host provider registry for the most
+appropriate provider. At each priority, the registry first checks
+`IsSupported(GitRequest)` in registration order. If no provider matches, it can
+probe an HTTP(S) remote with a HEAD request and check
+`IsSupported(HttpResponseMessage)`. Probing is bounded by the configured timeout
+and can be disabled; a successful probe is reused across priority levels.
+The provider selection can be overridden by the user via the
 [`credential.provider`][credential-provider] or [`GCM_PROVIDER`][gcm-provider]
 configuration and environment variable respectively (3).
 
-The `Get|Store|EraseCommand`s call the corresponding
+The `get|store|erase` commands call the corresponding
 `Get|Store|EraseCredentialAsync` methods on the `IHostProvider`, passing the
-request from Git together with an instance of the `ICommandContext` (4). The
-host provider can then make use of various services available on the command
-context to complete the requested operation (5).
+`GitRequest` (4). Providers receive `ICommandContext` at construction, rather
+than as an argument to each credential operation, and use its services to
+complete the request (5).
 
 Once a credential has been created, retrieved, stored or erased, the host
-provider returns the credential (for `get` operations only) to the calling
-command (6). The credential is then serialized and returned to Git over standard
-output (7) and GCM terminates with a successful exit code.
+provider returns a `GitResponse` (for `get` operations only) to the calling
+command (6). The `get` command serializes the response over stdout, including
+capability-gated fields where negotiated with Git (7). A response can also
+cancel the credential acquisition pipeline (`quit=1`), yield to another helper
+(an empty response), or request another authentication round (`continue=1`).
+See the [provider response contract][host-provider-responses].
 
 ## Host provider
 
@@ -194,11 +154,11 @@ method. Calls to `get`, `store`, or `erase` result in first a call to
 and request. This value forms part of the attributes associated with any stored
 credential in the credential store. During a `get` operation the
 credential store is queried for an existing credential with such service name.
-If a credential is found it is returned immediately. Similarly, calls to `store`
-and `erase` are handles automatically to store credentials against, and erase
-credentials matching the service name. Methods are implemented as `virtual`
-meaning you can always override this behaviour, for example to clear other
-custom caches on an `erase` request, without having to reimplement the
+If a credential is found it is wrapped in a `GitResponse` and returned
+immediately. Similarly, calls to `store` and `erase` automatically store or
+remove credentials matching the service name. Methods are implemented as
+`virtual` meaning you can always override this behaviour, for example to clear
+other custom caches on an `erase` request, without having to reimplement the
 lookup/store credential logic.
 
 The default implementation of `GetServiceName` is usually sufficient for most
@@ -226,23 +186,24 @@ requests), `StoreCredentialAsync` (for `store` requests) or
 `GitRequest` contains the request information passed over standard input
 from Git/the caller; the same as was passed to `IsSupported`.
 
-The return value for the `get` operation must be an `ICredential` that Git can
-use to complete authentication.
+`GetCredentialAsync` returns `Task<GitResponse>`, not `Task<ICredential>`.
+A successful response contains an `ICredential` that Git can use to complete
+authentication. The base class's `GenerateCredentialAsync` method still returns
+`Task<ICredential>`.
 
-> **Note:**
->
+> [!NOTE]
 > The credential can also be an instance where both username and password are
 > the empty string, to signal to Git it should let cURL use "any auth"
 > detection - typically to use Windows Integrated Authentication.
 
 There are no return values for the `store` and `erase` operations as Git ignores
 any output or exit codes for these commands. Failures for these operations are
-best communicated via writing to the Standard Error stream via
-`ICommandContext.Streams.Error`.
+communicated through `ICommandContext.Console`, which writes user-facing
+messages to stderr.
 
 ## Command context
 
-The `ICommandContext` which contains numerous services which are useful for
+`ICommandContext` contains numerous services which are useful for
 interacting with various platform subsystems, such as the file system or
 environment variables. All services on the command context are exposed as
 interfaces for ease of testing and portability between different operating
@@ -250,17 +211,22 @@ systems and platforms.
 
 Component|Description
 -|-
-CredentialStore|A secure operating system controlled location for storing and retrieving `ICredential` objects.
+CredentialStore|Stores and retrieves `ICredential` objects through the configured backend, including native OS stores and file-backed implementations. See [credential stores][credential-stores].
 Settings|Abstraction over all GCM settings.
-Streams|Abstraction over standard input, output and error streams connected to the parent process (typically Git).
-Terminal|Provides interactions with an attached terminal, if it exists.
+Streams|Standard input, output, and error streams connected to the parent process (typically Git). During credential operations, stdin/stdout are reserved for the Git protocol.
+Console|User-facing messages on stderr and interactive Spectre.Console prompts on the controlling terminal. Only interactive prompts require a TTY.
 SessionManager|Provides information about the current user session.
-Trace|Provides tracing information that may be useful for debugging issues in the wild. Secret information MUST be filtered out completely or via the `Write___Secret` method(s).
+Trace|Diagnostic tracing. Use secret-aware methods such as `WriteLineSecrets` and `WriteDictionarySecrets` to mask secrets unless secret tracing was explicitly enabled.
 FileSystem|Abstraction over file system operations.
 HttpClientFactory|Factory for creating `HttpClient` instances that are configured with the correct user agent, headers, and proxy settings.
 Git|Provides interactions with Git and Git configuration.
 Environment|Abstraction over the current system/user environment variables.
-SystemPrompts|Provides services for showing system/OS native credential prompts.
+ProcessManager|Creates child processes with the appropriate standard streams, working directory, and Trace2 attribution.
+
+Prefer these abstractions and the shared mocks in `src/TestInfrastructure`
+when writing tests. Do not use Git's protocol streams for user-facing prompts
+or diagnostics. Authentication components check the interaction, GUI, and
+terminal-prompt settings before requesting user input.
 
 ## Error handling and tracing
 
@@ -273,20 +239,31 @@ should be human readable. When there is a known or user-fixable issue,
 instructions on how to self-remedy the issue, or links to relevant
 documentation should be given.
 
-Warnings can be emitted over the standard error stream
-(`ICommandContext.Streams.Error`) when you want to alert the user to a potential
-issue with their configuration that does not necessarily stop the
-operation/authentication.
+Warnings can be emitted with `ICommandContext.Console.WriteWarning` when you
+want to alert the user to a potential configuration issue that does not
+necessarily stop authentication.
 
 The `ITrace` component can be found on the `ICommandContext` object or passed in
-directly to some constructors. Verbose and diagnostic information is be written
+directly to some constructors. Verbose and diagnostic information is written
 to the trace object in most places of GCM.
 
+Cancellation is distinct from an unrecoverable error. During `get`,
+`OperationCanceledException` and terminal interrupts are translated to
+`GitResponse.Cancel()`, preventing Git from prompting again. Terminal interrupts
+in other commands are handled by `Application` with exit code 130 and no
+`fatal:` banner.
+
 [avalonia]: https://avaloniaui.net/
-[core-program]: ../src/shared/Git-Credential-Manager/Program.cs
+[build-props]: ../Directory.Build.props
+[core-program]: ../src/git-credential-manager/Program.cs
+[core-project]: ../src/Core
 [credential-provider]: configuration.md#credentialprovider
-[issue-113]: https://github.com/git-ecosystem/git-credential-manager/issues/113
-[issue-136]: https://github.com/git-ecosystem/git-credential-manager/issues/136
+[credential-stores]: credstores.md
+[gcm-development]: development.md
 [gcm-dispatcher]: dispatcher.md
-[gcm-provider]: environment.md#GCM_PROVIDER
-[msal]: https://github.com/AzureAD/microsoft-authentication-library-for-dotnet
+[gcm-provider]: environment.md#gcm_provider
+[generic-oauth]: generic-oauth.md
+[host-provider-helpers]: hostprovider.md#3-helpers
+[host-provider-responses]: hostprovider.md#23-retrieving-credentials
+[packages-props]: ../Directory.Packages.props
+[solution]: ../git-credential-manager.slnx
