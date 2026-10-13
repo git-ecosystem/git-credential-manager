@@ -11,6 +11,7 @@ The following are links to user support documentation:
 - [Enterprise configuration][gcm-enterprise-config]
 - [Network and HTTP configuration][gcm-net-config]
 - [Credential stores][gcm-credstores]
+- [Secret Service in headless Linux sessions][gcm-secretservice-headless]
 - [Azure Repos OAuth tokens][gcm-azure-tokens]
 - [Azure Managed Identities and Service Principals][gcm-misp]
 - [Azure Workload Identity Federation Workflows][gcm-azure-wif]
@@ -47,6 +48,7 @@ These are links helpful for developers of Git Credential Manager:
 [gcm-misp]: azrepos-misp.md
 [gcm-net-config]: netconfig.md
 [gcm-oauth]: generic-oauth.md
+[gcm-secretservice-headless]: secretservice-headless.md
 [gcm-usage]: usage.md
 [gcm-ntlm-kerberos]: ntlm-kerberos.md
 [gcm-azure-wif]: azrepos-wif.md

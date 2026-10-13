@@ -105,7 +105,7 @@ using the Keychain Access application.
 
 **Available on:** _Linux_
 
-**:warning: Requires a graphical user interface session.**
+**:warning: Requires a D-Bus session bus and a Secret Service provider.**
 
 ```shell
 export GCM_CREDENTIAL_STORE=secretservice
@@ -117,8 +117,26 @@ This credential store uses the `libsecret` library to interact with the Secret
 Service. It stores credentials securely in 'collections', which can be viewed by
 tools such as `secret-tool` and `seahorse`.
 
-A graphical user interface is required in order to show a secure prompt to
-request a secret collection be unlocked.
+A Secret Service provider, such as GNOME Keyring or KWallet, must be available
+on the user's D-Bus session bus. The provider handles prompts to create or
+unlock collections; these prompts may require a graphical user interface.
+
+### Headless/SSH sessions
+
+A graphical session is not required to access an already-unlocked collection.
+In a headless or SSH session, ensure GCM can access the same D-Bus session bus
+as the Secret Service provider, and unlock the collection using a mechanism
+supported by that provider before running GCM.
+
+See [Secret Service in headless Linux sessions][secretservice-headless] for
+more information, including example setup instructions for Ubuntu and the GNOME
+Keyring provider.
+
+> [!NOTE]
+> GCM cannot provision a D-Bus session or replace the provider's unlock
+> prompts with terminal or pinentry prompts. For environments without D-Bus,
+> consider the [GPG/`pass` credential store](#gpgpass-compatible-files) or
+> [Git's in-memory credential cache](#gits-built-in-credential-cache).
 
 ## GPG/[`pass`][passwordstore] compatible files
 
@@ -290,3 +308,4 @@ enter your credentials every time you interact with a remote repository.
 [git-credential-cache-options]: https://git-scm.com/docs/git-credential-cache#_options
 [passwordstore]: https://www.passwordstore.org/
 [plaintext-files]: #plaintext-files
+[secretservice-headless]: secretservice-headless.md

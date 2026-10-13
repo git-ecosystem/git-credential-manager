@@ -180,7 +180,7 @@ namespace GitCredentialManager
 
             if (PlatformUtils.IsLinux())
             {
-                sb.AppendFormat("  {1,-13} : freedesktop.org Secret Service (requires graphical interface){0}",
+                sb.AppendFormat("  {1,-13} : freedesktop.org Secret Service (requires D-Bus and a Secret Service provider){0}",
                     Environment.NewLine, StoreNames.SecretService);
             }
 
@@ -260,14 +260,6 @@ namespace GitCredentialManager
             if (!PlatformUtils.IsLinux())
             {
                 var message = $"Can only use the '{StoreNames.SecretService}' credential store on Linux.";
-                throw new Exception(message + Environment.NewLine +
-                                    $"See {Constants.HelpUrls.GcmCredentialStores} for more information."
-                );
-            }
-
-            if (!_context.SessionManager.IsDesktopSession)
-            {
-                var message = $"Cannot use the '{StoreNames.SecretService}' credential backing store without a graphical interface present.";
                 throw new Exception(message + Environment.NewLine +
                                     $"See {Constants.HelpUrls.GcmCredentialStores} for more information."
                 );

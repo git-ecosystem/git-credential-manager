@@ -7,6 +7,13 @@ namespace GitCredentialManager.Interop.Linux.Native
     {
         private const string LibraryName = "libsecret-1.so.0";
 
+        public const string ErrorDomain = "secret-error";
+
+        public enum SecretError
+        {
+            SECRET_ERROR_IS_LOCKED = 2,
+        }
+
         public enum SecretSchemaAttributeType
         {
             SECRET_SCHEMA_ATTRIBUTE_STRING = 0,
@@ -110,7 +117,7 @@ namespace GitCredentialManager.Interop.Linux.Native
         public static extern unsafe Glib.GHashTable* secret_item_get_attributes(SecretItem* item);
 
         [DllImport(LibraryName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
-        public static extern unsafe void secret_item_load_secret_sync(
+        public static extern unsafe bool secret_item_load_secret_sync(
             SecretItem* self,
             IntPtr cancellable,
             out Glib.GError* error);
@@ -119,7 +126,7 @@ namespace GitCredentialManager.Interop.Linux.Native
         public static extern unsafe int secret_service_unlock_sync(SecretService* service,
             Glib.GList* objects,
             IntPtr cancellable,
-            out Glib.GList* unlocked,
+            IntPtr unlocked,
             out Glib.GError* error);
 
         [DllImport(LibraryName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
