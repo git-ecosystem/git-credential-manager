@@ -16,7 +16,7 @@ namespace GitCredentialManager.Interop.Linux
         private const string SchemaName = "com.microsoft.GitCredentialManager";
         private const string ServiceAttributeName = "service";
         private const string AccountAttributeName = "account";
-        private const string PlainTextContentType = "plain/text";
+        private const string PlainTextContentType = "text/plain";
 
         private readonly string _namespace;
 
