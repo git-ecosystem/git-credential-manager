@@ -1,11 +1,12 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
+using GitCredentialManager.Concurrency;
 using GitCredentialManager.Interop.Linux;
 using GitCredentialManager.Interop.MacOS;
 using GitCredentialManager.Interop.Posix;
 using GitCredentialManager.Interop.Windows;
-using GitCredentialManager.Tty;
 
 namespace GitCredentialManager
 {
@@ -80,6 +81,11 @@ namespace GitCredentialManager
         /// Process manager.
         /// </summary>
         IProcessManager ProcessManager { get; }
+
+        /// <summary>
+        /// Factory for creating locks to serialize access to shared resources.
+        /// </summary>
+        ILockFactory LockFactory { get; }
     }
 
     /// <summary>
@@ -150,6 +156,7 @@ namespace GitCredentialManager
 
             HttpClientFactory = new HttpClientFactory(FileSystem, Trace, Settings, Console);
             CredentialStore   = new CredentialStore(this);
+            LockFactory       = new LockFactory(FileSystem);
         }
 
         private static string GetGitPath(IEnvironment environment, IFileSystem fileSystem, ITrace trace)
@@ -213,6 +220,8 @@ namespace GitCredentialManager
         public IEnvironment Environment { get; }
 
         public IProcessManager ProcessManager { get; }
+
+        public ILockFactory LockFactory { get; }
 
         #endregion
 
