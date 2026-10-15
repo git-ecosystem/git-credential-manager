@@ -60,12 +60,36 @@ namespace GitCredentialManager.Tests.Objects
         }
 
         Stream IFileSystem.OpenFileStream(string path, FileMode fileMode, FileAccess fileAccess, FileShare fileShare)
+            => OpenFileStream(path, fileMode, fileAccess, FileOptions.None);
+
+        Stream IFileSystem.OpenFileStream(string path, FileMode fileMode, FileAccess fileAccess, FileShare fileShare,
+            FileOptions fileOptions)
+            => OpenFileStream(path, fileMode, fileAccess, fileOptions);
+
+        private Stream OpenFileStream(string path, FileMode fileMode, FileAccess fileAccess, FileOptions fileOptions)
         {
+            if (fileOptions != FileOptions.None && fileOptions != FileOptions.DeleteOnClose)
+            {
+                throw new NotSupportedException($"Unsupported test file options: {fileOptions}.");
+            }
+
             bool writable = fileAccess != FileAccess.Read;
 
-            if (fileMode == FileMode.Create)
+            if (fileMode == FileMode.Create || fileMode == FileMode.OpenOrCreate)
             {
-                return new TestFileStream(this, path);
+                var stream = new TestFileStream(this, path, fileOptions == FileOptions.DeleteOnClose);
+                if (fileMode == FileMode.OpenOrCreate && Files.TryGetValue(path, out byte[] contents))
+                {
+                    stream.Write(contents, 0, contents.Length);
+                    stream.Position = 0;
+                }
+
+                return stream;
+            }
+
+            if (fileOptions != FileOptions.None)
+            {
+                throw new NotSupportedException($"Unsupported test file mode with {fileOptions}: {fileMode}.");
             }
 
             return new MemoryStream(Files[path], writable);
@@ -175,17 +199,28 @@ namespace GitCredentialManager.Tests.Objects
     {
         private readonly TestFileSystem _fs;
         private readonly string _path;
+        private readonly bool _deleteOnClose;
 
-        public TestFileStream(TestFileSystem fs, string path)
+        public TestFileStream(TestFileSystem fs, string path, bool deleteOnClose = false)
         {
             _fs = fs;
             _path = path;
+            _deleteOnClose = deleteOnClose;
         }
 
         public override void Flush()
         {
             base.Flush();
             _fs.Files[_path] = base.ToArray();
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+            if (disposing && _deleteOnClose)
+            {
+                _fs.Files.Remove(_path);
+            }
         }
     }
 }
