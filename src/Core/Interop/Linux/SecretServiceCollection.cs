@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using GitCredentialManager.Interop.Linux.Native;
 using static GitCredentialManager.Interop.Linux.Native.Gobject;
 using static GitCredentialManager.Interop.Linux.Native.Glib;
 using static GitCredentialManager.Interop.Linux.Native.Libsecret;
@@ -19,6 +20,17 @@ namespace GitCredentialManager.Interop.Linux
         private const string PlainTextContentType = "text/plain";
 
         private readonly string _namespace;
+
+        internal enum Operation
+        {
+            ConnectBus,
+            OpenService,
+            Search,
+            Unlock,
+            Store,
+            Erase,
+            Load,
+        }
 
         #region Constructors
 
@@ -74,9 +86,7 @@ namespace GitCredentialManager.Interop.Linux
 
                 if (error != null)
                 {
-                    int code = error->code;
-                    string message = Marshal.PtrToStringAuto(error->message)!;
-                    throw new InteropException("Failed to search for credentials", code, new Exception(message));
+                    throw CreateException(Operation.Search, error);
                 }
 
                 var credentials = new List<ICredential>();
@@ -86,9 +96,7 @@ namespace GitCredentialManager.Interop.Linux
                 {
                     SecretItem* item = (SecretItem*) itemPtr->data;
 
-                    // Although we've unlocked the collection during the search call,
-                    // an item can also be individually locked within a collection.
-                    // If the item is locked we should try and unlock it.
+                    // Searches can return locked items even when unlocking was requested.
                     if (secret_item_get_locked(item))
                     {
                         var toUnlockList = new GList
@@ -102,13 +110,13 @@ namespace GitCredentialManager.Interop.Linux
                             secService,
                             &toUnlockList,
                             IntPtr.Zero,
-                            out _,
+                            IntPtr.Zero,
                             out error
                         );
 
-                        if (numUnlocked != 1)
+                        if (error != null || numUnlocked != 1)
                         {
-                            throw new InteropException("Failed to unlock item", numUnlocked);
+                            throw CreateException(Operation.Unlock, error);
                         }
                     }
 
@@ -182,14 +190,12 @@ namespace GitCredentialManager.Interop.Linux
 
                 if (error != null)
                 {
-                    int code = error->code;
-                    string message = Marshal.PtrToStringAuto(error->message)!;
-                    throw new InteropException("Failed to store credentials", code, new Exception(message));
+                    throw CreateException(Operation.Store, error);
                 }
 
                 if (!result)
                 {
-                    throw new InteropException("Failed to store credentials", -1);
+                    throw CreateException(Operation.Store, null);
                 }
             }
             finally
@@ -224,9 +230,7 @@ namespace GitCredentialManager.Interop.Linux
 
                 if (error != null)
                 {
-                    int code = error->code;
-                    string message = Marshal.PtrToStringAuto(error->message)!;
-                    throw new InteropException("Failed to erase credentials", code, new Exception(message));
+                    throw CreateException(Operation.Erase, error);
                 }
 
                 return result;
@@ -291,11 +295,16 @@ namespace GitCredentialManager.Interop.Linux
                 string account = Marshal.PtrToStringAuto(accountValuePtr);
 
                 // Load the secret value
-                secret_item_load_secret_sync(item, IntPtr.Zero, out error);
+                bool loaded = secret_item_load_secret_sync(item, IntPtr.Zero, out error);
+                if (error != null || !loaded)
+                {
+                    throw CreateException(Operation.Load, error);
+                }
+
                 value = secret_item_get_secret(item);
                 if (value == null)
                 {
-                    throw new InteropException("Failed to load secret", -1);
+                    throw CreateException(Operation.Load, null);
                 }
 
                 // Extract the secret/password
@@ -328,21 +337,115 @@ namespace GitCredentialManager.Interop.Linux
 
         private static unsafe SecretService* GetSecretService()
         {
-            // Get a handle to the default secret service, open a session,
-            // and load all collections
-            SecretService* service = secret_service_get_sync(
-                SecretServiceFlags.SECRET_SERVICE_OPEN_SESSION | SecretServiceFlags.SECRET_SERVICE_LOAD_COLLECTIONS,
-                IntPtr.Zero, out GError* error);
+            IntPtr connection = IntPtr.Zero;
+            GError* error = null;
 
-            if (error != null)
+            try
             {
-                int code = error->code;
-                string message = Marshal.PtrToStringAuto(error->message)!;
-                g_error_free(error);
-                throw new InteropException("Failed to open secret service session", code, new Exception(message));
+                // Diagnose bus connectivity separately from Secret Service availability.
+                connection = Gio.g_bus_get_sync(Gio.GBusType.G_BUS_TYPE_SESSION, IntPtr.Zero, out error);
+                if (error != null || connection == IntPtr.Zero)
+                {
+                    throw CreateException(Operation.ConnectBus, error);
+                }
+
+                SecretService* service = secret_service_get_sync(
+                    SecretServiceFlags.SECRET_SERVICE_OPEN_SESSION | SecretServiceFlags.SECRET_SERVICE_LOAD_COLLECTIONS,
+                    IntPtr.Zero, out error);
+
+                if (error != null || service == null)
+                {
+                    throw CreateException(Operation.OpenService, error);
+                }
+
+                return service;
+            }
+            finally
+            {
+                if (error != null) g_error_free(error);
+                if (connection != IntPtr.Zero) g_object_unref(connection);
+            }
+        }
+
+        private static unsafe InteropException CreateException(Operation operation, GError* error)
+        {
+            if (error == null)
+            {
+                return CreateException(operation, null, -1, null);
             }
 
-            return service;
+            string domain = Marshal.PtrToStringUTF8(g_quark_to_string(error->domain));
+            string message = Marshal.PtrToStringUTF8(error->message);
+            return CreateException(operation, domain, error->code, message);
+        }
+
+        internal static InteropException CreateException(
+            Operation operation, string errorDomain, int errorCode, string errorMessage)
+        {
+            string message = operation switch
+            {
+                Operation.ConnectBus => "Failed to connect to the D-Bus session bus.",
+                Operation.OpenService => "Failed to open the Secret Service session.",
+                Operation.Search => "Failed to search for credentials.",
+                Operation.Unlock => "Failed to unlock the secret item.",
+                Operation.Store => "Failed to store credentials.",
+                Operation.Erase => "Failed to erase credentials.",
+                Operation.Load => "Failed to load the secret.",
+                _ => throw new ArgumentOutOfRangeException(nameof(operation), operation, null),
+            };
+
+            bool serviceUnavailable = errorDomain == Gio.DBusErrorDomain &&
+                (errorCode == (int)Gio.GDBusError.G_DBUS_ERROR_SERVICE_UNKNOWN ||
+                 errorCode == (int)Gio.GDBusError.G_DBUS_ERROR_NAME_HAS_NO_OWNER);
+
+            string hint;
+            if (errorDomain == Gio.IOErrorDomain && errorCode == (int)Gio.GIOError.G_IO_ERROR_CANCELLED)
+            {
+                hint = "The operation was cancelled.";
+            }
+            else if (errorDomain == Libsecret.ErrorDomain && errorCode == (int)SecretError.SECRET_ERROR_IS_LOCKED)
+            {
+                hint = "The secret item or collection is locked. Unlock it using your Secret Service provider before retrying.";
+            }
+            else if (operation == Operation.ConnectBus)
+            {
+                hint = "Ensure a D-Bus session bus is running and accessible. In a headless session, start your shell or workload with 'dbus-run-session'.";
+            }
+            else if (operation == Operation.OpenService)
+            {
+                hint = (serviceUnavailable ? "No Secret Service provider is available. " : string.Empty) +
+                    "Ensure a Secret Service provider, such as GNOME Keyring or KWallet, is installed and running on the same D-Bus session bus.";
+            }
+            else if (serviceUnavailable)
+            {
+                hint = "A required D-Bus service is unavailable. Ensure your Secret Service provider and its prompting components are installed and running.";
+            }
+            else if (operation == Operation.Unlock)
+            {
+                hint = "Unlock the item or its collection using your Secret Service provider before retrying. An unlock prompt may have been dismissed or cancelled.";
+            }
+            else if (operation == Operation.Store && errorMessage == null)
+            {
+                hint = "The collection could not be created or unlocked. A Secret Service prompt may have been dismissed or cancelled.";
+            }
+            else if (operation == Operation.Load && errorMessage == null)
+            {
+                hint = "No secret value was returned. Ensure the item and its collection are unlocked.";
+            }
+            else
+            {
+                hint = null;
+            }
+
+            if (hint != null)
+            {
+                message += Environment.NewLine + hint;
+            }
+
+            message += Environment.NewLine + $"See {Constants.HelpUrls.GcmCredentialStores} for more information.";
+
+            Exception innerException = errorMessage == null ? null : new Exception($"{errorDomain}: {errorMessage}");
+            return new InteropException(message, errorCode, innerException);
         }
 
         private static SecretSchema GetSchema()
