@@ -19,8 +19,8 @@ namespace GitCredentialManager
                 trace.WriteLine($"Using universal Gitea OAuth configuration");
                 // https://docs.gitea.com/next/development/oauth2-provider?_highlight=oauth#pre-configured-applications
                 config.ClientId = WellKnown.GiteaClientId;
-                authzEndpointUri = new Uri(remoteUri, WellKnown.GiteaAuthzEndpoint);
-                tokenEndpointUri = new Uri(remoteUri, WellKnown.GiteaTokenEndpoint);
+                authzEndpointUri = CreateGiteaEndpointUri(remoteUri, WellKnown.GiteaAuthzEndpoint);
+                tokenEndpointUri = CreateGiteaEndpointUri(remoteUri, WellKnown.GiteaTokenEndpoint);
                 config.RedirectUri = WellKnown.LocalIPv4RedirectUri;
             }
 
@@ -160,6 +160,22 @@ namespace GitCredentialManager
                 : "OAUTH_USER";
 
             return true;
+        }
+
+        private static Uri CreateGiteaEndpointUri(Uri remoteUri, string endpoint)
+        {
+            string[] pathSegments = remoteUri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+            int prefixSegmentCount = Math.Max(0, pathSegments.Length - 2);
+            string prefixPath = prefixSegmentCount == 0
+                ? "/"
+                : $"/{string.Join('/', pathSegments.Take(prefixSegmentCount))}/";
+
+            return new UriBuilder(remoteUri)
+            {
+                Path = prefixPath + endpoint.TrimStart('/'),
+                Query = string.Empty,
+                Fragment = string.Empty,
+            }.Uri;
         }
 
 
