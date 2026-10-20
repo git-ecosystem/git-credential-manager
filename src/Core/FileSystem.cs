@@ -15,7 +15,7 @@ namespace GitCredentialManager
         string UserHomePath { get; }
 
         /// <summary>
-        /// Get the path the the user's Git Credential Manager data directory.
+        /// Get the path to the user's Git Credential Manager data directory.
         /// </summary>
         string UserDataDirectoryPath { get; }
 
