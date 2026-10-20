@@ -165,14 +165,11 @@ namespace GitCredentialManager
         private static Uri CreateGiteaEndpointUri(Uri remoteUri, string endpoint)
         {
             string[] pathSegments = remoteUri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
-            int prefixSegmentCount = Math.Max(0, pathSegments.Length - 2);
-            string prefixPath = prefixSegmentCount == 0
-                ? "/"
-                : $"/{string.Join('/', pathSegments.Take(prefixSegmentCount))}/";
+            string prefixPath = string.Join('/', pathSegments.Take(pathSegments.Length - 2));
 
             return new UriBuilder(remoteUri)
             {
-                Path = prefixPath + endpoint.TrimStart('/'),
+                Path = prefixPath + '/' + endpoint,
                 Query = string.Empty,
                 Fragment = string.Empty,
             }.Uri;
@@ -195,8 +192,8 @@ namespace GitCredentialManager
         // https://docs.gitea.com/next/development/oauth2-provider?_highlight=oauth#pre-configured-applications
         public const string GiteaClientId = "e90ee53c-94e2-48ac-9358-a874fb9e0662";
         // https://docs.gitea.com/next/development/oauth2-provider?_highlight=oauth#endpoints
-        public const string GiteaAuthzEndpoint = "/login/oauth/authorize";
-        public const string GiteaTokenEndpoint = "/login/oauth/access_token";
+        public const string GiteaAuthzEndpoint = "login/oauth/authorize";
+        public const string GiteaTokenEndpoint = "login/oauth/access_token";
         public static Uri LocalIPv4RedirectUri = new Uri("http://127.0.0.1");
     }
     }

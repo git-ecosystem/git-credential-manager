@@ -101,15 +101,18 @@ namespace GitCredentialManager.Tests
             Assert.Equal(expectedTokenEndpoint, config.Endpoints.TokenEndpoint);
         }
 
-        [Fact]
-        public void GenericOAuthConfig_TryGet_Gitea_PreservesDeploymentPrefix()
+        [Theory]
+        [InlineData("/test/test.git", "/login/oauth/authorize", "/login/oauth/access_token")]
+        [InlineData("/git/test/test.git", "/git/login/oauth/authorize", "/git/login/oauth/access_token")]
+        [InlineData("/sub/git/test/test.git", "/sub/git/login/oauth/authorize", "/sub/git/login/oauth/access_token")]
+        public void GenericOAuthConfig_TryGet_Gitea_PreservesDeploymentPrefix(
+            string path, string expectedAuthzPath, string expectedTokenPath)
         {
             var protocol = "https";
             var host = "example.com";
-            var path = "/git/test/test.git";
             var remoteUri = new Uri($"{protocol}://{host}{path}");
-            var expectedAuthzEndpoint = new Uri($"{protocol}://{host}/git/login/oauth/authorize");
-            var expectedTokenEndpoint = new Uri($"{protocol}://{host}/git/login/oauth/access_token");
+            var expectedAuthzEndpoint = new Uri($"{protocol}://{host}{expectedAuthzPath}");
+            var expectedTokenEndpoint = new Uri($"{protocol}://{host}{expectedTokenPath}");
 
             var trace = new NullTrace();
             var settings = new TestSettings
