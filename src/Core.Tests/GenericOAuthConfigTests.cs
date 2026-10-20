@@ -102,6 +102,7 @@ namespace GitCredentialManager.Tests
         }
 
         [Theory]
+        [InlineData("", "/login/oauth/authorize", "/login/oauth/access_token")]
         [InlineData("/test/test.git", "/login/oauth/authorize", "/login/oauth/access_token")]
         [InlineData("/git/test/test.git", "/git/login/oauth/authorize", "/git/login/oauth/access_token")]
         [InlineData("/sub/git/test/test.git", "/sub/git/login/oauth/authorize", "/sub/git/login/oauth/access_token")]
