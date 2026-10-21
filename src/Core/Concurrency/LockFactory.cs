@@ -38,7 +38,9 @@ public class LockFactory(IFileSystem fs) : ILockFactory
                 throw new NotImplementedException();
 
             case LockScope.CurrentUser:
-                throw new NotImplementedException();
+                string path = GetUserLockPath(name);
+                _fs.CreateDirectory(Path.GetDirectoryName(path));
+                return new FileLock(_fs, path);
 
             case LockScope.Machine:
                 throw new NotImplementedException();
