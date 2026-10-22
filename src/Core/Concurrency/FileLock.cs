@@ -229,9 +229,17 @@ public sealed class FileLock : ILock
 
         try
         {
+            // On Windows (where file locking is mandatory), we want to allow other processes to read
+            // the lock file while we have it open so we specify the 'Read' share mode.
+            // However, on Unix we have different granularity of locks which is coarser than Windows.
+            // LOCK_SH and LOCK_EX are the only types of locks available. We want an exclusive lock to
+            // be held, so we specify 'None' for the share mode. Since Unix file locking is advisory,
+            // other processes can still open the file and read it.
+            var shareMode = PlatformUtils.IsWindows() ? FileShare.Read : FileShare.None;
+
             // This flag combination also makes .NET revalidate the file identity on Unix.
             stream = _fs.OpenFileStream(_path, FileMode.OpenOrCreate, FileAccess.ReadWrite,
-                FileShare.None, FileOptions.DeleteOnClose);
+                shareMode, FileOptions.DeleteOnClose);
         }
         catch (IOException ex) when (IsContention(ex))
         {
@@ -305,5 +313,64 @@ public sealed class FileLock : ILock
             return ex.HResult == Interop.Linux.Native.Errno.EWOULDBLOCK;
 
         throw new PlatformNotSupportedException();
+    }
+
+    /// <summary>
+    /// Try to get the process ID and creation time of the process that currently holds the lock.
+    /// </summary>
+    /// <param name="pid">ID of the process that created this lock file.</param>
+    /// <param name="dateTime">Creation time of the lock file.</param>
+    /// <returns>True if the information was successfully retrieved; otherwise, false.</returns>
+    /// <remarks>
+    /// If the lock file contents cannot be retrieved (corrupted) this method will return false.
+    /// </remarks>
+    public bool TryGetInfo(out int pid, out DateTime dateTime)
+    {
+        try
+        {
+            if (PlatformUtils.IsWindows())
+            {
+                // Open the file with read access and allow other processes (including those
+                // that may already have it open and locked) to read/write/delete it.
+                using var fs = _fs.OpenFileStream(_path, FileMode.Open, FileAccess.Read,
+                    FileShare.ReadWrite | FileShare.Delete);
+
+                var reader = new StreamReader(fs);
+                string ownerPid = reader.ReadLine();
+
+                bool success = int.TryParse(ownerPid, out pid);
+                dateTime = _fs.GetCreationDateUtc(_path);
+                return success;
+            }
+
+            if (PlatformUtils.IsMacOS() || PlatformUtils.IsLinux())
+            {
+                // Read the file using the native open() syscall to avoid .NET file locking on Unix,
+                // which would prevent other processes from acquiring the lock.
+                using var fd = new Interop.Posix.PosixFileDescriptor(_path, Interop.Posix.Native.OpenFlags.O_RDONLY);
+
+                var buf = new byte[64]; // enough to read a PID and a newline
+                int nr = fd.Read(buf, buf.Length);
+                if (nr > 0)
+                {
+                    string contents = Encoding.UTF8.GetString(buf, 0, nr);
+                    string[] lines = contents.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+                    if (lines.Length > 0)
+                    {
+                        bool success = int.TryParse(lines[0], out pid);
+                        dateTime = _fs.GetCreationDateUtc(_path);
+                        return success;
+                    }
+                }
+            }
+
+            throw new PlatformNotSupportedException();
+        }
+        catch
+        {
+            pid = -1;
+            dateTime = default;
+            return false;
+        }
     }
 }

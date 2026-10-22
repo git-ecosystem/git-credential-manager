@@ -17,6 +17,7 @@ public class FileLockTests
 {
     private static readonly TimeSpan TestTimeout = TimeSpan.FromSeconds(10);
     private static readonly string LockPath = Path.Combine(Path.GetTempPath(), "gcm-test.lock");
+    private static readonly FileShare LockFileShare = OperatingSystem.IsWindows() ? FileShare.Read : FileShare.None;
 
     [Fact]
     public void FileLock_ConstructorAndUntakenDispose_DoNotTouchTheFile()
@@ -186,7 +187,7 @@ public class FileLockTests
             Assert.Same(failure, await Record.ExceptionAsync(() => mutex.AcquireAsync(TestTimeout)));
             Assert.False(mutex.IsHeld);
             fs.Verify(x => x.OpenFileStream(LockPath, FileMode.OpenOrCreate, FileAccess.ReadWrite,
-                FileShare.None, FileOptions.DeleteOnClose), Times.Once);
+                LockFileShare, FileOptions.DeleteOnClose), Times.Once);
 
             fail = false;
             Assert.True(mutex.TryAcquire());
@@ -443,13 +444,13 @@ public class FileLockTests
     {
         var fs = new Mock<IFileSystem>(MockBehavior.Strict);
         fs.Setup(x => x.OpenFileStream(LockPath, FileMode.OpenOrCreate, FileAccess.ReadWrite,
-            FileShare.None, FileOptions.DeleteOnClose)).Returns(open);
+            LockFileShare, FileOptions.DeleteOnClose)).Returns(open);
         return fs;
     }
 
     private static Stream Open(IFileSystem fs) =>
         fs.OpenFileStream(LockPath, FileMode.OpenOrCreate, FileAccess.ReadWrite,
-            FileShare.None, FileOptions.DeleteOnClose);
+            LockFileShare, FileOptions.DeleteOnClose);
 
     private static IOException SharingViolation() =>
         new("The file is locked.", OperatingSystem.IsWindows() ? unchecked((int)0x80070020) :

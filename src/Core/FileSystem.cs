@@ -127,6 +127,16 @@ namespace GitCredentialManager
         /// <param name="path">The file to open for reading.</param>
         /// <returns>A string array containing all lines of the file.</returns>
         string[] ReadAllLines(string path);
+
+        /// <summary>
+        /// Returns the creation date and time, in Coordinated Universal Time (UTC), of the specified file or directory.
+        /// </summary>
+        /// <param name="path">The file or directory for which to obtain creation date and time information.</param>
+        /// <returns>
+        /// A <see cref="DateTime"/> structure set to the creation date and time for the specified file or directory.
+        /// This value is expressed in UTC time.
+        /// </returns>
+        DateTime GetCreationDateUtc(string path);
     }
 
     /// <summary>
@@ -176,5 +186,7 @@ namespace GitCredentialManager
         public string ReadAllText(string path) => File.ReadAllText(path);
 
         public string[] ReadAllLines(string path) => File.ReadAllLines(path);
+
+        public DateTime GetCreationDateUtc(string path) => File.GetCreationTimeUtc(path);
     }
 }

@@ -15,6 +15,7 @@ namespace GitCredentialManager.Tests.Objects
         public ISet<string> Directories { get; set; } = new HashSet<string>();
         public string CurrentDirectory { get; set; } = Path.GetTempPath();
         public bool IsCaseSensitive { get; set; } = false;
+        public IDictionary<string, DateTime> CreateTimesUtc { get; set; } = new Dictionary<string, DateTime>();
 
         public TestFileSystem()
         {
@@ -103,6 +104,7 @@ namespace GitCredentialManager.Tests.Objects
         void IFileSystem.DeleteFile(string path)
         {
             Files.Remove(path);
+            CreateTimesUtc.Remove(path);
         }
 
         IEnumerable<string> IFileSystem.EnumerateFiles(string path, string searchPattern)
@@ -163,6 +165,19 @@ namespace GitCredentialManager.Tests.Objects
             }
 
             throw new IOException("File not found");
+        }
+
+        DateTime IFileSystem.GetCreationDateUtc(string path)
+        {
+            if (!Files.ContainsKey(path))
+                throw new FileNotFoundException("File not found", path);
+
+            if (!CreateTimesUtc.TryGetValue(path, out DateTime createTime))
+            {
+                throw new IOException("Creation time not set for file");
+            }
+
+            return createTime;
         }
 
         #endregion
