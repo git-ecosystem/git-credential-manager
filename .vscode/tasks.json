@@ -11,21 +11,21 @@
             },
             "args": [
                 "build",
-                "${workspaceFolder}/Git-Credential-Manager.sln",
+                "${workspaceFolder}/git-credential-manager.slnx",
             ],
             "problemMatcher": "$msCompile"
         },
         {
             "label": "test",
             "command": "dotnet",
-            "type": "shell",
+            "type": "process",
             "group":{
                 "kind": "test",
                 "isDefault": true
             },
             "args": [
                 "test",
-                "${workspaceFolder}/Git-Credential-Manager.sln"
+                "${workspaceFolder}/git-credential-manager.slnx"
             ],
             "presentation": {
                 "reveal": "always",
@@ -35,13 +35,13 @@
         {
             "label": "test with coverage",
             "command": "dotnet",
-            "type": "shell",
+            "type": "process",
             "group": "test",
             "args": [
                 "test",
-                "${workspaceFolder}/Git-Credential-Manager.sln",
+                "${workspaceFolder}/git-credential-manager.slnx",
                 "--collect",
-                "'XPlat Code Coverage'",
+                "XPlat Code Coverage",
                 "--settings",
                 "${workspaceFolder}/.code-coverage/coverlet.settings.xml"
             ],
@@ -53,10 +53,13 @@
         {
             "label": "report coverage - nix",
             "command": "dotnet",
-            "type": "shell",
+            "type": "process",
             "group": "test",
             "args": [
-                "~/.nuget/packages/reportgenerator/*/*/net10.0/ReportGenerator.dll",
+                "exec",
+                "--roll-forward",
+                "Major",
+                "${env:HOME}/.nuget/packages/reportgenerator/5.3.10/tools/net8.0/ReportGenerator.dll",
                 "-reports:${workspaceFolder}/**/TestResults/**/coverage.cobertura.xml",
                 "-targetdir:${workspaceFolder}/out/code-coverage"
             ],
@@ -68,10 +71,13 @@
         {
             "label": "report coverage - win",
             "command": "dotnet",
-            "type": "shell",
+            "type": "process",
             "group": "test",
             "args": [
-                "${env:USERROFILE}/.nuget/packages/reportgenerator/*/*/net10.0/ReportGenerator.dll",
+                "exec",
+                "--roll-forward",
+                "Major",
+                "${env:USERPROFILE}/.nuget/packages/reportgenerator/5.3.10/tools/net8.0/ReportGenerator.dll",
                 "-reports:${workspaceFolder}/**/TestResults/**/coverage.cobertura.xml",
                 "-targetdir:${workspaceFolder}/out/code-coverage"
             ],

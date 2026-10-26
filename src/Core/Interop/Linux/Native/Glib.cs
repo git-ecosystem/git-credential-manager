@@ -66,6 +66,9 @@ namespace GitCredentialManager.Interop.Linux.Native
         public static extern unsafe void g_hash_table_unref(GHashTable* hash_table);
 
         [DllImport(LibraryName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr g_quark_to_string(int quark);
+
+        [DllImport(LibraryName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
         public static extern unsafe void g_error_free(GError* error);
 
         [DllImport(LibraryName, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]

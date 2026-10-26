@@ -581,7 +581,7 @@ _(unset)_|Windows: `wincredman`, macOS: `keychain`, Linux: _(none)_|-
 `wincredman`|Windows Credential Manager (not available over SSH).|Windows
 `dpapi`|DPAPI protected files. Customize the DPAPI store location with [credential.dpapiStorePath][credential-dpapistorepath]|Windows
 `keychain`|macOS Keychain.|macOS
-`secretservice`|[freedesktop.org Secret Service API][freedesktop-ss] via [libsecret][libsecret] (requires a graphical interface to unlock secret collections).|Linux
+`secretservice`|[freedesktop.org Secret Service API][freedesktop-ss] via [libsecret][libsecret] (requires a D-Bus session bus and a Secret Service provider; unlocking may require a graphical interface).|Linux
 `gpg`|Use GPG to store encrypted files that are compatible with the [pass][pass] (requires GPG and `pass` to initialize the store).|macOS, Linux
 `cache`|Git's built-in [credential cache][credential-cache].|macOS, Linux
 `plaintext`|Store credentials in plaintext files (**UNSECURE**). Customize the plaintext store location with [`credential.plaintextStorePath`][credential-plaintextstorepath].|Windows, macOS, Linux

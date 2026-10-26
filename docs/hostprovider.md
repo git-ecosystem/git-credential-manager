@@ -2,7 +2,7 @@
 
 ## Abstract
 
-Git Credential Manger, the cross-platform and cross-host Git credential
+Git Credential Manager, the cross-platform and cross-host Git credential
 helper, can be extended to support any Git hosting service allowing seamless
 authentication to secured Git repositories by implementing and registering a
 "host provider".
@@ -55,11 +55,11 @@ Implementors MUST implement all interface properties and abstract methods.
 The `Id` and `Name` properties MUST be implemented and MUST NOT return default
 or empty values.
 
-The `Id` field MUST be unique over the set of all providers, or
-else an error will be thrown at registration time. The `Id` field MAY be a
-unique random string of characters and digits such as a UUID, but it is
-RECOMMENDED to use a human-readable value consisting of letter characters in the
-range \[a-z\] only.
+The `Id` field MUST be unique over the set of all providers. The registry
+rejects the reserved ID `auto` or any attempt to register a duplicate ID.
+The `Id` field MAY be a unique random string of characters and digits such as a
+UUID, but it is RECOMMENDED to use a human-readable value consisting of letter
+characters in the range \[a-z\] only.
 
 The `Name` property MUST be a human readable string and MUST identify the Git
 hosting service this provider supports.
@@ -113,6 +113,12 @@ to check for recognised on-premises instances (for example, by inspecting
 response headers) and return `true` if it wishes to be called upon to handle the
 credential request, otherwise it MUST return `false`.
 
+The registry probes only HTTP(S) remotes, only when the auto-detection timeout
+is positive, and reuses the probe response across priority levels. Network
+failures or a disabled probe do not prevent selection by `GitRequest`. The user
+may disable the auto-detection probe if desired so do not rely on this mechanism
+exclusively.
+
 Host providers SHOULD NOT make further network calls if possible during any of
 the `IsSupported` method overloads to avoid degrading the performance of the
 overall application.
@@ -129,10 +135,16 @@ method by throwing an `Exception`. Implementors MUST provide detailed
 information regarding the reason why the authentication cannot continue, for
 example "HTTP is not secure, please use HTTPS".
 
+Rejecting an unsafe or unsupported operation is different from user
+cancellation. A provider can return `GitResponse.Cancel()` when the user
+cancels, so Git stops rather than falling back to another prompt.
+
 ### 2.3. Retrieving Credentials
 
 The `GetCredentialAsync` method will be called when a `get` request is made.
-The method MUST return an instance of an `ICredential` capable of fulfilling the
+The method MUST return a `GitResponse` instance.
+
+A successful response MUST contain an `ICredential` capable of fulfilling the
 specific access request. The argument passed to `GetCredentialAsync` contains
 properties indicating the required `protocol` and `host` for this request. The
 `username` and `path` properties are OPTIONAL, however if they are present, they
@@ -151,10 +163,24 @@ If a provider chooses to make a validation web request and that request fails or
 is inconclusive, it SHOULD assume the credential is still valid and return it
 anyway, letting Git (the caller) attempt to use it and validate it itself.
 
-The returned `ICredential` MAY leave both the username and password values as
-the empty string or `null`. This signals to Git (or rather cURL) that it should
-negotiate the authentication mechanism with the remote itself. This is typically
+The credential inside a successful response MAY leave both username and password
+values as the empty string or `null`. This signals to Git (or rather cURL) that
+it should negotiate the authentication mechanism with the remote itself.
+This is typically
 used for Windows Integrated Authentication.
+
+The response shapes defined by `GitResponse` are:
+
+| Response | Meaning | Output from `GetCommand` |
+| --- | --- | --- |
+| `GitResponse.Ok(credential)` or `new GitResponse(credential)` | Return a credential. | Credential fields and a terminating blank line. |
+| `GitResponse.Continue(credential)` | Return a credential and expect another authentication round. | Credential fields and `continue=1` when the `state` capability is negotiated. |
+| `GitResponse.Cancel()` | Stop credential acquisition without another helper or prompt. | `quit=1` and a terminating blank line. |
+| `GitResponse.Yield()` | Let Git try another helper or its own prompt. | Only a blank line. |
+
+Cancel and yield responses do not carry credentials. `GetCommand` also
+translates `OperationCanceledException` and terminal `InterruptedException`
+from a provider into a cancellation response.
 
 #### 2.3.1 Authentication Prompts
 
@@ -180,12 +206,37 @@ check if interaction has been disabled (`ISettings.IsInteractionAllowed`), and
 an exception MUST be thrown if interaction has been disallowed.
 
 Authentication prompts that display a graphical user interface such as a window
-are MUST be preferred when an interactive "desktop" session is available.
+are MUST be preferred when an interactive "desktop" session is available and
+the user has not disabled GUI prompts. Disabling GUI prompts MUST be respected;
+use a supported terminal flow instead where one exists.
 
 If an authentication prompt is required when an interactive session is not
 available and a terminal/TTY is attached then a provider MUST first check if
 terminal prompts are enabled (`ISettings.IsTerminalPromptsEnabled`), and an
 exception MUST be thrown if interaction has been disallowed.
+
+User-facing output and prompts SHOULD use `ICommandContext.Console`.
+Output-only messages go to stderr; interactive prompts use the controlling
+terminal. Providers MUST NOT consume Git's stdin or write user messages to its
+stdout, which are reserved for the credential protocol.
+
+#### 2.3.2 Protocol capabilities and state
+
+`GitRequest` exposes advertised capabilities, authentication challenges
+(`WwwAuth`), and replayed per-helper state, as well as the basic protocol, host,
+path, username, and password fields.
+
+The command layer negotiates capabilities by intersecting Git's advertised
+capabilities with GCM's supported set. It emits `authtype`, `credential`, and
+`ephemeral` only when `authtype` is negotiated, and `continue` and `state[]`
+only when `state` is negotiated. Providers SHOULD use the typed response
+properties instead of writing protocol fields themselves.
+
+Use `SetState` or `WithState` to attach validated per-helper state. The command
+layer adds GCM's namespace prefix on output; `GitRequest.State` strips it on
+input. Providers MUST NOT add the prefix themselves or treat other helpers'
+state as their own. State and additional properties are not emitted for
+cancelled or yielded responses.
 
 ### 2.4. Storing Credentials
 
@@ -285,26 +336,23 @@ of, or the entire cache, when a call to `EraseCredentialAsync` is made.
 
 ## 3. Helpers
 
-Host providers MAY wish to make use of platform or operating system specific
-features such as native APIs and native graphical user interfaces, in order to
-offer a better authentication experience.
+GCM's built-in graphical prompts use in-process Avalonia UI. Shared UI lives
+under the Core project, and provider-specific views and view models live in
+their provider projects.
 
-Host providers MUST function without the presence of a helper, even if that
-function is to fail gracefully with a user-friendly error message, including
-a remedy to correct their installation. Host providers SHOULD always offer a
-terminal/TTY or text-based authentication mechanism alongside any graphical
-interface provided by a helper.
+Providers MUST use the existing `AvaloniaUi` helpers and follow the
+[main thread dispatcher][dispatcher] rules for UI and broker work.
 
-In order to achieve this host providers MUST introduce an out-of-process
-"helper" executable that can be invoked from the main GCM process. This
-allows the "helper" executable full implementation freedom of runtime, language,
-etc.
+Authentication components MAY support optional out-of-process helper overrides.
+Host providers MUST handle an unavailable helper gracefully; they SHOULD offer
+an available in-process or terminal flow, or fail with a user-friendly error and
+remedy when no supported flow remains. Interaction settings still apply.
 
-Communications between the main and helper processes MAY use any IPC mechanism
-available. It is RECOMMENDED implementors use standard input/output streams or
-file descriptors to send and receive data as this is consistent with how Git and
-GCM communicate. UNIX sockets or Windows Named Pipes MAY also be used when
-an ongoing back-and-forth communication is required.
+Communications between the main process and an optional helper MAY use any IPC
+mechanism available. It is RECOMMENDED implementors use standard input/output
+streams or file descriptors to send and receive data as this is consistent with
+how Git and GCM communicate. UNIX sockets or Windows Named Pipes MAY also be
+used when an ongoing back-and-forth communication is required.
 
 ### 3.1. Discovery
 
@@ -319,9 +367,9 @@ MUST include detailed failure information in the error message. If the reason
 for failure can be fixed by the user the error message MUST include instructions
 to fix the problem, or a link to online documentation.
 
-In the case of a recoverable error, host providers SHOULD print a warning
-message to the standard error stream, and MUST include the error information and
-the recovery steps take in the trace log.
+In the case of a recoverable error, host providers SHOULD use
+`ICommandContext.Console.WriteWarning` to print a message to stderr, and MUST
+include the error information and the recovery steps take in the trace log.
 
 In the case of an authentication error, providers SHOULD attempt to prompt the
 user again with a message indicating the incorrect authentication details have
@@ -329,7 +377,7 @@ been entered.
 
 ## 5. Custom Commands
 
-If a host provider wishes to surface custom commands the SHOULD implement the
+If a host provider wishes to surface custom commands it SHOULD implement the
 `ICommandProvider` interface.
 
 Each provider is given the opportunity to create a single `ProviderCommand`
@@ -344,6 +392,7 @@ take, but implementors SHOULD attempt to follow existing practices and styles.
 1. [`System.CommandLine` API][github-dotnet-cli]
 
 [gcm]: https://github.com/git-ecosystem/git-credential-manager
+[dispatcher]: dispatcher.md
 [github-dotnet-cli]: https://github.com/dotnet/command-line-api
 [hostprovider-base-class]: #26-hostprovider-base-class
 [references]: #references
