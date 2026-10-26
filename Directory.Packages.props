@@ -22,7 +22,7 @@
     <!-- Other -->
     <PackageVersion Include="Spectre.Console" Version="0.57.2" />
     <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
-    <PackageVersion Include="Tools.InnoSetup" Version="7.0.2" />
+    <PackageVersion Include="Tools.InnoSetup" Version="7.1.0" />
 
     <!-- Testing -->
     <PackageVersion Include="coverlet.collector" Version="10.1.0" />
