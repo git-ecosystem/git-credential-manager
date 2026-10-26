@@ -16,8 +16,8 @@
     <PackageVersion Include="Microsoft.Identity.Client.Extensions.Msal" Version="4.91.1" />
 
     <!-- MSBuild -->
-    <PackageVersion Include="Microsoft.Build.Framework" Version="16.0.461" />
-    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="16.0.461" />
+    <PackageVersion Include="Microsoft.Build.Framework" Version="18.9.6" />
+    <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="18.9.6" />
 
     <!-- Other -->
     <PackageVersion Include="Spectre.Console" Version="0.57.0" />
