@@ -6,9 +6,9 @@
 
   <ItemGroup>
     <!-- Avalonia -->
-    <PackageVersion Include="Avalonia" Version="12.0.5" />
-    <PackageVersion Include="Avalonia.Desktop" Version="12.0.5" />
-    <PackageVersion Include="Avalonia.Themes.Fluent" Version="12.0.5" />
+    <PackageVersion Include="Avalonia" Version="12.1.4" />
+    <PackageVersion Include="Avalonia.Desktop" Version="12.1.4" />
+    <PackageVersion Include="Avalonia.Themes.Fluent" Version="12.1.4" />
 
     <!-- Microsoft Identity -->
     <PackageVersion Include="Microsoft.Identity.Client" Version="4.85.2" />
