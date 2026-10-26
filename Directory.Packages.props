@@ -22,7 +22,6 @@
     <!-- Other -->
     <PackageVersion Include="Spectre.Console" Version="0.57.2" />
     <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
-    <PackageVersion Include="System.Text.Json" Version="8.0.5" />
     <PackageVersion Include="Tools.InnoSetup" Version="7.0.2" />
 
     <!-- Testing -->
