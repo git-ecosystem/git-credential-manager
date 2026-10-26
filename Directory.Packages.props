@@ -26,7 +26,7 @@
     <PackageVersion Include="Tools.InnoSetup" Version="7.0.2" />
 
     <!-- Testing -->
-    <PackageVersion Include="coverlet.collector" Version="6.0.2" />
+    <PackageVersion Include="coverlet.collector" Version="10.1.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.10.1" />
     <PackageVersion Include="Moq" Version="4.21.0" />
     <PackageVersion Include="ReportGenerator" Version="5.5.11" />
