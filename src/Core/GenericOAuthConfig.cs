@@ -19,8 +19,8 @@ namespace GitCredentialManager
                 trace.WriteLine($"Using universal Gitea OAuth configuration");
                 // https://docs.gitea.com/next/development/oauth2-provider?_highlight=oauth#pre-configured-applications
                 config.ClientId = WellKnown.GiteaClientId;
-                authzEndpointUri = new Uri(remoteUri, WellKnown.GiteaAuthzEndpoint);
-                tokenEndpointUri = new Uri(remoteUri, WellKnown.GiteaTokenEndpoint);
+                authzEndpointUri = CreateGiteaEndpointUri(remoteUri, WellKnown.GiteaAuthzEndpoint);
+                tokenEndpointUri = CreateGiteaEndpointUri(remoteUri, WellKnown.GiteaTokenEndpoint);
                 config.RedirectUri = WellKnown.LocalIPv4RedirectUri;
             }
 
@@ -162,6 +162,19 @@ namespace GitCredentialManager
             return true;
         }
 
+        private static Uri CreateGiteaEndpointUri(Uri remoteUri, string endpoint)
+        {
+            string[] pathSegments = remoteUri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+            string prefixPath = string.Join('/', pathSegments.Take(pathSegments.Length - 2));
+
+            return new UriBuilder(remoteUri)
+            {
+                Path = prefixPath + '/' + endpoint,
+                Query = string.Empty,
+                Fragment = string.Empty,
+            }.Uri;
+        }
+
 
         public OAuth2ServerEndpoints Endpoints { get; set; }
         public string ClientId { get; set; }
@@ -179,8 +192,8 @@ namespace GitCredentialManager
         // https://docs.gitea.com/next/development/oauth2-provider?_highlight=oauth#pre-configured-applications
         public const string GiteaClientId = "e90ee53c-94e2-48ac-9358-a874fb9e0662";
         // https://docs.gitea.com/next/development/oauth2-provider?_highlight=oauth#endpoints
-        public const string GiteaAuthzEndpoint = "/login/oauth/authorize";
-        public const string GiteaTokenEndpoint = "/login/oauth/access_token";
+        public const string GiteaAuthzEndpoint = "login/oauth/authorize";
+        public const string GiteaTokenEndpoint = "login/oauth/access_token";
         public static Uri LocalIPv4RedirectUri = new Uri("http://127.0.0.1");
     }
     }
