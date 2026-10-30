@@ -126,5 +126,33 @@ namespace GitCredentialManager.Interop.Windows.Native
                     throw new InteropException(defaultErrorMessage, new Win32Exception(error));
             }
         }
+
+        /// <summary>
+        /// Convert a Windows HRESULT to a Win32 error code, if possible.
+        /// </summary>
+        /// <param name="hr">The HRESULT to convert.</param>
+        /// <returns>The corresponding Win32 error code, or null if the conversion is not possible.</returns>
+        /// <remarks>
+        /// <para>
+        /// HRESULTs are 32-bit values with the following layout:
+        /// <list type="bullet">
+        /// <item><description>Bit 31: Severity (0 = Success, 1 = Failure)</description></item>
+        /// <item><description>Bit 30: Reserved</description></item>
+        /// <item><description>Bit 29: Customer (0 = Microsoft-defined, 1 = customer/third-party defined)</description></item>
+        /// <item><description>Bits 28-27: Reserved</description></item>
+        /// <item><description>Bits 26-16: Facility (the system service responsible for the error)</description></item>
+        /// <item><description>Bits 15-0: Code (the specific error code)</description></item>
+        /// </list>
+        /// </para>
+        /// <para>
+        /// The Win32 error codes are represented in HRESULTs with a facility code of 7 (FACILITY_WIN32)
+        /// and a severity of 11 (SEVERITY_ERROR). The lower 16 bits of the HRESULT contain the original
+        /// Win32 error code.
+        /// </para>
+        /// </remarks>
+        public static int? FromHResult(int hr) =>
+            (hr & unchecked((int)0xFFFF0000)) == unchecked((int)0x80070000)
+                ? hr & 0xFFFF
+                : null;
     }
 }

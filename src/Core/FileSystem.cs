@@ -15,7 +15,7 @@ namespace GitCredentialManager
         string UserHomePath { get; }
 
         /// <summary>
-        /// Get the path the the user's Git Credential Manager data directory.
+        /// Get the path to the user's Git Credential Manager data directory.
         /// </summary>
         string UserDataDirectoryPath { get; }
 
@@ -64,6 +64,18 @@ namespace GitCredentialManager
         /// <param name="fileShare">File share settings.</param>
         /// <returns></returns>
         Stream OpenFileStream(string path, FileMode fileMode, FileAccess fileAccess, FileShare fileShare);
+
+        /// <summary>
+        /// Open a file stream with additional file options.
+        /// </summary>
+        /// <param name="path">Full file path.</param>
+        /// <param name="fileMode">File mode settings.</param>
+        /// <param name="fileAccess">File access settings.</param>
+        /// <param name="fileShare">File share settings.</param>
+        /// <param name="fileOptions">Additional file options.</param>
+        /// <returns>The opened file stream.</returns>
+        Stream OpenFileStream(string path, FileMode fileMode, FileAccess fileAccess, FileShare fileShare,
+            FileOptions fileOptions);
 
         /// <summary>
         /// Creates all directories and subdirectories in the specified path unless they already exist.
@@ -115,6 +127,16 @@ namespace GitCredentialManager
         /// <param name="path">The file to open for reading.</param>
         /// <returns>A string array containing all lines of the file.</returns>
         string[] ReadAllLines(string path);
+
+        /// <summary>
+        /// Returns the creation date and time, in Coordinated Universal Time (UTC), of the specified file or directory.
+        /// </summary>
+        /// <param name="path">The file or directory for which to obtain creation date and time information.</param>
+        /// <returns>
+        /// A <see cref="DateTime"/> structure set to the creation date and time for the specified file or directory.
+        /// This value is expressed in UTC time.
+        /// </returns>
+        DateTime GetCreationDateUtc(string path);
     }
 
     /// <summary>
@@ -150,6 +172,9 @@ namespace GitCredentialManager
         public Stream OpenFileStream(string path, FileMode fileMode, FileAccess fileAccess, FileShare fileShare)
             => File.Open(path, fileMode, fileAccess, fileShare);
 
+        public Stream OpenFileStream(string path, FileMode fileMode, FileAccess fileAccess, FileShare fileShare, FileOptions fileOptions)
+            => new FileStream(path, fileMode, fileAccess, fileShare, bufferSize: 4096, fileOptions);
+
         public void CreateDirectory(string path) => Directory.CreateDirectory(path);
 
         public void DeleteFile(string path) => File.Delete(path);
@@ -161,5 +186,7 @@ namespace GitCredentialManager
         public string ReadAllText(string path) => File.ReadAllText(path);
 
         public string[] ReadAllLines(string path) => File.ReadAllLines(path);
+
+        public DateTime GetCreationDateUtc(string path) => File.GetCreationTimeUtc(path);
     }
 }
