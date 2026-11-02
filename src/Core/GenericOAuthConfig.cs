@@ -162,6 +162,10 @@ namespace GitCredentialManager
             return true;
         }
 
+        // A Gitea remote URL is always '{host}/{prefix}/{owner}/{repo}' — Gitea has no nested
+        // groups — so dropping the last two segments leaves the '{host}/{prefix}' that the OAuth
+        // endpoints hang off. When Git omits the path (credential.useHttpPath is false), or passes
+        // fewer than two segments, the prefix is empty and the endpoints stay at the host root.
         private static Uri CreateGiteaEndpointUri(Uri remoteUri, string endpoint)
         {
             string[] pathSegments = remoteUri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
