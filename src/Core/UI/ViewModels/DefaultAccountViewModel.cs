@@ -8,6 +8,7 @@ public class DefaultAccountViewModel : WindowViewModel
 
     private bool _showProductHeader = true;
     private string _userName;
+    private string _context;
     private ICommand _continueCommand;
     private ICommand _otherAccountCommand;
     private ICommand _learnMoreCommand;
@@ -58,6 +59,18 @@ public class DefaultAccountViewModel : WindowViewModel
         get => _userName;
         set => SetAndRaisePropertyChanged(ref _userName, value);
     }
+
+    public string Context
+    {
+        get => _context;
+        set
+        {
+            SetAndRaisePropertyChanged(ref _context, value);
+            RaisePropertyChanged(nameof(HasContext));
+        }
+    }
+
+    public bool HasContext => !string.IsNullOrWhiteSpace(_context);
 
     public ICommand ContinueCommand
     {

@@ -24,10 +24,13 @@ public abstract class DefaultAccountCommand : HelperCommand
         var noLogo = new Option<bool>("--no-logo", "Hide the Git Credential Manager logo and logotype.");
         AddOption(noLogo);
 
-        this.SetHandler(ExecuteAsync, title, userName, noLogo);
+        var promptContext = new Option<string>("--context", "What the request is for, e.g. the repository (optional).");
+        AddOption(promptContext);
+
+        this.SetHandler(ExecuteAsync, title, userName, noLogo, promptContext);
     }
 
-    private async Task<int> ExecuteAsync(string title, string userName, bool noLogo)
+    private async Task<int> ExecuteAsync(string title, string userName, bool noLogo, string promptContext)
     {
         var viewModel = new DefaultAccountViewModel(Context.SessionManager)
         {
@@ -35,6 +38,7 @@ public abstract class DefaultAccountCommand : HelperCommand
                 ? title
                 : "Git Credential Manager",
             UserName = userName,
+            Context = promptContext,
             ShowProductHeader = !noLogo
         };
 

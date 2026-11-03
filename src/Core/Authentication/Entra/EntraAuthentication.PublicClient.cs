@@ -393,6 +393,10 @@ public partial class EntraAuthentication
                 var sb = new StringBuilder(args);
                 sb.Append("default-account");
                 sb.AppendFormat(" --username {0}", QuoteCmdArg(userName));
+                if (!string.IsNullOrWhiteSpace(AuthPromptContext.Description))
+                {
+                    sb.AppendFormat(" --context {0}", QuoteCmdArg(AuthPromptContext.Description));
+                }
 
                 IDictionary<string, string> result = await InvokeHelperAsync(command, sb.ToString());
 
@@ -406,7 +410,8 @@ public partial class EntraAuthentication
 
             var viewModel = new DefaultAccountViewModel(Context.SessionManager)
             {
-                UserName = userName
+                UserName = userName,
+                Context = AuthPromptContext.Description
             };
 
             await AvaloniaUi.ShowViewAsync<DefaultAccountView>(viewModel, GetParentWindowHandle(), ct);
@@ -416,7 +421,10 @@ public partial class EntraAuthentication
             return viewModel.UseDefaultAccount;
         }
 
-        var prompt = new ConfirmationPrompt($"Continue with current account ({userName})?");
+        var forRepo = string.IsNullOrWhiteSpace(AuthPromptContext.Description)
+            ? string.Empty
+            : $" for {AuthPromptContext.Description}";
+        var prompt = new ConfirmationPrompt($"Continue with current account ({userName}){forRepo}?");
         return await prompt.ShowAsync(Context.Console, ct);
     }
 

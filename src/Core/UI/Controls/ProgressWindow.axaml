@@ -7,8 +7,10 @@
         WindowDecorations="None"
         ShowInTaskbar="False" Title="Git Credential Manager" WindowStartupLocation="CenterScreen"
         x:Class="GitCredentialManager.UI.Controls.ProgressWindow">
-    <ProgressBar Orientation="Horizontal"
-                 IsIndeterminate="True"
-                 Margin="20"
-                 Width="158" Height="23" />
+    <StackPanel Margin="20" Spacing="8" MaxWidth="480">
+        <TextBlock Name="ContextText" IsVisible="False" TextWrapping="Wrap" />
+        <ProgressBar Orientation="Horizontal"
+                     IsIndeterminate="True"
+                     Width="158" Height="23" />
+    </StackPanel>
 </Window>

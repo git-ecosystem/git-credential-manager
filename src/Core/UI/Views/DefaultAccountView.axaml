@@ -32,6 +32,13 @@
                        Margin="0,15,0,15">
                 Do you want to continue with the current account?
             </TextBlock>
+            <TextBlock Text="{Binding Context, StringFormat='For: {0}'}"
+                       IsVisible="{Binding HasContext}"
+                       FontSize="12"
+                       Opacity="0.7"
+                       HorizontalAlignment="Center"
+                       TextWrapping="Wrap"
+                       Margin="0,-8,0,10"/>
         </StackPanel>
 
         <StackPanel DockPanel.Dock="Bottom"
