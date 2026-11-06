@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -63,6 +63,14 @@ namespace GitCredentialManager.Authentication.OAuth
         /// <param name="ct">Token to cancel the operation.</param>
         /// <returns>Token result.</returns>
         Task<OAuth2TokenResult> GetTokenByDeviceCodeAsync(OAuth2DeviceCodeResult deviceCodeResult, CancellationToken ct);
+
+        /// <summary>
+        /// Exchange a OAuth 2.0 subject token for another token.
+        /// </summary>
+        /// <param name="options">Token exchange request options.</param>
+        /// <param name="ct">Token to cancel the operation.</param>
+        /// <returns>Token result.</returns>
+        Task<OAuth2TokenExchangeResult> GetTokenByTokenExchangeAsync(OAuth2TokenExchangeOptions options, CancellationToken ct);
     }
 
     public class OAuth2Client : IOAuth2Client
@@ -358,6 +366,34 @@ namespace GitCredentialManager.Authentication.OAuth
             }
         }
 
+        public async Task<OAuth2TokenExchangeResult> GetTokenByTokenExchangeAsync(
+            OAuth2TokenExchangeOptions options, CancellationToken ct)
+        {
+            using IDisposable region = Trace2.StartRegion(OAuth2Constants.Trace2Category, "token_by_exchange");
+
+            if (!options.IsValid(out string error))
+            {
+                throw new ArgumentException($"Invalid token exchange options: {error}", nameof(options));
+            }
+
+            ICollection<KeyValuePair<string, string>> formData = options.ToRequestParameters();
+            AddClientParams(formData);
+
+            using (HttpContent requestContent = new FormUrlEncodedContent(formData))
+            using (HttpRequestMessage request = CreateRequestMessage(HttpMethod.Post, _endpoints.TokenEndpoint, requestContent))
+            using (HttpResponseMessage response = await _httpClient.SendAsync(request, ct))
+            {
+                string json = await response.Content.ReadAsStringAsync(ct);
+
+                if (response.IsSuccessStatusCode && TryCreateTokenExchangeResult(json, out OAuth2TokenExchangeResult result))
+                {
+                    return result;
+                }
+
+                throw CreateExceptionFromResponse(json);
+            }
+        }
+
         #endregion
 
         #region Extension Points
@@ -369,6 +405,25 @@ namespace GitCredentialManager.Authentication.OAuth
                     out TokenEndpointResponseJson jsonObj))
             {
                 result = jsonObj.ToResult();
+                return true;
+            }
+
+            result = null;
+            return false;
+        }
+
+        protected virtual bool TryCreateTokenExchangeResult(string json, out OAuth2TokenExchangeResult result)
+        {
+            // RFC 8693, Section 2.2.1: a token exchange response is a token endpoint response
+            // with additional members. Reuse the token endpoint parser for the common members
+            // so that any provider-specific parsing also applies to token exchange responses.
+            if (TryCreateTokenEndpointResult(json, out OAuth2TokenResult tokenResult) &&
+                TryDeserializeJson(json,
+                    OAuthJsonContext.Default.TokenExchangeEndpointResponseJson,
+                    out TokenExchangeEndpointResponseJson jsonObj) &&
+                !string.IsNullOrWhiteSpace(jsonObj.IssuedTokenType))
+            {
+                result = new OAuth2TokenExchangeResult(tokenResult, new OAuth2TokenType(jsonObj.IssuedTokenType));
                 return true;
             }
 
