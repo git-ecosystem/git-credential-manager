@@ -9,6 +9,15 @@ namespace GitCredentialManager.Authentication.OAuth
         public const string ScopeParameter = "scope";
         public const string Trace2Category = "oauth2";
 
+        public static class TokenTypes
+        {
+            public const string AccessToken = "urn:ietf:params:oauth:token-type:access_token";
+            public const string RefreshToken = "urn:ietf:params:oauth:token-type:refresh_token";
+            public const string IdToken = "urn:ietf:params:oauth:token-type:id_token";
+            public const string Saml1Assertion = "urn:ietf:params:oauth:token-type:saml1";
+            public const string Saml2Assertion = "urn:ietf:params:oauth:token-type:saml2";
+        }
+
         public static class AuthorizationEndpoint
         {
             public const string StateParameter = "state";
@@ -38,6 +47,9 @@ namespace GitCredentialManager.Authentication.OAuth
             public const string GrantTypeParameter = "grant_type";
             public const string AuthorizationCodeGrantType = "authorization_code";
             public const string RefreshTokenGrantType = "refresh_token";
+            public const string TokenExchangeGrantType = "urn:ietf:params:oauth:grant-type:token-exchange";
+            public const string SubjectTokenParameter = "subject_token";
+            public const string SubjectTokenTypeParameter = "subject_token_type";
             public const string PkceVerifierParameter = "code_verifier";
             public const string AuthorizationCodeParameter = "code";
             public const string RefreshTokenParameter = "refresh_token";

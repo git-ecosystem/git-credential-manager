@@ -396,6 +396,43 @@ namespace GitCredentialManager.Tests.Authentication
         }
 
         [Fact]
+        public async Task OAuth2Client_GetTokenByTokenExchangeAsync()
+        {
+            const OAuth2TokenType expectedSubjectTokenType = OAuth2TokenType.AccessToken;
+            const string expectedSubjectToken = "fc80a9276e664e819544233d4aebbb99";
+            const string expectedAccessToken = "LET_ME_IN";
+            const string expectedRefreshToken = "REFRESH_ME";
+
+            var baseUri = new Uri("https://example.com");
+            OAuth2ServerEndpoints endpoints = CreateEndpoints(baseUri);
+
+            var httpHandler = new TestHttpMessageHandler {ThrowOnUnexpectedRequest = true};
+
+            string[] expectedScopes = {"read", "write", "delete"};
+
+            var grant = new OAuth2Application.SubjectTokenGrant(expectedSubjectTokenType, expectedSubjectToken);
+
+            OAuth2Application app = CreateTestApplication();
+            app.SubjectTokenGrants.Add(grant);
+
+            var server = new TestOAuth2Server(endpoints);
+            server.RegisterApplication(app);
+            server.Bind(httpHandler);
+            server.TokenGenerator.AccessTokens.Add(expectedAccessToken);
+            server.TokenGenerator.RefreshTokens.Add(expectedRefreshToken);
+
+            OAuth2Client client = CreateClient(httpHandler, endpoints);
+
+            OAuth2TokenResult result = await client.GetTokenByTokenExchangeAsync(
+                expectedScopes, expectedSubjectTokenType, expectedSubjectToken, CancellationToken.None);
+
+            Assert.NotNull(result);
+            Assert.Equal(expectedScopes, result.Scopes);
+            Assert.Equal(expectedAccessToken, result.AccessToken);
+            Assert.Equal(expectedRefreshToken, result.RefreshToken);
+        }
+
+        [Fact]
         public async Task OAuth2Client_E2E_InteractiveWebFlowAndRefresh()
         {
             const string expectedAuthCode = "e78a711d11";

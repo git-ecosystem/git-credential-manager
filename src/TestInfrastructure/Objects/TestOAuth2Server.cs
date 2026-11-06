@@ -245,6 +245,30 @@ namespace GitCredentialManager.Tests.Objects
                     };
                 }
             }
+            else if (StringComparer.OrdinalIgnoreCase.Equals(grantType, OAuth2Constants.TokenEndpoint.TokenExchangeGrantType))
+            {
+                if (!formData.TryGetValue(OAuth2Constants.TokenEndpoint.SubjectTokenParameter, out string subjectToken))
+                {
+                    throw new Exception("Missing subject token parameter");
+                }
+
+                if (!formData.TryGetValue(OAuth2Constants.TokenEndpoint.SubjectTokenTypeParameter, out string tokenTypeParam))
+                {
+                    throw new Exception("Missing subject token type parameter");
+                }
+
+                if (!OAuth2TokenTypeExtensions.TryParse(tokenTypeParam, out OAuth2TokenType subjectTokenType))
+                {
+                    throw new Exception($"Unsupported subject token type '{tokenTypeParam}'");
+                }
+
+                // Scope is optional per RFC 8693 section 2.1.
+                string[] scopes = formData.TryGetValue(OAuth2Constants.ScopeParameter, out string scopeParam)
+                    ? scopeParam.Split(' ')
+                    : null;
+
+                tokenResp = app.CreateTokenBySubjectTokenGrant(TokenGenerator, subjectTokenType, subjectToken, scopes);
+            }
             else
             {
                 throw new Exception($"Unknown grant type '{grantType}'");
@@ -331,6 +355,19 @@ namespace GitCredentialManager.Tests.Objects
             public string[] Scopes { get; }
         }
 
+        public class SubjectTokenGrant
+        {
+            public SubjectTokenGrant(OAuth2TokenType tokenType, string token)
+            {
+                TokenType = tokenType;
+                Token = token;
+            }
+
+            public OAuth2TokenType TokenType { get; }
+            public string Token { get; }
+            public string[] DefaultScopes { get; init; } = [];
+        }
+
         public OAuth2Application(string id)
         {
             Id = id;
@@ -345,6 +382,8 @@ namespace GitCredentialManager.Tests.Objects
         public IList<AuthCodeGrant> AuthGrants { get; } = new List<AuthCodeGrant>();
 
         public IList<DeviceCodeGrant> DeviceGrants { get; } = new List<DeviceCodeGrant>();
+
+        public IList<SubjectTokenGrant> SubjectTokenGrants { get; } = new List<SubjectTokenGrant>();
 
         public IDictionary<string, string> AccessTokens { get; } = new Dictionary<string, string>();
 
@@ -525,6 +564,35 @@ namespace GitCredentialManager.Tests.Objects
                 AccessToken = accessToken,
                 RefreshToken = refreshToken,
                 Scope = string.Join(" ", grant.Scopes) // Keep the same scopes as before
+            };
+        }
+
+        public TokenEndpointResponseJson CreateTokenBySubjectTokenGrant(TestOAuth2ServerTokenGenerator generator,
+            OAuth2TokenType subjectTokenType, string subjectToken, string[] scopes = null)
+        {
+            var grant = SubjectTokenGrants.FirstOrDefault(x =>
+                x.Token == subjectToken && x.TokenType == subjectTokenType);
+            if (grant is null)
+            {
+                throw new Exception($"Invalid subject token '{subjectToken} (type: {subjectTokenType})'");
+            }
+
+            string newAccessToken = generator.CreateAccessToken();
+            string newRefreshToken = generator.CreateRefreshToken();
+
+            // If no scopes were requested then use the default scopes for this grant.
+            scopes ??= grant.DefaultScopes;
+
+            // Store the tokens
+            AccessTokens[newAccessToken] = newRefreshToken;
+            RefreshTokens[newRefreshToken] = scopes;
+
+            return new TokenEndpointResponseJson
+            {
+                TokenType = Constants.Http.WwwAuthenticateBearerScheme,
+                AccessToken = newAccessToken,
+                RefreshToken = newRefreshToken,
+                Scope = string.Join(" ", scopes)
             };
         }
 
