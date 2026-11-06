@@ -199,6 +199,9 @@ namespace GitCredentialManager.Tests.Objects
                 }
 
                 formData.TryGetValue(OAuth2Constants.TokenEndpoint.PkceVerifierParameter, out string codeVerifier);
+
+                // If the authorization code grant was created with a redirect URI then the exact same redirect URI
+                // MUST be used for the token request per RFC 6749 section 4.1.3.
                 if (formData.TryGetValue(OAuth2Constants.RedirectUriParameter, out string redirectUriStr))
                 {
                     app.ValidateRedirect(redirectUriStr);
@@ -212,8 +215,6 @@ namespace GitCredentialManager.Tests.Objects
                 {
                     throw new Exception("Missing refresh token parameter");
                 }
-
-                app.ValidateRedirect(formData[OAuth2Constants.RedirectUriParameter]);
 
                 tokenResp = app.CreateTokenByRefreshTokenGrant(TokenGenerator, refreshToken);
             }
