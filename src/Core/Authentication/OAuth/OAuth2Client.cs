@@ -224,7 +224,7 @@ namespace GitCredentialManager.Authentication.OAuth
             using (HttpRequestMessage request = CreateRequestMessage(HttpMethod.Post, _endpoints.DeviceAuthorizationEndpoint, requestContent))
             using (HttpResponseMessage response = await _httpClient.SendAsync(request, ct))
             {
-                string json = await response.Content.ReadAsStringAsync();
+                string json = await response.Content.ReadAsStringAsync(ct);
 
                 if (response.IsSuccessStatusCode && TryDeserializeJson(json, OAuthJsonContext.Default.DeviceAuthorizationEndpointResponseJson, out DeviceAuthorizationEndpointResponseJson jsonObj))
                 {
@@ -262,7 +262,7 @@ namespace GitCredentialManager.Authentication.OAuth
             using (HttpRequestMessage request = CreateRequestMessage(HttpMethod.Post, _endpoints.TokenEndpoint, requestContent))
             using (HttpResponseMessage response = await _httpClient.SendAsync(request, ct))
             {
-                string json = await response.Content.ReadAsStringAsync();
+                string json = await response.Content.ReadAsStringAsync(ct);
 
                 if (response.IsSuccessStatusCode && TryCreateTokenEndpointResult(json, out OAuth2TokenResult result))
                 {
@@ -289,7 +289,7 @@ namespace GitCredentialManager.Authentication.OAuth
             using (HttpRequestMessage request = CreateRequestMessage(HttpMethod.Post, _endpoints.TokenEndpoint, requestContent))
             using (HttpResponseMessage response = await _httpClient.SendAsync(request, ct))
             {
-                string json = await response.Content.ReadAsStringAsync();
+                string json = await response.Content.ReadAsStringAsync(ct);
 
                 if (response.IsSuccessStatusCode && TryCreateTokenEndpointResult(json, out OAuth2TokenResult result))
                 {
@@ -323,7 +323,7 @@ namespace GitCredentialManager.Authentication.OAuth
                     using (HttpRequestMessage request = CreateRequestMessage(HttpMethod.Post, _endpoints.TokenEndpoint, requestContent))
                     using (HttpResponseMessage response = await _httpClient.SendAsync(request, ct))
                     {
-                        string json = await response.Content.ReadAsStringAsync();
+                        string json = await response.Content.ReadAsStringAsync(ct);
 
                         if (response.IsSuccessStatusCode && TryCreateTokenEndpointResult(json, out OAuth2TokenResult result))
                         {
