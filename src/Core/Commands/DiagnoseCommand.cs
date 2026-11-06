@@ -39,6 +39,7 @@ namespace GitCredentialManager.Commands
             _diagnostics.Add(new GitDiagnostic(_context));
             _diagnostics.Add(new CredentialStoreDiagnostic(_context));
             _diagnostics.Add(new EntraAuthenticationDiagnostic(_context));
+            _diagnostics.Add(new LockDiagnostic(_context));
         }
 
         public void AddDiagnostic(IDiagnostic diagnostic)

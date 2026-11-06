@@ -124,6 +124,7 @@ namespace GitCredentialManager
                 Context.Trace.WriteLine($"AppPath: {Context.ApplicationPath}");
                 Context.Trace.WriteLine($"InstallDir: {Context.InstallationDirectory}");
                 Context.Trace.WriteLine($"Arguments: {string.Join(" ", args)}");
+                Context.Trace.WriteLine($"PID: {Environment.ProcessId}");
 
                 parser = new CommandLineBuilder(rootCommand)
                     .UseDefaults()
