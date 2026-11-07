@@ -406,6 +406,7 @@ namespace Microsoft.AzureRepos
 
             // Get an Entra access token for the Azure DevOps SPS
             _context.Trace.WriteLine("Getting Entra access token...");
+            AuthPromptContext.Description = $"{request.Host}/{request.Path}".TrimEnd('/');
             IEntraAuthenticationResult result = await _entraAuth.Value.GetTokenForUserAsync(
                 AzureDevOpsConstants.AzureDevOpsDefaultScopes,
                 authAuthority,
