@@ -25,6 +25,15 @@ namespace GitHub.Tests
             Assert.Equal(expected, GitHubHostProvider.IsGitHubDotCom(new Uri(request)));
         }
 
+        [Theory]
+        [InlineData("https://ghe.com", false)]
+        [InlineData("https://ocToCoRp.gHe.CoM", true)]
+        [InlineData("https://OCTOCORP.GHE.COM", true)]
+        [InlineData("https://fooghe.com", false)]
+        public void GitHubHostProvider_IsGitHubProxima(string request, bool expected)
+        {
+            Assert.Equal(expected, GitHubHostProvider.IsGitHubProxima(new Uri(request)));
+        }
 
         [Theory]
         // We report that we support unencrypted HTTP here so that we can fail and
@@ -42,6 +51,10 @@ namespace GitHub.Tests
         [InlineData("https", "gist.github.com", true)] // Except gists.
         [InlineData("https", "GiST.GitHub.Com", true)]
         [InlineData("https", "GitHub.Com", true)]
+
+        [InlineData("https", "octocorp.ghe.com", true)] // Proxima
+        [InlineData("https", "octocorp.GhE.cOm", true)]
+        [InlineData("https", "octocorpghe.cOm", false)] // Not a proper Proxima subdomain
 
         [InlineData("http", "github.my-company-server.com", true)]
         [InlineData("http", "gist.github.my-company-server.com", true)]
