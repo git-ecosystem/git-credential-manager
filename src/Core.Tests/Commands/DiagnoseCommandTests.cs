@@ -8,6 +8,7 @@ using GitCredentialManager.Commands;
 using GitCredentialManager.Diagnostics;
 using GitCredentialManager.Tests.Objects;
 using Moq;
+using Spectre.Console.Testing;
 using Xunit;
 
 namespace Core.Tests.Commands;
@@ -25,7 +26,8 @@ public class DiagnoseCommandTests
             .ReturnsAsync(new DiagnosticResult([], []));
 
         var context = new TestCommandContext();
-        var command = new DiagnoseCommand(context);
+        var console = new TestConsole();
+        var command = new DiagnoseCommand(context, console);
         command.AddDiagnostic(diagnosticMock.Object);
 
         int result = await command.InvokeAsync([]);
@@ -53,7 +55,8 @@ public class DiagnoseCommandTests
             .ReturnsAsync(new DiagnosticResult([], []));
 
         var context = new TestCommandContext();
-        var command = new DiagnoseCommand(context);
+        var console = new TestConsole();
+        var command = new DiagnoseCommand(context, console);
         command.AddDiagnostic(diagnosticMock1.Object);
         command.AddDiagnostic(diagnosticMock2.Object);
 
@@ -77,7 +80,8 @@ public class DiagnoseCommandTests
             ], []));
 
         var context = new TestCommandContext();
-        var command = new DiagnoseCommand(context);
+        var console = new TestConsole();
+        var command = new DiagnoseCommand(context, console);
         command.AddDiagnostic(diagnosticMock.Object);
 
         int result = await command.InvokeAsync([]);
@@ -99,7 +103,8 @@ public class DiagnoseCommandTests
             ], []));
 
         var context = new TestCommandContext();
-        var command = new DiagnoseCommand(context);
+        var console = new TestConsole();
+        var command = new DiagnoseCommand(context, console);
         command.AddDiagnostic(diagnosticMock.Object);
 
         int result = await command.InvokeAsync(["--strict"]);
