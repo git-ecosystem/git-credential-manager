@@ -72,8 +72,7 @@ namespace GitHub
                 return false;
             }
 
-            if (StringComparer.OrdinalIgnoreCase.Equals(hostName, GitHubConstants.GitHubBaseUrlHost) ||
-                StringComparer.OrdinalIgnoreCase.Equals(hostName, GitHubConstants.GistBaseUrlHost))
+            if (IsGitHubDotComHost(hostName) || IsGitHubProximaHost(hostName))
             {
                 return true;
             }
@@ -426,6 +425,12 @@ namespace GitHub
                 return GitHubConstants.DotComAuthenticationModes;
             }
 
+            if (IsGitHubProxima(targetUri))
+            {
+                _context.Trace.WriteLine($"{targetUri} is Proxima - authentication schemes: '{GitHubConstants.ProximaAuthenticationModes}'");
+                return GitHubConstants.ProximaAuthenticationModes;
+            }
+
             // For GitHub Enterprise we must do some detection of supported modes
             _context.Trace.WriteLine($"{targetUri} is GitHub Enterprise - checking for supported authentication schemes...");
 
@@ -491,10 +496,31 @@ namespace GitHub
         public static bool IsGitHubDotCom(Uri targetUri)
         {
             EnsureArgument.AbsoluteUri(targetUri, nameof(targetUri));
+            return IsGitHubDotComHost(targetUri.Host);
+        }
 
+        private static bool IsGitHubDotComHost(string hostName)
+        {
             // github.com or gist.github.com are both considered dotcom
-            return StringComparer.OrdinalIgnoreCase.Equals(targetUri.Host, GitHubConstants.GitHubBaseUrlHost) ||
-                   StringComparer.OrdinalIgnoreCase.Equals(targetUri.Host, GitHubConstants.GistBaseUrlHost);
+            return StringComparer.OrdinalIgnoreCase.Equals(hostName, GitHubConstants.GitHubBaseUrlHost) ||
+                   StringComparer.OrdinalIgnoreCase.Equals(hostName, GitHubConstants.GistBaseUrlHost);
+        }
+
+        public static bool IsGitHubProxima(string targetUrl)
+        {
+            return Uri.TryCreate(targetUrl, UriKind.Absolute, out Uri uri) && IsGitHubProxima(uri);
+        }
+
+        public static bool IsGitHubProxima(Uri targetUri)
+        {
+            EnsureArgument.AbsoluteUri(targetUri, nameof(targetUri));
+            return IsGitHubProximaHost(targetUri.Host);
+        }
+
+        private static bool IsGitHubProximaHost(string hostName)
+        {
+            return hostName is not null &&
+                   hostName.EndsWith(GitHubConstants.ProximaUrlHostSuffix, StringComparison.OrdinalIgnoreCase);
         }
 
         internal static Uri NormalizeUri(Uri uri)
