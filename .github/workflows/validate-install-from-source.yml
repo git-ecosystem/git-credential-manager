@@ -22,6 +22,7 @@ jobs:
         - image: ubuntu
         - image: debian:bookworm
         - image: fedora
+        - image: fedora:44
         # Centos no longer officially maintains images on Docker Hub. However,
         # tgagor is a contributor who pushes updated images weekly, which should
         # be sufficient for our validation needs.

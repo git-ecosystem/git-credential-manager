@@ -220,6 +220,11 @@ case "$os" in
                 # Install dotnet/GCM dependencies.
                 install_packages dnf install "curl git krb5-libs libicu openssl-libs zlib findutils which bash"
 
+                # Fedora 45+ ships OpenSSL 4, but .NET still needs the OpenSSL 3 ABI.
+                if [ "$distribution" = fedora ] && version_at_least "45" "$version"; then
+                    install_packages dnf install "openssl3-libs"
+                fi
+
                 ensure_dotnet_installed
 
                 if [ -n "$aot" ]; then
