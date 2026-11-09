@@ -7,6 +7,7 @@ namespace GitHub
     {
         public const string GitHubBaseUrlHost = "github.com";
         public const string GistBaseUrlHost = "gist." + GitHubBaseUrlHost;
+        public const string ProximaUrlHostSuffix = ".ghe.com";
 
         public const string DefaultAuthenticationHelper = "GitHub.UI";
 
@@ -45,6 +46,11 @@ namespace GitHub
         /// See https://developer.github.com/changes/2020-02-14-deprecating-oauth-auth-endpoint for more information.
         /// </remarks>
         public const AuthenticationModes DotComAuthenticationModes = AuthenticationModes.OAuth | AuthenticationModes.Pat;
+
+        /// <summary>
+        /// Supported authentication modes for GitHub Enterprise with Data Residency, aka Proxima.
+        /// </summary>
+        public const AuthenticationModes ProximaAuthenticationModes = AuthenticationModes.OAuth | AuthenticationModes.Pat;
 
         public static class TokenScopes
         {
