@@ -36,6 +36,17 @@ namespace GitHub.Tests
         }
 
         [Theory]
+        [InlineData("https://ghe.com", false, null)]
+        [InlineData("https://ocToCoRp.gHe.CoM", true, "octocorp")]
+        [InlineData("https://OCTOCORP.GHE.COM", true, "octocorp")]
+        [InlineData("https://fooghe.com", false, null)]
+        public void GitHubHostProvider_IsGitHubProxima_ReturnsSubdomain(string request, bool expected, string expectedSubdomain)
+        {
+            Assert.Equal(expected, GitHubHostProvider.IsGitHubProxima(new Uri(request), out string subdomain));
+            Assert.Equal(expectedSubdomain, subdomain);
+        }
+
+        [Theory]
         // We report that we support unencrypted HTTP here so that we can fail and
         // show a helpful error message in the call to `GenerateCredentialAsync` instead.
         [InlineData("http", "github.com", true)]

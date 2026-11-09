@@ -511,16 +511,33 @@ namespace GitHub
             return Uri.TryCreate(targetUrl, UriKind.Absolute, out Uri uri) && IsGitHubProxima(uri);
         }
 
-        public static bool IsGitHubProxima(Uri targetUri)
+        public static bool IsGitHubProxima(Uri targetUri) => IsGitHubProxima(targetUri, out _);
+
+        public static bool IsGitHubProxima(Uri targetUri, out string subdomain)
         {
             EnsureArgument.AbsoluteUri(targetUri, nameof(targetUri));
-            return IsGitHubProximaHost(targetUri.Host);
+            return IsGitHubProximaHost(targetUri.Host, out subdomain);
         }
 
-        private static bool IsGitHubProximaHost(string hostName)
+        private static bool IsGitHubProximaHost(string hostName) => IsGitHubProximaHost(hostName, out _);
+
+        private static bool IsGitHubProximaHost(string hostName, out string subdomain)
         {
-            return hostName is not null &&
-                   hostName.EndsWith(GitHubConstants.ProximaUrlHostSuffix, StringComparison.OrdinalIgnoreCase);
+            bool isProxima = hostName is not null &&
+                             hostName.EndsWith(GitHubConstants.ProximaUrlHostSuffix, StringComparison.OrdinalIgnoreCase);
+
+            if (isProxima)
+            {
+                int suffixIndex = hostName.LastIndexOf(GitHubConstants.ProximaUrlHostSuffix, StringComparison.OrdinalIgnoreCase);
+                // Normalize the subdomain (DNS is not case-sensitive)
+                subdomain = hostName[..suffixIndex].ToLowerInvariant();
+            }
+            else
+            {
+                subdomain = null;
+            }
+
+            return isProxima;
         }
 
         internal static Uri NormalizeUri(Uri uri)

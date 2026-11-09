@@ -209,21 +209,24 @@ namespace GitHub
             {
                 return new Uri($"https://api.github.com/{apiUrl}");
             }
-            else
+
+            if (GitHubHostProvider.IsGitHubProxima(targetUri, out string proximaSubdomain))
             {
-                // If we're here, it's GitHub Enterprise via a configured authority
-                var baseUrl = targetUri.GetLeftPart(UriPartial.Authority);
-
-                RegexOptions reOptions = RegexOptions.CultureInvariant | RegexOptions.IgnoreCase;
-
-                // Check for 'raw.' in the hostname and remove it to get the correct GHE API URL
-                baseUrl = Regex.Replace(baseUrl, @"^(https?://)raw\.", "$1", reOptions);
-
-                // Likewise check for `gist.` in the hostname and remove it to get the correct GHE API URL
-                baseUrl = Regex.Replace(baseUrl, @"^(https?://)gist\.", "$1", reOptions);
-
-                return new Uri(baseUrl + $"/api/v3/{apiUrl}");
+                return new Uri($"https://api.{proximaSubdomain}.ghe.com/{apiUrl}");
             }
+
+            // If we're here, it's GitHub Enterprise via a configured authority
+            var baseUrl = targetUri.GetLeftPart(UriPartial.Authority);
+
+            RegexOptions reOptions = RegexOptions.CultureInvariant | RegexOptions.IgnoreCase;
+
+            // Check for 'raw.' in the hostname and remove it to get the correct GHE API URL
+            baseUrl = Regex.Replace(baseUrl, @"^(https?://)raw\.", "$1", reOptions);
+
+            // Likewise check for `gist.` in the hostname and remove it to get the correct GHE API URL
+            baseUrl = Regex.Replace(baseUrl, @"^(https?://)gist\.", "$1", reOptions);
+
+            return new Uri(baseUrl + $"/api/v3/{apiUrl}");
         }
 
         private HttpContent GetTokenJsonContent(Uri targetUri, IEnumerable<string> scopes)
