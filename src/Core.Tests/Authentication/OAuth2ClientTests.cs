@@ -1,6 +1,9 @@
 using System;
+using System.Buffers.Text;
 using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using GitCredentialManager.Authentication.OAuth;
@@ -439,6 +442,99 @@ namespace GitCredentialManager.Tests.Authentication
         }
 
         [Fact]
+        public async Task OAuth2Client_GetTokenByJwtAssertionAsync()
+        {
+            string assertion = CreateTestJwtAssertion();
+            const string expectedAccessToken = "LET_ME_IN";
+            const string expectedRefreshToken = "REFRESH_ME";
+
+            var baseUri = new Uri("https://example.com");
+            OAuth2ServerEndpoints endpoints = CreateEndpoints(baseUri);
+
+            var httpHandler = new TestHttpMessageHandler {ThrowOnUnexpectedRequest = true};
+
+            string[] expectedScopes = {"read", "write", "delete"};
+
+            var grant = new OAuth2Application.JwtBearerTokenGrant(assertion);
+
+            OAuth2Application app = CreateTestApplication();
+            app.JwtBearerGrants.Add(grant);
+
+            var server = new TestOAuth2Server(endpoints);
+            server.RegisterApplication(app);
+            server.Bind(httpHandler);
+            server.TokenGenerator.AccessTokens.Add(expectedAccessToken);
+            server.TokenGenerator.RefreshTokens.Add(expectedRefreshToken);
+
+            OAuth2Client client = CreateClient(httpHandler, endpoints);
+
+            OAuth2TokenResult result = await client.GetTokenByJwtAssertionAsync(
+                expectedScopes, assertion, CancellationToken.None);
+
+            Assert.NotNull(result);
+            Assert.Equal(expectedScopes, result.Scopes);
+            Assert.Equal(expectedAccessToken, result.AccessToken);
+            Assert.Equal(expectedRefreshToken, result.RefreshToken);
+        }
+
+        [Fact]
+        public async Task OAuth2Client_GetTokenByJwtAssertionAsync_NoScopes_OmitsScopeParameter()
+        {
+            string assertion = CreateTestJwtAssertion();
+
+            var baseUri = new Uri("https://example.com");
+            OAuth2ServerEndpoints endpoints = CreateEndpoints(baseUri);
+
+            var httpHandler = new TestHttpMessageHandler {ThrowOnUnexpectedRequest = true};
+
+            string[] expectedScopes = ["default"];
+
+            var grant = new OAuth2Application.JwtBearerTokenGrant(assertion) {DefaultScopes = expectedScopes};
+
+            OAuth2Application app = CreateTestApplication();
+            app.JwtBearerGrants.Add(grant);
+
+            var server = new TestOAuth2Server(endpoints);
+            server.RegisterApplication(app);
+            server.Bind(httpHandler);
+            server.TokenGenerator.AccessTokens.Add("LET_ME_IN");
+            server.TokenGenerator.RefreshTokens.Add("REFRESH_ME");
+
+            server.TokenEndpointInvoked += (_, request) =>
+            {
+                // POST data should not contain the scope parameter.
+                IDictionary<string, string> formData = request.Content.ReadAsFormContentAsync().GetAwaiter().GetResult();
+                Assert.False(formData.ContainsKey(OAuth2Constants.ScopeParameter));
+            };
+
+            OAuth2Client client = CreateClient(httpHandler, endpoints);
+
+            OAuth2TokenResult result = await client.GetTokenByJwtAssertionAsync(
+                Array.Empty<string>(), assertion, CancellationToken.None);
+
+            Assert.Equal(expectedScopes, result.Scopes);
+        }
+
+        [Fact]
+        public async Task OAuth2Client_GetTokenByJwtAssertionAsync_InvalidGrant_ThrowsException()
+        {
+            var baseUri = new Uri("https://example.com");
+            OAuth2ServerEndpoints endpoints = CreateEndpoints(baseUri);
+
+            // RFC 7523, Section 3.1: an invalid JWT is reported with the invalid_grant error code.
+            var httpHandler = new TestHttpMessageHandler {ThrowOnUnexpectedRequest = true};
+            httpHandler.Setup(HttpMethod.Post, endpoints.TokenEndpoint, HttpStatusCode.BadRequest,
+                "{\"error\":\"invalid_grant\",\"error_description\":\"Audience validation failed\"}");
+
+            OAuth2Client client = CreateClient(httpHandler, endpoints);
+
+            OAuth2Exception ex = await Assert.ThrowsAsync<OAuth2Exception>(() =>
+                client.GetTokenByJwtAssertionAsync(Array.Empty<string>(), CreateTestJwtAssertion(), CancellationToken.None));
+
+            Assert.StartsWith("invalid_grant", ex.Message);
+        }
+
+        [Fact]
         public async Task OAuth2Client_E2E_InteractiveWebFlowAndRefresh()
         {
             const string expectedAuthCode = "e78a711d11";
@@ -563,6 +659,18 @@ namespace GitCredentialManager.Tests.Authentication
 
             return new OAuth2ServerEndpoints(authEndpoint, tokenEndpoint)
                 {DeviceAuthorizationEndpoint = deviceEndpoint};
+        }
+
+        private static string CreateTestJwtAssertion()
+        {
+            // The assertion is opaque to the client, so the signature need not be valid.
+            const string header = """{"alg":"ES256","kid":"16"}""";
+            const string claims = """{"iss":"https://jwt-idp.example.com","sub":"alice@example.com","aud":"https://jwt-rp.example.net","nbf":1300815780,"exp":1300819380}""";
+
+            return string.Join('.',
+                Base64Url.EncodeToString(Encoding.UTF8.GetBytes(header)),
+                Base64Url.EncodeToString(Encoding.UTF8.GetBytes(claims)),
+                Base64Url.EncodeToString("SIGNATURE"u8));
         }
 
         #endregion

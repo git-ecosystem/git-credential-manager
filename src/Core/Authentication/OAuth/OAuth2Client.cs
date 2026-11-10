@@ -71,6 +71,15 @@ namespace GitCredentialManager.Authentication.OAuth
         /// <param name="ct">Token to cancel the operation.</param>
         /// <returns>Token result.</returns>
         Task<OAuth2TokenExchangeResult> GetTokenByTokenExchangeAsync(OAuth2TokenExchangeOptions options, CancellationToken ct);
+
+        /// <summary>
+        /// Exchange an OAuth 2.0 JWT assertion for an access token.
+        /// </summary>
+        /// <param name="scopes">Scopes to request.</param>
+        /// <param name="assertion">The JWT assertion.</param>
+        /// <param name="ct">Token to cancel the operation.</param>
+        /// <returns>Token result.</returns>
+        Task<OAuth2TokenResult> GetTokenByJwtAssertionAsync(IEnumerable<string> scopes, string assertion, CancellationToken ct);
     }
 
     public class OAuth2Client : IOAuth2Client
@@ -386,6 +395,41 @@ namespace GitCredentialManager.Authentication.OAuth
                 string json = await response.Content.ReadAsStringAsync(ct);
 
                 if (response.IsSuccessStatusCode && TryCreateTokenExchangeResult(json, out OAuth2TokenExchangeResult result))
+                {
+                    return result;
+                }
+
+                throw CreateExceptionFromResponse(json);
+            }
+        }
+
+        public async Task<OAuth2TokenResult> GetTokenByJwtAssertionAsync(IEnumerable<string> scopes, string assertion, CancellationToken ct)
+        {
+            using IDisposable region = Trace2.StartRegion(OAuth2Constants.Trace2Category, "token_by_jwtassertion");
+
+            EnsureArgument.NotNullOrWhiteSpace(assertion, nameof(assertion));
+
+            var formData = new Dictionary<string, string>
+            {
+                [OAuth2Constants.TokenEndpoint.GrantTypeParameter] = OAuth2Constants.TokenEndpoint.JwtBearerGrantType,
+                [OAuth2Constants.TokenEndpoint.AssertionParameter] = assertion,
+            };
+
+            string scopesStr = string.Join(" ", scopes);
+            if (!string.IsNullOrWhiteSpace(scopesStr))
+            {
+                formData[OAuth2Constants.ScopeParameter] = scopesStr;
+            }
+
+            AddClientParams(formData);
+
+            using (HttpContent requestContent = new FormUrlEncodedContent(formData))
+            using (HttpRequestMessage request = CreateRequestMessage(HttpMethod.Post, _endpoints.TokenEndpoint, requestContent))
+            using (HttpResponseMessage response = await _httpClient.SendAsync(request, ct))
+            {
+                string json = await response.Content.ReadAsStringAsync(ct);
+
+                if (response.IsSuccessStatusCode && TryCreateTokenEndpointResult(json, out OAuth2TokenResult result))
                 {
                     return result;
                 }
