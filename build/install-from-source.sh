@@ -268,8 +268,8 @@ case "$os" in
                 # --noconfirm required when running from container
                 $sudo_cmd pacman -Syu --noconfirm
 
-                # Install dotnet/GCM dependencies.
-                install_packages pacman -Sy "curl git glibc gcc krb5 icu openssl libc++ zlib"
+                # .NET needs the OpenSSL 3 ABI alongside the system's OpenSSL 4.
+                install_packages pacman -Sy "curl git glibc gcc krb5 icu openssl openssl-3 libc++ zlib"
 
                 ensure_dotnet_installed
 
