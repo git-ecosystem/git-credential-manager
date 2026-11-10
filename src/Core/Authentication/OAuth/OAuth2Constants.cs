@@ -48,11 +48,13 @@ namespace GitCredentialManager.Authentication.OAuth
             public const string AuthorizationCodeGrantType = "authorization_code";
             public const string RefreshTokenGrantType = "refresh_token";
             public const string TokenExchangeGrantType = "urn:ietf:params:oauth:grant-type:token-exchange";
+            public const string JwtBearerGrantType = "urn:ietf:params:oauth:grant-type:jwt-bearer";
             public const string SubjectTokenParameter = "subject_token";
             public const string SubjectTokenTypeParameter = "subject_token_type";
             public const string PkceVerifierParameter = "code_verifier";
             public const string AuthorizationCodeParameter = "code";
             public const string RefreshTokenParameter = "refresh_token";
+            public const string AssertionParameter = "assertion";
         }
 
         public static class DeviceAuthorization

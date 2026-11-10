@@ -1,6 +1,8 @@
 using System;
+using System.Buffers.Text;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using GitCredentialManager.Authentication.OAuth;
@@ -425,6 +427,55 @@ namespace GitCredentialManager.Tests.Authentication
 
             OAuth2TokenResult result = await client.GetTokenByTokenExchangeAsync(
                 expectedScopes, expectedSubjectTokenType, expectedSubjectToken, CancellationToken.None);
+
+            Assert.NotNull(result);
+            Assert.Equal(expectedScopes, result.Scopes);
+            Assert.Equal(expectedAccessToken, result.AccessToken);
+            Assert.Equal(expectedRefreshToken, result.RefreshToken);
+        }
+
+        [Fact]
+        public async Task OAuth2Client_GetTokenByJwtBearerAsync()
+        {
+            const string expectedJwtToken =
+                """
+                {
+                    "alg": "ES256",
+                    "kid": "16",
+                }.{
+                    "iss":"https://jwt-idp.example.com",
+                    "sub":"alice@example.com",
+                    "aud":"https://jwt-rp.example.net",
+                    "nbf":1300815780,
+                    "exp":1300819380,
+                }.SIGNATURE
+                """;
+            string encodedJwtToken = Convert.ToBase64String(Encoding.UTF8.GetBytes(expectedJwtToken));
+            const string expectedAccessToken = "LET_ME_IN";
+            const string expectedRefreshToken = "REFRESH_ME";
+
+            var baseUri = new Uri("https://example.com");
+            OAuth2ServerEndpoints endpoints = CreateEndpoints(baseUri);
+
+            var httpHandler = new TestHttpMessageHandler {ThrowOnUnexpectedRequest = true};
+
+            string[] expectedScopes = {"read", "write", "delete"};
+
+            var grant = new OAuth2Application.JwtBearerTokenGrant(encodedJwtToken);
+
+            OAuth2Application app = CreateTestApplication();
+            app.JwtBearerGrants.Add(grant);
+
+            var server = new TestOAuth2Server(endpoints);
+            server.RegisterApplication(app);
+            server.Bind(httpHandler);
+            server.TokenGenerator.AccessTokens.Add(expectedAccessToken);
+            server.TokenGenerator.RefreshTokens.Add(expectedRefreshToken);
+
+            OAuth2Client client = CreateClient(httpHandler, endpoints);
+
+            OAuth2TokenResult result = await client.GetTokenByJwtBearerAsync(
+                expectedScopes, encodedJwtToken, CancellationToken.None);
 
             Assert.NotNull(result);
             Assert.Equal(expectedScopes, result.Scopes);

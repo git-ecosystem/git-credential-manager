@@ -74,6 +74,15 @@ namespace GitCredentialManager.Authentication.OAuth
         /// <returns>Token result.</returns>
         Task<OAuth2TokenResult> GetTokenByTokenExchangeAsync(IEnumerable<string> scopes,
             OAuth2TokenType tokenType, string tokenValue, CancellationToken ct);
+
+        /// <summary>
+        /// Exchange a OAuth 2.0 JWT bearer token for an access token.
+        /// </summary>
+        /// <param name="scopes">Scopes to request.</param>
+        /// <param name="token">The JWT bearer token.</param>
+        /// <param name="ct">Token to cancel the operation.</param>
+        /// <returns>Token result.</returns>
+        Task<OAuth2TokenResult> GetTokenByJwtBearerAsync(IEnumerable<string> scopes, string token, CancellationToken ct);
     }
 
     public class OAuth2Client : IOAuth2Client
@@ -384,6 +393,39 @@ namespace GitCredentialManager.Authentication.OAuth
                 [OAuth2Constants.TokenEndpoint.SubjectTokenParameter] = tokenValue,
                 [OAuth2Constants.TokenEndpoint.SubjectTokenTypeParameter] = tokenTypeParam,
             };
+
+            AddClientParams(formData);
+
+            using (HttpContent requestContent = new FormUrlEncodedContent(formData))
+            using (HttpRequestMessage request = CreateRequestMessage(HttpMethod.Post, _endpoints.TokenEndpoint, requestContent))
+            using (HttpResponseMessage response = await _httpClient.SendAsync(request, ct))
+            {
+                string json = await response.Content.ReadAsStringAsync(ct);
+
+                if (response.IsSuccessStatusCode && TryCreateTokenEndpointResult(json, out OAuth2TokenResult result))
+                {
+                    return result;
+                }
+
+                throw CreateExceptionFromResponse(json);
+            }
+        }
+
+        public async Task<OAuth2TokenResult> GetTokenByJwtBearerAsync(IEnumerable<string> scopes, string token, CancellationToken ct)
+        {
+            using IDisposable region = Trace2.StartRegion(OAuth2Constants.Trace2Category, "token_by_jwtbearer");
+
+            var formData = new Dictionary<string, string>
+            {
+                [OAuth2Constants.TokenEndpoint.GrantTypeParameter] = OAuth2Constants.TokenEndpoint.JwtBearerGrantType,
+                [OAuth2Constants.TokenEndpoint.AssertionParameter] = token,
+            };
+
+            string scopesStr = string.Join(" ", scopes);
+            if (!string.IsNullOrWhiteSpace(scopesStr))
+            {
+                formData[OAuth2Constants.ScopeParameter] = scopesStr;
+            }
 
             AddClientParams(formData);
 

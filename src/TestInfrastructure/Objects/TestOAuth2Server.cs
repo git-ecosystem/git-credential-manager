@@ -269,6 +269,20 @@ namespace GitCredentialManager.Tests.Objects
 
                 tokenResp = app.CreateTokenBySubjectTokenGrant(TokenGenerator, subjectTokenType, subjectToken, scopes);
             }
+            else if (StringComparer.OrdinalIgnoreCase.Equals(grantType, OAuth2Constants.TokenEndpoint.JwtBearerGrantType))
+            {
+                if (!formData.TryGetValue(OAuth2Constants.TokenEndpoint.AssertionParameter, out string assertion))
+                {
+                    throw new Exception("Missing assertion parameter");
+                }
+
+                // Scope is optional per RFC 7523 section 2.1.
+                string[] scopes = formData.TryGetValue(OAuth2Constants.ScopeParameter, out string scopeParam)
+                    ? scopeParam.Split(' ')
+                    : null;
+
+                tokenResp = app.CreateTokenByJwtBearerGrant(TokenGenerator, assertion, scopes);
+            }
             else
             {
                 throw new Exception($"Unknown grant type '{grantType}'");
@@ -368,6 +382,17 @@ namespace GitCredentialManager.Tests.Objects
             public string[] DefaultScopes { get; init; } = [];
         }
 
+        public class JwtBearerTokenGrant
+        {
+            public JwtBearerTokenGrant(string assertion)
+            {
+                Assertion = assertion;
+            }
+
+            public string Assertion { get; }
+            public string[] DefaultScopes { get; init; } = [];
+        }
+
         public OAuth2Application(string id)
         {
             Id = id;
@@ -384,6 +409,8 @@ namespace GitCredentialManager.Tests.Objects
         public IList<DeviceCodeGrant> DeviceGrants { get; } = new List<DeviceCodeGrant>();
 
         public IList<SubjectTokenGrant> SubjectTokenGrants { get; } = new List<SubjectTokenGrant>();
+
+        public IList<JwtBearerTokenGrant> JwtBearerGrants { get; set; } = new List<JwtBearerTokenGrant>();
 
         public IDictionary<string, string> AccessTokens { get; } = new Dictionary<string, string>();
 
@@ -575,6 +602,34 @@ namespace GitCredentialManager.Tests.Objects
             if (grant is null)
             {
                 throw new Exception($"Invalid subject token '{subjectToken} (type: {subjectTokenType})'");
+            }
+
+            string newAccessToken = generator.CreateAccessToken();
+            string newRefreshToken = generator.CreateRefreshToken();
+
+            // If no scopes were requested then use the default scopes for this grant.
+            scopes ??= grant.DefaultScopes;
+
+            // Store the tokens
+            AccessTokens[newAccessToken] = newRefreshToken;
+            RefreshTokens[newRefreshToken] = scopes;
+
+            return new TokenEndpointResponseJson
+            {
+                TokenType = Constants.Http.WwwAuthenticateBearerScheme,
+                AccessToken = newAccessToken,
+                RefreshToken = newRefreshToken,
+                Scope = string.Join(" ", scopes)
+            };
+        }
+
+        public TokenEndpointResponseJson CreateTokenByJwtBearerGrant(TestOAuth2ServerTokenGenerator generator,
+            string assertion, string[] scopes = null)
+        {
+            var grant = JwtBearerGrants.FirstOrDefault(x => x.Assertion == assertion);
+            if (grant is null)
+            {
+                throw new Exception($"Invalid JWT bearer token assertion '{assertion}'");
             }
 
             string newAccessToken = generator.CreateAccessToken();
