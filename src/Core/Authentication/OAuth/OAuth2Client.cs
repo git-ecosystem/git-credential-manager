@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -63,6 +63,17 @@ namespace GitCredentialManager.Authentication.OAuth
         /// <param name="ct">Token to cancel the operation.</param>
         /// <returns>Token result.</returns>
         Task<OAuth2TokenResult> GetTokenByDeviceCodeAsync(OAuth2DeviceCodeResult deviceCodeResult, CancellationToken ct);
+
+        /// <summary>
+        /// Exchange a OAuth 2.0 subject token for an access token.
+        /// </summary>
+        /// <param name="scopes">Scopes to request.</param>
+        /// <param name="tokenType">The type of the subject token.</param>
+        /// <param name="tokenValue">The subject token.</param>
+        /// <param name="ct">Token to cancel the operation.</param>
+        /// <returns>Token result.</returns>
+        Task<OAuth2TokenResult> GetTokenByTokenExchangeAsync(IEnumerable<string> scopes,
+            OAuth2TokenType tokenType, string tokenValue, CancellationToken ct);
     }
 
     public class OAuth2Client : IOAuth2Client
@@ -355,6 +366,39 @@ namespace GitCredentialManager.Authentication.OAuth
 
                 // Wait the polling interval before retrying
                 await Task.Delay(retryInterval, ct);
+            }
+        }
+
+        public async Task<OAuth2TokenResult> GetTokenByTokenExchangeAsync(
+            IEnumerable<string> scopes, OAuth2TokenType tokenType, string tokenValue, CancellationToken ct)
+        {
+            using IDisposable region = Trace2.StartRegion(OAuth2Constants.Trace2Category, "token_by_exchange");
+
+            string tokenTypeParam = tokenType.GetParameterValue();
+
+            string scopesStr = string.Join(" ", scopes);
+            var formData = new Dictionary<string, string>
+            {
+                [OAuth2Constants.ScopeParameter] = scopesStr,
+                [OAuth2Constants.TokenEndpoint.GrantTypeParameter] = OAuth2Constants.TokenEndpoint.TokenExchangeGrantType,
+                [OAuth2Constants.TokenEndpoint.SubjectTokenParameter] = tokenValue,
+                [OAuth2Constants.TokenEndpoint.SubjectTokenTypeParameter] = tokenTypeParam,
+            };
+
+            AddClientParams(formData);
+
+            using (HttpContent requestContent = new FormUrlEncodedContent(formData))
+            using (HttpRequestMessage request = CreateRequestMessage(HttpMethod.Post, _endpoints.TokenEndpoint, requestContent))
+            using (HttpResponseMessage response = await _httpClient.SendAsync(request, ct))
+            {
+                string json = await response.Content.ReadAsStringAsync(ct);
+
+                if (response.IsSuccessStatusCode && TryCreateTokenEndpointResult(json, out OAuth2TokenResult result))
+                {
+                    return result;
+                }
+
+                throw CreateExceptionFromResponse(json);
             }
         }
 
