@@ -218,6 +218,26 @@ public partial class EntraAuthentication
 
         ThrowIfUserInteractionDisabled();
 
+        // Many GCM processes can need to sign in at the same time (e.g. one per worktree after the cached
+        // token expired). They all share one token cache, so only one needs to prompt the user. Take a lock
+        // so the others wait, then retry silent authentication to pick up the token the first one stored.
+        using var interactiveLock = await AcquireInteractiveLockAsync(authority, ct);
+        if (interactiveLock is not null)
+        {
+            // The account may only have reached the cache while we were waiting, so resolve it again.
+            if (account is not null)
+            {
+                msalAccount = await ResolveAccountAsync(app, account) ?? msalAccount;
+            }
+
+            result = await GetTokenForUserSilentAsync(app, scopes, msalAccount, ct);
+            if (result is not null)
+            {
+                Trace2.WriteData(Trace2Category, "flow", "silent_after_wait");
+                return AuthResult.FromMsalResult(result);
+            }
+        }
+
         // Try interactive auth if we couldn't do so with a cached account
         if (useBroker)
         {
@@ -231,6 +251,60 @@ public partial class EntraAuthentication
         }
 
         return AuthResult.FromMsalResult(result);
+    }
+
+    /// <summary>
+    /// Serialize interactive sign-in across GCM processes that share the same token cache.
+    /// </summary>
+    /// <returns>
+    /// The held lock, or <see langword="null"/> if it could not be taken (in which case the caller proceeds
+    /// without it, as before).
+    /// </returns>
+    internal /* for testing purposes */ async Task<IDisposable> AcquireInteractiveLockAsync(
+        string authority, CancellationToken ct, TimeSpan? timeout = null)
+    {
+        string key = $"{PublicClientConfig.ClientId}|{authority}|{PublicClientConfig.UseSharedCache}"
+            .ToLowerInvariant();
+        string hash = Convert.ToHexString(
+            System.Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes(key)))[..16];
+
+        string dir = Context.FileSystem.UserDataDirectoryPath;
+        string path = System.IO.Path.Combine(dir, $"entra-signin-{hash}.lock");
+
+        timeout ??= TimeSpan.FromMinutes(5);
+        var sw = Stopwatch.StartNew();
+        try
+        {
+            Context.FileSystem.CreateDirectory(dir);
+
+            while (true)
+            {
+                ct.ThrowIfCancellationRequested();
+                try
+                {
+                    // The OS releases the handle if this process exits or crashes, so no stale locks.
+                    var stream = new System.IO.FileStream(path, System.IO.FileMode.OpenOrCreate,
+                        System.IO.FileAccess.ReadWrite, System.IO.FileShare.None);
+                    Trace2.WriteData(Trace2Category, "signin_lock", "acquired");
+                    return stream;
+                }
+                catch (System.IO.IOException ex) when (ex is not (System.IO.FileNotFoundException or
+                                                                      System.IO.DirectoryNotFoundException) &&
+                                                           sw.Elapsed < timeout)
+                {
+                    Context.Trace.WriteLine("Another GCM process is signing in; waiting for it to finish...");
+                    await Task.Delay(TimeSpan.FromMilliseconds(500), ct);
+                }
+            }
+        }
+        catch (Exception ex) when (ex is System.IO.IOException or UnauthorizedAccessException)
+        {
+            // Locking is an optimisation; never fail authentication because of it.
+            Trace2.WriteData(Trace2Category, "signin_lock", "unavailable");
+            Context.Trace.WriteLine("Unable to take the sign-in lock; continuing without it.");
+            Context.Trace.WriteException(ex);
+            return null;
+        }
     }
 
     private async Task<AuthenticationResult> GetTokenForUserSilentAsync(
