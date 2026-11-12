@@ -45,7 +45,7 @@ namespace GitHub
             };
         }
 
-        private static string GetClientId(ISettings settings)
+        internal static string GetClientId(ISettings settings)
         {
             // Check for developer override value
             if (settings.TryGetSetting(
@@ -96,12 +96,17 @@ namespace GitHub
 
     public class GitHubTokenEndpointResponseJson : TokenEndpointResponseJson
     {
+        [JsonPropertyName("refresh_token_expires_in")]
+        public long? RefreshTokenExpiresIn { get; set; }
+
         public override OAuth2TokenResult ToResult()
         {
             return new OAuth2TokenResult(AccessToken, TokenType)
             {
                 ExpiresIn = ExpiresIn.HasValue ? TimeSpan.FromSeconds(ExpiresIn.Value) : null,
                 RefreshToken = RefreshToken,
+                RefreshTokenExpiresIn = RefreshTokenExpiresIn.HasValue
+                    ? TimeSpan.FromSeconds(RefreshTokenExpiresIn.Value) : null,
                 // GitHub returns a comma-separated list of scopes, rather than the expected
                 // space-delimited list as defined in RFC 6749 section 3.3.
                 Scopes = Scope?.Split(',')
