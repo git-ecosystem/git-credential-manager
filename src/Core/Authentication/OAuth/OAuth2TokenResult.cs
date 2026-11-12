@@ -18,6 +18,8 @@ namespace GitCredentialManager.Authentication.OAuth
 
         public TimeSpan? ExpiresIn { get; set; }
 
+        public TimeSpan? RefreshTokenExpiresIn { get; set; }
+
         public string[] Scopes { get; set; }
     }
 }

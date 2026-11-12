@@ -63,6 +63,11 @@ namespace GitCredentialManager.Tests.Objects
         {
             bool writable = fileAccess != FileAccess.Read;
 
+            if (fileMode == FileMode.OpenOrCreate && !Files.ContainsKey(path))
+            {
+                Files[path] = Array.Empty<byte>();
+            }
+
             if (fileMode == FileMode.Create)
             {
                 return new TestFileStream(this, path);

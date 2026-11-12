@@ -378,6 +378,7 @@ namespace GitHub.Tests
                 GitHubConstants.OAuthScopes.Repo,
                 GitHubConstants.OAuthScopes.Gist,
                 GitHubConstants.OAuthScopes.Workflow,
+                "offline_access",
             };
 
             var expectedUserName = "john.doe";
@@ -420,6 +421,7 @@ namespace GitHub.Tests
                 GitHubConstants.OAuthScopes.Repo,
                 GitHubConstants.OAuthScopes.Gist,
                 GitHubConstants.OAuthScopes.Workflow,
+                "offline_access",
             };
 
             var expectedUserName = "john.doe";
