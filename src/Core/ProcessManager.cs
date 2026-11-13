@@ -26,6 +26,13 @@ public interface IProcessManager
     /// <param name="class">TRACE2 process class.</param>
     /// <returns><see cref="Process"/> object ready to start.</returns>
     ChildProcess CreateProcess(ProcessStartInfo psi, Trace2ProcessClass @class = Trace2ProcessClass.None);
+
+    /// <summary>
+    /// Get the start time of a process in UTC.
+    /// </summary>
+    /// <param name="pid">The process ID.</param>
+    /// <returns>The start time of the process in UTC.</returns>
+    DateTime GetStartTimeUtc(int pid);
 }
 
 public class ProcessManager : IProcessManager
@@ -50,5 +57,10 @@ public class ProcessManager : IProcessManager
         ProcessStartInfo psi, Trace2ProcessClass @class = Trace2ProcessClass.None)
     {
         return new ChildProcess(psi, @class);
+    }
+
+    public DateTime GetStartTimeUtc(int pid)
+    {
+        return Process.GetProcessById(pid).StartTime.ToUniversalTime();
     }
 }
