@@ -392,13 +392,13 @@ namespace GitCredentialManager.Authentication.OAuth
 
         #region Helpers
 
-        private void AddClientParams(Dictionary<string, string> data)
+        private void AddClientParams(ICollection<KeyValuePair<string, string>> data)
         {
             // RFC 6749, Sections 2.2 and 3.2.1: client_id is identification, not
             // authentication, and MAY be sent in the body alongside HTTP Basic.
             // Including it also satisfies unauthenticated authorization-code requests
             // and device requests (RFC 8628, Sections 3.1 and 3.4).
-            data[OAuth2Constants.ClientIdParameter] = _clientId;
+            data.Add(new(OAuth2Constants.ClientIdParameter, _clientId));
 
             // RFC 6749, Section 2.3: clients MUST NOT use multiple authentication
             // methods per request. Section 2.3.1 allows request-body password
@@ -406,7 +406,7 @@ namespace GitCredentialManager.Authentication.OAuth
             // of an empty client_secret.
             if (!_addAuthHeader && !string.IsNullOrEmpty(_clientSecret))
             {
-                data[OAuth2Constants.ClientSecretParameter] = _clientSecret;
+                data.Add(new(OAuth2Constants.ClientSecretParameter, _clientSecret));
             }
         }
 
