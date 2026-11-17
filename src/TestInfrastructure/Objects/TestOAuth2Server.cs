@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using GitCredentialManager.Authentication.OAuth;
 using GitCredentialManager.Authentication.OAuth.Json;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Xunit;
 
 namespace GitCredentialManager.Tests.Objects
@@ -245,12 +246,86 @@ namespace GitCredentialManager.Tests.Objects
                     };
                 }
             }
+            else if (StringComparer.OrdinalIgnoreCase.Equals(grantType, OAuth2Constants.TokenEndpoint.TokenExchangeGrantType))
+            {
+                // Subject token and subject token type are both required.
+                if (!formData.TryGetValue(OAuth2Constants.TokenEndpoint.SubjectTokenParameter, out string subjectToken))
+                {
+                    throw new Exception("Missing subject token parameter");
+                }
+
+                if (!formData.TryGetValue(OAuth2Constants.TokenEndpoint.SubjectTokenTypeParameter, out string subjectTokenTypeId))
+                {
+                    throw new Exception("Missing subject token type parameter");
+                }
+
+                // Subject token type parameter must contain a real identifier (typically a URI but not necessarily).
+                if (string.IsNullOrWhiteSpace(subjectTokenTypeId))
+                {
+                    throw new Exception($"Invalid subject token type '{subjectTokenTypeId}'");
+                }
+
+                OAuth2TokenType subjectTokenType = new OAuth2TokenType(subjectTokenTypeId);
+
+                // Actor and requested token types are both optional.
+                OAuth2TokenType? actorTokenType = null;
+                OAuth2TokenType? requestedTokenType = null;
+
+                // If actor token type is specified then actor token must also be specified and vice versa.
+                bool hasActorToken = formData.TryGetValue(OAuth2Constants.TokenEndpoint.ActorTokenParameter, out string actorToken);
+                if (formData.TryGetValue(OAuth2Constants.TokenEndpoint.ActorTokenTypeParameter, out string actorTokenTypeId))
+                {
+                    actorTokenType = new OAuth2TokenType(actorTokenTypeId);
+                    if (!hasActorToken) // Has type but is missing token
+                    {
+                        throw new Exception("Missing actor token parameter");
+                    }
+                }
+                else if (hasActorToken) // Has token but is missing type
+                {
+                    throw new Exception("Missing actor token type parameter");
+                }
+
+                // Optional requested token type parameter must contain a real identifier.
+                if (formData.TryGetValue(OAuth2Constants.TokenEndpoint.RequestedTokenTypeParameter, out string requestedTokenTypeId))
+                {
+                    if (string.IsNullOrWhiteSpace(requestedTokenTypeId))
+                    {
+                        throw new Exception($"Invalid requested token type '{requestedTokenTypeId}'");
+                    }
+
+                    requestedTokenType = new OAuth2TokenType(requestedTokenTypeId);
+                }
+
+                // Scope is optional per RFC 8693 section 2.1.
+                string[] scopes = formData.TryGetValue(OAuth2Constants.ScopeParameter, out string scopeParam) &&
+                                  !string.IsNullOrEmpty(scopeParam)
+                    ? scopeParam.Split(' ')
+                    : null;
+
+                tokenResp = app.CreateTokenBySubjectTokenGrant(TokenGenerator, subjectTokenType, subjectToken, scopes);
+            }
+            else if (StringComparer.OrdinalIgnoreCase.Equals(grantType, OAuth2Constants.TokenEndpoint.JwtBearerGrantType))
+            {
+                if (!formData.TryGetValue(OAuth2Constants.TokenEndpoint.AssertionParameter, out string assertion))
+                {
+                    throw new Exception("Missing assertion parameter");
+                }
+
+                // Scope is optional per RFC 7523 section 2.1.
+                string[] scopes = formData.TryGetValue(OAuth2Constants.ScopeParameter, out string scopeParam) &&
+                                  !string.IsNullOrEmpty(scopeParam)
+                    ? scopeParam.Split(' ')
+                    : null;
+
+                tokenResp = app.CreateTokenByJwtBearerGrant(TokenGenerator, assertion, scopes);
+            }
             else
             {
                 throw new Exception($"Unknown grant type '{grantType}'");
             }
 
-            string responseJson = JsonSerializer.Serialize(tokenResp);
+            string responseJson = JsonSerializer.Serialize(tokenResp, tokenResp.GetType());
 
             return new HttpResponseMessage(HttpStatusCode.OK)
             {
@@ -331,6 +406,30 @@ namespace GitCredentialManager.Tests.Objects
             public string[] Scopes { get; }
         }
 
+        public class SubjectTokenGrant
+        {
+            public SubjectTokenGrant(OAuth2TokenType tokenType, string token)
+            {
+                TokenType = tokenType;
+                Token = token;
+            }
+
+            public OAuth2TokenType TokenType { get; }
+            public string Token { get; }
+            public string[] DefaultScopes { get; init; } = [];
+        }
+
+        public class JwtBearerTokenGrant
+        {
+            public JwtBearerTokenGrant(string assertion)
+            {
+                Assertion = assertion;
+            }
+
+            public string Assertion { get; }
+            public string[] DefaultScopes { get; init; } = [];
+        }
+
         public OAuth2Application(string id)
         {
             Id = id;
@@ -345,6 +444,10 @@ namespace GitCredentialManager.Tests.Objects
         public IList<AuthCodeGrant> AuthGrants { get; } = new List<AuthCodeGrant>();
 
         public IList<DeviceCodeGrant> DeviceGrants { get; } = new List<DeviceCodeGrant>();
+
+        public IList<SubjectTokenGrant> SubjectTokenGrants { get; } = new List<SubjectTokenGrant>();
+
+        public IList<JwtBearerTokenGrant> JwtBearerGrants { get; } = new List<JwtBearerTokenGrant>();
 
         public IDictionary<string, string> AccessTokens { get; } = new Dictionary<string, string>();
 
@@ -525,6 +628,71 @@ namespace GitCredentialManager.Tests.Objects
                 AccessToken = accessToken,
                 RefreshToken = refreshToken,
                 Scope = string.Join(" ", grant.Scopes) // Keep the same scopes as before
+            };
+        }
+
+        public TokenEndpointResponseJson CreateTokenBySubjectTokenGrant(TestOAuth2ServerTokenGenerator generator,
+            OAuth2TokenType subjectTokenType, string subjectToken, string[] scopes = null)
+        {
+            var grant = SubjectTokenGrants.FirstOrDefault(x =>
+                x.Token == subjectToken && x.TokenType == subjectTokenType);
+            if (grant is null)
+            {
+                throw new Exception($"Invalid subject token '{subjectToken} (type: {subjectTokenType})'");
+            }
+
+            string newAccessToken = generator.CreateAccessToken();
+            string newRefreshToken = generator.CreateRefreshToken();
+
+            // If no scopes were requested then use the default scopes for this grant.
+            scopes ??= grant.DefaultScopes;
+
+            // Store the tokens
+            AccessTokens[newAccessToken] = newRefreshToken;
+            RefreshTokens[newRefreshToken] = scopes;
+
+            return new TestServerTokenExchangeResponseJson
+            {
+                TokenType = Constants.Http.WwwAuthenticateBearerScheme,
+                AccessToken = newAccessToken,
+                RefreshToken = newRefreshToken,
+                Scope = string.Join(" ", scopes),
+                // The test server currently only issues access tokens for token exchange requests
+                IssuedTokenType = OAuth2TokenType.AccessToken.Identifier
+            };
+        }
+
+        public class TestServerTokenExchangeResponseJson : TokenEndpointResponseJson
+        {
+            [JsonPropertyName("issued_token_type")]
+            public string IssuedTokenType { get; set; }
+        }
+
+        public TokenEndpointResponseJson CreateTokenByJwtBearerGrant(TestOAuth2ServerTokenGenerator generator,
+            string assertion, string[] scopes = null)
+        {
+            var grant = JwtBearerGrants.FirstOrDefault(x => x.Assertion == assertion);
+            if (grant is null)
+            {
+                throw new Exception($"Invalid JWT bearer token assertion '{assertion}'");
+            }
+
+            string newAccessToken = generator.CreateAccessToken();
+            string newRefreshToken = generator.CreateRefreshToken();
+
+            // If no scopes were requested then use the default scopes for this grant.
+            scopes ??= grant.DefaultScopes;
+
+            // Store the tokens
+            AccessTokens[newAccessToken] = newRefreshToken;
+            RefreshTokens[newRefreshToken] = scopes;
+
+            return new TokenEndpointResponseJson
+            {
+                TokenType = Constants.Http.WwwAuthenticateBearerScheme,
+                AccessToken = newAccessToken,
+                RefreshToken = newRefreshToken,
+                Scope = string.Join(" ", scopes)
             };
         }
 
