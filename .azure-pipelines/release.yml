@@ -178,57 +178,6 @@ extends:
                       targetType: inline
                       script: |
                         Remove-Item "$(Build.ArtifactStagingDirectory)\payload\CodeSignSummary-*.md"
-                - task: PowerShell@2
-                  displayName: 'Build installers'
-                  inputs:
-                    targetType: inline
-                    script: |
-                      dotnet build '.\src\windows\Installer.Windows\Installer.Windows.csproj' `
-                        --configuration Release `
-                        --no-dependencies `
-                        -p:NoLayout=true `
-                        -p:PayloadPath="$(Build.ArtifactStagingDirectory)\payload" `
-                        -p:OutputPath="$(Build.ArtifactStagingDirectory)\installers" `
-                        -p:RuntimeIdentifier="${{ dim.runtime }}"
-                - ${{ if eq(parameters.esrp, true) }}:
-                  - task: EsrpCodeSigning@5
-                    condition: and(succeeded(), eq('${{ parameters.esrp }}', true))
-                    displayName: 'Sign installers'
-                    inputs:
-                      connectedServiceName: '$(esrpAppConnectionName)'
-                      useMSIAuthentication: true
-                      appRegistrationClientId: '$(esrpClientId)'
-                      appRegistrationTenantId: '$(esrpTenantId)'
-                      authAkvName: '$(esrpKeyVaultName)'
-                      authSignCertName: '$(esrpSignReqCertName)'
-                      serviceEndpointUrl: '$(esrpEndpointUrl)'
-                      folderPath: '$(Build.ArtifactStagingDirectory)\installers'
-                      pattern: '**/*.exe'
-                      useMinimatch: true
-                      signConfigType: inlineSignParams
-                      inlineOperation: |
-                        [
-                          {
-                            "KeyCode": "CP-230012",
-                            "OperationCode": "SigntoolSign",
-                            "ToolName": "sign",
-                            "ToolVersion": "1.0",
-                            "Parameters": {
-                              "OpusName": "Microsoft",
-                              "OpusInfo": "https://www.microsoft.com",
-                              "FileDigest": "/fd SHA256",
-                              "PageHash": "/NPH",
-                              "TimeStamp": "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
-                            }
-                          },
-                          {
-                            "KeyCode": "CP-230012",
-                            "OperationCode": "SigntoolVerify",
-                            "ToolName": "sign",
-                            "ToolVersion": "1.0",
-                            "Parameters": {}
-                          }
-                        ]
                 - task: ArchiveFiles@2
                   displayName: 'Archive payload'
                   inputs:
@@ -242,7 +191,6 @@ extends:
                     targetType: inline
                     script: |
                       New-Item -Path "$(Build.ArtifactStagingDirectory)\_final" -ItemType Directory -Force
-                      Copy-Item "$(Build.ArtifactStagingDirectory)\installers\*.exe" -Destination "$(Build.ArtifactStagingDirectory)\_final"
                       Copy-Item "$(Build.ArtifactStagingDirectory)\installers\*.zip" -Destination "$(Build.ArtifactStagingDirectory)\_final"
                       Copy-Item "$(Build.ArtifactStagingDirectory)\symbols\*.zip" -Destination "$(Build.ArtifactStagingDirectory)\_final"
                       Copy-Item "$(Build.ArtifactStagingDirectory)\payload" -Destination "$(Build.ArtifactStagingDirectory)\_final" -Recurse
@@ -305,9 +253,6 @@ extends:
                   isDraft: true
                   addChangeLog: false
                   assets: |
-                    $(Pipeline.Workspace)/assets/win-x86/*.exe
                     $(Pipeline.Workspace)/assets/win-x86/*.zip
-                    $(Pipeline.Workspace)/assets/win-x64/*.exe
                     $(Pipeline.Workspace)/assets/win-x64/*.zip
-                    $(Pipeline.Workspace)/assets/win-arm64/*.exe
                     $(Pipeline.Workspace)/assets/win-arm64/*.zip
