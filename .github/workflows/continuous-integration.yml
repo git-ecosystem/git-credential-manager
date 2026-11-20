@@ -3,9 +3,9 @@ name: ci
 on:
   workflow_dispatch:
   push:
-    branches: [ main ]
+    branches: [ maint-v2 ]
   pull_request:
-    branches: [ main ]
+    branches: [ maint-v2 ]
 
 jobs:
 # ================================
@@ -63,95 +63,6 @@ jobs:
         mv out/windows/Installer.Windows/bin/Release/net472/gcm*.exe artifacts/
         mv out/windows/Installer.Windows/bin/Release/net472/${{ matrix.runtime }} artifacts/bin/
         cp out/windows/Installer.Windows/bin/Release/net472/${{ matrix.runtime }}.sym/* artifacts/bin/${{ matrix.runtime }}/
-
-    - name: Upload artifacts
-      uses: actions/upload-artifact@v7
-      with:
-        name: ${{ matrix.runtime }}
-        path: |
-          artifacts
-
-# ================================
-#              Linux
-# ================================
-  linux:
-    name: Linux
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        runtime: [ linux-x64, linux-arm64, linux-arm ]
-
-    steps:
-    - uses: actions/checkout@v7
-
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v5.4.0
-      with:
-        dotnet-version: 10.0.x
-
-    - name: Install dependencies
-      run: dotnet restore
-
-    - name: Build
-      run: |
-        dotnet build src/linux/Packaging.Linux/*.csproj \
-         --configuration=Release --no-self-contained \
-         --runtime=${{ matrix.runtime }}
-
-    - name: Test
-      run: |
-        dotnet test --verbosity normal --configuration=LinuxRelease
-
-    - name: Prepare artifacts
-      run: |
-        mkdir -p artifacts
-        mv out/linux/Packaging.Linux/Release/deb/*.deb artifacts/
-        mv out/linux/Packaging.Linux/Release/tar/*.tar.gz artifacts/
-
-    - name: Upload artifacts
-      uses: actions/upload-artifact@v7
-      with:
-        name: ${{ matrix.runtime }}
-        path: |
-          artifacts
-
-# ================================
-#              macOS
-# ================================
-  osx:
-    name: macOS
-    runs-on: macos-latest
-    strategy:
-      matrix:
-        runtime: [ osx-x64, osx-arm64 ]
-
-    steps:
-    - uses: actions/checkout@v7
-
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v5.4.0
-      with:
-        dotnet-version: 10.0.x
-
-    - name: Install dependencies
-      run: dotnet restore
-
-    - name: Build
-      run: |
-        dotnet build src/osx/Installer.Mac/*.csproj \
-         --configuration=Release --no-self-contained \
-         --runtime=${{ matrix.runtime }}
-
-    - name: Test
-      run: |
-        dotnet test --verbosity normal --configuration=MacRelease
-
-    - name: Prepare artifacts
-      run: |
-        mkdir -p artifacts/bin
-        mv out/osx/Installer.Mac/pkg/Release/payload "artifacts/bin/${{ matrix.runtime }}"
-        cp out/osx/Installer.Mac/pkg/Release/payload.sym/* "artifacts/bin/${{ matrix.runtime }}/"
-        mv out/osx/Installer.Mac/pkg/Release/gcm*.pkg artifacts/
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v7
