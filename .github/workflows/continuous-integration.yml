@@ -3,9 +3,9 @@ name: ci
 on:
   workflow_dispatch:
   push:
-    branches: [ main ]
+    branches: [ maint-v2 ]
   pull_request:
-    branches: [ main ]
+    branches: [ maint-v2 ]
 
 jobs:
 # ================================
