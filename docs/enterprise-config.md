@@ -102,7 +102,7 @@ For example:
 
 ```text
 # /etc/git-credential-manager/config.d/00-example1
-credential.noguiprompt=0
+credential.guiPrompt=false
 ```
 
 ```text
