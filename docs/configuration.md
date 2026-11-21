@@ -437,8 +437,8 @@ To use OAuth with Bitbucket DC it is necessary to create an external, incoming
 
 It is then necessary to configure the local GCM installation with both the OAuth
 [ClientId](configuration.md#credential.bitbucketDataCenterOAuthClientId) and
-[ClientSecret](configuration.md#credential.bitbucketDataCenterOauthSecret) from
-the AppLink.
+[ClientSecret](configuration.md#credential.bitbucketDataCenterOAuthClientSecret)
+from the AppLink.
 
 #### Example
 
@@ -459,7 +459,7 @@ To use OAuth with Bitbucket DC it is necessary to create an external, incoming
 
 It is then necessary to configure the local GCM installation with both the OAuth
 [ClientId](configuration.md#credential.bitbucketDataCenterOAuthClientId) and
-[ClientSecret](configuration.md#credential.bitbucketDataCenterOauthSecret)
+[ClientSecret](configuration.md#credential.bitbucketDataCenterOAuthClientSecret)
 from the AppLink.
 
 #### Example
