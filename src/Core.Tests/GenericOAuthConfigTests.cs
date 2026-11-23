@@ -102,6 +102,40 @@ namespace GitCredentialManager.Tests
         }
 
         [Theory]
+        [InlineData("", "/login/oauth/authorize", "/login/oauth/access_token")]
+        [InlineData("/test/test.git", "/login/oauth/authorize", "/login/oauth/access_token")]
+        [InlineData("/git/test/test.git", "/git/login/oauth/authorize", "/git/login/oauth/access_token")]
+        [InlineData("/sub/git/test/test.git", "/sub/git/login/oauth/authorize", "/sub/git/login/oauth/access_token")]
+        public void GenericOAuthConfig_TryGet_Gitea_PreservesDeploymentPrefix(
+            string path, string expectedAuthzPath, string expectedTokenPath)
+        {
+            var protocol = "https";
+            var host = "example.com";
+            var remoteUri = new Uri($"{protocol}://{host}{path}");
+            var expectedAuthzEndpoint = new Uri($"{protocol}://{host}{expectedAuthzPath}");
+            var expectedTokenEndpoint = new Uri($"{protocol}://{host}{expectedTokenPath}");
+
+            var trace = new NullTrace();
+            var settings = new TestSettings
+            {
+                RemoteUri = remoteUri
+            };
+
+            var request = new GitRequest(new Dictionary<string, string> {
+                {"protocol", protocol},
+                {"host", host},
+                {"path", path},
+                {"wwwauth", "Basic realm=\"Gitea\""}
+            });
+
+            bool result = GenericOAuthConfig.TryGet(trace, settings, request, out GenericOAuthConfig config);
+
+            Assert.True(result);
+            Assert.Equal(expectedAuthzEndpoint, config.Endpoints.AuthorizationEndpoint);
+            Assert.Equal(expectedTokenEndpoint, config.Endpoints.TokenEndpoint);
+        }
+
+        [Theory]
         [InlineData("query", OAuth2ResponseMode.Query)]
         [InlineData("fragment", OAuth2ResponseMode.Fragment)]
         [InlineData("form_post", OAuth2ResponseMode.FormPost)]

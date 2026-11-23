@@ -220,6 +220,11 @@ case "$os" in
                 # Install dotnet/GCM dependencies.
                 install_packages dnf install "curl git krb5-libs libicu openssl-libs zlib findutils which bash"
 
+                # Fedora 45+ ships OpenSSL 4, but .NET still needs the OpenSSL 3 ABI.
+                if [ "$distribution" = fedora ] && version_at_least "45" "$version"; then
+                    install_packages dnf install "openssl3-libs"
+                fi
+
                 ensure_dotnet_installed
 
                 if [ -n "$aot" ]; then
@@ -263,8 +268,8 @@ case "$os" in
                 # --noconfirm required when running from container
                 $sudo_cmd pacman -Syu --noconfirm
 
-                # Install dotnet/GCM dependencies.
-                install_packages pacman -Sy "curl git glibc gcc krb5 icu openssl libc++ zlib"
+                # .NET needs the OpenSSL 3 ABI alongside the system's OpenSSL 4.
+                install_packages pacman -Sy "curl git glibc gcc krb5 icu openssl openssl-3 libc++ zlib"
 
                 ensure_dotnet_installed
 

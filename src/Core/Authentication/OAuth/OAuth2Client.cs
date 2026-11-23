@@ -211,10 +211,9 @@ namespace GitCredentialManager.Authentication.OAuth
 
             string scopesStr = string.Join(" ", scopes);
 
-            var formData = new Dictionary<string, string>
-            {
-                [OAuth2Constants.ClientIdParameter] = _clientId
-            };
+            var formData = new Dictionary<string, string>();
+
+            AddClientParams(formData);
 
             if (!string.IsNullOrWhiteSpace(scopesStr))
             {
@@ -225,7 +224,7 @@ namespace GitCredentialManager.Authentication.OAuth
             using (HttpRequestMessage request = CreateRequestMessage(HttpMethod.Post, _endpoints.DeviceAuthorizationEndpoint, requestContent))
             using (HttpResponseMessage response = await _httpClient.SendAsync(request, ct))
             {
-                string json = await response.Content.ReadAsStringAsync();
+                string json = await response.Content.ReadAsStringAsync(ct);
 
                 if (response.IsSuccessStatusCode && TryDeserializeJson(json, OAuthJsonContext.Default.DeviceAuthorizationEndpointResponseJson, out DeviceAuthorizationEndpointResponseJson jsonObj))
                 {
@@ -245,9 +244,9 @@ namespace GitCredentialManager.Authentication.OAuth
                 [OAuth2Constants.TokenEndpoint.GrantTypeParameter] = OAuth2Constants.TokenEndpoint.AuthorizationCodeGrantType,
                 [OAuth2Constants.TokenEndpoint.AuthorizationCodeParameter] = authorizationCodeResult.Code,
                 [OAuth2Constants.TokenEndpoint.PkceVerifierParameter] = authorizationCodeResult.CodeVerifier,
-                [OAuth2Constants.ClientIdParameter] = _clientId,
-                [OAuth2Constants.ClientSecretParameter] = _clientSecret
             };
+
+            AddClientParams(formData);
 
             if (authorizationCodeResult.RedirectUri != null)
             {
@@ -260,10 +259,10 @@ namespace GitCredentialManager.Authentication.OAuth
             }
 
             using (HttpContent requestContent = new FormUrlEncodedContent(formData))
-            using (HttpRequestMessage request = CreateRequestMessage(HttpMethod.Post, _endpoints.TokenEndpoint, requestContent, _addAuthHeader))
+            using (HttpRequestMessage request = CreateRequestMessage(HttpMethod.Post, _endpoints.TokenEndpoint, requestContent))
             using (HttpResponseMessage response = await _httpClient.SendAsync(request, ct))
             {
-                string json = await response.Content.ReadAsStringAsync();
+                string json = await response.Content.ReadAsStringAsync(ct);
 
                 if (response.IsSuccessStatusCode && TryCreateTokenEndpointResult(json, out OAuth2TokenResult result))
                 {
@@ -282,20 +281,15 @@ namespace GitCredentialManager.Authentication.OAuth
             {
                 [OAuth2Constants.TokenEndpoint.GrantTypeParameter] = OAuth2Constants.TokenEndpoint.RefreshTokenGrantType,
                 [OAuth2Constants.TokenEndpoint.RefreshTokenParameter] = refreshToken,
-                [OAuth2Constants.ClientIdParameter] = _clientId,
-                [OAuth2Constants.ClientSecretParameter] = _clientSecret
             };
 
-            if (_redirectUri != null)
-            {
-                formData[OAuth2Constants.RedirectUriParameter] = _redirectUri.ToString();
-            }
+            AddClientParams(formData);
 
             using (HttpContent requestContent = new FormUrlEncodedContent(formData))
-            using (HttpRequestMessage request = CreateRequestMessage(HttpMethod.Post, _endpoints.TokenEndpoint, requestContent, _addAuthHeader))
+            using (HttpRequestMessage request = CreateRequestMessage(HttpMethod.Post, _endpoints.TokenEndpoint, requestContent))
             using (HttpResponseMessage response = await _httpClient.SendAsync(request, ct))
             {
-                string json = await response.Content.ReadAsStringAsync();
+                string json = await response.Content.ReadAsStringAsync(ct);
 
                 if (response.IsSuccessStatusCode && TryCreateTokenEndpointResult(json, out OAuth2TokenResult result))
                 {
@@ -314,8 +308,9 @@ namespace GitCredentialManager.Authentication.OAuth
             {
                 [OAuth2Constants.DeviceAuthorization.GrantTypeParameter] = OAuth2Constants.DeviceAuthorization.DeviceCodeGrantType,
                 [OAuth2Constants.DeviceAuthorization.DeviceCodeParameter] = deviceCodeResult.DeviceCode,
-                [OAuth2Constants.ClientIdParameter] = _clientId,
             };
+
+            AddClientParams(formData);
 
             TimeSpan retryInterval = deviceCodeResult.PollingInterval;
             while (true)
@@ -328,7 +323,7 @@ namespace GitCredentialManager.Authentication.OAuth
                     using (HttpRequestMessage request = CreateRequestMessage(HttpMethod.Post, _endpoints.TokenEndpoint, requestContent))
                     using (HttpResponseMessage response = await _httpClient.SendAsync(request, ct))
                     {
-                        string json = await response.Content.ReadAsStringAsync();
+                        string json = await response.Content.ReadAsStringAsync(ct);
 
                         if (response.IsSuccessStatusCode && TryCreateTokenEndpointResult(json, out OAuth2TokenResult result))
                         {
@@ -397,12 +392,33 @@ namespace GitCredentialManager.Authentication.OAuth
 
         #region Helpers
 
-        private HttpRequestMessage CreateRequestMessage(HttpMethod method, Uri requestUri, HttpContent content = null, bool addAuthHeader = false)
+        private void AddClientParams(Dictionary<string, string> data)
+        {
+            // RFC 6749, Sections 2.2 and 3.2.1: client_id is identification, not
+            // authentication, and MAY be sent in the body alongside HTTP Basic.
+            // Including it also satisfies unauthenticated authorization-code requests
+            // and device requests (RFC 8628, Sections 3.1 and 3.4).
+            data[OAuth2Constants.ClientIdParameter] = _clientId;
+
+            // RFC 6749, Section 2.3: clients MUST NOT use multiple authentication
+            // methods per request. Section 2.3.1 allows request-body password
+            // authentication when supported by the server, and permits omission
+            // of an empty client_secret.
+            if (!_addAuthHeader && !string.IsNullOrEmpty(_clientSecret))
+            {
+                data[OAuth2Constants.ClientSecretParameter] = _clientSecret;
+            }
+        }
+
+        private HttpRequestMessage CreateRequestMessage(HttpMethod method, Uri requestUri, HttpContent content = null)
         {
             var request = new HttpRequestMessage(method, requestUri) {Content = content};
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(Constants.Http.MimeTypeJson));
 
-            if (addAuthHeader && !string.IsNullOrEmpty(_clientSecret))
+            // RFC 6749, Section 2.3.1: servers MUST support HTTP Basic for clients
+            // issued a password. Select it instead of body password authentication
+            // to satisfy the single-method requirement in Section 2.3.
+            if (_addAuthHeader && !string.IsNullOrEmpty(_clientSecret))
             {
                 request.AddBasicAuthenticationHeader(_clientId, _clientSecret);
             }

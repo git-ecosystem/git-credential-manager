@@ -112,17 +112,19 @@ verbose "bin dir:       $BINDIR"
 verbose "symbol dir:    $SYMDIR"
 verbose "output dir:    $OUTDIR"
 
-# Archive the shipping binaries.
+# Archive the shipping binaries. List the directory's entries by name, rather
+# than archiving '.', so the tarball has no redundant './' entry. The glob must
+# expand inside the directory, hence the subshell.
 info "Archiving binaries from '$BINDIR'..."
 rm -f "$PAYLOAD_TARBALL"
-tar -czf "$PAYLOAD_TARBALL" -C "$BINDIR" . || die "Failed to create binaries archive"
+(cd "$BINDIR" && tar -czf "$PAYLOAD_TARBALL" -- *) || die "Failed to create binaries archive"
 info "Created $PAYLOAD_TARBALL"
 
 # Archive the debug symbols, if any were produced.
 if [ -d "$SYMDIR" ]; then
     info "Archiving symbols from '$SYMDIR'..."
     rm -f "$SYMBOLS_TARBALL"
-    tar -czf "$SYMBOLS_TARBALL" -C "$SYMDIR" . || die "Failed to create symbols archive"
+    (cd "$SYMDIR" && tar -czf "$SYMBOLS_TARBALL" -- *) || die "Failed to create symbols archive"
     info "Created $SYMBOLS_TARBALL"
 else
     warn "symbols directory '$SYMDIR' not found; skipping symbols archive"

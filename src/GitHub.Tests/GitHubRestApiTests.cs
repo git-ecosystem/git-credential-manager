@@ -19,6 +19,8 @@ namespace GitHub.Tests
         [InlineData("https://github.example.com", "user", "https://github.example.com/api/v3/user")]
         [InlineData("https://raw.github.example.com", "user", "https://github.example.com/api/v3/user")]
         [InlineData("https://gist.github.example.com", "user", "https://github.example.com/api/v3/user")]
+        [InlineData("https://github.example.com:8080", "user", "https://github.example.com:8080/api/v3/user")] // Preserve GHES port
+        [InlineData("https://octocorp.ghe.com", "user", "https://api.octocorp.ghe.com/user")] // Proxima
         public void GitHubRestApi_GetApiRequestUri(string targetUrl, string apiUrl, string expected)
         {
             Uri actualUri = GitHubRestApi.GetApiRequestUri(new Uri(targetUrl), apiUrl);

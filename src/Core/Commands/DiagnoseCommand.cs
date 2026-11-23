@@ -13,14 +13,18 @@ namespace GitCredentialManager.Commands
     public class DiagnoseCommand : Command
     {
         private readonly ICommandContext _context;
+        private readonly IAnsiConsole _ansiConsole;
         private readonly List<IDiagnostic> _diagnostics = new();
 
-        public DiagnoseCommand(ICommandContext context)
+        public DiagnoseCommand(ICommandContext context) : this(context, AnsiConsole.Console) { }
+
+        internal DiagnoseCommand(ICommandContext context, IAnsiConsole ansiConsole)
             : base("diagnose", "Run diagnostics and gather logs to diagnose problems with Git Credential Manager")
         {
             EnsureArgument.NotNull(context, nameof(context));
 
             _context = context;
+            _ansiConsole = ansiConsole;
 
             var output = new Option<string>(["--output", "-o"], "Output directory for diagnostic logs.");
             AddOption(output);
@@ -58,12 +62,12 @@ namespace GitCredentialManager.Commands
             // Don't use IStandardStreams or IConsoleService for writing output in this command
             // as we cannot trust any component on the ICommandContext is working correctly.
             // Using the default AnsiConsole directly should be safe.
-            AnsiConsole.MarkupLine("[b]Running diagnostics...[/]");
-            AnsiConsole.WriteLine();
+            _ansiConsole.MarkupLine("[b]Running diagnostics...[/]");
+            _ansiConsole.WriteLine();
 
             if (_diagnostics.Count == 0)
             {
-                AnsiConsole.WriteLine("No diagnostics to run.");
+                _ansiConsole.WriteLine("No diagnostics to run.");
                 return 0;
             }
 
@@ -102,7 +106,7 @@ namespace GitCredentialManager.Commands
 
             IReadOnlyList<string> additionalFiles = CopyFiles(outputDir, results.SelectMany(x => x.AdditionalFiles));
 
-            AnsiConsole.WriteLine();
+            _ansiConsole.WriteLine();
             PrintSummary(logFilePath, results, additionalFiles);
 
             fullLog.Close();
@@ -121,46 +125,46 @@ namespace GitCredentialManager.Commands
             int numWarned = results.Count(x => x.Outcome == DiagnosticOutcome.Warning);
             int numSkipped = results.Count(x => x.Outcome == DiagnosticOutcome.Skipped);
 
-            AnsiConsole.MarkupLine("[b u]Summary[/]");
+            _ansiConsole.MarkupLine("[b u]Summary[/]");
 
             void WriteCount(int count, string label, string color = null)
             {
                 if (color is not null && count > 0)
                 {
-                    AnsiConsole.Markup($"[{color}][b]{Markup.Escape(count.ToString())}[/] {Markup.Escape(label)}[/]");
+                    _ansiConsole.Markup($"[{color}][b]{Markup.Escape(count.ToString())}[/] {Markup.Escape(label)}[/]");
                 }
                 else
                 {
-                    AnsiConsole.MarkupInterpolated($"[b]{count}[/] {Markup.Escape(label)}");
+                    _ansiConsole.MarkupInterpolated($"[b]{count}[/] {Markup.Escape(label)}");
                 }
             }
 
             const string sep = "    ";
             WriteCount(numPassed, "passed", "green");
-            AnsiConsole.Write(sep);
+            _ansiConsole.Write(sep);
             WriteCount(numSkipped, "skipped");
-            AnsiConsole.Write(sep);
+            _ansiConsole.Write(sep);
             WriteCount(numWarned, "warned", "yellow");
-            AnsiConsole.Write(sep);
+            _ansiConsole.Write(sep);
             WriteCount(numFailed, "failed", "red");
-            AnsiConsole.WriteLine();
+            _ansiConsole.WriteLine();
 
-            AnsiConsole.WriteLine();
-            AnsiConsole.MarkupLine("[b u]Log files[/]");
-            AnsiConsole.WriteLine(logFilePath);
+            _ansiConsole.WriteLine();
+            _ansiConsole.MarkupLine("[b u]Log files[/]");
+            _ansiConsole.WriteLine(logFilePath);
             foreach (string filePath in additionalFiles)
             {
-                AnsiConsole.WriteLine(filePath);
+                _ansiConsole.WriteLine(filePath);
             }
-            AnsiConsole.WriteLine();
-            AnsiConsole.MarkupLine("[yellow]Caution: Log files may include [b]sensitive information[/] - redact before sharing![/]");
-            AnsiConsole.WriteLine();
+            _ansiConsole.WriteLine();
+            _ansiConsole.MarkupLine("[yellow]Caution: Log files may include [b]sensitive information[/] - redact before sharing![/]");
+            _ansiConsole.WriteLine();
 
             if (numFailed + numWarned > 0)
             {
-                AnsiConsole.MarkupLine("[yellow]Diagnostics indicate a possible problem with your installation.[/]");
-                AnsiConsole.MarkupLine($"[yellow]Please open an issue at [link]{Constants.HelpUrls.GcmNewIssue}[/] and include log files.[/]");
-                AnsiConsole.WriteLine();
+                _ansiConsole.MarkupLine("[yellow]Diagnostics indicate a possible problem with your installation.[/]");
+                _ansiConsole.MarkupLine($"[yellow]Please open an issue at [link]{Constants.HelpUrls.GcmNewIssue}[/] and include log files.[/]");
+                _ansiConsole.WriteLine();
             }
         }
 
@@ -193,7 +197,7 @@ namespace GitCredentialManager.Commands
                 }
                 fullLog.WriteLine();
 
-                AnsiConsole.MarkupLineInterpolated($"[grey b][[SKIP]][/] {diagnostic.Name} [grey i]({skipReason})[/]");
+                _ansiConsole.MarkupLineInterpolated($"[grey b][[SKIP]][/] {diagnostic.Name} [grey i]({skipReason})[/]");
 
                 return DiagnosticResult.Skipped(skipReason);
             }
@@ -214,13 +218,13 @@ namespace GitCredentialManager.Commands
             switch (result.Outcome)
             {
                 case DiagnosticOutcome.Success:
-                    AnsiConsole.MarkupLineInterpolated($"[green b][[ OK ]][/] {diagnostic.Name}");
+                    _ansiConsole.MarkupLineInterpolated($"[green b][[ OK ]][/] {diagnostic.Name}");
                     break;
                 case DiagnosticOutcome.Warning:
-                    AnsiConsole.MarkupLineInterpolated($"[yellow b][[WARN]][/] {diagnostic.Name}");
+                    _ansiConsole.MarkupLineInterpolated($"[yellow b][[WARN]][/] {diagnostic.Name}");
                     break;
                 case DiagnosticOutcome.Error:
-                    AnsiConsole.MarkupLineInterpolated($"[red b][[FAIL]][/] {diagnostic.Name}");
+                    _ansiConsole.MarkupLineInterpolated($"[red b][[FAIL]][/] {diagnostic.Name}");
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -230,26 +234,26 @@ namespace GitCredentialManager.Commands
             {
                 if (result.Exception is not null)
                 {
-                    AnsiConsole.WriteLine();
-                    AnsiConsole.MarkupLine("[red u]Exception Details[/]");
-                    AnsiConsole.WriteLine(result.Exception.ToString());
+                    _ansiConsole.WriteLine();
+                    _ansiConsole.MarkupLine("[red u]Exception Details[/]");
+                    _ansiConsole.WriteLine(result.Exception.ToString());
                 }
 
-                AnsiConsole.WriteLine();
-                AnsiConsole.MarkupLine("[u]Diagnostic Log[/]");
+                _ansiConsole.WriteLine();
+                _ansiConsole.MarkupLine("[u]Diagnostic Log[/]");
                 foreach (var report in result.Reports)
                 {
-                    AnsiConsole.WriteLine(report.Message);
+                    _ansiConsole.WriteLine(report.Message);
                 }
 
-                AnsiConsole.WriteLine();
+                _ansiConsole.WriteLine();
             }
 
             fullLog.Flush();
             return result;
         }
 
-        private static IReadOnlyList<string> CopyFiles(string outputDir, IEnumerable<string> additionalFiles)
+        private IReadOnlyList<string> CopyFiles(string outputDir, IEnumerable<string> additionalFiles)
         {
             var extraLogs = new List<string>();
             foreach (string filePath in additionalFiles)
@@ -262,7 +266,7 @@ namespace GitCredentialManager.Commands
                 }
                 catch
                 {
-                    AnsiConsole.MarkupLineInterpolated($"[red]Failed to copy additional file '{filePath}'[/]");
+                    _ansiConsole.MarkupLineInterpolated($"[red]Failed to copy additional file '{filePath}'[/]");
                 }
 
                 extraLogs.Add(destPath);
