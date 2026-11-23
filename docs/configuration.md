@@ -436,9 +436,9 @@ To use OAuth with Bitbucket DC it is necessary to create an external, incoming
 [AppLink](https://confluence.atlassian.com/bitbucketserver/configure-an-incoming-link-1108483657.html).
 
 It is then necessary to configure the local GCM installation with both the OAuth
-[ClientId](configuration.md#credential.bitbucketDataCenterOAuthClientId) and
-[ClientSecret](configuration.md#credential.bitbucketDataCenterOauthSecret) from
-the AppLink.
+[ClientId](configuration.md#credentialbitbucketdatacenteroauthclientid) and
+[ClientSecret](configuration.md#credentialbitbucketdatacenteroauthclientsecret)
+from the AppLink.
 
 #### Example
 
@@ -458,8 +458,8 @@ To use OAuth with Bitbucket DC it is necessary to create an external, incoming
 [AppLink](https://confluence.atlassian.com/bitbucketserver/configure-an-incoming-link-1108483657.html).
 
 It is then necessary to configure the local GCM installation with both the OAuth
-[ClientId](configuration.md#credential.bitbucketDataCenterOAuthClientId) and
-[ClientSecret](configuration.md#credential.bitbucketDataCenterOauthSecret)
+[ClientId](configuration.md#credentialbitbucketdatacenteroauthclientid) and
+[ClientSecret](configuration.md#credentialbitbucketdatacenteroauthclientsecret)
 from the AppLink.
 
 #### Example

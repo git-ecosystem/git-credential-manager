@@ -89,7 +89,7 @@ browser): [GitLab issue 332682][gitlab-issue-332682]
 1. Username/password authentication is suggested even if disabled on server:
 [GitLab issue 349463][gitlab-issue-349463]
 
-[config-gitlab-auth-modes]: configuration.md#credential.gitLabAuthModes
+[config-gitlab-auth-modes]: configuration.md#credentialgitlabauthmodes
 [gitlab]: https://gitlab.com
 [gitlab-issue-332682]: https://gitlab.com/gitlab-org/gitlab/-/issues/332682
 [gitlab-issue-374172]: https://gitlab.com/gitlab-org/gitlab/-/issues/374172
