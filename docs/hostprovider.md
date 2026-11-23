@@ -215,6 +215,17 @@ available and a terminal/TTY is attached then a provider MUST first check if
 terminal prompts are enabled (`ISettings.IsTerminalPromptsEnabled`), and an
 exception MUST be thrown if interaction has been disallowed.
 
+Several GCM processes can need the same credential at the same time, for
+example one per Git worktree when a shared cached token has expired. Prompting
+the user once per process is not useful when a single sign-in satisfies all of
+them. Where the providers share a token cache, a host provider SHOULD serialize
+interactive authentication across processes and, once it holds the lock, retry
+the non-interactive path before prompting, because another process may have
+completed the sign-in in the meantime. The Microsoft authentication (Entra)
+helper does this with a lock file in the GCM data directory, `entra-signin-*.lock`
+(one per client, authority and cache). If the lock cannot be taken, for example
+because the data directory is not writable, authentication continues without it.
+
 User-facing output and prompts SHOULD use `ICommandContext.Console`.
 Output-only messages go to stderr; interactive prompts use the controlling
 terminal. Providers MUST NOT consume Git's stdin or write user messages to its
