@@ -107,8 +107,8 @@ Create Incoming OAuth 2 Application Link:
 ### Client Configuration
 
 Set the OAuth2 configuration use the `ClientId` and `ClientSecret` copied above,
-(for details see [credential.bitbucketDataCenterOAuthClientId](configuration.md#credential.bitbucketDataCenterOAuthClientId)
-and [credential.bitbucketDataCenterOAuthClientSecret](configuration.md#credential.bitbucketDataCenterOAuthClientSecret))
+(for details see [credential.bitbucketDataCenterOAuthClientId](configuration.md#credentialbitbucketdatacenteroauthclientid)
+and [credential.bitbucketDataCenterOAuthClientSecret](configuration.md#credentialbitbucketdatacenteroauthclientsecret))
 
     ❯ git config --global credential.bitbucketDataCenterOAuthClientId {`Copied ClientId`}
 
@@ -126,15 +126,15 @@ host by specifying the host url, e.g. https://bitbucket.example.com/
 Due to the way GCM resolves hosts and determines REST API urls, if the Bitbucket
 DC instance is hosted under a relative url (e.g. https://example.com/bitbucket)
 it is necessary to configure Git to send the full path to GCM. This is done
-using the [credential.useHttpPath](configuration.md#credential.useHttpPath)
+using the [credential.useHttpPath](configuration.md#credentialusehttppath)
 setting.
     ❯ git config --global credential.https://example.com/bitbucket.usehttppath true
 <!-- markdownlint-enable MD034 -->
 
 If a port number is used in the url of the Bitbucket DC instance the Git
 configuration needs to reflect this. However, due to [Issue 608](https://github.com/git-ecosystem/git-credential-manager/issues/608)
-the port is ignored when resolving [credential.bitbucketDataCenterOAuthClientId](configuration.md#credential.bitbucketDataCenterOAuthClientId)
-and [credential.bitbucketDataCenterOAuthClientSecret](configuration.md#credential.bitbucketDataCenterOAuthClientSecret).
+the port is ignored when resolving [credential.bitbucketDataCenterOAuthClientId](configuration.md#credentialbitbucketdatacenteroauthclientid)
+and [credential.bitbucketDataCenterOAuthClientSecret](configuration.md#credentialbitbucketdatacenteroauthclientsecret).
 <!-- markdownlint-disable MD034 -->
 For example, a Bitbucket DC host at https://example.com:7990/bitbucket would
 require configuration in the form:
