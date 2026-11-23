@@ -27,6 +27,8 @@ namespace GitHub
         Task<OAuth2TokenResult> GetOAuthTokenViaBrowserAsync(Uri targetUri, IEnumerable<string> scopes, string loginHint);
 
         Task<OAuth2TokenResult> GetOAuthTokenViaDeviceCodeAsync(Uri targetUri, IEnumerable<string> scopes);
+
+        Task<OAuth2TokenResult> RefreshOAuthTokenAsync(Uri targetUri, string refreshToken);
     }
 
     public class AuthenticationPromptResult
@@ -69,6 +71,13 @@ namespace GitHub
 
         public GitHubAuthentication(ICommandContext context)
             : base(context) {}
+
+        public async Task<OAuth2TokenResult> RefreshOAuthTokenAsync(Uri targetUri, string refreshToken)
+        {
+            using HttpClient httpClient = Context.HttpClientFactory.CreateClient();
+            var client = new GitHubOAuth2Client(httpClient, Context.Settings, targetUri);
+            return await client.GetTokenByRefreshTokenAsync(refreshToken, CancellationToken.None);
+        }
 
         public async Task<string> SelectAccountAsync(Uri targetUri, IEnumerable<string> accounts)
         {

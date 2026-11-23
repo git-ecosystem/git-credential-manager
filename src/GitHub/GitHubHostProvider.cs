@@ -29,11 +29,13 @@ namespace GitHub
         private readonly IGitHubRestApi _gitHubApi;
         private readonly IGitHubAuthentication _gitHubAuth;
         private readonly ICommandContext _context;
+        private readonly TimeProvider _clock;
 
         public GitHubHostProvider(ICommandContext context)
             : this(context, new GitHubRestApi(context), new GitHubAuthentication(context)) { }
 
-        public GitHubHostProvider(ICommandContext context, IGitHubRestApi gitHubApi, IGitHubAuthentication gitHubAuth)
+        public GitHubHostProvider(ICommandContext context, IGitHubRestApi gitHubApi, IGitHubAuthentication gitHubAuth,
+            TimeProvider timeProvider = null)
         {
             EnsureArgument.NotNull(context, nameof(context));
             EnsureArgument.NotNull(gitHubApi, nameof(gitHubApi));
@@ -42,6 +44,7 @@ namespace GitHub
             _context = context;
             _gitHubApi = gitHubApi;
             _gitHubAuth = gitHubAuth;
+            _clock = timeProvider ?? TimeProvider.System;
         }
 
         public string Id => "github";
@@ -119,7 +122,13 @@ namespace GitHub
         private static string GetServiceName(Uri baseUri)
         {
             // Normalise the URI
-            string url = NormalizeUri(baseUri).AbsoluteUri;
+            string url = new UriBuilder(NormalizeUri(baseUri))
+            {
+                UserName = string.Empty,
+                Password = string.Empty,
+                Query = string.Empty,
+                Fragment = string.Empty
+            }.Uri.AbsoluteUri;
 
             // Trim trailing slash
             return url.TrimEnd('/');
@@ -138,7 +147,7 @@ namespace GitHub
             bool filtered = false;
             if (string.IsNullOrWhiteSpace(userName))
             {
-                IList<string> accounts = _context.CredentialStore.GetAccounts(service);
+                IList<string> accounts = await GetAccountsAsync(remoteUri);
                 _context.Trace.WriteLine($"Found {accounts.Count} accounts in the store for service={service}{(accounts.Count > 0 ? ":" : ".")}");
                 foreach (string account in accounts)
                 {
@@ -173,7 +182,7 @@ namespace GitHub
             else if (!string.IsNullOrWhiteSpace(userName) || !filtered)
             {
                 _context.Trace.WriteLine($"Looking for existing credential in store with service={service} account={userName}...");
-                credential = _context.CredentialStore.Get(service, userName);
+                credential = await GetStoredCredentialAsync(remoteUri, userName);
             }
 
             if (credential == null)
@@ -190,7 +199,7 @@ namespace GitHub
                 _context.Trace.WriteLine("Existing credential found.");
             }
 
-            return new GitResponse(credential);
+            return CreateGitResponse(credential);
         }
 
         private bool FilterAccounts(Uri remoteUri, IEnumerable<string> wwwAuth, ref IList<string> accounts)
@@ -241,9 +250,18 @@ namespace GitHub
             return false;
         }
 
-        public virtual Task StoreCredentialAsync(GitRequest request)
+        public virtual async Task StoreCredentialAsync(GitRequest request)
         {
             string service = GetServiceName(request);
+            Uri uri = request.GetRemoteUri();
+
+            using var credentialLock = await AcquireCredentialLockAsync(uri);
+            if (_context.CredentialStore.Get(GetOAuthServiceName(uri), request.UserName) is not null)
+            {
+                // Git may report success for a token that another process has already rotated.
+                _context.Trace.WriteLine("OAuth credentials are already stored; ignoring Git's access-token-only store.");
+                return;
+            }
 
             // WIA-authentication is signaled to Git as an empty username/password pair
             // and we will get called to 'store' these WIA credentials.
@@ -260,12 +278,42 @@ namespace GitHub
                 _context.Trace.WriteLine("Credential was successfully stored.");
             }
 
-            return Task.CompletedTask;
         }
 
-        public virtual Task EraseCredentialAsync(GitRequest request)
+        public virtual async Task EraseCredentialAsync(GitRequest request)
         {
             string service = GetServiceName(request);
+            Uri uri = request.GetRemoteUri();
+
+            using var credentialLock = await AcquireCredentialLockAsync(uri);
+            ICredential stored = _context.CredentialStore.Get(GetOAuthServiceName(uri), request.UserName);
+            if (stored is not null)
+            {
+                if (request.Password is null)
+                {
+                    DeleteOAuthCredential(uri, stored.Account);
+                    return;
+                }
+                GitHubOAuthCredential oauth;
+                try
+                {
+                    oauth = ReadOAuthCredential(uri, stored.Account);
+                }
+                catch (OAuth2Exception)
+                {
+                    DeleteOAuthCredential(uri, stored.Account);
+                    return;
+                }
+                if (request.Password != oauth.AccessToken)
+                {
+                    _context.Trace.WriteLine("Ignoring rejection of an older GitHub access token.");
+                    return;
+                }
+                oauth.ExpiresAt = DateTimeOffset.MinValue;
+                SaveOAuthCredential(uri, oauth, storeAccessToken: false);
+                _context.CredentialStore.Remove(service, oauth.Account);
+                return;
+            }
 
             // Try to locate an existing credential
             _context.Trace.WriteLine($"Erasing stored credential in store with service={service} account={request.UserName}...");
@@ -278,7 +326,6 @@ namespace GitHub
                 _context.Trace.WriteLine("No credential was erased.");
             }
 
-            return Task.CompletedTask;
         }
 
         internal /* for testing purposes */  async Task<ICredential> GenerateCredentialAsync(Uri remoteUri, string userName)
@@ -313,7 +360,7 @@ namespace GitHub
                     // We must store the PAT now so they can resume/repeat the operation with the same,
                     // now SSO authorized, PAT.
                     // See: https://github.com/git-ecosystem/git-credential-manager/issues/133
-                    _context.CredentialStore.AddOrUpdate(service, patCredential.Account, patCredential.Password);
+                    await StoreAccountCredentialAsync(remoteUri, patCredential);
                     return patCredential;
 
                 case AuthenticationModes.Browser:
@@ -336,23 +383,46 @@ namespace GitHub
                         userName = userInfo.Login;
                     }
 
-                    return new GitCredential(userName, token);
+                    var credential = new GitCredential(userName, token);
+                    await StoreAccountCredentialAsync(remoteUri, credential, onlyReplaceOAuth: true);
+                    return credential;
 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(promptResult));
             }
         }
 
-        private async Task<GitCredential> GenerateOAuthCredentialAsync(Uri targetUri, string loginHint, bool useBrowser)
+        private async Task<ICredential> GenerateOAuthCredentialAsync(Uri targetUri, string loginHint, bool useBrowser)
         {
+            EnsureSecureOAuthTransport(targetUri);
+            IEnumerable<string> scopes = CanStoreOAuthCredentials &&
+                (IsGitHubDotCom(targetUri) || IsGitHubProxima(targetUri))
+                ? GitHubOAuthScopes.Append("offline_access") : GitHubOAuthScopes;
+            DateTimeOffset requestedAt = _clock.GetUtcNow();
             OAuth2TokenResult result = useBrowser
-                ? await _gitHubAuth.GetOAuthTokenViaBrowserAsync(targetUri, GitHubOAuthScopes, loginHint)
-                : await _gitHubAuth.GetOAuthTokenViaDeviceCodeAsync(targetUri, GitHubOAuthScopes);
+                ? await _gitHubAuth.GetOAuthTokenViaBrowserAsync(targetUri, scopes, loginHint)
+                : await _gitHubAuth.GetOAuthTokenViaDeviceCodeAsync(targetUri, scopes);
 
             // Resolve the GitHub user handle
             GitHubUserInfo userInfo = await _gitHubApi.GetUserInfoAsync(targetUri, result.AccessToken);
 
-            return new GitCredential(userInfo.Login, result.AccessToken);
+            if (!string.IsNullOrWhiteSpace(result.RefreshToken))
+            {
+                if (!CanStoreOAuthCredentials)
+                {
+                    throw new InvalidOperationException(
+                        "Expiring GitHub tokens require a GCM credential store. " +
+                        "Configure credential.credentialStore before signing in again; see " +
+                        Constants.HelpUrls.GcmCredentialStores);
+                }
+                GitHubOAuthCredential credential = GitHubOAuthCredential.Create(
+                    userInfo.Login, GitHubOAuth2Client.GetClientId(_context.Settings), result, requestedAt);
+                await StoreAccountCredentialAsync(targetUri, credential);
+                return credential;
+            }
+            var legacyCredential = new GitCredential(userInfo.Login, result.AccessToken);
+            await StoreAccountCredentialAsync(targetUri, legacyCredential, onlyReplaceOAuth: true);
+            return legacyCredential;
         }
 
         private async Task<GitCredential> GeneratePersonalAccessTokenAsync(Uri targetUri, ICredential credentials)

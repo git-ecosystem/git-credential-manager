@@ -24,7 +24,7 @@ public partial class GitHubHostProvider : ICommandProvider
         //
         var listCmd = new Command("list", "List all known GitHub accounts.");
         listCmd.AddOption(urlOpt);
-        listCmd.SetHandler(ListAccounts, urlOpt);
+        listCmd.SetHandler(ListAccountsAsync, urlOpt);
 
         //
         // login [--url <url>] [--username <username>] [--device | --browser/--web | --pat/--token <token>]
@@ -60,13 +60,11 @@ public partial class GitHubHostProvider : ICommandProvider
         return rootCmd;
     }
 
-    private void ListAccounts(Uri url)
+    private async Task ListAccountsAsync(Uri url)
     {
-        string service = url is null || IsGitHubDotCom(url)
-            ? $"https://{GitHubConstants.GitHubBaseUrlHost}"
-            : GetServiceName(url);
+        url ??= new Uri($"https://{GitHubConstants.GitHubBaseUrlHost}");
 
-        IList<string> accounts = _context.CredentialStore.GetAccounts(service);
+        IList<string> accounts = await GetAccountsAsync(url);
 
         foreach (string account in accounts)
         {
@@ -81,14 +79,13 @@ public partial class GitHubHostProvider : ICommandProvider
 
         // Prefer the username specified on the command-line
         userName ??= url.GetUserName();
-
-        string service = GetServiceName(url);
+        url = new Uri(GetServiceName(url));
 
         // If we've already got a credential for this account then we can skip the login flow
         // (so long as the user isn't explicitly forcing a re-authentication).
         if (!string.IsNullOrWhiteSpace(userName) && !force)
         {
-            IList<string> existingAccounts = _context.CredentialStore.GetAccounts(service);
+            IList<string> existingAccounts = await GetAccountsAsync(url);
             if (existingAccounts.Any(x => StringComparer.OrdinalIgnoreCase.Equals(x, userName)))
             {
                 string prettyUrl = url.AbsoluteUri.TrimEnd('/');
@@ -120,25 +117,29 @@ public partial class GitHubHostProvider : ICommandProvider
             credential = await GenerateCredentialAsync(url, userName);
         }
 
-        _context.CredentialStore.AddOrUpdate(service, credential.Account, credential.Password);
+        if (credential is not GitHubOAuthCredential)
+        {
+            await StoreAccountCredentialAsync(url, credential);
+        }
 
         return 0;
     }
 
-    private Task<int> RemoveAccount(string account, Uri url)
+    private async Task<int> RemoveAccount(string account, Uri url)
     {
-        string service = url is null || IsGitHubDotCom(url)
-            ? $"https://{GitHubConstants.GitHubBaseUrlHost}"
-            : GetServiceName(url);
+        url ??= new Uri($"https://{GitHubConstants.GitHubBaseUrlHost}");
+        string service = GetServiceName(url);
 
+        using var credentialLock = await AcquireCredentialLockAsync(url);
         bool result = _context.CredentialStore.Remove(service, account);
+        result |= _context.CredentialStore.Remove(GetOAuthServiceName(url), account);
 
         if (!result)
         {
             _context.Console.WriteWarning($"no such account '{account}' found.");
-            return Task.FromResult(-1);
+            return -1;
         }
 
-        return Task.FromResult(0);
+        return 0;
     }
 }

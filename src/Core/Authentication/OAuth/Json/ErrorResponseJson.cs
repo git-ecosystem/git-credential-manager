@@ -31,7 +31,11 @@ namespace GitCredentialManager.Authentication.OAuth.Json
                 message.AppendFormat(" [{0}]", Uri);
             }
 
-            return new OAuth2Exception(message.ToString(), innerException) {HelpLink = Uri?.ToString()};
+            return new OAuth2Exception(message.ToString(), innerException)
+            {
+                ErrorCode = Error,
+                HelpLink = Uri?.ToString()
+            };
         }
     }
 }
