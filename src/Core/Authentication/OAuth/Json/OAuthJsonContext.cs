@@ -4,6 +4,7 @@ namespace GitCredentialManager.Authentication.OAuth.Json;
 
 [JsonSerializable(typeof(DeviceAuthorizationEndpointResponseJson))]
 [JsonSerializable(typeof(TokenEndpointResponseJson))]
+[JsonSerializable(typeof(TokenExchangeEndpointResponseJson))]
 [JsonSerializable(typeof(ErrorResponseJson))]
 [JsonSourceGenerationOptions(PropertyNameCaseInsensitive = true)]
 public partial class OAuthJsonContext : JsonSerializerContext;
