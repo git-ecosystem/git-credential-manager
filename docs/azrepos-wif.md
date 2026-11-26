@@ -29,6 +29,9 @@ identity provider) and exchanges it with Microsoft Entra ID for an access token
 scoped to Azure DevOps. The exact mechanism for obtaining the client assertion
 depends on the federation scenario you choose.
 
+When GCM reuses a valid cached app token, it does not request a new assertion.
+An app token does not need a signed-in user or a home account ID.
+
 ## Scenarios
 
 GCM supports three federation scenarios:

@@ -1,7 +1,11 @@
 using System;
+using System.IO;
+using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using GitCredentialManager.Authentication.Entra;
 using GitCredentialManager.Tests.Objects;
+using Microsoft.Identity.Client;
 using Xunit;
 
 namespace GitCredentialManager.Tests.Authentication.Entra;
@@ -78,5 +82,68 @@ public class EntraAuthenticationTests
 
         await Assert.ThrowsAsync<InvalidOperationException>(
             () => entraAuth.GetUserAccountsAsync());
+    }
+
+    [WindowsFact]
+    public async Task GetTokenUsingWorkloadFederationAsync_WithCachedToken_ReturnsTokenWithoutAccount()
+    {
+        const string tenantId = "11111111-1111-1111-1111-111111111111";
+        const string token = "test-access-token";
+        string[] scopes = ["https://resource.invalid/.default"];
+        var options = new WorkloadFederationOptions
+        {
+            Scenario = WorkloadFederationScenario.Generic,
+            TenantId = tenantId,
+            ClientId = "22222222-2222-2222-2222-222222222222",
+            GenericClientAssertion = "test-client-assertion",
+        };
+        var tokenEndpoint = new Uri($"https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token");
+        using var handler = new TestHttpMessageHandler { ThrowOnUnexpectedRequest = true };
+        handler.Setup(HttpMethod.Get, new Uri("https://login.microsoftonline.com/common/discovery/instance"),
+            HttpStatusCode.OK, $$"""
+            {
+              "tenant_discovery_endpoint": "https://login.microsoftonline.com/{{tenantId}}/v2.0/.well-known/openid-configuration",
+              "metadata": [{
+                "preferred_network": "login.microsoftonline.com",
+                "preferred_cache": "login.windows.net",
+                "aliases": ["login.microsoftonline.com", "login.windows.net"]
+              }]
+            }
+            """);
+        handler.Setup(HttpMethod.Post, tokenEndpoint, HttpStatusCode.OK, $$"""
+            { "token_type": "Bearer", "expires_in": 3600, "access_token": "{{token}}" }
+            """);
+
+        DirectoryInfo cacheDirectory = Directory.CreateTempSubdirectory();
+        try
+        {
+            var context = new TestCommandContext
+            {
+                FileSystem = { UserDataDirectoryPath = cacheDirectory.FullName },
+                HttpClientFactory = { MessageHandler = handler },
+            };
+            var cold = await new EntraAuthentication(context).GetTokenUsingWorkloadFederationAsync(scopes, options);
+            Assert.Equal(token, cold.AccessToken);
+            Assert.Null(cold.Account);
+            handler.AssertRequest(HttpMethod.Post, tokenEndpoint, 1);
+
+            handler.Setup(HttpMethod.Post, tokenEndpoint, HttpStatusCode.Unauthorized, """
+                { "error": "invalid_client", "error_description": "Test exchange rejected" }
+                """);
+            var warm = await new EntraAuthentication(context).GetTokenUsingWorkloadFederationAsync(scopes, options);
+            Assert.Equal(token, warm.AccessToken);
+            Assert.Null(warm.Account);
+            handler.AssertRequest(HttpMethod.Post, tokenEndpoint, 1);
+
+            var denied = await Assert.ThrowsAsync<MsalServiceException>(() =>
+                new EntraAuthentication(context).GetTokenUsingWorkloadFederationAsync(
+                    ["https://other-resource.invalid/.default"], options));
+            Assert.Equal("invalid_client", denied.ErrorCode);
+            handler.AssertRequest(HttpMethod.Post, tokenEndpoint, 2);
+        }
+        finally
+        {
+            cacheDirectory.Delete(recursive: true);
+        }
     }
 }

@@ -31,11 +31,14 @@ public partial class EntraAuthentication : AuthenticationBase, IEntraAuthenticat
     {
         private AuthResult() { }
 
-        public static IEntraAuthenticationResult FromMsalResult(AuthenticationResult result) =>
+        public static IEntraAuthenticationResult FromMsalResult(AuthenticationResult result,
+            bool allowMissingHomeAccountId = false) =>
             new AuthResult
             {
                 AccessToken = result.AccessToken,
-                Account = result.Account is null ? null : EntraAccount.FromMsalAccount(result.Account)
+                Account = result.Account is null || (allowMissingHomeAccountId && result.Account.HomeAccountId is null)
+                    ? null
+                    : EntraAccount.FromMsalAccount(result.Account)
             };
 
         public string AccessToken { get; private init; }
