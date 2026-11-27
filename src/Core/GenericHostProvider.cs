@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using GitCredentialManager.Authentication;
 using GitCredentialManager.Authentication.OAuth;
-using GitCredentialManager.Tty;
 
 namespace GitCredentialManager
 {
@@ -75,17 +74,27 @@ namespace GitCredentialManager
             if (credential == null)
             {
                 _context.Trace.WriteLine("No existing credentials found.");
-
-                // No existing credential was found, create a new one
-                _context.Trace.WriteLine("Creating new credential...");
-                return await GenerateCredentialAsync(request);
+            }
+            else if (IStructuredSecret.TryCreate(credential.Password, out IStructuredSecret secret))
+            {
+                _context.Trace.WriteLine($"Existing credential found (type={secret.Type}).");
+                // comparing null and long will always be false, allow 5 minutes headroom till expiration
+                if (!(secret.Expiry < (DateTimeOffset.Now.ToUnixTimeSeconds() + 5 * 60)))
+                {
+                    var ephemeral = false; // TODO: adjust when applicable: 'authtype' support present, credential stored proactively
+                    return GitResponse.Ok(new GitCredential(credential.Account, secret.Value), isEphemeral: ephemeral, authtype: null);
+                }
+                _context.Trace.WriteLine("Credential is expired.");
             }
             else
             {
                 _context.Trace.WriteLine("Existing credential found.");
+                return new GitResponse(credential);
             }
 
-            return new GitResponse(credential);
+            // No valid credential was found, create a new one
+            _context.Trace.WriteLine("Creating new credential...");
+            return await GenerateCredentialAsync(request);
         }
 
         public Task StoreCredentialAsync(GitRequest request)
@@ -159,9 +168,13 @@ namespace GitCredentialManager
                 _context.Trace.WriteLine($"\tUseAuthHeader   = {oauthConfig.UseAuthHeader}");
                 _context.Trace.WriteLine($"\tDefaultUserName = {oauthConfig.DefaultUserName}");
 
-                return new GitResponse(
-                    await GetOAuthAccessToken(uri, request.UserName, oauthConfig)
-                );
+                var credential = await GetOAuthAccessToken(uri, request.UserName, oauthConfig);
+                if (IStructuredSecret.TryCreate(credential.Password, out IStructuredSecret secret))
+                {
+                    var ephemeral = false; // TODO: adjust when applicable: 'authtype' support present, credential stored proactively
+                    return GitResponse.Ok(new GitCredential(credential.Account, secret.Value), isEphemeral: ephemeral, authtype: null);
+                }
+                return new GitResponse(credential);
             }
 
             // Try detecting WIA for this remote, if permitted and possible (http(s) required for probing WIA)
