@@ -35,7 +35,7 @@ public partial class EntraAuthentication : AuthenticationBase, IEntraAuthenticat
             new AuthResult
             {
                 AccessToken = result.AccessToken,
-                Account = result.Account is null ? null : EntraAccount.FromMsalAccount(result.Account)
+                Account = result.Account?.HomeAccountId is null ? null : EntraAccount.FromMsalAccount(result.Account)
             };
 
         public string AccessToken { get; private init; }
