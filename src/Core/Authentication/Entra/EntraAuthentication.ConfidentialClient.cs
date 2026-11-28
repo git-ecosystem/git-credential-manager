@@ -95,7 +95,7 @@ public partial class EntraAuthentication
         AuthenticationResult result = await app.AcquireTokenForClient(scopes)
             .ExecuteAsync(ct);
 
-        return AuthResult.FromMsalResult(result, allowMissingHomeAccountId: true);
+        return AuthResult.FromMsalResult(result);
     }
 
     private async Task<string> GetClientAssertion(WorkloadFederationOptions fedOpts, AssertionRequestOptions _)
